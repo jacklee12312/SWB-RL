@@ -30,7 +30,18 @@ from swb.engine.effects import (
     TargetKind,
 )
 from swb.engine.events import EventType, GameEvent
-from swb.engine.state import Amulet, BoardCard, GameState, Phase, PlayerState, Unit
+from swb.engine.state import (
+    Amulet,
+    BoardCard,
+    DeathBatch,
+    DeathCause,
+    DeathRecord,
+    GameState,
+    Phase,
+    PlayerState,
+    ResolutionLoopError,
+    Unit,
+)
 from swb.engine.targeting import (
     build_choice_options,
     hand_choice_options,
@@ -44,6 +55,9 @@ from swb.engine.targeting import (
 
 class IllegalCommand(ValueError):
     pass
+
+
+MAX_RESOLUTION_STEPS = 20_000
 
 
 @dataclass(frozen=True)
@@ -98,6 +112,11 @@ class GameEngine:
         self.event_history: list[GameEvent] = []
         self.placeholder_ability_events: list[PlaceholderAbilityEvent] = []
         self.ability_handlers = AbilityHandlers(self)
+        self._stabilizing: bool = False
+        self._death_causes: dict[int, DeathCause] = {}
+        self._suspended_batch: DeathBatch | None = None
+        self._suspended_record: DeathRecord | None = None
+        self._suspended_lw_records: list[DeathRecord] = []
 
     @property
     def players(self) -> list[PlayerState]:
@@ -354,6 +373,18 @@ class GameEngine:
         move_source_to_graveyard: bool = False,
         label: str = "效果",
     ) -> None:
+        self._queue_effects(card, source_entity_id, operations, move_source_to_graveyard=move_source_to_graveyard, label=label)
+        self._continue_effects()
+
+    def _queue_effects(
+        self,
+        card: CardDefinition,
+        source_entity_id: int | None,
+        operations: tuple[EffectOperation, ...],
+        *,
+        move_source_to_graveyard: bool = False,
+        label: str = "效果",
+    ) -> EffectFrame:
         frame = EffectFrame(
             controller=self.current_player,
             source_card_id=card.card_id,
@@ -365,13 +396,33 @@ class GameEngine:
             move_source_to_graveyard=move_source_to_graveyard,
         )
         self.state.effect_stack.append(frame)
-        self._continue_effects()
+        return frame
+
+    def _step(self) -> None:
+        self.state.resolution_steps += 1
+        if self.state.resolution_steps > MAX_RESOLUTION_STEPS:
+            recent = [e.type.value for e in self.event_history[-20:]]
+            frames = [(f.source_name, f.next_index, f.label) for f in self.state.effect_stack[-5:]]
+            batches = [len(b.records) for b in self.state.death_queue[-3:]]
+            raise ResolutionLoopError(
+                f"Resolution step limit exceeded at turn {self.turn}, "
+                f"player {self.current_player + 1}. "
+                f"Recent events: {recent}. "
+                f"Effect stack: {frames}. "
+                f"Death queue sizes: {batches}."
+            )
 
     def _continue_effects(self) -> None:
         while self.state.effect_stack and self.state.pending_choice is None:
+            self._step()
             frame = self.state.effect_stack[-1]
+
+            if frame.defer_stabilize:
+                break
             if frame.next_index >= len(frame.operations):
                 self.state.effect_stack.pop()
+                if frame.defer_stabilize:
+                    self._stabilize()
                 if frame.move_source_to_graveyard:
                     self.players[frame.controller].graveyard.append(frame.source_card)
                     self._emit(
@@ -390,19 +441,40 @@ class GameEngine:
                 if not options:
                     frame.next_index += 1
                     continue
-                self.state.pending_choice = ChoiceRequest(
-                    player_index=frame.controller,
-                    prompt=f"为 {frame.source_name} 选择目标",
-                    options=tuple(options),
-                    continuation_id=f"{frame.source_card_id}:{frame.next_index}",
-                )
-                self.state.phase = Phase.AWAITING_CHOICE
-                self._log(
-                    frame.controller,
-                    f"{frame.source_name} 等待选择目标："
-                    + "、".join(option.label for option in options),
-                )
-                return
+                if frame.auto_resolve_choices:
+                    chosen = self.random.choice(options)
+                    self._log(frame.controller, f"自动选择目标：{chosen.label}")
+                    frame.pending_target_id = chosen.entity_id
+                else:
+                    self.state.pending_choice = ChoiceRequest(
+                        player_index=frame.controller,
+                        prompt=f"为 {frame.source_name} 选择目标",
+                        options=tuple(options),
+                        continuation_id=f"{frame.source_card_id}:{frame.next_index}",
+                    )
+                    self.state.phase = Phase.AWAITING_CHOICE
+                    self._log(
+                        frame.controller,
+                        f"{frame.source_name} 等待选择目标："
+                        + "、".join(option.label for option in options),
+                    )
+                    return
+
+            if is_all_target(operation.target) and not frame.defer_stabilize:
+                candidates = target_candidates(operation, frame.controller, self.players)
+                if not candidates:
+                    frame.next_index += 1
+                    continue
+                frame.defer_stabilize = True
+                for entity in candidates:
+                    if entity.entity_id not in [e.entity_id for board in [self.players[p].board for p in (0, 1)] for e in board]:
+                        continue
+                    self._execute_effect(operation, frame, entity.entity_id)
+                self._resolve_event_queue()
+                self._stabilize()
+                frame.defer_stabilize = False
+                frame.next_index += 1
+                continue
 
             if is_random_target(operation.target) and frame.pending_target_id is None:
                 candidates = target_candidates(operation, frame.controller, self.players)
@@ -411,33 +483,12 @@ class GameEngine:
                     frame.next_index += 1
                     continue
                 target_id = chosen.entity_id
-            elif is_all_target(operation.target) and not frame._all_target_ids:
-                candidates = target_candidates(operation, frame.controller, self.players)
-                if not candidates:
-                    frame.next_index += 1
-                    continue
-                all_ids = [entity.entity_id for entity in candidates]
-                frame._all_target_ids = all_ids
-                frame._all_target_index = 0
-                target_id = all_ids[0]
-                frame._all_target_index = 1
-            elif is_all_target(operation.target) and frame._all_target_ids:
-                idx = frame._all_target_index
-                if idx < len(frame._all_target_ids):
-                    target_id = frame._all_target_ids[idx]
-                    frame._all_target_index = idx + 1
-                else:
-                    frame._all_target_ids = []
-                    frame._all_target_index = 0
-                    frame.next_index += 1
-                    continue
             else:
                 target_id = frame.pending_target_id
                 frame.pending_target_id = None
 
             self._execute_effect(operation, frame, target_id)
-            if not is_all_target(operation.target):
-                frame.next_index += 1
+            frame.next_index += 1
             self._resolve_event_queue()
             self._stabilize()
 
@@ -517,37 +568,9 @@ class GameEngine:
         player = self.players[owner]
         if amulet not in player.board:
             return
-        player.board.remove(amulet)
-        player.graveyard.append(amulet.definition)
-        player.shadows += 1
-        self._log(owner, f"护符 {amulet.definition.name} 被破坏")
-        self._emit(
-            GameEvent(
-                EventType.AMULET_DESTROYED,
-                owner,
-                source_id=amulet.entity_id,
-                metadata={"source": amulet},
-            )
-        )
-        operations = self.rulebook.operations_for(
-            amulet.definition.card_id, Trigger.COUNTDOWN_EXPIRED
-        )
-        if not operations:
-            operations = self.rulebook.operations_for(
-                amulet.definition.card_id, Trigger.LAST_WORDS
-            )
-        if operations:
-            active = self.state.active_player
-            self.state.active_player = owner
-            try:
-                self._start_effects(
-                    amulet.definition,
-                    amulet.entity_id,
-                    operations,
-                    label="谢幕曲",
-                )
-            finally:
-                self.state.active_player = active
+        self._log(owner, f"护符 {amulet.definition.name} 倒数归零")
+        amulet.pending_destroy = True
+        self._stabilize()
 
     def _evolve(self, command: Evolve) -> None:
         player = self.players[self.current_player]
@@ -648,6 +671,10 @@ class GameEngine:
         counter_damage = target.attack
         attacker.health -= counter_damage
         target.health -= attack_damage
+        if attacker.health <= 0:
+            self._death_causes[attacker.entity_id] = DeathCause.COMBAT
+        if target.health <= 0:
+            self._death_causes[target.entity_id] = DeathCause.COMBAT
         self._emit(
             GameEvent(
                 EventType.DAMAGE_DEALT,
@@ -873,6 +900,15 @@ class GameEngine:
             if not isinstance(target, Unit):
                 raise IllegalCommand("Damage target must be a follower")
             target.health -= effect.amount
+            self._emit(
+                GameEvent(
+                    EventType.DAMAGE_APPLIED,
+                    frame.controller,
+                    source_id=target.entity_id,
+                    amount=effect.amount,
+                    metadata={"card_id": target.definition.card_id},
+                )
+            )
             self._log(
                 frame.controller,
                 f"{name} 对 {target.definition.name} 造成 {effect.amount} 点伤害"
@@ -906,8 +942,9 @@ class GameEngine:
             target = self._find_board_entity(target_id)
             if isinstance(target, Unit):
                 target.health = 0
+                self._death_causes[target.entity_id] = DeathCause.EFFECT_DESTROY
             elif isinstance(target, Amulet):
-                self._destroy_amulet(target)
+                target.pending_destroy = True
         elif effect.kind is EffectKind.SUMMON:
             self._execute_summon(effect, frame)
         elif effect.kind is EffectKind.BANISH:
@@ -1135,18 +1172,28 @@ class GameEngine:
             EventType.FOLLOWER_DESTROYED: AbilityEvent.FOLLOWER_DESTROYED,
         }
         while self.state.event_queue:
+            self._step()
             event = self.state.event_queue.popleft()
             self.event_history.append(event)
             ability_event = event_to_ability.get(event.type)
             source = event.metadata.get("source")
+            if source is None:
+                source = event.metadata.get("definition")
             target = event.metadata.get("target")
-            if ability_event is not None and isinstance(source, Unit):
-                self._dispatch_ability(
-                    ability_event,
-                    source,
-                    target if isinstance(target, Unit) else None,
-                    player_index=event.player_index,
-                )
+            if ability_event is not None and source is not None:
+                if isinstance(source, Unit):
+                    self._dispatch_ability(
+                        ability_event,
+                        source,
+                        target if isinstance(target, Unit) else None,
+                        player_index=event.player_index,
+                    )
+                elif hasattr(source, "card_id"):
+                    self._dispatch_card_ability(
+                        ability_event,
+                        source,
+                        player_index=event.player_index,
+                    )
                 if event.type is EventType.COMBAT_STARTED and isinstance(target, Unit):
                     self._dispatch_ability(
                         ability_event,
@@ -1156,34 +1203,190 @@ class GameEngine:
                     )
 
     def _stabilize(self) -> None:
+        if self._stabilizing:
+            return
+        if self.state.pending_choice is not None:
+            return
+        self._stabilizing = True
+        try:
+            if self._suspended_record is not None:
+                self._resume_death_batch()
+            while self._suspended_batch is not None:
+                self._continue_batch_lws()
+                if self.state.pending_choice is not None:
+                    return
+            self._do_stabilize()
+        finally:
+            self._stabilizing = False
+
+    def _resume_death_batch(self) -> None:
+        record = self._suspended_record
+        self._suspended_record = None
+        self._emit(GameEvent(
+            EventType.LAST_WORDS_COMPLETE,
+            record.owner,
+            source_id=record.entity_id,
+            metadata={"card_id": record.card_id},
+        ))
+
+    def _continue_batch_lws(self) -> None:
+        batch = self._suspended_batch
+        lw_records = self._suspended_lw_records
+        while lw_records:
+            record = lw_records[0]
+            self._suspended_lw_records = lw_records[1:]
+            self._execute_last_words(record)
+            self._continue_effects()
+            if self.state.pending_choice is not None:
+                self._suspended_record = record
+                self._suspended_batch = batch
+                self._stabilizing = False
+                return
+            self._emit(GameEvent(
+                EventType.LAST_WORDS_COMPLETE,
+                record.owner,
+                source_id=record.entity_id,
+                metadata={"card_id": record.card_id},
+            ))
+            lw_records = self._suspended_lw_records
+        self._emit(GameEvent(
+            EventType.DEATH_BATCH_END,
+            self.current_player,
+            metadata={"batch_id": batch.batch_id},
+        ))
+        self._resolve_event_queue()
+        self._suspended_batch = None
+
+    def _do_stabilize(self) -> None:
         while True:
-            dead_units: list[tuple[int, Unit]] = []
-            for player_index, player in enumerate(self.players):
-                dead_units.extend(
-                    (player_index, unit)
-                    for unit in player.board
-                    if isinstance(unit, Unit) and unit.health <= 0
-                )
-            if not dead_units:
+            self._step()
+            batch = self._collect_death_batch()
+            if not batch.records:
                 break
-            for player_index, unit in dead_units:
-                player = self.players[player_index]
-                if unit not in player.board:
-                    continue
-                player.board.remove(unit)
-                player.graveyard.append(unit.definition)
-                player.followers_destroyed_this_turn += 1
-                player.shadows += 1
-                self._emit(
-                    GameEvent(
-                        EventType.FOLLOWER_DESTROYED,
-                        player_index,
-                        source_id=unit.entity_id,
-                        metadata={"source": unit},
-                    )
+            self.state.death_queue.append(batch)
+            self._emit(
+                GameEvent(
+                    EventType.DEATH_BATCH_START,
+                    self.current_player,
+                    metadata={"batch_id": batch.batch_id, "count": len(batch.records)},
                 )
+            )
+
+            for record in sorted(batch.records, key=self._last_words_order_key):
+                player = self.players[record.owner]
+                if record.card_type == "护符":
+                    self._log(record.owner, f"护符 {record.card_name} 被破坏")
+                    self._emit(GameEvent(
+                        EventType.AMULET_DESTROYED, record.owner,
+                        source_id=record.entity_id,
+                        metadata={"card_id": record.card_id, "cause": record.cause.value, "definition": record.definition},
+                    ))
+                else:
+                    player.followers_destroyed_this_turn += 1
+                    self._log(record.owner, f"随从 {record.card_name} 被破坏")
+                    self._emit(GameEvent(
+                        EventType.FOLLOWER_DESTROYED, record.owner,
+                        source_id=record.entity_id,
+                        metadata={"card_id": record.card_id, "cause": record.cause.value, "definition": record.definition},
+                    ))
+                self._emit(GameEvent(
+                    EventType.ENTITY_LEFT_PLAY, record.owner,
+                    source_id=record.entity_id,
+                    metadata={"card_id": record.card_id, "cause": record.cause.value},
+                ))
+
             self._resolve_event_queue()
+
+            lw_records = [r for r in sorted(batch.records, key=self._last_words_order_key) if r.allows_last_words]
+            if not lw_records:
+                self._emit(GameEvent(
+                    EventType.DEATH_BATCH_END, self.current_player,
+                    metadata={"batch_id": batch.batch_id},
+                ))
+                self._resolve_event_queue()
+                continue
+
+            self._suspended_batch = batch
+            self._suspended_lw_records = list(lw_records)
+            self._continue_batch_lws()
+            if self.state.pending_choice is not None:
+                return
+
         self._check_game_over()
+
+    def _collect_death_batch(self) -> DeathBatch:
+        records: list[DeathRecord] = []
+        batch_id = len(self.state.death_queue) + 1
+
+        for player_index, player in enumerate(self.players):
+            for pos, entity in enumerate(tuple(player.board)):
+                if isinstance(entity, Unit) and entity.health <= 0:
+                    cause = self._death_causes.pop(entity.entity_id, DeathCause.ZERO_HEALTH)
+                    record = DeathRecord(
+                        owner=player_index,
+                        entity_id=entity.entity_id,
+                        card_id=entity.definition.card_id,
+                        card_name=entity.definition.name,
+                        card_type="随从",
+                        definition=entity.definition,
+                        cause=cause,
+                        board_position=pos,
+                        allows_last_words=True,
+                    )
+                    player.board.remove(entity)
+                    player.graveyard.append(entity.definition)
+                    player.shadows += 1
+                    records.append(record)
+                elif isinstance(entity, Amulet) and entity.pending_destroy:
+                    cause = DeathCause.COUNTDOWN_EXPIRED if entity.countdown is not None and entity.countdown <= 0 else DeathCause.EFFECT_DESTROY
+                    record = DeathRecord(
+                        owner=player_index,
+                        entity_id=entity.entity_id,
+                        card_id=entity.definition.card_id,
+                        card_name=entity.definition.name,
+                        card_type="护符",
+                        definition=entity.definition,
+                        cause=cause,
+                        board_position=pos,
+                        allows_last_words=True,
+                    )
+                    player.board.remove(entity)
+                    player.graveyard.append(entity.definition)
+                    player.shadows += 1
+                    records.append(record)
+
+        return DeathBatch(records=records, batch_id=batch_id)
+
+    def _last_words_order_key(self, record: DeathRecord) -> tuple[int, int, int]:
+        active = self.state.active_player
+        return (0 if record.owner == active else 1, record.owner, record.board_position)
+
+    def _execute_last_words(self, record: DeathRecord) -> None:
+        self._step()
+        self._emit(GameEvent(
+            EventType.LAST_WORDS_START,
+            record.owner,
+            source_id=record.entity_id,
+            metadata={"card_id": record.card_id},
+        ))
+        self._log(record.owner, f"{record.card_name} 谢幕曲开始")
+
+        operations = self.rulebook.operations_for(record.card_id, Trigger.LAST_WORDS)
+        if not operations and record.card_type == "护符":
+            operations = self.rulebook.operations_for(record.card_id, Trigger.COUNTDOWN_EXPIRED)
+
+        if operations:
+            saved_active = self.state.active_player
+            self.state.active_player = record.owner
+            try:
+                self._queue_effects(
+                    record.definition,
+                    record.entity_id,
+                    operations,
+                    label="谢幕曲",
+                )
+            finally:
+                self.state.active_player = saved_active
 
     def _check_game_over(self) -> None:
         dead = [index for index, player in enumerate(self.players) if player.health <= 0]

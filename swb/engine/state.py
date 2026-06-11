@@ -19,6 +19,42 @@ class Phase(str, Enum):
     FINISHED = "finished"
 
 
+class DeathCause(str, Enum):
+    COMBAT = "combat"
+    ZERO_HEALTH = "zero_health"
+    EFFECT_DESTROY = "effect_destroy"
+    COUNTDOWN_EXPIRED = "countdown_expired"
+    BANISH = "banish"
+    RETURN_TO_HAND = "return_to_hand"
+    RETURN_TO_DECK = "return_to_deck"
+    TRANSFORM = "transform"
+
+
+@dataclass(frozen=True)
+class DeathRecord:
+    owner: int
+    entity_id: int
+    card_id: int
+    card_name: str
+    card_type: str
+    definition: CardDefinition
+    cause: DeathCause
+    source_player: int | None = None
+    source_entity_id: int | None = None
+    board_position: int = 0
+    allows_last_words: bool = False
+
+
+@dataclass
+class DeathBatch:
+    records: list[DeathRecord] = field(default_factory=list)
+    batch_id: int = 0
+
+
+class ResolutionLoopError(Exception):
+    pass
+
+
 @dataclass(kw_only=True)
 class BoardEntity:
     definition: CardDefinition
@@ -63,6 +99,7 @@ class Unit(BoardEntity):
 class Amulet(BoardEntity):
     countdown: int | None = None
     entered_turn: int = 0
+    pending_destroy: bool = False
 
 
 BoardCard = Unit | Amulet
@@ -103,6 +140,8 @@ class GameState:
     event_queue: deque[GameEvent] = field(default_factory=deque)
     pending_choice: ChoiceRequest | None = None
     effect_stack: list[EffectFrame] = field(default_factory=list)
+    death_queue: list[DeathBatch] = field(default_factory=list)
+    resolution_steps: int = 0
     next_entity_id: int = 1
 
     @property

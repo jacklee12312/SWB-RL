@@ -16,6 +16,7 @@ class EventType(str, Enum):
     ATTACK_DECLARED = "attack_declared"
     COMBAT_STARTED = "combat_started"
     DAMAGE_DEALT = "damage_dealt"
+    DAMAGE_APPLIED = "damage_applied"
     FOLLOWER_DESTROYED = "follower_destroyed"
     AMULET_DESTROYED = "amulet_destroyed"
     GAME_ENDED = "game_ended"
@@ -24,6 +25,12 @@ class EventType(str, Enum):
     CARD_RETURNED_TO_HAND = "card_returned_to_hand"
     CARD_RETURNED_TO_DECK = "card_returned_to_deck"
     CARD_DISCARDED = "card_discarded"
+    DEATH_DETECTED = "death_detected"
+    ENTITY_LEFT_PLAY = "entity_left_play"
+    DEATH_BATCH_START = "death_batch_start"
+    DEATH_BATCH_END = "death_batch_end"
+    LAST_WORDS_START = "last_words_start"
+    LAST_WORDS_COMPLETE = "last_words_complete"
 
 
 @dataclass(frozen=True)

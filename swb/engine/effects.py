@@ -78,3 +78,5 @@ class EffectFrame:
     move_source_to_graveyard: bool = False
     _all_target_ids: list[int] = field(default_factory=list)
     _all_target_index: int = 0
+    defer_stabilize: bool = False
+    auto_resolve_choices: bool = False
