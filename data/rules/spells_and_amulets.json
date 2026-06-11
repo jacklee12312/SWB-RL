@@ -1,0 +1,65 @@
+{
+  "rules": [
+    {
+      "card_id": 10031310,
+      "trigger": "play",
+      "operations": [
+        {
+          "kind": "draw",
+          "target": "own_leader",
+          "amount": 1
+        }
+      ]
+    },
+    {
+      "card_id": 10041310,
+      "trigger": "play",
+      "operations": [
+        {
+          "kind": "damage_unit",
+          "target": "enemy_unit",
+          "amount": 2
+        }
+      ]
+    },
+    {
+      "card_id": 10031210,
+      "trigger": "play",
+      "operations": [
+        {
+          "kind": "draw",
+          "target": "own_leader",
+          "amount": 1
+        }
+      ]
+    },
+    {
+      "card_id": 10161210,
+      "trigger": "play",
+      "countdown": 3,
+      "operations": []
+    },
+    {
+      "card_id": 10161210,
+      "trigger": "countdown_expired",
+      "operations": [
+        {
+          "kind": "draw",
+          "target": "own_leader",
+          "amount": 2
+        }
+      ]
+    },
+    {
+      "card_id": 10563210,
+      "trigger": "play",
+      "operations": [
+        {
+          "kind": "damage_unit",
+          "target": "enemy_unit",
+          "amount": 5
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,31 @@
+from __future__ import annotations
+
+from dataclasses import dataclass, field
+from enum import Enum
+
+
+class EventType(str, Enum):
+    TURN_STARTED = "turn_started"
+    TURN_ENDED = "turn_ended"
+    CARD_DRAWN = "card_drawn"
+    CARD_PLAYED = "card_played"
+    FOLLOWER_SUMMONED = "follower_summoned"
+    AMULET_ENTERED = "amulet_entered"
+    SPELL_RESOLVED = "spell_resolved"
+    FOLLOWER_EVOLVED = "follower_evolved"
+    ATTACK_DECLARED = "attack_declared"
+    COMBAT_STARTED = "combat_started"
+    DAMAGE_DEALT = "damage_dealt"
+    FOLLOWER_DESTROYED = "follower_destroyed"
+    AMULET_DESTROYED = "amulet_destroyed"
+    GAME_ENDED = "game_ended"
+
+
+@dataclass(frozen=True)
+class GameEvent:
+    type: EventType
+    player_index: int
+    source_id: int | None = None
+    target_id: int | None = None
+    amount: int = 0
+    metadata: dict[str, object] = field(default_factory=dict)

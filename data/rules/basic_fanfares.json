@@ -1,0 +1,64 @@
+{
+  "rules": [
+    {
+      "card_id": 10051120,
+      "trigger": "fanfare",
+      "operations": [
+        {
+          "kind": "damage_leader",
+          "target": "own_leader",
+          "amount": 1
+        }
+      ]
+    },
+    {
+      "card_id": 10061110,
+      "trigger": "fanfare",
+      "operations": [
+        {
+          "kind": "heal_leader",
+          "target": "own_leader",
+          "amount": 5
+        }
+      ]
+    },
+    {
+      "card_id": 10041130,
+      "trigger": "fanfare",
+      "operations": [
+        {
+          "kind": "damage_leader",
+          "target": "enemy_leader",
+          "amount": 6
+        }
+      ]
+    },
+    {
+      "card_id": 10161130,
+      "trigger": "fanfare",
+      "operations": [
+        {
+          "kind": "draw",
+          "target": "own_leader",
+          "amount": 2
+        },
+        {
+          "kind": "heal_leader",
+          "target": "own_leader",
+          "amount": 2
+        }
+      ]
+    },
+    {
+      "card_id": 10671110,
+      "trigger": "fanfare",
+      "operations": [
+        {
+          "kind": "draw",
+          "target": "own_leader",
+          "amount": 3
+        }
+      ]
+    }
+  ]
+}
