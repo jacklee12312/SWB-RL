@@ -70,6 +70,7 @@ def main() -> None:
         class_a=PLAYER_CLASS_ID,
         class_b=PLAYER_CLASS_ID,
         seed=args.seed,
+        card_resolver=repository.get,
     )
     env.reset(seed=args.seed)
     rng = random.Random(args.seed)

@@ -35,6 +35,7 @@ def main() -> None:
             class_a=class_a,
             class_b=class_b,
             seed=args.seed + game,
+            card_resolver=repository.get,
         )
         env.reset()
         while not env.terminated:

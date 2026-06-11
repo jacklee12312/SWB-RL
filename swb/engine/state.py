@@ -74,6 +74,7 @@ class PlayerState:
     class_id: int
     class_name: str
     hand: list[CardDefinition] = field(default_factory=list)
+    hand_entity_ids: list[int] = field(default_factory=list)
     board: list[BoardCard] = field(default_factory=list)
     graveyard: list[CardDefinition] = field(default_factory=list)
     banished: list[CardDefinition] = field(default_factory=list)

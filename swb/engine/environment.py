@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Sequence
+from typing import Callable, Sequence
 
 from swb.db.repository import CardDefinition
 from swb.engine.commands import Attack, Choose, EndTurn, Evolve, GameCommand, PlayCard
@@ -51,6 +51,7 @@ class ShadowverseEnv:
         class_b: int,
         seed: int | None = None,
         rulebook: RuleBook | None = None,
+        card_resolver: Callable[[int], CardDefinition | None] | None = None,
     ):
         resolved_rulebook = rulebook or RuleBook.from_directory(
             self.DEFAULT_RULE_DIRECTORY
@@ -62,6 +63,7 @@ class ShadowverseEnv:
             class_b=class_b,
             seed=seed,
             rulebook=resolved_rulebook,
+            card_resolver=card_resolver,
             config=GameConfig(
                 max_hand=self.MAX_HAND,
                 max_board=self.MAX_BOARD,

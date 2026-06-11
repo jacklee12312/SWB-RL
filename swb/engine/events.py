@@ -19,6 +19,11 @@ class EventType(str, Enum):
     FOLLOWER_DESTROYED = "follower_destroyed"
     AMULET_DESTROYED = "amulet_destroyed"
     GAME_ENDED = "game_ended"
+    CARD_BANISHED = "card_banished"
+    CARD_ADDED_TO_HAND = "card_added_to_hand"
+    CARD_RETURNED_TO_HAND = "card_returned_to_hand"
+    CARD_RETURNED_TO_DECK = "card_returned_to_deck"
+    CARD_DISCARDED = "card_discarded"
 
 
 @dataclass(frozen=True)

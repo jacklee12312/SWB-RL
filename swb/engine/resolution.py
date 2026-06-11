@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import random
 from dataclasses import dataclass
-from typing import Sequence
+from typing import Callable, Sequence
 
 from swb.db.repository import CardDefinition
 from swb.engine.abilities import (
@@ -31,6 +31,15 @@ from swb.engine.effects import (
 )
 from swb.engine.events import EventType, GameEvent
 from swb.engine.state import Amulet, BoardCard, GameState, Phase, PlayerState, Unit
+from swb.engine.targeting import (
+    build_choice_options,
+    hand_choice_options,
+    is_all_target,
+    is_choice_target,
+    is_random_target,
+    pick_random,
+    target_candidates,
+)
 
 
 class IllegalCommand(ValueError):
@@ -71,6 +80,7 @@ class GameEngine:
         seed: int | None = None,
         config: GameConfig | None = None,
         rulebook: RuleBook | None = None,
+        card_resolver: Callable[[int], CardDefinition | None] | None = None,
     ):
         for player_index, (deck, class_id) in enumerate(
             zip((deck_a, deck_b), (class_a, class_b)),
@@ -81,6 +91,7 @@ class GameEngine:
         self.player_classes = (class_a, class_b)
         self.config = config or GameConfig()
         self.rulebook = rulebook or RuleBook()
+        self.card_resolver = card_resolver
         self.random = random.Random(seed)
         self.state = GameState(players=[])
         self.logs: list[str] = []
@@ -244,6 +255,7 @@ class GameEngine:
 
         self._dispatch_card_ability(AbilityEvent.CHECK_PLAY, card)
         player.hand.pop(command.hand_index)
+        player.hand_entity_ids.pop(command.hand_index)
         player.mana -= card.cost
         player.cards_played_this_turn += 1
         if card.card_type == "法术":
@@ -372,13 +384,12 @@ class GameEngine:
                 continue
 
             operation = frame.operations[frame.next_index]
-            if self._requires_choice(operation) and frame.pending_target_id is None:
+
+            if is_choice_target(operation.target) and frame.pending_target_id is None:
                 options = self._target_options(operation, frame.controller)
                 if not options:
-                    raise IllegalCommand(
-                        f"{frame.source_name} has no legal target for "
-                        f"{operation.target.value}"
-                    )
+                    frame.next_index += 1
+                    continue
                 self.state.pending_choice = ChoiceRequest(
                     player_index=frame.controller,
                     prompt=f"为 {frame.source_name} 选择目标",
@@ -393,10 +404,40 @@ class GameEngine:
                 )
                 return
 
-            target_id = frame.pending_target_id
-            frame.pending_target_id = None
+            if is_random_target(operation.target) and frame.pending_target_id is None:
+                candidates = target_candidates(operation, frame.controller, self.players)
+                chosen = pick_random(candidates, self.random) if candidates else None
+                if chosen is None:
+                    frame.next_index += 1
+                    continue
+                target_id = chosen.entity_id
+            elif is_all_target(operation.target) and not frame._all_target_ids:
+                candidates = target_candidates(operation, frame.controller, self.players)
+                if not candidates:
+                    frame.next_index += 1
+                    continue
+                all_ids = [entity.entity_id for entity in candidates]
+                frame._all_target_ids = all_ids
+                frame._all_target_index = 0
+                target_id = all_ids[0]
+                frame._all_target_index = 1
+            elif is_all_target(operation.target) and frame._all_target_ids:
+                idx = frame._all_target_index
+                if idx < len(frame._all_target_ids):
+                    target_id = frame._all_target_ids[idx]
+                    frame._all_target_index = idx + 1
+                else:
+                    frame._all_target_ids = []
+                    frame._all_target_index = 0
+                    frame.next_index += 1
+                    continue
+            else:
+                target_id = frame.pending_target_id
+                frame.pending_target_id = None
+
             self._execute_effect(operation, frame, target_id)
-            frame.next_index += 1
+            if not is_all_target(operation.target):
+                frame.next_index += 1
             self._resolve_event_queue()
             self._stabilize()
 
@@ -418,40 +459,37 @@ class GameEngine:
             pass
         elif not operations:
             return False
-        return all(
-            not self._requires_choice(operation)
-            or bool(self._target_options(operation, self.current_player))
-            for operation in operations
+
+        if not operations:
+            return True
+
+        all_require_target = all(
+            is_choice_target(op.target) or is_random_target(op.target) or is_all_target(op.target)
+            for op in operations
         )
+        if all_require_target and all(
+            not self._has_candidates(op)
+            for op in operations
+        ):
+            return False
+        return True
+
+    def _has_candidates(self, operation: EffectOperation) -> bool:
+        if operation.target == TargetKind.OWN_HAND:
+            return len(self.players[self.current_player].hand) > 1
+        return bool(target_candidates(operation, self.current_player, self.players))
 
     @staticmethod
     def _requires_choice(operation: EffectOperation) -> bool:
-        return operation.target in {
-            TargetKind.OWN_UNIT,
-            TargetKind.ENEMY_UNIT,
-            TargetKind.OWN_BOARD,
-            TargetKind.ENEMY_BOARD,
-        }
+        return is_choice_target(operation.target)
 
     def _target_options(
         self, operation: EffectOperation, controller: int
     ) -> list[ChoiceOption]:
-        owner = (
-            controller
-            if operation.target in {TargetKind.OWN_UNIT, TargetKind.OWN_BOARD}
-            else 1 - controller
-        )
-        entities = self.players[owner].board
-        if operation.target in {TargetKind.OWN_UNIT, TargetKind.ENEMY_UNIT}:
-            entities = [entity for entity in entities if isinstance(entity, Unit)]
-        return [
-            ChoiceOption(
-                option_id=f"entity:{entity.entity_id}",
-                label=entity.definition.name,
-                entity_id=entity.entity_id,
-            )
-            for entity in entities
-        ]
+        if operation.target == TargetKind.OWN_HAND:
+            return hand_choice_options(self.players[controller])
+        candidates = target_candidates(operation, controller, self.players)
+        return build_choice_options(candidates)
 
     def _tick_countdowns(self, player_index: int) -> None:
         amulets = [
@@ -662,7 +700,39 @@ class GameEngine:
             f"选择目标：{option.label}",
         )
         if self.state.effect_stack:
-            self.state.effect_stack[-1].pending_target_id = option.entity_id
+            frame = self.state.effect_stack[-1]
+            if option.entity_id is not None and option.option_id.startswith("entity:"):
+                try:
+                    self._find_board_entity(option.entity_id)
+                except IllegalCommand:
+                    self._log(
+                        command.player_index,
+                        f"目标 {option.label} 已离场，跳过",
+                    )
+                    self.state.pending_choice = None
+                    self.state.phase = Phase.MAIN
+                    frame.pending_target_id = None
+                    frame.next_index += 1
+                    self._continue_effects()
+                    return
+            if option.entity_id is not None and option.option_id.startswith("hand:"):
+                found = False
+                for p in self.players:
+                    if option.entity_id in p.hand_entity_ids:
+                        found = True
+                        break
+                if not found:
+                    self._log(
+                        command.player_index,
+                        f"目标 {option.label} 已离手，跳过",
+                    )
+                    self.state.pending_choice = None
+                    self.state.phase = Phase.MAIN
+                    frame.pending_target_id = None
+                    frame.next_index += 1
+                    self._continue_effects()
+                    return
+            frame.pending_target_id = option.entity_id
         self.state.pending_choice = None
         self.state.phase = Phase.MAIN
         if self.state.effect_stack:
@@ -705,6 +775,7 @@ class GameEngine:
             card = player.deck.pop()
             if len(player.hand) < self.config.max_hand:
                 player.hand.append(card)
+                player.hand_entity_ids.append(self.state.allocate_entity_id())
                 self._emit(
                     GameEvent(
                         EventType.CARD_DRAWN,
@@ -837,6 +908,221 @@ class GameEngine:
                 target.health = 0
             elif isinstance(target, Amulet):
                 self._destroy_amulet(target)
+        elif effect.kind is EffectKind.SUMMON:
+            self._execute_summon(effect, frame)
+        elif effect.kind is EffectKind.BANISH:
+            self._execute_banish(target_id, frame)
+        elif effect.kind is EffectKind.ADD_CARD:
+            self._execute_add_card(effect, frame)
+        elif effect.kind is EffectKind.RETURN_TO_HAND:
+            self._execute_return_to_hand(target_id, frame)
+        elif effect.kind is EffectKind.RETURN_TO_DECK:
+            self._execute_return_to_deck(target_id, frame)
+        elif effect.kind is EffectKind.DISCARD:
+            self._execute_discard(target_id, frame)
+        else:
+            self._log(
+                frame.controller,
+                f"[未实现效果] {name} {frame.label}: {effect.kind.value}",
+            )
+
+    def _execute_summon(self, effect: EffectOperation, frame: EffectFrame) -> None:
+        if effect.card_id is None:
+            raise IllegalCommand("SUMMON requires a card_id")
+        if self.card_resolver is None:
+            raise IllegalCommand("No card_resolver registered for SUMMON")
+        card_def = self.card_resolver(effect.card_id)
+        if card_def is None:
+            raise IllegalCommand(
+                f"Card {effect.card_id} not found for SUMMON"
+            )
+        player = self.players[frame.controller]
+        if len(player.board) >= self.config.max_board:
+            self._log(frame.controller, f"{frame.source_name} 召唤失败：场地已满")
+            return
+        if card_def.card_type == "随从":
+            unit = Unit.summon(card_def, entity_id=self.state.allocate_entity_id())
+            player.board.append(unit)
+            player.cooperation += 1
+            self._log(
+                frame.controller,
+                f"{frame.source_name} 召唤 {card_def.name} ({unit.attack}/{unit.health})",
+            )
+            self._emit(
+                GameEvent(
+                    EventType.FOLLOWER_SUMMONED,
+                    frame.controller,
+                    source_id=unit.entity_id,
+                    metadata={"source": unit},
+                )
+            )
+        elif card_def.card_type == "护符":
+            amulet = Amulet(
+                definition=card_def,
+                entity_id=self.state.allocate_entity_id(),
+                countdown=self.rulebook.countdown_for(card_def.card_id),
+                entered_turn=self.turn,
+            )
+            player.board.append(amulet)
+            self._log(
+                frame.controller,
+                f"{frame.source_name} 召唤护符 {card_def.name}",
+            )
+            self._emit(
+                GameEvent(
+                    EventType.AMULET_ENTERED,
+                    frame.controller,
+                    source_id=amulet.entity_id,
+                    metadata={"source": amulet},
+                )
+            )
+        else:
+            self._log(
+                frame.controller,
+                f"{frame.source_name} 召唤失败：{card_def.card_type} 类型不可召唤",
+            )
+
+    def _execute_banish(self, target_id: int | None, frame: EffectFrame) -> None:
+        entity = self._find_board_entity(target_id)
+        owner = self._entity_owner(entity.entity_id)
+        player = self.players[owner]
+        if entity not in player.board:
+            return
+        player.board.remove(entity)
+        player.banished.append(entity.definition)
+        self._log(
+            owner,
+            f"{entity.definition.name} 被消失",
+        )
+        self._emit(
+            GameEvent(
+                EventType.CARD_BANISHED,
+                owner,
+                source_id=entity.entity_id,
+                metadata={"source": entity},
+            )
+        )
+
+    def _execute_add_card(self, effect: EffectOperation, frame: EffectFrame) -> None:
+        if effect.card_id is None:
+            raise IllegalCommand("ADD_CARD requires a card_id")
+        if self.card_resolver is None:
+            raise IllegalCommand("No card_resolver registered for ADD_CARD")
+        card_def = self.card_resolver(effect.card_id)
+        if card_def is None:
+            raise IllegalCommand(
+                f"Card {effect.card_id} not found for ADD_CARD"
+            )
+        player = self.players[frame.controller]
+        if len(player.hand) >= self.config.max_hand:
+            self._log(
+                frame.controller,
+                f"{frame.source_name} 加牌失败：手牌已满，{card_def.name} 被弃置",
+            )
+            player.graveyard.append(card_def)
+            return
+        player.hand.append(card_def)
+        player.hand_entity_ids.append(self.state.allocate_entity_id())
+        self._log(
+            frame.controller,
+            f"{frame.source_name} 将 {card_def.name} 加入手牌",
+        )
+        self._emit(
+            GameEvent(
+                EventType.CARD_ADDED_TO_HAND,
+                frame.controller,
+                metadata={"card_id": card_def.card_id, "card": card_def},
+            )
+        )
+
+    def _execute_return_to_hand(
+        self, target_id: int | None, frame: EffectFrame
+    ) -> None:
+        entity = self._find_board_entity(target_id)
+        owner_index = self._entity_owner(entity.entity_id)
+        owner = self.players[owner_index]
+        if entity not in owner.board:
+            return
+        owner.board.remove(entity)
+        card_def = entity.definition
+        if len(owner.hand) < self.config.max_hand:
+            owner.hand.append(card_def)
+            owner.hand_entity_ids.append(self.state.allocate_entity_id())
+            self._log(
+                owner_index,
+                f"{card_def.name} 返回手牌",
+            )
+            self._emit(
+                GameEvent(
+                    EventType.CARD_RETURNED_TO_HAND,
+                    owner_index,
+                    source_id=entity.entity_id,
+                    metadata={"source": entity},
+                )
+            )
+        else:
+            owner.banished.append(card_def)
+            self._log(
+                owner_index,
+                f"{card_def.name} 返回手牌失败（手牌已满），被消失",
+            )
+            self._emit(
+                GameEvent(
+                    EventType.CARD_BANISHED,
+                    owner_index,
+                    source_id=entity.entity_id,
+                    metadata={"source": entity},
+                )
+            )
+
+    def _execute_return_to_deck(
+        self, target_id: int | None, frame: EffectFrame
+    ) -> None:
+        entity = self._find_board_entity(target_id)
+        owner_index = self._entity_owner(entity.entity_id)
+        owner = self.players[owner_index]
+        if entity not in owner.board:
+            return
+        owner.board.remove(entity)
+        card_def = entity.definition
+        insert_pos = self.random.randint(0, len(owner.deck))
+        owner.deck.insert(insert_pos, card_def)
+        self._log(
+            owner_index,
+            f"{card_def.name} 返回牌组",
+        )
+        self._emit(
+            GameEvent(
+                EventType.CARD_RETURNED_TO_DECK,
+                owner_index,
+                source_id=entity.entity_id,
+                metadata={"source": entity},
+            )
+        )
+
+    def _execute_discard(self, target_id: int | None, frame: EffectFrame) -> None:
+        player = self.players[frame.controller]
+        if target_id is None:
+            return
+        for idx, eid in enumerate(player.hand_entity_ids):
+            if eid == target_id:
+                card_def = player.hand[idx]
+                player.hand.pop(idx)
+                player.hand_entity_ids.pop(idx)
+                player.graveyard.append(card_def)
+                player.shadows += 1
+                self._log(
+                    frame.controller,
+                    f"{frame.source_name} 弃置手牌 {card_def.name}",
+                )
+                self._emit(
+                    GameEvent(
+                        EventType.CARD_DISCARDED,
+                        frame.controller,
+                        metadata={"card_id": card_def.card_id, "card": card_def},
+                    )
+                )
+                return
 
     def _resolve_event_queue(self) -> None:
         event_to_ability = {
@@ -975,12 +1261,10 @@ class GameEngine:
     def _ensure_entity_ids(self) -> None:
         seen: set[int] = set()
         for player in self.players:
-            for unit in player.board:
-                if not isinstance(unit, Unit):
-                    continue
-                if unit.entity_id <= 0 or unit.entity_id in seen:
-                    unit.entity_id = self.state.allocate_entity_id()
-                seen.add(unit.entity_id)
+            for entity in player.board:
+                if entity.entity_id <= 0 or entity.entity_id in seen:
+                    entity.entity_id = self.state.allocate_entity_id()
+                seen.add(entity.entity_id)
 
     def _find_board_entity(self, entity_id: int | None) -> BoardCard:
         if entity_id is None:
