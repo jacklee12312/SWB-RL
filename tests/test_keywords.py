@@ -7,8 +7,9 @@ from swb.engine.card_rules import CardRule, RuleBook, Trigger
 from swb.engine.commands import Choose, PlayCard, Attack
 from swb.engine.effects import EffectKind, EffectOperation, TargetKind
 from swb.engine.events import EventType
-from swb.engine.resolution import GameEngine
+from swb.engine.resolution import GameEngine, IllegalCommand
 from swb.engine.state import Unit, DeathCause
+from swb.engine.events import EventType
 
 
 def card(cid, **kw):
@@ -253,6 +254,33 @@ class AmbushTests(unittest.TestCase):
         eng.players[0].hand[0] = card(1, card_type="法术", attack=None, life=None)
         eng.apply(PlayCard(0, 0))
         self.assertEqual(am.health, 2)
+
+
+class RegressionTests(unittest.TestCase):
+    """Regression: attack validation and barrier counter-damage."""
+
+    def test_direct_attack_on_ambush_raises_illegal(self):
+        eng = mkengine()
+        at = mkunit(eng, 900, attack=3, life=5); at.can_attack = True
+        am = mkunit(eng, 901, keywords=frozenset({"潜行"}), attack=1, life=3)
+        eng.players[0].board = [at]; eng.players[1].board = [am]
+        hp0 = eng.players[0].health; hp1 = eng.players[1].health
+        with self.assertRaises(IllegalCommand):
+            eng.apply(Attack(0, at.entity_id, am.entity_id))
+        self.assertEqual(eng.players[0].health, hp0)
+        self.assertEqual(eng.players[1].health, hp1)
+        self.assertEqual(am.health, 3)
+
+    def test_counter_damage_blocked_by_barrier_zero_in_event(self):
+        eng = mkengine()
+        at = mkunit(eng, 900, attack=3, life=5); at.can_attack = True
+        at.barrier_charges = 1
+        df = mkunit(eng, 901, attack=4, life=5)
+        eng.players[0].board = [at]; eng.players[1].board = [df]
+        transition = eng.apply(Attack(0, at.entity_id, df.entity_id))
+        counter_events = [e for e in transition.events if e.type == EventType.DAMAGE_DEALT and e.source_id == df.entity_id]
+        self.assertTrue(any(e.amount == 0 for e in counter_events))
+        self.assertEqual(at.health, 5)
 
 
 if __name__ == "__main__":

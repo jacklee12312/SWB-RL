@@ -1,0 +1,52 @@
+{
+  "description": "Synthetic demonstration rules; card IDs 999001 and 999002 are not database cards.",
+  "rules": [
+    {
+      "card_id": 999001,
+      "trigger": "play",
+      "operations": [
+        {
+          "kind": "damage_unit",
+          "target": "enemy_unit",
+          "conditions": [
+            {"type": "target_health_at_most", "value": 3}
+          ],
+          "amount": 5
+        }
+      ]
+    },
+    {
+      "card_id": 999002,
+      "trigger": "play",
+      "operations": [
+        {
+          "kind": "draw",
+          "target": "own_leader",
+          "conditions": [
+            {"type": "controller_board_count_at_least", "value": 2}
+          ],
+          "amount": {
+            "type": "add",
+            "values": [
+              {"type": "constant", "value": 1},
+              {"type": "controller_board_count"}
+            ]
+          }
+        },
+        {
+          "kind": "damage_leader",
+          "target": "enemy_leader",
+          "conditions": [
+            {"type": "not", "conditions": [
+              {"type": "controller_board_count_at_least", "value": 2}
+            ]}
+          ],
+          "amount": {"type": "multiply", "values": [
+            {"type": "constant", "value": 2},
+            {"type": "opponent_board_count"}
+          ]}
+        }
+      ]
+    }
+  ]
+}

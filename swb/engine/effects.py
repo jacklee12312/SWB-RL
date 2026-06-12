@@ -2,10 +2,70 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, Union
 
 if TYPE_CHECKING:
     from swb.db.repository import CardDefinition
+
+
+class ConditionType(str, Enum):
+    ALWAYS = "always"
+    ALL = "all"
+    ANY = "any"
+    NOT = "not"
+    CONTROLLER_HEALTH_AT_MOST = "controller_health_at_most"
+    CONTROLLER_HEALTH_AT_LEAST = "controller_health_at_least"
+    OPPONENT_HEALTH_AT_MOST = "opponent_health_at_most"
+    OPPONENT_HEALTH_AT_LEAST = "opponent_health_at_least"
+    CONTROLLER_BOARD_COUNT_AT_LEAST = "controller_board_count_at_least"
+    OPPONENT_BOARD_COUNT_AT_LEAST = "opponent_board_count_at_least"
+    CONTROLLER_HAND_COUNT_AT_LEAST = "controller_hand_count_at_least"
+    TARGET_ATTACK_AT_MOST = "target_attack_at_most"
+    TARGET_ATTACK_AT_LEAST = "target_attack_at_least"
+    TARGET_HEALTH_AT_MOST = "target_health_at_most"
+    TARGET_HEALTH_AT_LEAST = "target_health_at_least"
+    SOURCE_EVOLVED = "source_evolved"
+    SOURCE_HAS_KEYWORD = "source_has_keyword"
+    TARGET_HAS_KEYWORD = "target_has_keyword"
+
+
+class ExprType(str, Enum):
+    CONSTANT = "constant"
+    ADD = "add"
+    SUBTRACT = "subtract"
+    MULTIPLY = "multiply"
+    MIN = "min"
+    MAX = "max"
+    CONTROLLER_BOARD_COUNT = "controller_board_count"
+    OPPONENT_BOARD_COUNT = "opponent_board_count"
+    CONTROLLER_HAND_COUNT = "controller_hand_count"
+    SOURCE_ATTACK = "source_attack"
+    SOURCE_HEALTH = "source_health"
+    TARGET_ATTACK = "target_attack"
+    TARGET_HEALTH = "target_health"
+
+
+@dataclass
+class Condition:
+    type: ConditionType
+    value: int = 0
+    keyword: str | None = None
+    conditions: list[Condition] = field(default_factory=list)
+
+    @classmethod
+    def always(cls) -> "Condition":
+        return cls(type=ConditionType.ALWAYS)
+
+
+@dataclass
+class ValueExpression:
+    type: ExprType
+    value: int = 0
+    values: list[ValueExpression] = field(default_factory=list)
+
+    @classmethod
+    def constant(cls, v: int) -> "ValueExpression":
+        return cls(type=ExprType.CONSTANT, value=v)
 
 
 class EffectKind(str, Enum):
@@ -62,6 +122,9 @@ class EffectOperation:
     secondary_amount: int = 0
     card_id: int | None = None
     keyword: str | None = None
+    conditions: tuple[Condition, ...] = ()
+    amount_expr: ValueExpression | None = None
+    secondary_expr: ValueExpression | None = None
 
 
 @dataclass

@@ -5,7 +5,15 @@ from dataclasses import dataclass
 from enum import Enum
 from pathlib import Path
 
-from swb.engine.effects import EffectKind, EffectOperation, TargetKind
+from swb.engine.effects import (
+    Condition,
+    ConditionType,
+    EffectKind,
+    EffectOperation,
+    ExprType,
+    TargetKind,
+    ValueExpression,
+)
 
 
 class Trigger(str, Enum):
@@ -63,19 +71,163 @@ class RuleBook:
                         card_id=int(entry["card_id"]),
                         trigger=Trigger(entry["trigger"]),
                         operations=tuple(
-                            EffectOperation(
-                                kind=EffectKind(operation["kind"]),
-                                target=TargetKind(operation["target"]),
-                                amount=int(operation.get("amount", 0)),
-                                secondary_amount=int(
-                                    operation.get("secondary_amount", 0)
-                                ),
-                                card_id=operation.get("card_id"),
-                                keyword=operation.get("keyword"),
+                            _parse_operation(
+                                operation,
+                                f"{file_path.name}/operations[{index}]",
+                                entry["card_id"],
                             )
-                            for operation in entry.get("operations", [])
+                            for index, operation in enumerate(
+                                entry.get("operations", [])
+                            )
                         ),
                         countdown=entry.get("countdown"),
                     )
                 )
         return cls(tuple(rules))
+
+
+def _parse_operation(raw: dict, source_file: str, card_id: int) -> EffectOperation:
+    error_prefix = f"{source_file} card {card_id}"
+    if not isinstance(raw, dict):
+        raise ValueError(
+            f"{error_prefix}: operation must be an object, "
+            f"got {type(raw).__name__}"
+        )
+    try:
+        kind = EffectKind(raw["kind"])
+        target = TargetKind(raw["target"])
+    except (KeyError, ValueError) as e:
+        raise ValueError(f"{error_prefix}: invalid kind/target: {e}") from e
+
+    conditions = ()
+    raw_conds = raw.get("conditions")
+    if raw_conds is not None:
+        if not isinstance(raw_conds, list):
+            raise ValueError(
+                f"{error_prefix}: 'conditions' must be a list, "
+                f"got {type(raw_conds).__name__}"
+            )
+        conditions = tuple(
+            _parse_condition(c, f"{source_file}/conditions[{i}]", card_id)
+            for i, c in enumerate(raw_conds)
+        )
+
+    amount_expr = None
+    raw_amount = raw.get("amount")
+    if isinstance(raw_amount, dict):
+        amount_expr = _parse_expression(raw_amount, f"{source_file}/amount", card_id)
+
+    secondary_expr = None
+    raw_secondary = raw.get("secondary_amount")
+    if isinstance(raw_secondary, dict):
+        secondary_expr = _parse_expression(raw_secondary, f"{source_file}/secondary_amount", card_id)
+
+    return EffectOperation(
+        kind=kind,
+        target=target,
+        amount=_parse_optional_int(raw_amount, f"{source_file}/amount", card_id),
+        secondary_amount=_parse_optional_int(
+            raw_secondary,
+            f"{source_file}/secondary_amount",
+            card_id,
+        ),
+        card_id=raw.get("card_id"),
+        keyword=raw.get("keyword"),
+        conditions=conditions,
+        amount_expr=amount_expr,
+        secondary_expr=secondary_expr,
+    )
+
+
+def _parse_condition(raw: dict, source_path: str, card_id: int) -> Condition:
+    error_prefix = f"{source_path} card {card_id}"
+    if not isinstance(raw, dict):
+        raise ValueError(
+            f"{error_prefix}: condition must be an object, "
+            f"got {type(raw).__name__}"
+        )
+    try:
+        t = ConditionType(raw["type"])
+    except (KeyError, ValueError) as e:
+        raise ValueError(f"{error_prefix}: invalid condition type: {e}") from e
+
+    sub_raws = raw.get("conditions", [])
+    if not isinstance(sub_raws, list):
+        raise ValueError(f"{error_prefix}: 'conditions' must be a list")
+    sub = [
+        _parse_condition(c, f"{source_path}/conditions[{i}]", card_id)
+        for i, c in enumerate(sub_raws)
+    ]
+
+    if t in (ConditionType.ALL, ConditionType.ANY) and not sub:
+        raise ValueError(
+            f"{error_prefix}: '{t.value}' requires at least one sub-condition"
+        )
+    if t == ConditionType.NOT and len(sub) != 1:
+        raise ValueError(
+            f"{error_prefix}: 'not' requires exactly one sub-condition"
+        )
+
+    return Condition(
+        type=t,
+        value=_parse_optional_int(raw.get("value"), f"{source_path}/value", card_id),
+        keyword=raw.get("keyword"),
+        conditions=sub,
+    )
+
+
+def _parse_expression(raw: dict, source_path: str, card_id: int) -> ValueExpression:
+    error_prefix = f"{source_path} card {card_id}"
+    if not isinstance(raw, dict):
+        raise ValueError(
+            f"{error_prefix}: expression must be an object, "
+            f"got {type(raw).__name__}"
+        )
+    try:
+        t = ExprType(raw["type"])
+    except (KeyError, ValueError) as e:
+        raise ValueError(f"{error_prefix}: invalid expression type: {e}") from e
+
+    sub_raws = raw.get("values", [])
+    if not isinstance(sub_raws, list):
+        raise ValueError(f"{error_prefix}: 'values' must be a list")
+    sub = [
+        _parse_expression(v, f"{source_path}/values[{i}]", card_id)
+        for i, v in enumerate(sub_raws)
+    ]
+
+    if t in (ExprType.ADD, ExprType.SUBTRACT, ExprType.MULTIPLY, ExprType.MIN, ExprType.MAX):
+        if len(sub) < 1:
+            raise ValueError(
+                f"{error_prefix}: '{t.value}' requires at least one value"
+            )
+
+    if t == ExprType.CONSTANT:
+        if sub:
+            raise ValueError(
+                f"{error_prefix}: 'constant' must not have 'values'"
+            )
+    elif t in (ExprType.CONTROLLER_BOARD_COUNT, ExprType.OPPONENT_BOARD_COUNT,
+               ExprType.CONTROLLER_HAND_COUNT, ExprType.SOURCE_ATTACK, ExprType.SOURCE_HEALTH,
+               ExprType.TARGET_ATTACK, ExprType.TARGET_HEALTH):
+        if sub:
+            raise ValueError(
+                f"{error_prefix}: '{t.value}' must not have 'values'"
+            )
+
+    return ValueExpression(
+        type=t,
+        value=_parse_optional_int(raw.get("value"), f"{source_path}/value", card_id),
+        values=sub,
+    )
+
+
+def _parse_optional_int(raw, source_path: str, card_id: int) -> int:
+    if raw is None or isinstance(raw, dict):
+        return 0
+    try:
+        return int(raw)
+    except (TypeError, ValueError) as exc:
+        raise ValueError(
+            f"{source_path} card {card_id}: expected an integer, got {raw!r}"
+        ) from exc

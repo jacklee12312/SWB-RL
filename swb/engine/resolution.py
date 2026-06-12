@@ -25,10 +25,14 @@ from swb.engine.commands import (
 )
 from swb.engine.deck import CLASS_NAMES, validate_deck
 from swb.engine.effects import (
+    Condition,
+    ConditionType,
     EffectFrame,
     EffectKind,
     EffectOperation,
+    ExprType,
     TargetKind,
+    ValueExpression,
 )
 from swb.engine.events import EventType, GameEvent
 from swb.engine.state import (
@@ -51,6 +55,14 @@ from swb.engine.targeting import (
     is_random_target,
     pick_random,
     target_candidates,
+)
+from swb.engine.conditions import (
+    EvalContext,
+    PartialConditionResult,
+    evaluate_condition,
+    evaluate_conditions_without_target,
+    evaluate_expression,
+    evaluate_target_conditions,
 )
 
 
@@ -615,9 +627,22 @@ class GameEngine:
                 continue
 
             operation = frame.operations[frame.next_index]
+            condition_state = evaluate_conditions_without_target(
+                operation.conditions,
+                self._build_eval_context(frame, None),
+            )
+            if condition_state is PartialConditionResult.FALSE:
+                frame.next_index += 1
+                continue
 
             if is_choice_target(operation.target) and frame.pending_target_id is None:
                 options = self._target_options(operation, frame.controller)
+                if operation.conditions:
+                    candidates = target_candidates(operation, frame.controller, self.players)
+                    candidates = [e for e in candidates if not (isinstance(e, Unit) and e.ambush_active and self._entity_owner(e.entity_id) != frame.controller)]
+                    candidates = [e for e in candidates if evaluate_target_conditions(operation.conditions, e, frame.controller, self.players, source_entity_id=frame.source_entity_id)]
+                    options = build_choice_options(candidates)
+
                 if not options:
                     frame.next_index += 1
                     continue
@@ -642,6 +667,20 @@ class GameEngine:
 
             if is_all_target(operation.target) and not frame.defer_stabilize:
                 candidates = target_candidates(operation, frame.controller, self.players)
+                if (
+                    condition_state is PartialConditionResult.DEPENDS_ON_TARGET
+                ):
+                    candidates = [
+                        entity
+                        for entity in candidates
+                        if evaluate_target_conditions(
+                            operation.conditions,
+                            entity,
+                            frame.controller,
+                            self.players,
+                            source_entity_id=frame.source_entity_id,
+                        )
+                    ]
                 if not candidates:
                     frame.next_index += 1
                     continue
@@ -649,7 +688,7 @@ class GameEngine:
                 for entity in candidates:
                     if entity.entity_id not in [e.entity_id for board in [self.players[p].board for p in (0, 1)] for e in board]:
                         continue
-                    self._execute_effect(operation, frame, entity.entity_id)
+                    self._checked_execute(operation, frame, entity.entity_id)
                 self._resolve_event_queue()
                 self._stabilize()
                 frame.defer_stabilize = False
@@ -658,6 +697,20 @@ class GameEngine:
 
             if is_random_target(operation.target) and frame.pending_target_id is None:
                 candidates = target_candidates(operation, frame.controller, self.players)
+                if (
+                    condition_state is PartialConditionResult.DEPENDS_ON_TARGET
+                ):
+                    candidates = [
+                        entity
+                        for entity in candidates
+                        if evaluate_target_conditions(
+                            operation.conditions,
+                            entity,
+                            frame.controller,
+                            self.players,
+                            source_entity_id=frame.source_entity_id,
+                        )
+                    ]
                 chosen = pick_random(candidates, self.random) if candidates else None
                 if chosen is None:
                     frame.next_index += 1
@@ -667,7 +720,7 @@ class GameEngine:
                 target_id = frame.pending_target_id
                 frame.pending_target_id = None
 
-            self._execute_effect(operation, frame, target_id)
+            self._checked_execute(operation, frame, target_id)
             frame.next_index += 1
             self._resolve_event_queue()
             self._stabilize()
@@ -708,9 +761,30 @@ class GameEngine:
     def _has_candidates(self, operation: EffectOperation) -> bool:
         if operation.target == TargetKind.OWN_HAND:
             return len(self.players[self.current_player].hand) > 1
+        condition_state = evaluate_conditions_without_target(
+            operation.conditions,
+            EvalContext(
+                controller=self.current_player,
+                players=self.players,
+            ),
+        )
+        if condition_state is PartialConditionResult.FALSE:
+            # The operation will be skipped and therefore requires no target.
+            return True
         candidates = target_candidates(operation, self.current_player, self.players)
         if is_choice_target(operation.target):
             candidates = [e for e in candidates if not (isinstance(e, Unit) and e.ambush_active and self._entity_owner(e.entity_id) != self.current_player)]
+        if condition_state is PartialConditionResult.DEPENDS_ON_TARGET:
+            candidates = [
+                entity
+                for entity in candidates
+                if evaluate_target_conditions(
+                    operation.conditions,
+                    entity,
+                    self.current_player,
+                    self.players,
+                )
+            ]
         return bool(candidates)
 
     @staticmethod
@@ -1054,6 +1128,50 @@ class GameEngine:
                     (operation,),
                     label="入场曲",
                 )
+
+    def _build_eval_context(self, frame: EffectFrame, target_id: int | None) -> EvalContext:
+        return EvalContext(
+            controller=frame.controller,
+            players=self.players,
+            source_entity_id=frame.source_entity_id,
+            target_entity_id=target_id,
+            source_card_id=frame.source_card_id,
+        )
+
+    def _resolve_amount(self, operation: EffectOperation, ctx: EvalContext) -> int:
+        if operation.amount_expr is not None:
+            return evaluate_expression(operation.amount_expr, ctx)
+        return operation.amount
+
+    def _resolve_secondary(self, operation: EffectOperation, ctx: EvalContext) -> int:
+        if operation.secondary_expr is not None:
+            return evaluate_expression(operation.secondary_expr, ctx)
+        return operation.secondary_amount
+
+    def _checked_execute(
+        self, operation: EffectOperation, frame: EffectFrame, target_id: int | None,
+    ) -> None:
+        ctx = self._build_eval_context(frame, target_id)
+        for cond in operation.conditions:
+            if not evaluate_condition(cond, ctx):
+                return
+        amount = self._resolve_amount(operation, ctx)
+        secondary = self._resolve_secondary(operation, ctx)
+        if operation.kind in (EffectKind.HEAL_LEADER, EffectKind.BUFF_UNIT):
+            amount = max(0, amount)
+            secondary = max(0, secondary)
+        if operation.amount_expr is not None or operation.secondary_expr is not None or amount != operation.amount or secondary != operation.secondary_amount:
+            resolved = EffectOperation(
+                kind=operation.kind,
+                target=operation.target,
+                amount=amount,
+                secondary_amount=secondary,
+                card_id=operation.card_id,
+                keyword=operation.keyword,
+            )
+            self._execute_effect(resolved, frame, target_id)
+        else:
+            self._execute_effect(operation, frame, target_id)
 
     def _execute_effect(
         self,
