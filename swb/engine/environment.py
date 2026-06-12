@@ -276,28 +276,18 @@ class ShadowverseEnv:
     @staticmethod
     def _board_features(entity: BoardCard | None) -> list[float]:
         if entity is None:
-            return [0.0] * 9
+            return [0.0] * 11
         if isinstance(entity, Amulet):
             return [
-                1.0,
-                0.0,
-                (entity.countdown or 0) / 10,
-                0.0,
-                0.0,
-                0.0,
-                0.0,
-                0.0,
-                1.0,
+                1.0, 0.0, (entity.countdown or 0) / 10,
+                0.0, 0.0, 0.0, 0.0, 0.0, 1.0,
+                0.0, 0.0,
             ]
         unit = entity
         return [
-            1.0,
-            unit.attack / 20,
-            unit.health / 20,
-            float(unit.can_attack),
-            float(unit.has_guard),
+            1.0, unit.attack / 20, unit.health / 20,
+            float(unit.can_attack), float(unit.has_guard),
             float("疾驰" in unit.definition.keywords),
-            float(unit.evolved),
-            float(unit.rush_only),
-            0.0,
+            float(unit.evolved), float(unit.rush_only), 0.0,
+            float(unit.barrier_charges > 0), float(unit.ambush_active),
         ]

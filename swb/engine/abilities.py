@@ -152,15 +152,18 @@ ABILITY_DEFINITIONS = (
         (AbilityEvent.AFTER_DAMAGE,),
         "handle_bane",
         aliases=("毁灭",),
+        status=AbilityStatus.IMPLEMENTED,
     ),
     _definition(
-        AbilityKeyword.AMBUSH, (AbilityEvent.BEFORE_ATTACK,), "handle_ambush"
+        AbilityKeyword.AMBUSH, (AbilityEvent.BEFORE_ATTACK,), "handle_ambush",
+        status=AbilityStatus.IMPLEMENTED,
     ),
     _definition(
         AbilityKeyword.DRAIN,
         (AbilityEvent.AFTER_DAMAGE,),
         "handle_drain",
         aliases=("虹吸",),
+        status=AbilityStatus.IMPLEMENTED,
     ),
     _definition(
         AbilityKeyword.COUNTDOWN,
@@ -183,6 +186,7 @@ ABILITY_DEFINITIONS = (
         (AbilityEvent.AFTER_DAMAGE,),
         "handle_barrier",
         aliases=("障壁",),
+        status=AbilityStatus.IMPLEMENTED,
     ),
     _definition(
         AbilityKeyword.INVOCATION,
@@ -333,13 +337,13 @@ class AbilityHandlers:
         pass
 
     def handle_bane(self, context: AbilityContext) -> None:
-        self._placeholder(context, AbilityKeyword.BANE)
+        pass
 
     def handle_ambush(self, context: AbilityContext) -> None:
-        self._placeholder(context, AbilityKeyword.AMBUSH)
+        pass
 
     def handle_drain(self, context: AbilityContext) -> None:
-        self._placeholder(context, AbilityKeyword.DRAIN)
+        pass
 
     def handle_countdown(self, context: AbilityContext) -> None:
         self._placeholder(context, AbilityKeyword.COUNTDOWN)
@@ -351,7 +355,7 @@ class AbilityHandlers:
         self._placeholder(context, AbilityKeyword.AURA)
 
     def handle_barrier(self, context: AbilityContext) -> None:
-        self._placeholder(context, AbilityKeyword.BARRIER)
+        pass
 
     def handle_invocation(self, context: AbilityContext) -> None:
         self._placeholder(context, AbilityKeyword.INVOCATION)

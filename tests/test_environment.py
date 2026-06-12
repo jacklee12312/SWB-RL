@@ -56,7 +56,7 @@ class EnvironmentTests(unittest.TestCase):
 
     def test_observation_and_action_space_are_fixed(self) -> None:
         self.assertEqual(len(self.env.action_mask()), ShadowverseEnv.ACTION_SIZE)
-        self.assertEqual(len(self.env.observation()), 183)
+        self.assertEqual(len(self.env.observation()), 203)
         self.assertTrue(self.env.action_mask()[ShadowverseEnv.END_TURN])
         self.assertEqual(sum(self.env.observation()[16:23]), 1.0)
         self.assertEqual(sum(self.env.observation()[23:30]), 1.0)

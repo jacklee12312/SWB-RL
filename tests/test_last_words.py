@@ -575,5 +575,108 @@ class DeterminismTests(unittest.TestCase):
         self.assertEqual(h1, h2)
 
 
+class LastWordsContinuationTests(unittest.TestCase):
+    """Regression tests for choice-target Last Words suspension/resumption."""
+
+    def test_single_choice_lw_emits_lw_complete_and_batch_end(self):
+        """Single choice-target LW: choose -> damage -> LW_COMPLETE -> BATCH_END."""
+        rulebook = RuleBook((
+            CardRule(card_id=900, trigger=Trigger.LAST_WORDS, operations=(
+                EffectOperation(kind=EffectKind.DAMAGE_UNIT, target=TargetKind.ANY_UNIT, amount=2),
+            ),),
+            CardRule(card_id=1, trigger=Trigger.PLAY, operations=(
+                EffectOperation(kind=EffectKind.DAMAGE_UNIT, target=TargetKind.ENEMY_UNIT, amount=5),
+            ),),
+        ))
+        engine = GameEngine(
+            [card(i) for i in range(100, 140)],
+            [card(i) for i in range(200, 240)],
+            class_a=1, class_b=1, seed=1, rulebook=rulebook,
+        )
+        engine.reset(seed=1)
+        lw_unit = Unit.summon(card(900, attack=1, life=2))
+        enemy = Unit.summon(card(901, attack=1, life=3))
+        engine.players[0].board = [enemy]
+        engine.players[1].board = [lw_unit]
+        engine.players[0].mana = 10
+        engine.players[0].hand[0] = card(1, card_type="法术", attack=None, life=None)
+
+        # Play spell, choose lw_unit (player 1's only unit) as target
+        engine.apply(PlayCard(0, 0))
+        self.assertEqual(engine.state.phase, Phase.AWAITING_CHOICE)
+        spell_choice = [c for c in engine.legal_commands() if isinstance(c, Choose)][0]
+        engine.apply(spell_choice)
+
+        # LW triggers, needs choice for its DAMAGE_UNIT ANY_UNIT
+        self.assertEqual(engine.state.phase, Phase.AWAITING_CHOICE)
+        lw_choice = [c for c in engine.legal_commands() if isinstance(c, Choose)][0]
+        transition = engine.apply(lw_choice)
+
+        # Verify damage was applied
+        self.assertEqual(enemy.health, 1)
+        # Verify events are in correct order
+        event_types = [e.type for e in transition.events]
+        self.assertIn(EventType.LAST_WORDS_COMPLETE, event_types)
+        self.assertIn(EventType.DEATH_BATCH_END, event_types)
+        lwc_idx = event_types.index(EventType.LAST_WORDS_COMPLETE)
+        dbe_idx = event_types.index(EventType.DEATH_BATCH_END)
+        self.assertLess(lwc_idx, dbe_idx)
+        self.assertIsNone(engine.state.pending_choice)
+        self.assertEqual(engine.state.phase, Phase.MAIN)
+
+    def test_choice_lw_then_draw_lw_same_batch_ordered(self):
+        """Same-batch choice LW + draw LW: must not skip, repeat, or reorder."""
+        rulebook = RuleBook((
+            CardRule(card_id=900, trigger=Trigger.LAST_WORDS, operations=(
+                EffectOperation(kind=EffectKind.DAMAGE_UNIT, target=TargetKind.ANY_UNIT, amount=2),
+            ),),
+            CardRule(card_id=901, trigger=Trigger.LAST_WORDS, operations=(
+                EffectOperation(kind=EffectKind.DRAW, target=TargetKind.OWN_LEADER, amount=1),
+            ),),
+            CardRule(card_id=1, trigger=Trigger.PLAY, operations=(
+                EffectOperation(kind=EffectKind.DAMAGE_UNIT, target=TargetKind.ALL_ENEMY_UNITS, amount=5),
+            ),),
+        ))
+        engine = GameEngine(
+            [card(i) for i in range(100, 140)],
+            [card(i) for i in range(200, 240)],
+            class_a=1, class_b=1, seed=1, rulebook=rulebook,
+        )
+        engine.reset(seed=1)
+        a = Unit.summon(card(900, attack=1, life=2))
+        b = Unit.summon(card(901, attack=1, life=2))
+        enemy = Unit.summon(card(902, attack=1, life=3))
+        engine.players[0].board = [enemy]
+        engine.players[1].board = [a, b]
+        engine.players[0].mana = 10
+        hand_before = len(engine.players[1].hand)
+        engine.players[0].hand[0] = card(1, card_type="法术", attack=None, life=None)
+
+        # Play all-damage spell -> kills a and b on player 1's board
+        engine.apply(PlayCard(0, 0))
+        self.assertEqual(engine.state.phase, Phase.AWAITING_CHOICE)
+
+        # First choice: LW of 900 (ANY_UNIT) - choose enemy
+        choice1 = [c for c in engine.legal_commands() if isinstance(c, Choose)][0]
+        engine.apply(choice1)
+
+        # After first choice: 900's LW fires damage, then 901's LW draws
+        self.assertIsNone(engine.state.pending_choice)
+        self.assertEqual(engine.state.phase, Phase.MAIN)
+        self.assertEqual(enemy.health, 1)
+        self.assertEqual(len(engine.players[1].hand), hand_before + 1)
+
+        # Verify events: two LW_COMPLETE, one DEATH_BATCH_END
+        all_events = [e.type for e in engine.event_history]
+        lw_completes = [e for e in all_events if e == EventType.LAST_WORDS_COMPLETE]
+        self.assertEqual(len(lw_completes), 2)
+        batch_ends = [e for e in all_events if e == EventType.DEATH_BATCH_END]
+        self.assertEqual(len(batch_ends), 1)
+
+        # Verify no duplicate choices pending
+        legal = engine.legal_commands()
+        self.assertFalse(any(isinstance(c, Choose) for c in legal))
+
+
 if __name__ == "__main__":
     unittest.main()

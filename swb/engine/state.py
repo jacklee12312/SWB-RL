@@ -69,17 +69,23 @@ class Unit(BoardEntity):
     attacks_remaining: int = 1
     evolved: bool = False
     rush_only: bool = False
+    barrier_charges: int = 0
+    ambush_active: bool = False
 
     @classmethod
     def summon(cls, card: CardDefinition, *, entity_id: int = 0) -> "Unit":
         if card.attack is None or card.life is None:
             raise ValueError(f"{card.name} is not a playable follower")
+        barrier = 1 if "屏障" in card.keywords else 0
+        ambush = "潜行" in card.keywords
         return cls(
             definition=card,
             attack=card.attack,
             health=card.life,
             entity_id=entity_id,
             can_attack="疾驰" in card.keywords or "突进" in card.keywords,
+            barrier_charges=barrier,
+            ambush_active=ambush,
         )
 
     @property

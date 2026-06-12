@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import random
 from dataclasses import dataclass
+from enum import Enum
 from typing import Callable, Sequence
 
 from swb.db.repository import CardDefinition
@@ -51,6 +52,24 @@ from swb.engine.targeting import (
     pick_random,
     target_candidates,
 )
+
+
+class DamageType(str, Enum):
+    COMBAT = "combat"
+    EFFECT = "effect"
+    LEADER = "leader"
+    ABILITY = "ability"
+
+
+@dataclass
+class DamageResult:
+    requested_amount: int
+    prevented_amount: int = 0
+    actual_amount: int = 0
+    target_health_before: int = 0
+    target_health_after: int = 0
+    barrier_consumed: bool = False
+    lethal: bool = False
 
 
 class IllegalCommand(ValueError):
@@ -242,7 +261,7 @@ class GameEngine:
         guards = [
             unit
             for unit in opponent.board
-            if isinstance(unit, Unit) and unit.has_guard
+            if isinstance(unit, Unit) and unit.has_guard and not unit.ambush_active
         ]
         for unit in player.board:
             if not isinstance(unit, Unit):
@@ -252,7 +271,7 @@ class GameEngine:
             if not guards and unit.can_attack_leader:
                 commands.append(Attack(self.current_player, unit.entity_id, None))
             targets = guards or [
-                target for target in opponent.board if isinstance(target, Unit)
+                target for target in opponent.board if isinstance(target, Unit) and not target.ambush_active
             ]
             commands.extend(
                 Attack(self.current_player, unit.entity_id, target.entity_id)
@@ -412,6 +431,167 @@ class GameEngine:
                 f"Death queue sizes: {batches}."
             )
 
+    def apply_damage(
+        self,
+        source: Unit | CardDefinition | None,
+        target: Unit | None,
+        amount: int,
+        damage_type: DamageType,
+        controller: int,
+        *,
+        attacker: Unit | None = None,
+        target_player_index: int | None = None,
+    ) -> DamageResult:
+        if amount <= 0:
+            return DamageResult(requested_amount=amount)
+
+        if target is not None and isinstance(target, Unit):
+            return self._apply_damage_to_unit(
+                source, target, amount, damage_type, controller, attacker=attacker,
+            )
+        else:
+            player_idx = target_player_index if target_player_index is not None else (1 - controller)
+            player = self.players[player_idx]
+            return self._apply_damage_to_leader(
+                source, player, amount, damage_type, controller,
+            )
+            return DamageResult(requested_amount=amount)
+
+    def _apply_damage_to_unit(
+        self,
+        source: Unit | CardDefinition | None,
+        target: Unit,
+        amount: int,
+        damage_type: DamageType,
+        controller: int,
+        *,
+        attacker: Unit | None = None,
+    ) -> DamageResult:
+        health_before = target.health
+        prevented = 0
+        barrier_consumed = False
+
+        if amount > 0 and target.barrier_charges > 0:
+            target.barrier_charges -= 1
+            prevented = amount
+            barrier_consumed = True
+            self._emit(GameEvent(
+                EventType.DAMAGE_PREVENTED, controller,
+                source_id=source.entity_id if hasattr(source, 'entity_id') else None,
+                target_id=target.entity_id,
+                amount=amount,
+                metadata={"barrier": True},
+            ))
+            self._emit(GameEvent(
+                EventType.BARRIER_CONSUMED, controller,
+                target_id=target.entity_id,
+                metadata={"card_id": target.definition.card_id},
+            ))
+
+        actual = min(amount - prevented, health_before) if not barrier_consumed else 0
+        target.health -= actual
+        health_after = target.health
+        lethal = health_after <= 0
+
+        if actual > 0:
+            self._emit(GameEvent(
+                EventType.DAMAGE_APPLIED, controller,
+                source_id=source.entity_id if hasattr(source, 'entity_id') else None,
+                target_id=target.entity_id,
+                amount=actual,
+                metadata={"damage_type": damage_type.value},
+            ))
+
+        if damage_type == DamageType.COMBAT:
+            if lethal:
+                self._death_causes[target.entity_id] = DeathCause.COMBAT
+        elif damage_type == DamageType.EFFECT:
+            if lethal:
+                self._death_causes.setdefault(target.entity_id, DeathCause.ZERO_HEALTH)
+
+        if actual > 0 and attacker is not None and isinstance(attacker, Unit):
+            if "必杀" in attacker.definition.keywords or "毁灭" in attacker.definition.keywords:
+                target.health = 0
+                health_after = 0
+                lethal = True
+                self._death_causes[target.entity_id] = DeathCause.EFFECT_DESTROY
+                self._log(controller, f"{attacker.definition.name} 的必杀破坏了 {target.definition.name}")
+                self._emit(GameEvent(
+                    EventType.BANE_TRIGGERED, controller,
+                    source_id=attacker.entity_id,
+                    target_id=target.entity_id,
+                    metadata={"card_id": attacker.definition.card_id},
+                ))
+            if "吸血" in attacker.definition.keywords or "虹吸" in attacker.definition.keywords:
+                owner_idx = self._entity_owner(attacker.entity_id)
+                heal_amount = min(actual, health_before)
+                owner = self.players[owner_idx]
+                owner.health = min(owner.health + heal_amount, self.config.starting_health)
+                self._log(controller, f"{attacker.definition.name} 的吸血回复了 {heal_amount} 点生命")
+                self._emit(GameEvent(
+                    EventType.DRAIN_HEALED, owner_idx,
+                    source_id=attacker.entity_id,
+                    amount=heal_amount,
+                    metadata={"card_id": attacker.definition.card_id},
+                ))
+
+        source_name = source.definition.name if hasattr(source, 'definition') else (source.name if source else "效果")
+        self._log(
+            controller,
+            f"{source_name} 对 {target.definition.name} 造成 {actual} 点伤害"
+            f"{'（被屏障阻止）' if barrier_consumed else ''}"
+            f"（剩余生命 {target.health}）",
+        )
+
+        return DamageResult(
+            requested_amount=amount,
+            prevented_amount=prevented,
+            actual_amount=actual,
+            target_health_before=health_before,
+            target_health_after=health_after,
+            barrier_consumed=barrier_consumed,
+            lethal=lethal,
+        )
+
+    def _apply_damage_to_leader(
+        self,
+        source: Unit | CardDefinition | None,
+        target_player: PlayerState,
+        amount: int,
+        damage_type: DamageType,
+        controller: int,
+    ) -> DamageResult:
+        health_before = target_player.health
+        actual = min(amount, health_before)
+        target_player.health -= actual
+
+        self._emit(GameEvent(
+            EventType.DAMAGE_APPLIED, controller,
+            source_id=source.entity_id if hasattr(source, 'entity_id') else None,
+            amount=actual,
+            metadata={"target_player": self.players.index(target_player), "damage_type": damage_type.value},
+        ))
+
+        if isinstance(source, Unit) and ("吸血" in source.definition.keywords or "虹吸" in source.definition.keywords):
+            owner_idx = self._entity_owner(source.entity_id)
+            owner = self.players[owner_idx]
+            owner.health = min(owner.health + actual, self.config.starting_health)
+            self._log(controller, f"{source.definition.name} 的吸血回复了 {actual} 点生命")
+            self._emit(GameEvent(
+                EventType.DRAIN_HEALED, owner_idx,
+                source_id=source.entity_id,
+                amount=actual,
+                metadata={"card_id": source.definition.card_id},
+            ))
+
+        return DamageResult(
+            requested_amount=amount,
+            actual_amount=actual,
+            target_health_before=health_before,
+            target_health_after=target_player.health,
+            lethal=target_player.health <= 0,
+        )
+
     def _continue_effects(self) -> None:
         while self.state.effect_stack and self.state.pending_choice is None:
             self._step()
@@ -528,7 +708,10 @@ class GameEngine:
     def _has_candidates(self, operation: EffectOperation) -> bool:
         if operation.target == TargetKind.OWN_HAND:
             return len(self.players[self.current_player].hand) > 1
-        return bool(target_candidates(operation, self.current_player, self.players))
+        candidates = target_candidates(operation, self.current_player, self.players)
+        if is_choice_target(operation.target):
+            candidates = [e for e in candidates if not (isinstance(e, Unit) and e.ambush_active and self._entity_owner(e.entity_id) != self.current_player)]
+        return bool(candidates)
 
     @staticmethod
     def _requires_choice(operation: EffectOperation) -> bool:
@@ -540,6 +723,7 @@ class GameEngine:
         if operation.target == TargetKind.OWN_HAND:
             return hand_choice_options(self.players[controller])
         candidates = target_candidates(operation, controller, self.players)
+        candidates = [e for e in candidates if not (isinstance(e, Unit) and e.ambush_active and self._entity_owner(e.entity_id) != controller)]
         return build_choice_options(candidates)
 
     def _tick_countdowns(self, player_index: int) -> None:
@@ -615,7 +799,7 @@ class GameEngine:
         guards = [
             unit
             for unit in opponent.board
-            if isinstance(unit, Unit) and unit.has_guard
+            if isinstance(unit, Unit) and unit.has_guard and not unit.ambush_active
         ]
         if command.target_id is None:
             if guards or not attacker.can_attack_leader:
@@ -623,6 +807,8 @@ class GameEngine:
             target = None
         else:
             target = self._find_unit(opponent.board, command.target_id)
+            if target.ambush_active:
+                raise IllegalCommand("Cannot attack an ambush follower")
             if guards and target not in guards:
                 raise IllegalCommand("A guard follower must be attacked")
 
@@ -640,19 +826,23 @@ class GameEngine:
         attacker.can_attack = False
         attacker.rush_only = False
         if target is None:
-            opponent.health -= attacker.attack
+            result = self.apply_damage(attacker, None, attacker.attack, DamageType.COMBAT, self.current_player, attacker=attacker)
+            was_ambush = attacker.ambush_active
+            attacker.ambush_active = False
+            if was_ambush:
+                self._emit(GameEvent(EventType.AMBUSH_LOST, self.current_player, source_id=attacker.entity_id))
             self._emit(
                 GameEvent(
                     EventType.DAMAGE_DEALT,
                     self.current_player,
                     source_id=attacker.entity_id,
-                    amount=attacker.attack,
+                    amount=result.actual_amount,
                     metadata={"source": attacker, "target_player": 1 - self.current_player},
                 )
             )
             self._log(
                 self.current_player,
-                f"{attacker.definition.name} 攻击对方主战者，造成 {attacker.attack} 点伤害"
+                f"{attacker.definition.name} 攻击对方主战者，造成 {result.actual_amount} 点伤害"
                 f"（对方生命 {opponent.health}）",
             )
             return
@@ -669,19 +859,21 @@ class GameEngine:
         self._resolve_event_queue()
         attack_damage = attacker.attack
         counter_damage = target.attack
-        attacker.health -= counter_damage
-        target.health -= attack_damage
-        if attacker.health <= 0:
-            self._death_causes[attacker.entity_id] = DeathCause.COMBAT
-        if target.health <= 0:
-            self._death_causes[target.entity_id] = DeathCause.COMBAT
+
+        result_c = self.apply_damage(target, attacker, counter_damage, DamageType.COMBAT, 1 - self.current_player, attacker=target)
+        result_t = self.apply_damage(attacker, target, attack_damage, DamageType.COMBAT, self.current_player, attacker=attacker)
+
+        was_ambush = attacker.ambush_active
+        attacker.ambush_active = False
+        if was_ambush:
+            self._emit(GameEvent(EventType.AMBUSH_LOST, self.current_player, source_id=attacker.entity_id))
         self._emit(
             GameEvent(
                 EventType.DAMAGE_DEALT,
                 self.current_player,
                 source_id=attacker.entity_id,
                 target_id=target.entity_id,
-                amount=attack_damage,
+                amount=result_t.actual_amount,
                 metadata={"source": attacker, "target": target},
             )
         )
@@ -691,14 +883,14 @@ class GameEngine:
                 1 - self.current_player,
                 source_id=target.entity_id,
                 target_id=attacker.entity_id,
-                amount=counter_damage,
+                amount=result_c.actual_amount,
                 metadata={"source": target, "target": attacker},
             )
         )
         self._log(
             self.current_player,
             f"{attacker.definition.name} 攻击 {target.definition.name}，"
-            f"造成 {attack_damage} 点并受到 {counter_damage} 点伤害",
+            f"造成 {result_t.actual_amount} 点并受到 {result_c.actual_amount} 点伤害",
         )
 
     def _end_turn(self) -> None:
@@ -887,33 +1079,23 @@ class GameEngine:
                 f"（生命 {player.health}）",
             )
         elif effect.kind is EffectKind.DAMAGE_LEADER:
-            target = opponent if effect.target is TargetKind.ENEMY_LEADER else player
-            target.health -= effect.amount
-            target_name = "对方" if target is opponent else "己方"
+            is_enemy = effect.target is TargetKind.ENEMY_LEADER
+            target_idx = 1 - frame.controller if is_enemy else frame.controller
+            self.apply_damage(None, None, effect.amount,
+                             DamageType.EFFECT if is_enemy else DamageType.ABILITY,
+                             frame.controller, target_player_index=target_idx)
+            target_player = self.players[target_idx]
+            target_name = "对方" if is_enemy else "己方"
             self._log(
                 frame.controller,
                 f"{name} {frame.label}对{target_name}主战者造成 {effect.amount} 点伤害"
-                f"（生命 {target.health}）",
+                f"（生命 {target_player.health}）",
             )
         elif effect.kind is EffectKind.DAMAGE_UNIT:
             target = self._find_board_entity(target_id)
             if not isinstance(target, Unit):
                 raise IllegalCommand("Damage target must be a follower")
-            target.health -= effect.amount
-            self._emit(
-                GameEvent(
-                    EventType.DAMAGE_APPLIED,
-                    frame.controller,
-                    source_id=target.entity_id,
-                    amount=effect.amount,
-                    metadata={"card_id": target.definition.card_id},
-                )
-            )
-            self._log(
-                frame.controller,
-                f"{name} 对 {target.definition.name} 造成 {effect.amount} 点伤害"
-                f"（剩余生命 {target.health}）",
-            )
+            self.apply_damage(None, target, effect.amount, DamageType.EFFECT, frame.controller)
         elif effect.kind is EffectKind.RESTORE_MANA:
             restored = min(effect.amount, player.max_mana - player.mana)
             player.mana += restored

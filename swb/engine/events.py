@@ -31,6 +31,11 @@ class EventType(str, Enum):
     DEATH_BATCH_END = "death_batch_end"
     LAST_WORDS_START = "last_words_start"
     LAST_WORDS_COMPLETE = "last_words_complete"
+    DAMAGE_PREVENTED = "damage_prevented"
+    BARRIER_CONSUMED = "barrier_consumed"
+    BANE_TRIGGERED = "bane_triggered"
+    DRAIN_HEALED = "drain_healed"
+    AMBUSH_LOST = "ambush_lost"
 
 
 @dataclass(frozen=True)
