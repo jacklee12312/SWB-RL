@@ -80,7 +80,9 @@ class EffectKind(str, Enum):
     BANISH = "banish"
     ADD_CARD = "add_card"
     ADD_KEYWORD = "add_keyword"
+    REMOVE_KEYWORD = "remove_keyword"
     CHANGE_COST = "change_cost"
+    TRANSFORM = "transform"
     GAIN_EMBLEM = "gain_emblem"
     RETURN_TO_HAND = "return_to_hand"
     RETURN_TO_DECK = "return_to_deck"
@@ -112,6 +114,20 @@ class TargetKind(str, Enum):
     ALL_OWN_AMULETS = "all_own_amulets"
     ALL_ENEMY_AMULETS = "all_enemy_amulets"
     OWN_HAND = "own_hand"
+    RANDOM_OWN_HAND = "random_own_hand"
+    ALL_OWN_HAND = "all_own_hand"
+
+
+class ModifierDuration(str, Enum):
+    PERMANENT = "permanent"
+    UNTIL_END_OF_TURN = "until_end_of_turn"
+    UNTIL_START_OF_NEXT_TURN = "until_start_of_next_turn"
+
+
+class CostChangeMode(str, Enum):
+    SET = "set"
+    ADD = "add"
+    SUBTRACT = "subtract"
 
 
 @dataclass(frozen=True)
@@ -125,6 +141,8 @@ class EffectOperation:
     conditions: tuple[Condition, ...] = ()
     amount_expr: ValueExpression | None = None
     secondary_expr: ValueExpression | None = None
+    mode: CostChangeMode | None = None
+    duration: ModifierDuration = ModifierDuration.PERMANENT
 
 
 @dataclass

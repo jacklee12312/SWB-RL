@@ -57,6 +57,7 @@ _RANDOM_TARGETS = frozenset({
     TargetKind.RANDOM_ENEMY_UNIT,
     TargetKind.RANDOM_OWN_BOARD,
     TargetKind.RANDOM_ENEMY_BOARD,
+    TargetKind.RANDOM_OWN_HAND,
 })
 
 _ALL_TARGETS = frozenset({
@@ -67,6 +68,7 @@ _ALL_TARGETS = frozenset({
     TargetKind.ALL_ENEMY_BOARD,
     TargetKind.ALL_OWN_AMULETS,
     TargetKind.ALL_ENEMY_AMULETS,
+    TargetKind.ALL_OWN_HAND,
 })
 
 _IMPLICIT_TARGETS = frozenset({
@@ -95,6 +97,9 @@ def is_choice_target(kind: TargetKind) -> bool:
 _EFFECT_UNIT_ONLY = frozenset({
     EffectKind.DAMAGE_UNIT,
     EffectKind.BUFF_UNIT,
+    EffectKind.ADD_KEYWORD,
+    EffectKind.REMOVE_KEYWORD,
+    EffectKind.TRANSFORM,
 })
 
 _EFFECT_AMULET_ONLY = frozenset()
@@ -204,7 +209,8 @@ def hand_choice_options(player) -> list:
     from swb.engine.commands import ChoiceOption
 
     options = []
-    for idx, (card, eid) in enumerate(zip(player.hand, player.hand_entity_ids)):
+    for idx, card in enumerate(player.hand):
+        eid = getattr(card, "entity_id", player.hand_entity_ids[idx])
         options.append(
             ChoiceOption(
                 option_id=f"hand:{eid}",
@@ -213,4 +219,3 @@ def hand_choice_options(player) -> list:
             )
         )
     return options
-

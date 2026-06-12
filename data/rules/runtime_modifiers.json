@@ -1,0 +1,38 @@
+{
+  "rules": [
+    {
+      "card_id": 10321310,
+      "trigger": "play",
+      "operations": [
+        {
+          "kind": "add_keyword",
+          "target": "own_unit",
+          "keyword": "守护"
+        },
+        {
+          "kind": "damage_unit",
+          "target": "random_enemy_unit",
+          "amount": 4
+        }
+      ]
+    },
+    {
+      "card_id": 10243310,
+      "trigger": "play",
+      "operations": [
+        {
+          "kind": "change_cost",
+          "target": "own_hand",
+          "amount": 2,
+          "mode": "subtract",
+          "duration": "permanent"
+        },
+        {
+          "kind": "damage_unit",
+          "target": "all_enemy_units",
+          "amount": 3
+        }
+      ]
+    }
+  ]
+}

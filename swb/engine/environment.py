@@ -8,7 +8,7 @@ from swb.db.repository import CardDefinition
 from swb.engine.commands import Attack, Choose, EndTurn, Evolve, GameCommand, PlayCard
 from swb.engine.card_rules import RuleBook
 from swb.engine.resolution import GameConfig, GameEngine
-from swb.engine.state import Amulet, BoardCard, PlayerState, Unit
+from swb.engine.state import Amulet, BoardCard, HandCard, PlayerState, Unit
 
 
 @dataclass(frozen=True)
@@ -260,7 +260,7 @@ class ShadowverseEnv:
         raise ValueError(f"Unit {entity_id} is not on the board")
 
     @staticmethod
-    def _card_features(card: CardDefinition | None) -> list[float]:
+    def _card_features(card: CardDefinition | HandCard | None) -> list[float]:
         if card is None:
             return [0.0] * 7
         return [
@@ -287,7 +287,7 @@ class ShadowverseEnv:
         return [
             1.0, unit.attack / 20, unit.health / 20,
             float(unit.can_attack), float(unit.has_guard),
-            float("疾驰" in unit.definition.keywords),
+            float(unit.has_keyword("疾驰")),
             float(unit.evolved), float(unit.rush_only), 0.0,
             float(unit.barrier_charges > 0), float(unit.ambush_active),
         ]

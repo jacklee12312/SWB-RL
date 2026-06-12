@@ -180,9 +180,9 @@ def evaluate_condition(cond: Condition | None, ctx: EvalContext | None) -> bool:
     elif t == ConditionType.SOURCE_EVOLVED:
         return isinstance(source, Unit) and source.evolved
     elif t == ConditionType.SOURCE_HAS_KEYWORD:
-        return isinstance(source, Unit) and cond.keyword in source.definition.keywords
+        return isinstance(source, Unit) and source.has_keyword(cond.keyword or "")
     elif t == ConditionType.TARGET_HAS_KEYWORD:
-        return isinstance(target, Unit) and cond.keyword in target.definition.keywords
+        return isinstance(target, Unit) and target.has_keyword(cond.keyword or "")
 
     raise ValueError(f"Unknown condition type: {t}")
 

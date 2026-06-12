@@ -6,6 +6,7 @@ from enum import Enum
 from typing import TYPE_CHECKING
 
 from swb.db.repository import CardDefinition
+from swb.engine.abilities import RUNTIME_UNIT_KEYWORDS, normalize_keyword_name
 
 if TYPE_CHECKING:
     from swb.engine.commands import ChoiceRequest
@@ -61,6 +62,101 @@ class BoardEntity:
     entity_id: int = 0
 
 
+@dataclass(frozen=True)
+class KeywordModifier:
+    keyword: str
+    duration: str
+    expires_for_player: int | None = None
+
+
+@dataclass(frozen=True)
+class KeywordRemovalModifier:
+    keyword: str
+    duration: str
+    expires_for_player: int
+    restore_barrier_charge: bool = False
+    restore_ambush: bool = False
+
+
+@dataclass(frozen=True)
+class StatModifier:
+    modifier_id: int
+    attack_delta: int
+    health_delta: int
+    duration: str
+    expires_for_player: int | None = None
+
+
+@dataclass(frozen=True)
+class CostModifier:
+    modifier_id: int
+    mode: str
+    amount: int
+    duration: str
+    expires_for_player: int | None = None
+
+
+@dataclass
+class HandCard:
+    definition: CardDefinition
+    entity_id: int
+    cost_modifiers: list[CostModifier] = field(default_factory=list)
+
+    @property
+    def current_cost(self) -> int:
+        cost = self.definition.cost
+        for modifier in self.cost_modifiers:
+            if modifier.mode == "set":
+                cost = modifier.amount
+            elif modifier.mode == "add":
+                cost += modifier.amount
+            elif modifier.mode == "subtract":
+                cost -= modifier.amount
+        return max(0, cost)
+
+    @property
+    def cost(self) -> int:
+        return self.current_cost
+
+    @property
+    def card_id(self) -> int:
+        return self.definition.card_id
+
+    @property
+    def name(self) -> str:
+        return self.definition.name
+
+    @property
+    def card_type(self) -> str:
+        return self.definition.card_type
+
+    @property
+    def attack(self) -> int | None:
+        return self.definition.attack
+
+    @property
+    def life(self) -> int | None:
+        return self.definition.life
+
+    @property
+    def keywords(self) -> frozenset[str]:
+        return self.definition.keywords
+
+    @property
+    def abilities(self):
+        return self.definition.abilities
+
+    def expire_cost_modifiers(self, duration: str, player_index: int) -> None:
+        self.cost_modifiers = [
+            modifier
+            for modifier in self.cost_modifiers
+            if not (
+                modifier.duration == duration
+                and modifier.expires_for_player == player_index
+            )
+        ]
+
+
 @dataclass
 class Unit(BoardEntity):
     attack: int
@@ -71,34 +167,219 @@ class Unit(BoardEntity):
     rush_only: bool = False
     barrier_charges: int = 0
     ambush_active: bool = False
+    summoned_this_turn: bool = True
+    permanent_keywords: set[str] = field(default_factory=set)
+    temporary_keywords: list[KeywordModifier] = field(default_factory=list)
+    removed_keywords: set[str] = field(default_factory=set)
+    temporary_keyword_removals: list[KeywordRemovalModifier] = field(
+        default_factory=list
+    )
+    stat_modifiers: list[StatModifier] = field(default_factory=list)
 
     @classmethod
     def summon(cls, card: CardDefinition, *, entity_id: int = 0) -> "Unit":
         if card.attack is None or card.life is None:
             raise ValueError(f"{card.name} is not a playable follower")
-        barrier = 1 if "屏障" in card.keywords else 0
-        ambush = "潜行" in card.keywords
+        keywords = {
+            normalize_keyword_name(keyword)
+            for keyword in card.keywords
+        }
+        barrier = 1 if "屏障" in keywords else 0
+        ambush = "潜行" in keywords
         return cls(
             definition=card,
             attack=card.attack,
             health=card.life,
             entity_id=entity_id,
-            can_attack="疾驰" in card.keywords or "突进" in card.keywords,
+            can_attack="疾驰" in keywords or "突进" in keywords,
+            rush_only="突进" in keywords and "疾驰" not in keywords,
             barrier_charges=barrier,
             ambush_active=ambush,
         )
 
     @property
+    def original_keywords(self) -> frozenset[str]:
+        return frozenset(
+            normalize_keyword_name(keyword)
+            for keyword in self.definition.keywords
+        )
+
+    @property
+    def effective_keywords(self) -> frozenset[str]:
+        temporary = {modifier.keyword for modifier in self.temporary_keywords}
+        temporarily_removed = {
+            modifier.keyword for modifier in self.temporary_keyword_removals
+        }
+        return frozenset(
+            (set(self.original_keywords) | self.permanent_keywords | temporary)
+            - self.removed_keywords
+            - temporarily_removed
+        )
+
+    def has_keyword(self, keyword: str) -> bool:
+        return normalize_keyword_name(keyword) in self.effective_keywords
+
+    def add_keyword(
+        self,
+        keyword: str,
+        *,
+        duration: str = "permanent",
+        expires_for_player: int | None = None,
+    ) -> None:
+        canonical = normalize_keyword_name(keyword, strict=True)
+        if canonical not in RUNTIME_UNIT_KEYWORDS:
+            raise ValueError(
+                f"Keyword {canonical!r} is not a supported runtime unit keyword"
+            )
+        self.removed_keywords.discard(canonical)
+        self.temporary_keyword_removals = [
+            modifier
+            for modifier in self.temporary_keyword_removals
+            if modifier.keyword != canonical
+        ]
+        if duration == "permanent":
+            self.permanent_keywords.add(canonical)
+        else:
+            self.temporary_keywords.append(
+                KeywordModifier(canonical, duration, expires_for_player)
+            )
+        if canonical == "屏障":
+            self.barrier_charges += 1
+        elif canonical == "潜行":
+            self.ambush_active = True
+        elif canonical == "疾驰" and self.attacks_remaining > 0:
+            self.can_attack = True
+            self.rush_only = False
+        elif canonical == "突进" and self.attacks_remaining > 0:
+            self.can_attack = True
+            self.rush_only = not self.has_keyword("疾驰")
+
+    def remove_keyword(
+        self,
+        keyword: str,
+        *,
+        duration: str = "permanent",
+        expires_for_player: int | None = None,
+    ) -> None:
+        canonical = normalize_keyword_name(keyword, strict=True)
+        if canonical not in RUNTIME_UNIT_KEYWORDS:
+            raise ValueError(
+                f"Keyword {canonical!r} is not a supported runtime unit keyword"
+            )
+        if duration == "permanent":
+            self.permanent_keywords.discard(canonical)
+            self.temporary_keywords = [
+                modifier
+                for modifier in self.temporary_keywords
+                if modifier.keyword != canonical
+            ]
+            self.removed_keywords.add(canonical)
+        else:
+            if expires_for_player is None:
+                raise ValueError(
+                    "Temporary keyword removal requires expires_for_player"
+                )
+            self.temporary_keyword_removals.append(
+                KeywordRemovalModifier(
+                    keyword=canonical,
+                    duration=duration,
+                    expires_for_player=expires_for_player,
+                    restore_barrier_charge=(
+                        canonical == "屏障" and self.barrier_charges > 0
+                    ),
+                    restore_ambush=(
+                        canonical == "潜行" and self.ambush_active
+                    ),
+                )
+            )
+        self._synchronize_keyword_state()
+
+    def expire_keywords(self, duration: str, player_index: int) -> None:
+        expired = [
+            modifier
+            for modifier in self.temporary_keywords
+            if (
+                modifier.duration == duration
+                and modifier.expires_for_player == player_index
+            )
+        ]
+        self.temporary_keywords = [
+            modifier
+            for modifier in self.temporary_keywords
+            if not (
+                modifier.duration == duration
+                and modifier.expires_for_player == player_index
+            )
+        ]
+        expired_barriers = sum(
+            modifier.keyword == "屏障" for modifier in expired
+        )
+        self.barrier_charges = max(0, self.barrier_charges - expired_barriers)
+        expired_removals = [
+            modifier
+            for modifier in self.temporary_keyword_removals
+            if (
+                modifier.duration == duration
+                and modifier.expires_for_player == player_index
+            )
+        ]
+        self.temporary_keyword_removals = [
+            modifier
+            for modifier in self.temporary_keyword_removals
+            if modifier not in expired_removals
+        ]
+        self._synchronize_keyword_state()
+        if self.has_keyword("屏障") and any(
+            modifier.restore_barrier_charge
+            for modifier in expired_removals
+        ):
+            self.barrier_charges += 1
+        if self.has_keyword("潜行") and any(
+            modifier.restore_ambush for modifier in expired_removals
+        ):
+            self.ambush_active = True
+
+    def _synchronize_keyword_state(self) -> None:
+        if not self.has_keyword("屏障"):
+            self.barrier_charges = 0
+        if not self.has_keyword("潜行"):
+            self.ambush_active = False
+        if self.summoned_this_turn:
+            if self.has_keyword("疾驰"):
+                self.can_attack = self.attacks_remaining > 0
+                self.rush_only = False
+            elif self.has_keyword("突进"):
+                self.can_attack = self.attacks_remaining > 0
+                self.rush_only = True
+            else:
+                self.can_attack = False
+                self.rush_only = False
+
+    def add_stat_modifier(self, modifier: StatModifier) -> None:
+        self.stat_modifiers.append(modifier)
+        self.attack += modifier.attack_delta
+        self.health += modifier.health_delta
+
+    def expire_stat_modifiers(self, duration: str, player_index: int) -> None:
+        remaining: list[StatModifier] = []
+        for modifier in self.stat_modifiers:
+            if (
+                modifier.duration == duration
+                and modifier.expires_for_player == player_index
+            ):
+                self.attack -= modifier.attack_delta
+                self.health -= modifier.health_delta
+            else:
+                remaining.append(modifier)
+        self.stat_modifiers = remaining
+
+    @property
     def has_guard(self) -> bool:
-        return "守护" in self.definition.keywords
+        return self.has_keyword("守护")
 
     @property
     def can_attack_leader(self) -> bool:
-        return (
-            self.can_attack
-            and "突进" not in self.definition.keywords
-            and not self.rush_only
-        )
+        return self.can_attack and not self.rush_only
 
 
 @dataclass
@@ -116,7 +397,7 @@ class PlayerState:
     deck: list[CardDefinition]
     class_id: int
     class_name: str
-    hand: list[CardDefinition] = field(default_factory=list)
+    hand: list[HandCard] = field(default_factory=list)
     hand_entity_ids: list[int] = field(default_factory=list)
     board: list[BoardCard] = field(default_factory=list)
     graveyard: list[CardDefinition] = field(default_factory=list)

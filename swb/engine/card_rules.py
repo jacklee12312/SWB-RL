@@ -5,12 +5,15 @@ from dataclasses import dataclass
 from enum import Enum
 from pathlib import Path
 
+from swb.engine.abilities import RUNTIME_UNIT_KEYWORDS, normalize_keyword_name
 from swb.engine.effects import (
     Condition,
     ConditionType,
+    CostChangeMode,
     EffectKind,
     EffectOperation,
     ExprType,
+    ModifierDuration,
     TargetKind,
     ValueExpression,
 )
@@ -122,6 +125,59 @@ def _parse_operation(raw: dict, source_file: str, card_id: int) -> EffectOperati
     if isinstance(raw_secondary, dict):
         secondary_expr = _parse_expression(raw_secondary, f"{source_file}/secondary_amount", card_id)
 
+    keyword = raw.get("keyword")
+    if kind in (EffectKind.ADD_KEYWORD, EffectKind.REMOVE_KEYWORD):
+        if not isinstance(keyword, str) or not keyword:
+            raise ValueError(
+                f"{source_file}/keyword card {card_id}: "
+                f"'{kind.value}' requires a keyword"
+            )
+        try:
+            keyword = normalize_keyword_name(keyword, strict=True)
+        except ValueError as exc:
+            raise ValueError(
+                f"{source_file}/keyword card {card_id}: {exc}"
+            ) from exc
+        if keyword not in RUNTIME_UNIT_KEYWORDS:
+            raise ValueError(
+                f"{source_file}/keyword card {card_id}: keyword "
+                f"{keyword!r} is not a supported runtime unit keyword"
+            )
+
+    mode = None
+    if kind is EffectKind.CHANGE_COST:
+        raw_mode = raw.get("mode", CostChangeMode.ADD.value)
+        try:
+            mode = CostChangeMode(raw_mode)
+        except ValueError as exc:
+            raise ValueError(
+                f"{source_file}/mode card {card_id}: invalid cost mode "
+                f"{raw_mode!r}"
+            ) from exc
+
+    raw_duration = raw.get("duration", ModifierDuration.PERMANENT.value)
+    try:
+        duration = ModifierDuration(raw_duration)
+    except ValueError as exc:
+        raise ValueError(
+            f"{source_file}/duration card {card_id}: invalid duration "
+            f"{raw_duration!r}"
+        ) from exc
+
+    operation_card_id = raw.get("card_id")
+    if kind in (EffectKind.SUMMON, EffectKind.ADD_CARD, EffectKind.TRANSFORM):
+        if operation_card_id is None:
+            raise ValueError(
+                f"{source_file}/card_id card {card_id}: "
+                f"'{kind.value}' requires card_id"
+            )
+        try:
+            operation_card_id = int(operation_card_id)
+        except (TypeError, ValueError) as exc:
+            raise ValueError(
+                f"{source_file}/card_id card {card_id}: expected an integer"
+            ) from exc
+
     return EffectOperation(
         kind=kind,
         target=target,
@@ -131,11 +187,13 @@ def _parse_operation(raw: dict, source_file: str, card_id: int) -> EffectOperati
             f"{source_file}/secondary_amount",
             card_id,
         ),
-        card_id=raw.get("card_id"),
-        keyword=raw.get("keyword"),
+        card_id=operation_card_id,
+        keyword=keyword,
         conditions=conditions,
         amount_expr=amount_expr,
         secondary_expr=secondary_expr,
+        mode=mode,
+        duration=duration,
     )
 
 
@@ -168,10 +226,21 @@ def _parse_condition(raw: dict, source_path: str, card_id: int) -> Condition:
             f"{error_prefix}: 'not' requires exactly one sub-condition"
         )
 
+    keyword = raw.get("keyword")
+    if t in (ConditionType.SOURCE_HAS_KEYWORD, ConditionType.TARGET_HAS_KEYWORD):
+        if not isinstance(keyword, str) or not keyword:
+            raise ValueError(f"{source_path}/keyword card {card_id}: keyword required")
+        try:
+            keyword = normalize_keyword_name(keyword, strict=True)
+        except ValueError as exc:
+            raise ValueError(
+                f"{source_path}/keyword card {card_id}: {exc}"
+            ) from exc
+
     return Condition(
         type=t,
         value=_parse_optional_int(raw.get("value"), f"{source_path}/value", card_id),
-        keyword=raw.get("keyword"),
+        keyword=keyword,
         conditions=sub,
     )
 

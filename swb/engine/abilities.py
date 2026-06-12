@@ -251,6 +251,27 @@ ABILITY_NAME_MAP = {
     for name in (definition.keyword.value, *definition.aliases)
 }
 
+RUNTIME_UNIT_KEYWORDS = frozenset(
+    {
+        AbilityKeyword.STORM.value,
+        AbilityKeyword.RUSH.value,
+        AbilityKeyword.WARD.value,
+        AbilityKeyword.BANE.value,
+        AbilityKeyword.AMBUSH.value,
+        AbilityKeyword.DRAIN.value,
+        AbilityKeyword.BARRIER.value,
+    }
+)
+
+
+def normalize_keyword_name(name: str, *, strict: bool = False) -> str:
+    keyword = ABILITY_NAME_MAP.get(name)
+    if keyword is not None:
+        return keyword.value
+    if strict:
+        raise ValueError(f"Unknown ability keyword: {name!r}")
+    return name
+
 
 def normalize_abilities(names: frozenset[str] | set[str] | list[str]) -> frozenset[AbilityKeyword]:
     return frozenset(
