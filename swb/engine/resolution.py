@@ -61,6 +61,7 @@ from swb.engine.targeting import (
     pick_random,
     target_candidates,
 )
+from swb.engine.triggers import TriggerBatch, TriggerRecord, collect_triggers
 from swb.engine.conditions import (
     EvalContext,
     PartialConditionResult,
@@ -153,7 +154,28 @@ class GameEngine:
         self._suspended_batch: DeathBatch | None = None
         self._suspended_record: DeathRecord | None = None
         self._suspended_lw_records: list[DeathRecord] = []
+
+        self.ability_handlers.environment._execute_trigger_rules = self._execute_trigger_rules
         self._next_modifier_id: int = 1
+        self._suspended_action: str | None = None
+        self._suspended_action_state: dict | None = None
+        self._suspended_event_state: dict | None = None
+
+    def _execute_trigger_rules(self, trigger, context) -> None:
+        if isinstance(trigger, str):
+            trigger = Trigger(trigger)
+        source = context.source
+        if not isinstance(source, Unit):
+            return
+        ops = self.rulebook.operations_for(source.definition.card_id, trigger)
+        if not ops:
+            return
+        saved = self.state.active_player
+        self.state.active_player = context.player_index
+        try:
+            self._start_effects(source.definition, source.entity_id, ops, label=trigger.value)
+        finally:
+            self.state.active_player = saved
 
     @property
     def players(self) -> list[PlayerState]:
@@ -216,7 +238,11 @@ class GameEngine:
             raise IllegalCommand("The match has ended")
         if self.state.pending_choice is not None and not isinstance(command, Choose):
             raise IllegalCommand("A pending choice must be resolved first")
-        if command.player_index != self.current_player:
+        if isinstance(command, Choose):
+            request = self.state.pending_choice
+            if request is not None and command.player_index != request.player_index:
+                raise IllegalCommand("Choice command belongs to the wrong player")
+        elif command.player_index != self.current_player:
             raise IllegalCommand("Command belongs to the non-active player")
 
         acting_player = self.current_player
@@ -236,6 +262,7 @@ class GameEngine:
 
         self._resolve_event_queue()
         self._stabilize()
+        self._resume_suspended_action()
         return CoreTransition(
             command=command,
             events=tuple(self.event_history[event_start:]),
@@ -244,6 +271,25 @@ class GameEngine:
             terminated=self.terminated,
         )
 
+    def _resume_suspended_action(self) -> None:
+        while self._suspended_action is not None and self.state.pending_choice is None:
+            action = self._suspended_action
+            state = self._suspended_action_state
+            if action == "attack":
+                self._resume_attack(state)
+            elif action == "evolve":
+                self._suspended_action = None
+                self._suspended_action_state = None
+            elif action == "turn_end":
+                self._resume_end_turn(state)
+            elif action == "turn_start":
+                self._resume_start_turn(state)
+            else:
+                self._suspended_action = None
+                self._suspended_action_state = None
+            self._resolve_event_queue()
+            self._stabilize()
+
     def legal_commands(self) -> list[GameCommand]:
         self._ensure_entity_ids()
         if self.terminated:
@@ -251,7 +297,7 @@ class GameEngine:
         if self.state.pending_choice is not None:
             request = self.state.pending_choice
             return [
-                Choose(self.current_player, option.option_id)
+                Choose(request.player_index, option.option_id)
                 for option in request.options
             ]
 
@@ -877,6 +923,11 @@ class GameEngine:
         self._stabilize()
 
     def _evolve(self, command: Evolve) -> None:
+        if self._suspended_action_state is not None and self._suspended_action == "evolve":
+            self._suspended_action = None
+            self._suspended_action_state = None
+            return
+
         player = self.players[self.current_player]
         unit = self._find_unit(player.board, command.unit_id)
         if player.evolution_points <= 0:
@@ -909,8 +960,15 @@ class GameEngine:
             )
         )
         self._resolve_event_queue()
+        if self.state.pending_choice is not None:
+            self._suspended_action = "evolve"
+            self._suspended_action_state = {"unit_id": unit.entity_id}
+            return
 
     def _attack(self, command: Attack) -> None:
+        if self._suspended_action_state is not None and self._suspended_action == "attack":
+            return self._resume_attack(self._suspended_action_state)
+
         player = self.players[self.current_player]
         opponent = self.players[1 - self.current_player]
         attacker = self._find_unit(player.board, command.attacker_id)
@@ -942,6 +1000,24 @@ class GameEngine:
             )
         )
         self._resolve_event_queue()
+        if self.state.pending_choice is not None:
+            self._suspended_action = "attack"
+            self._suspended_action_state = {
+                "attacker_id": attacker.entity_id,
+                "target_id": target.entity_id if target else None,
+                "phase": "declared",
+            }
+            return
+
+        if attacker not in player.board:
+            return
+
+        if target is not None and target not in opponent.board:
+            attacker.attacks_remaining -= 1
+            attacker.can_attack = False
+            attacker.rush_only = False
+            return
+
         attacker.attacks_remaining -= 1
         attacker.can_attack = False
         attacker.rush_only = False
@@ -977,6 +1053,26 @@ class GameEngine:
             )
         )
         self._resolve_event_queue()
+        if self.state.pending_choice is not None:
+            self._suspended_action = "attack"
+            self._suspended_action_state = {
+                "attacker_id": attacker.entity_id,
+                "target_id": target.entity_id,
+                "phase": "combat",
+            }
+            return
+
+        if attacker not in player.board or target not in opponent.board:
+            return
+
+        self._finish_attack_combat(attacker, target)
+
+    def _finish_attack_combat(self, attacker: Unit, target: Unit) -> None:
+        player = self.players[self.current_player]
+        opponent = self.players[1 - self.current_player]
+        if attacker not in player.board or target not in opponent.board:
+            return
+
         attack_damage = attacker.attack
         counter_damage = target.attack
 
@@ -1013,7 +1109,89 @@ class GameEngine:
             f"造成 {result_t.actual_amount} 点并受到 {result_c.actual_amount} 点伤害",
         )
 
+    def _resume_attack(self, state: dict) -> None:
+        self._suspended_action = None
+        self._suspended_action_state = None
+        phase = state["phase"]
+        attacker_id = state["attacker_id"]
+        target_id = state["target_id"]
+
+        player = self.players[self.current_player]
+        opponent = self.players[1 - self.current_player]
+        try:
+            attacker = self._find_unit(player.board, attacker_id)
+        except IllegalCommand:
+            return
+        if target_id is not None:
+            try:
+                found = self._find_board_entity(target_id)
+            except IllegalCommand:
+                found = None
+            if found is None or not isinstance(found, Unit) or found not in opponent.board:
+                return
+            target = found
+        else:
+            target = None
+
+        if phase == "declared":
+            attacker.attacks_remaining -= 1
+            attacker.can_attack = False
+            attacker.rush_only = False
+            if target is None:
+                result = self.apply_damage(attacker, None, attacker.attack, DamageType.COMBAT, self.current_player, attacker=attacker)
+                was_ambush = attacker.ambush_active
+                attacker.ambush_active = False
+                if was_ambush:
+                    self._emit(GameEvent(EventType.AMBUSH_LOST, self.current_player, source_id=attacker.entity_id))
+                self._emit(
+                    GameEvent(
+                        EventType.DAMAGE_DEALT,
+                        self.current_player,
+                        source_id=attacker.entity_id,
+                        amount=result.actual_amount,
+                        metadata={"source": attacker, "target_player": 1 - self.current_player},
+                    )
+                )
+                self._log(
+                    self.current_player,
+                    f"{attacker.definition.name} 攻击对方主战者，造成 {result.actual_amount} 点伤害"
+                    f"（对方生命 {opponent.health}）",
+                )
+                return
+            self._emit(
+                GameEvent(
+                    EventType.COMBAT_STARTED,
+                    self.current_player,
+                    source_id=attacker.entity_id,
+                    target_id=target.entity_id,
+                    metadata={"source": attacker, "target": target},
+                )
+            )
+            self._resolve_event_queue()
+            if self.state.pending_choice is not None:
+                self._suspended_action = "attack"
+                self._suspended_action_state = {
+                    "attacker_id": attacker.entity_id,
+                    "target_id": target.entity_id,
+                    "phase": "combat",
+                }
+                return
+            if attacker not in player.board or target not in opponent.board:
+                return
+            self._finish_attack_combat(attacker, target)
+        elif phase == "combat":
+            if target is None:
+                return
+            self._finish_attack_combat(attacker, target)
+
     def _end_turn(self) -> None:
+        if self._suspended_action_state is not None and self._suspended_action == "turn_end":
+            state = self._suspended_action_state
+            self._suspended_action = None
+            self._suspended_action_state = None
+            self._resume_end_turn(state)
+            return
+
         player_index = self.current_player
         self._expire_modifiers(
             ModifierDuration.UNTIL_END_OF_TURN,
@@ -1022,10 +1200,61 @@ class GameEngine:
         self._stabilize()
         if self.terminated:
             return
-        for unit in tuple(self.players[player_index].board):
+        board = tuple(self.players[player_index].board)
+        for idx, unit in enumerate(board):
             self._dispatch_ability(
                 AbilityEvent.TURN_ENDED, unit, player_index=player_index
             )
+            ops = self.rulebook.operations_for(unit.definition.card_id, Trigger.TURN_END)
+            if ops:
+                self._start_effects(unit.definition, unit.entity_id, ops, label="回合结束")
+                if self.state.pending_choice is not None:
+                    self._suspended_action = "turn_end"
+                    self._suspended_action_state = {
+                        "player_index": player_index,
+                        "remaining_ids": [
+                            e.entity_id
+                            for e in board[idx + 1:]
+                        ],
+                    }
+                    return
+        self._emit(GameEvent(EventType.TURN_ENDED, player_index))
+        self._log(player_index, "结束回合")
+        self.state.active_player = 1 - player_index
+        self.state.turn += 1
+        self._start_turn(self.current_player)
+
+    def _resume_end_turn(self, state: dict) -> None:
+        self._suspended_action = None
+        self._suspended_action_state = None
+        player_index = state["player_index"]
+        remaining_ids = state.get("remaining_ids", [])
+
+        while remaining_ids:
+            entity_id = remaining_ids[0]
+            remaining_ids = remaining_ids[1:]
+            try:
+                unit = self._find_board_entity(entity_id)
+            except IllegalCommand:
+                continue
+            if not isinstance(unit, Unit):
+                continue
+            owner = self._entity_owner(entity_id)
+            if owner != player_index:
+                continue
+            self._dispatch_ability(
+                AbilityEvent.TURN_ENDED, unit, player_index=player_index
+            )
+            ops = self.rulebook.operations_for(unit.definition.card_id, Trigger.TURN_END)
+            if ops:
+                self._start_effects(unit.definition, unit.entity_id, ops, label="回合结束")
+                if self.state.pending_choice is not None:
+                    self._suspended_action = "turn_end"
+                    self._suspended_action_state = {
+                        "player_index": player_index,
+                        "remaining_ids": remaining_ids,
+                    }
+                    return
         self._emit(GameEvent(EventType.TURN_ENDED, player_index))
         self._log(player_index, "结束回合")
         self.state.active_player = 1 - player_index
@@ -1085,6 +1314,13 @@ class GameEngine:
             self._continue_effects()
 
     def _start_turn(self, player_index: int) -> None:
+        if self._suspended_action_state is not None and self._suspended_action == "turn_start":
+            state = self._suspended_action_state
+            self._suspended_action = None
+            self._suspended_action_state = None
+            self._resume_start_turn(state)
+            return
+
         player = self.players[player_index]
         self._expire_modifiers(
             ModifierDuration.UNTIL_START_OF_NEXT_TURN,
@@ -1100,7 +1336,8 @@ class GameEngine:
         player.max_mana = min(self.config.max_mana, player.max_mana + 1)
         player.mana = player.max_mana
         self._tick_countdowns(player_index)
-        for unit in player.board:
+        board = tuple(player.board)
+        for idx, unit in enumerate(board):
             if not isinstance(unit, Unit):
                 continue
             unit.can_attack = True
@@ -1110,6 +1347,25 @@ class GameEngine:
             self._dispatch_ability(
                 AbilityEvent.TURN_STARTED, unit, player_index=player_index
             )
+            ops = self.rulebook.operations_for(unit.definition.card_id, Trigger.TURN_START)
+            if ops:
+                self._start_effects(unit.definition, unit.entity_id, ops, label="回合开始")
+                if self.state.pending_choice is not None:
+                    self._suspended_action = "turn_start"
+                    self._suspended_action_state = {
+                        "player_index": player_index,
+                        "phase": "board",
+                        "remaining_ids": [
+                            e.entity_id
+                            for e in board[idx + 1:]
+                            if isinstance(e, Unit)
+                        ],
+                    }
+                    return
+        self._finish_start_turn(player_index)
+
+    def _finish_start_turn(self, player_index: int) -> None:
+        player = self.players[player_index]
         for card in player.hand:
             card_definition = (
                 card.definition if isinstance(card, HandCard) else card
@@ -1131,6 +1387,45 @@ class GameEngine:
         )
         self._draw(player_index, reason="回合抽牌")
         self._stabilize()
+
+    def _resume_start_turn(self, state: dict) -> None:
+        self._suspended_action = None
+        self._suspended_action_state = None
+        player_index = state["player_index"]
+        phase = state["phase"]
+        if phase == "board":
+            remaining_ids = state.get("remaining_ids", [])
+            while remaining_ids:
+                entity_id = remaining_ids[0]
+                remaining_ids = remaining_ids[1:]
+                try:
+                    unit = self._find_board_entity(entity_id)
+                except IllegalCommand:
+                    continue
+                if not isinstance(unit, Unit):
+                    continue
+                owner = self._entity_owner(entity_id)
+                if owner != player_index:
+                    continue
+                unit.can_attack = True
+                unit.attacks_remaining = 1
+                unit.rush_only = False
+                unit.summoned_this_turn = False
+                self._dispatch_ability(
+                    AbilityEvent.TURN_STARTED, unit, player_index=player_index
+                )
+                ops = self.rulebook.operations_for(unit.definition.card_id, Trigger.TURN_START)
+                if ops:
+                    self._start_effects(unit.definition, unit.entity_id, ops, label="回合开始")
+                    if self.state.pending_choice is not None:
+                        self._suspended_action = "turn_start"
+                        self._suspended_action_state = {
+                            "player_index": player_index,
+                            "phase": "board",
+                            "remaining_ids": remaining_ids,
+                        }
+                        return
+        self._finish_start_turn(player_index)
 
     def _draw(self, player_index: int, *, reason: str) -> None:
         player = self.players[player_index]
@@ -1687,6 +1982,10 @@ class GameEngine:
                 return
 
     def _resolve_event_queue(self) -> None:
+        if self._suspended_event_state is not None and self.state.pending_choice is None:
+            self._resume_event_queue()
+            return
+
         event_to_ability = {
             EventType.CARD_PLAYED: AbilityEvent.CARD_PLAYED,
             EventType.FOLLOWER_SUMMONED: AbilityEvent.FOLLOWER_SUMMONED,
@@ -1719,6 +2018,9 @@ class GameEngine:
                         source,
                         player_index=event.player_index,
                     )
+                if self.state.pending_choice is not None:
+                    self._save_event_continuation(event, source, target, ability_event, phase="source_done")
+                    return
                 if event.type is EventType.COMBAT_STARTED and isinstance(target, Unit):
                     self._dispatch_ability(
                         ability_event,
@@ -1726,6 +2028,48 @@ class GameEngine:
                         source,
                         player_index=1 - event.player_index,
                     )
+                    if self.state.pending_choice is not None:
+                        self._save_event_continuation(event, source, target, ability_event, phase="target_done")
+                        return
+
+    def _save_event_continuation(self, event, source, target, ability_event, phase):
+        remaining = []
+        while self.state.event_queue:
+            remaining.append(self.state.event_queue.popleft())
+        self._suspended_event_state = {
+            "remaining_events": remaining,
+            "event": event,
+            "source": source,
+            "target": target,
+            "ability_event": ability_event,
+            "phase": phase,
+        }
+
+    def _resume_event_queue(self):
+        state = self._suspended_event_state
+        self._suspended_event_state = None
+        phase = state["phase"]
+        event = state["event"]
+        source = state["source"]
+        target = state["target"]
+        ability_event = state["ability_event"]
+
+        if phase == "source_done" and event.type is EventType.COMBAT_STARTED and isinstance(target, Unit):
+            self._dispatch_ability(
+                ability_event,
+                target,
+                source,
+                player_index=1 - event.player_index,
+            )
+            if self.state.pending_choice is not None:
+                state["phase"] = "target_done"
+                self._suspended_event_state = state
+                return
+
+        remaining = state["remaining_events"]
+        for e in remaining:
+            self.state.event_queue.append(e)
+        self._resolve_event_queue()
 
     def _stabilize(self) -> None:
         if self._stabilizing:

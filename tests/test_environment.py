@@ -195,7 +195,7 @@ class EnvironmentTests(unittest.TestCase):
 
     def test_placeholder_ability_event_is_recorded_without_state_change(self) -> None:
         attacker = Unit.summon(
-            card(300, attack=2, life=2, keywords=frozenset({"攻击时"}))
+            card(300, attack=2, life=2, keywords=frozenset({"威慑"}))
         )
         attacker.can_attack = True
         self.env.players[0].board = [attacker]
@@ -204,7 +204,7 @@ class EnvironmentTests(unittest.TestCase):
         events = self.env.info()["placeholder_ability_events"]
         self.assertTrue(
             any(
-                event.ability is AbilityKeyword.ON_ATTACK
+                event.ability is AbilityKeyword.INTIMIDATE
                 and event.event is AbilityEvent.BEFORE_ATTACK
                 for event in events
             )
@@ -237,6 +237,42 @@ class EnvironmentTests(unittest.TestCase):
         self.env.step(choices[0])
         self.assertEqual(self.env.players[1].board, [])
         self.assertIsNone(self.env.core.state.pending_choice)
+
+    def test_rl_defender_clash_choice_accepted(self) -> None:
+        """Defender CLASH choice: RL decodes with request.player_index."""
+        from swb.engine.card_rules import CardRule, RuleBook, Trigger
+        from swb.engine.effects import EffectKind, EffectOperation, TargetKind
+        from swb.engine.commands import Attack, Choose
+
+        rulebook = RuleBook((
+            CardRule(card_id=400, trigger=Trigger.CLASH, operations=(
+                EffectOperation(kind=EffectKind.DAMAGE_UNIT, target=TargetKind.ENEMY_BOARD, amount=1),
+            ),),
+        ))
+        env = ShadowverseEnv(
+            [card(i) for i in range(100, 140)],
+            [card(i) for i in range(200, 240)],
+            class_a=1, class_b=1, seed=1, rulebook=rulebook,
+        )
+        env.reset(seed=1)
+
+        a = Unit.summon(card(300, attack=2, life=5), entity_id=env.core.state.allocate_entity_id())
+        a.can_attack = True
+        d = Unit.summon(card(400, attack=1, life=5, keywords=frozenset({"交战时"})), entity_id=env.core.state.allocate_entity_id())
+        env.players[0].board = [a]
+        env.players[1].board = [d]
+        env.core._ensure_entity_ids()
+
+        result = env.core.apply(Attack(0, a.entity_id, d.entity_id))
+        self.assertIsNotNone(env.core.state.pending_choice)
+        request = env.core.state.pending_choice
+        self.assertEqual(request.player_index, 1)
+
+        encoded = env._encode_command(Choose(request.player_index, request.options[0].option_id))
+        self.assertIsNotNone(encoded)
+        decoded = env._decode_action(encoded)
+        self.assertIsInstance(decoded, Choose)
+        self.assertEqual(decoded.player_index, request.player_index)
 
 
 if __name__ == "__main__":

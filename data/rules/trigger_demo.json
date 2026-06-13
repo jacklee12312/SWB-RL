@@ -1,0 +1,37 @@
+{
+  "rules": [
+    {
+      "card_id": 10011130,
+      "trigger": "attack",
+      "operations": [
+        {
+          "kind": "heal_leader",
+          "target": "own_leader",
+          "amount": 2
+        }
+      ]
+    },
+    {
+      "card_id": 10162120,
+      "trigger": "clash",
+      "operations": [
+        {
+          "kind": "damage_leader",
+          "target": "enemy_leader",
+          "amount": 1
+        }
+      ]
+    },
+    {
+      "card_id": 10012120,
+      "trigger": "super_evolve",
+      "operations": [
+        {
+          "kind": "return_to_hand",
+          "target": "enemy_unit",
+          "amount": 1
+        }
+      ]
+    }
+  ]
+}

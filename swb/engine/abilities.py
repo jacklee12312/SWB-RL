@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING, Callable, Protocol
 if TYPE_CHECKING:
     from swb.db.repository import CardDefinition
     from swb.engine.model import Unit
+    from swb.engine.card_rules import Trigger
 
 
 class AbilityKeyword(str, Enum):
@@ -209,17 +210,21 @@ ABILITY_DEFINITIONS = (
         AbilityKeyword.ON_EVOLVE,
         (AbilityEvent.FOLLOWER_EVOLVED,),
         "handle_on_evolve",
+        status=AbilityStatus.IMPLEMENTED,
     ),
     _definition(
         AbilityKeyword.ON_SUPER_EVOLVE,
         (AbilityEvent.FOLLOWER_SUPER_EVOLVED,),
         "handle_on_super_evolve",
+        status=AbilityStatus.IMPLEMENTED,
     ),
     _definition(
-        AbilityKeyword.ON_ATTACK, (AbilityEvent.BEFORE_ATTACK,), "handle_on_attack"
+        AbilityKeyword.ON_ATTACK, (AbilityEvent.BEFORE_ATTACK,), "handle_on_attack",
+        status=AbilityStatus.IMPLEMENTED,
     ),
     _definition(
-        AbilityKeyword.ON_CLASH, (AbilityEvent.BEFORE_COMBAT,), "handle_on_clash"
+        AbilityKeyword.ON_CLASH, (AbilityEvent.BEFORE_COMBAT,), "handle_on_clash",
+        status=AbilityStatus.IMPLEMENTED,
     ),
     _definition(AbilityKeyword.ENHANCE, (AbilityEvent.CHECK_PLAY,), "handle_enhance"),
     _definition(AbilityKeyword.ACCELERATE, (AbilityEvent.CHECK_PLAY,), "handle_accelerate"),
@@ -395,16 +400,25 @@ class AbilityHandlers:
         self._placeholder(context, AbilityKeyword.LAST_WORDS)
 
     def handle_on_evolve(self, context: AbilityContext) -> None:
-        self._placeholder(context, AbilityKeyword.ON_EVOLVE)
+        from swb.engine.card_rules import Trigger
+        self._dispatch_trigger(context, Trigger.EVOLVE)
 
     def handle_on_super_evolve(self, context: AbilityContext) -> None:
-        self._placeholder(context, AbilityKeyword.ON_SUPER_EVOLVE)
+        from swb.engine.card_rules import Trigger
+        self._dispatch_trigger(context, Trigger.SUPER_EVOLVE)
 
     def handle_on_attack(self, context: AbilityContext) -> None:
-        self._placeholder(context, AbilityKeyword.ON_ATTACK)
+        from swb.engine.card_rules import Trigger
+        self._dispatch_trigger(context, Trigger.ATTACK)
 
     def handle_on_clash(self, context: AbilityContext) -> None:
-        self._placeholder(context, AbilityKeyword.ON_CLASH)
+        from swb.engine.card_rules import Trigger
+        self._dispatch_trigger(context, Trigger.CLASH)
+
+    def _dispatch_trigger(self, context: AbilityContext, trigger: str) -> None:
+        engine = getattr(self.environment, '_execute_trigger_rules', None)
+        if engine is not None:
+            engine(trigger, context)
 
     def handle_enhance(self, context: AbilityContext) -> None:
         self._placeholder(context, AbilityKeyword.ENHANCE)

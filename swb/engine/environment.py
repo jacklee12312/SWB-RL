@@ -88,6 +88,13 @@ class ShadowverseEnv:
         return self.core.current_player
 
     @property
+    def decision_player(self) -> int:
+        pending = self.core.state.pending_choice
+        if pending is not None:
+            return pending.player_index
+        return self.core.current_player
+
+    @property
     def turn(self) -> int:
         return self.core.turn
 
@@ -115,8 +122,9 @@ class ShadowverseEnv:
         mask = self.action_mask()
         if action < 0 or action >= self.ACTION_SIZE or not mask[action]:
             raise ValueError(f"Illegal action: {action}")
-        acting_player = self.current_player
-        transition = self.core.apply(self._decode_action(action))
+        command = self._decode_action(action)
+        acting_player = self.decision_player
+        transition = self.core.apply(command)
         reward = 0.0
         if transition.terminated:
             reward = 0.0 if self.winner is None else (
@@ -139,15 +147,16 @@ class ShadowverseEnv:
         return mask
 
     def observation(self) -> list[float]:
-        me = self.players[self.current_player]
-        opponent = self.players[1 - self.current_player]
+        perspective = self.decision_player
+        me = self.players[perspective]
+        opponent = self.players[1 - perspective]
         values = [
             me.health / 20,
             opponent.health / 20,
             me.mana / self.MAX_MANA,
             me.max_mana / self.MAX_MANA,
-            len(me.deck) / max(1, len(self.deck_lists[self.current_player])),
-            len(opponent.deck) / max(1, len(self.deck_lists[1 - self.current_player])),
+            len(me.deck) / max(1, len(self.deck_lists[perspective])),
+            len(opponent.deck) / max(1, len(self.deck_lists[1 - perspective])),
             len(me.hand) / self.MAX_HAND,
             len(opponent.hand) / self.MAX_HAND,
             self.turn / self.MAX_TURNS,
@@ -179,6 +188,7 @@ class ShadowverseEnv:
     def info(self) -> dict[str, object]:
         return {
             "current_player": self.current_player,
+            "decision_player": self.decision_player,
             "turn": self.turn,
             "winner": self.winner,
             "player_classes": self.core.player_classes,
@@ -199,7 +209,7 @@ class ShadowverseEnv:
                 raise ValueError("No choice is pending")
             option_index = action - self.CHOICE_OFFSET
             return Choose(
-                self.current_player,
+                request.player_index,
                 request.options[option_index].option_id,
             )
         if action < self.ATTACK_OFFSET:
