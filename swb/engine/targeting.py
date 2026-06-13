@@ -100,6 +100,11 @@ _EFFECT_UNIT_ONLY = frozenset({
     EffectKind.ADD_KEYWORD,
     EffectKind.REMOVE_KEYWORD,
     EffectKind.TRANSFORM,
+    EffectKind.SET_STATS,
+    EffectKind.ADD_ATTACK_RESTRICTION,
+    EffectKind.REMOVE_ATTACK_RESTRICTION,
+    EffectKind.ADD_TARGETING_RESTRICTION,
+    EffectKind.REMOVE_TARGETING_RESTRICTION,
 })
 
 _EFFECT_AMULET_ONLY = frozenset()
@@ -179,7 +184,28 @@ def target_candidates(
     else:
         return []
 
-    return [e for e in candidates if _effect_compatible(e, operation.kind)]
+    candidates = [e for e in candidates if _effect_compatible(e, operation.kind)]
+
+    if is_manual_target(operation.target):
+        candidates = [
+            e for e in candidates
+            if not _is_unselectable_by_enemy_effects(e, controller, players)
+        ]
+
+    return candidates
+
+
+def _is_unselectable_by_enemy_effects(
+    entity: BoardCard, controller: int, players: list
+) -> bool:
+    if not isinstance(entity, Unit):
+        return False
+    if not entity.cannot_be_enemy_targeted:
+        return False
+    for idx, player in enumerate(players):
+        if entity in player.board:
+            return idx != controller
+    return False
 
 
 def build_choice_options(candidates: list[BoardCard]) -> list[ChoiceOption]:

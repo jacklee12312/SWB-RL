@@ -87,6 +87,30 @@ class StatModifier:
     expires_for_player: int | None = None
 
 
+class AttackRestriction(str, Enum):
+    CANNOT_ATTACK = "cannot_attack"
+    CANNOT_ATTACK_LEADER = "cannot_attack_leader"
+    CANNOT_ATTACK_UNITS = "cannot_attack_units"
+
+
+@dataclass(frozen=True)
+class AttackRestrictionModifier:
+    restriction: AttackRestriction
+    duration: str
+    expires_for_player: int | None = None
+
+
+class TargetingRestriction(str, Enum):
+    CANNOT_BE_TARGETED_BY_ENEMY_EFFECTS = "cannot_be_targeted_by_enemy_effects"
+
+
+@dataclass(frozen=True)
+class TargetingRestrictionModifier:
+    restriction: TargetingRestriction
+    duration: str
+    expires_for_player: int | None = None
+
+
 @dataclass(frozen=True)
 class CostModifier:
     modifier_id: int
@@ -161,6 +185,9 @@ class HandCard:
 class Unit(BoardEntity):
     attack: int
     health: int
+    max_health: int
+    base_attack: int
+    base_health: int
     can_attack: bool = False
     attacks_remaining: int = 1
     evolved: bool = False
@@ -175,6 +202,8 @@ class Unit(BoardEntity):
         default_factory=list
     )
     stat_modifiers: list[StatModifier] = field(default_factory=list)
+    attack_restrictions: list[AttackRestrictionModifier] = field(default_factory=list)
+    targeting_restrictions: list[TargetingRestrictionModifier] = field(default_factory=list)
 
     @classmethod
     def summon(cls, card: CardDefinition, *, entity_id: int = 0) -> "Unit":
@@ -190,6 +219,9 @@ class Unit(BoardEntity):
             definition=card,
             attack=card.attack,
             health=card.life,
+            max_health=card.life,
+            base_attack=card.attack,
+            base_health=card.life,
             entity_id=entity_id,
             can_attack="疾驰" in keywords or "突进" in keywords,
             rush_only="突进" in keywords and "疾驰" not in keywords,
@@ -355,10 +387,25 @@ class Unit(BoardEntity):
                 self.can_attack = False
                 self.rush_only = False
 
+    def _recompute_max(self) -> None:
+        self.max_health = self.base_health
+        for m in self.stat_modifiers:
+            self.max_health += m.health_delta
+        if self.max_health < 1:
+            self.max_health = 1
+
+    def _recompute_attack(self) -> None:
+        self.attack = self.base_attack
+        for m in self.stat_modifiers:
+            self.attack += m.attack_delta
+        if self.attack < 0:
+            self.attack = 0
+
     def add_stat_modifier(self, modifier: StatModifier) -> None:
         self.stat_modifiers.append(modifier)
-        self.attack += modifier.attack_delta
         self.health += modifier.health_delta
+        self._recompute_attack()
+        self._recompute_max()
 
     def expire_stat_modifiers(self, duration: str, player_index: int) -> None:
         remaining: list[StatModifier] = []
@@ -367,11 +414,14 @@ class Unit(BoardEntity):
                 modifier.duration == duration
                 and modifier.expires_for_player == player_index
             ):
-                self.attack -= modifier.attack_delta
                 self.health -= modifier.health_delta
             else:
                 remaining.append(modifier)
         self.stat_modifiers = remaining
+        self._recompute_attack()
+        self._recompute_max()
+        if self.health > self.max_health:
+            self.health = self.max_health
 
     @property
     def has_guard(self) -> bool:
@@ -379,7 +429,64 @@ class Unit(BoardEntity):
 
     @property
     def can_attack_leader(self) -> bool:
+        if any(r.restriction == AttackRestriction.CANNOT_ATTACK for r in self.attack_restrictions):
+            return False
+        if any(r.restriction == AttackRestriction.CANNOT_ATTACK_LEADER for r in self.attack_restrictions):
+            return False
         return self.can_attack and not self.rush_only
+
+    @property
+    def can_attack_units(self) -> bool:
+        if not self.can_attack:
+            return False
+        if any(r.restriction == AttackRestriction.CANNOT_ATTACK for r in self.attack_restrictions):
+            return False
+        if any(r.restriction == AttackRestriction.CANNOT_ATTACK_UNITS for r in self.attack_restrictions):
+            return False
+        return True
+
+    @property
+    def cannot_be_enemy_targeted(self) -> bool:
+        return any(
+            r.restriction == TargetingRestriction.CANNOT_BE_TARGETED_BY_ENEMY_EFFECTS
+            for r in self.targeting_restrictions
+        )
+
+    def add_attack_restriction(
+        self, restriction: AttackRestriction, *, duration: str, expires_for_player: int | None = None
+    ) -> None:
+        self.attack_restrictions.append(
+            AttackRestrictionModifier(restriction, duration, expires_for_player)
+        )
+
+    def remove_attack_restriction(self, restriction: AttackRestriction) -> None:
+        self.attack_restrictions = [
+            r for r in self.attack_restrictions if r.restriction != restriction
+        ]
+
+    def expire_attack_restrictions(self, duration: str, player_index: int) -> None:
+        self.attack_restrictions = [
+            r for r in self.attack_restrictions
+            if not (r.duration == duration and r.expires_for_player == player_index)
+        ]
+
+    def add_targeting_restriction(
+        self, restriction: TargetingRestriction, *, duration: str, expires_for_player: int | None = None
+    ) -> None:
+        self.targeting_restrictions.append(
+            TargetingRestrictionModifier(restriction, duration, expires_for_player)
+        )
+
+    def remove_targeting_restriction(self, restriction: TargetingRestriction) -> None:
+        self.targeting_restrictions = [
+            r for r in self.targeting_restrictions if r.restriction != restriction
+        ]
+
+    def expire_targeting_restrictions(self, duration: str, player_index: int) -> None:
+        self.targeting_restrictions = [
+            r for r in self.targeting_restrictions
+            if not (r.duration == duration and r.expires_for_player == player_index)
+        ]
 
 
 @dataclass

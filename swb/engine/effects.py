@@ -87,6 +87,11 @@ class EffectKind(str, Enum):
     RETURN_TO_HAND = "return_to_hand"
     RETURN_TO_DECK = "return_to_deck"
     DISCARD = "discard"
+    SET_STATS = "set_stats"
+    ADD_ATTACK_RESTRICTION = "add_attack_restriction"
+    REMOVE_ATTACK_RESTRICTION = "remove_attack_restriction"
+    ADD_TARGETING_RESTRICTION = "add_targeting_restriction"
+    REMOVE_TARGETING_RESTRICTION = "remove_targeting_restriction"
 
 
 class TargetKind(str, Enum):
@@ -116,12 +121,16 @@ class TargetKind(str, Enum):
     OWN_HAND = "own_hand"
     RANDOM_OWN_HAND = "random_own_hand"
     ALL_OWN_HAND = "all_own_hand"
+    PREVIOUS_TARGET = "previous_target"
 
 
 class ModifierDuration(str, Enum):
     PERMANENT = "permanent"
     UNTIL_END_OF_TURN = "until_end_of_turn"
     UNTIL_START_OF_NEXT_TURN = "until_start_of_next_turn"
+    UNTIL_END_OF_CONTROLLER_TURN = "until_end_of_controller_turn"
+    UNTIL_END_OF_OPPONENT_TURN = "until_end_of_opponent_turn"
+    UNTIL_START_OF_CONTROLLER_NEXT_TURN = "until_start_of_controller_next_turn"
 
 
 class CostChangeMode(str, Enum):
@@ -138,11 +147,15 @@ class EffectOperation:
     secondary_amount: int = 0
     card_id: int | None = None
     keyword: str | None = None
+    restriction: str | None = None
     conditions: tuple[Condition, ...] = ()
     amount_expr: ValueExpression | None = None
     secondary_expr: ValueExpression | None = None
     mode: CostChangeMode | None = None
     duration: ModifierDuration = ModifierDuration.PERMANENT
+    set_attack: bool = False
+    set_health: bool = False
+    target_key: str | None = None
 
 
 @dataclass
@@ -161,3 +174,4 @@ class EffectFrame:
     _all_target_index: int = 0
     defer_stabilize: bool = False
     auto_resolve_choices: bool = False
+    _target_bindings: dict[str, int] = field(default_factory=dict)

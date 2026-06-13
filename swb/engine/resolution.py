@@ -96,6 +96,34 @@ class IllegalCommand(ValueError):
 
 MAX_RESOLUTION_STEPS = 20_000
 
+_DURATION_EXPANSION: dict[ModifierDuration, tuple[str, ...]] = {
+    ModifierDuration.UNTIL_END_OF_TURN: (
+        "until_end_of_turn",
+        "until_end_of_controller_turn",
+        "until_end_of_opponent_turn",
+    ),
+    ModifierDuration.UNTIL_START_OF_NEXT_TURN: (
+        "until_start_of_next_turn",
+        "until_start_of_controller_next_turn",
+    ),
+}
+
+
+def _expire_duration_values(duration: ModifierDuration) -> tuple[str, ...]:
+    return _DURATION_EXPANSION.get(duration, (duration.value,))
+
+
+def _expires_for_player(duration: ModifierDuration, controller: int) -> int | None:
+    if duration == ModifierDuration.PERMANENT:
+        return None
+    if duration in (ModifierDuration.UNTIL_END_OF_TURN, ModifierDuration.UNTIL_START_OF_NEXT_TURN):
+        return controller
+    if duration in (ModifierDuration.UNTIL_END_OF_CONTROLLER_TURN, ModifierDuration.UNTIL_START_OF_CONTROLLER_NEXT_TURN):
+        return controller
+    if duration == ModifierDuration.UNTIL_END_OF_OPPONENT_TURN:
+        return 1 - controller
+    return controller
+
 
 @dataclass(frozen=True)
 class GameConfig:
@@ -335,13 +363,14 @@ class GameEngine:
                 continue
             if not guards and unit.can_attack_leader:
                 commands.append(Attack(self.current_player, unit.entity_id, None))
-            targets = guards or [
-                target for target in opponent.board if isinstance(target, Unit) and not target.ambush_active
-            ]
-            commands.extend(
-                Attack(self.current_player, unit.entity_id, target.entity_id)
-                for target in targets
-            )
+            if unit.can_attack_units:
+                targets = guards or [
+                    target for target in opponent.board if isinstance(target, Unit) and not target.ambush_active
+                ]
+                commands.extend(
+                    Attack(self.current_player, unit.entity_id, target.entity_id)
+                    for target in targets
+                )
         return commands
 
     def _play_card(self, command: PlayCard) -> None:
@@ -693,6 +722,23 @@ class GameEngine:
                 frame.next_index += 1
                 continue
 
+            if operation.target is TargetKind.PREVIOUS_TARGET:
+                if not operation.target_key or operation.target_key not in frame._target_bindings:
+                    raise IllegalCommand(
+                        f"PREVIOUS_TARGET requires a bound target_key"
+                    )
+                target_id = frame._target_bindings[operation.target_key]
+                try:
+                    self._find_board_entity(target_id)
+                except IllegalCommand:
+                    frame.next_index += 1
+                    continue
+                self._checked_execute(operation, frame, target_id)
+                frame.next_index += 1
+                self._resolve_event_queue()
+                self._stabilize()
+                continue
+
             if is_choice_target(operation.target) and frame.pending_target_id is None:
                 options = self._target_options(operation, frame.controller)
                 if operation.conditions and operation.target is not TargetKind.OWN_HAND:
@@ -809,6 +855,18 @@ class GameEngine:
                 frame.pending_target_id = None
 
             self._checked_execute(operation, frame, target_id)
+            if operation.target_key:
+                if target_id is None:
+                    raise IllegalCommand(
+                        "target_key requires a resolved board entity"
+                    )
+                try:
+                    self._find_board_entity(target_id)
+                except IllegalCommand as exc:
+                    raise IllegalCommand(
+                        "target_key requires a resolved board entity"
+                    ) from exc
+                frame._target_bindings[operation.target_key] = target_id
             frame.next_index += 1
             self._resolve_event_queue()
             self._stabilize()
@@ -939,8 +997,11 @@ class GameEngine:
 
         could_attack_leader = unit.can_attack_leader
         unit.evolved = True
-        unit.attack += 2
+        unit.base_attack += 2
+        unit.base_health += 2
+        unit._recompute_attack()
         unit.health += 2
+        unit._recompute_max()
         player.evolution_points -= 1
         player.evolved_this_turn = True
         if unit.attacks_remaining > 0:
@@ -984,6 +1045,8 @@ class GameEngine:
                 raise IllegalCommand("Leader is not a legal target")
             target = None
         else:
+            if not attacker.can_attack_units:
+                raise IllegalCommand("Attacker cannot attack units")
             target = self._find_unit(opponent.board, command.target_id)
             if target.ambush_active:
                 raise IllegalCommand("Cannot attack an ambush follower")
@@ -1603,25 +1666,18 @@ class GameEngine:
                 attack_delta=effect.amount,
                 health_delta=effect.secondary_amount,
                 duration=effect.duration.value,
-                expires_for_player=(
-                    frame.controller
-                    if effect.duration is not ModifierDuration.PERMANENT
-                    else None
-                ),
+                expires_for_player=_expires_for_player(effect.duration, frame.controller),
             )
             source.add_stat_modifier(modifier)
-            attack_text = f"{effect.amount:+d}"
-            health_text = f"{effect.secondary_amount:+d}"
             self._log(
                 frame.controller,
-                f"{source.definition.name} 属性变化 {attack_text}/{health_text}"
-                f"（{source.attack}/{source.health}）",
+                f"属性变化 {effect.amount}/{effect.secondary_amount}",
             )
         elif effect.kind is EffectKind.DESTROY:
             target = self._find_board_entity(target_id)
             if isinstance(target, Unit):
-                target.health = 0
                 self._death_causes[target.entity_id] = DeathCause.EFFECT_DESTROY
+                target.health = 0
             elif isinstance(target, Amulet):
                 target.pending_destroy = True
         elif effect.kind is EffectKind.SUMMON:
@@ -1644,6 +1700,16 @@ class GameEngine:
             self._execute_change_cost(effect, frame, target_id)
         elif effect.kind is EffectKind.TRANSFORM:
             self._execute_transform(effect, frame, target_id)
+        elif effect.kind is EffectKind.SET_STATS:
+            self._execute_set_stats(effect, frame, target_id)
+        elif effect.kind is EffectKind.ADD_ATTACK_RESTRICTION:
+            self._execute_attack_restriction(effect, frame, target_id, add=True)
+        elif effect.kind is EffectKind.REMOVE_ATTACK_RESTRICTION:
+            self._execute_attack_restriction(effect, frame, target_id, add=False)
+        elif effect.kind is EffectKind.ADD_TARGETING_RESTRICTION:
+            self._execute_targeting_restriction(effect, frame, target_id, add=True)
+        elif effect.kind is EffectKind.REMOVE_TARGETING_RESTRICTION:
+            self._execute_targeting_restriction(effect, frame, target_id, add=False)
         else:
             self._log(
                 frame.controller,
@@ -1672,22 +1738,14 @@ class GameEngine:
             target.add_keyword(
                 effect.keyword,
                 duration=effect.duration.value,
-                expires_for_player=(
-                    frame.controller
-                    if effect.duration is not ModifierDuration.PERMANENT
-                    else None
-                ),
+                expires_for_player=_expires_for_player(effect.duration, frame.controller),
             )
             verb = "获得"
         else:
             target.remove_keyword(
                 effect.keyword,
                 duration=effect.duration.value,
-                expires_for_player=(
-                    frame.controller
-                    if effect.duration is not ModifierDuration.PERMANENT
-                    else None
-                ),
+                expires_for_player=_expires_for_player(effect.duration, frame.controller),
             )
             verb = "失去"
         self._log(
@@ -1711,11 +1769,7 @@ class GameEngine:
                 mode=effect.mode.value,
                 amount=effect.amount,
                 duration=effect.duration.value,
-                expires_for_player=(
-                    frame.controller
-                    if effect.duration is not ModifierDuration.PERMANENT
-                    else None
-                ),
+                expires_for_player=_expires_for_player(effect.duration, frame.controller),
             )
         )
         self._log(
@@ -1758,8 +1812,11 @@ class GameEngine:
         summoned_this_turn = target.summoned_this_turn
         fresh = Unit.summon(replacement, entity_id=target.entity_id)
         target.definition = fresh.definition
+        target.base_attack = fresh.base_attack
+        target.base_health = fresh.base_health
         target.attack = fresh.attack
         target.health = fresh.health
+        target.max_health = fresh.max_health
         target.can_attack = can_attack
         target.attacks_remaining = attacks_remaining
         target.evolved = False
@@ -1772,6 +1829,8 @@ class GameEngine:
         target.removed_keywords.clear()
         target.temporary_keyword_removals.clear()
         target.stat_modifiers.clear()
+        target.attack_restrictions.clear()
+        target.targeting_restrictions.clear()
         target._synchronize_keyword_state()
         self._death_causes.pop(target.entity_id, None)
         self._log(
@@ -1779,6 +1838,80 @@ class GameEngine:
             f"{old_name} 变形为 {replacement.name}"
             f"（{target.attack}/{target.health}）",
         )
+
+    def _execute_set_stats(
+        self, effect: EffectOperation, frame: EffectFrame, target_id: int | None
+    ) -> None:
+        target = self._find_board_entity(target_id)
+        if not isinstance(target, Unit):
+            raise IllegalCommand("SET_STATS target must be a follower")
+
+        if effect.set_attack:
+            attack_val = (
+                effect.amount
+                if not effect.amount_expr
+                else evaluate_expression(
+                    effect.amount_expr,
+                    self._build_eval_context(frame, target_id),
+                )
+            )
+            if attack_val < 0:
+                attack_val = 0
+            target.base_attack = attack_val
+            target._recompute_attack()
+
+        if effect.set_health:
+            health_val = (
+                effect.secondary_amount
+                if not effect.secondary_expr
+                else evaluate_expression(
+                    effect.secondary_expr,
+                    self._build_eval_context(frame, target_id),
+                )
+            )
+            if health_val < 1:
+                health_val = 1
+            target.base_health = health_val
+            target._recompute_max()
+            target.health = target.max_health
+
+    def _execute_attack_restriction(
+        self, effect: EffectOperation, frame: EffectFrame, target_id: int | None, *, add: bool
+    ) -> None:
+        if effect.restriction is None:
+            raise IllegalCommand(f"{effect.kind.value} requires a restriction")
+        target = self._find_board_entity(target_id)
+        if not isinstance(target, Unit):
+            raise IllegalCommand("Attack restriction target must be a follower")
+        from swb.engine.state import AttackRestriction
+        restriction = AttackRestriction(effect.restriction)
+        if add:
+            target.add_attack_restriction(
+                restriction,
+                duration=effect.duration.value,
+                expires_for_player=_expires_for_player(effect.duration, frame.controller),
+            )
+        else:
+            target.remove_attack_restriction(restriction)
+
+    def _execute_targeting_restriction(
+        self, effect: EffectOperation, frame: EffectFrame, target_id: int | None, *, add: bool
+    ) -> None:
+        if effect.restriction is None:
+            raise IllegalCommand(f"{effect.kind.value} requires a restriction")
+        target = self._find_board_entity(target_id)
+        if not isinstance(target, Unit):
+            raise IllegalCommand("Targeting restriction target must be a follower")
+        from swb.engine.state import TargetingRestriction
+        restriction = TargetingRestriction(effect.restriction)
+        if add:
+            target.add_targeting_restriction(
+                restriction,
+                duration=effect.duration.value,
+                expires_for_player=_expires_for_player(effect.duration, frame.controller),
+            )
+        else:
+            target.remove_targeting_restriction(restriction)
 
     def _execute_summon(self, effect: EffectOperation, frame: EffectFrame) -> None:
         if effect.card_id is None:
@@ -2396,16 +2529,19 @@ class GameEngine:
     def _expire_modifiers(
         self, duration: ModifierDuration, player_index: int
     ) -> None:
+        expire_durations = _expire_duration_values(duration)
         for owner_index, player in enumerate(self.players):
             for entity in player.board:
                 if not isinstance(entity, Unit):
                     continue
-                entity.expire_keywords(duration.value, player_index)
-                entity.expire_stat_modifiers(duration.value, player_index)
+                for dur_str in expire_durations:
+                    entity.expire_keywords(dur_str, player_index)
+                    entity.expire_stat_modifiers(dur_str, player_index)
+                    entity.expire_attack_restrictions(dur_str, player_index)
+                    entity.expire_targeting_restrictions(dur_str, player_index)
             for hand_card in self._hand_cards(owner_index):
-                hand_card.expire_cost_modifiers(
-                    duration.value, player_index
-                )
+                for dur_str in expire_durations:
+                    hand_card.expire_cost_modifiers(dur_str, player_index)
 
     def _find_board_entity(self, entity_id: int | None) -> BoardCard:
         if entity_id is None:

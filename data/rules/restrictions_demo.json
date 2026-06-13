@@ -1,0 +1,35 @@
+{
+  "rules": [
+    {
+      "card_id": 10132320,
+      "trigger": "play",
+      "operations": [
+        {
+          "kind": "set_stats",
+          "target": "enemy_unit",
+          "health": 1,
+          "target_key": "selected_follower"
+        },
+        {
+          "kind": "add_attack_restriction",
+          "target": "previous_target",
+          "target_key": "selected_follower",
+          "restriction": "cannot_attack",
+          "duration": "until_end_of_opponent_turn"
+        }
+      ]
+    },
+    {
+      "card_id": 10431120,
+      "trigger": "evolve",
+      "operations": [
+        {
+          "kind": "add_attack_restriction",
+          "target": "self",
+          "restriction": "cannot_attack",
+          "duration": "permanent"
+        }
+      ]
+    }
+  ]
+}
