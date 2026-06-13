@@ -36,6 +36,7 @@ class EventType(str, Enum):
     BANE_TRIGGERED = "bane_triggered"
     DRAIN_HEALED = "drain_healed"
     AMBUSH_LOST = "ambush_lost"
+    SPELLBOOSTED = "spellboosted"
 
 
 @dataclass(frozen=True)

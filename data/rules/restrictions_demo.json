@@ -1,4 +1,11 @@
 {
+  "passives": [
+    {
+      "card_id": 10132320,
+      "kind": "spellboost_cost_reduction",
+      "amount": 1
+    }
+  ],
   "rules": [
     {
       "card_id": 10132320,
@@ -16,6 +23,19 @@
           "target_key": "selected_follower",
           "restriction": "cannot_attack",
           "duration": "until_end_of_opponent_turn"
+        }
+      ]
+    },
+    {
+      "card_id": 10431120,
+      "trigger": "turn_end",
+      "operations": [
+        {
+          "kind": "spellboost_hand",
+          "target": "all_own_hand",
+          "amount": {
+            "type": "source_attack"
+          }
         }
       ]
     },

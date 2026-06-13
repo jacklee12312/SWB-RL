@@ -188,6 +188,10 @@ class GameEngine:
         self._suspended_action: str | None = None
         self._suspended_action_state: dict | None = None
         self._suspended_event_state: dict | None = None
+        self._spellboost_pending: int | None = None
+        self._pending_spellboost_player: int = 0
+        self._pending_spellboost_source_card_id: int = 0
+        self._pending_spellboost_source_entity_id: int | None = None
 
     def _execute_trigger_rules(self, trigger, context) -> None:
         if isinstance(trigger, str):
@@ -253,6 +257,17 @@ class GameEngine:
         self.event_history = []
         self.placeholder_ability_events = []
         self._next_modifier_id = 1
+        self._suspended_batch = None
+        self._suspended_record = None
+        self._suspended_lw_records = []
+        self._suspended_action = None
+        self._suspended_action_state = None
+        self._suspended_event_state = None
+        self._spellboost_pending = None
+        self._pending_spellboost_player = 0
+        self._pending_spellboost_source_card_id = 0
+        self._pending_spellboost_source_entity_id = None
+        self._stabilizing = False
         for player_index in range(2):
             for _ in range(self.config.starting_hand):
                 self._draw(player_index, reason="起手")
@@ -396,7 +411,7 @@ class GameEngine:
         player.mana -= play_cost
         player.cards_played_this_turn += 1
         if card.card_type == "法术":
-            self._play_spell(card, play_cost)
+            self._play_spell(card, play_cost, hand_card.entity_id)
             return
         if card.card_type == "护符":
             self._play_amulet(card, play_cost)
@@ -428,13 +443,19 @@ class GameEngine:
         self._resolve_event_queue()
         self._execute_fanfare(unit)
 
-    def _play_spell(self, card: CardDefinition, play_cost: int) -> None:
+    def _play_spell(
+        self,
+        card: CardDefinition,
+        play_cost: int,
+        source_entity_id: int,
+    ) -> None:
         self._log(self.current_player, f"使用法术 {card.name}（{play_cost}费）")
         self._dispatch_card_ability(AbilityEvent.CARD_PLAYED, card)
         self._emit(
             GameEvent(
                 EventType.CARD_PLAYED,
                 self.current_player,
+                source_id=source_entity_id,
                 metadata={"card_id": card.card_id, "card": card},
             )
         )
@@ -446,6 +467,11 @@ class GameEngine:
             move_source_to_graveyard=True,
             label="法术",
         )
+        self._spellboost_pending = 1
+        self._pending_spellboost_player = self.current_player
+        self._pending_spellboost_source_card_id = card.card_id
+        self._pending_spellboost_source_entity_id = source_entity_id
+        self._try_spellboost_hand()
 
     def _play_amulet(self, card: CardDefinition, play_cost: int) -> None:
         amulet = Amulet(
@@ -871,10 +897,41 @@ class GameEngine:
             self._resolve_event_queue()
             self._stabilize()
 
+    def _try_spellboost_hand(self) -> None:
+        if self.state.pending_choice is not None or self.terminated:
+            return
+        if self._spellboost_pending is None:
+            return
+        amount = self._spellboost_pending
+        player_index = self._pending_spellboost_player
+        source_card_id = self._pending_spellboost_source_card_id
+        source_entity_id = self._pending_spellboost_source_entity_id
+        self._spellboost_pending = None
+
+        player = self.players[player_index]
+        for hand_card in player.hand:
+            if isinstance(hand_card, HandCard):
+                hand_card.apply_spellboost(amount)
+                self._emit(
+                    GameEvent(
+                        EventType.SPELLBOOSTED,
+                        player_index,
+                        source_id=hand_card.entity_id,
+                        amount=amount,
+                        metadata={
+                            "card_id": hand_card.card_id,
+                            "spellboost_count": hand_card.spellboost_count,
+                            "source_card_id": source_card_id,
+                            "source_entity_id": source_entity_id,
+                        },
+                    )
+                )
+
     def _is_card_playable(
         self, card: CardDefinition | HandCard, player: PlayerState
     ) -> bool:
-        if card.cost > player.mana:
+        cost = card.current_cost if isinstance(card, HandCard) else card.cost
+        if cost > player.mana:
             return False
         if card.card_type == "随从":
             return len(player.board) < self.config.max_board
@@ -1352,6 +1409,7 @@ class GameEngine:
                     frame.pending_target_id = None
                     frame.next_index += 1
                     self._continue_effects()
+                    self._try_spellboost_hand()
                     return
             if option.entity_id is not None and option.option_id.startswith("hand:"):
                 found = False
@@ -1369,12 +1427,14 @@ class GameEngine:
                     frame.pending_target_id = None
                     frame.next_index += 1
                     self._continue_effects()
+                    self._try_spellboost_hand()
                     return
             frame.pending_target_id = option.entity_id
         self.state.pending_choice = None
         self.state.phase = Phase.MAIN
         if self.state.effect_stack:
             self._continue_effects()
+        self._try_spellboost_hand()
 
     def _start_turn(self, player_index: int) -> None:
         if self._suspended_action_state is not None and self._suspended_action == "turn_start":
@@ -1710,6 +1770,8 @@ class GameEngine:
             self._execute_targeting_restriction(effect, frame, target_id, add=True)
         elif effect.kind is EffectKind.REMOVE_TARGETING_RESTRICTION:
             self._execute_targeting_restriction(effect, frame, target_id, add=False)
+        elif effect.kind is EffectKind.SPELLBOOST_HAND:
+            self._execute_spellboost_hand(effect, frame, target_id)
         else:
             self._log(
                 frame.controller,
@@ -1912,6 +1974,43 @@ class GameEngine:
             )
         else:
             target.remove_targeting_restriction(restriction)
+
+    def _execute_spellboost_hand(
+        self,
+        effect: EffectOperation,
+        frame: EffectFrame,
+        target_id: int | None,
+    ) -> None:
+        amount = effect.amount
+        if effect.amount_expr is not None:
+            amount = evaluate_expression(
+                effect.amount_expr,
+                self._build_eval_context(frame, target_id),
+            )
+        if amount <= 0:
+            return
+
+        if target_id is None:
+            return
+        hand_card = self._find_hand_card(frame.controller, target_id)
+        if not isinstance(hand_card, HandCard):
+            return
+
+        hand_card.apply_spellboost(amount)
+        self._emit(
+            GameEvent(
+                EventType.SPELLBOOSTED,
+                frame.controller,
+                source_id=hand_card.entity_id,
+                amount=amount,
+                metadata={
+                    "card_id": hand_card.card_id,
+                    "spellboost_count": hand_card.spellboost_count,
+                    "source_card_id": frame.source_card_id,
+                    "source_entity_id": frame.source_entity_id,
+                },
+            )
+        )
 
     def _execute_summon(self, effect: EffectOperation, frame: EffectFrame) -> None:
         if effect.card_id is None:
@@ -2479,7 +2578,7 @@ class GameEngine:
                     if hand_card.entity_id <= 0:
                         hand_card.entity_id = old_id
                 else:
-                    hand_card = HandCard(card, old_id)
+                    hand_card = self._make_hand_card(card, old_id)
                 if hand_card.entity_id <= 0 or hand_card.entity_id in seen:
                     hand_card.entity_id = self.state.allocate_entity_id()
                 seen.add(hand_card.entity_id)
@@ -2495,13 +2594,26 @@ class GameEngine:
     def _append_hand_card(
         self, player: PlayerState, definition: CardDefinition
     ) -> HandCard:
-        hand_card = HandCard(
-            definition=definition,
-            entity_id=self.state.allocate_entity_id(),
+        hand_card = self._make_hand_card(
+            definition,
+            self.state.allocate_entity_id(),
         )
         player.hand.append(hand_card)
         player.hand_entity_ids.append(hand_card.entity_id)
         return hand_card
+
+    def _make_hand_card(
+        self,
+        definition: CardDefinition,
+        entity_id: int,
+    ) -> HandCard:
+        return HandCard(
+            definition=definition,
+            entity_id=entity_id,
+            spellboost_cost_reduction=self.rulebook.spellboost_cost_reduction(
+                definition.card_id
+            ),
+        )
 
     def _hand_cards(self, player_index: int) -> list[HandCard]:
         self._ensure_entity_ids()

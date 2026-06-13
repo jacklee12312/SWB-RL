@@ -125,6 +125,8 @@ class HandCard:
     definition: CardDefinition
     entity_id: int
     cost_modifiers: list[CostModifier] = field(default_factory=list)
+    spellboost_count: int = 0
+    spellboost_cost_reduction: int = 0
 
     @property
     def current_cost(self) -> int:
@@ -136,7 +138,13 @@ class HandCard:
                 cost += modifier.amount
             elif modifier.mode == "subtract":
                 cost -= modifier.amount
+        cost -= self.spellboost_count * self.spellboost_cost_reduction
         return max(0, cost)
+
+    def apply_spellboost(self, amount: int) -> None:
+        if amount < 0:
+            raise ValueError(f"spellboost amount must be non-negative, got {amount}")
+        self.spellboost_count += amount
 
     @property
     def cost(self) -> int:

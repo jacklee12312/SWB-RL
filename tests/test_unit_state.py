@@ -2,8 +2,8 @@ from __future__ import annotations
 
 import unittest
 
-from swb.db.repository import CardDefinition
-from swb.engine.card_rules import CardRule, RuleBook, Trigger
+from swb.db.repository import CardDefinition, CardRepository
+from swb.engine.card_rules import CardRule, CardPassive, RuleBook, Trigger
 from swb.engine.commands import Attack, Choose, EndTurn, Evolve, PlayCard
 from swb.engine.effects import EffectKind, EffectOperation, ModifierDuration, TargetKind
 from swb.engine.events import EventType
@@ -11,6 +11,8 @@ from swb.engine.resolution import DamageType, GameEngine, IllegalCommand
 from swb.engine.state import (
     AttackRestriction,
     AttackRestrictionModifier,
+    CostModifier,
+    HandCard,
     StatModifier,
     TargetingRestriction,
     TargetingRestrictionModifier,
@@ -714,6 +716,425 @@ class AttackFloorTests(unittest.TestCase):
         self.assertEqual(d.attack, 3)
         self.assertEqual(d.health, 8)
         self.assertEqual(d.max_health, 8)
+
+
+class SpellboostTests(unittest.TestCase):
+    def test_playing_spell_boosts_other_hand_spells(self):
+        rulebook = RuleBook((
+            CardRule(card_id=1, trigger=Trigger.PLAY, operations=(
+                EffectOperation(kind=EffectKind.DRAW, target=TargetKind.OWN_LEADER, amount=1),
+            ),),
+        ))
+        eng = mkengine(rulebook=rulebook)
+        eng.players[0].hand[0] = card(1, card_type="法术", attack=None, life=None)
+        eng.players[0].hand[1] = card(2, card_type="法术", attack=None, life=None)
+        eng.players[0].mana = 10
+        eng.apply(PlayCard(0, 0))
+        hc = eng.players[0].hand[0]
+        self.assertIsInstance(hc, HandCard)
+        self.assertEqual(hc.spellboost_count, 1)
+        self.assertEqual(hc.card_id, 2)
+
+    def test_spell_does_not_boost_self(self):
+        rulebook = RuleBook((CardRule(card_id=1, trigger=Trigger.PLAY, operations=(
+            EffectOperation(kind=EffectKind.DRAW, target=TargetKind.OWN_LEADER, amount=1),
+        ),),))
+        eng = mkengine(rulebook=rulebook)
+        eng.players[0].hand[0] = card(1, card_type="法术", attack=None, life=None)
+        eng.players[0].hand[1] = card(2, card_type="法术", attack=None, life=None)
+        eng.players[0].mana = 10
+        eng.apply(PlayCard(0, 0))
+        hc = eng.players[0].hand[0]
+        self.assertIsInstance(hc, HandCard)
+        self.assertEqual(hc.spellboost_count, 1)
+        self.assertNotEqual(hc.card_id, 1)
+
+    def test_spellboost_hand_effect_all_own_hand(self):
+        rulebook = RuleBook((
+            CardRule(card_id=1, trigger=Trigger.PLAY, operations=(
+                EffectOperation(kind=EffectKind.SPELLBOOST_HAND, target=TargetKind.ALL_OWN_HAND, amount=2),
+            ),),
+        ))
+        eng = mkengine(rulebook=rulebook)
+        eng.players[0].hand[0] = card(1, card_type="法术", attack=None, life=None)
+        eng.players[0].hand[1] = card(2, card_type="法术", attack=None, life=None)
+        eng.players[0].mana = 10
+        eng.apply(PlayCard(0, 0))
+        hc = eng.players[0].hand[0]
+        self.assertIsInstance(hc, HandCard)
+        self.assertEqual(hc.spellboost_count, 3)
+        self.assertEqual(hc.card_id, 2)
+
+    def test_spellboost_zero_amount_noop(self):
+        rulebook = RuleBook((
+            CardRule(card_id=1, trigger=Trigger.PLAY, operations=(
+                EffectOperation(kind=EffectKind.SPELLBOOST_HAND, target=TargetKind.ALL_OWN_HAND, amount=0),
+            ),),
+        ))
+        eng = mkengine(rulebook=rulebook)
+        eng.players[0].hand[0] = card(1, card_type="法术", attack=None, life=None)
+        eng.players[0].mana = 10
+        eng.apply(PlayCard(0, 0))
+
+    def test_spellboost_cost_reduction(self):
+        rulebook = RuleBook(
+            rules=(), passives=(CardPassive(10132320, "spellboost_cost_reduction", 1),)
+        )
+        eng = mkengine(rulebook=rulebook)
+        hc = HandCard(definition=card(10132320, cost=4, card_type="法术", attack=None, life=None), entity_id=1, spellboost_cost_reduction=1)
+        self.assertEqual(hc.current_cost, 4)
+        hc.apply_spellboost(1)
+        self.assertEqual(hc.current_cost, 3)
+        hc.apply_spellboost(2)
+        self.assertEqual(hc.current_cost, 1)
+        hc.apply_spellboost(2)
+        self.assertEqual(hc.current_cost, 0)
+        self.assertEqual(hc.spellboost_count, 5)
+
+    def test_action_mask_uses_spellboost_cost(self):
+        from swb.engine.environment import ShadowverseEnv
+        rulebook = RuleBook(
+            rules=(), passives=(CardPassive(10132320, "spellboost_cost_reduction", 2),)
+        )
+        eng = mkengine(rulebook=rulebook)
+        hc = HandCard(definition=card(10132320, cost=5, card_type="法术", attack=None, life=None), entity_id=1, spellboost_cost_reduction=2)
+        hc.apply_spellboost(2)
+        eng.players[0].hand[0] = hc
+        eng.players[0].mana = 1
+        cmds = eng.legal_commands()
+        self.assertTrue(any(isinstance(c, PlayCard) for c in cmds))
+
+    def test_no_leak_to_opponent_observation(self):
+        from swb.engine.environment import ShadowverseEnv
+        rulebook = RuleBook(())
+        env = ShadowverseEnv(
+            [card(i) for i in range(100, 140)],
+            [card(i) for i in range(200, 240)],
+            class_a=1, class_b=1, seed=1, rulebook=rulebook,
+        )
+        env.reset(seed=1)
+        obs = env.observation()
+        self.assertEqual(len(obs), 203)
+
+    def test_auto_boost_after_choice_spell(self):
+        rulebook = RuleBook((
+            CardRule(card_id=1, trigger=Trigger.PLAY, operations=(
+                EffectOperation(kind=EffectKind.DAMAGE_UNIT, target=TargetKind.ENEMY_UNIT, amount=1),
+            ),),
+        ))
+        eng = mkengine(rulebook=rulebook)
+        d = mkunit(eng, 99, attack=1, life=3)
+        eng.players[1].board = [d]
+        eng.players[0].hand[0] = card(1, card_type="法术", attack=None, life=None)
+        eng.players[0].hand[1] = card(2, card_type="法术", attack=None, life=None)
+        eng.players[0].mana = 10
+        eng.apply(PlayCard(0, 0))
+        self.assertIsNotNone(eng.state.pending_choice)
+        for hc in eng.players[0].hand:
+            if isinstance(hc, HandCard):
+                self.assertEqual(hc.spellboost_count, 0)
+        choice = next(c for c in eng.legal_commands() if isinstance(c, Choose))
+        eng.apply(choice)
+        hc = eng.players[0].hand[0]
+        self.assertIsInstance(hc, HandCard)
+        self.assertEqual(hc.spellboost_count, 1)
+        self.assertEqual(hc.card_id, 2)
+
+    def test_follower_play_does_not_trigger_boost(self):
+        rulebook = RuleBook((CardRule(card_id=1, trigger=Trigger.FANFARE, operations=(
+            EffectOperation(kind=EffectKind.DRAW, target=TargetKind.OWN_LEADER, amount=1),
+        ),),))
+        eng = mkengine(rulebook=rulebook)
+        eng.players[0].hand[0] = card(1)
+        eng.players[0].hand[1] = card(2, card_type="法术", attack=None, life=None)
+        eng.players[0].mana = 10
+        eng.apply(PlayCard(0, 0))
+        for hc in eng.players[0].hand:
+            if isinstance(hc, HandCard):
+                self.assertEqual(hc.spellboost_count, 0)
+
+
+class SpellboostAllCardsTests(unittest.TestCase):
+    def test_auto_boost_boosts_followers_too(self):
+        rulebook = RuleBook((CardRule(card_id=1, trigger=Trigger.PLAY, operations=(
+            EffectOperation(kind=EffectKind.DRAW, target=TargetKind.OWN_LEADER, amount=1),
+        ),),))
+        eng = mkengine(rulebook=rulebook)
+        eng.players[0].hand[0] = card(1, card_type="法术", attack=None, life=None)
+        eng.players[0].hand[1] = card(2, card_type="随从", attack=1, life=1)
+        eng.players[0].mana = 10
+        eng.apply(PlayCard(0, 0))
+        hc = eng.players[0].hand[0]
+        self.assertIsInstance(hc, HandCard)
+        self.assertEqual(hc.spellboost_count, 1)
+
+    def test_spellboost_hand_boosts_followers(self):
+        rulebook = RuleBook((CardRule(card_id=1, trigger=Trigger.PLAY, operations=(
+            EffectOperation(kind=EffectKind.SPELLBOOST_HAND, target=TargetKind.ALL_OWN_HAND, amount=2),
+        ),),))
+        eng = mkengine(rulebook=rulebook)
+        eng.players[0].hand[0] = card(1, card_type="法术", attack=None, life=None)
+        eng.players[0].hand[1] = card(2, card_type="随从", attack=1, life=1)
+        eng.players[0].mana = 10
+        eng.apply(PlayCard(0, 0))
+        hc = eng.players[0].hand[0]
+        self.assertEqual(hc.spellboost_count, 3)
+
+    def test_spellboost_hand_own_hand_choice(self):
+        rulebook = RuleBook((
+            CardRule(card_id=1, trigger=Trigger.PLAY, operations=(
+                EffectOperation(
+                    kind=EffectKind.SPELLBOOST_HAND,
+                    target=TargetKind.OWN_HAND,
+                    amount=2,
+                ),
+            ),),
+        ))
+        eng = mkengine(rulebook=rulebook)
+        eng.players[0].hand = [
+            card(1, card_type="法术", attack=None, life=None),
+            card(2),
+            card(3),
+        ]
+        eng.players[0].hand_entity_ids = []
+        eng.players[0].mana = 10
+        eng.apply(PlayCard(0, 0))
+        choice = next(c for c in eng.legal_commands() if isinstance(c, Choose))
+        chosen_id = int(choice.option_id.removeprefix("hand:"))
+        eng.apply(choice)
+        counts = {
+            hand_card.entity_id: hand_card.spellboost_count
+            for hand_card in eng.players[0].hand
+        }
+        self.assertEqual(counts[chosen_id], 3)
+        self.assertEqual(sorted(counts.values()), [1, 3])
+
+    def test_spellboost_hand_random_own_hand(self):
+        rulebook = RuleBook((
+            CardRule(card_id=1, trigger=Trigger.PLAY, operations=(
+                EffectOperation(
+                    kind=EffectKind.SPELLBOOST_HAND,
+                    target=TargetKind.RANDOM_OWN_HAND,
+                    amount=2,
+                ),
+            ),),
+        ))
+        eng = mkengine(rulebook=rulebook)
+        eng.players[0].hand = [
+            card(1, card_type="法术", attack=None, life=None),
+            card(2),
+            card(3),
+        ]
+        eng.players[0].hand_entity_ids = []
+        eng.players[0].mana = 10
+        eng.apply(PlayCard(0, 0))
+        self.assertEqual(
+            sorted(card.spellboost_count for card in eng.players[0].hand),
+            [1, 3],
+        )
+
+    def test_empty_hand_safe(self):
+        rulebook = RuleBook((CardRule(card_id=1, trigger=Trigger.PLAY, operations=(
+            EffectOperation(kind=EffectKind.DRAW, target=TargetKind.OWN_LEADER, amount=1),
+        ),),))
+        eng = mkengine(rulebook=rulebook)
+        eng.players[0].hand.clear()
+        eng.players[0].hand_entity_ids.clear()
+        eng.players[0].hand.append(card(1, card_type="法术", attack=None, life=None))
+        eng.players[0].mana = 10
+        eng.apply(PlayCard(0, 0))
+
+    def test_spellboost_events_include_source_card_id(self):
+        rulebook = RuleBook((CardRule(card_id=1, trigger=Trigger.PLAY, operations=(
+            EffectOperation(kind=EffectKind.DRAW, target=TargetKind.OWN_LEADER, amount=1),
+        ),),))
+        eng = mkengine(rulebook=rulebook)
+        eng.players[0].hand[0] = card(1, card_type="法术", attack=None, life=None)
+        eng.players[0].hand[1] = card(2, card_type="法术", attack=None, life=None)
+        eng.players[0].mana = 10
+        eng._ensure_entity_ids()
+        played_entity_id = eng.players[0].hand[0].entity_id
+        eng.apply(PlayCard(0, 0))
+        sb_events = [e for e in eng.event_history if e.type is EventType.SPELLBOOSTED]
+        self.assertGreater(len(sb_events), 0)
+        for e in sb_events:
+            self.assertIn("source_card_id", e.metadata)
+            self.assertEqual(e.metadata["source_card_id"], 1)
+            self.assertEqual(e.metadata["source_entity_id"], played_entity_id)
+
+    def test_spellboost_hand_event_includes_board_source_entity(self):
+        rulebook = RuleBook((
+            CardRule(card_id=1, trigger=Trigger.FANFARE, operations=(
+                EffectOperation(
+                    kind=EffectKind.SPELLBOOST_HAND,
+                    target=TargetKind.ALL_OWN_HAND,
+                    amount=1,
+                ),
+            ),),
+        ))
+        eng = mkengine(rulebook=rulebook)
+        eng.players[0].hand[0] = card(1)
+        eng.players[0].hand[1] = card(2)
+        eng.players[0].mana = 10
+        eng.apply(PlayCard(0, 0))
+        source = eng.players[0].board[0]
+        event = next(
+            e for e in eng.event_history if e.type is EventType.SPELLBOOSTED
+        )
+        self.assertEqual(event.metadata["source_card_id"], 1)
+        self.assertEqual(event.metadata["source_entity_id"], source.entity_id)
+
+    def test_ensure_entity_ids_initializes_spellboost_reduction(self):
+        rulebook = RuleBook(
+            passives=(CardPassive(101, "spellboost_cost_reduction", 1),)
+        )
+        eng = mkengine(rulebook=rulebook)
+        eng.players[0].hand[0] = card(
+            101,
+            cost=5,
+            card_type="法术",
+            attack=None,
+            life=None,
+        )
+        eng._ensure_entity_ids()
+        hand_card = eng.players[0].hand[0]
+        hand_card.apply_spellboost(2)
+        self.assertEqual(hand_card.spellboost_cost_reduction, 1)
+        self.assertEqual(hand_card.current_cost, 3)
+
+    def test_reset_clears_spellboost_pending(self):
+        eng = mkengine()
+        eng._spellboost_pending = 1
+        eng._pending_spellboost_player = 1
+        eng._pending_spellboost_source_card_id = 123
+        eng._pending_spellboost_source_entity_id = 456
+        eng._suspended_action = "attack"
+        eng._suspended_action_state = {"x": 1}
+        eng._suspended_event_state = {"y": 2}
+        eng.reset(seed=7)
+        self.assertIsNone(eng._spellboost_pending)
+        self.assertIsNone(eng._suspended_action)
+        self.assertIsNone(eng._suspended_action_state)
+        self.assertIsNone(eng._suspended_event_state)
+        self.assertEqual(eng._pending_spellboost_player, 0)
+        self.assertEqual(eng._pending_spellboost_source_card_id, 0)
+        self.assertIsNone(eng._pending_spellboost_source_entity_id)
+
+    def test_real_spellboost_card_loads_passive_from_database(self):
+        repository = CardRepository("data/cards.sqlite3")
+        snowman_army = repository.get(10132320)
+        rulebook = RuleBook.from_directory("data/rules")
+        eng = mkengine(rulebook=rulebook)
+        eng.players[0].hand[0] = snowman_army
+        eng._ensure_entity_ids()
+        hand_card = eng.players[0].hand[0]
+        self.assertEqual(hand_card.spellboost_cost_reduction, 1)
+        hand_card.apply_spellboost(2)
+        self.assertEqual(
+            hand_card.current_cost,
+            max(0, snowman_army.cost - 2),
+        )
+
+    def test_unified_current_cost(self):
+        eng = mkengine()
+        hc = HandCard(
+            definition=card(101, cost=8, card_type="法术", attack=None, life=None),
+            entity_id=1,
+            spellboost_cost_reduction=1,
+        )
+        hc.apply_spellboost(3)
+        self.assertEqual(hc.current_cost, 5)
+        hc.cost_modifiers.append(CostModifier(1, "set", 5, "permanent", None))
+        self.assertEqual(hc.current_cost, 2)
+        hc.cost_modifiers.append(CostModifier(2, "subtract", 1, "permanent", None))
+        self.assertEqual(hc.current_cost, 1)
+
+    def test_cost_modifiers_with_spellboost_combined(self):
+        hc = HandCard(
+            definition=card(101, cost=8, card_type="法术", attack=None, life=None),
+            entity_id=1,
+            spellboost_cost_reduction=1,
+        )
+        hc.cost_modifiers.append(CostModifier(1, "set", 5, "permanent", None))
+        hc.cost_modifiers.append(CostModifier(2, "subtract", 1, "permanent", None))
+        hc.apply_spellboost(2)
+        self.assertEqual(hc.current_cost, 2)
+
+    def test_passive_schema_rejects_float(self):
+        import json, tempfile, os
+        payload = {"passives": [{"card_id": 1, "kind": "spellboost_cost_reduction", "amount": 1.5}], "rules": []}
+        d = tempfile.mkdtemp()
+        try:
+            fp = os.path.join(d, "bad.json")
+            with open(fp, "w") as f:
+                json.dump(payload, f)
+            with self.assertRaises(ValueError) as ctx:
+                RuleBook.from_directory(d)
+            self.assertIn("must be an integer", str(ctx.exception))
+        finally:
+            os.remove(fp)
+            os.rmdir(d)
+
+    def test_passive_schema_rejects_bool(self):
+        import json, tempfile, os
+        payload = {"passives": [{"card_id": 1, "kind": "spellboost_cost_reduction", "amount": True}], "rules": []}
+        d = tempfile.mkdtemp()
+        try:
+            fp = os.path.join(d, "bad.json")
+            with open(fp, "w") as f:
+                json.dump(payload, f)
+            with self.assertRaises(ValueError) as ctx:
+                RuleBook.from_directory(d)
+            self.assertIn("got bool", str(ctx.exception))
+        finally:
+            os.remove(fp)
+            os.rmdir(d)
+
+    def test_passive_schema_rejects_string(self):
+        import json, tempfile, os
+        payload = {"passives": [{"card_id": 1, "kind": "spellboost_cost_reduction", "amount": "1"}], "rules": []}
+        d = tempfile.mkdtemp()
+        try:
+            fp = os.path.join(d, "bad.json")
+            with open(fp, "w") as f:
+                json.dump(payload, f)
+            with self.assertRaises(ValueError):
+                RuleBook.from_directory(d)
+        finally:
+            os.remove(fp)
+            os.rmdir(d)
+
+    def test_duplicate_passive_error_includes_both_paths(self):
+        import json, tempfile, os
+        payload = {
+            "passives": [
+                {
+                    "card_id": 1,
+                    "kind": "spellboost_cost_reduction",
+                    "amount": 1,
+                },
+                {
+                    "card_id": 1,
+                    "kind": "spellboost_cost_reduction",
+                    "amount": 2,
+                },
+            ],
+            "rules": [],
+        }
+        d = tempfile.mkdtemp()
+        try:
+            fp = os.path.join(d, "bad.json")
+            with open(fp, "w") as f:
+                json.dump(payload, f)
+            with self.assertRaises(ValueError) as ctx:
+                RuleBook.from_directory(d)
+            message = str(ctx.exception)
+            self.assertIn("bad.json/passives[1]", message)
+            self.assertIn("bad.json/passives[0]", message)
+        finally:
+            os.remove(fp)
+            os.rmdir(d)
+
 
 
 if __name__ == "__main__":

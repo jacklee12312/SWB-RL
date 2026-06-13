@@ -40,8 +40,15 @@ class CardRule:
     countdown: int | None = None
 
 
+@dataclass(frozen=True)
+class CardPassive:
+    card_id: int
+    kind: str
+    amount: int
+
+
 class RuleBook:
-    def __init__(self, rules: tuple[CardRule, ...] = ()):
+    def __init__(self, rules: tuple[CardRule, ...] = (), passives: tuple[CardPassive, ...] = ()):
         self._rules: dict[tuple[int, Trigger], tuple[EffectOperation, ...]] = {
             (rule.card_id, rule.trigger): rule.operations for rule in rules
         }
@@ -50,6 +57,9 @@ class RuleBook:
             for rule in rules
             if rule.countdown is not None
         }
+        self._passives: dict[int, list[CardPassive]] = {}
+        for p in passives:
+            self._passives.setdefault(p.card_id, []).append(p)
 
     def operations_for(
         self, card_id: int, trigger: Trigger
@@ -59,15 +69,27 @@ class RuleBook:
     def countdown_for(self, card_id: int) -> int | None:
         return self._countdowns.get(card_id)
 
+    def spellboost_cost_reduction(self, card_id: int) -> int:
+        for p in self._passives.get(card_id, []):
+            if p.kind == "spellboost_cost_reduction":
+                return p.amount
+        return 0
+
     @classmethod
     def from_directory(cls, directory: str | Path) -> "RuleBook":
         path = Path(directory)
         if not path.exists():
             return cls()
         rules: list[CardRule] = []
+        passives: list[tuple[CardPassive, str]] = []
         for file_path in sorted(path.glob("*.json")):
             payload = json.loads(file_path.read_text(encoding="utf-8"))
-            entries = payload if isinstance(payload, list) else payload["rules"]
+            if isinstance(payload, list):
+                entries = payload
+                raw_passives = []
+            else:
+                entries = payload.get("rules", [])
+                raw_passives = payload.get("passives", [])
             for entry in entries:
                 operations = tuple(
                     _parse_operation(
@@ -88,7 +110,57 @@ class RuleBook:
                         countdown=entry.get("countdown"),
                     )
                 )
-        return cls(tuple(rules))
+            for index, raw_passive in enumerate(raw_passives):
+                source_path = f"{file_path.name}/passives[{index}]"
+                passives.append(
+                    (_parse_passive(raw_passive, source_path), source_path)
+                )
+        _validate_passives(passives)
+        return cls(tuple(rules), tuple(passive for passive, _ in passives))
+
+
+def _validate_passives(passives: list[tuple[CardPassive, str]]) -> None:
+    seen: dict[tuple[int, str], str] = {}
+    for passive, source_path in passives:
+        p = passive
+        key = (p.card_id, p.kind)
+        if key in seen:
+            raise ValueError(
+                f"{source_path}: duplicate passive {p.kind!r} for card "
+                f"{p.card_id}; first defined at {seen[key]}"
+            )
+        seen[key] = source_path
+
+
+def _parse_passive(raw: dict, source_file: str) -> CardPassive:
+    if not isinstance(raw, dict):
+        raise ValueError(f"{source_file}: passive must be an object")
+    card_id = raw.get("card_id")
+    if card_id is None:
+        raise ValueError(f"{source_file}: passive requires card_id")
+    if not isinstance(card_id, int) or isinstance(card_id, bool) or card_id <= 0:
+        raise ValueError(
+            f"{source_file}/card_id: must be a positive integer, got {card_id!r}"
+        )
+    kind = raw.get("kind")
+    if kind not in ("spellboost_cost_reduction",):
+        raise ValueError(f"{source_file} card {card_id}: unknown passive kind {kind!r}")
+    amount = raw.get("amount")
+    if amount is None:
+        raise ValueError(f"{source_file} card {card_id}/amount: required for {kind!r}")
+    if isinstance(amount, bool):
+        raise ValueError(
+            f"{source_file} card {card_id}/amount: must be an integer, got bool"
+        )
+    if not isinstance(amount, int):
+        raise ValueError(
+            f"{source_file} card {card_id}/amount: must be an integer, got {type(amount).__name__}"
+        )
+    if amount < 0:
+        raise ValueError(
+            f"{source_file} card {card_id}/amount: must be non-negative, got {amount}"
+        )
+    return CardPassive(card_id=int(card_id), kind=kind, amount=amount)
 
 
 _BINDABLE_TARGETS = frozenset({

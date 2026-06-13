@@ -92,6 +92,7 @@ class EffectKind(str, Enum):
     REMOVE_ATTACK_RESTRICTION = "remove_attack_restriction"
     ADD_TARGETING_RESTRICTION = "add_targeting_restriction"
     REMOVE_TARGETING_RESTRICTION = "remove_targeting_restriction"
+    SPELLBOOST_HAND = "spellboost_hand"
 
 
 class TargetKind(str, Enum):
