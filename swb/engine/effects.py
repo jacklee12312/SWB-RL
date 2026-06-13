@@ -27,6 +27,8 @@ class ConditionType(str, Enum):
     SOURCE_EVOLVED = "source_evolved"
     SOURCE_HAS_KEYWORD = "source_has_keyword"
     TARGET_HAS_KEYWORD = "target_has_keyword"
+    CONTROLLER_SHADOWS_AT_LEAST = "controller_shadows_at_least"
+    OPPONENT_SHADOWS_AT_LEAST = "opponent_shadows_at_least"
 
 
 class ExprType(str, Enum):
@@ -43,6 +45,8 @@ class ExprType(str, Enum):
     SOURCE_HEALTH = "source_health"
     TARGET_ATTACK = "target_attack"
     TARGET_HEALTH = "target_health"
+    CONTROLLER_SHADOWS = "controller_shadows"
+    OPPONENT_SHADOWS = "opponent_shadows"
 
 
 @dataclass
@@ -93,6 +97,8 @@ class EffectKind(str, Enum):
     ADD_TARGETING_RESTRICTION = "add_targeting_restriction"
     REMOVE_TARGETING_RESTRICTION = "remove_targeting_restriction"
     SPELLBOOST_HAND = "spellboost_hand"
+    NECROMANCY = "necromancy"
+    REANIMATE = "reanimate"
 
 
 class TargetKind(str, Enum):
@@ -157,6 +163,7 @@ class EffectOperation:
     set_attack: bool = False
     set_health: bool = False
     target_key: str | None = None
+    necromancy_operations: tuple["EffectOperation", ...] = ()
 
 
 @dataclass

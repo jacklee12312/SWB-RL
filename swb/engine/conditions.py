@@ -169,6 +169,10 @@ def evaluate_condition(cond: Condition | None, ctx: EvalContext | None) -> bool:
         return len(opponent.board) >= cond.value
     elif t == ConditionType.CONTROLLER_HAND_COUNT_AT_LEAST:
         return len(player.hand) >= cond.value
+    elif t == ConditionType.CONTROLLER_SHADOWS_AT_LEAST:
+        return player.shadows >= cond.value
+    elif t == ConditionType.OPPONENT_SHADOWS_AT_LEAST:
+        return opponent.shadows >= cond.value
     elif t == ConditionType.TARGET_ATTACK_AT_MOST:
         return isinstance(target, Unit) and target.attack <= cond.value
     elif t == ConditionType.TARGET_ATTACK_AT_LEAST:
@@ -234,5 +238,9 @@ def evaluate_expression(expr: ValueExpression | None, ctx: EvalContext | None) -
         return target.attack if isinstance(target, Unit) else 0
     elif t == ExprType.TARGET_HEALTH:
         return target.health if isinstance(target, Unit) else 0
+    elif t == ExprType.CONTROLLER_SHADOWS:
+        return player.shadows if player else 0
+    elif t == ExprType.OPPONENT_SHADOWS:
+        return opponent.shadows if opponent else 0
 
     raise ValueError(f"Unknown expression type: {t}")

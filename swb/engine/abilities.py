@@ -348,10 +348,14 @@ class AbilityHandlers:
         self._placeholder(context, AbilityKeyword.OVERFLOW)
 
     def handle_necromancy(self, context: AbilityContext) -> None:
-        self._placeholder(context, AbilityKeyword.NECROMANCY)
+        covered = getattr(self.environment, "_is_ability_covered", None)
+        if covered is None or not covered(context, AbilityKeyword.NECROMANCY):
+            self._placeholder(context, AbilityKeyword.NECROMANCY)
 
     def handle_reanimate(self, context: AbilityContext) -> None:
-        self._placeholder(context, AbilityKeyword.REANIMATE)
+        covered = getattr(self.environment, "_is_ability_covered", None)
+        if covered is None or not covered(context, AbilityKeyword.REANIMATE):
+            self._placeholder(context, AbilityKeyword.REANIMATE)
 
     def handle_storm(self, context: AbilityContext) -> None:
         pass

@@ -167,6 +167,8 @@ class ShadowverseEnv:
             float(me.evolved_this_turn),
             float(opponent.evolved_this_turn),
             float(self.core.state.pending_choice is not None),
+            me.shadows / 20,
+            opponent.shadows / 20,
         ]
         values.extend(
             float(me.class_id == class_id)

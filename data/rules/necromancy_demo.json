@@ -1,0 +1,41 @@
+{
+  "rules": [
+    {
+      "card_id": 10051130,
+      "trigger": "fanfare",
+      "operations": [
+        {
+          "kind": "necromancy",
+          "amount": 4,
+          "operations": [
+            {
+              "kind": "add_keyword",
+              "target": "self",
+              "keyword": "疾驰"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "card_id": 10551120,
+      "trigger": "fanfare",
+      "operations": [
+        {
+          "kind": "reanimate",
+          "amount": 2
+        }
+      ]
+    },
+    {
+      "card_id": 10551120,
+      "trigger": "evolve",
+      "operations": [
+        {
+          "kind": "reanimate",
+          "amount": 2
+        }
+      ]
+    }
+  ]
+}

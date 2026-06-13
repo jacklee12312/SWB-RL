@@ -10,6 +10,7 @@ from swb.engine.abilities import (
     AbilityContext,
     AbilityEvent,
     AbilityHandlers,
+    AbilityKeyword,
     PlaceholderAbilityEvent,
 )
 from swb.engine.card_rules import RuleBook, Trigger
@@ -43,6 +44,7 @@ from swb.engine.state import (
     DeathBatch,
     DeathCause,
     DeathRecord,
+    DestroyedFollowerRecord,
     GameState,
     HandCard,
     CostModifier,
@@ -184,6 +186,7 @@ class GameEngine:
         self._suspended_lw_records: list[DeathRecord] = []
 
         self.ability_handlers.environment._execute_trigger_rules = self._execute_trigger_rules
+        self.ability_handlers.environment._is_ability_covered = self._is_ability_covered
         self._next_modifier_id: int = 1
         self._suspended_action: str | None = None
         self._suspended_action_state: dict | None = None
@@ -208,6 +211,31 @@ class GameEngine:
             self._start_effects(source.definition, source.entity_id, ops, label=trigger.value)
         finally:
             self.state.active_player = saved
+
+    def _is_ability_covered(self, context, ability) -> bool:
+        card = (
+            context.source.definition
+            if hasattr(context.source, "definition")
+            else context.source
+        )
+        expected_kind = {
+            AbilityKeyword.NECROMANCY: EffectKind.NECROMANCY,
+            AbilityKeyword.REANIMATE: EffectKind.REANIMATE,
+        }.get(ability)
+        if card is None or expected_kind is None:
+            return False
+
+        def contains_kind(operations: tuple[EffectOperation, ...]) -> bool:
+            return any(
+                operation.kind is expected_kind
+                or contains_kind(operation.necromancy_operations)
+                for operation in operations
+            )
+
+        return any(
+            contains_kind(self.rulebook.operations_for(card.card_id, trigger))
+            for trigger in Trigger
+        )
 
     @property
     def players(self) -> list[PlayerState]:
@@ -268,6 +296,8 @@ class GameEngine:
         self._pending_spellboost_source_card_id = 0
         self._pending_spellboost_source_entity_id = None
         self._stabilizing = False
+        self.state.destroyed_followers.clear()
+        self.state._next_death_sequence = 1
         for player_index in range(2):
             for _ in range(self.config.starting_hand):
                 self._draw(player_index, reason="起手")
@@ -514,10 +544,18 @@ class GameEngine:
         source_entity_id: int | None,
         operations: tuple[EffectOperation, ...],
         *,
+        controller: int | None = None,
         move_source_to_graveyard: bool = False,
         label: str = "效果",
     ) -> None:
-        self._queue_effects(card, source_entity_id, operations, move_source_to_graveyard=move_source_to_graveyard, label=label)
+        self._queue_effects(
+            card,
+            source_entity_id,
+            operations,
+            controller=controller,
+            move_source_to_graveyard=move_source_to_graveyard,
+            label=label,
+        )
         self._continue_effects()
 
     def _queue_effects(
@@ -526,11 +564,12 @@ class GameEngine:
         source_entity_id: int | None,
         operations: tuple[EffectOperation, ...],
         *,
+        controller: int | None = None,
         move_source_to_graveyard: bool = False,
         label: str = "效果",
     ) -> EffectFrame:
         frame = EffectFrame(
-            controller=self.current_player,
+            controller=self.current_player if controller is None else controller,
             source_card_id=card.card_id,
             source_name=card.name,
             source_entity_id=source_entity_id,
@@ -717,6 +756,57 @@ class GameEngine:
             lethal=target_player.health <= 0,
         )
 
+    def _send_to_graveyard(
+        self,
+        player_index: int,
+        card: CardDefinition,
+        cause: str,
+        source_entity_id: int | None = None,
+    ) -> None:
+        player = self.players[player_index]
+        player.graveyard.append(card)
+        before = player.shadows
+        player.add_shadows(1)
+        self._emit(
+            GameEvent(
+                EventType.GRAVEYARD_ENTERED,
+                player_index,
+                source_id=source_entity_id,
+                amount=1,
+                metadata={
+                    "card_id": card.card_id,
+                    "cause": cause,
+                    "shadows_before": before,
+                    "shadows_after": player.shadows,
+                },
+            )
+        )
+        self._emit(
+            GameEvent(
+                EventType.SHADOWS_CHANGED,
+                player_index,
+                amount=1,
+                metadata={
+                    "change": "gain",
+                    "shadows_before": before,
+                    "shadows_after": player.shadows,
+                },
+            )
+        )
+
+    def _record_destroyed_follower(
+        self, player_index: int, definition: CardDefinition, cause: DeathCause
+    ) -> None:
+        self.state.destroyed_followers.append(
+            DestroyedFollowerRecord(
+                definition=definition,
+                owner=player_index,
+                death_sequence=self.state._next_death_sequence,
+                cause=cause,
+            )
+        )
+        self.state._next_death_sequence += 1
+
     def _continue_effects(self) -> None:
         while self.state.effect_stack and self.state.pending_choice is None:
             self._step()
@@ -729,7 +819,9 @@ class GameEngine:
                 if frame.defer_stabilize:
                     self._stabilize()
                 if frame.move_source_to_graveyard:
-                    self.players[frame.controller].graveyard.append(frame.source_card)
+                    self._send_to_graveyard(
+                        frame.controller, frame.source_card, "spell_resolved"
+                    )
                     self._emit(
                         GameEvent(
                             EventType.SPELL_RESOLVED,
@@ -1565,7 +1657,7 @@ class GameEngine:
                 )
                 self._log(player_index, f"{reason}：{card.name}")
             else:
-                player.graveyard.append(card)
+                self._send_to_graveyard(player_index, card, "overdraw")
                 self._log(player_index, f"{reason}：{card.name}，手牌已满而被弃置")
             return
         player.fatigue += 1
@@ -1772,6 +1864,10 @@ class GameEngine:
             self._execute_targeting_restriction(effect, frame, target_id, add=False)
         elif effect.kind is EffectKind.SPELLBOOST_HAND:
             self._execute_spellboost_hand(effect, frame, target_id)
+        elif effect.kind is EffectKind.NECROMANCY:
+            self._execute_necromancy(effect, frame, target_id)
+        elif effect.kind is EffectKind.REANIMATE:
+            self._execute_reanimate(effect, frame, target_id)
         else:
             self._log(
                 frame.controller,
@@ -2012,6 +2108,63 @@ class GameEngine:
             )
         )
 
+    def _execute_necromancy(
+        self, effect: EffectOperation, frame: EffectFrame, target_id: int | None,
+    ) -> None:
+        cost = effect.amount
+        if effect.amount_expr is not None:
+            cost = evaluate_expression(effect.amount_expr, self._build_eval_context(frame, target_id))
+        player = self.players[frame.controller]
+        before = player.shadows
+        if not player.consume_shadows(cost):
+            return
+        self._emit(GameEvent(EventType.NECROMANCY_ACTIVATED, frame.controller, amount=cost,
+            metadata={"shadows_before": before, "shadows_after": player.shadows, "source_card_id": frame.source_card_id}))
+        self._log(frame.controller, f"死灵术 {cost}：墓场 {before} → {player.shadows}")
+        self._emit(
+            GameEvent(
+                EventType.SHADOWS_CHANGED,
+                frame.controller,
+                amount=cost,
+                metadata={
+                    "change": "spend",
+                    "shadows_before": before,
+                    "shadows_after": player.shadows,
+                },
+            )
+        )
+        self._queue_effects(
+            frame.source_card,
+            frame.source_entity_id,
+            effect.necromancy_operations,
+            controller=frame.controller,
+            label="死灵术",
+        )
+
+    def _execute_reanimate(
+        self, effect: EffectOperation, frame: EffectFrame, target_id: int | None,
+    ) -> None:
+        player = self.players[frame.controller]
+        max_cost = effect.amount
+        candidates = [r for r in self.state.destroyed_followers if r.owner == frame.controller and r.definition.cost <= max_cost and r.definition.card_type == "随从"]
+        if not candidates:
+            return
+        max_c = max(r.definition.cost for r in candidates)
+        best = [r for r in candidates if r.definition.cost == max_c]
+        chosen = self.random.choice(best)
+        if len(player.board) >= self.config.max_board:
+            return
+        unit = Unit.summon(chosen.definition, entity_id=self.state.allocate_entity_id())
+        player.board.append(unit)
+        player.cooperation += 1
+        self._emit(GameEvent(EventType.REANIMATE_RESOLVED, frame.controller,
+            amount=max_cost,
+            metadata={"reanimated_card_id": chosen.definition.card_id, "new_entity_id": unit.entity_id,
+                       "source_card_id": frame.source_card_id}))
+        self._log(frame.controller, f"亡者召还：{chosen.definition.name} ({unit.attack}/{unit.health})")
+        self._emit(GameEvent(EventType.FOLLOWER_SUMMONED, frame.controller, source_id=unit.entity_id,
+            metadata={"source": unit, "card_id": unit.definition.card_id, "via": "reanimate"}))
+
     def _execute_summon(self, effect: EffectOperation, frame: EffectFrame) -> None:
         if effect.card_id is None:
             raise IllegalCommand("SUMMON requires a card_id")
@@ -2105,7 +2258,7 @@ class GameEngine:
                 frame.controller,
                 f"{frame.source_name} 加牌失败：手牌已满，{card_def.name} 被弃置",
             )
-            player.graveyard.append(card_def)
+            self._send_to_graveyard(frame.controller, card_def, "hand_full")
             return
         self._append_hand_card(player, card_def)
         self._log(
@@ -2198,8 +2351,7 @@ class GameEngine:
                 )
                 player.hand.pop(idx)
                 player.hand_entity_ids.pop(idx)
-                player.graveyard.append(card_def)
-                player.shadows += 1
+                self._send_to_graveyard(frame.controller, card_def, "discard")
                 self._log(
                     frame.controller,
                     f"{frame.source_name} 弃置手牌 {card_def.name}",
@@ -2435,8 +2587,8 @@ class GameEngine:
                         allows_last_words=True,
                     )
                     player.board.remove(entity)
-                    player.graveyard.append(entity.definition)
-                    player.shadows += 1
+                    self._send_to_graveyard(player_index, entity.definition, cause.value, entity.entity_id)
+                    self._record_destroyed_follower(player_index, entity.definition, cause)
                     records.append(record)
                 elif isinstance(entity, Amulet) and entity.pending_destroy:
                     cause = DeathCause.COUNTDOWN_EXPIRED if entity.countdown is not None and entity.countdown <= 0 else DeathCause.EFFECT_DESTROY
@@ -2452,8 +2604,7 @@ class GameEngine:
                         allows_last_words=True,
                     )
                     player.board.remove(entity)
-                    player.graveyard.append(entity.definition)
-                    player.shadows += 1
+                    self._send_to_graveyard(player_index, entity.definition, cause.value, entity.entity_id)
                     records.append(record)
 
         return DeathBatch(records=records, batch_id=batch_id)

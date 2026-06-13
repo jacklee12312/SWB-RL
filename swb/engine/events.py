@@ -37,6 +37,10 @@ class EventType(str, Enum):
     DRAIN_HEALED = "drain_healed"
     AMBUSH_LOST = "ambush_lost"
     SPELLBOOSTED = "spellboosted"
+    GRAVEYARD_ENTERED = "graveyard_entered"
+    SHADOWS_CHANGED = "shadows_changed"
+    NECROMANCY_ACTIVATED = "necromancy_activated"
+    REANIMATE_RESOLVED = "reanimate_resolved"
 
 
 @dataclass(frozen=True)

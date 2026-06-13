@@ -46,6 +46,14 @@ class DeathRecord:
     allows_last_words: bool = False
 
 
+@dataclass(frozen=True)
+class DestroyedFollowerRecord:
+    definition: CardDefinition
+    owner: int
+    death_sequence: int
+    cause: DeathCause
+
+
 @dataclass
 class DeathBatch:
     records: list[DeathRecord] = field(default_factory=list)
@@ -531,6 +539,19 @@ class PlayerState:
     shadows: int = 0
     faith: int = 0
 
+    def add_shadows(self, amount: int) -> None:
+        if amount < 0:
+            raise ValueError("shadows increase must be non-negative")
+        self.shadows += amount
+
+    def consume_shadows(self, amount: int) -> bool:
+        if amount < 0:
+            raise ValueError("shadows consume amount must be non-negative")
+        if self.shadows < amount:
+            return False
+        self.shadows -= amount
+        return True
+
 
 @dataclass
 class GameState:
@@ -545,6 +566,8 @@ class GameState:
     death_queue: list[DeathBatch] = field(default_factory=list)
     resolution_steps: int = 0
     next_entity_id: int = 1
+    destroyed_followers: list[DestroyedFollowerRecord] = field(default_factory=list)
+    _next_death_sequence: int = 1
 
     @property
     def terminated(self) -> bool:

@@ -206,6 +206,11 @@ def _validate_target_keys(operations: tuple[EffectOperation, ...], source: str) 
                     f"{op.target_key!r}"
                 )
             defined.add(op.target_key)
+        if op.necromancy_operations:
+            _validate_target_keys(
+                op.necromancy_operations,
+                f"{source}/operations[{i}]/necromancy",
+            )
 
 
 def _parse_operation(raw: dict, source_file: str, card_id: int) -> EffectOperation:
@@ -217,7 +222,10 @@ def _parse_operation(raw: dict, source_file: str, card_id: int) -> EffectOperati
         )
     try:
         kind = EffectKind(raw["kind"])
-        target = TargetKind(raw["target"])
+        raw_target = raw.get("target", "own_leader" if kind in (EffectKind.NECROMANCY, EffectKind.REANIMATE) else None)
+        if raw_target is None:
+            raise KeyError("target")
+        target = TargetKind(raw_target)
     except (KeyError, ValueError) as e:
         raise ValueError(f"{error_prefix}: invalid kind/target: {e}") from e
 
@@ -348,6 +356,53 @@ def _parse_operation(raw: dict, source_file: str, card_id: int) -> EffectOperati
                 f"PREVIOUS_TARGET requires a non-empty target_key"
             )
 
+    necromancy_ops: tuple = ()
+    if kind is EffectKind.NECROMANCY:
+        raw_inner = raw.get("operations")
+        if not isinstance(raw_inner, list) or len(raw_inner) == 0:
+            raise ValueError(
+                f"{source_file} card {card_id}: "
+                f"NECROMANCY requires non-empty 'operations' list"
+            )
+        necromancy_ops = tuple(
+            _parse_operation(op, f"{source_file}/operations[{i}]", card_id)
+            for i, op in enumerate(raw_inner)
+        )
+        # validate nested target bindings
+        _validate_target_keys(necromancy_ops, f"{source_file} card {card_id} (necromancy)")
+        if raw_amount is None or raw_amount is True or raw_amount is False:
+            raise ValueError(
+                f"{source_file}/amount card {card_id}: "
+                f"NECROMANCY requires a non-negative integer amount, got {raw_amount!r}"
+            )
+        if not isinstance(raw_amount, (int, float)) or raw_amount < 0:
+            raise ValueError(
+                f"{source_file}/amount card {card_id}: "
+                f"NECROMANCY amount must be a non-negative integer, got {raw_amount!r}"
+            )
+        if isinstance(raw_amount, float) and raw_amount != int(raw_amount):
+            raise ValueError(
+                f"{source_file}/amount card {card_id}: "
+                f"NECROMANCY amount must be an integer, got {raw_amount!r}"
+            )
+
+    if kind is EffectKind.REANIMATE:
+        if raw_amount is None or isinstance(raw_amount, bool):
+            raise ValueError(
+                f"{source_file}/amount card {card_id}: "
+                f"REANIMATE requires a non-negative integer amount, got {raw_amount!r}"
+            )
+        if not isinstance(raw_amount, (int, float)) or raw_amount < 0:
+            raise ValueError(
+                f"{source_file}/amount card {card_id}: "
+                f"REANIMATE amount must be a non-negative integer, got {raw_amount!r}"
+            )
+        if isinstance(raw_amount, float) and raw_amount != int(raw_amount):
+            raise ValueError(
+                f"{source_file}/amount card {card_id}: "
+                f"REANIMATE amount must be an integer, got {raw_amount!r}"
+            )
+
     return EffectOperation(
         kind=kind,
         target=target,
@@ -374,6 +429,7 @@ def _parse_operation(raw: dict, source_file: str, card_id: int) -> EffectOperati
             and (raw.get("secondary_amount") is not None or raw.get("health") is not None or secondary_expr is not None)
         ),
         target_key=target_key,
+        necromancy_operations=necromancy_ops,
     )
 
 
@@ -458,7 +514,8 @@ def _parse_expression(raw: dict, source_path: str, card_id: int) -> ValueExpress
             )
     elif t in (ExprType.CONTROLLER_BOARD_COUNT, ExprType.OPPONENT_BOARD_COUNT,
                ExprType.CONTROLLER_HAND_COUNT, ExprType.SOURCE_ATTACK, ExprType.SOURCE_HEALTH,
-               ExprType.TARGET_ATTACK, ExprType.TARGET_HEALTH):
+               ExprType.TARGET_ATTACK, ExprType.TARGET_HEALTH,
+               ExprType.CONTROLLER_SHADOWS, ExprType.OPPONENT_SHADOWS):
         if sub:
             raise ValueError(
                 f"{error_prefix}: '{t.value}' must not have 'values'"
@@ -474,9 +531,22 @@ def _parse_expression(raw: dict, source_path: str, card_id: int) -> ValueExpress
 def _parse_optional_int(raw, source_path: str, card_id: int) -> int:
     if raw is None or isinstance(raw, dict):
         return 0
+    if isinstance(raw, bool):
+        raise ValueError(
+            f"{source_path} card {card_id}: expected an integer, got boolean"
+        )
+    if not isinstance(raw, int) and not isinstance(raw, str):
+        raise ValueError(
+            f"{source_path} card {card_id}: expected an integer, got {type(raw).__name__}"
+        )
     try:
-        return int(raw)
+        result = int(raw)
     except (TypeError, ValueError) as exc:
         raise ValueError(
             f"{source_path} card {card_id}: expected an integer, got {raw!r}"
         ) from exc
+    if isinstance(raw, str) and str(result) != raw.strip():
+        raise ValueError(
+            f"{source_path} card {card_id}: expected an integer, got string {raw!r}"
+        )
+    return result
