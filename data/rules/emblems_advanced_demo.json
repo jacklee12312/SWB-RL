@@ -1,0 +1,102 @@
+{
+    "emblems": [
+        {
+            "id": "scope_turn_emblem",
+            "source_card_id": 999910,
+            "triggers": [
+                {
+                    "trigger": "turn_start",
+                    "turn_scope": "owner_turn",
+                    "operations": [
+                        {"kind": "damage_leader", "target": "enemy_leader", "amount": 1}
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "opponent_turn_emblem",
+            "source_card_id": 999911,
+            "triggers": [
+                {
+                    "trigger": "turn_start",
+                    "turn_scope": "opponent_turn",
+                    "operations": [
+                        {"kind": "heal_leader", "target": "own_leader", "amount": 1}
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "once_per_turn_emblem",
+            "source_card_id": 999912,
+            "triggers": [
+                {
+                    "trigger": "follower_summoned",
+                    "once_per_turn": true,
+                    "operations": [
+                        {"kind": "draw", "target": "own_leader", "amount": 1}
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "max_act_emblem",
+            "source_card_id": 999913,
+            "triggers": [
+                {
+                    "trigger": "card_played",
+                    "max_activations": 2,
+                    "event_scope": "owner_event",
+                    "operations": [
+                        {"kind": "damage_leader", "target": "enemy_leader", "amount": 1}
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "on_expire_emblem",
+            "source_card_id": 999914,
+            "countdown": 2,
+            "on_expire": [
+                {"kind": "damage_leader", "target": "enemy_leader", "amount": 3}
+            ]
+        }
+    ],
+    "rules": [
+        {
+            "card_id": 999910,
+            "trigger": "fanfare",
+            "operations": [
+                {"kind": "gain_emblem", "target": "own_leader", "emblem_id": "scope_turn_emblem"}
+            ]
+        },
+        {
+            "card_id": 999911,
+            "trigger": "fanfare",
+            "operations": [
+                {"kind": "gain_emblem", "target": "own_leader", "emblem_id": "opponent_turn_emblem"}
+            ]
+        },
+        {
+            "card_id": 999912,
+            "trigger": "fanfare",
+            "operations": [
+                {"kind": "gain_emblem", "target": "own_leader", "emblem_id": "once_per_turn_emblem"}
+            ]
+        },
+        {
+            "card_id": 999913,
+            "trigger": "fanfare",
+            "operations": [
+                {"kind": "gain_emblem", "target": "own_leader", "emblem_id": "max_act_emblem"}
+            ]
+        },
+        {
+            "card_id": 999914,
+            "trigger": "fanfare",
+            "operations": [
+                {"kind": "gain_emblem", "target": "own_leader", "emblem_id": "on_expire_emblem"}
+            ]
+        }
+    ]
+}

@@ -14,7 +14,7 @@ from swb.db.repository import CardDefinition, CardRepository
 from swb.engine.card_rules import CardRule, RuleBook, Trigger, _parse_operation
 from swb.engine.commands import Choose, EndTurn, PlayCard
 from swb.engine.effects import EffectKind, EffectOperation, TargetKind
-from swb.engine.emblem import EmblemDefinition, EmblemStacking, EmblemTriggerRule
+from swb.engine.emblem import EmblemDefinition, EmblemStacking, EmblemTriggerRule, TurnScope
 from swb.engine.environment import ShadowverseEnv
 from swb.engine.events import EventType
 from swb.engine.origin import CardOrigin
@@ -142,7 +142,7 @@ class TurnStartEmblemTests(unittest.TestCase):
         self.assertLess(engine.players[1].health, 20)
 
     def test_turn_start_does_not_fire_on_opponent_turn(self):
-        ed = EmblemDefinition("fire2", 999901, stacking=EmblemStacking.ALLOW, triggers=(EmblemTriggerRule("turn_start", operations=(EffectOperation(EffectKind.DAMAGE_LEADER, TargetKind.ENEMY_LEADER, 1),)),))
+        ed = EmblemDefinition("fire2", 999901, stacking=EmblemStacking.ALLOW, triggers=(EmblemTriggerRule("turn_start", turn_scope=TurnScope.OWNER_TURN, operations=(EffectOperation(EffectKind.DAMAGE_LEADER, TargetKind.ENEMY_LEADER, 1),)),))
         engine = _engine(_fr(999901, EffectOperation(EffectKind.GAIN_EMBLEM, TargetKind.OWN_LEADER, emblem_id="fire2")))
         engine.reset(seed=42)
         engine.rulebook._emblem_defs = {"fire2": ed}
@@ -406,8 +406,8 @@ class EventEmblemTests(unittest.TestCase):
 # ---------------------------------------------------------------------------
 class MultiEmblemOrderTests(unittest.TestCase):
     def test_emblems_fire_in_creation_order(self):
-        ed1 = EmblemDefinition("first", 999901, stacking=EmblemStacking.ALLOW, triggers=(EmblemTriggerRule("turn_start", operations=(EffectOperation(EffectKind.DAMAGE_LEADER, TargetKind.ENEMY_LEADER, 1),)),))
-        ed2 = EmblemDefinition("second", 999902, stacking=EmblemStacking.ALLOW, triggers=(EmblemTriggerRule("turn_start", operations=(EffectOperation(EffectKind.DAMAGE_LEADER, TargetKind.ENEMY_LEADER, 1),)),))
+        ed1 = EmblemDefinition("first", 999901, stacking=EmblemStacking.ALLOW, triggers=(EmblemTriggerRule("turn_start", turn_scope=TurnScope.OWNER_TURN, operations=(EffectOperation(EffectKind.DAMAGE_LEADER, TargetKind.ENEMY_LEADER, 1),)),))
+        ed2 = EmblemDefinition("second", 999902, stacking=EmblemStacking.ALLOW, triggers=(EmblemTriggerRule("turn_start", turn_scope=TurnScope.OWNER_TURN, operations=(EffectOperation(EffectKind.DAMAGE_LEADER, TargetKind.ENEMY_LEADER, 1),)),))
         engine = _engine(
             _fr(999901, EffectOperation(EffectKind.GAIN_EMBLEM, TargetKind.OWN_LEADER, emblem_id="first")),
             _fr(999902, EffectOperation(EffectKind.GAIN_EMBLEM, TargetKind.OWN_LEADER, emblem_id="second")),
@@ -431,7 +431,7 @@ class MultiEmblemOrderTests(unittest.TestCase):
 class DeterminismTests(unittest.TestCase):
     def test_emblem_determinism(self):
         for _ in range(2):
-            ed = EmblemDefinition("det", 999900, stacking=EmblemStacking.ALLOW, triggers=(EmblemTriggerRule("turn_start", operations=(EffectOperation(EffectKind.DAMAGE_LEADER, TargetKind.ENEMY_LEADER, 1),)),))
+            ed = EmblemDefinition("det", 999900, stacking=EmblemStacking.ALLOW, triggers=(EmblemTriggerRule("turn_start", turn_scope=TurnScope.OWNER_TURN, operations=(EffectOperation(EffectKind.DAMAGE_LEADER, TargetKind.ENEMY_LEADER, 1),)),))
             engine = _engine(_fr(999900, EffectOperation(EffectKind.GAIN_EMBLEM, TargetKind.OWN_LEADER, emblem_id="det")))
             engine.reset(seed=42)
             engine.rulebook._emblem_defs = {"det": ed}

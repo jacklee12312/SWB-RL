@@ -594,6 +594,8 @@ class EmblemInstance:
     created_sequence: int
     countdown: int | None = None
     countdown_before: int | None = None
+    activation_counts: dict[int, int] = field(default_factory=dict)
+    _once_per_turn_used: set[int] = field(default_factory=set)
 
     @property
     def is_permanent(self) -> bool:
@@ -602,6 +604,25 @@ class EmblemInstance:
     @property
     def source_card_id(self) -> int:
         return self.definition.source_card_id
+
+    def can_activate(self, trigger_index: int) -> bool:
+        tr = self.definition.triggers[trigger_index]
+        if tr.once_per_turn and trigger_index in self._once_per_turn_used:
+            return False
+        if tr.max_activations is not None:
+            current = self.activation_counts.get(trigger_index, 0)
+            if current >= tr.max_activations:
+                return False
+        return True
+
+    def record_activation(self, trigger_index: int) -> None:
+        self.activation_counts[trigger_index] = self.activation_counts.get(trigger_index, 0) + 1
+        tr = self.definition.triggers[trigger_index]
+        if tr.once_per_turn:
+            self._once_per_turn_used.add(trigger_index)
+
+    def reset_turn_limits(self) -> None:
+        self._once_per_turn_used.clear()
 
 
 @dataclass

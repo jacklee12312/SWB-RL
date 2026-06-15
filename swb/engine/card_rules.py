@@ -21,6 +21,8 @@ from swb.engine.emblem import (
     EmblemDefinition,
     EmblemStacking,
     EmblemTriggerRule,
+    EventScope,
+    TurnScope,
 )
 from swb.engine.play_modes import (
     MAX_SPECIAL_MODES_PER_CARD,
@@ -274,7 +276,7 @@ def _parse_emblem_definition(raw: dict, source_file: str, ops_parser) -> EmblemD
     if not isinstance(raw, dict):
         raise ValueError(f"{error_prefix}: emblem definition must be an object")
     unknown_keys = set(raw) - {
-        "id", "source_card_id", "stacking", "countdown", "triggers",
+        "id", "source_card_id", "stacking", "countdown", "triggers", "on_expire",
     }
     if unknown_keys:
         raise ValueError(
@@ -319,6 +321,7 @@ def _parse_emblem_definition(raw: dict, source_file: str, ops_parser) -> EmblemD
             raise ValueError(f"{t_source}: trigger must be an object")
         unknown_trigger_keys = set(rt) - {
             "trigger", "operations", "conditions",
+            "turn_scope", "event_scope", "once_per_turn", "max_activations",
         }
         if unknown_trigger_keys:
             raise ValueError(
@@ -330,6 +333,42 @@ def _parse_emblem_definition(raw: dict, source_file: str, ops_parser) -> EmblemD
                 f"{t_source}/trigger: must be one of {sorted(_VALID_EMBLEM_TRIGGERS)}, "
                 f"got {trigger_name!r}"
             )
+
+        turn_scope = None
+        if "turn_scope" in rt:
+            turn_scope_raw = rt["turn_scope"]
+            try:
+                turn_scope = TurnScope(turn_scope_raw)
+            except ValueError:
+                raise ValueError(
+                    f"{t_source}/turn_scope: must be one of {sorted(s.value for s in TurnScope)}, "
+                    f"got {turn_scope_raw!r}"
+                )
+
+        event_scope = None
+        if "event_scope" in rt:
+            event_scope_raw = rt["event_scope"]
+            try:
+                event_scope = EventScope(event_scope_raw)
+            except ValueError:
+                raise ValueError(
+                    f"{t_source}/event_scope: must be one of {sorted(s.value for s in EventScope)}, "
+                    f"got {event_scope_raw!r}"
+                )
+
+        once_per_turn = rt.get("once_per_turn", False)
+        if not isinstance(once_per_turn, bool):
+            raise ValueError(f"{t_source}/once_per_turn: must be a boolean, got {type(once_per_turn).__name__}")
+
+        max_activations = rt.get("max_activations")
+        if max_activations is not None:
+            if isinstance(max_activations, bool):
+                raise ValueError(f"{t_source}/max_activations: must be a positive integer, got bool")
+            if not isinstance(max_activations, int) or max_activations <= 0:
+                raise ValueError(
+                    f"{t_source}/max_activations: must be a positive integer, got {max_activations!r}"
+                )
+
         raw_ops = rt.get("operations", [])
         if not isinstance(raw_ops, list):
             raise ValueError(f"{t_source}: 'operations' must be a list")
@@ -337,6 +376,7 @@ def _parse_emblem_definition(raw: dict, source_file: str, ops_parser) -> EmblemD
             ops_parser(op, f"{t_source}/operations[{idx}]", source_card_id)
             for idx, op in enumerate(raw_ops)
         )
+        _validate_target_keys(operations, t_source)
         conditions: tuple = ()
         raw_conds = rt.get("conditions")
         if raw_conds is not None:
@@ -356,13 +396,30 @@ def _parse_emblem_definition(raw: dict, source_file: str, ops_parser) -> EmblemD
             trigger=trigger_name,
             operations=operations,
             conditions=conditions,
+            turn_scope=turn_scope,
+            event_scope=event_scope,
+            once_per_turn=once_per_turn,
+            max_activations=max_activations,
         ))
+
+    on_expire: tuple = ()
+    raw_on_expire = raw.get("on_expire")
+    if raw_on_expire is not None:
+        if not isinstance(raw_on_expire, list):
+            raise ValueError(f"{error_prefix}/on_expire: must be a list")
+        on_expire = tuple(
+            ops_parser(op, f"{error_prefix}/on_expire[{idx}]", source_card_id)
+            for idx, op in enumerate(raw_on_expire)
+        )
+        _validate_target_keys(on_expire, f"{error_prefix}/on_expire")
+
     return EmblemDefinition(
         emblem_id=emblem_id,
         source_card_id=source_card_id,
         stacking=stacking,
         countdown=countdown,
         triggers=tuple(triggers),
+        on_expire=on_expire,
     )
 
 
@@ -399,6 +456,7 @@ def _validate_emblem_references(
     for definition in emblem_defs.values():
         for trigger in definition.triggers:
             collect(definition.source_card_id, trigger.operations)
+        collect(definition.source_card_id, definition.on_expire)
 
     for card_id, emblem_id in references:
         if emblem_id not in emblem_defs:
@@ -797,6 +855,7 @@ def _parse_operation(raw: dict, source_file: str, card_id: int) -> EffectOperati
         ),
         card_id=operation_card_id,
         emblem_id=emblem_id,
+        emblem_remove_mode=emblem_remove_mode if kind is EffectKind.REMOVE_EMBLEM else "first",
         keyword=keyword,
         restriction=restriction,
         conditions=conditions,
@@ -818,7 +877,6 @@ def _parse_operation(raw: dict, source_file: str, card_id: int) -> EffectOperati
         graveyard_cost_min=graveyard_cost_min,
         graveyard_follower_only=graveyard_follower_only,
         graveyard_card_type=graveyard_card_type,
-        emblem_remove_mode=emblem_remove_mode,
     )
 
 

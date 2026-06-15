@@ -166,6 +166,7 @@ class EffectOperation:
     secondary_amount: int = 0
     card_id: int | None = None
     emblem_id: str | None = None
+    emblem_remove_mode: str = "first"
     keyword: str | None = None
     restriction: str | None = None
     conditions: tuple[Condition, ...] = ()
@@ -205,3 +206,6 @@ class EffectFrame:
     _hand_source_origin_parent: Any = None
     _target_bindings: dict[str, int] = field(default_factory=dict)
     emblem_batch_id: int | None = None
+    emblem_expiration_batch_id: int | None = None
+    expiring_emblem_owner: int | None = None
+    expiring_emblem_entity_id: int | None = None
