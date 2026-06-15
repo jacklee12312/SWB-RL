@@ -107,7 +107,7 @@ class AtomicAllTargetTests(unittest.TestCase):
         engine.players[0].hand[0] = card(1, card_type="法术", attack=None, life=None)
         engine.apply(PlayCard(0, 0))
         self.assertEqual(engine.players[0].board, [])
-        self.assertTrue(any(g.card_id == 900 for g in engine.players[0].graveyard))
+        self.assertTrue(any(g.definition.card_id == 900 for g in engine.players[0].graveyard))
 
 
 class DeathBatchTests(unittest.TestCase):
@@ -403,7 +403,7 @@ class LastWordsTests(unittest.TestCase):
         for _ in range(6):
             engine.apply(EndTurn(engine.current_player))
         self.assertEqual(engine.players[0].board, [])
-        self.assertIn(amulet, engine.players[0].graveyard)
+        self.assertTrue(any(g.definition is amulet for g in engine.players[0].graveyard))
         self.assertLessEqual(len(engine.players[0].deck), deck_before - 5)
 
     def test_destroy_amulet_via_effect_triggers_last_words(self):
@@ -430,7 +430,7 @@ class LastWordsTests(unittest.TestCase):
         engine.apply(PlayCard(0, 0))
         choice = [c for c in engine.legal_commands() if isinstance(c, Choose)][0]
         engine.apply(choice)
-        self.assertIn(amulet.definition, engine.players[0].graveyard)
+        self.assertTrue(any(g.definition is amulet.definition for g in engine.players[0].graveyard))
         self.assertEqual(len(engine.players[0].hand), hand_before)
 
     def test_all_destroy_amulets_unified_batch(self):
@@ -460,8 +460,8 @@ class LastWordsTests(unittest.TestCase):
         engine.apply(PlayCard(0, 0))
         batch_sizes = [len(b.records) for b in engine.state.death_queue]
         self.assertEqual(batch_sizes, [2])
-        self.assertTrue(any(g.card_id == 700 for g in engine.players[0].graveyard))
-        self.assertTrue(any(g.card_id == 701 for g in engine.players[0].graveyard))
+        self.assertTrue(any(g.definition.card_id == 700 for g in engine.players[0].graveyard))
+        self.assertTrue(any(g.definition.card_id == 701 for g in engine.players[0].graveyard))
 
     def test_last_words_heal_leader(self):
         """Last Words: heal leader."""

@@ -99,6 +99,9 @@ class EffectKind(str, Enum):
     SPELLBOOST_HAND = "spellboost_hand"
     NECROMANCY = "necromancy"
     REANIMATE = "reanimate"
+    RETURN_FROM_GRAVEYARD_TO_HAND = "return_from_graveyard_to_hand"
+    SUMMON_FROM_GRAVEYARD = "summon_from_graveyard"
+    BANISH_FROM_GRAVEYARD = "banish_from_graveyard"
 
 
 class TargetKind(str, Enum):
@@ -129,6 +132,9 @@ class TargetKind(str, Enum):
     RANDOM_OWN_HAND = "random_own_hand"
     ALL_OWN_HAND = "all_own_hand"
     PREVIOUS_TARGET = "previous_target"
+    OWN_GRAVEYARD_CARD = "own_graveyard_card"
+    RANDOM_OWN_GRAVEYARD_CARD = "random_own_graveyard_card"
+    ALL_OWN_GRAVEYARD_CARDS = "all_own_graveyard_cards"
 
 
 class ModifierDuration(str, Enum):
@@ -164,6 +170,10 @@ class EffectOperation:
     set_health: bool = False
     target_key: str | None = None
     necromancy_operations: tuple["EffectOperation", ...] = ()
+    graveyard_cost_max: int | None = None
+    graveyard_cost_min: int | None = None
+    graveyard_follower_only: bool = False
+    graveyard_card_type: str | None = None
 
 
 @dataclass
@@ -182,4 +192,5 @@ class EffectFrame:
     _all_target_index: int = 0
     defer_stabilize: bool = False
     auto_resolve_choices: bool = False
+    _hand_source_entity_id: int | None = None
     _target_bindings: dict[str, int] = field(default_factory=dict)

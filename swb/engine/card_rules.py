@@ -18,6 +18,37 @@ from swb.engine.effects import (
     ValueExpression,
 )
 
+_VALID_CARD_TYPES = frozenset({"随从", "法术", "护符"})
+
+_GRAVEYARD_EFFECT_KINDS = frozenset({
+    EffectKind.RETURN_FROM_GRAVEYARD_TO_HAND,
+    EffectKind.SUMMON_FROM_GRAVEYARD,
+    EffectKind.BANISH_FROM_GRAVEYARD,
+})
+
+_GRAVEYARD_TARGETS = frozenset({
+    TargetKind.OWN_GRAVEYARD_CARD,
+    TargetKind.RANDOM_OWN_GRAVEYARD_CARD,
+    TargetKind.ALL_OWN_GRAVEYARD_CARDS,
+})
+
+_TARGET_DEPENDENT_CONDITIONS = frozenset({
+    ConditionType.TARGET_ATTACK_AT_MOST,
+    ConditionType.TARGET_ATTACK_AT_LEAST,
+    ConditionType.TARGET_HEALTH_AT_MOST,
+    ConditionType.TARGET_HEALTH_AT_LEAST,
+    ConditionType.TARGET_HAS_KEYWORD,
+})
+
+
+def _check_target_conditions(conditions: tuple[Condition, ...], source: str) -> set[str]:
+    invalid: set[str] = set()
+    for cond in conditions:
+        if cond.type in _TARGET_DEPENDENT_CONDITIONS:
+            invalid.add(cond.type.value)
+        invalid.update(_check_target_conditions(cond.conditions, source))
+    return invalid
+
 
 class Trigger(str, Enum):
     PLAY = "play"
@@ -403,6 +434,75 @@ def _parse_operation(raw: dict, source_file: str, card_id: int) -> EffectOperati
                 f"REANIMATE amount must be an integer, got {raw_amount!r}"
             )
 
+    graveyard_cost_max = raw.get("cost_max")
+    if graveyard_cost_max is not None:
+        graveyard_cost_max = _parse_non_negative_int(graveyard_cost_max, f"{source_file}/cost_max", card_id)
+    graveyard_cost_min = raw.get("cost_min")
+    if graveyard_cost_min is not None:
+        graveyard_cost_min = _parse_non_negative_int(graveyard_cost_min, f"{source_file}/cost_min", card_id)
+    if graveyard_cost_min is not None and graveyard_cost_max is not None and graveyard_cost_min > graveyard_cost_max:
+        raise ValueError(
+            f"{source_file} card {card_id}: cost_min ({graveyard_cost_min}) "
+            f"must not exceed cost_max ({graveyard_cost_max})"
+        )
+    raw_follower_only = raw.get("follower_only")
+    if raw_follower_only is not None and not isinstance(raw_follower_only, bool):
+        raise ValueError(
+            f"{source_file}/follower_only card {card_id}: must be boolean, "
+            f"got {type(raw_follower_only).__name__}"
+        )
+    graveyard_follower_only = bool(raw_follower_only) if raw_follower_only is not None else False
+    graveyard_card_type = raw.get("card_type_filter")
+    if graveyard_card_type is not None:
+        if not isinstance(graveyard_card_type, str):
+            raise ValueError(f"{source_file}/card_type_filter card {card_id}: must be a string")
+        if graveyard_card_type not in _VALID_CARD_TYPES:
+            raise ValueError(
+                f"{source_file}/card_type_filter card {card_id}: "
+                f"unknown card type {graveyard_card_type!r}; valid: {sorted(_VALID_CARD_TYPES)}"
+            )
+
+    _is_graveyard_kind = kind in _GRAVEYARD_EFFECT_KINDS
+    if _is_graveyard_kind:
+        if target not in _GRAVEYARD_TARGETS:
+            raise ValueError(
+                f"{source_file} card {card_id}: {kind.value} requires a graveyard target, "
+                f"got {target.value!r}"
+            )
+    else:
+        has_graveyard_filter = any([
+            raw.get("cost_max") is not None,
+            raw.get("cost_min") is not None,
+            raw.get("follower_only") is not None,
+            raw.get("card_type_filter") is not None,
+        ])
+        if has_graveyard_filter:
+            raise ValueError(
+                f"{source_file} card {card_id}: graveyard filter fields "
+                f"(cost_max/cost_min/follower_only/card_type_filter) are only valid with graveyard effect kinds"
+            )
+
+    if kind is EffectKind.SUMMON_FROM_GRAVEYARD:
+        graveyard_follower_only = True
+        if graveyard_card_type is not None and graveyard_card_type != "随从":
+            raise ValueError(
+                f"{source_file}/card_type_filter card {card_id}: "
+                f"SUMMON_FROM_GRAVEYARD only supports 随从, got {graveyard_card_type!r}"
+            )
+        if raw_follower_only is not None and raw_follower_only is not True:
+            raise ValueError(
+                f"{source_file}/follower_only card {card_id}: "
+                f"SUMMON_FROM_GRAVEYARD requires follower_only=true or omit it"
+            )
+
+    if _is_graveyard_kind:
+        invalid_conds = _check_target_conditions(conditions, f"{source_file} card {card_id}")
+        if invalid_conds:
+            raise ValueError(
+                f"{source_file} card {card_id}: graveyard operations do not support "
+                f"target-dependent conditions: {sorted(invalid_conds)}"
+            )
+
     return EffectOperation(
         kind=kind,
         target=target,
@@ -430,6 +530,10 @@ def _parse_operation(raw: dict, source_file: str, card_id: int) -> EffectOperati
         ),
         target_key=target_key,
         necromancy_operations=necromancy_ops,
+        graveyard_cost_max=graveyard_cost_max,
+        graveyard_cost_min=graveyard_cost_min,
+        graveyard_follower_only=graveyard_follower_only,
+        graveyard_card_type=graveyard_card_type,
     )
 
 
@@ -550,3 +654,16 @@ def _parse_optional_int(raw, source_path: str, card_id: int) -> int:
             f"{source_path} card {card_id}: expected an integer, got string {raw!r}"
         )
     return result
+
+
+def _parse_non_negative_int(raw, source_path: str, card_id: int) -> int:
+    if isinstance(raw, bool) or not isinstance(raw, int):
+        raise ValueError(
+            f"{source_path} card {card_id}: expected an integer, "
+            f"got {type(raw).__name__} ({raw!r})"
+        )
+    if raw < 0:
+        raise ValueError(
+            f"{source_path} card {card_id}: must be non-negative, got {raw}"
+        )
+    return raw

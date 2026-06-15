@@ -1,0 +1,35 @@
+{
+  "_note": "Test/demo rules only. IDs 999101-999103 are not real database cards. These IDs are unique within data/rules/.",
+  "rules": [
+    {
+      "card_id": 999101,
+      "trigger": "fanfare",
+      "operations": [
+        {
+          "kind": "return_from_graveyard_to_hand",
+          "target": "own_graveyard_card"
+        }
+      ]
+    },
+    {
+      "card_id": 999102,
+      "trigger": "fanfare",
+      "operations": [
+        {
+          "kind": "summon_from_graveyard",
+          "target": "random_own_graveyard_card"
+        }
+      ]
+    },
+    {
+      "card_id": 999103,
+      "trigger": "fanfare",
+      "operations": [
+        {
+          "kind": "banish_from_graveyard",
+          "target": "all_own_graveyard_cards"
+        }
+      ]
+    }
+  ]
+}

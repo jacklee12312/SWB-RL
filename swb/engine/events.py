@@ -41,6 +41,9 @@ class EventType(str, Enum):
     SHADOWS_CHANGED = "shadows_changed"
     NECROMANCY_ACTIVATED = "necromancy_activated"
     REANIMATE_RESOLVED = "reanimate_resolved"
+    GRAVEYARD_CARD_RETURNED = "graveyard_card_returned"
+    GRAVEYARD_CARD_SUMMONED = "graveyard_card_summoned"
+    GRAVEYARD_CARD_BANISHED = "graveyard_card_banished"
 
 
 @dataclass(frozen=True)

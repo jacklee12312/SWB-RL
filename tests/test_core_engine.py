@@ -155,7 +155,7 @@ class CoreEngineTests(unittest.TestCase):
         engine.apply(choice)
         self.assertEqual(engine.state.phase, Phase.MAIN)
         self.assertEqual(engine.players[1].board, [])
-        self.assertEqual(engine.players[0].graveyard[-1].card_id, spell.card_id)
+        self.assertEqual(engine.players[0].graveyard[-1].definition.card_id, spell.card_id)
 
     def test_countdown_amulet_expires_and_runs_last_words(self) -> None:
         rulebook = RuleBook.from_directory("data/rules")
@@ -185,7 +185,7 @@ class CoreEngineTests(unittest.TestCase):
             engine.apply(EndTurn(engine.current_player))
 
         self.assertEqual(engine.players[0].board, [])
-        self.assertIn(amulet, engine.players[0].graveyard)
+        self.assertTrue(any(g.definition is amulet for g in engine.players[0].graveyard))
         self.assertLessEqual(len(engine.players[0].deck), deck_before - 5)
 
 

@@ -168,7 +168,7 @@ class BarrierTests(unittest.TestCase):
         eng.players[0].hand[0] = card(1, card_type="法术", attack=None, life=None)
         eng.apply(PlayCard(0, 0))
         eng.apply([c for c in eng.legal_commands() if isinstance(c, Choose)][0])
-        self.assertTrue(any(g.card_id == 900 for g in eng.players[1].graveyard))
+        self.assertTrue(any(g.definition.card_id == 900 for g in eng.players[1].graveyard))
 
     def test_all_target_per_unit_barrier(self):
         rulebook = RuleBook((CardRule(card_id=1, trigger=Trigger.PLAY, operations=(

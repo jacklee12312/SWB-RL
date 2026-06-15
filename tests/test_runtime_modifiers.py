@@ -409,7 +409,7 @@ class TransformAndStatModifierTests(unittest.TestCase):
         engine.players[0].hand[0] = follower
         engine.apply(PlayCard(0, 0))
         self.assertFalse(engine.players[0].board)
-        self.assertEqual(engine.players[0].graveyard[-1].card_id, 10)
+        self.assertEqual(engine.players[0].graveyard[-1].definition.card_id, 10)
 
     def test_negative_buff_values_apply_debuffs(self):
         spell = card(10, card_type="法术", attack=None, life=None)

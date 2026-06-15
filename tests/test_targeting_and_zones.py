@@ -360,7 +360,7 @@ class ZoneChangeTests(unittest.TestCase):
         engine.players[0].hand[0] = card(1, card_type="法术", attack=None, life=None)
         engine.apply(PlayCard(0, 0))
         self.assertEqual(len(engine.players[0].hand), engine.config.max_hand)
-        self.assertTrue(any(g.card_id == 700 for g in engine.players[0].graveyard))
+        self.assertTrue(any(g.definition.card_id == 700 for g in engine.players[0].graveyard))
 
     def test_return_unit_to_hand(self):
         rulebook = RuleBook((
@@ -460,7 +460,7 @@ class ZoneChangeTests(unittest.TestCase):
         choice = Choose(engine.current_player, known_option.option_id)
         engine.apply(choice)
         self.assertEqual(len(engine.players[0].hand), hand_before - 2)
-        self.assertTrue(any(g.card_id == 999 for g in engine.players[0].graveyard))
+        self.assertTrue(any(g.definition.card_id == 999 for g in engine.players[0].graveyard))
 
     def test_old_rulebook_remains_compatible(self):
         rulebook = RuleBook.from_directory("data/rules")

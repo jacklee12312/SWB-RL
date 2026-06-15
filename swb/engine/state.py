@@ -20,6 +20,16 @@ class Phase(str, Enum):
     FINISHED = "finished"
 
 
+@dataclass(frozen=True)
+class GraveyardCard:
+    definition: CardDefinition
+    entity_id: int
+    owner: int
+    entered_sequence: int
+    entry_cause: str
+    derived: bool = False
+
+
 class DeathCause(str, Enum):
     COMBAT = "combat"
     ZERO_HEALTH = "zero_health"
@@ -523,7 +533,7 @@ class PlayerState:
     hand: list[HandCard] = field(default_factory=list)
     hand_entity_ids: list[int] = field(default_factory=list)
     board: list[BoardCard] = field(default_factory=list)
-    graveyard: list[CardDefinition] = field(default_factory=list)
+    graveyard: list[GraveyardCard] = field(default_factory=list)
     banished: list[CardDefinition] = field(default_factory=list)
     emblems: list[str] = field(default_factory=list)
     health: int = 20
@@ -538,6 +548,7 @@ class PlayerState:
     cooperation: int = 0
     shadows: int = 0
     faith: int = 0
+    _next_graveyard_sequence: int = 1
 
     def add_shadows(self, amount: int) -> None:
         if amount < 0:

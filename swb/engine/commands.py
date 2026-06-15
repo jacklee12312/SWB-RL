@@ -12,6 +12,13 @@ class CommandType(str, Enum):
     CHOOSE = "choose"
 
 
+class ChoiceKind(str, Enum):
+    BOARD = "board"
+    HAND = "hand"
+    GRAVEYARD = "graveyard"
+    GENERIC = "generic"
+
+
 @dataclass(frozen=True)
 class EndTurn:
     player_index: int
@@ -63,4 +70,5 @@ class ChoiceRequest:
     prompt: str
     options: tuple[ChoiceOption, ...]
     continuation_id: str
-
+    choice_kind: ChoiceKind = ChoiceKind.GENERIC
+    request_id: int = 0

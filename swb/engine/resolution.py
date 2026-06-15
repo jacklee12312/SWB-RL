@@ -16,6 +16,7 @@ from swb.engine.abilities import (
 from swb.engine.card_rules import RuleBook, Trigger
 from swb.engine.commands import (
     Attack,
+    ChoiceKind,
     ChoiceOption,
     ChoiceRequest,
     Choose,
@@ -46,6 +47,7 @@ from swb.engine.state import (
     DeathRecord,
     DestroyedFollowerRecord,
     GameState,
+    GraveyardCard,
     HandCard,
     CostModifier,
     Phase,
@@ -56,11 +58,15 @@ from swb.engine.state import (
 )
 from swb.engine.targeting import (
     build_choice_options,
+    build_graveyard_choice_options,
+    graveyard_candidates,
     hand_choice_options,
     is_all_target,
     is_choice_target,
+    is_graveyard_target,
     is_random_target,
     pick_random,
+    pick_random_graveyard,
     target_candidates,
 )
 from swb.engine.triggers import TriggerBatch, TriggerRecord, collect_triggers
@@ -188,6 +194,7 @@ class GameEngine:
         self.ability_handlers.environment._execute_trigger_rules = self._execute_trigger_rules
         self.ability_handlers.environment._is_ability_covered = self._is_ability_covered
         self._next_modifier_id: int = 1
+        self._next_choice_request_id: int = 1
         self._suspended_action: str | None = None
         self._suspended_action_state: dict | None = None
         self._suspended_event_state: dict | None = None
@@ -285,6 +292,7 @@ class GameEngine:
         self.event_history = []
         self.placeholder_ability_events = []
         self._next_modifier_id = 1
+        self._next_choice_request_id = 1
         self._suspended_batch = None
         self._suspended_record = None
         self._suspended_lw_records = []
@@ -490,13 +498,15 @@ class GameEngine:
             )
         )
         operations = self.rulebook.operations_for(card.card_id, Trigger.PLAY)
-        self._start_effects(
+        frame = self._queue_effects(
             card,
             None,
             operations,
             move_source_to_graveyard=True,
             label="法术",
         )
+        frame._hand_source_entity_id = source_entity_id
+        self._continue_effects()
         self._spellboost_pending = 1
         self._pending_spellboost_player = self.current_player
         self._pending_spellboost_source_card_id = card.card_id
@@ -762,9 +772,22 @@ class GameEngine:
         card: CardDefinition,
         cause: str,
         source_entity_id: int | None = None,
-    ) -> None:
+        *,
+        derived: bool = False,
+    ) -> GraveyardCard:
         player = self.players[player_index]
-        player.graveyard.append(card)
+        entity_id = source_entity_id if source_entity_id is not None else self.state.allocate_entity_id()
+        seq = player._next_graveyard_sequence
+        player._next_graveyard_sequence += 1
+        gc = GraveyardCard(
+            definition=card,
+            entity_id=entity_id,
+            owner=player_index,
+            entered_sequence=seq,
+            entry_cause=cause,
+            derived=derived,
+        )
+        player.graveyard.append(gc)
         before = player.shadows
         player.add_shadows(1)
         self._emit(
@@ -775,6 +798,7 @@ class GameEngine:
                 amount=1,
                 metadata={
                     "card_id": card.card_id,
+                    "entity_id": entity_id,
                     "cause": cause,
                     "shadows_before": before,
                     "shadows_after": player.shadows,
@@ -793,6 +817,7 @@ class GameEngine:
                 },
             )
         )
+        return gc
 
     def _record_destroyed_follower(
         self, player_index: int, definition: CardDefinition, cause: DeathCause
@@ -819,8 +844,10 @@ class GameEngine:
                 if frame.defer_stabilize:
                     self._stabilize()
                 if frame.move_source_to_graveyard:
+                    spell_eid = frame._hand_source_entity_id
                     self._send_to_graveyard(
-                        frame.controller, frame.source_card, "spell_resolved"
+                        frame.controller, frame.source_card, "spell_resolved",
+                        source_entity_id=spell_eid,
                     )
                     self._emit(
                         GameEvent(
@@ -857,7 +884,58 @@ class GameEngine:
                 self._stabilize()
                 continue
 
-            if is_choice_target(operation.target) and frame.pending_target_id is None:
+            if is_graveyard_target(operation.target) and is_choice_target(operation.target) and frame.pending_target_id is None:
+                candidates = graveyard_candidates(operation, frame.controller, self.players)
+                options = build_graveyard_choice_options(candidates)
+                if not options:
+                    frame.next_index += 1
+                    continue
+                if frame.auto_resolve_choices:
+                    chosen = self.random.choice(options)
+                    self._log(frame.controller, f"自动选择目标：{chosen.label}")
+                    frame.pending_target_id = chosen.entity_id
+                else:
+                    self.state.pending_choice = ChoiceRequest(
+                        player_index=frame.controller,
+                        prompt=f"为 {frame.source_name} 从墓地选择目标",
+                        options=tuple(options),
+                        continuation_id=f"{frame.source_card_id}:{frame.next_index}",
+                        choice_kind=ChoiceKind.GRAVEYARD,
+                        request_id=self._allocate_choice_request_id(),
+                    )
+                    self.state.phase = Phase.AWAITING_CHOICE
+                    self._log(
+                        frame.controller,
+                        f"{frame.source_name} 等待从墓地选择目标："
+                        + "、".join(option.label for option in options),
+                    )
+                    return
+
+            if is_graveyard_target(operation.target) and is_all_target(operation.target) and not frame.defer_stabilize:
+                candidates = graveyard_candidates(operation, frame.controller, self.players)
+                if not candidates:
+                    frame.next_index += 1
+                    continue
+                frame.defer_stabilize = True
+                for gc in candidates:
+                    if gc not in self.players[frame.controller].graveyard:
+                        continue
+                    self._checked_execute(operation, frame, gc.entity_id)
+                self._resolve_event_queue()
+                self._stabilize()
+                frame.defer_stabilize = False
+                frame.next_index += 1
+                continue
+
+            if is_graveyard_target(operation.target) and is_random_target(operation.target) and frame.pending_target_id is None:
+                candidates = graveyard_candidates(operation, frame.controller, self.players)
+                chosen_gc = pick_random_graveyard(candidates, self.random) if candidates else None
+                if chosen_gc is None:
+                    frame.next_index += 1
+                    continue
+                target_id = chosen_gc.entity_id
+
+            if is_choice_target(operation.target) and not is_graveyard_target(operation.target) and frame.pending_target_id is None:
                 options = self._target_options(operation, frame.controller)
                 if operation.conditions and operation.target is not TargetKind.OWN_HAND:
                     candidates = target_candidates(operation, frame.controller, self.players)
@@ -873,11 +951,18 @@ class GameEngine:
                     self._log(frame.controller, f"自动选择目标：{chosen.label}")
                     frame.pending_target_id = chosen.entity_id
                 else:
+                    choice_kind = ChoiceKind.GENERIC
+                    if operation.target in (TargetKind.OWN_HAND,):
+                        choice_kind = ChoiceKind.HAND
+                    elif operation.target not in (TargetKind.OWN_GRAVEYARD_CARD,):
+                        choice_kind = ChoiceKind.BOARD
                     self.state.pending_choice = ChoiceRequest(
                         player_index=frame.controller,
                         prompt=f"为 {frame.source_name} 选择目标",
                         options=tuple(options),
                         continuation_id=f"{frame.source_card_id}:{frame.next_index}",
+                        choice_kind=choice_kind,
+                        request_id=self._allocate_choice_request_id(),
                     )
                     self.state.phase = Phase.AWAITING_CHOICE
                     self._log(
@@ -1060,6 +1145,9 @@ class GameEngine:
             return len(self.players[self.current_player].hand) > 1
         if operation.target == TargetKind.ALL_OWN_HAND:
             return True
+        if is_graveyard_target(operation.target):
+            candidates = graveyard_candidates(operation, self.current_player, self.players)
+            return bool(candidates)
         condition_state = evaluate_conditions_without_target(
             operation.conditions,
             EvalContext(
@@ -1068,7 +1156,6 @@ class GameEngine:
             ),
         )
         if condition_state is PartialConditionResult.FALSE:
-            # The operation will be skipped and therefore requires no target.
             return True
         candidates = target_candidates(operation, self.current_player, self.players)
         if is_choice_target(operation.target):
@@ -1095,6 +1182,9 @@ class GameEngine:
     ) -> list[ChoiceOption]:
         if operation.target == TargetKind.OWN_HAND:
             return hand_choice_options(self.players[controller])
+        if is_graveyard_target(operation.target):
+            gc = graveyard_candidates(operation, controller, self.players)
+            return build_graveyard_choice_options(gc)
         candidates = target_candidates(operation, controller, self.players)
         candidates = [e for e in candidates if not (isinstance(e, Unit) and e.ambush_active and self._entity_owner(e.entity_id) != controller)]
         return build_choice_options(candidates)
@@ -1489,9 +1579,15 @@ class GameEngine:
         if self.state.effect_stack:
             frame = self.state.effect_stack[-1]
             if option.entity_id is not None and option.option_id.startswith("entity:"):
-                try:
-                    self._find_board_entity(option.entity_id)
-                except IllegalCommand:
+                on_board = False
+                for p in self.players:
+                    if any(e.entity_id == option.entity_id for e in p.board):
+                        on_board = True
+                        break
+                in_graveyard = any(
+                    gc.entity_id == option.entity_id for gc in self.players[command.player_index].graveyard
+                )
+                if not on_board and not in_graveyard:
                     self._log(
                         command.player_index,
                         f"目标 {option.label} 已离场，跳过",
@@ -1868,6 +1964,12 @@ class GameEngine:
             self._execute_necromancy(effect, frame, target_id)
         elif effect.kind is EffectKind.REANIMATE:
             self._execute_reanimate(effect, frame, target_id)
+        elif effect.kind is EffectKind.SUMMON_FROM_GRAVEYARD:
+            self._execute_summon_from_graveyard(effect, frame, target_id)
+        elif effect.kind is EffectKind.RETURN_FROM_GRAVEYARD_TO_HAND:
+            self._execute_return_from_graveyard_to_hand(effect, frame, target_id)
+        elif effect.kind is EffectKind.BANISH_FROM_GRAVEYARD:
+            self._execute_banish_from_graveyard(effect, frame, target_id)
         else:
             self._log(
                 frame.controller,
@@ -2165,6 +2267,81 @@ class GameEngine:
         self._emit(GameEvent(EventType.FOLLOWER_SUMMONED, frame.controller, source_id=unit.entity_id,
             metadata={"source": unit, "card_id": unit.definition.card_id, "via": "reanimate"}))
 
+    def _execute_summon_from_graveyard(
+        self, effect: EffectOperation, frame: EffectFrame, target_id: int | None,
+    ) -> None:
+        player = self.players[frame.controller]
+        gc = next((g for g in player.graveyard if g.entity_id == target_id), None)
+        if gc is None:
+            return
+        if len(player.board) >= self.config.max_board:
+            return
+        player.graveyard.remove(gc)
+        unit = Unit.summon(gc.definition, entity_id=gc.entity_id)
+        player.board.append(unit)
+        player.cooperation += 1
+        self._emit(GameEvent(EventType.GRAVEYARD_CARD_SUMMONED, frame.controller,
+            source_id=unit.entity_id,
+            metadata={
+                "card_id": gc.definition.card_id,
+                "entity_id": unit.entity_id,
+                "source_card_id": frame.source_card_id,
+                "from_zone": "graveyard",
+                "to_zone": "board",
+                "cause": "summon_from_graveyard",
+            }))
+        self._log(frame.controller, f"从墓地召唤：{gc.definition.name} ({unit.attack}/{unit.health})")
+        self._emit(GameEvent(EventType.FOLLOWER_SUMMONED, frame.controller, source_id=unit.entity_id,
+            metadata={"source": unit, "card_id": unit.definition.card_id, "via": "summon_from_graveyard"}))
+
+    def _execute_return_from_graveyard_to_hand(
+        self, effect: EffectOperation, frame: EffectFrame, target_id: int | None,
+    ) -> None:
+        player = self.players[frame.controller]
+        gc = next((g for g in player.graveyard if g.entity_id == target_id), None)
+        if gc is None:
+            return
+        if len(player.hand) >= self.config.max_hand:
+            return
+        player.graveyard.remove(gc)
+        hand_card = self._make_hand_card(gc.definition, gc.entity_id)
+        player.hand.append(hand_card)
+        player.hand_entity_ids.append(hand_card.entity_id)
+        self._emit(GameEvent(EventType.GRAVEYARD_CARD_RETURNED, frame.controller,
+            source_id=frame.source_entity_id,
+            target_id=gc.entity_id,
+            metadata={
+                "card_id": gc.definition.card_id,
+                "entity_id": gc.entity_id,
+                "source_card_id": frame.source_card_id,
+                "from_zone": "graveyard",
+                "to_zone": "hand",
+                "cause": "return_from_graveyard",
+            }))
+        self._log(frame.controller, f"从墓地回手：{gc.definition.name}")
+
+    def _execute_banish_from_graveyard(
+        self, effect: EffectOperation, frame: EffectFrame, target_id: int | None,
+    ) -> None:
+        player = self.players[frame.controller]
+        gc = next((g for g in player.graveyard if g.entity_id == target_id), None)
+        if gc is None:
+            return
+        player.graveyard.remove(gc)
+        player.banished.append(gc.definition)
+        self._emit(GameEvent(EventType.GRAVEYARD_CARD_BANISHED, frame.controller,
+            source_id=frame.source_entity_id,
+            target_id=gc.entity_id,
+            metadata={
+                "card_id": gc.definition.card_id,
+                "entity_id": gc.entity_id,
+                "source_card_id": frame.source_card_id,
+                "from_zone": "graveyard",
+                "to_zone": "banished",
+                "cause": "banish_from_graveyard",
+            }))
+        self._log(frame.controller, f"从墓地消失：{gc.definition.name}")
+
     def _execute_summon(self, effect: EffectOperation, frame: EffectFrame) -> None:
         if effect.card_id is None:
             raise IllegalCommand("SUMMON requires a card_id")
@@ -2351,7 +2528,8 @@ class GameEngine:
                 )
                 player.hand.pop(idx)
                 player.hand_entity_ids.pop(idx)
-                self._send_to_graveyard(frame.controller, card_def, "discard")
+                discarded_eid = target_id
+                self._send_to_graveyard(frame.controller, card_def, "discard", source_entity_id=discarded_eid)
                 self._log(
                     frame.controller,
                     f"{frame.source_name} 弃置手牌 {card_def.name}",
@@ -2713,6 +2891,11 @@ class GameEngine:
             f"[半回合 {self.turn:03d}][玩家 {player_index + 1}] {message}"
         )
 
+    def _allocate_choice_request_id(self) -> int:
+        request_id = self._next_choice_request_id
+        self._next_choice_request_id += 1
+        return request_id
+
     def _ensure_entity_ids(self) -> None:
         seen: set[int] = set()
         for player in self.players:
@@ -2741,6 +2924,14 @@ class GameEngine:
                 if entity.entity_id <= 0 or entity.entity_id in seen:
                     entity.entity_id = self.state.allocate_entity_id()
                 seen.add(entity.entity_id)
+            for graveyard_card in player.graveyard:
+                if graveyard_card.entity_id <= 0:
+                    raise IllegalCommand("Graveyard entity_id must be positive")
+                if graveyard_card.entity_id in seen:
+                    raise IllegalCommand(
+                        f"Entity {graveyard_card.entity_id} exists in multiple zones"
+                    )
+                seen.add(graveyard_card.entity_id)
 
     def _append_hand_card(
         self, player: PlayerState, definition: CardDefinition

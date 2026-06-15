@@ -4,7 +4,7 @@ import random
 from typing import TYPE_CHECKING
 
 from swb.engine.effects import EffectKind, EffectOperation, TargetKind
-from swb.engine.state import Amulet, BoardCard, BoardEntity, Unit
+from swb.engine.state import Amulet, BoardCard, BoardEntity, GraveyardCard, Unit
 
 if TYPE_CHECKING:
     from swb.engine.commands import ChoiceOption
@@ -50,6 +50,7 @@ _MANUAL_TARGETS = frozenset({
     TargetKind.ENEMY_BOARD,
     TargetKind.ANY_BOARD,
     TargetKind.OWN_HAND,
+    TargetKind.OWN_GRAVEYARD_CARD,
 })
 
 _RANDOM_TARGETS = frozenset({
@@ -58,6 +59,7 @@ _RANDOM_TARGETS = frozenset({
     TargetKind.RANDOM_OWN_BOARD,
     TargetKind.RANDOM_ENEMY_BOARD,
     TargetKind.RANDOM_OWN_HAND,
+    TargetKind.RANDOM_OWN_GRAVEYARD_CARD,
 })
 
 _ALL_TARGETS = frozenset({
@@ -69,12 +71,19 @@ _ALL_TARGETS = frozenset({
     TargetKind.ALL_OWN_AMULETS,
     TargetKind.ALL_ENEMY_AMULETS,
     TargetKind.ALL_OWN_HAND,
+    TargetKind.ALL_OWN_GRAVEYARD_CARDS,
 })
 
 _IMPLICIT_TARGETS = frozenset({
     TargetKind.SELF,
     TargetKind.OWN_LEADER,
     TargetKind.ENEMY_LEADER,
+})
+
+_GRAVEYARD_TARGETS = frozenset({
+    TargetKind.OWN_GRAVEYARD_CARD,
+    TargetKind.RANDOM_OWN_GRAVEYARD_CARD,
+    TargetKind.ALL_OWN_GRAVEYARD_CARDS,
 })
 
 
@@ -92,6 +101,10 @@ def is_all_target(kind: TargetKind) -> bool:
 
 def is_choice_target(kind: TargetKind) -> bool:
     return is_manual_target(kind)
+
+
+def is_graveyard_target(kind: TargetKind) -> bool:
+    return kind in _GRAVEYARD_TARGETS
 
 
 _EFFECT_UNIT_ONLY = frozenset({
@@ -129,6 +142,51 @@ def _board_entities(board: list[BoardCard], *, units_only: bool, amulets_only: b
             continue
         result.append(entity)
     return result
+
+
+def _filter_graveyard_candidates(
+    candidates: list[GraveyardCard],
+    operation: EffectOperation,
+) -> list[GraveyardCard]:
+    if operation.kind is EffectKind.SUMMON_FROM_GRAVEYARD:
+        candidates = [c for c in candidates if c.definition.card_type == "随从"]
+    if operation.graveyard_card_type is not None:
+        candidates = [
+            c for c in candidates
+            if c.definition.card_type == operation.graveyard_card_type
+        ]
+    if operation.graveyard_follower_only:
+        candidates = [
+            c for c in candidates
+            if c.definition.card_type == "随从"
+        ]
+    if operation.graveyard_cost_max is not None:
+        candidates = [
+            c for c in candidates
+            if c.definition.cost <= operation.graveyard_cost_max
+        ]
+    if operation.graveyard_cost_min is not None:
+        candidates = [
+            c for c in candidates
+            if c.definition.cost >= operation.graveyard_cost_min
+        ]
+    if operation.card_id is not None:
+        candidates = [
+            c for c in candidates
+            if c.definition.card_id == operation.card_id
+        ]
+    return candidates
+
+
+def graveyard_candidates(
+    operation: EffectOperation,
+    controller: int,
+    players: list,
+) -> list[GraveyardCard]:
+    return _filter_graveyard_candidates(
+        list(players[controller].graveyard),
+        operation,
+    )
 
 
 def target_candidates(
@@ -221,7 +279,30 @@ def build_choice_options(candidates: list[BoardCard]) -> list[ChoiceOption]:
     ]
 
 
+def build_graveyard_choice_options(
+    candidates: list[GraveyardCard],
+) -> list[ChoiceOption]:
+    from swb.engine.commands import ChoiceOption
+
+    return [
+        ChoiceOption(
+            option_id=f"entity:{gc.entity_id}",
+            label=gc.definition.name,
+            entity_id=gc.entity_id,
+        )
+        for gc in candidates
+    ]
+
+
 def pick_random(candidates: list[BoardCard], rng: random.Random) -> BoardCard | None:
+    if not candidates:
+        return None
+    return rng.choice(candidates)
+
+
+def pick_random_graveyard(
+    candidates: list[GraveyardCard], rng: random.Random,
+) -> GraveyardCard | None:
     if not candidates:
         return None
     return rng.choice(candidates)
