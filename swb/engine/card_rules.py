@@ -17,6 +17,12 @@ from swb.engine.effects import (
     TargetKind,
     ValueExpression,
 )
+from swb.engine.play_modes import (
+    MAX_SPECIAL_MODES_PER_CARD,
+    PlayModeDefinition,
+    validate_play_mode_definition,
+    validate_runtime_play_mode,
+)
 
 _VALID_CARD_TYPES = frozenset({"随从", "法术", "护符"})
 
@@ -79,7 +85,12 @@ class CardPassive:
 
 
 class RuleBook:
-    def __init__(self, rules: tuple[CardRule, ...] = (), passives: tuple[CardPassive, ...] = ()):
+    def __init__(
+        self,
+        rules: tuple[CardRule, ...] = (),
+        passives: tuple[CardPassive, ...] = (),
+        play_modes: dict[int, tuple[PlayModeDefinition, ...]] | None = None,
+    ):
         self._rules: dict[tuple[int, Trigger], tuple[EffectOperation, ...]] = {
             (rule.card_id, rule.trigger): rule.operations for rule in rules
         }
@@ -91,6 +102,23 @@ class RuleBook:
         self._passives: dict[int, list[CardPassive]] = {}
         for p in passives:
             self._passives.setdefault(p.card_id, []).append(p)
+        self._play_modes: dict[int, tuple[PlayModeDefinition, ...]] = play_modes or {}
+        for card_id, modes in self._play_modes.items():
+            if len(modes) > MAX_SPECIAL_MODES_PER_CARD:
+                raise ValueError(
+                    f"card {card_id}: has {len(modes)} play modes, "
+                    f"maximum is {MAX_SPECIAL_MODES_PER_CARD}"
+                )
+            seen: set[str] = set()
+            for m in modes:
+                validate_runtime_play_mode(
+                    m, f"card {card_id}/play_modes/{m.mode_id}"
+                )
+                if m.mode_id in seen:
+                    raise ValueError(
+                        f"card {card_id}: duplicate play mode id {m.mode_id!r}"
+                    )
+                seen.add(m.mode_id)
 
     def operations_for(
         self, card_id: int, trigger: Trigger
@@ -99,6 +127,9 @@ class RuleBook:
 
     def countdown_for(self, card_id: int) -> int | None:
         return self._countdowns.get(card_id)
+
+    def modes_for(self, card_id: int) -> tuple[PlayModeDefinition, ...]:
+        return self._play_modes.get(card_id, ())
 
     def spellboost_cost_reduction(self, card_id: int) -> int:
         for p in self._passives.get(card_id, []):
@@ -113,6 +144,7 @@ class RuleBook:
             return cls()
         rules: list[CardRule] = []
         passives: list[tuple[CardPassive, str]] = []
+        all_play_modes: dict[int, list[PlayModeDefinition]] = {}
         for file_path in sorted(path.glob("*.json")):
             payload = json.loads(file_path.read_text(encoding="utf-8"))
             if isinstance(payload, list):
@@ -141,13 +173,55 @@ class RuleBook:
                         countdown=entry.get("countdown"),
                     )
                 )
+                raw_modes = entry.get("play_modes")
+                if raw_modes is not None:
+                    if not isinstance(raw_modes, list):
+                        raise ValueError(
+                            f"{file_path.name} card {entry['card_id']}: "
+                            f"'play_modes' must be a list"
+                        )
+                    if len(raw_modes) > MAX_SPECIAL_MODES_PER_CARD:
+                        raise ValueError(
+                            f"{file_path.name} card {entry['card_id']}: "
+                            f"play_modes has {len(raw_modes)} entries, "
+                            f"maximum is {MAX_SPECIAL_MODES_PER_CARD}"
+                        )
+                    mode_ids_seen: set[str] = set()
+                    for index, raw_mode in enumerate(raw_modes):
+                        mode_def = validate_play_mode_definition(
+                            raw_mode,
+                            file_path.name,
+                            entry["card_id"],
+                            _parse_operation,
+                        )
+                        if mode_def.mode_id in mode_ids_seen:
+                            raise ValueError(
+                                f"{file_path.name} card {entry['card_id']}: "
+                                f"duplicate play mode id {mode_def.mode_id!r}"
+                            )
+                        mode_ids_seen.add(mode_def.mode_id)
+                        _validate_target_keys(
+                            mode_def.operations,
+                            f"{file_path.name} card {entry['card_id']}/play_modes/{mode_def.mode_id}",
+                        )
+                        card_modes = all_play_modes.setdefault(int(entry["card_id"]), [])
+                        if len(card_modes) >= MAX_SPECIAL_MODES_PER_CARD:
+                            raise ValueError(
+                                f"{file_path.name} card {entry['card_id']}: "
+                                f"total play_modes across entries exceeds "
+                                f"maximum of {MAX_SPECIAL_MODES_PER_CARD}"
+                            )
+                        card_modes.append(mode_def)
             for index, raw_passive in enumerate(raw_passives):
                 source_path = f"{file_path.name}/passives[{index}]"
                 passives.append(
                     (_parse_passive(raw_passive, source_path), source_path)
                 )
         _validate_passives(passives)
-        return cls(tuple(rules), tuple(passive for passive, _ in passives))
+        frozen_modes = {
+            cid: tuple(modes) for cid, modes in all_play_modes.items()
+        }
+        return cls(tuple(rules), tuple(passive for passive, _ in passives), frozen_modes)
 
 
 def _validate_passives(passives: list[tuple[CardPassive, str]]) -> None:

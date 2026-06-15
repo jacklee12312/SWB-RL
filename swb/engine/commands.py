@@ -29,6 +29,7 @@ class EndTurn:
 class PlayCard:
     player_index: int
     hand_index: int
+    mode_id: str = "normal"
     type: CommandType = CommandType.PLAY_CARD
 
 

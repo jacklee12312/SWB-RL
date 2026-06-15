@@ -1,0 +1,152 @@
+{
+    "rules": [
+        {
+            "card_id": 999801,
+            "trigger": "play",
+            "operations": [
+                {
+                    "kind": "damage_leader",
+                    "target": "enemy_leader",
+                    "amount": 2
+                }
+            ],
+            "play_modes": [
+                {
+                    "id": "enhance_5",
+                    "type": "enhance",
+                    "cost": 5,
+                    "operations": [
+                        {
+                            "kind": "damage_leader",
+                            "target": "enemy_leader",
+                            "amount": 5
+                        },
+                        {
+                            "kind": "heal_leader",
+                            "target": "own_leader",
+                            "amount": 3
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "card_id": 999802,
+            "trigger": "play",
+            "operations": [],
+            "play_modes": [
+                {
+                    "id": "accelerate_2",
+                    "type": "accelerate",
+                    "cost": 2,
+                    "resulting_card_type": "法术",
+                    "operations": [
+                        {
+                            "kind": "damage_leader",
+                            "target": "enemy_leader",
+                            "amount": 3
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "card_id": 999803,
+            "trigger": "play",
+            "operations": [],
+            "play_modes": [
+                {
+                    "id": "crystallize_2",
+                    "type": "crystallize",
+                    "cost": 2,
+                    "resulting_card_type": "护符",
+                    "countdown": 3,
+                    "operations": [
+                        {
+                            "kind": "draw",
+                            "target": "own_leader",
+                            "amount": 1
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "card_id": 999804,
+            "trigger": "play",
+            "operations": [
+                {
+                    "kind": "damage_leader",
+                    "target": "enemy_leader",
+                    "amount": 1
+                }
+            ],
+            "play_modes": [
+                {
+                    "id": "enhance_4",
+                    "type": "enhance",
+                    "cost": 4,
+                    "operations": [
+                        {
+                            "kind": "heal_leader",
+                            "target": "own_leader",
+                            "amount": 2
+                        },
+                        {
+                            "kind": "damage_leader",
+                            "target": "enemy_leader",
+                            "amount": 3
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "card_id": 999805,
+            "trigger": "play",
+            "operations": [
+                {
+                    "kind": "draw",
+                    "target": "own_leader",
+                    "amount": 1
+                }
+            ],
+            "play_modes": [
+                {
+                    "id": "accelerate_1",
+                    "type": "accelerate",
+                    "cost": 1,
+                    "resulting_card_type": "法术",
+                    "operations": [
+                        {
+                            "kind": "damage_leader",
+                            "target": "enemy_leader",
+                            "amount": 2
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "card_id": 999806,
+            "trigger": "play",
+            "operations": [],
+            "play_modes": [
+                {
+                    "id": "crystallize_1",
+                    "type": "crystallize",
+                    "cost": 1,
+                    "resulting_card_type": "护符",
+                    "countdown": 2,
+                    "operations": [
+                        {
+                            "kind": "heal_leader",
+                            "target": "own_leader",
+                            "amount": 2
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

@@ -49,6 +49,7 @@ from swb.engine.origin import (
     origin_for_added_card,
     origin_for_summoned_card,
 )
+from swb.engine.play_modes import validate_runtime_play_mode
 from swb.engine.state import (
     Amulet,
     BoardCard,
@@ -395,14 +396,15 @@ class GameEngine:
         player = self.players[self.current_player]
         opponent = self.players[1 - self.current_player]
         commands: list[GameCommand] = [EndTurn(self.current_player)]
-        if len(player.board) < self.config.max_board:
-            for index, card in enumerate(player.hand[: self.config.max_hand]):
-                if self._is_card_playable(card, player):
-                    commands.append(PlayCard(self.current_player, index))
-        else:
-            for index, card in enumerate(player.hand[: self.config.max_hand]):
-                if card.card_type == "法术" and self._is_card_playable(card, player):
-                    commands.append(PlayCard(self.current_player, index))
+        board_full = len(player.board) >= self.config.max_board
+        for index, card in enumerate(player.hand[: self.config.max_hand]):
+            modes = self.rulebook.modes_for(card.card_id)
+            normal_playable = self._is_mode_playable(card, player, None)
+            if normal_playable:
+                commands.append(PlayCard(self.current_player, index, "normal"))
+            for mode_def in modes:
+                if self._is_mode_playable(card, player, mode_def):
+                    commands.append(PlayCard(self.current_player, index, mode_def.mode_id))
         if (
             player.evolution_points > 0
             and player.turns_started >= self.config.evolution_unlock_turn
@@ -435,6 +437,56 @@ class GameEngine:
                     for target in targets
                 )
         return commands
+
+    def effective_play_cost(self, hand_card, mode_def) -> int:
+        """Compute the effective play cost for a hand card with optional mode."""
+        if mode_def is not None:
+            return mode_def.cost
+        if isinstance(hand_card, HandCard):
+            return hand_card.current_cost
+        return hand_card.cost
+
+    def _is_mode_playable(self, card, player, mode_def) -> bool:
+        cost = self.effective_play_cost(card, mode_def)
+        if cost > player.mana:
+            return False
+        effective_type = card.card_type
+        if mode_def is not None:
+            try:
+                validate_runtime_play_mode(
+                    mode_def,
+                    f"card {card.card_id}/play_modes/{mode_def.mode_id}",
+                )
+            except ValueError:
+                return False
+            if mode_def.is_accelerate:
+                effective_type = "法术"
+            elif mode_def.is_crystallize:
+                effective_type = "护符"
+            elif mode_def.resulting_card_type:
+                effective_type = mode_def.resulting_card_type
+        if effective_type in {"随从", "护符"} and len(player.board) >= self.config.max_board:
+            return False
+        if mode_def is None:
+            return self._is_card_playable(card, player)
+        if mode_def.conditions:
+            ctx = EvalContext(
+                controller=self.current_player,
+                players=self.players,
+            )
+            from swb.engine.conditions import evaluate_conditions_without_target, PartialConditionResult
+            result = evaluate_conditions_without_target(mode_def.conditions, ctx)
+            if result is not PartialConditionResult.TRUE:
+                return False
+        ops = mode_def.operations if mode_def.operations else ()
+        if ops:
+            all_require_target = all(
+                is_choice_target(op.target) or is_random_target(op.target) or is_all_target(op.target)
+                for op in ops
+            )
+            if all_require_target and all(not self._has_candidates(op) for op in ops):
+                return False
+        return True
 
     def _record_cooperation(
         self,
@@ -508,37 +560,62 @@ class GameEngine:
             self._ensure_entity_ids()
             hand_card = player.hand[command.hand_index]
         card = hand_card.definition
-        play_cost = hand_card.current_cost
-        if play_cost > player.mana:
-            raise IllegalCommand("Not enough mana")
-        if card.card_type in {"随从", "护符"} and len(player.board) >= self.config.max_board:
-            raise IllegalCommand("Board is full")
-        if not self._is_card_playable(hand_card, player):
-            raise IllegalCommand("Card has no executable rule or legal target")
+        mode_id = command.mode_id if hasattr(command, 'mode_id') and command.mode_id else "normal"
+
+        modes = self.rulebook.modes_for(card.card_id)
+        mode_def = None
+        if mode_id != "normal":
+            if not modes:
+                raise IllegalCommand(
+                    f"Card {card.card_id} has no play modes; cannot use mode {mode_id!r}"
+                )
+            for m in modes:
+                if m.mode_id == mode_id:
+                    mode_def = m
+                    break
+            if mode_def is None:
+                raise IllegalCommand(
+                    f"Unknown play mode {mode_id!r} for card {card.card_id}; "
+                    f"available: {[m.mode_id for m in modes]}"
+                )
+            if mode_def.mode_type == "choose":
+                raise IllegalCommand("'choose' play mode is not yet implemented")
+
+        if not self._is_mode_playable(hand_card, player, mode_def):
+            raise IllegalCommand(
+                f"Play mode {mode_id!r} is not currently playable"
+            )
+
+        play_cost = self.effective_play_cost(hand_card, mode_def)
+        hand_entity_id = hand_card.entity_id
+        hand_origin = hand_card.origin
+        hand_source_origin = hand_card.source_origin
 
         self._dispatch_card_ability(AbilityEvent.CHECK_PLAY, card)
         player.hand.pop(command.hand_index)
         player.hand_entity_ids.pop(command.hand_index)
         player.mana -= play_cost
         player.cards_played_this_turn += 1
-        if card.card_type == "法术":
-            self._play_spell(
-                card,
-                play_cost,
-                hand_card.entity_id,
-                origin=hand_card.origin,
-                source_origin=hand_card.source_origin,
-            )
+
+        if mode_def is not None and mode_def.is_accelerate:
+            self._play_accelerate(card, play_cost, hand_entity_id, hand_origin, hand_source_origin, mode_def)
             return
-        if card.card_type == "护符":
-            self._play_amulet(card, play_cost, origin=hand_card.origin)
+        if mode_def is not None and mode_def.is_crystallize:
+            self._play_crystallize(card, play_cost, hand_entity_id, hand_origin, hand_source_origin, mode_def)
+            return
+        if card.card_type == "法术" and mode_id == "normal":
+            self._play_spell(card, play_cost, hand_entity_id, origin=hand_origin, source_origin=hand_source_origin)
+            return
+        if card.card_type == "护符" and mode_id == "normal":
+            self._play_amulet(card, play_cost, origin=hand_origin)
             return
 
         unit = self._summon_follower_to_board(
             self.current_player,
             card,
             summon_cause="play",
-            origin=hand_card.origin,
+            origin=hand_origin,
+            source_origin=hand_source_origin,
         )
         if unit is None:
             raise IllegalCommand("Board is full")
@@ -551,7 +628,12 @@ class GameEngine:
                 EventType.CARD_PLAYED,
                 self.current_player,
                 source_id=unit.entity_id,
-                metadata={"source": unit},
+                metadata={
+                    "source": unit,
+                    "mode_id": mode_id,
+                    "card_id": card.card_id,
+                    "entity_id": unit.entity_id,
+                },
             )
         )
         self._emit(
@@ -566,11 +648,21 @@ class GameEngine:
                     "derived": is_derived(unit.origin),
                     "token": is_token_definition(unit.definition) or unit.origin is CardOrigin.TOKEN,
                     "via": "play",
+                    "mode_id": mode_id,
                 },
             )
         )
         self._resolve_event_queue()
-        self._execute_fanfare(unit)
+        fanfare_operations = self._fanfare_operations(unit)
+        mode_operations = mode_def.operations if mode_def is not None else ()
+        operations = fanfare_operations + mode_operations
+        if operations:
+            label = "入场曲"
+            if fanfare_operations and mode_operations:
+                label = "入场曲/强化"
+            elif mode_operations:
+                label = "强化"
+            self._start_effects(card, unit.entity_id, operations, label=label)
 
     def _play_spell(
         self,
@@ -644,6 +736,87 @@ class GameEngine:
         )
         operations = self.rulebook.operations_for(card.card_id, Trigger.PLAY)
         self._start_effects(card, amulet.entity_id, operations, label="入场曲")
+
+    def _play_accelerate(
+        self,
+        card: CardDefinition,
+        play_cost: int,
+        source_entity_id: int,
+        origin: CardOrigin,
+        source_origin: CardOrigin | None,
+        mode_def,
+    ) -> None:
+        self._log(self.current_player, f"激奏 {card.name}（{play_cost}费）")
+        self._dispatch_card_ability(AbilityEvent.CARD_PLAYED, card)
+        self._emit(
+            GameEvent(
+                EventType.CARD_PLAYED,
+                self.current_player,
+                source_id=source_entity_id,
+                metadata={"card_id": card.card_id, "card": card, "mode_id": mode_def.mode_id},
+            )
+        )
+        ops = mode_def.operations if mode_def else ()
+        frame = self._queue_effects(
+            card,
+            None,
+            ops,
+            move_source_to_graveyard=True,
+            label="激奏",
+        )
+        frame._hand_source_entity_id = source_entity_id
+        frame._hand_source_origin = origin
+        frame._hand_source_origin_parent = source_origin
+        self._continue_effects()
+        self._spellboost_pending = 1
+        self._pending_spellboost_player = self.current_player
+        self._pending_spellboost_source_card_id = card.card_id
+        self._pending_spellboost_source_entity_id = source_entity_id
+        self._try_spellboost_hand()
+
+    def _play_crystallize(
+        self,
+        card: CardDefinition,
+        play_cost: int,
+        source_entity_id: int,
+        origin: CardOrigin,
+        source_origin: CardOrigin | None,
+        mode_def,
+    ) -> None:
+        countdown = mode_def.countdown if mode_def else None
+        amulet = Amulet(
+            definition=card,
+            entity_id=source_entity_id,
+            countdown=countdown,
+            entered_turn=self.turn,
+            origin=origin,
+            source_origin=source_origin,
+        )
+        self.players[self.current_player].board.append(amulet)
+        cd_str = f"，倒数 {amulet.countdown}" if amulet.countdown is not None else ""
+        self._log(
+            self.current_player,
+            f"结晶 {card.name}（{play_cost}费{cd_str}）",
+        )
+        self._dispatch_card_ability(AbilityEvent.CARD_PLAYED, card)
+        self._emit(
+            GameEvent(
+                EventType.CARD_PLAYED,
+                self.current_player,
+                source_id=amulet.entity_id,
+                metadata={"card_id": card.card_id, "source": amulet, "mode_id": mode_def.mode_id},
+            )
+        )
+        self._emit(
+            GameEvent(
+                EventType.AMULET_ENTERED,
+                self.current_player,
+                source_id=amulet.entity_id,
+                metadata={"source": amulet},
+            )
+        )
+        ops = mode_def.operations if mode_def else ()
+        self._start_effects(card, amulet.entity_id, ops, label="结晶")
 
     def _start_effects(
         self,
@@ -1887,15 +2060,13 @@ class GameEngine:
             f"牌库耗尽，受到 {player.fatigue} 点疲劳伤害（生命 {player.health}）",
         )
 
-    def _execute_fanfare(self, unit: Unit) -> None:
+    def _fanfare_operations(self, unit: Unit) -> tuple[EffectOperation, ...]:
         explicit = self.rulebook.operations_for(
             unit.definition.card_id, Trigger.FANFARE
         )
         if explicit:
-            self._start_effects(
-                unit.definition, unit.entity_id, explicit, label="入场曲"
-            )
-            return
+            return explicit
+        operations: list[EffectOperation] = []
         for effect in unit.definition.fanfare_effects:
             operation = {
                 "draw": EffectOperation(
@@ -1921,12 +2092,15 @@ class GameEngine:
                 ),
             }.get(effect.kind)
             if operation is not None:
-                self._start_effects(
-                    unit.definition,
-                    unit.entity_id,
-                    (operation,),
-                    label="入场曲",
-                )
+                operations.append(operation)
+        return tuple(operations)
+
+    def _execute_fanfare(self, unit: Unit) -> None:
+        operations = self._fanfare_operations(unit)
+        if operations:
+            self._start_effects(
+                unit.definition, unit.entity_id, operations, label="入场曲"
+            )
 
     def _build_eval_context(self, frame: EffectFrame, target_id: int | None) -> EvalContext:
         return EvalContext(

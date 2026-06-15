@@ -1,0 +1,43 @@
+{
+    "rules": [
+        {
+            "card_id": 10001110,
+            "trigger": "fanfare",
+            "operations": [],
+            "play_modes": [
+                {
+                    "id": "enhance_4",
+                    "type": "enhance",
+                    "cost": 4,
+                    "operations": [
+                        {
+                            "kind": "buff_unit",
+                            "target": "self",
+                            "amount": 3,
+                            "secondary_amount": 3
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "card_id": 10671110,
+            "trigger": "play",
+            "operations": [],
+            "play_modes": [
+                {
+                    "id": "accelerate_2",
+                    "type": "accelerate",
+                    "cost": 2,
+                    "operations": [
+                        {
+                            "kind": "summon",
+                            "target": "own_leader",
+                            "card_id": 10671110
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

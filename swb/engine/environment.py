@@ -7,6 +7,7 @@ from typing import Callable, Sequence
 from swb.db.repository import CardDefinition
 from swb.engine.commands import Attack, ChoiceKind, Choose, EndTurn, Evolve, GameCommand, PlayCard
 from swb.engine.card_rules import RuleBook
+from swb.engine.play_modes import MAX_SPECIAL_MODES_PER_CARD
 from swb.engine.resolution import GameConfig, GameEngine
 from swb.engine.state import Amulet, BoardCard, HandCard, PlayerState, Unit
 
@@ -46,7 +47,9 @@ class ShadowverseEnv:
     GRAVEYARD_NEXT_PAGE = GRAVEYARD_CHOICE_OFFSET + 1
     GRAVEYARD_SLOT_OFFSET = GRAVEYARD_CHOICE_OFFSET + 2
 
-    ACTION_SIZE = GRAVEYARD_SLOT_OFFSET + GRAVEYARD_PAGE_SIZE
+    MODE_PLAY_OFFSET = GRAVEYARD_SLOT_OFFSET + GRAVEYARD_PAGE_SIZE
+
+    ACTION_SIZE = MODE_PLAY_OFFSET + MAX_HAND * MAX_SPECIAL_MODES_PER_CARD
 
     DEFAULT_RULE_DIRECTORY = Path(__file__).resolve().parents[2] / "data" / "rules"
 
@@ -230,7 +233,7 @@ class ShadowverseEnv:
         if action == self.GRAVEYARD_NEXT_PAGE:
             self._graveyard_page += 1
             raise _PageTurn()
-        if action >= self.GRAVEYARD_SLOT_OFFSET:
+        if action >= self.GRAVEYARD_SLOT_OFFSET and action < self.MODE_PLAY_OFFSET:
             request = self.core.state.pending_choice
             if request is None or request.choice_kind is not ChoiceKind.GRAVEYARD:
                 raise ValueError("No graveyard choice is pending")
@@ -247,6 +250,8 @@ class ShadowverseEnv:
             if option_index >= len(request.options):
                 raise ValueError(f"Choice index {option_index} out of range")
             return Choose(request.player_index, request.options[option_index].option_id)
+        if action >= self.MODE_PLAY_OFFSET:
+            return self._decode_mode_play(action)
         if action < self.ATTACK_OFFSET:
             return PlayCard(self.current_player, action - self.PLAY_OFFSET)
         if action >= self.EVOLVE_OFFSET:
@@ -260,6 +265,19 @@ class ShadowverseEnv:
         if target_slot:
             target_id = self.players[1 - self.current_player].board[target_slot - 1].entity_id
         return Attack(self.current_player, attacker.entity_id, target_id)
+
+    def _decode_mode_play(self, action: int) -> PlayCard:
+        relative = action - self.MODE_PLAY_OFFSET
+        hand_index = relative // MAX_SPECIAL_MODES_PER_CARD
+        mode_slot = relative % MAX_SPECIAL_MODES_PER_CARD
+        if hand_index >= len(self.players[self.current_player].hand):
+            raise ValueError(f"Hand index {hand_index} out of range")
+        card = self.players[self.current_player].hand[hand_index]
+        modes = [m for m in self.core.rulebook.modes_for(card.card_id)
+                 if self.core._is_mode_playable(card, self.players[self.current_player], m)]
+        if mode_slot >= len(modes):
+            raise ValueError(f"Mode slot {mode_slot} out of range for hand index {hand_index}")
+        return PlayCard(self.current_player, hand_index, modes[mode_slot].mode_id)
 
     def _encode_command(self, command: GameCommand) -> int | None:
         if isinstance(command, EndTurn):
@@ -283,7 +301,15 @@ class ShadowverseEnv:
                     return self.CHOICE_OFFSET + index
             return None
         if isinstance(command, PlayCard):
-            return self.PLAY_OFFSET + command.hand_index
+            if command.mode_id == "normal":
+                return self.PLAY_OFFSET + command.hand_index
+            card = self.players[self.current_player].hand[command.hand_index]
+            modes = [m for m in self.core.rulebook.modes_for(card.card_id)
+                     if self.core._is_mode_playable(card, self.players[self.current_player], m)]
+            for idx, m in enumerate(modes):
+                if m.mode_id == command.mode_id and idx < MAX_SPECIAL_MODES_PER_CARD:
+                    return self.MODE_PLAY_OFFSET + command.hand_index * MAX_SPECIAL_MODES_PER_CARD + idx
+            return None
         if isinstance(command, Evolve):
             index = self._unit_index(self.players[self.current_player].board, command.unit_id)
             return self.EVOLVE_OFFSET + index

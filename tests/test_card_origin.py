@@ -1266,8 +1266,8 @@ class ObservationInvariantTests(unittest.TestCase):
         obs, _ = env.reset(seed=42)
         self.assertEqual(len(obs), 209)
 
-    def test_action_size_is_79(self):
-        self.assertEqual(ShadowverseEnv.ACTION_SIZE, 79)
+    def test_action_size_is_106(self):
+        self.assertEqual(ShadowverseEnv.ACTION_SIZE, 106)
 
     def test_opponent_hand_not_leaked(self):
         env = ShadowverseEnv(
