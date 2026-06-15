@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING
 
 from swb.db.repository import CardDefinition
 from swb.engine.abilities import RUNTIME_UNIT_KEYWORDS, normalize_keyword_name
+from swb.engine.origin import CardOrigin, is_derived, is_token
 
 if TYPE_CHECKING:
     from swb.engine.commands import ChoiceRequest
@@ -28,6 +29,28 @@ class GraveyardCard:
     entered_sequence: int
     entry_cause: str
     derived: bool = False
+    origin: CardOrigin = CardOrigin.UNKNOWN
+    token: bool = False
+    source_origin: CardOrigin | None = None
+
+    def __post_init__(self) -> None:
+        object.__setattr__(
+            self,
+            "derived",
+            self.derived
+            or is_derived(self.origin)
+            or (
+                self.source_origin is not None
+                and is_derived(self.source_origin)
+            ),
+        )
+        object.__setattr__(
+            self,
+            "token",
+            self.token
+            or is_token(self.definition, self.origin)
+            or self.source_origin is CardOrigin.TOKEN,
+        )
 
 
 class DeathCause(str, Enum):
@@ -62,6 +85,29 @@ class DestroyedFollowerRecord:
     owner: int
     death_sequence: int
     cause: DeathCause
+    derived: bool = False
+    token: bool = False
+    origin: CardOrigin = CardOrigin.DECK
+    source_origin: CardOrigin | None = None
+
+    def __post_init__(self) -> None:
+        object.__setattr__(
+            self,
+            "derived",
+            self.derived
+            or is_derived(self.origin)
+            or (
+                self.source_origin is not None
+                and is_derived(self.source_origin)
+            ),
+        )
+        object.__setattr__(
+            self,
+            "token",
+            self.token
+            or is_token(self.definition, self.origin)
+            or self.source_origin is CardOrigin.TOKEN,
+        )
 
 
 @dataclass
@@ -78,6 +124,8 @@ class ResolutionLoopError(Exception):
 class BoardEntity:
     definition: CardDefinition
     entity_id: int = 0
+    origin: CardOrigin = CardOrigin.DECK
+    source_origin: CardOrigin | None = None
 
 
 @dataclass(frozen=True)
@@ -145,6 +193,8 @@ class HandCard:
     cost_modifiers: list[CostModifier] = field(default_factory=list)
     spellboost_count: int = 0
     spellboost_cost_reduction: int = 0
+    origin: CardOrigin = CardOrigin.DECK
+    source_origin: CardOrigin | None = None
 
     @property
     def current_cost(self) -> int:
@@ -232,7 +282,14 @@ class Unit(BoardEntity):
     targeting_restrictions: list[TargetingRestrictionModifier] = field(default_factory=list)
 
     @classmethod
-    def summon(cls, card: CardDefinition, *, entity_id: int = 0) -> "Unit":
+    def summon(
+        cls,
+        card: CardDefinition,
+        *,
+        entity_id: int = 0,
+        origin: CardOrigin = CardOrigin.DECK,
+        source_origin: CardOrigin | None = None,
+    ) -> "Unit":
         if card.attack is None or card.life is None:
             raise ValueError(f"{card.name} is not a playable follower")
         keywords = {
@@ -253,6 +310,8 @@ class Unit(BoardEntity):
             rush_only="突进" in keywords and "疾驰" not in keywords,
             barrier_charges=barrier,
             ambush_active=ambush,
+            origin=origin,
+            source_origin=source_origin,
         )
 
     @property

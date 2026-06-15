@@ -197,4 +197,6 @@ class EffectFrame:
     defer_stabilize: bool = False
     auto_resolve_choices: bool = False
     _hand_source_entity_id: int | None = None
+    _hand_source_origin: Any = None
+    _hand_source_origin_parent: Any = None
     _target_bindings: dict[str, int] = field(default_factory=dict)

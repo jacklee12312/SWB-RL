@@ -39,6 +39,16 @@ from swb.engine.effects import (
     ValueExpression,
 )
 from swb.engine.events import EventType, GameEvent
+from swb.engine.origin import (
+    CardOrigin,
+    is_derived,
+    is_graveyard_return_eligible,
+    is_reanimate_eligible,
+    is_token,
+    is_token_definition,
+    origin_for_added_card,
+    origin_for_summoned_card,
+)
 from swb.engine.state import (
     Amulet,
     BoardCard,
@@ -463,6 +473,8 @@ class GameEngine:
         *,
         summon_cause: str,
         entity_id: int | None = None,
+        origin: CardOrigin = CardOrigin.DECK,
+        source_origin: CardOrigin | None = None,
     ) -> Unit | None:
         player = self.players[player_index]
         if len(player.board) >= self.config.max_board:
@@ -474,6 +486,8 @@ class GameEngine:
                 if entity_id is not None
                 else self.state.allocate_entity_id()
             ),
+            origin=origin,
+            source_origin=source_origin,
         )
         player.board.append(unit)
         self._record_cooperation(
@@ -508,16 +522,23 @@ class GameEngine:
         player.mana -= play_cost
         player.cards_played_this_turn += 1
         if card.card_type == "法术":
-            self._play_spell(card, play_cost, hand_card.entity_id)
+            self._play_spell(
+                card,
+                play_cost,
+                hand_card.entity_id,
+                origin=hand_card.origin,
+                source_origin=hand_card.source_origin,
+            )
             return
         if card.card_type == "护符":
-            self._play_amulet(card, play_cost)
+            self._play_amulet(card, play_cost, origin=hand_card.origin)
             return
 
         unit = self._summon_follower_to_board(
             self.current_player,
             card,
             summon_cause="play",
+            origin=hand_card.origin,
         )
         if unit is None:
             raise IllegalCommand("Board is full")
@@ -538,7 +559,14 @@ class GameEngine:
                 EventType.FOLLOWER_SUMMONED,
                 self.current_player,
                 source_id=unit.entity_id,
-                metadata={"source": unit},
+                metadata={
+                    "source": unit,
+                    "card_id": unit.definition.card_id,
+                    "origin": unit.origin.value,
+                    "derived": is_derived(unit.origin),
+                    "token": is_token_definition(unit.definition) or unit.origin is CardOrigin.TOKEN,
+                    "via": "play",
+                },
             )
         )
         self._resolve_event_queue()
@@ -549,6 +577,9 @@ class GameEngine:
         card: CardDefinition,
         play_cost: int,
         source_entity_id: int,
+        *,
+        origin: CardOrigin,
+        source_origin: CardOrigin | None,
     ) -> None:
         self._log(self.current_player, f"使用法术 {card.name}（{play_cost}费）")
         self._dispatch_card_ability(AbilityEvent.CARD_PLAYED, card)
@@ -569,6 +600,8 @@ class GameEngine:
             label="法术",
         )
         frame._hand_source_entity_id = source_entity_id
+        frame._hand_source_origin = origin
+        frame._hand_source_origin_parent = source_origin
         self._continue_effects()
         self._spellboost_pending = 1
         self._pending_spellboost_player = self.current_player
@@ -576,12 +609,13 @@ class GameEngine:
         self._pending_spellboost_source_entity_id = source_entity_id
         self._try_spellboost_hand()
 
-    def _play_amulet(self, card: CardDefinition, play_cost: int) -> None:
+    def _play_amulet(self, card: CardDefinition, play_cost: int, *, origin: CardOrigin = CardOrigin.DECK) -> None:
         amulet = Amulet(
             definition=card,
             entity_id=self.state.allocate_entity_id(),
             countdown=self.rulebook.countdown_for(card.card_id),
             entered_turn=self.turn,
+            origin=origin,
         )
         self.players[self.current_player].board.append(amulet)
         countdown = (
@@ -837,6 +871,9 @@ class GameEngine:
         source_entity_id: int | None = None,
         *,
         derived: bool = False,
+        origin: CardOrigin = CardOrigin.UNKNOWN,
+        token: bool = False,
+        source_origin: CardOrigin | None = None,
     ) -> GraveyardCard:
         player = self.players[player_index]
         entity_id = source_entity_id if source_entity_id is not None else self.state.allocate_entity_id()
@@ -849,6 +886,9 @@ class GameEngine:
             entered_sequence=seq,
             entry_cause=cause,
             derived=derived,
+            origin=origin,
+            token=token,
+            source_origin=source_origin,
         )
         player.graveyard.append(gc)
         before = player.shadows
@@ -863,6 +903,9 @@ class GameEngine:
                     "card_id": card.card_id,
                     "entity_id": entity_id,
                     "cause": cause,
+                    "derived": derived,
+                    "origin": origin.value,
+                    "token": token,
                     "shadows_before": before,
                     "shadows_after": player.shadows,
                 },
@@ -883,7 +926,12 @@ class GameEngine:
         return gc
 
     def _record_destroyed_follower(
-        self, player_index: int, definition: CardDefinition, cause: DeathCause
+        self, player_index: int, definition: CardDefinition, cause: DeathCause,
+        *,
+        derived: bool = False,
+        token: bool = False,
+        origin: CardOrigin = CardOrigin.DECK,
+        source_origin: CardOrigin | None = None,
     ) -> None:
         self.state.destroyed_followers.append(
             DestroyedFollowerRecord(
@@ -891,6 +939,10 @@ class GameEngine:
                 owner=player_index,
                 death_sequence=self.state._next_death_sequence,
                 cause=cause,
+                derived=derived,
+                token=token,
+                origin=origin,
+                source_origin=source_origin,
             )
         )
         self.state._next_death_sequence += 1
@@ -911,6 +963,12 @@ class GameEngine:
                     self._send_to_graveyard(
                         frame.controller, frame.source_card, "spell_resolved",
                         source_entity_id=spell_eid,
+                        origin=(
+                            frame._hand_source_origin
+                            if frame._hand_source_origin is not None
+                            else CardOrigin.UNKNOWN
+                        ),
+                        source_origin=frame._hand_source_origin_parent,
                     )
                     self._emit(
                         GameEvent(
@@ -1806,7 +1864,7 @@ class GameEngine:
         if player.deck:
             card = player.deck.pop()
             if len(player.hand) < self.config.max_hand:
-                self._append_hand_card(player, card)
+                self._append_hand_card(player, card, origin=CardOrigin.DECK)
                 self._emit(
                     GameEvent(
                         EventType.CARD_DRAWN,
@@ -1816,7 +1874,10 @@ class GameEngine:
                 )
                 self._log(player_index, f"{reason}：{card.name}")
             else:
-                self._send_to_graveyard(player_index, card, "overdraw")
+                self._send_to_graveyard(
+                    player_index, card, "overdraw",
+                    origin=CardOrigin.DECK,
+                )
                 self._log(player_index, f"{reason}：{card.name}，手牌已满而被弃置")
             return
         player.fatigue += 1
@@ -2133,13 +2194,21 @@ class GameEngine:
         can_attack = target.can_attack
         attacks_remaining = target.attacks_remaining
         summoned_this_turn = target.summoned_this_turn
-        fresh = Unit.summon(replacement, entity_id=target.entity_id)
+        previous_origin = target.source_origin or target.origin
+        fresh = Unit.summon(
+            replacement,
+            entity_id=target.entity_id,
+            origin=CardOrigin.TRANSFORMED,
+            source_origin=previous_origin,
+        )
         target.definition = fresh.definition
         target.base_attack = fresh.base_attack
         target.base_health = fresh.base_health
         target.attack = fresh.attack
         target.health = fresh.health
         target.max_health = fresh.max_health
+        target.origin = fresh.origin
+        target.source_origin = fresh.source_origin
         target.can_attack = can_attack
         target.attacks_remaining = attacks_remaining
         target.evolved = False
@@ -2311,7 +2380,13 @@ class GameEngine:
     ) -> None:
         player = self.players[frame.controller]
         max_cost = effect.amount
-        candidates = [r for r in self.state.destroyed_followers if r.owner == frame.controller and r.definition.cost <= max_cost and r.definition.card_type == "随从"]
+        candidates = [
+            record
+            for record in self.state.destroyed_followers
+            if record.owner == frame.controller
+            and record.definition.cost <= max_cost
+            and is_reanimate_eligible(record)
+        ]
         if not candidates:
             return
         max_c = max(r.definition.cost for r in candidates)
@@ -2321,16 +2396,26 @@ class GameEngine:
             frame.controller,
             chosen.definition,
             summon_cause="reanimate",
+            origin=CardOrigin.REANIMATED,
+            source_origin=chosen.source_origin or chosen.origin,
         )
         if unit is None:
             return
         self._emit(GameEvent(EventType.REANIMATE_RESOLVED, frame.controller,
             amount=max_cost,
             metadata={"reanimated_card_id": chosen.definition.card_id, "new_entity_id": unit.entity_id,
-                       "source_card_id": frame.source_card_id}))
+                       "source_card_id": frame.source_card_id,
+                       "origin": CardOrigin.REANIMATED.value,
+                       "derived": True,
+                       "token": is_token_definition(chosen.definition) or chosen.token,
+                       "was_derived": chosen.derived,
+                       "was_token": chosen.token,
+                       "source_origin": (chosen.source_origin or chosen.origin).value}))
         self._log(frame.controller, f"亡者召还：{chosen.definition.name} ({unit.attack}/{unit.health})")
         self._emit(GameEvent(EventType.FOLLOWER_SUMMONED, frame.controller, source_id=unit.entity_id,
-            metadata={"source": unit, "card_id": unit.definition.card_id, "via": "reanimate"}))
+            metadata={"source": unit, "card_id": unit.definition.card_id, "via": "reanimate",
+                       "origin": unit.origin.value, "derived": is_derived(unit.origin),
+                       "token": is_token_definition(unit.definition) or unit.origin is CardOrigin.TOKEN}))
 
     def _execute_summon_from_graveyard(
         self, effect: EffectOperation, frame: EffectFrame, target_id: int | None,
@@ -2344,6 +2429,8 @@ class GameEngine:
             gc.definition,
             summon_cause="summon_from_graveyard",
             entity_id=gc.entity_id,
+            origin=gc.origin,
+            source_origin=gc.source_origin,
         )
         if unit is None:
             return
@@ -2357,22 +2444,32 @@ class GameEngine:
                 "from_zone": "graveyard",
                 "to_zone": "board",
                 "cause": "summon_from_graveyard",
+                "origin": gc.origin.value,
+                "derived": gc.derived,
+                "token": gc.token,
             }))
         self._log(frame.controller, f"从墓地召唤：{gc.definition.name} ({unit.attack}/{unit.health})")
         self._emit(GameEvent(EventType.FOLLOWER_SUMMONED, frame.controller, source_id=unit.entity_id,
-            metadata={"source": unit, "card_id": unit.definition.card_id, "via": "summon_from_graveyard"}))
+            metadata={"source": unit, "card_id": unit.definition.card_id, "via": "summon_from_graveyard",
+                       "origin": unit.origin.value, "derived": is_derived(unit.origin),
+                       "token": is_token_definition(unit.definition) or unit.origin is CardOrigin.TOKEN}))
 
     def _execute_return_from_graveyard_to_hand(
         self, effect: EffectOperation, frame: EffectFrame, target_id: int | None,
     ) -> None:
         player = self.players[frame.controller]
         gc = next((g for g in player.graveyard if g.entity_id == target_id), None)
-        if gc is None:
+        if gc is None or not is_graveyard_return_eligible(gc):
             return
         if len(player.hand) >= self.config.max_hand:
             return
         player.graveyard.remove(gc)
-        hand_card = self._make_hand_card(gc.definition, gc.entity_id)
+        hand_card = self._make_hand_card(
+            gc.definition,
+            gc.entity_id,
+            origin=gc.origin,
+            source_origin=gc.source_origin,
+        )
         player.hand.append(hand_card)
         player.hand_entity_ids.append(hand_card.entity_id)
         self._emit(GameEvent(EventType.GRAVEYARD_CARD_RETURNED, frame.controller,
@@ -2385,6 +2482,9 @@ class GameEngine:
                 "from_zone": "graveyard",
                 "to_zone": "hand",
                 "cause": "return_from_graveyard",
+                "origin": gc.origin.value,
+                "derived": gc.derived,
+                "token": gc.token,
             }))
         self._log(frame.controller, f"从墓地回手：{gc.definition.name}")
 
@@ -2425,10 +2525,12 @@ class GameEngine:
             self._log(frame.controller, f"{frame.source_name} 召唤失败：场地已满")
             return
         if card_def.card_type == "随从":
+            origin = origin_for_summoned_card(card_def)
             unit = self._summon_follower_to_board(
                 frame.controller,
                 card_def,
                 summon_cause="effect_summon",
+                origin=origin,
             )
             if unit is None:
                 self._log(
@@ -2445,15 +2547,24 @@ class GameEngine:
                     EventType.FOLLOWER_SUMMONED,
                     frame.controller,
                     source_id=unit.entity_id,
-                    metadata={"source": unit},
+                    metadata={
+                        "source": unit,
+                        "card_id": card_def.card_id,
+                        "origin": unit.origin.value,
+                        "derived": is_derived(unit.origin),
+                        "token": is_token_definition(card_def) or unit.origin is CardOrigin.TOKEN,
+                        "via": "effect_summon",
+                    },
                 )
             )
         elif card_def.card_type == "护符":
+            origin = origin_for_summoned_card(card_def)
             amulet = Amulet(
                 definition=card_def,
                 entity_id=self.state.allocate_entity_id(),
                 countdown=self.rulebook.countdown_for(card_def.card_id),
                 entered_turn=self.turn,
+                origin=origin,
             )
             player.board.append(amulet)
             self._log(
@@ -2511,9 +2622,15 @@ class GameEngine:
                 frame.controller,
                 f"{frame.source_name} 加牌失败：手牌已满，{card_def.name} 被弃置",
             )
-            self._send_to_graveyard(frame.controller, card_def, "hand_full")
+            origin = origin_for_added_card(card_def)
+            self._send_to_graveyard(
+                frame.controller, card_def, "hand_full",
+                derived=is_derived(origin), origin=origin,
+                token=is_token_definition(card_def) or origin is CardOrigin.TOKEN,
+            )
             return
-        self._append_hand_card(player, card_def)
+        origin = origin_for_added_card(card_def)
+        self._append_hand_card(player, card_def, origin=origin)
         self._log(
             frame.controller,
             f"{frame.source_name} 将 {card_def.name} 加入手牌",
@@ -2522,7 +2639,13 @@ class GameEngine:
             GameEvent(
                 EventType.CARD_ADDED_TO_HAND,
                 frame.controller,
-                metadata={"card_id": card_def.card_id, "card": card_def},
+                metadata={
+                    "card_id": card_def.card_id,
+                    "card": card_def,
+                    "origin": origin.value,
+                    "derived": is_derived(origin),
+                    "token": is_token_definition(card_def) or origin is CardOrigin.TOKEN,
+                },
             )
         )
 
@@ -2536,8 +2659,15 @@ class GameEngine:
             return
         owner.board.remove(entity)
         card_def = entity.definition
+        board_origin = entity.origin
+        board_source_origin = entity.source_origin
         if len(owner.hand) < self.config.max_hand:
-            self._append_hand_card(owner, card_def)
+            self._append_hand_card(
+                owner,
+                card_def,
+                origin=board_origin,
+                source_origin=board_source_origin,
+            )
             self._log(
                 owner_index,
                 f"{card_def.name} 返回手牌",
@@ -2602,10 +2732,17 @@ class GameEngine:
                     if isinstance(hand_card, HandCard)
                     else hand_card
                 )
+                discard_origin = hand_card.origin if isinstance(hand_card, HandCard) else CardOrigin.DECK
                 player.hand.pop(idx)
                 player.hand_entity_ids.pop(idx)
                 discarded_eid = target_id
-                self._send_to_graveyard(frame.controller, card_def, "discard", source_entity_id=discarded_eid)
+                self._send_to_graveyard(
+                    frame.controller, card_def, "discard",
+                    source_entity_id=discarded_eid,
+                    derived=is_derived(discard_origin),
+                    origin=discard_origin,
+                    token=is_token_definition(card_def) or discard_origin is CardOrigin.TOKEN,
+                )
                 self._log(
                     frame.controller,
                     f"{frame.source_name} 弃置手牌 {card_def.name}",
@@ -2840,9 +2977,25 @@ class GameEngine:
                         board_position=pos,
                         allows_last_words=True,
                     )
+                    unit_origin = entity.origin
+                    unit_source_origin = entity.source_origin
+                    unit_derived = is_derived(unit_origin)
+                    unit_token = (
+                        is_token(entity.definition, unit_origin)
+                        or unit_source_origin is CardOrigin.TOKEN
+                    )
                     player.board.remove(entity)
-                    self._send_to_graveyard(player_index, entity.definition, cause.value, entity.entity_id)
-                    self._record_destroyed_follower(player_index, entity.definition, cause)
+                    self._send_to_graveyard(
+                        player_index, entity.definition, cause.value, entity.entity_id,
+                        derived=unit_derived, origin=unit_origin, token=unit_token,
+                        source_origin=unit_source_origin,
+                    )
+                    self._record_destroyed_follower(
+                        player_index, entity.definition, cause,
+                        derived=unit_derived, token=unit_token,
+                        origin=unit_origin,
+                        source_origin=unit_source_origin,
+                    )
                     records.append(record)
                 elif isinstance(entity, Amulet) and entity.pending_destroy:
                     cause = DeathCause.COUNTDOWN_EXPIRED if entity.countdown is not None and entity.countdown <= 0 else DeathCause.EFFECT_DESTROY
@@ -2857,8 +3010,19 @@ class GameEngine:
                         board_position=pos,
                         allows_last_words=True,
                     )
+                    amulet_origin = entity.origin
+                    amulet_source_origin = entity.source_origin
+                    amulet_derived = is_derived(amulet_origin)
+                    amulet_token = (
+                        is_token(entity.definition, amulet_origin)
+                        or amulet_source_origin is CardOrigin.TOKEN
+                    )
                     player.board.remove(entity)
-                    self._send_to_graveyard(player_index, entity.definition, cause.value, entity.entity_id)
+                    self._send_to_graveyard(
+                        player_index, entity.definition, cause.value, entity.entity_id,
+                        derived=amulet_derived, origin=amulet_origin, token=amulet_token,
+                        source_origin=amulet_source_origin,
+                    )
                     records.append(record)
 
         return DeathBatch(records=records, batch_id=batch_id)
@@ -3010,11 +3174,15 @@ class GameEngine:
                 seen.add(graveyard_card.entity_id)
 
     def _append_hand_card(
-        self, player: PlayerState, definition: CardDefinition
+        self, player: PlayerState, definition: CardDefinition, *,
+        origin: CardOrigin = CardOrigin.DECK,
+        source_origin: CardOrigin | None = None,
     ) -> HandCard:
         hand_card = self._make_hand_card(
             definition,
             self.state.allocate_entity_id(),
+            origin=origin,
+            source_origin=source_origin,
         )
         player.hand.append(hand_card)
         player.hand_entity_ids.append(hand_card.entity_id)
@@ -3024,6 +3192,9 @@ class GameEngine:
         self,
         definition: CardDefinition,
         entity_id: int,
+        *,
+        origin: CardOrigin = CardOrigin.DECK,
+        source_origin: CardOrigin | None = None,
     ) -> HandCard:
         return HandCard(
             definition=definition,
@@ -3031,6 +3202,8 @@ class GameEngine:
             spellboost_cost_reduction=self.rulebook.spellboost_cost_reduction(
                 definition.card_id
             ),
+            origin=origin,
+            source_origin=source_origin,
         )
 
     def _hand_cards(self, player_index: int) -> list[HandCard]:

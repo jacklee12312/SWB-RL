@@ -4,6 +4,7 @@ import random
 from typing import TYPE_CHECKING
 
 from swb.engine.effects import EffectKind, EffectOperation, TargetKind
+from swb.engine.origin import is_graveyard_return_eligible
 from swb.engine.state import Amulet, BoardCard, BoardEntity, GraveyardCard, Unit
 
 if TYPE_CHECKING:
@@ -150,6 +151,8 @@ def _filter_graveyard_candidates(
 ) -> list[GraveyardCard]:
     if operation.kind is EffectKind.SUMMON_FROM_GRAVEYARD:
         candidates = [c for c in candidates if c.definition.card_type == "随从"]
+    elif operation.kind is EffectKind.RETURN_FROM_GRAVEYARD_TO_HAND:
+        candidates = [c for c in candidates if is_graveyard_return_eligible(c)]
     if operation.graveyard_card_type is not None:
         candidates = [
             c for c in candidates

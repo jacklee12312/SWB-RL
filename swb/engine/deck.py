@@ -3,6 +3,7 @@ from __future__ import annotations
 from collections.abc import Sequence
 
 from swb.db.repository import CardDefinition
+from swb.engine.origin import is_initial_deck_eligible
 
 
 DECK_SIZE = 40
@@ -32,7 +33,9 @@ def validate_deck(
             f"{sorted(PLAYABLE_CLASS_IDS)}"
         )
 
-    non_collectible = [card for card in deck if not card.is_collectible]
+    non_collectible = [
+        card for card in deck if not is_initial_deck_eligible(card)
+    ]
     if non_collectible:
         names = ", ".join(
             f"{card.name}({card.card_id})" for card in non_collectible[:5]
