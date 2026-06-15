@@ -566,6 +566,23 @@ def _parse_condition(raw: dict, source_path: str, card_id: int) -> Condition:
             f"{error_prefix}: 'not' requires exactly one sub-condition"
         )
 
+    cooperation_threshold_types = (
+        ConditionType.CONTROLLER_COOPERATION_AT_LEAST,
+        ConditionType.OPPONENT_COOPERATION_AT_LEAST,
+    )
+    if t in cooperation_threshold_types:
+        if "value" not in raw:
+            raise ValueError(
+                f"{source_path}/value card {card_id}: required for {t.value!r}"
+            )
+        value = _parse_non_negative_int(
+            raw["value"], f"{source_path}/value", card_id
+        )
+    else:
+        value = _parse_optional_int(
+            raw.get("value"), f"{source_path}/value", card_id
+        )
+
     keyword = raw.get("keyword")
     if t in (ConditionType.SOURCE_HAS_KEYWORD, ConditionType.TARGET_HAS_KEYWORD):
         if not isinstance(keyword, str) or not keyword:
@@ -579,7 +596,7 @@ def _parse_condition(raw: dict, source_path: str, card_id: int) -> Condition:
 
     return Condition(
         type=t,
-        value=_parse_optional_int(raw.get("value"), f"{source_path}/value", card_id),
+        value=value,
         keyword=keyword,
         conditions=sub,
     )
@@ -619,7 +636,8 @@ def _parse_expression(raw: dict, source_path: str, card_id: int) -> ValueExpress
     elif t in (ExprType.CONTROLLER_BOARD_COUNT, ExprType.OPPONENT_BOARD_COUNT,
                ExprType.CONTROLLER_HAND_COUNT, ExprType.SOURCE_ATTACK, ExprType.SOURCE_HEALTH,
                ExprType.TARGET_ATTACK, ExprType.TARGET_HEALTH,
-               ExprType.CONTROLLER_SHADOWS, ExprType.OPPONENT_SHADOWS):
+               ExprType.CONTROLLER_SHADOWS, ExprType.OPPONENT_SHADOWS,
+               ExprType.CONTROLLER_COOPERATION, ExprType.OPPONENT_COOPERATION):
         if sub:
             raise ValueError(
                 f"{error_prefix}: '{t.value}' must not have 'values'"

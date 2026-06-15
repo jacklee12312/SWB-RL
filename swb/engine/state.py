@@ -563,6 +563,11 @@ class PlayerState:
         self.shadows -= amount
         return True
 
+    def add_cooperation(self, amount: int) -> None:
+        if amount < 0:
+            raise ValueError("cooperation increase must be non-negative")
+        self.cooperation += amount
+
 
 @dataclass
 class GameState:

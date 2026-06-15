@@ -173,6 +173,10 @@ def evaluate_condition(cond: Condition | None, ctx: EvalContext | None) -> bool:
         return player.shadows >= cond.value
     elif t == ConditionType.OPPONENT_SHADOWS_AT_LEAST:
         return opponent.shadows >= cond.value
+    elif t == ConditionType.CONTROLLER_COOPERATION_AT_LEAST:
+        return player.cooperation >= cond.value
+    elif t == ConditionType.OPPONENT_COOPERATION_AT_LEAST:
+        return opponent.cooperation >= cond.value
     elif t == ConditionType.TARGET_ATTACK_AT_MOST:
         return isinstance(target, Unit) and target.attack <= cond.value
     elif t == ConditionType.TARGET_ATTACK_AT_LEAST:
@@ -242,5 +246,9 @@ def evaluate_expression(expr: ValueExpression | None, ctx: EvalContext | None) -
         return player.shadows if player else 0
     elif t == ExprType.OPPONENT_SHADOWS:
         return opponent.shadows if opponent else 0
+    elif t == ExprType.CONTROLLER_COOPERATION:
+        return player.cooperation if player else 0
+    elif t == ExprType.OPPONENT_COOPERATION:
+        return opponent.cooperation if opponent else 0
 
     raise ValueError(f"Unknown expression type: {t}")

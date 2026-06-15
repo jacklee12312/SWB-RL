@@ -44,6 +44,7 @@ class EventType(str, Enum):
     GRAVEYARD_CARD_RETURNED = "graveyard_card_returned"
     GRAVEYARD_CARD_SUMMONED = "graveyard_card_summoned"
     GRAVEYARD_CARD_BANISHED = "graveyard_card_banished"
+    COOPERATION_CHANGED = "cooperation_changed"
 
 
 @dataclass(frozen=True)

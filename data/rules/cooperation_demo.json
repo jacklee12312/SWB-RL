@@ -1,0 +1,26 @@
+{
+  "rules": [
+    {
+      "card_id": 10721310,
+      "trigger": "play",
+      "operations": [
+        {
+          "kind": "damage_unit",
+          "target": "enemy_unit",
+          "amount": 3,
+          "target_key": "selected_follower"
+        },
+        {
+          "kind": "add_attack_restriction",
+          "target": "previous_target",
+          "target_key": "selected_follower",
+          "restriction": "cannot_attack",
+          "duration": "until_end_of_opponent_turn",
+          "conditions": [
+            {"type": "controller_cooperation_at_least", "value": 10}
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -426,6 +426,65 @@ class GameEngine:
                 )
         return commands
 
+    def _record_cooperation(
+        self,
+        player_index: int,
+        amount: int,
+        *,
+        source_card_id: int | None = None,
+        source_entity_id: int | None = None,
+        summon_cause: str = "play",
+    ) -> None:
+        if amount == 0:
+            return
+        player = self.players[player_index]
+        before = player.cooperation
+        player.add_cooperation(amount)
+        self._emit(
+            GameEvent(
+                EventType.COOPERATION_CHANGED,
+                player_index,
+                amount=amount,
+                source_id=source_entity_id,
+                metadata={
+                    "cooperation_before": before,
+                    "cooperation_after": player.cooperation,
+                    "source_card_id": source_card_id,
+                    "source_entity_id": source_entity_id,
+                    "summon_cause": summon_cause,
+                },
+            )
+        )
+
+    def _summon_follower_to_board(
+        self,
+        player_index: int,
+        definition: CardDefinition,
+        *,
+        summon_cause: str,
+        entity_id: int | None = None,
+    ) -> Unit | None:
+        player = self.players[player_index]
+        if len(player.board) >= self.config.max_board:
+            return None
+        unit = Unit.summon(
+            definition,
+            entity_id=(
+                entity_id
+                if entity_id is not None
+                else self.state.allocate_entity_id()
+            ),
+        )
+        player.board.append(unit)
+        self._record_cooperation(
+            player_index,
+            1,
+            source_card_id=definition.card_id,
+            source_entity_id=unit.entity_id,
+            summon_cause=summon_cause,
+        )
+        return unit
+
     def _play_card(self, command: PlayCard) -> None:
         player = self.players[self.current_player]
         if not 0 <= command.hand_index < len(player.hand):
@@ -455,9 +514,13 @@ class GameEngine:
             self._play_amulet(card, play_cost)
             return
 
-        unit = Unit.summon(card, entity_id=self.state.allocate_entity_id())
-        player.board.append(unit)
-        player.cooperation += 1
+        unit = self._summon_follower_to_board(
+            self.current_player,
+            card,
+            summon_cause="play",
+        )
+        if unit is None:
+            raise IllegalCommand("Board is full")
         self._log(
             self.current_player,
             f"打出 {card.name} ({play_cost}费 {unit.attack}/{unit.health})",
@@ -2254,11 +2317,13 @@ class GameEngine:
         max_c = max(r.definition.cost for r in candidates)
         best = [r for r in candidates if r.definition.cost == max_c]
         chosen = self.random.choice(best)
-        if len(player.board) >= self.config.max_board:
+        unit = self._summon_follower_to_board(
+            frame.controller,
+            chosen.definition,
+            summon_cause="reanimate",
+        )
+        if unit is None:
             return
-        unit = Unit.summon(chosen.definition, entity_id=self.state.allocate_entity_id())
-        player.board.append(unit)
-        player.cooperation += 1
         self._emit(GameEvent(EventType.REANIMATE_RESOLVED, frame.controller,
             amount=max_cost,
             metadata={"reanimated_card_id": chosen.definition.card_id, "new_entity_id": unit.entity_id,
@@ -2274,12 +2339,15 @@ class GameEngine:
         gc = next((g for g in player.graveyard if g.entity_id == target_id), None)
         if gc is None:
             return
-        if len(player.board) >= self.config.max_board:
+        unit = self._summon_follower_to_board(
+            frame.controller,
+            gc.definition,
+            summon_cause="summon_from_graveyard",
+            entity_id=gc.entity_id,
+        )
+        if unit is None:
             return
         player.graveyard.remove(gc)
-        unit = Unit.summon(gc.definition, entity_id=gc.entity_id)
-        player.board.append(unit)
-        player.cooperation += 1
         self._emit(GameEvent(EventType.GRAVEYARD_CARD_SUMMONED, frame.controller,
             source_id=unit.entity_id,
             metadata={
@@ -2357,9 +2425,17 @@ class GameEngine:
             self._log(frame.controller, f"{frame.source_name} 召唤失败：场地已满")
             return
         if card_def.card_type == "随从":
-            unit = Unit.summon(card_def, entity_id=self.state.allocate_entity_id())
-            player.board.append(unit)
-            player.cooperation += 1
+            unit = self._summon_follower_to_board(
+                frame.controller,
+                card_def,
+                summon_cause="effect_summon",
+            )
+            if unit is None:
+                self._log(
+                    frame.controller,
+                    f"{frame.source_name} 召唤失败：场地已满",
+                )
+                return
             self._log(
                 frame.controller,
                 f"{frame.source_name} 召唤 {card_def.name} ({unit.attack}/{unit.health})",

@@ -29,6 +29,8 @@ class ConditionType(str, Enum):
     TARGET_HAS_KEYWORD = "target_has_keyword"
     CONTROLLER_SHADOWS_AT_LEAST = "controller_shadows_at_least"
     OPPONENT_SHADOWS_AT_LEAST = "opponent_shadows_at_least"
+    CONTROLLER_COOPERATION_AT_LEAST = "controller_cooperation_at_least"
+    OPPONENT_COOPERATION_AT_LEAST = "opponent_cooperation_at_least"
 
 
 class ExprType(str, Enum):
@@ -47,6 +49,8 @@ class ExprType(str, Enum):
     TARGET_HEALTH = "target_health"
     CONTROLLER_SHADOWS = "controller_shadows"
     OPPONENT_SHADOWS = "opponent_shadows"
+    CONTROLLER_COOPERATION = "controller_cooperation"
+    OPPONENT_COOPERATION = "opponent_cooperation"
 
 
 @dataclass

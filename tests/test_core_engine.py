@@ -58,7 +58,7 @@ class CoreEngineTests(unittest.TestCase):
         transition = self.engine.apply(PlayCard(0, 0))
         self.assertEqual(
             [event.type for event in transition.events],
-            [EventType.CARD_PLAYED, EventType.FOLLOWER_SUMMONED],
+            [EventType.COOPERATION_CHANGED, EventType.CARD_PLAYED, EventType.FOLLOWER_SUMMONED],
         )
         unit = self.engine.players[0].board[0]
         self.assertGreater(unit.entity_id, 0)

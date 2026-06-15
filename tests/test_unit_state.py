@@ -814,7 +814,7 @@ class SpellboostTests(unittest.TestCase):
         )
         env.reset(seed=1)
         obs = env.observation()
-        self.assertEqual(len(obs), 207)
+        self.assertEqual(len(obs), 209)
 
     def test_auto_boost_after_choice_spell(self):
         rulebook = RuleBook((

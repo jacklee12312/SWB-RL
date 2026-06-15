@@ -181,6 +181,7 @@ class ShadowverseEnv:
             float(opponent.evolved_this_turn),
             float(self.core.state.pending_choice is not None),
             me.shadows / 20, opponent.shadows / 20,
+            me.cooperation / 10, opponent.cooperation / 10,
         ]
         total_pages = self._graveyard_total_pages()
         values.extend([

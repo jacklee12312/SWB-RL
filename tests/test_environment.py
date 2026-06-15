@@ -56,10 +56,10 @@ class EnvironmentTests(unittest.TestCase):
 
     def test_observation_and_action_space_are_fixed(self) -> None:
         self.assertEqual(len(self.env.action_mask()), ShadowverseEnv.ACTION_SIZE)
-        self.assertEqual(len(self.env.observation()), 207)
+        self.assertEqual(len(self.env.observation()), 209)
         self.assertTrue(self.env.action_mask()[ShadowverseEnv.END_TURN])
-        self.assertEqual(sum(self.env.observation()[20:27]), 1.0)
-        self.assertEqual(sum(self.env.observation()[27:34]), 1.0)
+        self.assertEqual(sum(self.env.observation()[22:29]), 1.0)
+        self.assertEqual(sum(self.env.observation()[29:36]), 1.0)
 
     def test_opening_hands_are_four_plus_first_player_draw(self) -> None:
         self.assertEqual(len(self.env.players[0].hand), 5)
