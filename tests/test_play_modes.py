@@ -509,7 +509,7 @@ class RLObservationTests(unittest.TestCase):
             class_a=1, class_b=1, seed=42,
         )
         obs, _ = env.reset(seed=42)
-        self.assertEqual(len(obs), 209)
+        self.assertEqual(len(obs), 215)
 
     def test_action_size_is_106(self):
         self.assertEqual(ShadowverseEnv.ACTION_SIZE, 106)

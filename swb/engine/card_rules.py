@@ -17,6 +17,11 @@ from swb.engine.effects import (
     TargetKind,
     ValueExpression,
 )
+from swb.engine.emblem import (
+    EmblemDefinition,
+    EmblemStacking,
+    EmblemTriggerRule,
+)
 from swb.engine.play_modes import (
     MAX_SPECIAL_MODES_PER_CARD,
     PlayModeDefinition,
@@ -90,6 +95,7 @@ class RuleBook:
         rules: tuple[CardRule, ...] = (),
         passives: tuple[CardPassive, ...] = (),
         play_modes: dict[int, tuple[PlayModeDefinition, ...]] | None = None,
+        emblem_defs: dict[str, EmblemDefinition] | None = None,
     ):
         self._rules: dict[tuple[int, Trigger], tuple[EffectOperation, ...]] = {
             (rule.card_id, rule.trigger): rule.operations for rule in rules
@@ -119,6 +125,7 @@ class RuleBook:
                         f"card {card_id}: duplicate play mode id {m.mode_id!r}"
                     )
                 seen.add(m.mode_id)
+        self._emblem_defs: dict[str, EmblemDefinition] = emblem_defs or {}
 
     def operations_for(
         self, card_id: int, trigger: Trigger
@@ -130,6 +137,19 @@ class RuleBook:
 
     def modes_for(self, card_id: int) -> tuple[PlayModeDefinition, ...]:
         return self._play_modes.get(card_id, ())
+
+    def emblem_def(self, emblem_id: str) -> EmblemDefinition | None:
+        return self._emblem_defs.get(emblem_id)
+
+    def emblem_trigger_ops_for(self, emblem_id: str, trigger: str) -> tuple[EffectOperation, ...]:
+        from swb.engine.emblem import EmblemTriggerRule
+        ed = self._emblem_defs.get(emblem_id)
+        if ed is None:
+            return ()
+        for tr in ed.triggers:
+            if tr.trigger == trigger:
+                return tr.operations
+        return ()
 
     def spellboost_cost_reduction(self, card_id: int) -> int:
         for p in self._passives.get(card_id, []):
@@ -145,6 +165,7 @@ class RuleBook:
         rules: list[CardRule] = []
         passives: list[tuple[CardPassive, str]] = []
         all_play_modes: dict[int, list[PlayModeDefinition]] = {}
+        all_emblem_defs: dict[str, EmblemDefinition] = {}
         for file_path in sorted(path.glob("*.json")):
             payload = json.loads(file_path.read_text(encoding="utf-8"))
             if isinstance(payload, list):
@@ -153,6 +174,24 @@ class RuleBook:
             else:
                 entries = payload.get("rules", [])
                 raw_passives = payload.get("passives", [])
+                raw_emblems = payload.get("emblems")
+                if raw_emblems is not None:
+                    if not isinstance(raw_emblems, list):
+                        raise ValueError(
+                            f"{file_path.name}: 'emblems' must be a list"
+                        )
+                    for index, raw_emblem in enumerate(raw_emblems):
+                        ed = _parse_emblem_definition(
+                            raw_emblem,
+                            f"{file_path.name}/emblems[{index}]",
+                            _parse_operation,
+                        )
+                        if ed.emblem_id in all_emblem_defs:
+                            raise ValueError(
+                                f"{file_path.name}/emblems[{index}]: "
+                                f"duplicate emblem id {ed.emblem_id!r}"
+                            )
+                        all_emblem_defs[ed.emblem_id] = ed
             for entry in entries:
                 operations = tuple(
                     _parse_operation(
@@ -221,7 +260,151 @@ class RuleBook:
         frozen_modes = {
             cid: tuple(modes) for cid, modes in all_play_modes.items()
         }
-        return cls(tuple(rules), tuple(passive for passive, _ in passives), frozen_modes)
+        _validate_emblem_references(rules, frozen_modes, all_emblem_defs)
+        return cls(
+            tuple(rules),
+            tuple(passive for passive, _ in passives),
+            frozen_modes,
+            all_emblem_defs,
+        )
+
+
+def _parse_emblem_definition(raw: dict, source_file: str, ops_parser) -> EmblemDefinition:
+    error_prefix = source_file
+    if not isinstance(raw, dict):
+        raise ValueError(f"{error_prefix}: emblem definition must be an object")
+    unknown_keys = set(raw) - {
+        "id", "source_card_id", "stacking", "countdown", "triggers",
+    }
+    if unknown_keys:
+        raise ValueError(
+            f"{error_prefix}: unknown fields {sorted(unknown_keys)}"
+        )
+    emblem_id = raw.get("id")
+    if not isinstance(emblem_id, str) or not emblem_id:
+        raise ValueError(f"{error_prefix}: emblem 'id' must be a non-empty string")
+    source_card_id = raw.get("source_card_id")
+    if source_card_id is None:
+        raise ValueError(f"{error_prefix}/source_card_id: required")
+    if not isinstance(source_card_id, int) or isinstance(source_card_id, bool):
+        raise ValueError(f"{error_prefix}/source_card_id: must be an integer")
+    if source_card_id <= 0:
+        raise ValueError(f"{error_prefix}/source_card_id: must be positive")
+    stacking_raw = raw.get("stacking", "allow")
+    try:
+        stacking = EmblemStacking(stacking_raw)
+    except ValueError:
+        raise ValueError(
+            f"{error_prefix}/stacking: must be one of {sorted(s.value for s in EmblemStacking)}, "
+            f"got {stacking_raw!r}"
+        )
+    countdown = raw.get("countdown")
+    if countdown is not None:
+        if isinstance(countdown, bool):
+            raise ValueError(f"{error_prefix}/countdown: must be an integer, got bool")
+        if not isinstance(countdown, int) or countdown < 0:
+            raise ValueError(f"{error_prefix}/countdown: must be a non-negative integer")
+
+    raw_triggers = raw.get("triggers", [])
+    if not isinstance(raw_triggers, list):
+        raise ValueError(f"{error_prefix}: 'triggers' must be a list")
+    triggers: list[EmblemTriggerRule] = []
+    _VALID_EMBLEM_TRIGGERS = frozenset({
+        "turn_start", "turn_end", "follower_summoned",
+        "follower_evolved", "card_played", "leader_healed",
+    })
+    for i, rt in enumerate(raw_triggers):
+        t_source = f"{error_prefix}/triggers[{i}]"
+        if not isinstance(rt, dict):
+            raise ValueError(f"{t_source}: trigger must be an object")
+        unknown_trigger_keys = set(rt) - {
+            "trigger", "operations", "conditions",
+        }
+        if unknown_trigger_keys:
+            raise ValueError(
+                f"{t_source}: unknown fields {sorted(unknown_trigger_keys)}"
+            )
+        trigger_name = rt.get("trigger")
+        if trigger_name not in _VALID_EMBLEM_TRIGGERS:
+            raise ValueError(
+                f"{t_source}/trigger: must be one of {sorted(_VALID_EMBLEM_TRIGGERS)}, "
+                f"got {trigger_name!r}"
+            )
+        raw_ops = rt.get("operations", [])
+        if not isinstance(raw_ops, list):
+            raise ValueError(f"{t_source}: 'operations' must be a list")
+        operations = tuple(
+            ops_parser(op, f"{t_source}/operations[{idx}]", source_card_id)
+            for idx, op in enumerate(raw_ops)
+        )
+        conditions: tuple = ()
+        raw_conds = rt.get("conditions")
+        if raw_conds is not None:
+            if not isinstance(raw_conds, list):
+                raise ValueError(f"{t_source}: 'conditions' must be a list")
+            conditions = tuple(
+                _parse_condition(c, f"{t_source}/conditions[{j}]", source_card_id)
+                for j, c in enumerate(raw_conds)
+            )
+        invalid_conditions = _check_target_conditions(conditions, t_source)
+        if invalid_conditions:
+            raise ValueError(
+                f"{t_source}/conditions: emblem trigger conditions cannot "
+                f"depend on a selected target: {sorted(invalid_conditions)}"
+            )
+        triggers.append(EmblemTriggerRule(
+            trigger=trigger_name,
+            operations=operations,
+            conditions=conditions,
+        ))
+    return EmblemDefinition(
+        emblem_id=emblem_id,
+        source_card_id=source_card_id,
+        stacking=stacking,
+        countdown=countdown,
+        triggers=tuple(triggers),
+    )
+
+
+def _iter_nested_operations(
+    operations: tuple[EffectOperation, ...],
+):
+    for operation in operations:
+        yield operation
+        if operation.necromancy_operations:
+            yield from _iter_nested_operations(operation.necromancy_operations)
+
+
+def _validate_emblem_references(
+    rules: list[CardRule],
+    play_modes: dict[int, tuple[PlayModeDefinition, ...]],
+    emblem_defs: dict[str, EmblemDefinition],
+) -> None:
+    references: list[tuple[int, str]] = []
+
+    def collect(card_id: int, operations: tuple[EffectOperation, ...]) -> None:
+        for operation in _iter_nested_operations(operations):
+            if operation.kind in {
+                EffectKind.GAIN_EMBLEM,
+                EffectKind.ADD_EMBLEM,
+                EffectKind.REMOVE_EMBLEM,
+            }:
+                references.append((card_id, operation.emblem_id or ""))
+
+    for rule in rules:
+        collect(rule.card_id, rule.operations)
+    for card_id, modes in play_modes.items():
+        for mode in modes:
+            collect(card_id, mode.operations)
+    for definition in emblem_defs.values():
+        for trigger in definition.triggers:
+            collect(definition.source_card_id, trigger.operations)
+
+    for card_id, emblem_id in references:
+        if emblem_id not in emblem_defs:
+            raise ValueError(
+                f"card {card_id}: unknown emblem_id {emblem_id!r}"
+            )
 
 
 def _validate_passives(passives: list[tuple[CardPassive, str]]) -> None:
@@ -449,6 +632,32 @@ def _parse_operation(raw: dict, source_file: str, card_id: int) -> EffectOperati
                 f"{source_file}/card_id card {card_id}: expected an integer"
             ) from exc
 
+    emblem_id = raw.get("emblem_id")
+    if kind in (EffectKind.GAIN_EMBLEM, EffectKind.ADD_EMBLEM, EffectKind.REMOVE_EMBLEM):
+        if not isinstance(emblem_id, str) or not emblem_id:
+            raise ValueError(
+                f"{source_file}/emblem_id card {card_id}: "
+                f"'{kind.value}' requires a non-empty emblem_id string"
+            )
+    else:
+        if emblem_id is not None:
+            raise ValueError(
+                f"{source_file}/emblem_id card {card_id}: "
+                f"emblem_id is only valid for GAIN_EMBLEM/ADD_EMBLEM/REMOVE_EMBLEM"
+            )
+    emblem_remove_mode = raw.get("remove_mode", "first")
+    if kind is EffectKind.REMOVE_EMBLEM:
+        if emblem_remove_mode not in {"first", "all"}:
+            raise ValueError(
+                f"{source_file}/remove_mode card {card_id}: must be "
+                f"'first' or 'all', got {emblem_remove_mode!r}"
+            )
+    elif "remove_mode" in raw:
+        raise ValueError(
+            f"{source_file}/remove_mode card {card_id}: remove_mode is only "
+            f"valid for remove_emblem"
+        )
+
     target_key = raw.get("target_key")
     if target_key is not None and not isinstance(target_key, str):
         raise ValueError(
@@ -587,6 +796,7 @@ def _parse_operation(raw: dict, source_file: str, card_id: int) -> EffectOperati
             card_id,
         ),
         card_id=operation_card_id,
+        emblem_id=emblem_id,
         keyword=keyword,
         restriction=restriction,
         conditions=conditions,
@@ -608,6 +818,7 @@ def _parse_operation(raw: dict, source_file: str, card_id: int) -> EffectOperati
         graveyard_cost_min=graveyard_cost_min,
         graveyard_follower_only=graveyard_follower_only,
         graveyard_card_type=graveyard_card_type,
+        emblem_remove_mode=emblem_remove_mode,
     )
 
 

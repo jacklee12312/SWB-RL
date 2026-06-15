@@ -35,6 +35,7 @@ class EventType(str, Enum):
     BARRIER_CONSUMED = "barrier_consumed"
     BANE_TRIGGERED = "bane_triggered"
     DRAIN_HEALED = "drain_healed"
+    LEADER_HEALED = "leader_healed"
     AMBUSH_LOST = "ambush_lost"
     SPELLBOOSTED = "spellboosted"
     GRAVEYARD_ENTERED = "graveyard_entered"
@@ -45,6 +46,11 @@ class EventType(str, Enum):
     GRAVEYARD_CARD_SUMMONED = "graveyard_card_summoned"
     GRAVEYARD_CARD_BANISHED = "graveyard_card_banished"
     COOPERATION_CHANGED = "cooperation_changed"
+    EMBLEM_GAINED = "emblem_gained"
+    EMBLEM_REMOVED = "emblem_removed"
+    EMBLEM_TRIGGERED = "emblem_triggered"
+    EMBLEM_COUNTDOWN_CHANGED = "emblem_countdown_changed"
+    EMBLEM_EXPIRED = "emblem_expired"
 
 
 @dataclass(frozen=True)

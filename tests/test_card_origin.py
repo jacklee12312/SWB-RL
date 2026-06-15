@@ -1264,7 +1264,7 @@ class ObservationInvariantTests(unittest.TestCase):
             seed=42,
         )
         obs, _ = env.reset(seed=42)
-        self.assertEqual(len(obs), 209)
+        self.assertEqual(len(obs), 215)
 
     def test_action_size_is_106(self):
         self.assertEqual(ShadowverseEnv.ACTION_SIZE, 106)
@@ -1277,7 +1277,7 @@ class ObservationInvariantTests(unittest.TestCase):
             seed=42,
         )
         obs, _ = env.reset(seed=42)
-        self.assertEqual(len(obs), 209)
+        self.assertEqual(len(obs), 215)
 
 
 # ---------------------------------------------------------------------------

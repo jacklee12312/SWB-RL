@@ -314,6 +314,8 @@ class GameEngine:
         self._pending_spellboost_player = 0
         self._pending_spellboost_source_card_id = 0
         self._pending_spellboost_source_entity_id = None
+        self._emblem_batches: dict[int, dict[str, object]] = {}
+        self._next_emblem_batch_id = 1
         self._stabilizing = False
         self.state.destroyed_followers.clear()
         self.state._next_death_sequence = 1
@@ -376,6 +378,13 @@ class GameEngine:
                 self._resume_end_turn(state)
             elif action == "turn_start":
                 self._resume_start_turn(state)
+            elif action == "play_follower":
+                self._suspended_action = None
+                self._suspended_action_state = None
+                self._finish_follower_play(
+                    state["unit_id"],
+                    state["mode_operations"],
+                )
             else:
                 self._suspended_action = None
                 self._suspended_action_state = None
@@ -653,8 +662,28 @@ class GameEngine:
             )
         )
         self._resolve_event_queue()
-        fanfare_operations = self._fanfare_operations(unit)
         mode_operations = mode_def.operations if mode_def is not None else ()
+        if self.state.pending_choice is not None:
+            self._suspended_action = "play_follower"
+            self._suspended_action_state = {
+                "unit_id": unit.entity_id,
+                "mode_operations": mode_operations,
+            }
+            return
+        self._finish_follower_play(unit.entity_id, mode_operations)
+
+    def _finish_follower_play(
+        self,
+        unit_id: int,
+        mode_operations: tuple[EffectOperation, ...],
+    ) -> None:
+        try:
+            unit = self._find_board_entity(unit_id)
+        except IllegalCommand:
+            return
+        if not isinstance(unit, Unit):
+            return
+        fanfare_operations = self._fanfare_operations(unit)
         operations = fanfare_operations + mode_operations
         if operations:
             label = "入场曲"
@@ -662,7 +691,12 @@ class GameEngine:
                 label = "入场曲/强化"
             elif mode_operations:
                 label = "强化"
-            self._start_effects(card, unit.entity_id, operations, label=label)
+            self._start_effects(
+                unit.definition,
+                unit.entity_id,
+                operations,
+                label=label,
+            )
 
     def _play_spell(
         self,
@@ -970,14 +1004,27 @@ class GameEngine:
                 owner_idx = self._entity_owner(attacker.entity_id)
                 heal_amount = min(actual, health_before)
                 owner = self.players[owner_idx]
-                owner.health = min(owner.health + heal_amount, self.config.starting_health)
-                self._log(controller, f"{attacker.definition.name} 的吸血回复了 {heal_amount} 点生命")
+                before_heal = owner.health
+                owner.health = min(
+                    owner.health + heal_amount,
+                    self.config.starting_health,
+                )
+                actual_heal = owner.health - before_heal
+                self._log(controller, f"{attacker.definition.name} 的吸血回复了 {actual_heal} 点生命")
                 self._emit(GameEvent(
                     EventType.DRAIN_HEALED, owner_idx,
                     source_id=attacker.entity_id,
-                    amount=heal_amount,
+                    amount=actual_heal,
                     metadata={"card_id": attacker.definition.card_id},
                 ))
+                if actual_heal > 0:
+                    self._emit(GameEvent(
+                        EventType.LEADER_HEALED,
+                        owner_idx,
+                        source_id=attacker.entity_id,
+                        amount=actual_heal,
+                        metadata={"card_id": attacker.definition.card_id},
+                    ))
 
         source_name = source.definition.name if hasattr(source, 'definition') else (source.name if source else "效果")
         self._log(
@@ -1019,14 +1066,27 @@ class GameEngine:
         if isinstance(source, Unit) and source.has_keyword("吸血"):
             owner_idx = self._entity_owner(source.entity_id)
             owner = self.players[owner_idx]
-            owner.health = min(owner.health + actual, self.config.starting_health)
-            self._log(controller, f"{source.definition.name} 的吸血回复了 {actual} 点生命")
+            before_heal = owner.health
+            owner.health = min(
+                owner.health + actual,
+                self.config.starting_health,
+            )
+            actual_heal = owner.health - before_heal
+            self._log(controller, f"{source.definition.name} 的吸血回复了 {actual_heal} 点生命")
             self._emit(GameEvent(
                 EventType.DRAIN_HEALED, owner_idx,
                 source_id=source.entity_id,
-                amount=actual,
+                amount=actual_heal,
                 metadata={"card_id": source.definition.card_id},
             ))
+            if actual_heal > 0:
+                self._emit(GameEvent(
+                    EventType.LEADER_HEALED,
+                    owner_idx,
+                    source_id=source.entity_id,
+                    amount=actual_heal,
+                    metadata={"card_id": source.definition.card_id},
+                ))
 
         return DamageResult(
             requested_amount=amount,
@@ -1150,6 +1210,8 @@ class GameEngine:
                             metadata={"card_id": frame.source_card_id},
                         )
                     )
+                if frame.emblem_batch_id is not None:
+                    self._queue_next_emblem_trigger(frame.emblem_batch_id)
                 continue
 
             operation = frame.operations[frame.next_index]
@@ -1797,6 +1859,17 @@ class GameEngine:
         if self.terminated:
             return
         board = tuple(self.players[player_index].board)
+        self._dispatch_emblem_triggers(player_index, "turn_end")
+        if self.state.pending_choice is not None:
+            self._suspended_action = "turn_end"
+            self._suspended_action_state = {
+                "player_index": player_index,
+                "remaining_ids": [
+                    entity.entity_id for entity in board
+                    if isinstance(entity, Unit)
+                ],
+            }
+            return
         for idx, unit in enumerate(board):
             self._dispatch_ability(
                 AbilityEvent.TURN_ENDED, unit, player_index=player_index
@@ -1941,7 +2014,20 @@ class GameEngine:
         player.max_mana = min(self.config.max_mana, player.max_mana + 1)
         player.mana = player.max_mana
         self._tick_countdowns(player_index)
+        self._tick_emblem_countdowns(player_index)
+        self._dispatch_emblem_triggers(player_index, "turn_start")
         board = tuple(player.board)
+        if self.state.pending_choice is not None:
+            self._suspended_action = "turn_start"
+            self._suspended_action_state = {
+                "player_index": player_index,
+                "phase": "board",
+                "remaining_ids": [
+                    entity.entity_id for entity in board
+                    if isinstance(entity, Unit)
+                ],
+            }
+            return
         for idx, unit in enumerate(board):
             if not isinstance(unit, Unit):
                 continue
@@ -2141,9 +2227,21 @@ class GameEngine:
                 amount=amount,
                 secondary_amount=secondary,
                 card_id=operation.card_id,
+                emblem_id=operation.emblem_id,
                 keyword=operation.keyword,
+                restriction=operation.restriction,
+                conditions=operation.conditions,
                 mode=operation.mode,
                 duration=operation.duration,
+                set_attack=operation.set_attack,
+                set_health=operation.set_health,
+                target_key=operation.target_key,
+                necromancy_operations=operation.necromancy_operations,
+                graveyard_cost_max=operation.graveyard_cost_max,
+                graveyard_cost_min=operation.graveyard_cost_min,
+                graveyard_follower_only=operation.graveyard_follower_only,
+                graveyard_card_type=operation.graveyard_card_type,
+                emblem_remove_mode=operation.emblem_remove_mode,
             )
             self._execute_effect(resolved, frame, target_id)
         else:
@@ -2167,11 +2265,20 @@ class GameEngine:
         elif effect.kind is EffectKind.HEAL_LEADER:
             before = player.health
             player.health = min(self.config.starting_health, player.health + effect.amount)
+            actual_heal = player.health - before
             self._log(
                 frame.controller,
-                f"{name} {frame.label}回复 {player.health - before} 点生命"
+                f"{name} {frame.label}回复 {actual_heal} 点生命"
                 f"（生命 {player.health}）",
             )
+            if actual_heal > 0:
+                self._emit(GameEvent(
+                    EventType.LEADER_HEALED,
+                    frame.controller,
+                    source_id=frame.source_entity_id,
+                    amount=actual_heal,
+                    metadata={"card_id": frame.source_card_id},
+                ))
         elif effect.kind is EffectKind.DAMAGE_LEADER:
             is_enemy = effect.target is TargetKind.ENEMY_LEADER
             target_idx = 1 - frame.controller if is_enemy else frame.controller
@@ -2268,6 +2375,10 @@ class GameEngine:
             self._execute_return_from_graveyard_to_hand(effect, frame, target_id)
         elif effect.kind is EffectKind.BANISH_FROM_GRAVEYARD:
             self._execute_banish_from_graveyard(effect, frame, target_id)
+        elif effect.kind in (EffectKind.GAIN_EMBLEM, EffectKind.ADD_EMBLEM):
+            self._execute_gain_emblem(effect, frame)
+        elif effect.kind is EffectKind.REMOVE_EMBLEM:
+            self._execute_remove_emblem(effect, frame)
         else:
             self._log(
                 frame.controller,
@@ -2684,6 +2795,256 @@ class GameEngine:
             }))
         self._log(frame.controller, f"从墓地消失：{gc.definition.name}")
 
+    def _execute_gain_emblem(self, effect: EffectOperation, frame: EffectFrame) -> None:
+        emblem_id = effect.emblem_id
+        if not emblem_id:
+            raise IllegalCommand("GAIN_EMBLEM requires emblem_id")
+        emblem_def = self.rulebook.emblem_def(emblem_id)
+        if emblem_def is None:
+            self._log(frame.controller, f"[未实现] 纹章 '{emblem_id}' 未定义")
+            return
+        self._add_emblem_to_player(frame.controller, emblem_def, frame.source_card_id)
+
+    def _add_emblem_to_player(self, player_index: int, emblem_def, source_card_id: int):
+        from swb.engine.emblem import EmblemStacking
+        from swb.engine.state import EmblemInstance
+        player = self.players[player_index]
+
+        if emblem_def.stacking is EmblemStacking.IGNORE:
+            existing = [e for e in player.emblems if e.emblem_id == emblem_def.emblem_id]
+            if existing:
+                return
+        elif emblem_def.stacking is EmblemStacking.REPLACE:
+            for existing in tuple(player.emblems):
+                if existing.emblem_id == emblem_def.emblem_id:
+                    self._remove_emblem_instance(
+                        player_index,
+                        existing,
+                        removal_cause="replace",
+                    )
+
+        seq = player._next_emblem_sequence
+        player._next_emblem_sequence += 1
+        countdown = emblem_def.countdown
+        instance = EmblemInstance(
+            emblem_id=emblem_def.emblem_id,
+            definition=emblem_def,
+            entity_id=self.state.allocate_entity_id(),
+            controller=player_index,
+            created_sequence=seq,
+            countdown=countdown,
+            countdown_before=countdown,
+        )
+        player.emblems.append(instance)
+        self._emit(GameEvent(
+            EventType.EMBLEM_GAINED, player_index,
+            source_id=instance.entity_id,
+            metadata={
+                "emblem_id": emblem_def.emblem_id,
+                "entity_id": instance.entity_id,
+                "source_card_id": source_card_id,
+                "controller": player_index,
+                "countdown": instance.countdown,
+                "stacking": emblem_def.stacking.value,
+            },
+        ))
+
+    def _execute_remove_emblem(self, effect: EffectOperation, frame: EffectFrame) -> None:
+        emblem_id = effect.emblem_id
+        if not emblem_id:
+            raise IllegalCommand("REMOVE_EMBLEM requires emblem_id")
+        player = self.players[frame.controller]
+        removed = [e for e in player.emblems if e.emblem_id == emblem_id]
+        if not removed:
+            return
+        targets = removed if effect.emblem_remove_mode == "all" else removed[:1]
+        for target in targets:
+            self._remove_emblem_instance(
+                frame.controller,
+                target,
+                removal_cause="effect",
+            )
+
+    def _remove_emblem_instance(
+        self,
+        player_index: int,
+        target,
+        *,
+        removal_cause: str,
+    ) -> None:
+        player = self.players[player_index]
+        if target not in player.emblems:
+            return
+        player.emblems.remove(target)
+        self._emit(GameEvent(
+            EventType.EMBLEM_REMOVED, player_index,
+            source_id=target.entity_id,
+            metadata={
+                "emblem_id": target.emblem_id,
+                "entity_id": target.entity_id,
+                "source_card_id": target.definition.source_card_id,
+                "controller": player_index,
+                "removal_cause": removal_cause,
+            },
+        ))
+
+    def _dispatch_emblem_triggers(self, player_index: int, event_type: str,
+                                   source_id: int | None = None) -> None:
+        """Collect a stable trigger batch and queue its first effect frame."""
+        player = self.players[player_index]
+        records: list[tuple[int, int, str]] = []
+        for ei in player.emblems:
+            for ti, tr in enumerate(ei.definition.triggers):
+                if tr.trigger == event_type:
+                    records.append((ei.entity_id, ti, event_type))
+        records.sort(
+            key=lambda record: self._emblem_order_key(
+                player_index,
+                record[0],
+                record[1],
+            )
+        )
+        if not records:
+            return
+        batch_id = self._next_emblem_batch_id
+        self._next_emblem_batch_id += 1
+        self._emblem_batches[batch_id] = {
+            "player_index": player_index,
+            "records": records,
+            "source_id": source_id,
+        }
+        self._queue_next_emblem_trigger(batch_id)
+        self._continue_effects()
+
+    def _emblem_order_key(
+        self,
+        player_index: int,
+        entity_id: int,
+        trigger_index: int,
+    ) -> tuple[int, int, int]:
+        instance = next(
+            (
+                emblem for emblem in self.players[player_index].emblems
+                if emblem.entity_id == entity_id
+            ),
+            None,
+        )
+        sequence = instance.created_sequence if instance is not None else 10**9
+        return (player_index, sequence, trigger_index)
+
+    def _queue_next_emblem_trigger(self, batch_id: int) -> None:
+        batch = self._emblem_batches.get(batch_id)
+        if batch is None:
+            return
+        player_index = int(batch["player_index"])
+        records = batch["records"]
+        player = self.players[player_index]
+        while records:
+            entity_id, trigger_index, event_type = records.pop(0)
+            ei = next(
+                (
+                    emblem for emblem in player.emblems
+                    if emblem.entity_id == entity_id
+                ),
+                None,
+            )
+            if ei is None:
+                continue
+            if trigger_index >= len(ei.definition.triggers):
+                continue
+            tr = ei.definition.triggers[trigger_index]
+            if tr.trigger != event_type:
+                continue
+            if tr.conditions:
+                ctx = EvalContext(
+                    controller=player_index,
+                    players=self.players,
+                    source_entity_id=batch.get("source_id"),
+                )
+                result = evaluate_conditions_without_target(
+                    tr.conditions,
+                    ctx,
+                )
+                if result is not PartialConditionResult.TRUE:
+                    continue
+            self._emit(GameEvent(
+                EventType.EMBLEM_TRIGGERED, player_index,
+                source_id=ei.entity_id,
+                metadata={
+                    "emblem_id": ei.emblem_id,
+                    "entity_id": ei.entity_id,
+                    "trigger": event_type,
+                    "source_card_id": ei.definition.source_card_id,
+                    "controller": player_index,
+                },
+            ))
+            if not tr.operations:
+                continue
+            source_card_id = ei.definition.source_card_id
+            source_card_name = f"纹章_{ei.emblem_id}"
+            source_card = (
+                self.card_resolver(source_card_id)
+                if self.card_resolver
+                else None
+            )
+            if source_card is None:
+                source_card = type("_EmblemCard", (), {
+                    "card_id": source_card_id,
+                    "name": source_card_name,
+                })()
+            frame = self._queue_effects(
+                source_card,
+                None,
+                tr.operations,
+                controller=player_index,
+                label=f"纹章 {event_type}",
+            )
+            frame.emblem_batch_id = batch_id
+            return
+        self._emblem_batches.pop(batch_id, None)
+
+    def _tick_emblem_countdowns(self, player_index: int) -> None:
+        """Decrement countdowns on emblems at start of controller's turn."""
+        player = self.players[player_index]
+        expired = []
+        for ei in player.emblems:
+            if ei.countdown is not None:
+                ei.countdown_before = ei.countdown
+                ei.countdown -= 1
+                self._emit(GameEvent(
+                    EventType.EMBLEM_COUNTDOWN_CHANGED, player_index,
+                    source_id=ei.entity_id,
+                    metadata={
+                        "emblem_id": ei.emblem_id,
+                        "entity_id": ei.entity_id,
+                        "source_card_id": ei.definition.source_card_id,
+                        "controller": player_index,
+                        "countdown_before": ei.countdown_before,
+                        "countdown_after": ei.countdown,
+                    },
+                ))
+                if ei.countdown <= 0:
+                    expired.append(ei)
+        for ei in expired:
+            self._remove_emblem_instance(
+                player_index,
+                ei,
+                removal_cause="countdown",
+            )
+            self._emit(GameEvent(
+                EventType.EMBLEM_EXPIRED, player_index,
+                source_id=ei.entity_id,
+                metadata={
+                    "emblem_id": ei.emblem_id,
+                    "entity_id": ei.entity_id,
+                    "source_card_id": ei.definition.source_card_id,
+                    "controller": player_index,
+                    "countdown_before": ei.countdown_before,
+                    "countdown_after": ei.countdown,
+                    "removal_cause": "countdown",
+                },
+            ))
+
     def _execute_summon(self, effect: EffectOperation, frame: EffectFrame) -> None:
         if effect.card_id is None:
             raise IllegalCommand("SUMMON requires a card_id")
@@ -2944,6 +3305,12 @@ class GameEngine:
             EventType.DAMAGE_DEALT: AbilityEvent.AFTER_DAMAGE,
             EventType.FOLLOWER_DESTROYED: AbilityEvent.FOLLOWER_DESTROYED,
         }
+        event_to_emblem_trigger = {
+            EventType.CARD_PLAYED: "card_played",
+            EventType.FOLLOWER_SUMMONED: "follower_summoned",
+            EventType.FOLLOWER_EVOLVED: "follower_evolved",
+            EventType.LEADER_HEALED: "leader_healed",
+        }
         while self.state.event_queue:
             self._step()
             event = self.state.event_queue.popleft()
@@ -2980,6 +3347,22 @@ class GameEngine:
                     if self.state.pending_choice is not None:
                         self._save_event_continuation(event, source, target, ability_event, phase="target_done")
                         return
+            emblem_trigger = event_to_emblem_trigger.get(event.type)
+            if emblem_trigger is not None:
+                self._dispatch_emblem_triggers(
+                    event.player_index,
+                    emblem_trigger,
+                    source_id=event.source_id,
+                )
+                if self.state.pending_choice is not None:
+                    self._save_event_continuation(
+                        event,
+                        source,
+                        target,
+                        ability_event,
+                        phase="emblems_done",
+                    )
+                    return
 
     def _save_event_continuation(self, event, source, target, ability_event, phase):
         remaining = []
@@ -3338,6 +3721,10 @@ class GameEngine:
                 if entity.entity_id <= 0 or entity.entity_id in seen:
                     entity.entity_id = self.state.allocate_entity_id()
                 seen.add(entity.entity_id)
+            for emblem in player.emblems:
+                if emblem.entity_id <= 0 or emblem.entity_id in seen:
+                    emblem.entity_id = self.state.allocate_entity_id()
+                seen.add(emblem.entity_id)
             for graveyard_card in player.graveyard:
                 if graveyard_card.entity_id <= 0:
                     raise IllegalCommand("Graveyard entity_id must be positive")

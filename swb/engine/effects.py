@@ -92,6 +92,8 @@ class EffectKind(str, Enum):
     CHANGE_COST = "change_cost"
     TRANSFORM = "transform"
     GAIN_EMBLEM = "gain_emblem"
+    ADD_EMBLEM = "add_emblem"
+    REMOVE_EMBLEM = "remove_emblem"
     RETURN_TO_HAND = "return_to_hand"
     RETURN_TO_DECK = "return_to_deck"
     DISCARD = "discard"
@@ -163,6 +165,7 @@ class EffectOperation:
     amount: int = 0
     secondary_amount: int = 0
     card_id: int | None = None
+    emblem_id: str | None = None
     keyword: str | None = None
     restriction: str | None = None
     conditions: tuple[Condition, ...] = ()
@@ -178,6 +181,7 @@ class EffectOperation:
     graveyard_cost_min: int | None = None
     graveyard_follower_only: bool = False
     graveyard_card_type: str | None = None
+    emblem_remove_mode: str = "first"
 
 
 @dataclass
@@ -200,3 +204,4 @@ class EffectFrame:
     _hand_source_origin: Any = None
     _hand_source_origin_parent: Any = None
     _target_bindings: dict[str, int] = field(default_factory=dict)
+    emblem_batch_id: int | None = None

@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING
 
 from swb.db.repository import CardDefinition
 from swb.engine.abilities import RUNTIME_UNIT_KEYWORDS, normalize_keyword_name
+from swb.engine.emblem import EmblemDefinition
 from swb.engine.origin import CardOrigin, is_derived, is_token
 
 if TYPE_CHECKING:
@@ -585,6 +586,25 @@ BoardCard = Unit | Amulet
 
 
 @dataclass
+class EmblemInstance:
+    emblem_id: str
+    definition: EmblemDefinition
+    entity_id: int
+    controller: int
+    created_sequence: int
+    countdown: int | None = None
+    countdown_before: int | None = None
+
+    @property
+    def is_permanent(self) -> bool:
+        return self.countdown is None and self.definition.countdown is None
+
+    @property
+    def source_card_id(self) -> int:
+        return self.definition.source_card_id
+
+
+@dataclass
 class PlayerState:
     deck: list[CardDefinition]
     class_id: int
@@ -594,7 +614,7 @@ class PlayerState:
     board: list[BoardCard] = field(default_factory=list)
     graveyard: list[GraveyardCard] = field(default_factory=list)
     banished: list[CardDefinition] = field(default_factory=list)
-    emblems: list[str] = field(default_factory=list)
+    emblems: list[EmblemInstance] = field(default_factory=list)
     health: int = 20
     max_mana: int = 0
     mana: int = 0
@@ -608,6 +628,7 @@ class PlayerState:
     shadows: int = 0
     faith: int = 0
     _next_graveyard_sequence: int = 1
+    _next_emblem_sequence: int = 1
 
     def add_shadows(self, amount: int) -> None:
         if amount < 0:

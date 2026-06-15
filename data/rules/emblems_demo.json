@@ -1,0 +1,158 @@
+{
+    "emblems": [
+        {
+            "id": "wings_queen_titania",
+            "source_card_id": 10214110,
+            "stacking": "allow",
+            "triggers": [
+                {
+                    "trigger": "turn_start",
+                    "operations": [
+                        {
+                            "kind": "add_card",
+                            "target": "own_leader",
+                            "card_id": 90011110
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "underground_bounty_hunter_balt",
+            "source_card_id": 10153140,
+            "stacking": "allow",
+            "countdown": 4,
+            "triggers": [
+                {
+                    "trigger": "turn_end",
+                    "operations": [
+                        {
+                            "kind": "damage_leader",
+                            "target": "own_leader",
+                            "amount": 1
+                        },
+                        {
+                            "kind": "damage_leader",
+                            "target": "enemy_leader",
+                            "amount": 1
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "fire_emblem_demo",
+            "source_card_id": 999901,
+            "stacking": "allow",
+            "triggers": [
+                {
+                    "trigger": "turn_start",
+                    "operations": [
+                        {
+                            "kind": "damage_leader",
+                            "target": "enemy_leader",
+                            "amount": 1
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "heal_emblem_demo",
+            "source_card_id": 999902,
+            "stacking": "allow",
+            "countdown": 3,
+            "triggers": [
+                {
+                    "trigger": "turn_end",
+                    "operations": [
+                        {
+                            "kind": "heal_leader",
+                            "target": "own_leader",
+                            "amount": 2
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "draw_emblem_demo",
+            "source_card_id": 999903,
+            "stacking": "replace",
+            "triggers": [
+                {
+                    "trigger": "follower_summoned",
+                    "operations": [
+                        {
+                            "kind": "draw",
+                            "target": "own_leader",
+                            "amount": 1
+                        }
+                    ]
+                }
+            ]
+        }
+    ],
+    "rules": [
+        {
+            "card_id": 10214110,
+            "trigger": "fanfare",
+            "operations": [
+                {
+                    "kind": "summon",
+                    "target": "own_leader",
+                    "card_id": 90011110
+                },
+                {
+                    "kind": "gain_emblem",
+                    "target": "own_leader",
+                    "emblem_id": "wings_queen_titania"
+                }
+            ]
+        },
+        {
+            "card_id": 10153140,
+            "trigger": "fanfare",
+            "operations": [
+                {
+                    "kind": "gain_emblem",
+                    "target": "own_leader",
+                    "emblem_id": "underground_bounty_hunter_balt"
+                }
+            ]
+        },
+        {
+            "card_id": 999901,
+            "trigger": "fanfare",
+            "operations": [
+                {
+                    "kind": "gain_emblem",
+                    "target": "own_leader",
+                    "emblem_id": "fire_emblem_demo"
+                }
+            ]
+        },
+        {
+            "card_id": 999902,
+            "trigger": "fanfare",
+            "operations": [
+                {
+                    "kind": "gain_emblem",
+                    "target": "own_leader",
+                    "emblem_id": "heal_emblem_demo"
+                }
+            ]
+        },
+        {
+            "card_id": 999903,
+            "trigger": "fanfare",
+            "operations": [
+                {
+                    "kind": "gain_emblem",
+                    "target": "own_leader",
+                    "emblem_id": "draw_emblem_demo"
+                }
+            ]
+        }
+    ]
+}

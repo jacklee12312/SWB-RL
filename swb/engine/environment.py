@@ -195,6 +195,24 @@ class ShadowverseEnv:
             ),
             float(total_pages),
         ])
+        me_countdowns = [
+            emblem.countdown
+            for emblem in me.emblems
+            if emblem.countdown is not None
+        ]
+        opponent_countdowns = [
+            emblem.countdown
+            for emblem in opponent.emblems
+            if emblem.countdown is not None
+        ]
+        values.extend([
+            len(me.emblems) / 10,
+            len(opponent.emblems) / 10,
+            float(bool(me_countdowns)),
+            float(bool(opponent_countdowns)),
+            min(me_countdowns, default=0) / 10,
+            min(opponent_countdowns, default=0) / 10,
+        ])
         values.extend(float(me.class_id == cid) for cid in range(1, self.CLASS_COUNT + 1))
         values.extend(float(opponent.class_id == cid) for cid in range(1, self.CLASS_COUNT + 1))
         for index in range(self.MAX_HAND):
