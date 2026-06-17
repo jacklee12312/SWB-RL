@@ -1,0 +1,157 @@
+{
+    "rules": [
+        {
+            "card_id": 999950,
+            "trigger": "play",
+            "operations": [
+                {
+                    "kind": "conditional",
+                    "conditions": [
+                        {"type": "controller_health_at_most", "value": 20}
+                    ],
+                    "then": [
+                        {"kind": "draw", "target": "own_leader", "amount": 2}
+                    ],
+                    "else": [
+                        {"kind": "draw", "target": "own_leader", "amount": 1}
+                    ]
+                }
+            ]
+        },
+        {
+            "card_id": 999951,
+            "trigger": "play",
+            "operations": [
+                {
+                    "kind": "conditional",
+                    "conditions": [
+                        {"type": "controller_health_at_most", "value": 5}
+                    ],
+                    "then": [
+                        {"kind": "draw", "target": "own_leader", "amount": 3}
+                    ],
+                    "else": [
+                        {"kind": "draw", "target": "own_leader", "amount": 1}
+                    ]
+                }
+            ]
+        },
+        {
+            "card_id": 999952,
+            "trigger": "play",
+            "operations": [
+                {
+                    "kind": "choose_one",
+                    "target": "own_leader",
+                    "options": [
+                        {
+                            "id": "draw",
+                            "label": "抽2张卡牌",
+                            "operations": [
+                                {"kind": "draw", "target": "own_leader", "amount": 2}
+                            ]
+                        },
+                        {
+                            "id": "damage",
+                            "label": "造成3点伤害",
+                            "operations": [
+                                {"kind": "damage_leader", "target": "enemy_leader", "amount": 3}
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "card_id": 999953,
+            "trigger": "play",
+            "operations": [
+                {
+                    "kind": "optional",
+                    "prompt": "是否抽1张卡牌？",
+                    "operations": [
+                        {"kind": "draw", "target": "own_leader", "amount": 1}
+                    ]
+                }
+            ]
+        },
+        {
+            "card_id": 999954,
+            "trigger": "play",
+            "operations": [
+                {
+                    "kind": "conditional",
+                    "conditions": [
+                        {"type": "controller_board_count_at_least", "value": 0}
+                    ],
+                    "then": [
+                        {
+                            "kind": "conditional",
+                            "target": "own_leader",
+                            "conditions": [
+                                {"type": "controller_health_at_most", "value": 20}
+                            ],
+                            "then": [
+                                {"kind": "draw", "target": "own_leader", "amount": 1}
+                            ],
+                            "else": []
+                        }
+                    ],
+                    "else": []
+                }
+            ]
+        },
+        {
+            "card_id": 999955,
+            "trigger": "play",
+            "operations": [
+                {
+                    "kind": "choose_one",
+                    "target": "own_leader",
+                    "options": [
+                        {
+                            "id": "draw_ok",
+                            "label": "抽1张卡牌",
+                            "operations": [
+                                {"kind": "draw", "target": "own_leader", "amount": 1}
+                            ]
+                        },
+                        {
+                            "id": "damage_target",
+                            "label": "对敌方随从造成2点伤害",
+                            "operations": [
+                                {"kind": "damage_unit", "target": "enemy_unit", "amount": 2}
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "card_id": 999956,
+            "trigger": "last_words",
+            "operations": [
+                {
+                    "kind": "choose_one",
+                    "target": "own_leader",
+                    "options": [
+                        {
+                            "id": "draw",
+                            "label": "抽1张卡牌",
+                            "operations": [
+                                {"kind": "draw", "target": "own_leader", "amount": 1}
+                            ]
+                        },
+                        {
+                            "id": "heal",
+                            "label": "恢复1点生命",
+                            "operations": [
+                                {"kind": "heal_leader", "target": "own_leader", "amount": 1}
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

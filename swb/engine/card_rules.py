@@ -7,6 +7,7 @@ from pathlib import Path
 
 from swb.engine.abilities import RUNTIME_UNIT_KEYWORDS, normalize_keyword_name
 from swb.engine.effects import (
+    ChooseOneOption,
     Condition,
     ConditionType,
     CostChangeMode,
@@ -559,7 +560,9 @@ def _validate_target_keys(operations: tuple[EffectOperation, ...], source: str) 
             )
 
 
-def _parse_operation(raw: dict, source_file: str, card_id: int) -> EffectOperation:
+def _parse_operation(raw: dict, source_file: str, card_id: int, _depth: int = 0) -> EffectOperation:
+    if _depth > 16:
+        raise ValueError(f"{source_file} card {card_id}: nested effect depth exceeds maximum of 16")
     error_prefix = f"{source_file} card {card_id}"
     if not isinstance(raw, dict):
         raise ValueError(
@@ -568,7 +571,7 @@ def _parse_operation(raw: dict, source_file: str, card_id: int) -> EffectOperati
         )
     try:
         kind = EffectKind(raw["kind"])
-        raw_target = raw.get("target", "own_leader" if kind in (EffectKind.NECROMANCY, EffectKind.REANIMATE) else None)
+        raw_target = raw.get("target", "own_leader" if kind in (EffectKind.NECROMANCY, EffectKind.REANIMATE, EffectKind.CONDITIONAL, EffectKind.CHOOSE_ONE, EffectKind.OPTIONAL) else None)
         if raw_target is None:
             raise KeyError("target")
         target = TargetKind(raw_target)
@@ -844,6 +847,136 @@ def _parse_operation(raw: dict, source_file: str, card_id: int) -> EffectOperati
                 f"target-dependent conditions: {sorted(invalid_conds)}"
             )
 
+    then_ops: tuple = ()
+    else_ops: tuple = ()
+    choose_one_options: tuple = ()
+    optional_prompt: str | None = None
+    optional_ops: tuple = ()
+
+    if kind is EffectKind.CONDITIONAL:
+        unknown_conditional_keys = set(raw) - {
+            "kind", "target", "conditions", "then", "else",
+        }
+        if unknown_conditional_keys:
+            raise ValueError(
+                f"{error_prefix}: unknown fields {sorted(unknown_conditional_keys)}"
+            )
+        if not conditions:
+            raise ValueError(f"{error_prefix}: CONDITIONAL requires non-empty 'conditions'")
+        invalid_conditional_conditions = _check_target_conditions(
+            conditions,
+            f"{source_file} card {card_id}",
+        )
+        if invalid_conditional_conditions:
+            raise ValueError(
+                f"{error_prefix}/conditions: conditional conditions cannot "
+                f"depend on a selected target: {sorted(invalid_conditional_conditions)}"
+            )
+        raw_then = raw.get("then")
+        if raw_then is None:
+            raise ValueError(f"{error_prefix}: CONDITIONAL requires 'then'")
+        if not isinstance(raw_then, list):
+            raise ValueError(f"{error_prefix}/then: must be a list")
+        then_ops = tuple(
+            _parse_operation(op, f"{source_file}/then[{idx}]", card_id, _depth + 1)
+            for idx, op in enumerate(raw_then)
+        )
+        _validate_target_keys(then_ops, f"{source_file}/then (card {card_id})")
+        raw_else = raw.get("else")
+        if raw_else is not None:
+            if not isinstance(raw_else, list):
+                raise ValueError(f"{error_prefix}/else: must be a list")
+            else_ops = tuple(
+                _parse_operation(op, f"{source_file}/else[{idx}]", card_id, _depth + 1)
+                for idx, op in enumerate(raw_else)
+            )
+            _validate_target_keys(else_ops, f"{source_file}/else (card {card_id})")
+
+    elif kind is EffectKind.CHOOSE_ONE:
+        unknown_choose_keys = set(raw) - {
+            "kind", "target", "options",
+        }
+        if unknown_choose_keys:
+            raise ValueError(
+                f"{error_prefix}: unknown fields {sorted(unknown_choose_keys)}"
+            )
+        raw_options = raw.get("options")
+        if not isinstance(raw_options, list) or len(raw_options) == 0:
+            raise ValueError(f"{error_prefix}: CHOOSE_ONE requires non-empty 'options' list")
+        choose_ops: list = []
+        seen_ids: set[str] = set()
+        for idx, raw_opt in enumerate(raw_options):
+            opt_source = f"{source_file}/options[{idx}]"
+            if not isinstance(raw_opt, dict):
+                raise ValueError(f"{opt_source}: option must be an object")
+            unknown_opt_keys = set(raw_opt) - {"id", "label", "conditions", "operations"}
+            if unknown_opt_keys:
+                raise ValueError(
+                    f"{opt_source}: unknown fields {sorted(unknown_opt_keys)}"
+                )
+            opt_id = raw_opt.get("id")
+            if not isinstance(opt_id, str) or not opt_id:
+                raise ValueError(f"{opt_source}/id: must be a non-empty string")
+            if opt_id in seen_ids:
+                raise ValueError(f"{opt_source}/id: duplicate option id {opt_id!r}")
+            seen_ids.add(opt_id)
+            opt_label = raw_opt.get("label", opt_id)
+            if not isinstance(opt_label, str):
+                raise ValueError(f"{opt_source}/label: must be a string")
+            opt_conditions: tuple = ()
+            raw_opt_conds = raw_opt.get("conditions")
+            if raw_opt_conds is not None:
+                if not isinstance(raw_opt_conds, list):
+                    raise ValueError(f"{opt_source}/conditions: must be a list")
+                opt_conditions = tuple(
+                    _parse_condition(c, f"{opt_source}/conditions[{j}]", card_id)
+                    for j, c in enumerate(raw_opt_conds)
+                )
+                invalid_option_conditions = _check_target_conditions(
+                    opt_conditions,
+                    opt_source,
+                )
+                if invalid_option_conditions:
+                    raise ValueError(
+                        f"{opt_source}/conditions: choose_one option conditions cannot "
+                        f"depend on a selected target: {sorted(invalid_option_conditions)}"
+                    )
+            raw_opt_ops = raw_opt.get("operations", [])
+            if not isinstance(raw_opt_ops, list):
+                raise ValueError(f"{opt_source}/operations: must be a list")
+            opt_operations = tuple(
+                _parse_operation(op, f"{opt_source}/operations[{j}]", card_id, _depth + 1)
+                for j, op in enumerate(raw_opt_ops)
+            )
+            _validate_target_keys(opt_operations, opt_source)
+            choose_ops.append(ChooseOneOption(
+                option_id=opt_id,
+                label=opt_label,
+                conditions=opt_conditions,
+                operations=opt_operations,
+            ))
+        choose_one_options = tuple(choose_ops)
+
+    elif kind is EffectKind.OPTIONAL:
+        unknown_optional_keys = set(raw) - {
+            "kind", "target", "prompt", "operations",
+        }
+        if unknown_optional_keys:
+            raise ValueError(
+                f"{error_prefix}: unknown fields {sorted(unknown_optional_keys)}"
+            )
+        optional_prompt = raw.get("prompt", "是否发动？")
+        if not isinstance(optional_prompt, str) or not optional_prompt:
+            raise ValueError(f"{error_prefix}/prompt: must be a non-empty string")
+        raw_ops = raw.get("operations", [])
+        if not isinstance(raw_ops, list):
+            raise ValueError(f"{error_prefix}/operations: must be a list")
+        optional_ops = tuple(
+            _parse_operation(op, f"{source_file}/operations[{idx}]", card_id, _depth + 1)
+            for idx, op in enumerate(raw_ops)
+        )
+        _validate_target_keys(optional_ops, f"{source_file}/operations (card {card_id})")
+
     return EffectOperation(
         kind=kind,
         target=target,
@@ -877,6 +1010,11 @@ def _parse_operation(raw: dict, source_file: str, card_id: int) -> EffectOperati
         graveyard_cost_min=graveyard_cost_min,
         graveyard_follower_only=graveyard_follower_only,
         graveyard_card_type=graveyard_card_type,
+        then_operations=then_ops,
+        else_operations=else_ops,
+        choose_one_options=choose_one_options,
+        optional_prompt=optional_prompt,
+        optional_operations=optional_ops,
     )
 
 

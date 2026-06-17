@@ -108,6 +108,9 @@ class EffectKind(str, Enum):
     RETURN_FROM_GRAVEYARD_TO_HAND = "return_from_graveyard_to_hand"
     SUMMON_FROM_GRAVEYARD = "summon_from_graveyard"
     BANISH_FROM_GRAVEYARD = "banish_from_graveyard"
+    CONDITIONAL = "conditional"
+    CHOOSE_ONE = "choose_one"
+    OPTIONAL = "optional"
 
 
 class TargetKind(str, Enum):
@@ -159,6 +162,14 @@ class CostChangeMode(str, Enum):
 
 
 @dataclass(frozen=True)
+class ChooseOneOption:
+    option_id: str
+    label: str
+    conditions: tuple["Condition", ...] = ()
+    operations: tuple["EffectOperation", ...] = ()
+
+
+@dataclass(frozen=True)
 class EffectOperation:
     kind: EffectKind
     target: TargetKind
@@ -182,6 +193,11 @@ class EffectOperation:
     graveyard_cost_min: int | None = None
     graveyard_follower_only: bool = False
     graveyard_card_type: str | None = None
+    then_operations: tuple["EffectOperation", ...] = ()
+    else_operations: tuple["EffectOperation", ...] = ()
+    choose_one_options: tuple["ChooseOneOption", ...] = ()
+    optional_prompt: str | None = None
+    optional_operations: tuple["EffectOperation", ...] = ()
     emblem_remove_mode: str = "first"
 
 
@@ -205,7 +221,11 @@ class EffectFrame:
     _hand_source_origin: Any = None
     _hand_source_origin_parent: Any = None
     _target_bindings: dict[str, int] = field(default_factory=dict)
+    _decision_meta: dict[str, Any] = field(default_factory=dict)
     emblem_batch_id: int | None = None
+    emblem_activation_owner: int | None = None
+    emblem_activation_entity_id: int | None = None
+    emblem_activation_trigger_index: int | None = None
     emblem_expiration_batch_id: int | None = None
     expiring_emblem_owner: int | None = None
     expiring_emblem_entity_id: int | None = None

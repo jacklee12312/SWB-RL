@@ -1213,6 +1213,7 @@ class GameEngine:
                         )
                     )
                 if frame.emblem_batch_id is not None:
+                    self._record_emblem_frame_activation(frame)
                     self._queue_next_emblem_trigger(frame.emblem_batch_id)
                 if frame.emblem_expiration_batch_id is not None:
                     self._complete_emblem_expiration(
@@ -1223,13 +1224,17 @@ class GameEngine:
                 continue
 
             operation = frame.operations[frame.next_index]
-            condition_state = evaluate_conditions_without_target(
-                operation.conditions,
-                self._build_eval_context(frame, None),
+            is_meta_effect = operation.kind in (
+                EffectKind.CONDITIONAL, EffectKind.CHOOSE_ONE, EffectKind.OPTIONAL,
             )
-            if condition_state is PartialConditionResult.FALSE:
-                frame.next_index += 1
-                continue
+            if not is_meta_effect:
+                condition_state = evaluate_conditions_without_target(
+                    operation.conditions,
+                    self._build_eval_context(frame, None),
+                )
+                if condition_state is PartialConditionResult.FALSE:
+                    frame.next_index += 1
+                    continue
 
             if operation.target is TargetKind.PREVIOUS_TARGET:
                 if not operation.target_key or operation.target_key not in frame._target_bindings:
@@ -1503,27 +1508,47 @@ class GameEngine:
         return True
 
     def _has_candidates(self, operation: EffectOperation) -> bool:
+        return self._has_candidates_for(
+            operation,
+            self.current_player,
+        )
+
+    def _has_candidates_for(
+        self,
+        operation: EffectOperation,
+        controller: int,
+        *,
+        source_entity_id: int | None = None,
+    ) -> bool:
         if operation.target == TargetKind.OWN_HAND:
-            return len(self.players[self.current_player].hand) > 1
+            return len(self.players[controller].hand) > 1
         if operation.target == TargetKind.RANDOM_OWN_HAND:
-            return len(self.players[self.current_player].hand) > 1
+            return len(self.players[controller].hand) > 1
         if operation.target == TargetKind.ALL_OWN_HAND:
             return True
         if is_graveyard_target(operation.target):
-            candidates = graveyard_candidates(operation, self.current_player, self.players)
+            candidates = graveyard_candidates(operation, controller, self.players)
             return bool(candidates)
         condition_state = evaluate_conditions_without_target(
             operation.conditions,
             EvalContext(
-                controller=self.current_player,
+                controller=controller,
                 players=self.players,
+                source_entity_id=source_entity_id,
             ),
         )
         if condition_state is PartialConditionResult.FALSE:
             return True
-        candidates = target_candidates(operation, self.current_player, self.players)
+        candidates = target_candidates(operation, controller, self.players)
         if is_choice_target(operation.target):
-            candidates = [e for e in candidates if not (isinstance(e, Unit) and e.ambush_active and self._entity_owner(e.entity_id) != self.current_player)]
+            candidates = [
+                e for e in candidates
+                if not (
+                    isinstance(e, Unit)
+                    and e.ambush_active
+                    and self._entity_owner(e.entity_id) != controller
+                )
+            ]
         if condition_state is PartialConditionResult.DEPENDS_ON_TARGET:
             candidates = [
                 entity
@@ -1531,8 +1556,9 @@ class GameEngine:
                 if evaluate_target_conditions(
                     operation.conditions,
                     entity,
-                    self.current_player,
+                    controller,
                     self.players,
+                    source_entity_id=source_entity_id,
                 )
             ]
         return bool(candidates)
@@ -1953,6 +1979,32 @@ class GameEngine:
         )
         if self.state.effect_stack:
             frame = self.state.effect_stack[-1]
+            if request.choice_kind is ChoiceKind.MODE:
+                self.state.pending_choice = None
+                self.state.phase = Phase.MAIN
+                self._resolve_choose_one_choice(frame, option.option_id)
+                self._continue_effects()
+                self._try_spellboost_hand()
+                return
+            if request.choice_kind is ChoiceKind.CONFIRM:
+                self.state.pending_choice = None
+                self.state.phase = Phase.MAIN
+                if option.option_id == "optional:yes":
+                    frame._decision_meta["optional_accepted"] = True
+                    optional_ops = frame._decision_meta.get("optional_operations", ())
+                    self._queue_effects(
+                        frame.source_card, frame.source_entity_id,
+                        optional_ops, controller=frame.controller,
+                        label=f"{frame.label}/optional",
+                    )
+                else:
+                    frame._decision_meta["optional_declined"] = all(
+                        operation.kind is EffectKind.OPTIONAL
+                        for operation in frame.operations
+                    )
+                self._continue_effects()
+                self._try_spellboost_hand()
+                return
             if option.entity_id is not None and option.option_id.startswith("entity:"):
                 on_board = False
                 for p in self.players:
@@ -2246,9 +2298,11 @@ class GameEngine:
         if operation.target is TargetKind.SELF:
             target_id = frame.source_entity_id
         ctx = self._build_eval_context(frame, target_id)
-        for cond in operation.conditions:
-            if not evaluate_condition(cond, ctx):
-                return
+        is_meta = operation.kind in (EffectKind.CONDITIONAL, EffectKind.CHOOSE_ONE, EffectKind.OPTIONAL)
+        if not is_meta:
+            for cond in operation.conditions:
+                if not evaluate_condition(cond, ctx):
+                    return
         amount = self._resolve_amount(operation, ctx)
         secondary = self._resolve_secondary(operation, ctx)
         if operation.kind is EffectKind.HEAL_LEADER:
@@ -2412,6 +2466,12 @@ class GameEngine:
             self._execute_gain_emblem(effect, frame)
         elif effect.kind is EffectKind.REMOVE_EMBLEM:
             self._execute_remove_emblem(effect, frame)
+        elif effect.kind is EffectKind.CONDITIONAL:
+            self._execute_conditional(effect, frame)
+        elif effect.kind is EffectKind.CHOOSE_ONE:
+            self._execute_choose_one(effect, frame)
+        elif effect.kind is EffectKind.OPTIONAL:
+            self._execute_optional(effect, frame)
         else:
             self._log(
                 frame.controller,
@@ -3144,8 +3204,8 @@ class GameEngine:
                     "active_player": self.state.active_player,
                 },
             ))
-            ei.record_activation(trigger_index)
             if not tr.operations:
+                ei.record_activation(trigger_index)
                 continue
             source_card_id = ei.definition.source_card_id
             source_card_name = f"纹章_{ei.emblem_id}"
@@ -3167,8 +3227,152 @@ class GameEngine:
                 label=f"纹章 {event_type}",
             )
             frame.emblem_batch_id = batch_id
+            frame.emblem_activation_owner = player_index
+            frame.emblem_activation_entity_id = ei.entity_id
+            frame.emblem_activation_trigger_index = trigger_index
             return
         self._emblem_batches.pop(batch_id, None)
+
+    def _record_emblem_frame_activation(self, frame: EffectFrame) -> None:
+        player_index = frame.emblem_activation_owner
+        entity_id = frame.emblem_activation_entity_id
+        trigger_index = frame.emblem_activation_trigger_index
+        if player_index is None or entity_id is None or trigger_index is None:
+            return
+        if (
+            frame._decision_meta.get("optional_declined")
+            and not frame._decision_meta.get("optional_accepted")
+        ):
+            return
+        player = self.players[player_index]
+        emblem = next(
+            (candidate for candidate in player.emblems if candidate.entity_id == entity_id),
+            None,
+        )
+        if emblem is not None and emblem.can_activate(trigger_index):
+            emblem.record_activation(trigger_index)
+
+    def _resolve_choose_one_choice(self, frame, option_id: str) -> None:
+        for opt in frame._decision_meta.get("choose_one_options", ()):
+            if f"choose_one:{opt.option_id}" == option_id:
+                self._queue_effects(
+                    frame.source_card, frame.source_entity_id,
+                    opt.operations, controller=frame.controller,
+                    label=f"{frame.label}/choose_one/{opt.label}",
+                )
+                return
+
+    def _execute_conditional(self, effect, frame) -> None:
+        ctx = EvalContext(
+            controller=frame.controller,
+            players=self.players,
+            source_entity_id=frame.source_entity_id,
+        )
+        result = evaluate_conditions_without_target(effect.conditions, ctx)
+        branch_ops = effect.then_operations if result is PartialConditionResult.TRUE else effect.else_operations
+        if branch_ops:
+            self._queue_effects(
+                frame.source_card, frame.source_entity_id,
+                branch_ops, controller=frame.controller,
+                label=f"{frame.label}/conditional",
+            )
+
+    def _execute_choose_one(self, effect, frame) -> None:
+        legal_options = []
+        for opt in effect.choose_one_options:
+            if opt.conditions:
+                ctx = EvalContext(
+                    controller=frame.controller,
+                    players=self.players,
+                    source_entity_id=frame.source_entity_id,
+                )
+                result = evaluate_conditions_without_target(opt.conditions, ctx)
+                if result is not PartialConditionResult.TRUE:
+                    continue
+            if opt.operations:
+                all_need_target = all(
+                    is_choice_target(op.target) or is_random_target(op.target) or is_all_target(op.target)
+                    for op in opt.operations
+                )
+                if all_need_target and all(
+                    not self._has_candidates_for(
+                        op,
+                        frame.controller,
+                        source_entity_id=frame.source_entity_id,
+                    )
+                    for op in opt.operations
+                ):
+                    continue
+            legal_options.append(opt)
+        if not legal_options:
+            return
+
+        if frame.auto_resolve_choices:
+            chosen = self.random.choice(legal_options)
+            self._log(frame.controller, f"自动选择：{chosen.label}")
+            self._queue_effects(
+                frame.source_card, frame.source_entity_id,
+                chosen.operations, controller=frame.controller,
+                label=f"{frame.label}/choose_one/{chosen.label}",
+            )
+            return
+
+        request_id = self._allocate_choice_request_id()
+        frame._decision_meta["choose_one_options"] = legal_options
+        self.state.pending_choice = ChoiceRequest(
+            player_index=frame.controller,
+            prompt=f"{frame.source_name} \u9009\u62e9\u4e00\u9879",
+            options=tuple(
+                ChoiceOption(option_id=f"choose_one:{opt.option_id}", label=opt.label)
+                for opt in legal_options
+            ),
+            continuation_id=f"{frame.source_card_id}:{frame.next_index}",
+            choice_kind=ChoiceKind.MODE,
+            request_id=request_id,
+        )
+        self.state.phase = Phase.AWAITING_CHOICE
+
+    def _execute_optional(self, effect, frame) -> None:
+        ops = effect.optional_operations
+        if not ops:
+            return
+        all_need_target = all(
+            is_choice_target(op.target) or is_random_target(op.target) or is_all_target(op.target)
+            for op in ops
+        )
+        if all_need_target and all(
+            not self._has_candidates_for(
+                op,
+                frame.controller,
+                source_entity_id=frame.source_entity_id,
+            )
+            for op in ops
+        ):
+            return
+
+        if frame.auto_resolve_choices:
+            self._queue_effects(
+                frame.source_card, frame.source_entity_id,
+                ops, controller=frame.controller,
+                label=f"{frame.label}/optional",
+            )
+            return
+
+        request_id = self._allocate_choice_request_id()
+        prompt = effect.optional_prompt or "\u662f\u5426\u53d1\u52a8\uff1f"
+        frame._decision_meta["optional_operations"] = ops
+        self.state.pending_choice = ChoiceRequest(
+            player_index=frame.controller,
+            prompt=prompt,
+            options=(
+                ChoiceOption(option_id="optional:yes", label="\u53d1\u52a8"),
+                ChoiceOption(option_id="optional:no", label="\u4e0d\u53d1\u52a8"),
+            ),
+            continuation_id=f"{frame.source_card_id}:{frame.next_index}",
+            choice_kind=ChoiceKind.CONFIRM,
+            request_id=request_id,
+        )
+        self.state.phase = Phase.AWAITING_CHOICE
 
     def _tick_emblem_countdowns(self, player_index: int) -> None:
         """Decrement countdowns on emblems at start of controller's turn."""

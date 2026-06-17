@@ -19,3 +19,9 @@ env/
 
 data/backups/
 data/**/*.log
+
+# Local database/query scratch files
+data/swb.db
+_query*.txt
+_tmp*.txt
+_tmp*.py

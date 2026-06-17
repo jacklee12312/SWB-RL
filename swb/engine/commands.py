@@ -16,6 +16,8 @@ class ChoiceKind(str, Enum):
     BOARD = "board"
     HAND = "hand"
     GRAVEYARD = "graveyard"
+    MODE = "mode"
+    CONFIRM = "confirm"
     GENERIC = "generic"
 
 
