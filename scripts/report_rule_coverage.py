@@ -70,6 +70,7 @@ def _classify_card(
     card: CardDefinition,
     ruled_cards: set[int],
     ruled_ops: dict[int, dict],
+    rule_metadata: dict[int, dict],
     ability_map: dict[int, list[str]],
     skill_text_map: dict[int, list[str]],
     support_map: dict[int, str],
@@ -117,13 +118,23 @@ def _classify_card(
                 missing_keywords.append(pattern)
 
     has_rule = card_id in ruled_cards
+    metadata = rule_metadata.get(card_id, {})
+    explicit_coverage = metadata.get("coverage")
 
     if has_rule:
         rule_info = ruled_ops[card_id]
         triggers = rule_info.get("triggers", [])
         ops = rule_info.get("effect_kinds", [])
-        result["coverage"] = "covered_partial" if missing_keywords else "covered_exact"
-        result["reason"] = f"Triggers: {triggers}, Ops: {ops}"
+        if explicit_coverage == "partial":
+            result["coverage"] = "covered_partial"
+            unsupported = metadata.get("unsupported_text")
+            result["reason"] = (
+                f"Partial rule. Triggers: {triggers}, Ops: {ops}"
+                + (f"; unsupported: {unsupported}" if unsupported else "")
+            )
+        else:
+            result["coverage"] = "covered_partial" if missing_keywords else "covered_exact"
+            result["reason"] = f"Triggers: {triggers}, Ops: {ops}"
     else:
         if missing_keywords:
             result["coverage"] = "missing_primitive"
@@ -143,6 +154,8 @@ def _classify_card(
     result["ability_keywords"] = abilities
     result["skill_texts"] = skill_texts
     result["support_level"] = support
+    if metadata:
+        result["rule_metadata"] = metadata
     return result
 
 
@@ -168,6 +181,7 @@ def _build_coverage_report(db_path: str, rules_dir: str) -> dict:
 
     ruled_cards: set[int] = set()
     ruled_ops: dict[int, dict] = {}
+    rule_metadata = _load_rule_metadata(rules_dir)
     for (cid, trigger), ops in rulebook._rules.items():
         ruled_cards.add(cid)
         ruled_ops.setdefault(cid, {"triggers": [], "effect_kinds": []})
@@ -219,7 +233,13 @@ def _build_coverage_report(db_path: str, rules_dir: str) -> dict:
     classifications = OrderedDict()
     for cid in sorted(all_cards):
         classifications[str(cid)] = _classify_card(
-            all_cards[cid], ruled_cards, ruled_ops, ability_map, skill_text_map, support_map
+            all_cards[cid],
+            ruled_cards,
+            ruled_ops,
+            rule_metadata,
+            ability_map,
+            skill_text_map,
+            support_map,
         )
 
     total = len(classifications)
@@ -228,8 +248,7 @@ def _build_coverage_report(db_path: str, rules_dir: str) -> dict:
         cat = v["coverage"]
         counts[cat] = counts.get(cat, 0) + 1
 
-    test_ids = sum(1 for v in classifications.values() if
-                   999000 <= int(v["card_id"]) <= 999999 or v["coverage"] == "test_only_rule")
+    test_ids = sum(1 for cid in ruled_cards if 999000 <= int(cid) <= 999999)
 
     rule_issues = []
     unknown_rules = sorted(ruled_cards - set(all_cards))
@@ -260,6 +279,29 @@ def _build_coverage_report(db_path: str, rules_dir: str) -> dict:
         ("classifications", classifications),
         ("top_20_recommendations", recommendations),
     ])
+
+
+def _load_rule_metadata(rules_dir: str) -> dict[int, dict]:
+    """Read optional coverage annotations from rule JSON files."""
+    metadata: dict[int, dict] = {}
+    path = Path(rules_dir)
+    if not path.exists():
+        return metadata
+    for file_path in sorted(path.glob("*.json")):
+        payload = json.loads(file_path.read_text(encoding="utf-8"))
+        entries = payload if isinstance(payload, list) else payload.get("rules", [])
+        for entry in entries:
+            if not isinstance(entry, dict) or "card_id" not in entry:
+                continue
+            cid = int(entry["card_id"])
+            item = {
+                key: entry[key]
+                for key in ("coverage", "implemented_text", "unsupported_text", "notes")
+                if key in entry
+            }
+            if item:
+                metadata.setdefault(cid, {}).update(item)
+    return metadata
 
 
 def _generate_recommendations(

@@ -144,6 +144,7 @@ class CoverageReportTests(unittest.TestCase):
             card,
             ruled_cards=set(),
             ruled_ops={},
+            rule_metadata={},
             ability_map={123456: ["唤灵"]},
             skill_text_map={},
             support_map={},

@@ -5,14 +5,14 @@
   },
   "summary": {
     "total_cards": 740,
-    "total_with_rules": 49,
-    "test_or_synthetic_ids_with_rules": 0,
+    "total_with_rules": 53,
+    "test_or_synthetic_ids_with_rules": 26,
     "coverage_counts": {
-      "covered_exact": 22,
-      "supported_missing_rule": 570,
+      "covered_exact": 25,
+      "supported_missing_rule": 566,
       "text_unclear": 23,
       "missing_primitive": 41,
-      "covered_partial": 1,
+      "covered_partial": 2,
       "token_or_non_collectible": 83
     }
   },
@@ -960,8 +960,8 @@
       "cost": 2,
       "is_collectible": true,
       "card_set_id": 10000,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '造成.*伤害']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['fanfare'], Ops: ['damage_unit']",
       "hit_keywords": [
         "入场曲",
         "造成.*伤害"
@@ -1026,8 +1026,8 @@
       "cost": 1,
       "is_collectible": true,
       "card_set_id": 10000,
-      "coverage": "covered_exact",
-      "reason": "Triggers: ['play'], Ops: ['damage_unit']",
+      "coverage": "covered_partial",
+      "reason": "Partial rule. Triggers: ['play'], Ops: ['damage_unit']; unsupported: 若为觉醒，则改为4点伤害。觉醒资源尚未实现。",
       "hit_keywords": [
         "造成.*伤害"
       ],
@@ -1038,7 +1038,12 @@
       "skill_texts": [
         "选择对手的战场上的1个随从，对其造成2点伤害。若为【<color=Keyword>觉醒</color>】，则改为4点伤害。"
       ],
-      "support_level": "unsupported"
+      "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "partial",
+        "implemented_text": "选择对手的战场上的1个随从，对其造成2点伤害。",
+        "unsupported_text": "若为觉醒，则改为4点伤害。觉醒资源尚未实现。"
+      }
     },
     "10042110": {
       "card_id": 10042110,
@@ -1262,8 +1267,8 @@
       "cost": 2,
       "is_collectible": true,
       "card_set_id": 10000,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['抽取', '破坏']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['play'], Ops: ['destroy', 'draw']",
       "hit_keywords": [
         "抽取",
         "破坏"
@@ -1942,8 +1947,8 @@
       "cost": 1,
       "is_collectible": true,
       "card_set_id": 10001,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['将.*加入手牌']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['play'], Ops: ['add_card', 'add_card']",
       "hit_keywords": [
         "将.*加入手牌"
       ],
@@ -13667,8 +13672,8 @@
       "cost": 1,
       "is_collectible": true,
       "card_set_id": 10006,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['破坏', '舍弃']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['play'], Ops: ['discard', 'destroy']",
       "hit_keywords": [
         "破坏",
         "舍弃"
@@ -17413,23 +17418,6 @@
       "suggested_rule_file": "batch_精灵.json"
     },
     {
-      "card_id": 10111310,
-      "name": "妖精召集令",
-      "class_name": "精灵",
-      "card_type": "法术",
-      "cost": 1,
-      "ability_keywords": [],
-      "hit_keywords": [
-        "将.*加入手牌"
-      ],
-      "confidence": "high",
-      "why_recommended": "Covered keywords: 将.*加入手牌",
-      "required_primitives": [
-        "将.*加入手牌"
-      ],
-      "suggested_rule_file": "batch_精灵.json"
-    },
-    {
       "card_id": 10151310,
       "name": "死神挥刀",
       "class_name": "梦魇",
@@ -17521,25 +17509,6 @@
       "suggested_rule_file": "batch_巫师.json"
     },
     {
-      "card_id": 10642310,
-      "name": "赤流",
-      "class_name": "龙族",
-      "card_type": "法术",
-      "cost": 1,
-      "ability_keywords": [],
-      "hit_keywords": [
-        "破坏",
-        "舍弃"
-      ],
-      "confidence": "high",
-      "why_recommended": "Covered keywords: 破坏, 舍弃",
-      "required_primitives": [
-        "破坏",
-        "舍弃"
-      ],
-      "suggested_rule_file": "batch_龙族.json"
-    },
-    {
       "card_id": 10711310,
       "name": "人格切换",
       "class_name": "精灵",
@@ -17610,25 +17579,6 @@
         "召唤"
       ],
       "suggested_rule_file": "batch_巫师.json"
-    },
-    {
-      "card_id": 10052310,
-      "name": "捕食灵魂",
-      "class_name": "梦魇",
-      "card_type": "法术",
-      "cost": 2,
-      "ability_keywords": [],
-      "hit_keywords": [
-        "抽取",
-        "破坏"
-      ],
-      "confidence": "high",
-      "why_recommended": "Covered keywords: 抽取, 破坏",
-      "required_primitives": [
-        "抽取",
-        "破坏"
-      ],
-      "suggested_rule_file": "batch_梦魇.json"
     },
     {
       "card_id": 10153310,
@@ -17750,6 +17700,65 @@
       "required_primitives": [
         "抽取",
         "破坏"
+      ],
+      "suggested_rule_file": "batch_龙族.json"
+    },
+    {
+      "card_id": 10373310,
+      "name": "歼灭的歌声",
+      "class_name": "超越者",
+      "card_type": "法术",
+      "cost": 2,
+      "ability_keywords": [],
+      "hit_keywords": [
+        "破坏",
+        "召唤"
+      ],
+      "confidence": "high",
+      "why_recommended": "Covered keywords: 破坏, 召唤",
+      "required_primitives": [
+        "破坏",
+        "召唤"
+      ],
+      "suggested_rule_file": "batch_超越者.json"
+    },
+    {
+      "card_id": 10411310,
+      "name": "彗星",
+      "class_name": "精灵",
+      "card_type": "法术",
+      "cost": 2,
+      "ability_keywords": [],
+      "hit_keywords": [
+        "抽取",
+        "造成.*伤害"
+      ],
+      "confidence": "high",
+      "why_recommended": "Covered keywords: 抽取, 造成.*伤害",
+      "required_primitives": [
+        "抽取",
+        "造成.*伤害"
+      ],
+      "suggested_rule_file": "batch_精灵.json"
+    },
+    {
+      "card_id": 10441120,
+      "name": "梅格的挚友·玛丽亲",
+      "class_name": "龙族",
+      "card_type": "随从",
+      "cost": 2,
+      "ability_keywords": [],
+      "hit_keywords": [
+        "进化时",
+        "超进化",
+        "回合结束"
+      ],
+      "confidence": "high",
+      "why_recommended": "Covered keywords: 进化时, 超进化, 回合结束",
+      "required_primitives": [
+        "进化时",
+        "超进化",
+        "回合结束"
       ],
       "suggested_rule_file": "batch_龙族.json"
     }

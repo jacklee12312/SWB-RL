@@ -1,0 +1,52 @@
+{
+    "rules": [
+        {
+            "card_id": 10031310,
+            "trigger": "play",
+            "operations": [
+                {"kind": "draw", "target": "own_leader", "amount": 1}
+            ]
+        },
+        {
+            "card_id": 10041310,
+            "coverage": "partial",
+            "implemented_text": "选择对手的战场上的1个随从，对其造成2点伤害。",
+            "unsupported_text": "若为觉醒，则改为4点伤害。觉醒资源尚未实现。",
+            "trigger": "play",
+            "operations": [
+                {"kind": "damage_unit", "target": "enemy_unit", "amount": 2}
+            ]
+        },
+        {
+            "card_id": 10041110,
+            "trigger": "fanfare",
+            "operations": [
+                {"kind": "damage_unit", "target": "enemy_unit", "amount": 1}
+            ]
+        },
+        {
+            "card_id": 10052310,
+            "trigger": "play",
+            "operations": [
+                {"kind": "destroy", "target": "own_unit"},
+                {"kind": "draw", "target": "own_leader", "amount": 2}
+            ]
+        },
+        {
+            "card_id": 10111310,
+            "trigger": "play",
+            "operations": [
+                {"kind": "add_card", "target": "own_leader", "card_id": 90011110},
+                {"kind": "add_card", "target": "own_leader", "card_id": 90011110}
+            ]
+        },
+        {
+            "card_id": 10642310,
+            "trigger": "play",
+            "operations": [
+                {"kind": "discard", "target": "own_hand"},
+                {"kind": "destroy", "target": "enemy_unit"}
+            ]
+        }
+    ]
+}

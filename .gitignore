@@ -23,5 +23,6 @@ data/**/*.log
 # Local database/query scratch files
 data/swb.db
 _query*.txt
+_query*.py
 _tmp*.txt
 _tmp*.py
