@@ -167,6 +167,12 @@ def evaluate_condition(cond: Condition | None, ctx: EvalContext | None) -> bool:
         return len(player.board) >= cond.value
     elif t == ConditionType.OPPONENT_BOARD_COUNT_AT_LEAST:
         return len(opponent.board) >= cond.value
+    elif t == ConditionType.CONTROLLER_BOARD_HAS:
+        threshold = cond.value if cond.value > 0 else 1
+        return _matching_board_count(player.board, cond) >= threshold
+    elif t == ConditionType.OPPONENT_BOARD_HAS:
+        threshold = cond.value if cond.value > 0 else 1
+        return _matching_board_count(opponent.board, cond) >= threshold
     elif t == ConditionType.CONTROLLER_HAND_COUNT_AT_LEAST:
         return len(player.hand) >= cond.value
     elif t == ConditionType.CONTROLLER_SHADOWS_AT_LEAST:
@@ -193,6 +199,12 @@ def evaluate_condition(cond: Condition | None, ctx: EvalContext | None) -> bool:
         return isinstance(target, Unit) and target.has_keyword(cond.keyword or "")
 
     raise ValueError(f"Unknown condition type: {t}")
+
+
+def _matching_board_count(board, cond: Condition) -> int:
+    if cond.board_filter is None:
+        return len(board)
+    return sum(1 for entity in board if cond.board_filter.matches_entity(entity))
 
 
 def evaluate_expression(expr: ValueExpression | None, ctx: EvalContext | None) -> int:

@@ -5,11 +5,11 @@
   },
   "summary": {
     "total_cards": 740,
-    "total_with_rules": 76,
+    "total_with_rules": 78,
     "test_or_synthetic_ids_with_rules": 26,
     "coverage_counts": {
-      "covered_exact": 45,
-      "supported_missing_rule": 545,
+      "covered_exact": 47,
+      "supported_missing_rule": 543,
       "text_unclear": 23,
       "missing_primitive": 41,
       "covered_partial": 3,
@@ -9125,8 +9125,8 @@
       "cost": 2,
       "is_collectible": true,
       "card_set_id": 10004,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['抽取', '造成.*伤害']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['play'], Ops: ['damage_unit', 'draw']",
       "hit_keywords": [
         "抽取",
         "造成.*伤害"
@@ -14369,8 +14369,8 @@
       "cost": 2,
       "is_collectible": true,
       "card_set_id": 10006,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['抽取', '造成.*伤害']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['play'], Ops: ['damage_unit', 'draw']",
       "hit_keywords": [
         "抽取",
         "造成.*伤害"
@@ -17535,25 +17535,6 @@
       "suggested_rule_file": "batch_超越者.json"
     },
     {
-      "card_id": 10411310,
-      "name": "彗星",
-      "class_name": "精灵",
-      "card_type": "法术",
-      "cost": 2,
-      "ability_keywords": [],
-      "hit_keywords": [
-        "抽取",
-        "造成.*伤害"
-      ],
-      "confidence": "high",
-      "why_recommended": "Covered keywords: 抽取, 造成.*伤害",
-      "required_primitives": [
-        "抽取",
-        "造成.*伤害"
-      ],
-      "suggested_rule_file": "batch_精灵.json"
-    },
-    {
       "card_id": 10441120,
       "name": "梅格的挚友·玛丽亲",
       "class_name": "龙族",
@@ -17681,25 +17662,6 @@
       "suggested_rule_file": "batch_巫师.json"
     },
     {
-      "card_id": 10671310,
-      "name": "天斧授予",
-      "class_name": "超越者",
-      "card_type": "法术",
-      "cost": 2,
-      "ability_keywords": [],
-      "hit_keywords": [
-        "抽取",
-        "造成.*伤害"
-      ],
-      "confidence": "high",
-      "why_recommended": "Covered keywords: 抽取, 造成.*伤害",
-      "required_primitives": [
-        "抽取",
-        "造成.*伤害"
-      ],
-      "suggested_rule_file": "batch_超越者.json"
-    },
-    {
       "card_id": 10772310,
       "name": "闪光一瞬",
       "class_name": "超越者",
@@ -17768,6 +17730,40 @@
         "将.*加入手牌"
       ],
       "suggested_rule_file": "batch_精灵.json"
+    },
+    {
+      "card_id": 10171310,
+      "name": "人偶替身",
+      "class_name": "超越者",
+      "card_type": "法术",
+      "cost": 3,
+      "ability_keywords": [],
+      "hit_keywords": [
+        "召唤"
+      ],
+      "confidence": "high",
+      "why_recommended": "Covered keywords: 召唤",
+      "required_primitives": [
+        "召唤"
+      ],
+      "suggested_rule_file": "batch_超越者.json"
+    },
+    {
+      "card_id": 10472310,
+      "name": "身无长物唯有石",
+      "class_name": "超越者",
+      "card_type": "法术",
+      "cost": 3,
+      "ability_keywords": [],
+      "hit_keywords": [
+        "造成.*伤害"
+      ],
+      "confidence": "high",
+      "why_recommended": "Covered keywords: 造成.*伤害",
+      "required_primitives": [
+        "造成.*伤害"
+      ],
+      "suggested_rule_file": "batch_超越者.json"
     }
   ]
 }

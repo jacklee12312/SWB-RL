@@ -6,7 +6,7 @@ from swb.db.repository import CardDefinition
 from swb.engine.card_rules import CardRule, RuleBook, Trigger
 from swb.engine.commands import Choose, PlayCard
 from swb.engine.effects import (
-    Condition, ConditionType, EffectKind, EffectOperation,
+    BoardFilter, Condition, ConditionType, EffectKind, EffectOperation,
     ExprType, TargetKind, ValueExpression,
 )
 from swb.engine.conditions import EvalContext, evaluate_condition, evaluate_expression
@@ -78,6 +78,29 @@ class ConditionEvalTests(unittest.TestCase):
     def test_opponent_board_count(self):
         ctx = EvalContext(0, [_player(board_count=3), _player(board_count=1)])
         self.assertEqual(evaluate_expression(ValueExpression(ExprType.OPPONENT_BOARD_COUNT), ctx), 1)
+
+    def test_board_has_with_filter(self):
+        own = _player()
+        other = Unit.summon(card(10, cost=2, name="other"), entity_id=10)
+        evolved = Unit.summon(card(11, cost=5, name="target"), entity_id=11)
+        evolved.evolved = True
+        own.board = [other, evolved]
+        ctx = EvalContext(0, [own, _player()])
+
+        self.assertTrue(evaluate_condition(
+            Condition(
+                ConditionType.CONTROLLER_BOARD_HAS,
+                board_filter=BoardFilter(card_type="随从", cost_min=5, evolved=True),
+            ),
+            ctx,
+        ))
+        self.assertFalse(evaluate_condition(
+            Condition(
+                ConditionType.OPPONENT_BOARD_HAS,
+                board_filter=BoardFilter(card_name="target"),
+            ),
+            ctx,
+        ))
 
 
 def _player(health=20, board_count=0):
@@ -192,6 +215,42 @@ class ConditionOperationTests(unittest.TestCase):
         engine.players[0].mana = 10
         engine.players[0].hand[0] = card(1, card_type="法术", attack=None, life=None)
         engine.apply(PlayCard(0, 0))
+        self.assertEqual(len(engine.players[0].hand), hb)
+
+    def test_board_has_condition_executes_extra_operation(self):
+        rulebook = RuleBook((
+            CardRule(card_id=1, trigger=Trigger.PLAY, operations=(
+                EffectOperation(
+                    kind=EffectKind.DRAW,
+                    target=TargetKind.OWN_LEADER,
+                    amount=1,
+                    conditions=(
+                        Condition(
+                            ConditionType.CONTROLLER_BOARD_HAS,
+                            board_filter=BoardFilter(cost_min=5),
+                        ),
+                    ),
+                ),
+            ),),
+        ))
+        engine = GameEngine(
+            [card(i) for i in range(100, 140)],
+            [card(i) for i in range(200, 240)],
+            class_a=1,
+            class_b=1,
+            seed=1,
+            rulebook=rulebook,
+        )
+        engine.reset(seed=1)
+        engine.players[0].board = [
+            Unit.summon(card(900, cost=5), entity_id=engine.state.allocate_entity_id())
+        ]
+        hb = len(engine.players[0].hand)
+        engine.players[0].mana = 10
+        engine.players[0].hand[0] = card(1, card_type="法术", attack=None, life=None)
+
+        engine.apply(PlayCard(0, 0))
+
         self.assertEqual(len(engine.players[0].hand), hb)
 
     def test_illegal_expression_raises(self):
@@ -361,6 +420,27 @@ class ConditionOperationTests(unittest.TestCase):
             with self.subTest(raw=raw):
                 with self.assertRaisesRegex(ValueError, "card 77"):
                     _parse_operation(raw, "bad.json", 77)
+
+    def test_parse_board_has_condition(self):
+        from swb.engine.card_rules import _parse_condition
+
+        cond = _parse_condition(
+            {
+                "type": "controller_board_has",
+                "value": 2,
+                "card_type_filter": "随从",
+                "cost_min": 5,
+                "evolved_filter": True,
+            },
+            "test.json",
+            77,
+        )
+
+        self.assertEqual(cond.type, ConditionType.CONTROLLER_BOARD_HAS)
+        self.assertEqual(cond.value, 2)
+        self.assertEqual(cond.board_filter.card_type, "随从")
+        self.assertEqual(cond.board_filter.cost_min, 5)
+        self.assertTrue(cond.board_filter.evolved)
 
 
 def _engine_with_spell(

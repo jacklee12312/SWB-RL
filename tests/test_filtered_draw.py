@@ -344,6 +344,7 @@ class FilteredDrawSchemaTests(unittest.TestCase):
                     "target_cost_max": 3,
                     "target_card_id_filter": 900,
                     "target_card_name_filter": "目标",
+                    "target_evolved_filter": True,
                 }],
             }],
         })
@@ -353,6 +354,7 @@ class FilteredDrawSchemaTests(unittest.TestCase):
         self.assertEqual(op.board_filter.cost_max, 3)
         self.assertEqual(op.board_filter.card_id, 900)
         self.assertEqual(op.board_filter.card_name, "目标")
+        self.assertTrue(op.board_filter.evolved)
 
     def test_json_rejects_board_filters_on_non_board_targets(self):
         payload = {

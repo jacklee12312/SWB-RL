@@ -257,6 +257,44 @@
                     "class_id_filter": 3
                 }
             ]
+        },
+        {
+            "card_id": 10411310,
+            "trigger": "play",
+            "operations": [
+                {"kind": "damage_unit", "target": "enemy_unit", "amount": 4},
+                {
+                    "kind": "draw",
+                    "target": "own_leader",
+                    "amount": 1,
+                    "conditions": [
+                        {
+                            "type": "controller_board_has",
+                            "card_type_filter": "随从",
+                            "evolved_filter": true
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "card_id": 10671310,
+            "trigger": "play",
+            "operations": [
+                {"kind": "damage_unit", "target": "enemy_unit", "amount": 4},
+                {
+                    "kind": "draw",
+                    "target": "own_leader",
+                    "amount": 1,
+                    "conditions": [
+                        {
+                            "type": "controller_board_has",
+                            "card_type_filter": "随从",
+                            "cost_min": 5
+                        }
+                    ]
+                }
+            ]
         }
     ]
 }

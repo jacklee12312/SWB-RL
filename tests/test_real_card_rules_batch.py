@@ -239,6 +239,8 @@ class DatabaseVerificationBatch3Tests(unittest.TestCase):
             10661310: ("\u5929\u4e66\u6388\u4e88", ["\u62bd\u53d62\u5f20\u62a4\u7b26"]),
             10231120: ("\u9b54\u5bfc\u56fe\u4e66\u7ba1\u7406\u5458", ["\u8fd4\u56de\u724c\u7ec4", "\u62bd\u53d61\u5f20\u6cd5\u672f"]),
             10632310: ("\u6b63\u5e38\u7684\u4fb5\u8680", ["\u5929\u6676\u9b54\u624b", "\u7834\u574f\u8be5\u968f\u4ece", "\u62bd\u53d62\u5f20\u5deb\u5e08\u00b7\u968f\u4ece"]),
+            10411310: ("\u5f57\u661f", ["4\u70b9\u4f24\u5bb3", "\u8fdb\u5316\u540e\u7684\u968f\u4ece", "\u62bd\u53d61\u5f20\u5361\u724c"]),
+            10671310: ("\u5929\u65a7\u6388\u4e88", ["4\u70b9\u4f24\u5bb3", "\u539f\u59cb\u8d39\u7528\u4e3a5\u6216\u4ee5\u4e0a", "\u62bd\u53d61\u5f20\u5361\u724c"]),
         }
         for card_id, (name_part, substrings) in expected.items():
             with self.subTest(card_id=card_id):
@@ -678,6 +680,79 @@ class BehaviorBatch3Tests(unittest.TestCase):
         self.assertNotIn(741, hand_ids)
         self.assertNotIn(742, hand_ids)
 
+    def test_10411310_damages_and_draws_with_evolved_follower(self):
+        engine = self._make_engine()
+        engine.reset(seed=42)
+        evolved = Unit.summon(_card(750, cost=1), entity_id=750)
+        evolved.evolved = True
+        target = Unit.summon(_card(751, attack=1, life=5), entity_id=751)
+        engine.players[0].board.append(evolved)
+        engine.players[1].board.append(target)
+        _insert_card(engine, _card(10411310, card_type="\u6cd5\u672f", cost=2, attack=None, life=None))
+        engine.players[0].mana = 10
+        hand_before = len(engine.players[0].hand)
+
+        engine.apply(PlayCard(0, 0))
+        choices = [c for c in engine.legal_commands() if isinstance(c, Choose)]
+        self.assertEqual([c.option_id for c in choices], [f"entity:{target.entity_id}"])
+        engine.apply(choices[0])
+
+        self.assertEqual(target.health, 1)
+        self.assertEqual(len(engine.players[0].hand), hand_before)
+
+    def test_10411310_no_evolved_follower_skips_draw(self):
+        engine = self._make_engine()
+        engine.reset(seed=42)
+        unevolved = Unit.summon(_card(752, cost=1), entity_id=752)
+        target = Unit.summon(_card(753, attack=1, life=5), entity_id=753)
+        engine.players[0].board.append(unevolved)
+        engine.players[1].board.append(target)
+        _insert_card(engine, _card(10411310, card_type="\u6cd5\u672f", cost=2, attack=None, life=None))
+        engine.players[0].mana = 10
+        hand_before = len(engine.players[0].hand)
+
+        engine.apply(PlayCard(0, 0))
+        engine.apply([c for c in engine.legal_commands() if isinstance(c, Choose)][0])
+
+        self.assertEqual(target.health, 1)
+        self.assertEqual(len(engine.players[0].hand), hand_before - 1)
+
+    def test_10671310_damages_and_draws_with_cost_five_follower(self):
+        engine = self._make_engine()
+        engine.reset(seed=42)
+        expensive = Unit.summon(_card(754, cost=5), entity_id=754)
+        target = Unit.summon(_card(755, attack=1, life=5), entity_id=755)
+        engine.players[0].board.append(expensive)
+        engine.players[1].board.append(target)
+        _insert_card(engine, _card(10671310, card_type="\u6cd5\u672f", cost=2, attack=None, life=None))
+        engine.players[0].mana = 10
+        hand_before = len(engine.players[0].hand)
+
+        engine.apply(PlayCard(0, 0))
+        choices = [c for c in engine.legal_commands() if isinstance(c, Choose)]
+        self.assertEqual([c.option_id for c in choices], [f"entity:{target.entity_id}"])
+        engine.apply(choices[0])
+
+        self.assertEqual(target.health, 1)
+        self.assertEqual(len(engine.players[0].hand), hand_before)
+
+    def test_10671310_no_cost_five_follower_skips_draw(self):
+        engine = self._make_engine()
+        engine.reset(seed=42)
+        cheap = Unit.summon(_card(756, cost=4), entity_id=756)
+        target = Unit.summon(_card(757, attack=1, life=5), entity_id=757)
+        engine.players[0].board.append(cheap)
+        engine.players[1].board.append(target)
+        _insert_card(engine, _card(10671310, card_type="\u6cd5\u672f", cost=2, attack=None, life=None))
+        engine.players[0].mana = 10
+        hand_before = len(engine.players[0].hand)
+
+        engine.apply(PlayCard(0, 0))
+        engine.apply([c for c in engine.legal_commands() if isinstance(c, Choose)][0])
+
+        self.assertEqual(target.health, 1)
+        self.assertEqual(len(engine.players[0].hand), hand_before - 1)
+
 
 class DeterminismBatch2Tests(unittest.TestCase):
     def test_same_seed_same_result(self):
@@ -707,7 +782,7 @@ class RulesLoadTests(unittest.TestCase):
             10052110, 10112120, 10251120, 10171110, 10601110, 10651110,
             10571310, 10022110, 10012310, 10151310, 10171320, 10031320,
             10172310, 10221310, 10252310, 10442310, 10021310, 10711310,
-            10661310, 10231120, 10632310,
+            10661310, 10231120, 10632310, 10411310, 10671310,
         ):
             ops_play = self.rb.operations_for(cid, Trigger.PLAY)
             ops_fanfare = self.rb.operations_for(cid, Trigger.FANFARE)

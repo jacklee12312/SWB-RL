@@ -249,7 +249,7 @@ def target_candidates(
     if operation.board_filter is not None:
         candidates = [
             e for e in candidates
-            if operation.board_filter.matches(e.definition)
+            if operation.board_filter.matches_entity(e)
         ]
 
     if is_manual_target(operation.target):

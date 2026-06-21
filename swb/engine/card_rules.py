@@ -66,6 +66,82 @@ def _check_target_conditions(conditions: tuple[Condition, ...], source: str) -> 
     return invalid
 
 
+def _parse_board_filter(
+    raw: dict,
+    *,
+    source_path: str,
+    card_id: int,
+    prefix: str = "",
+    allow_evolved: bool = False,
+) -> BoardFilter | None:
+    card_type_key = f"{prefix}card_type_filter"
+    cost_min_key = f"{prefix}cost_min"
+    cost_max_key = f"{prefix}cost_max"
+    card_id_key = f"{prefix}card_id_filter"
+    card_name_key = f"{prefix}card_name_filter"
+    evolved_key = f"{prefix}evolved_filter"
+
+    card_type = raw.get(card_type_key)
+    if card_type is not None:
+        if not isinstance(card_type, str):
+            raise ValueError(
+                f"{source_path}/{card_type_key} card {card_id}: must be a string"
+            )
+        if card_type not in _VALID_CARD_TYPES:
+            raise ValueError(
+                f"{source_path}/{card_type_key} card {card_id}: "
+                f"unknown card type {card_type!r}; valid: {sorted(_VALID_CARD_TYPES)}"
+            )
+
+    cost_min = raw.get(cost_min_key)
+    if cost_min is not None:
+        cost_min = _parse_non_negative_int(cost_min, f"{source_path}/{cost_min_key}", card_id)
+    cost_max = raw.get(cost_max_key)
+    if cost_max is not None:
+        cost_max = _parse_non_negative_int(cost_max, f"{source_path}/{cost_max_key}", card_id)
+    if cost_min is not None and cost_max is not None and cost_min > cost_max:
+        raise ValueError(
+            f"{source_path} card {card_id}: {cost_min_key} ({cost_min}) "
+            f"must not exceed {cost_max_key} ({cost_max})"
+        )
+
+    filter_card_id = raw.get(card_id_key)
+    if filter_card_id is not None:
+        filter_card_id = _parse_non_negative_int(
+            filter_card_id,
+            f"{source_path}/{card_id_key}",
+            card_id,
+        )
+
+    card_name = raw.get(card_name_key)
+    if card_name is not None and not isinstance(card_name, str):
+        raise ValueError(
+            f"{source_path}/{card_name_key} card {card_id}: must be a string"
+        )
+
+    evolved = raw.get(evolved_key)
+    if evolved is not None:
+        if not allow_evolved:
+            raise ValueError(
+                f"{source_path}/{evolved_key} card {card_id}: evolved filter is not valid here"
+            )
+        if not isinstance(evolved, bool):
+            raise ValueError(
+                f"{source_path}/{evolved_key} card {card_id}: must be boolean"
+            )
+
+    if not any(v is not None for v in (card_type, cost_min, cost_max, filter_card_id, card_name, evolved)):
+        return None
+    return BoardFilter(
+        card_type=card_type,
+        cost_min=cost_min,
+        cost_max=cost_max,
+        card_id=filter_card_id,
+        card_name=card_name,
+        evolved=evolved,
+    )
+
+
 class Trigger(str, Enum):
     PLAY = "play"
     FANFARE = "fanfare"
@@ -855,48 +931,13 @@ def _parse_operation(raw: dict, source_file: str, card_id: int, _depth: int = 0)
         raise ValueError(
             f"{source_file}/card_name_filter card {card_id}: must be a string"
         )
-    target_card_type = raw.get("target_card_type_filter")
-    if target_card_type is not None:
-        if not isinstance(target_card_type, str):
-            raise ValueError(
-                f"{source_file}/target_card_type_filter card {card_id}: must be a string"
-            )
-        if target_card_type not in _VALID_CARD_TYPES:
-            raise ValueError(
-                f"{source_file}/target_card_type_filter card {card_id}: "
-                f"unknown card type {target_card_type!r}; valid: {sorted(_VALID_CARD_TYPES)}"
-            )
-    target_cost_min = raw.get("target_cost_min")
-    if target_cost_min is not None:
-        target_cost_min = _parse_non_negative_int(
-            target_cost_min,
-            f"{source_file}/target_cost_min",
-            card_id,
-        )
-    target_cost_max = raw.get("target_cost_max")
-    if target_cost_max is not None:
-        target_cost_max = _parse_non_negative_int(
-            target_cost_max,
-            f"{source_file}/target_cost_max",
-            card_id,
-        )
-    if target_cost_min is not None and target_cost_max is not None and target_cost_min > target_cost_max:
-        raise ValueError(
-            f"{source_file} card {card_id}: target_cost_min ({target_cost_min}) "
-            f"must not exceed target_cost_max ({target_cost_max})"
-        )
-    target_card_id = raw.get("target_card_id_filter")
-    if target_card_id is not None:
-        target_card_id = _parse_non_negative_int(
-            target_card_id,
-            f"{source_file}/target_card_id_filter",
-            card_id,
-        )
-    target_card_name = raw.get("target_card_name_filter")
-    if target_card_name is not None and not isinstance(target_card_name, str):
-        raise ValueError(
-            f"{source_file}/target_card_name_filter card {card_id}: must be a string"
-        )
+    operation_board_filter = _parse_board_filter(
+        raw,
+        source_path=source_file,
+        card_id=card_id,
+        prefix="target_",
+        allow_evolved=True,
+    )
 
     _is_graveyard_kind = kind in _GRAVEYARD_EFFECT_KINDS
     _is_deck_filter_kind = kind is EffectKind.DRAW_FILTERED
@@ -950,13 +991,7 @@ def _parse_operation(raw: dict, source_file: str, card_id: int, _depth: int = 0)
                 f"{source_file} card {card_id}: {kind.value} requires a graveyard target, "
                 f"got {target.value!r}"
             )
-    board_filter_fields_present = any([
-        target_card_type is not None,
-        target_cost_min is not None,
-        target_cost_max is not None,
-        target_card_id is not None,
-        target_card_name is not None,
-    ])
+    board_filter_fields_present = operation_board_filter is not None
     if board_filter_fields_present:
         if target in _GRAVEYARD_TARGETS or target in (
             TargetKind.OWN_HAND,
@@ -971,13 +1006,7 @@ def _parse_operation(raw: dict, source_file: str, card_id: int, _depth: int = 0)
                 f"{source_file} card {card_id}: target_*_filter fields require "
                 f"a board target, got {target.value!r}"
             )
-        board_filter = BoardFilter(
-            card_type=target_card_type,
-            cost_min=target_cost_min,
-            cost_max=target_cost_max,
-            card_id=target_card_id,
-            card_name=target_card_name,
-        )
+        board_filter = operation_board_filter
     elif not _is_graveyard_kind:
         has_graveyard_filter = any([
             raw.get("cost_max") is not None and not _is_deck_filter_kind,
@@ -1242,10 +1271,20 @@ def _parse_condition(raw: dict, source_path: str, card_id: int) -> Condition:
                 f"{source_path}/keyword card {card_id}: {exc}"
             ) from exc
 
+    board_filter = None
+    if t in (ConditionType.CONTROLLER_BOARD_HAS, ConditionType.OPPONENT_BOARD_HAS):
+        board_filter = _parse_board_filter(
+            raw,
+            source_path=source_path,
+            card_id=card_id,
+            allow_evolved=True,
+        )
+
     return Condition(
         type=t,
         value=value,
         keyword=keyword,
+        board_filter=board_filter,
         conditions=sub,
     )
 

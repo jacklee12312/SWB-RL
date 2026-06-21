@@ -287,6 +287,39 @@ class TargetingTests(unittest.TestCase):
         choices = [c for c in engine.legal_commands() if isinstance(c, Choose)]
         self.assertEqual([c.option_id for c in choices], [f"entity:{valid.entity_id}"])
 
+    def test_manual_board_filter_can_require_evolved_unit(self):
+        rulebook = RuleBook((
+            CardRule(
+                card_id=1,
+                trigger=Trigger.PLAY,
+                operations=(
+                    EffectOperation(
+                        kind=EffectKind.DAMAGE_UNIT,
+                        target=TargetKind.ENEMY_UNIT,
+                        amount=2,
+                        board_filter=BoardFilter(evolved=True),
+                    ),
+                ),
+            ),
+        ))
+        engine = GameEngine(
+            [card(i) for i in range(100, 140)],
+            [card(i) for i in range(200, 240)],
+            class_a=1, class_b=1, seed=1, rulebook=rulebook,
+        )
+        engine.reset(seed=1)
+        evolved = Unit.summon(card(900, life=5), entity_id=900)
+        evolved.evolved = True
+        unevolved = Unit.summon(card(901, life=5), entity_id=901)
+        engine.players[1].board = [unevolved, evolved]
+        engine.players[0].mana = 10
+        engine.players[0].hand[0] = card(1, card_type="法术", attack=None, life=None)
+
+        engine.apply(PlayCard(0, 0))
+
+        choices = [c for c in engine.legal_commands() if isinstance(c, Choose)]
+        self.assertEqual([c.option_id for c in choices], [f"entity:{evolved.entity_id}"])
+
     def test_random_and_all_board_filters_share_candidate_logic(self):
         rulebook = RuleBook((
             CardRule(

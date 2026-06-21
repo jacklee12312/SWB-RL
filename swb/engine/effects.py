@@ -19,6 +19,8 @@ class ConditionType(str, Enum):
     OPPONENT_HEALTH_AT_LEAST = "opponent_health_at_least"
     CONTROLLER_BOARD_COUNT_AT_LEAST = "controller_board_count_at_least"
     OPPONENT_BOARD_COUNT_AT_LEAST = "opponent_board_count_at_least"
+    CONTROLLER_BOARD_HAS = "controller_board_has"
+    OPPONENT_BOARD_HAS = "opponent_board_has"
     CONTROLLER_HAND_COUNT_AT_LEAST = "controller_hand_count_at_least"
     TARGET_ATTACK_AT_MOST = "target_attack_at_most"
     TARGET_ATTACK_AT_LEAST = "target_attack_at_least"
@@ -58,6 +60,7 @@ class Condition:
     type: ConditionType
     value: int = 0
     keyword: str | None = None
+    board_filter: "BoardFilter | None" = None
     conditions: list[Condition] = field(default_factory=list)
 
     @classmethod
@@ -199,6 +202,7 @@ class BoardFilter:
     cost_max: int | None = None
     card_id: int | None = None
     card_name: str | None = None
+    evolved: bool | None = None
 
     def matches(self, card: CardDefinition) -> bool:
         return (
@@ -208,6 +212,14 @@ class BoardFilter:
             and (self.card_id is None or card.card_id == self.card_id)
             and (self.card_name is None or card.name == self.card_name)
         )
+
+    def matches_entity(self, entity: Any) -> bool:
+        definition = getattr(entity, "definition", None)
+        if definition is None or not self.matches(definition):
+            return False
+        if self.evolved is not None and getattr(entity, "evolved", False) is not self.evolved:
+            return False
+        return True
 
 
 @dataclass(frozen=True)
