@@ -48,6 +48,7 @@ PRIMITIVE_KEYWORD_MAP = OrderedDict([
     ("舍弃", {"primitive": "DISCARD", "covered": True}),
     ("死灵术|唤灵", {"primitive": "NECROMANCY", "covered": True}),
     ("魔力增幅", {"primitive": "SPELLBOOST_HAND / passive", "covered": True}),
+    ("无法使用", {"primitive": "cannot_be_played passive", "covered": True}),
     ("协作", {"primitive": "COOPERATION value / conditions", "covered": True}),
     ("纹章", {"primitive": "GAIN_EMBLEM / EMBLEM system", "covered": True}),
     ("土之秘术|土之印", {"primitive": "EARTH_RITE (placeholder)", "covered": False}),
@@ -193,10 +194,12 @@ def _build_coverage_report(db_path: str, rules_dir: str) -> dict:
         ruled_ops.setdefault(cid, {"triggers": [], "effect_kinds": []})
         ruled_ops[cid]["triggers"].append("play_modes")
         ruled_ops[cid]["effect_kinds"].append("play_mode")
-    for cid in rulebook._passives:
+    for cid, passives in rulebook._passives.items():
         ruled_cards.add(cid)
         ruled_ops.setdefault(cid, {"triggers": [], "effect_kinds": []})
         ruled_ops[cid]["triggers"].append("passive")
+        for passive in passives:
+            ruled_ops[cid]["effect_kinds"].append(passive.kind)
     for emblem_id, ed in rulebook._emblem_defs.items():
         ruled_cards.add(ed.source_card_id)
         ruled_ops.setdefault(ed.source_card_id, {"triggers": [], "effect_kinds": []})

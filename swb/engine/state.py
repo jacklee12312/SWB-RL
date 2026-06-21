@@ -194,6 +194,7 @@ class HandCard:
     cost_modifiers: list[CostModifier] = field(default_factory=list)
     spellboost_count: int = 0
     spellboost_cost_reduction: int = 0
+    cannot_be_played: bool = False
     origin: CardOrigin = CardOrigin.DECK
     source_origin: CardOrigin | None = None
 

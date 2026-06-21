@@ -1002,6 +1002,27 @@ class SpellboostAllCardsTests(unittest.TestCase):
         self.assertEqual(hand_card.spellboost_cost_reduction, 1)
         self.assertEqual(hand_card.current_cost, 3)
 
+    def test_ensure_entity_ids_initializes_cannot_be_played(self):
+        rulebook = RuleBook(passives=(CardPassive(101, "cannot_be_played", 0),))
+        eng = mkengine(rulebook=rulebook)
+        eng.players[0].hand[0] = card(
+            101,
+            cost=1,
+            card_type="护符",
+            attack=None,
+            life=None,
+        )
+        eng.players[0].mana = 10
+        eng._ensure_entity_ids()
+        hand_card = eng.players[0].hand[0]
+        self.assertTrue(hand_card.cannot_be_played)
+        self.assertFalse(
+            any(
+                isinstance(command, PlayCard) and command.hand_index == 0
+                for command in eng.legal_commands()
+            )
+        )
+
     def test_reset_clears_spellboost_pending(self):
         eng = mkengine()
         eng._spellboost_pending = 1
@@ -1100,6 +1121,35 @@ class SpellboostAllCardsTests(unittest.TestCase):
                 json.dump(payload, f)
             with self.assertRaises(ValueError):
                 RuleBook.from_directory(d)
+        finally:
+            os.remove(fp)
+            os.rmdir(d)
+
+    def test_cannot_be_played_passive_allows_omitted_amount(self):
+        import json, tempfile, os
+        payload = {"passives": [{"card_id": 1, "kind": "cannot_be_played"}], "rules": []}
+        d = tempfile.mkdtemp()
+        try:
+            fp = os.path.join(d, "ok.json")
+            with open(fp, "w") as f:
+                json.dump(payload, f)
+            rb = RuleBook.from_directory(d)
+            self.assertTrue(rb.cannot_be_played(1))
+        finally:
+            os.remove(fp)
+            os.rmdir(d)
+
+    def test_cannot_be_played_passive_rejects_nonzero_amount(self):
+        import json, tempfile, os
+        payload = {"passives": [{"card_id": 1, "kind": "cannot_be_played", "amount": 1}], "rules": []}
+        d = tempfile.mkdtemp()
+        try:
+            fp = os.path.join(d, "bad.json")
+            with open(fp, "w") as f:
+                json.dump(payload, f)
+            with self.assertRaises(ValueError) as ctx:
+                RuleBook.from_directory(d)
+            self.assertIn("must be 0 or omitted", str(ctx.exception))
         finally:
             os.remove(fp)
             os.rmdir(d)

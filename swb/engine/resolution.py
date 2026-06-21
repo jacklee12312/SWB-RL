@@ -458,6 +458,8 @@ class GameEngine:
         return hand_card.cost
 
     def _is_mode_playable(self, card, player, mode_def) -> bool:
+        if isinstance(card, HandCard) and card.cannot_be_played:
+            return False
         cost = self.effective_play_cost(card, mode_def)
         if cost > player.mana:
             return False
@@ -4161,6 +4163,14 @@ class GameEngine:
                     hand_card = card
                     if hand_card.entity_id <= 0:
                         hand_card.entity_id = old_id
+                    hand_card.spellboost_cost_reduction = (
+                        self.rulebook.spellboost_cost_reduction(
+                            hand_card.definition.card_id
+                        )
+                    )
+                    hand_card.cannot_be_played = self.rulebook.cannot_be_played(
+                        hand_card.definition.card_id
+                    )
                 else:
                     hand_card = self._make_hand_card(card, old_id)
                 if hand_card.entity_id <= 0 or hand_card.entity_id in seen:
@@ -4216,6 +4226,7 @@ class GameEngine:
             spellboost_cost_reduction=self.rulebook.spellboost_cost_reduction(
                 definition.card_id
             ),
+            cannot_be_played=self.rulebook.cannot_be_played(definition.card_id),
             origin=origin,
             source_origin=source_origin,
         )

@@ -8,7 +8,7 @@
 | Metric | Count |
 |---|---|
 | Total cards in DB | 740 |
-| Cards with rules | 61 |
+| Cards with rules | 62 |
 | Test/synthetic IDs with rules | 26 |
 
 ### Coverage Categories
@@ -77,6 +77,7 @@
 | 舍弃 | DISCARD | True |
 | 死灵术|唤灵 | NECROMANCY | True |
 | 魔力增幅 | SPELLBOOST_HAND / passive | True |
+| 无法使用 | cannot_be_played passive | True |
 | 协作 | COOPERATION value / conditions | True |
 | 纹章 | GAIN_EMBLEM / EMBLEM system | True |
 | 土之秘术|土之印 | EARTH_RITE (placeholder) | False |

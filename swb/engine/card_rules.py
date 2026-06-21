@@ -160,6 +160,12 @@ class RuleBook:
                 return p.amount
         return 0
 
+    def cannot_be_played(self, card_id: int) -> bool:
+        return any(
+            p.kind == "cannot_be_played"
+            for p in self._passives.get(card_id, [])
+        )
+
     @classmethod
     def from_directory(cls, directory: str | Path) -> "RuleBook":
         path = Path(directory)
@@ -490,8 +496,21 @@ def _parse_passive(raw: dict, source_file: str) -> CardPassive:
             f"{source_file}/card_id: must be a positive integer, got {card_id!r}"
         )
     kind = raw.get("kind")
-    if kind not in ("spellboost_cost_reduction",):
+    if kind not in ("spellboost_cost_reduction", "cannot_be_played"):
         raise ValueError(f"{source_file} card {card_id}: unknown passive kind {kind!r}")
+    if kind == "cannot_be_played":
+        amount = raw.get("amount")
+        if amount is None:
+            return CardPassive(card_id=int(card_id), kind=kind, amount=0)
+        if isinstance(amount, bool) or not isinstance(amount, int):
+            raise ValueError(
+                f"{source_file} card {card_id}/amount: must be 0 or omitted for {kind!r}"
+            )
+        if amount != 0:
+            raise ValueError(
+                f"{source_file} card {card_id}/amount: must be 0 or omitted for {kind!r}"
+            )
+        return CardPassive(card_id=int(card_id), kind=kind, amount=0)
     amount = raw.get("amount")
     if amount is None:
         raise ValueError(f"{source_file} card {card_id}/amount: required for {kind!r}")

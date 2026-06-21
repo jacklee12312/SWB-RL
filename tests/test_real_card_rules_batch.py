@@ -10,6 +10,7 @@ import unittest
 from swb.db.repository import CardDefinition, CardRepository
 from swb.engine.card_rules import CardRule, RuleBook, Trigger
 from swb.engine.commands import Choose, EndTurn, PlayCard
+from swb.engine.environment import ShadowverseEnv
 from swb.engine.effects import EffectKind, EffectOperation, TargetKind
 from swb.engine.events import EventType
 from swb.engine.origin import CardOrigin
@@ -271,6 +272,75 @@ class BehaviorBatch2Tests(unittest.TestCase):
         ]
         self.assertEqual(len(cores), 1)
         self.assertEqual(cores[0].definition.card_type, "\u62a4\u7b26")
+        self.assertTrue(cores[0].cannot_be_played)
+
+    def test_90071220_cannot_be_played_passive_blocks_core_play(self):
+        engine = self._make_engine()
+        engine.reset(seed=42)
+        _insert_card(
+            engine,
+            _card(
+                90071220,
+                name="\u8fc7\u5f80\u6838\u5fc3",
+                card_type="\u62a4\u7b26",
+                attack=None,
+                life=None,
+                card_set_id=90000,
+                is_collectible=False,
+            ),
+        )
+        engine._ensure_entity_ids()
+        engine.players[0].mana = 10
+        core = engine.players[0].hand[0]
+
+        self.assertTrue(core.cannot_be_played)
+        self.assertFalse(
+            any(
+                isinstance(command, PlayCard) and command.hand_index == 0
+                for command in engine.legal_commands()
+            )
+        )
+        before = (
+            len(engine.players[0].hand),
+            len(engine.players[0].board),
+            engine.players[0].mana,
+        )
+        with self.assertRaises(IllegalCommand):
+            engine.apply(PlayCard(0, 0))
+        after = (
+            len(engine.players[0].hand),
+            len(engine.players[0].board),
+            engine.players[0].mana,
+        )
+        self.assertEqual(after, before)
+
+    def test_90071220_cannot_be_played_passive_blocks_rl_action_mask(self):
+        rb = RuleBook.from_directory("data/rules")
+        core = _card(
+            90071220,
+            name="\u8fc7\u5f80\u6838\u5fc3",
+            card_type="\u62a4\u7b26",
+            attack=None,
+            life=None,
+            card_set_id=90000,
+            is_collectible=False,
+        )
+        resolver = _resolver({90071220: core})
+        env = ShadowverseEnv(
+            [_card(i) for i in range(1000, 1040)],
+            [_card(i) for i in range(2000, 2040)],
+            class_a=1,
+            class_b=1,
+            seed=42,
+            rulebook=rb,
+            card_resolver=resolver,
+        )
+        env.reset(seed=42)
+        _insert_card(env.core, core)
+        env.core._ensure_entity_ids()
+        env.core.players[0].mana = 10
+
+        self.assertFalse(env.action_mask()[ShadowverseEnv.PLAY_OFFSET])
 
     def test_10601110_lw_damages_enemy_leader(self):
         engine = self._make_engine()
@@ -371,7 +441,8 @@ class RulesLoadTests(unittest.TestCase):
         report = _build_coverage_report("data/cards.sqlite3", "data/rules")
         info = report["classifications"]["10171110"]
         self.assertEqual(info["coverage"], "covered_partial")
-        self.assertIn("无法使用", info["rule_metadata"]["unsupported_text"])
+        self.assertIn("融合", info["rule_metadata"]["unsupported_text"])
+        self.assertNotIn("无法使用", info["rule_metadata"]["unsupported_text"])
 
 
 class BehaviorTests(unittest.TestCase):

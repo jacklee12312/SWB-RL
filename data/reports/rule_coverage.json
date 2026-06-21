@@ -5,7 +5,7 @@
   },
   "summary": {
     "total_cards": 740,
-    "total_with_rules": 61,
+    "total_with_rules": 62,
     "test_or_synthetic_ids_with_rules": 26,
     "coverage_counts": {
       "covered_exact": 32,
@@ -235,6 +235,10 @@
     },
     "魔力增幅": {
       "primitive": "SPELLBOOST_HAND / passive",
+      "covered": true
+    },
+    "无法使用": {
+      "primitive": "cannot_be_played passive",
       "covered": true
     },
     "协作": {
@@ -3010,7 +3014,7 @@
       "is_collectible": true,
       "card_set_id": 10001,
       "coverage": "covered_exact",
-      "reason": "Triggers: ['play', 'passive'], Ops: ['set_stats', 'add_attack_restriction']",
+      "reason": "Triggers: ['play', 'passive'], Ops: ['set_stats', 'add_attack_restriction', 'spellboost_cost_reduction']",
       "hit_keywords": [
         "回合结束",
         "魔力增幅",
@@ -4640,7 +4644,7 @@
       "is_collectible": true,
       "card_set_id": 10001,
       "coverage": "covered_partial",
-      "reason": "Partial rule. Triggers: ['last_words'], Ops: ['add_card']; unsupported: 『过往核心』自身的融合与无法使用文本尚未实现；生成后可能被引擎当作普通护符使用。",
+      "reason": "Partial rule. Triggers: ['last_words'], Ops: ['add_card']; unsupported: 『过往核心』自身的融合文本尚未实现。",
       "hit_keywords": [
         "谢幕曲",
         "将.*加入手牌"
@@ -4656,7 +4660,7 @@
       "rule_metadata": {
         "coverage": "partial",
         "implemented_text": "【谢幕曲】将1张『过往核心』加入手牌。",
-        "unsupported_text": "『过往核心』自身的融合与无法使用文本尚未实现；生成后可能被引擎当作普通护符使用。"
+        "unsupported_text": "『过往核心』自身的融合文本尚未实现。"
       }
     },
     "10171120": {
