@@ -8,7 +8,7 @@ import unittest
 from swb.db.repository import CardDefinition
 from swb.engine.card_rules import CardRule, RuleBook, Trigger
 from swb.engine.commands import Choose, PlayCard
-from swb.engine.effects import EffectKind, EffectOperation, TargetKind
+from swb.engine.effects import DeckFilter, EffectKind, EffectOperation, TargetKind
 from swb.engine.events import EventType
 from swb.engine.resolution import GameEngine
 from swb.engine.state import HandCard
@@ -74,8 +74,7 @@ class FilteredDrawTests(unittest.TestCase):
                     EffectKind.DRAW_FILTERED,
                     TargetKind.OWN_LEADER,
                     amount=2,
-                    deck_card_type="随从",
-                    deck_class_id=2,
+                    deck_filter=DeckFilter(card_type="随从", class_id=2),
                 ),
             ),
         ))
@@ -104,8 +103,7 @@ class FilteredDrawTests(unittest.TestCase):
                     EffectKind.DRAW_FILTERED,
                     TargetKind.ENEMY_LEADER,
                     amount=1,
-                    deck_card_type="随从",
-                    deck_class_name="皇家护卫",
+                    deck_filter=DeckFilter(card_type="随从", class_name="皇家护卫"),
                 ),
             ),
         ))
@@ -128,7 +126,7 @@ class FilteredDrawTests(unittest.TestCase):
                     EffectKind.DRAW_FILTERED,
                     TargetKind.OWN_LEADER,
                     amount=1,
-                    deck_card_type="护符",
+                    deck_filter=DeckFilter(card_type="护符"),
                 ),
             ),
         ))
@@ -150,7 +148,7 @@ class FilteredDrawTests(unittest.TestCase):
                     EffectKind.DRAW_FILTERED,
                     TargetKind.OWN_LEADER,
                     amount=1,
-                    deck_card_type="随从",
+                    deck_filter=DeckFilter(card_type="随从"),
                 ),
             ),
         ))
@@ -179,8 +177,7 @@ class FilteredDrawTests(unittest.TestCase):
                     EffectKind.DRAW_FILTERED,
                     TargetKind.OWN_LEADER,
                     amount=1,
-                    deck_card_type="随从",
-                    deck_class_id=2,
+                    deck_filter=DeckFilter(card_type="随从", class_id=2),
                 ),
             ),
         ))
@@ -199,6 +196,32 @@ class FilteredDrawTests(unittest.TestCase):
 
         self.assertTrue(any(h.card_id == 60 for h in eng.players[0].hand))
         self.assertEqual(len(eng.players[0].deck), 0)
+
+    def test_draw_filtered_supports_cost_card_id_and_name_filters(self):
+        rb = RuleBook((
+            spell_rule(
+                1,
+                EffectOperation(
+                    EffectKind.DRAW_FILTERED,
+                    TargetKind.OWN_LEADER,
+                    amount=1,
+                    deck_filter=DeckFilter(cost_min=2, cost_max=4, card_id=91, card_name="target"),
+                ),
+            ),
+        ))
+        eng = engine_with(rb)
+        eng.players[0].deck = [
+            card(90, name="target", cost=1),
+            card(91, name="wrong", cost=3),
+            card(91, name="target", cost=5),
+            card(91, name="target", cost=3),
+        ]
+        put_spell_in_hand(eng, 1)
+
+        eng.apply(PlayCard(0, 0))
+
+        self.assertTrue(any(h.card_id == 91 and h.definition.name == "target" for h in eng.players[0].hand))
+        self.assertEqual(len(eng.players[0].deck), 3)
 
 
 class FilteredDrawSchemaTests(unittest.TestCase):
@@ -230,9 +253,31 @@ class FilteredDrawSchemaTests(unittest.TestCase):
         })
         op = rb.operations_for(1, Trigger.PLAY)[0]
         self.assertEqual(op.kind, EffectKind.DRAW_FILTERED)
-        self.assertEqual(op.deck_card_type, "随从")
-        self.assertEqual(op.deck_class_id, 2)
-        self.assertEqual(op.deck_class_name, "皇家护卫")
+        self.assertEqual(op.deck_filter.card_type, "随从")
+        self.assertEqual(op.deck_filter.class_id, 2)
+        self.assertEqual(op.deck_filter.class_name, "皇家护卫")
+
+    def test_json_parses_extended_draw_filtered_filters(self):
+        rb = self._load_payload({
+            "rules": [{
+                "card_id": 1,
+                "trigger": "play",
+                "operations": [{
+                    "kind": "draw_filtered",
+                    "target": "own_leader",
+                    "amount": 1,
+                    "cost_min": 2,
+                    "cost_max": 4,
+                    "card_id_filter": 123,
+                    "card_name_filter": "目标",
+                }],
+            }],
+        })
+        op = rb.operations_for(1, Trigger.PLAY)[0]
+        self.assertEqual(op.deck_filter.cost_min, 2)
+        self.assertEqual(op.deck_filter.cost_max, 4)
+        self.assertEqual(op.deck_filter.card_id, 123)
+        self.assertEqual(op.deck_filter.card_name, "目标")
 
     def test_json_rejects_draw_filtered_board_target(self):
         payload = {
@@ -267,6 +312,24 @@ class FilteredDrawSchemaTests(unittest.TestCase):
         with self.assertRaises(ValueError) as ctx:
             self._load_payload(payload)
         self.assertIn("only valid with draw_filtered", str(ctx.exception))
+
+    def test_json_rejects_invalid_extended_filters(self):
+        payload = {
+            "rules": [{
+                "card_id": 1,
+                "trigger": "play",
+                "operations": [{
+                    "kind": "draw_filtered",
+                    "target": "own_leader",
+                    "amount": 1,
+                    "cost_min": 5,
+                    "cost_max": 4,
+                }],
+            }],
+        }
+        with self.assertRaises(ValueError) as ctx:
+            self._load_payload(payload)
+        self.assertIn("cost_min", str(ctx.exception))
 
 
 if __name__ == "__main__":

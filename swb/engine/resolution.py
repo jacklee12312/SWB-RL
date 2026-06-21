@@ -30,6 +30,7 @@ from swb.engine.effects import (
     Condition,
     ConditionType,
     CostChangeMode,
+    DeckFilter,
     EffectFrame,
     EffectKind,
     EffectOperation,
@@ -2237,18 +2238,14 @@ class GameEngine:
         self,
         player_index: int,
         *,
-        card_type: str | None = None,
-        class_id: int | None = None,
-        class_name: str | None = None,
+        deck_filter: DeckFilter | None = None,
         reason: str,
     ) -> None:
         player = self.players[player_index]
         candidates = [
             index
             for index, card in enumerate(player.deck)
-            if (card_type is None or card.card_type == card_type)
-            and (class_id is None or card.class_id == class_id)
-            and (class_name is None or card.class_name == class_name)
+            if deck_filter is None or deck_filter.matches(card)
         ]
         if not candidates:
             self._log(player_index, f"{reason}：没有符合条件的卡牌")
@@ -2264,9 +2261,13 @@ class GameEngine:
                     metadata={
                         "card_id": card.card_id,
                         "filtered": True,
-                        "card_type_filter": card_type,
-                        "class_id_filter": class_id,
-                        "class_name_filter": class_name,
+                        "card_type_filter": None if deck_filter is None else deck_filter.card_type,
+                        "class_id_filter": None if deck_filter is None else deck_filter.class_id,
+                        "class_name_filter": None if deck_filter is None else deck_filter.class_name,
+                        "cost_min_filter": None if deck_filter is None else deck_filter.cost_min,
+                        "cost_max_filter": None if deck_filter is None else deck_filter.cost_max,
+                        "card_id_filter": None if deck_filter is None else deck_filter.card_id,
+                        "card_name_filter": None if deck_filter is None else deck_filter.card_name,
                     },
                 )
             )
@@ -2377,9 +2378,7 @@ class GameEngine:
                 graveyard_cost_min=operation.graveyard_cost_min,
                 graveyard_follower_only=operation.graveyard_follower_only,
                 graveyard_card_type=operation.graveyard_card_type,
-                deck_card_type=operation.deck_card_type,
-                deck_class_id=operation.deck_class_id,
-                deck_class_name=operation.deck_class_name,
+                deck_filter=operation.deck_filter,
                 emblem_remove_mode=operation.emblem_remove_mode,
             )
             self._execute_effect(resolved, frame, target_id)
@@ -2415,9 +2414,7 @@ class GameEngine:
             for _ in range(effect.amount):
                 self._draw_filtered(
                     draw_player,
-                    card_type=effect.deck_card_type,
-                    class_id=effect.deck_class_id,
-                    class_name=effect.deck_class_name,
+                    deck_filter=effect.deck_filter,
                     reason=f"{name} {frame.label}抽牌",
                 )
         elif effect.kind is EffectKind.HEAL_LEADER:

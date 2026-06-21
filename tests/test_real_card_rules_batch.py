@@ -236,6 +236,8 @@ class DatabaseVerificationBatch3Tests(unittest.TestCase):
             10442310: ("\u81f3\u7231\u72c2\u8f70", ["3\u70b9\u4f24\u5bb3", "\u65e0\u6cd5\u653b\u51fb"]),
             10021310: ("\u5973\u4ec6\u7684\u793c\u4eea", ["\u8fd4\u56de\u724c\u7ec4", "\u62bd\u53d62\u5f20\u7687\u5bb6\u62a4\u536b\u00b7\u968f\u4ece"]),
             10711310: ("\u4eba\u683c\u5207\u6362", ["\u9009\u62e9\u81ea\u5df1\u76842\u5f20\u624b\u724c", "\u8fd4\u56de\u724c\u7ec4", "\u62bd\u53d62\u5f20"]),
+            10661310: ("\u5929\u4e66\u6388\u4e88", ["\u62bd\u53d62\u5f20\u62a4\u7b26"]),
+            10231120: ("\u9b54\u5bfc\u56fe\u4e66\u7ba1\u7406\u5458", ["\u8fd4\u56de\u724c\u7ec4", "\u62bd\u53d61\u5f20\u6cd5\u672f"]),
         }
         for card_id, (name_part, substrings) in expected.items():
             with self.subTest(card_id=card_id):
@@ -603,6 +605,50 @@ class BehaviorBatch3Tests(unittest.TestCase):
         self.assertEqual(len(engine.players[0].hand), 7)
         self.assertEqual(len(engine.players[0].deck), 2)
 
+    def test_10661310_draws_two_amulets(self):
+        engine = self._make_engine()
+        engine.reset(seed=42)
+        engine.players[0].deck = [
+            _card(720, card_type="\u968f\u4ece"),
+            _card(721, card_type="\u62a4\u7b26", attack=None, life=None),
+            _card(722, card_type="\u6cd5\u672f", attack=None, life=None),
+            _card(723, card_type="\u62a4\u7b26", attack=None, life=None),
+        ]
+        _insert_card(engine, _card(10661310, card_type="\u6cd5\u672f", cost=3, attack=None, life=None))
+        engine.players[0].mana = 10
+
+        engine.apply(PlayCard(0, 0))
+
+        hand_ids = {h.card_id for h in engine.players[0].hand}
+        self.assertIn(721, hand_ids)
+        self.assertIn(723, hand_ids)
+        self.assertNotIn(720, hand_ids)
+        self.assertNotIn(722, hand_ids)
+
+    def test_10231120_fanfare_returns_hand_and_draws_spell(self):
+        engine = self._make_engine()
+        engine.reset(seed=42)
+        returned = HandCard(
+            definition=_card(730, card_type="\u968f\u4ece"),
+            entity_id=engine.state.allocate_entity_id(),
+        )
+        engine.players[0].hand.append(returned)
+        engine.players[0].hand_entity_ids.append(returned.entity_id)
+        engine.players[0].deck = [
+            _card(731, card_type="\u968f\u4ece"),
+            _card(732, card_type="\u6cd5\u672f", attack=None, life=None),
+            _card(733, card_type="\u6cd5\u672f", attack=None, life=None),
+        ]
+        _insert_card(engine, _card(10231120, card_type="\u968f\u4ece", cost=2))
+        engine.players[0].mana = 10
+
+        engine.apply(PlayCard(0, 0))
+        engine.apply(_choose_hand_entity(engine, returned.entity_id))
+
+        hand_ids = {h.card_id for h in engine.players[0].hand}
+        self.assertTrue({732, 733} & hand_ids)
+        self.assertNotIn(731, hand_ids)
+
 
 class DeterminismBatch2Tests(unittest.TestCase):
     def test_same_seed_same_result(self):
@@ -632,6 +678,7 @@ class RulesLoadTests(unittest.TestCase):
             10052110, 10112120, 10251120, 10171110, 10601110, 10651110,
             10571310, 10022110, 10012310, 10151310, 10171320, 10031320,
             10172310, 10221310, 10252310, 10442310, 10021310, 10711310,
+            10661310, 10231120,
         ):
             ops_play = self.rb.operations_for(cid, Trigger.PLAY)
             ops_fanfare = self.rb.operations_for(cid, Trigger.FANFARE)

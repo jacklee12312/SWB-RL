@@ -11,6 +11,7 @@ from swb.engine.effects import (
     Condition,
     ConditionType,
     CostChangeMode,
+    DeckFilter,
     EffectKind,
     EffectOperation,
     ExprType,
@@ -797,10 +798,12 @@ def _parse_operation(raw: dict, source_file: str, card_id: int, _depth: int = 0)
                 f"REANIMATE amount must be an integer, got {raw_amount!r}"
             )
 
-    graveyard_cost_max = raw.get("cost_max")
+    raw_cost_max = raw.get("cost_max")
+    raw_cost_min = raw.get("cost_min")
+    graveyard_cost_max = raw_cost_max if kind in _GRAVEYARD_EFFECT_KINDS else None
     if graveyard_cost_max is not None:
         graveyard_cost_max = _parse_non_negative_int(graveyard_cost_max, f"{source_file}/cost_max", card_id)
-    graveyard_cost_min = raw.get("cost_min")
+    graveyard_cost_min = raw_cost_min if kind in _GRAVEYARD_EFFECT_KINDS else None
     if graveyard_cost_min is not None:
         graveyard_cost_min = _parse_non_negative_int(graveyard_cost_min, f"{source_file}/cost_min", card_id)
     if graveyard_cost_min is not None and graveyard_cost_max is not None and graveyard_cost_min > graveyard_cost_max:
@@ -825,7 +828,6 @@ def _parse_operation(raw: dict, source_file: str, card_id: int, _depth: int = 0)
                 f"unknown card type {card_type_filter!r}; valid: {sorted(_VALID_CARD_TYPES)}"
             )
     graveyard_card_type = card_type_filter if kind in _GRAVEYARD_EFFECT_KINDS else None
-    deck_card_type = card_type_filter if kind is EffectKind.DRAW_FILTERED else None
     deck_class_id = raw.get("class_id_filter")
     if deck_class_id is not None:
         deck_class_id = _parse_non_negative_int(
@@ -838,20 +840,64 @@ def _parse_operation(raw: dict, source_file: str, card_id: int, _depth: int = 0)
         raise ValueError(
             f"{source_file}/class_name_filter card {card_id}: must be a string"
         )
+    deck_cost_min = raw_cost_min if kind is EffectKind.DRAW_FILTERED else None
+    deck_cost_max = raw_cost_max if kind is EffectKind.DRAW_FILTERED else None
+    deck_card_id = raw.get("card_id_filter")
+    if deck_card_id is not None:
+        deck_card_id = _parse_non_negative_int(
+            deck_card_id,
+            f"{source_file}/card_id_filter",
+            card_id,
+        )
+    deck_card_name = raw.get("card_name_filter")
+    if deck_card_name is not None and not isinstance(deck_card_name, str):
+        raise ValueError(
+            f"{source_file}/card_name_filter card {card_id}: must be a string"
+        )
 
     _is_graveyard_kind = kind in _GRAVEYARD_EFFECT_KINDS
     _is_deck_filter_kind = kind is EffectKind.DRAW_FILTERED
+    deck_filter: DeckFilter | None = None
     if _is_deck_filter_kind and target not in (TargetKind.OWN_LEADER, TargetKind.ENEMY_LEADER):
         raise ValueError(
             f"{source_file} card {card_id}: draw_filtered requires own_leader "
             f"or enemy_leader target, got {target.value!r}"
         )
-    if not _is_deck_filter_kind and (
-        raw.get("class_id_filter") is not None
-        or raw.get("class_name_filter") is not None
-    ):
+    if _is_deck_filter_kind:
+        if deck_cost_min is not None:
+            deck_cost_min = _parse_non_negative_int(
+                deck_cost_min,
+                f"{source_file}/cost_min",
+                card_id,
+            )
+        if deck_cost_max is not None:
+            deck_cost_max = _parse_non_negative_int(
+                deck_cost_max,
+                f"{source_file}/cost_max",
+                card_id,
+            )
+        if deck_cost_min is not None and deck_cost_max is not None and deck_cost_min > deck_cost_max:
+            raise ValueError(
+                f"{source_file} card {card_id}: cost_min ({deck_cost_min}) "
+                f"must not exceed cost_max ({deck_cost_max})"
+            )
+        deck_filter = DeckFilter(
+            card_type=card_type_filter,
+            class_id=deck_class_id,
+            class_name=deck_class_name,
+            cost_min=deck_cost_min,
+            cost_max=deck_cost_max,
+            card_id=deck_card_id,
+            card_name=deck_card_name,
+        )
+    if not _is_deck_filter_kind and any([
+        raw.get("class_id_filter") is not None,
+        raw.get("class_name_filter") is not None,
+        raw.get("card_id_filter") is not None,
+        raw.get("card_name_filter") is not None,
+    ]):
         raise ValueError(
-            f"{source_file} card {card_id}: class_id_filter/class_name_filter "
+            f"{source_file} card {card_id}: deck filter fields "
             f"are only valid with draw_filtered"
         )
     if _is_graveyard_kind:
@@ -862,8 +908,8 @@ def _parse_operation(raw: dict, source_file: str, card_id: int, _depth: int = 0)
             )
     else:
         has_graveyard_filter = any([
-            raw.get("cost_max") is not None,
-            raw.get("cost_min") is not None,
+            raw.get("cost_max") is not None and not _is_deck_filter_kind,
+            raw.get("cost_min") is not None and not _is_deck_filter_kind,
             raw.get("follower_only") is not None,
             raw.get("card_type_filter") is not None and not _is_deck_filter_kind,
         ])
@@ -1057,9 +1103,7 @@ def _parse_operation(raw: dict, source_file: str, card_id: int, _depth: int = 0)
         graveyard_cost_min=graveyard_cost_min,
         graveyard_follower_only=graveyard_follower_only,
         graveyard_card_type=graveyard_card_type,
-        deck_card_type=deck_card_type,
-        deck_class_id=deck_class_id,
-        deck_class_name=deck_class_name,
+        deck_filter=deck_filter,
         then_operations=then_ops,
         else_operations=else_ops,
         choose_one_options=choose_one_options,

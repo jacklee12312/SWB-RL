@@ -214,6 +214,31 @@
                 {"kind": "return_to_deck", "target": "own_hand"},
                 {"kind": "draw", "target": "own_leader", "amount": 2}
             ]
+        },
+        {
+            "card_id": 10661310,
+            "trigger": "play",
+            "operations": [
+                {
+                    "kind": "draw_filtered",
+                    "target": "own_leader",
+                    "amount": 2,
+                    "card_type_filter": "护符"
+                }
+            ]
+        },
+        {
+            "card_id": 10231120,
+            "trigger": "fanfare",
+            "operations": [
+                {"kind": "return_to_deck", "target": "own_hand"},
+                {
+                    "kind": "draw_filtered",
+                    "target": "own_leader",
+                    "amount": 1,
+                    "card_type_filter": "法术"
+                }
+            ]
         }
     ]
 }
