@@ -815,17 +815,45 @@ def _parse_operation(raw: dict, source_file: str, card_id: int, _depth: int = 0)
             f"got {type(raw_follower_only).__name__}"
         )
     graveyard_follower_only = bool(raw_follower_only) if raw_follower_only is not None else False
-    graveyard_card_type = raw.get("card_type_filter")
-    if graveyard_card_type is not None:
-        if not isinstance(graveyard_card_type, str):
+    card_type_filter = raw.get("card_type_filter")
+    if card_type_filter is not None:
+        if not isinstance(card_type_filter, str):
             raise ValueError(f"{source_file}/card_type_filter card {card_id}: must be a string")
-        if graveyard_card_type not in _VALID_CARD_TYPES:
+        if card_type_filter not in _VALID_CARD_TYPES:
             raise ValueError(
                 f"{source_file}/card_type_filter card {card_id}: "
-                f"unknown card type {graveyard_card_type!r}; valid: {sorted(_VALID_CARD_TYPES)}"
+                f"unknown card type {card_type_filter!r}; valid: {sorted(_VALID_CARD_TYPES)}"
             )
+    graveyard_card_type = card_type_filter if kind in _GRAVEYARD_EFFECT_KINDS else None
+    deck_card_type = card_type_filter if kind is EffectKind.DRAW_FILTERED else None
+    deck_class_id = raw.get("class_id_filter")
+    if deck_class_id is not None:
+        deck_class_id = _parse_non_negative_int(
+            deck_class_id,
+            f"{source_file}/class_id_filter",
+            card_id,
+        )
+    deck_class_name = raw.get("class_name_filter")
+    if deck_class_name is not None and not isinstance(deck_class_name, str):
+        raise ValueError(
+            f"{source_file}/class_name_filter card {card_id}: must be a string"
+        )
 
     _is_graveyard_kind = kind in _GRAVEYARD_EFFECT_KINDS
+    _is_deck_filter_kind = kind is EffectKind.DRAW_FILTERED
+    if _is_deck_filter_kind and target not in (TargetKind.OWN_LEADER, TargetKind.ENEMY_LEADER):
+        raise ValueError(
+            f"{source_file} card {card_id}: draw_filtered requires own_leader "
+            f"or enemy_leader target, got {target.value!r}"
+        )
+    if not _is_deck_filter_kind and (
+        raw.get("class_id_filter") is not None
+        or raw.get("class_name_filter") is not None
+    ):
+        raise ValueError(
+            f"{source_file} card {card_id}: class_id_filter/class_name_filter "
+            f"are only valid with draw_filtered"
+        )
     if _is_graveyard_kind:
         if target not in _GRAVEYARD_TARGETS:
             raise ValueError(
@@ -837,7 +865,7 @@ def _parse_operation(raw: dict, source_file: str, card_id: int, _depth: int = 0)
             raw.get("cost_max") is not None,
             raw.get("cost_min") is not None,
             raw.get("follower_only") is not None,
-            raw.get("card_type_filter") is not None,
+            raw.get("card_type_filter") is not None and not _is_deck_filter_kind,
         ])
         if has_graveyard_filter:
             raise ValueError(
@@ -1029,6 +1057,9 @@ def _parse_operation(raw: dict, source_file: str, card_id: int, _depth: int = 0)
         graveyard_cost_min=graveyard_cost_min,
         graveyard_follower_only=graveyard_follower_only,
         graveyard_card_type=graveyard_card_type,
+        deck_card_type=deck_card_type,
+        deck_class_id=deck_class_id,
+        deck_class_name=deck_class_name,
         then_operations=then_ops,
         else_operations=else_ops,
         choose_one_options=choose_one_options,

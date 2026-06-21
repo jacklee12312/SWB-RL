@@ -35,7 +35,7 @@ PRIMITIVE_KEYWORD_MAP = OrderedDict([
     ("回合开始", {"primitive": "TURN_START trigger / Emblem", "covered": True}),
     ("回合结束", {"primitive": "TURN_END trigger / Emblem", "covered": True}),
     ("倒数", {"primitive": "COUNTDOWN / countdown", "covered": True}),
-    ("抽取", {"primitive": "DRAW", "covered": True}),
+    ("抽取", {"primitive": "DRAW / DRAW_FILTERED", "covered": True}),
     ("将.*加入手牌", {"primitive": "ADD_CARD", "covered": True}),
     ("回复", {"primitive": "HEAL_LEADER", "covered": True}),
     ("造成.*伤害", {"primitive": "DAMAGE_LEADER / DAMAGE_UNIT", "covered": True}),

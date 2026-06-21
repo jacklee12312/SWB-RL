@@ -78,6 +78,7 @@ class ValueExpression:
 
 class EffectKind(str, Enum):
     DRAW = "draw"
+    DRAW_FILTERED = "draw_filtered"
     HEAL_LEADER = "heal_leader"
     DAMAGE_LEADER = "damage_leader"
     DAMAGE_UNIT = "damage_unit"
@@ -193,6 +194,9 @@ class EffectOperation:
     graveyard_cost_min: int | None = None
     graveyard_follower_only: bool = False
     graveyard_card_type: str | None = None
+    deck_card_type: str | None = None
+    deck_class_id: int | None = None
+    deck_class_name: str | None = None
     then_operations: tuple["EffectOperation", ...] = ()
     else_operations: tuple["EffectOperation", ...] = ()
     choose_one_options: tuple["ChooseOneOption", ...] = ()

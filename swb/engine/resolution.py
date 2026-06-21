@@ -2233,6 +2233,53 @@ class GameEngine:
             f"牌库耗尽，受到 {player.fatigue} 点疲劳伤害（生命 {player.health}）",
         )
 
+    def _draw_filtered(
+        self,
+        player_index: int,
+        *,
+        card_type: str | None = None,
+        class_id: int | None = None,
+        class_name: str | None = None,
+        reason: str,
+    ) -> None:
+        player = self.players[player_index]
+        candidates = [
+            index
+            for index, card in enumerate(player.deck)
+            if (card_type is None or card.card_type == card_type)
+            and (class_id is None or card.class_id == class_id)
+            and (class_name is None or card.class_name == class_name)
+        ]
+        if not candidates:
+            self._log(player_index, f"{reason}：没有符合条件的卡牌")
+            return
+        index = self.random.choice(candidates)
+        card = player.deck.pop(index)
+        if len(player.hand) < self.config.max_hand:
+            self._append_hand_card(player, card, origin=CardOrigin.DECK)
+            self._emit(
+                GameEvent(
+                    EventType.CARD_DRAWN,
+                    player_index,
+                    metadata={
+                        "card_id": card.card_id,
+                        "filtered": True,
+                        "card_type_filter": card_type,
+                        "class_id_filter": class_id,
+                        "class_name_filter": class_name,
+                    },
+                )
+            )
+            self._log(player_index, f"{reason}：{card.name}")
+        else:
+            self._send_to_graveyard(
+                player_index,
+                card,
+                "overdraw",
+                origin=CardOrigin.DECK,
+            )
+            self._log(player_index, f"{reason}：{card.name}，手牌已满而被弃置")
+
     def _fanfare_operations(self, unit: Unit) -> tuple[EffectOperation, ...]:
         explicit = self.rulebook.operations_for(
             unit.definition.card_id, Trigger.FANFARE
@@ -2330,6 +2377,9 @@ class GameEngine:
                 graveyard_cost_min=operation.graveyard_cost_min,
                 graveyard_follower_only=operation.graveyard_follower_only,
                 graveyard_card_type=operation.graveyard_card_type,
+                deck_card_type=operation.deck_card_type,
+                deck_class_id=operation.deck_class_id,
+                deck_class_name=operation.deck_class_name,
                 emblem_remove_mode=operation.emblem_remove_mode,
             )
             self._execute_effect(resolved, frame, target_id)
@@ -2354,6 +2404,20 @@ class GameEngine:
             for _ in range(effect.amount):
                 self._draw(
                     draw_player,
+                    reason=f"{name} {frame.label}抽牌",
+                )
+        elif effect.kind is EffectKind.DRAW_FILTERED:
+            draw_player = (
+                1 - frame.controller
+                if effect.target is TargetKind.ENEMY_LEADER
+                else frame.controller
+            )
+            for _ in range(effect.amount):
+                self._draw_filtered(
+                    draw_player,
+                    card_type=effect.deck_card_type,
+                    class_id=effect.deck_class_id,
+                    class_name=effect.deck_class_name,
                     reason=f"{name} {frame.label}抽牌",
                 )
         elif effect.kind is EffectKind.HEAL_LEADER:
@@ -3692,6 +3756,33 @@ class GameEngine:
     def _execute_return_to_deck(
         self, target_id: int | None, frame: EffectFrame
     ) -> None:
+        if target_id is None:
+            return
+        player = self.players[frame.controller]
+        for idx, eid in enumerate(list(player.hand_entity_ids)):
+            if eid == target_id:
+                hand_card = player.hand.pop(idx)
+                player.hand_entity_ids.pop(idx)
+                card_def = (
+                    hand_card.definition
+                    if isinstance(hand_card, HandCard)
+                    else hand_card
+                )
+                insert_pos = self.random.randint(0, len(player.deck))
+                player.deck.insert(insert_pos, card_def)
+                self._log(
+                    frame.controller,
+                    f"{card_def.name} 返回牌组",
+                )
+                self._emit(
+                    GameEvent(
+                        EventType.CARD_RETURNED_TO_DECK,
+                        frame.controller,
+                        source_id=target_id,
+                        metadata={"source": card_def},
+                    )
+                )
+                return
         entity = self._find_board_entity(target_id)
         owner_index = self._entity_owner(entity.entity_id)
         owner = self.players[owner_index]

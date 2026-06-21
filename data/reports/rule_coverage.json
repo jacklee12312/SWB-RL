@@ -5,11 +5,11 @@
   },
   "summary": {
     "total_cards": 740,
-    "total_with_rules": 71,
+    "total_with_rules": 73,
     "test_or_synthetic_ids_with_rules": 26,
     "coverage_counts": {
-      "covered_exact": 40,
-      "supported_missing_rule": 550,
+      "covered_exact": 42,
+      "supported_missing_rule": 548,
       "text_unclear": 23,
       "missing_primitive": 41,
       "covered_partial": 3,
@@ -186,7 +186,7 @@
       "covered": true
     },
     "抽取": {
-      "primitive": "DRAW",
+      "primitive": "DRAW / DRAW_FILTERED",
       "covered": true
     },
     "将.*加入手牌": {
@@ -701,8 +701,8 @@
       "cost": 2,
       "is_collectible": true,
       "card_set_id": 10000,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['抽取', '返回牌']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['play'], Ops: ['return_to_deck', 'draw_filtered']",
       "hit_keywords": [
         "抽取",
         "返回牌"
@@ -14780,8 +14780,8 @@
       "cost": 1,
       "is_collectible": true,
       "card_set_id": 10007,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['抽取', '返回牌']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['play'], Ops: ['return_to_deck', 'return_to_deck', 'draw']",
       "hit_keywords": [
         "抽取",
         "返回牌"
@@ -17448,25 +17448,6 @@
       "suggested_rule_file": "batch_巫师.json"
     },
     {
-      "card_id": 10711310,
-      "name": "人格切换",
-      "class_name": "精灵",
-      "card_type": "法术",
-      "cost": 1,
-      "ability_keywords": [],
-      "hit_keywords": [
-        "抽取",
-        "返回牌"
-      ],
-      "confidence": "high",
-      "why_recommended": "Covered keywords: 抽取, 返回牌",
-      "required_primitives": [
-        "抽取",
-        "返回牌"
-      ],
-      "suggested_rule_file": "batch_精灵.json"
-    },
-    {
       "card_id": 10751310,
       "name": "灵魂调律",
       "class_name": "梦魇",
@@ -17482,25 +17463,6 @@
         "抽取"
       ],
       "suggested_rule_file": "batch_梦魇.json"
-    },
-    {
-      "card_id": 10021310,
-      "name": "女仆的礼仪",
-      "class_name": "皇家护卫",
-      "card_type": "法术",
-      "cost": 2,
-      "ability_keywords": [],
-      "hit_keywords": [
-        "抽取",
-        "返回牌"
-      ],
-      "confidence": "high",
-      "why_recommended": "Covered keywords: 抽取, 返回牌",
-      "required_primitives": [
-        "抽取",
-        "返回牌"
-      ],
-      "suggested_rule_file": "batch_皇家护卫.json"
     },
     {
       "card_id": 10153310,
@@ -17772,6 +17734,40 @@
         "超进化"
       ],
       "suggested_rule_file": "batch_超越者.json"
+    },
+    {
+      "card_id": 10042310,
+      "name": "龙之启示",
+      "class_name": "龙族",
+      "card_type": "法术",
+      "cost": 3,
+      "ability_keywords": [],
+      "hit_keywords": [
+        "抽取"
+      ],
+      "confidence": "high",
+      "why_recommended": "Covered keywords: 抽取",
+      "required_primitives": [
+        "抽取"
+      ],
+      "suggested_rule_file": "batch_龙族.json"
+    },
+    {
+      "card_id": 10102310,
+      "name": "炽天使的福音",
+      "class_name": "中立",
+      "card_type": "法术",
+      "cost": 3,
+      "ability_keywords": [],
+      "hit_keywords": [
+        "抽取"
+      ],
+      "confidence": "high",
+      "why_recommended": "Covered keywords: 抽取",
+      "required_primitives": [
+        "抽取"
+      ],
+      "suggested_rule_file": "batch_中立.json"
     }
   ]
 }

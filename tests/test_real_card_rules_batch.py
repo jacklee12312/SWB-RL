@@ -21,7 +21,7 @@ from swb.engine.state import AttackRestriction, HandCard, Unit
 def _card(cid, **kw):
     return CardDefinition(
         card_id=cid, card_set_id=kw.get("card_set_id", 10000),
-        class_id=1, class_name="\u7cbe\u7075",
+        class_id=kw.get("class_id", 1), class_name=kw.get("class_name", "\u7cbe\u7075"),
         name=kw.get("name", f"c{cid}"), cost=kw.get("cost", 1),
         card_type=kw.get("card_type", "\u968f\u4ece"),
         attack=kw.get("attack", 1), life=kw.get("life", 1),
@@ -57,6 +57,13 @@ def _insert_card(engine, card_def, origin=CardOrigin.DECK):
     engine.players[0].hand.insert(0, hc)
     engine.players[0].hand_entity_ids.insert(0, hc.entity_id)
     return hc
+
+
+def _choose_hand_entity(engine, entity_id):
+    for command in engine.legal_commands():
+        if isinstance(command, Choose) and command.option_id == f"hand:{entity_id}":
+            return command
+    raise AssertionError(f"choice for hand entity {entity_id} not found")
 
 
 class DatabaseVerificationTests(unittest.TestCase):
@@ -227,6 +234,8 @@ class DatabaseVerificationBatch3Tests(unittest.TestCase):
             10221310: ("\u5546\u8c08\u6210\u7acb", ["\u62bd\u53d62\u5f20", "\u5bf9\u624b\u62bd\u53d61\u5f20"]),
             10252310: ("\u4f7f\u5524\u8759\u8760", ["\u53ec\u55242\u4e2a", "\u8759\u8760"]),
             10442310: ("\u81f3\u7231\u72c2\u8f70", ["3\u70b9\u4f24\u5bb3", "\u65e0\u6cd5\u653b\u51fb"]),
+            10021310: ("\u5973\u4ec6\u7684\u793c\u4eea", ["\u8fd4\u56de\u724c\u7ec4", "\u62bd\u53d62\u5f20\u7687\u5bb6\u62a4\u536b\u00b7\u968f\u4ece"]),
+            10711310: ("\u4eba\u683c\u5207\u6362", ["\u9009\u62e9\u81ea\u5df1\u76842\u5f20\u624b\u724c", "\u8fd4\u56de\u724c\u7ec4", "\u62bd\u53d62\u5f20"]),
         }
         for card_id, (name_part, substrings) in expected.items():
             with self.subTest(card_id=card_id):
@@ -548,6 +557,52 @@ class BehaviorBatch3Tests(unittest.TestCase):
         self.assertFalse(target.can_attack_leader)
         self.assertFalse(target.can_attack_units)
 
+    def test_10021310_returns_hand_and_draws_two_royal_followers(self):
+        engine = self._make_engine()
+        engine.reset(seed=42)
+        returned = HandCard(
+            definition=_card(700, class_id=1, class_name="\u7cbe\u7075", card_type="\u6cd5\u672f", attack=None, life=None),
+            entity_id=engine.state.allocate_entity_id(),
+        )
+        engine.players[0].hand.append(returned)
+        engine.players[0].hand_entity_ids.append(returned.entity_id)
+        engine.players[0].deck = [
+            _card(701, class_id=2, class_name="\u7687\u5bb6\u62a4\u536b", card_type="\u6cd5\u672f", attack=None, life=None),
+            _card(702, class_id=1, class_name="\u7cbe\u7075", card_type="\u968f\u4ece"),
+            _card(703, class_id=2, class_name="\u7687\u5bb6\u62a4\u536b", card_type="\u968f\u4ece"),
+            _card(704, class_id=2, class_name="\u7687\u5bb6\u62a4\u536b", card_type="\u968f\u4ece"),
+        ]
+        _insert_card(engine, _card(10021310, card_type="\u6cd5\u672f", cost=2, attack=None, life=None))
+        engine.players[0].mana = 10
+
+        engine.apply(PlayCard(0, 0))
+        engine.apply(_choose_hand_entity(engine, returned.entity_id))
+
+        hand_ids = {h.card_id for h in engine.players[0].hand}
+        self.assertIn(703, hand_ids)
+        self.assertIn(704, hand_ids)
+        self.assertNotIn(701, hand_ids)
+        self.assertNotIn(702, hand_ids)
+
+    def test_10711310_returns_two_hand_cards_then_draws_two(self):
+        engine = self._make_engine()
+        engine.reset(seed=42)
+        first = HandCard(definition=_card(710), entity_id=engine.state.allocate_entity_id())
+        second = HandCard(definition=_card(711), entity_id=engine.state.allocate_entity_id())
+        engine.players[0].hand.extend([first, second])
+        engine.players[0].hand_entity_ids.extend([first.entity_id, second.entity_id])
+        engine.players[0].deck = [_card(712), _card(713)]
+        _insert_card(engine, _card(10711310, card_type="\u6cd5\u672f", cost=1, attack=None, life=None))
+        engine.players[0].mana = 10
+
+        engine.apply(PlayCard(0, 0))
+        engine.apply(_choose_hand_entity(engine, first.entity_id))
+        engine.apply(_choose_hand_entity(engine, second.entity_id))
+
+        self.assertIsNone(engine.state.pending_choice)
+        self.assertEqual(len(engine.players[0].hand), 7)
+        self.assertEqual(len(engine.players[0].deck), 2)
+
 
 class DeterminismBatch2Tests(unittest.TestCase):
     def test_same_seed_same_result(self):
@@ -576,7 +631,7 @@ class RulesLoadTests(unittest.TestCase):
             10031310, 10041310, 10041110, 10052310, 10111310, 10642310,
             10052110, 10112120, 10251120, 10171110, 10601110, 10651110,
             10571310, 10022110, 10012310, 10151310, 10171320, 10031320,
-            10172310, 10221310, 10252310, 10442310,
+            10172310, 10221310, 10252310, 10442310, 10021310, 10711310,
         ):
             ops_play = self.rb.operations_for(cid, Trigger.PLAY)
             ops_fanfare = self.rb.operations_for(cid, Trigger.FANFARE)
