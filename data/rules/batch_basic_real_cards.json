@@ -3,6 +3,10 @@
         {
             "card_id": 90071220,
             "kind": "cannot_be_played"
+        },
+        {
+            "card_id": 90071210,
+            "kind": "cannot_be_played"
         }
     ],
     "rules": [
@@ -112,6 +116,80 @@
             "trigger": "last_words",
             "operations": [
                 {"kind": "summon", "target": "own_leader", "card_id": 90021110}
+            ]
+        },
+        {
+            "card_id": 10012310,
+            "trigger": "play",
+            "operations": [
+                {"kind": "return_to_hand", "target": "own_board"},
+                {"kind": "damage_unit", "target": "random_enemy_unit", "amount": 2}
+            ]
+        },
+        {
+            "card_id": 10151310,
+            "trigger": "play",
+            "operations": [
+                {"kind": "destroy", "target": "own_unit"},
+                {"kind": "destroy", "target": "enemy_unit"}
+            ]
+        },
+        {
+            "card_id": 10171320,
+            "trigger": "play",
+            "operations": [
+                {"kind": "add_card", "target": "own_leader", "card_id": 90071210},
+                {"kind": "add_card", "target": "own_leader", "card_id": 90071220}
+            ]
+        },
+        {
+            "card_id": 10031320,
+            "trigger": "play",
+            "operations": [
+                {"kind": "summon", "target": "own_leader", "card_id": 90031110}
+            ]
+        },
+        {
+            "card_id": 10172310,
+            "trigger": "play",
+            "operations": [
+                {"kind": "damage_unit", "target": "enemy_unit", "amount": 3},
+                {"kind": "add_card", "target": "own_leader", "card_id": 90071220}
+            ]
+        },
+        {
+            "card_id": 10221310,
+            "trigger": "play",
+            "operations": [
+                {"kind": "draw", "target": "own_leader", "amount": 2},
+                {"kind": "draw", "target": "enemy_leader", "amount": 1}
+            ]
+        },
+        {
+            "card_id": 10252310,
+            "trigger": "play",
+            "operations": [
+                {"kind": "summon", "target": "own_leader", "card_id": 90051120},
+                {"kind": "summon", "target": "own_leader", "card_id": 90051120}
+            ]
+        },
+        {
+            "card_id": 10442310,
+            "trigger": "play",
+            "operations": [
+                {
+                    "kind": "damage_unit",
+                    "target": "enemy_unit",
+                    "amount": 3,
+                    "target_key": "selected_follower"
+                },
+                {
+                    "kind": "add_attack_restriction",
+                    "target": "previous_target",
+                    "target_key": "selected_follower",
+                    "restriction": "cannot_attack",
+                    "duration": "until_end_of_opponent_turn"
+                }
             ]
         }
     ]

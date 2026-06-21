@@ -15,7 +15,7 @@ from swb.engine.effects import EffectKind, EffectOperation, TargetKind
 from swb.engine.events import EventType
 from swb.engine.origin import CardOrigin
 from swb.engine.resolution import GameEngine, IllegalCommand
-from swb.engine.state import HandCard, Unit
+from swb.engine.state import AttackRestriction, HandCard, Unit
 
 
 def _card(cid, **kw):
@@ -44,8 +44,10 @@ def _make_engine(rulebook=None):
             90011110: _card(90011110, name="\u5996\u7cbe", card_set_id=90000, is_collectible=False),
             90051120: _card(90051120, name="\u8760\u8760", card_set_id=90000, is_collectible=False),
             90051130: _card(90051130, name="\u6028\u7075", card_set_id=90000, is_collectible=False),
+            90071210: _card(90071210, name="\u672a\u6765\u6838\u5fc3", card_type="\u62a4\u7b26", attack=None, life=None, card_set_id=90000, is_collectible=False),
             90071220: _card(90071220, name="\u8fc7\u5f80\u6838\u5fc3", card_type="\u62a4\u7b26", attack=None, life=None, card_set_id=90000, is_collectible=False),
             90021110: _card(90021110, name="\u9a91\u58eb", cost=0, card_set_id=90000, is_collectible=False),
+            90031110: _card(90031110, name="\u6ce5\u5c18\u5de8\u50cf", cost=1, attack=2, life=2, card_set_id=90000, is_collectible=False),
         }),
     )
 
@@ -202,6 +204,39 @@ class DatabaseVerificationBatch2Tests(unittest.TestCase):
         self.assertIn("\u9a91\u58eb", text)
 
 
+class DatabaseVerificationBatch3Tests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.db_path = os.path.join(os.path.dirname(__file__), "..", "data", "cards.sqlite3")
+        if not os.path.exists(str(cls.db_path)):
+            raise unittest.SkipTest("cards.sqlite3 not found")
+        cls.repo = CardRepository(str(cls.db_path))
+
+    def _skill_texts(self, card_id):
+        with sqlite3.connect(str(self.db_path)) as conn:
+            return [row[0] for row in conn.execute(
+                "SELECT text_chs FROM skill_texts WHERE card_id=? ORDER BY position", (card_id,))]
+
+    def test_batch3_database_texts_match_supported_rules(self):
+        expected = {
+            10012310: ("\u6606\u866b\u7684\u5fe0\u544a", ["\u8fd4\u56de\u624b\u724c", "\u968f\u673a1\u4e2a\u968f\u4ece", "2\u70b9\u4f24\u5bb3"]),
+            10151310: ("\u6b7b\u795e\u6325\u5200", ["\u81ea\u5df1\u7684\u6218\u573a", "\u5bf9\u624b\u7684\u6218\u573a", "\u7834\u574f"]),
+            10171320: ("\u521b\u9020\u7269\u5145\u80fd", ["\u672a\u6765\u6838\u5fc3", "\u8fc7\u5f80\u6838\u5fc3"]),
+            10031320: ("\u53ec\u5524\u771f\u7406", ["\u53ec\u55241\u4e2a", "\u6ce5\u5c18\u5de8\u50cf"]),
+            10172310: ("\u751f\u547d\u7684\u5954\u6d41", ["3\u70b9\u4f24\u5bb3", "\u8fc7\u5f80\u6838\u5fc3"]),
+            10221310: ("\u5546\u8c08\u6210\u7acb", ["\u62bd\u53d62\u5f20", "\u5bf9\u624b\u62bd\u53d61\u5f20"]),
+            10252310: ("\u4f7f\u5524\u8759\u8760", ["\u53ec\u55242\u4e2a", "\u8759\u8760"]),
+            10442310: ("\u81f3\u7231\u72c2\u8f70", ["3\u70b9\u4f24\u5bb3", "\u65e0\u6cd5\u653b\u51fb"]),
+        }
+        for card_id, (name_part, substrings) in expected.items():
+            with self.subTest(card_id=card_id):
+                card = self.repo.get(card_id)
+                self.assertIn(name_part, card.name)
+                text = "\n".join(self._skill_texts(card_id))
+                for substring in substrings:
+                    self.assertIn(substring, text)
+
+
 class BehaviorBatch2Tests(unittest.TestCase):
     def setUp(self):
         self.rb = RuleBook.from_directory("data/rules")
@@ -216,8 +251,10 @@ class BehaviorBatch2Tests(unittest.TestCase):
                 90011110: _card(90011110, name="x", card_set_id=90000, is_collectible=False),
                 90051120: _card(90051120, name="x", card_set_id=90000, is_collectible=False),
                 90051130: _card(90051130, name="x", card_set_id=90000, is_collectible=False),
+                90071210: _card(90071210, name="x", card_type="\u62a4\u7b26", attack=None, life=None, card_set_id=90000, is_collectible=False),
                 90071220: _card(90071220, name="x", card_type="\u62a4\u7b26", attack=None, life=None, card_set_id=90000, is_collectible=False),
                 90021110: _card(90021110, name="x", cost=0, card_set_id=90000, is_collectible=False),
+                90031110: _card(90031110, name="x", cost=1, attack=2, life=2, card_set_id=90000, is_collectible=False),
             }),
         )
 
@@ -391,6 +428,127 @@ class BehaviorBatch2Tests(unittest.TestCase):
         self.assertEqual(knights, 1)
 
 
+class BehaviorBatch3Tests(unittest.TestCase):
+    def setUp(self):
+        self.rb = RuleBook.from_directory("data/rules")
+
+    def _make_engine(self):
+        return _make_engine(self.rb)
+
+    def _play_and_choose_first(self, engine, card_id, *, card_type="\u6cd5\u672f", cost=1):
+        _insert_card(engine, _card(card_id, card_type=card_type, cost=cost, attack=None, life=None))
+        engine.players[0].mana = 10
+        engine.apply(PlayCard(0, 0))
+        choose_cmds = [c for c in engine.legal_commands() if isinstance(c, Choose)]
+        self.assertTrue(choose_cmds)
+        engine.apply(choose_cmds[0])
+
+    def test_10012310_returns_own_board_and_damages_random_enemy(self):
+        engine = self._make_engine()
+        engine.reset(seed=42)
+        own = Unit.summon(_card(500, attack=1, life=1), entity_id=500)
+        enemy = Unit.summon(_card(600, attack=1, life=5), entity_id=600)
+        engine.players[0].board.append(own)
+        engine.players[1].board.append(enemy)
+
+        self._play_and_choose_first(engine, 10012310, cost=1)
+
+        self.assertEqual(len(engine.players[0].board), 0)
+        self.assertTrue(any(h.card_id == 500 for h in engine.players[0].hand))
+        self.assertEqual(enemy.health, 3)
+
+    def test_10151310_destroys_one_own_and_one_enemy_follower(self):
+        engine = self._make_engine()
+        engine.reset(seed=42)
+        own = Unit.summon(_card(501, attack=1, life=1), entity_id=501)
+        enemy = Unit.summon(_card(601, attack=1, life=1), entity_id=601)
+        engine.players[0].board.append(own)
+        engine.players[1].board.append(enemy)
+        _insert_card(engine, _card(10151310, card_type="\u6cd5\u672f", cost=1, attack=None, life=None))
+        engine.players[0].mana = 10
+
+        engine.apply(PlayCard(0, 0))
+        engine.apply([c for c in engine.legal_commands() if isinstance(c, Choose)][0])
+        engine.apply([c for c in engine.legal_commands() if isinstance(c, Choose)][0])
+
+        self.assertNotIn(own, engine.players[0].board)
+        self.assertNotIn(enemy, engine.players[1].board)
+
+    def test_10171320_adds_future_and_past_cores_as_unplayable_cards(self):
+        engine = self._make_engine()
+        engine.reset(seed=42)
+        _insert_card(engine, _card(10171320, card_type="\u6cd5\u672f", cost=1, attack=None, life=None))
+        engine.players[0].mana = 10
+
+        engine.apply(PlayCard(0, 0))
+
+        core_ids = {h.card_id for h in engine.players[0].hand}
+        self.assertIn(90071210, core_ids)
+        self.assertIn(90071220, core_ids)
+        cores = [h for h in engine.players[0].hand if h.card_id in (90071210, 90071220)]
+        self.assertTrue(all(h.cannot_be_played for h in cores))
+
+    def test_10031320_summons_mud_golem(self):
+        engine = self._make_engine()
+        engine.reset(seed=42)
+        _insert_card(engine, _card(10031320, card_type="\u6cd5\u672f", cost=2, attack=None, life=None))
+        engine.players[0].mana = 10
+
+        engine.apply(PlayCard(0, 0))
+
+        self.assertTrue(any(u.definition.card_id == 90031110 for u in engine.players[0].board))
+
+    def test_10172310_damages_enemy_unit_and_adds_past_core(self):
+        engine = self._make_engine()
+        engine.reset(seed=42)
+        target = Unit.summon(_card(602, attack=1, life=5), entity_id=602)
+        engine.players[1].board.append(target)
+
+        self._play_and_choose_first(engine, 10172310, cost=2)
+
+        self.assertEqual(target.health, 2)
+        self.assertTrue(any(h.card_id == 90071220 for h in engine.players[0].hand))
+
+    def test_10221310_draws_two_for_self_and_one_for_opponent(self):
+        engine = self._make_engine()
+        engine.reset(seed=42)
+        _insert_card(engine, _card(10221310, card_type="\u6cd5\u672f", cost=2, attack=None, life=None))
+        engine.players[0].mana = 10
+        p0_before = len(engine.players[0].deck)
+        p1_before = len(engine.players[1].deck)
+
+        engine.apply(PlayCard(0, 0))
+
+        self.assertEqual(len(engine.players[0].deck), p0_before - 2)
+        self.assertEqual(len(engine.players[1].deck), p1_before - 1)
+
+    def test_10252310_summons_two_bats(self):
+        engine = self._make_engine()
+        engine.reset(seed=42)
+        _insert_card(engine, _card(10252310, card_type="\u6cd5\u672f", cost=2, attack=None, life=None))
+        engine.players[0].mana = 10
+
+        engine.apply(PlayCard(0, 0))
+
+        bats = [u for u in engine.players[0].board if u.definition.card_id == 90051120]
+        self.assertEqual(len(bats), 2)
+
+    def test_10442310_damages_and_restricts_same_target(self):
+        engine = self._make_engine()
+        engine.reset(seed=42)
+        target = Unit.summon(_card(603, attack=3, life=5), entity_id=603)
+        engine.players[1].board.append(target)
+
+        self._play_and_choose_first(engine, 10442310, cost=2)
+
+        self.assertEqual(target.health, 2)
+        self.assertTrue(
+            any(r.restriction is AttackRestriction.CANNOT_ATTACK for r in target.attack_restrictions)
+        )
+        self.assertFalse(target.can_attack_leader)
+        self.assertFalse(target.can_attack_units)
+
+
 class DeterminismBatch2Tests(unittest.TestCase):
     def test_same_seed_same_result(self):
         rb = RuleBook.from_directory("data/rules")
@@ -417,7 +575,8 @@ class RulesLoadTests(unittest.TestCase):
         for cid in (
             10031310, 10041310, 10041110, 10052310, 10111310, 10642310,
             10052110, 10112120, 10251120, 10171110, 10601110, 10651110,
-            10571310, 10022110,
+            10571310, 10022110, 10012310, 10151310, 10171320, 10031320,
+            10172310, 10221310, 10252310, 10442310,
         ):
             ops_play = self.rb.operations_for(cid, Trigger.PLAY)
             ops_fanfare = self.rb.operations_for(cid, Trigger.FANFARE)

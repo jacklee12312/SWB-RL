@@ -5,11 +5,11 @@
   },
   "summary": {
     "total_cards": 740,
-    "total_with_rules": 62,
+    "total_with_rules": 71,
     "test_or_synthetic_ids_with_rules": 26,
     "coverage_counts": {
-      "covered_exact": 32,
-      "supported_missing_rule": 558,
+      "covered_exact": 40,
+      "supported_missing_rule": 550,
       "text_unclear": 23,
       "missing_primitive": 41,
       "covered_partial": 3,
@@ -616,8 +616,8 @@
       "cost": 1,
       "is_collectible": true,
       "card_set_id": 10000,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['造成.*伤害', '返回手牌']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['play'], Ops: ['return_to_hand', 'damage_unit']",
       "hit_keywords": [
         "造成.*伤害",
         "返回手牌"
@@ -868,8 +868,8 @@
       "cost": 2,
       "is_collectible": true,
       "card_set_id": 10000,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['召唤']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['play'], Ops: ['summon']",
       "hit_keywords": [
         "召唤"
       ],
@@ -3825,8 +3825,8 @@
       "cost": 1,
       "is_collectible": true,
       "card_set_id": 10001,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['破坏']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['play'], Ops: ['destroy', 'destroy']",
       "hit_keywords": [
         "破坏"
       ],
@@ -4765,8 +4765,8 @@
       "cost": 1,
       "is_collectible": true,
       "card_set_id": 10001,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['将.*加入手牌']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['play'], Ops: ['add_card', 'add_card']",
       "hit_keywords": [
         "将.*加入手牌"
       ],
@@ -4859,8 +4859,8 @@
       "cost": 2,
       "is_collectible": true,
       "card_set_id": 10001,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['将.*加入手牌', '造成.*伤害']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['play'], Ops: ['damage_unit', 'add_card']",
       "hit_keywords": [
         "将.*加入手牌",
         "造成.*伤害"
@@ -5566,8 +5566,8 @@
       "cost": 2,
       "is_collectible": true,
       "card_set_id": 10002,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['抽取']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['play'], Ops: ['draw', 'draw']",
       "hit_keywords": [
         "抽取"
       ],
@@ -6397,8 +6397,8 @@
       "cost": 2,
       "is_collectible": true,
       "card_set_id": 10002,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['召唤']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['play'], Ops: ['summon', 'summon']",
       "hit_keywords": [
         "召唤"
       ],
@@ -9936,8 +9936,8 @@
       "cost": 2,
       "is_collectible": true,
       "card_set_id": 10004,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['回合结束', '造成.*伤害', '不能攻击|无法攻击']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['play'], Ops: ['damage_unit', 'add_attack_restriction']",
       "hit_keywords": [
         "回合结束",
         "造成.*伤害",
@@ -17408,59 +17408,6 @@
   },
   "top_20_recommendations": [
     {
-      "card_id": 10012310,
-      "name": "昆虫的忠告",
-      "class_name": "精灵",
-      "card_type": "法术",
-      "cost": 1,
-      "ability_keywords": [],
-      "hit_keywords": [
-        "造成.*伤害",
-        "返回手牌"
-      ],
-      "confidence": "high",
-      "why_recommended": "Covered keywords: 造成.*伤害, 返回手牌",
-      "required_primitives": [
-        "造成.*伤害",
-        "返回手牌"
-      ],
-      "suggested_rule_file": "batch_精灵.json"
-    },
-    {
-      "card_id": 10151310,
-      "name": "死神挥刀",
-      "class_name": "梦魇",
-      "card_type": "法术",
-      "cost": 1,
-      "ability_keywords": [],
-      "hit_keywords": [
-        "破坏"
-      ],
-      "confidence": "high",
-      "why_recommended": "Covered keywords: 破坏",
-      "required_primitives": [
-        "破坏"
-      ],
-      "suggested_rule_file": "batch_梦魇.json"
-    },
-    {
-      "card_id": 10171320,
-      "name": "创造物充能",
-      "class_name": "超越者",
-      "card_type": "法术",
-      "cost": 1,
-      "ability_keywords": [],
-      "hit_keywords": [
-        "将.*加入手牌"
-      ],
-      "confidence": "high",
-      "why_recommended": "Covered keywords: 将.*加入手牌",
-      "required_primitives": [
-        "将.*加入手牌"
-      ],
-      "suggested_rule_file": "batch_超越者.json"
-    },
-    {
       "card_id": 10572310,
       "name": "苏生调律",
       "class_name": "超越者",
@@ -17556,23 +17503,6 @@
       "suggested_rule_file": "batch_皇家护卫.json"
     },
     {
-      "card_id": 10031320,
-      "name": "召唤真理",
-      "class_name": "巫师",
-      "card_type": "法术",
-      "cost": 2,
-      "ability_keywords": [],
-      "hit_keywords": [
-        "召唤"
-      ],
-      "confidence": "high",
-      "why_recommended": "Covered keywords: 召唤",
-      "required_primitives": [
-        "召唤"
-      ],
-      "suggested_rule_file": "batch_巫师.json"
-    },
-    {
       "card_id": 10153310,
       "name": "蛇神之怒",
       "class_name": "梦魇",
@@ -17590,42 +17520,6 @@
       "suggested_rule_file": "batch_梦魇.json"
     },
     {
-      "card_id": 10172310,
-      "name": "生命的奔流",
-      "class_name": "超越者",
-      "card_type": "法术",
-      "cost": 2,
-      "ability_keywords": [],
-      "hit_keywords": [
-        "将.*加入手牌",
-        "造成.*伤害"
-      ],
-      "confidence": "high",
-      "why_recommended": "Covered keywords: 将.*加入手牌, 造成.*伤害",
-      "required_primitives": [
-        "将.*加入手牌",
-        "造成.*伤害"
-      ],
-      "suggested_rule_file": "batch_超越者.json"
-    },
-    {
-      "card_id": 10221310,
-      "name": "商谈成立",
-      "class_name": "皇家护卫",
-      "card_type": "法术",
-      "cost": 2,
-      "ability_keywords": [],
-      "hit_keywords": [
-        "抽取"
-      ],
-      "confidence": "high",
-      "why_recommended": "Covered keywords: 抽取",
-      "required_primitives": [
-        "抽取"
-      ],
-      "suggested_rule_file": "batch_皇家护卫.json"
-    },
-    {
       "card_id": 10251310,
       "name": "诅咒派对",
       "class_name": "梦魇",
@@ -17639,23 +17533,6 @@
       "why_recommended": "Covered keywords: 将.*加入手牌",
       "required_primitives": [
         "将.*加入手牌"
-      ],
-      "suggested_rule_file": "batch_梦魇.json"
-    },
-    {
-      "card_id": 10252310,
-      "name": "使唤蝙蝠",
-      "class_name": "梦魇",
-      "card_type": "法术",
-      "cost": 2,
-      "ability_keywords": [],
-      "hit_keywords": [
-        "召唤"
-      ],
-      "confidence": "high",
-      "why_recommended": "Covered keywords: 召唤",
-      "required_primitives": [
-        "召唤"
       ],
       "suggested_rule_file": "batch_梦魇.json"
     },
@@ -17755,25 +17632,146 @@
       "suggested_rule_file": "batch_龙族.json"
     },
     {
-      "card_id": 10442310,
-      "name": "至爱狂轰",
-      "class_name": "龙族",
+      "card_id": 10511310,
+      "name": "虫风花的飞翔",
+      "class_name": "精灵",
       "card_type": "法术",
       "cost": 2,
       "ability_keywords": [],
       "hit_keywords": [
-        "回合结束",
-        "造成.*伤害",
-        "不能攻击|无法攻击"
+        "将.*加入手牌"
       ],
       "confidence": "high",
-      "why_recommended": "Covered keywords: 回合结束, 造成.*伤害, 不能攻击|无法攻击",
+      "why_recommended": "Covered keywords: 将.*加入手牌",
       "required_primitives": [
-        "回合结束",
-        "造成.*伤害",
-        "不能攻击|无法攻击"
+        "将.*加入手牌"
       ],
-      "suggested_rule_file": "batch_龙族.json"
+      "suggested_rule_file": "batch_精灵.json"
+    },
+    {
+      "card_id": 10521310,
+      "name": "丽金花的挥霍",
+      "class_name": "皇家护卫",
+      "card_type": "法术",
+      "cost": 2,
+      "ability_keywords": [],
+      "hit_keywords": [
+        "造成.*伤害",
+        "舍弃"
+      ],
+      "confidence": "high",
+      "why_recommended": "Covered keywords: 造成.*伤害, 舍弃",
+      "required_primitives": [
+        "造成.*伤害",
+        "舍弃"
+      ],
+      "suggested_rule_file": "batch_皇家护卫.json"
+    },
+    {
+      "card_id": 10531310,
+      "name": "明越花的转变",
+      "class_name": "巫师",
+      "card_type": "法术",
+      "cost": 2,
+      "ability_keywords": [],
+      "hit_keywords": [
+        "抽取",
+        "舍弃"
+      ],
+      "confidence": "high",
+      "why_recommended": "Covered keywords: 抽取, 舍弃",
+      "required_primitives": [
+        "抽取",
+        "舍弃"
+      ],
+      "suggested_rule_file": "batch_巫师.json"
+    },
+    {
+      "card_id": 10551310,
+      "name": "奥夜花的开战",
+      "class_name": "梦魇",
+      "card_type": "法术",
+      "cost": 2,
+      "ability_keywords": [],
+      "hit_keywords": [
+        "造成.*伤害"
+      ],
+      "confidence": "high",
+      "why_recommended": "Covered keywords: 造成.*伤害",
+      "required_primitives": [
+        "造成.*伤害"
+      ],
+      "suggested_rule_file": "batch_梦魇.json"
+    },
+    {
+      "card_id": 10552310,
+      "name": "残虐的炸裂",
+      "class_name": "梦魇",
+      "card_type": "法术",
+      "cost": 2,
+      "ability_keywords": [],
+      "hit_keywords": [
+        "造成.*伤害"
+      ],
+      "confidence": "high",
+      "why_recommended": "Covered keywords: 造成.*伤害",
+      "required_primitives": [
+        "造成.*伤害"
+      ],
+      "suggested_rule_file": "batch_梦魇.json"
+    },
+    {
+      "card_id": 10631310,
+      "name": "天晶授予",
+      "class_name": "巫师",
+      "card_type": "法术",
+      "cost": 2,
+      "ability_keywords": [],
+      "hit_keywords": [
+        "召唤"
+      ],
+      "confidence": "high",
+      "why_recommended": "Covered keywords: 召唤",
+      "required_primitives": [
+        "召唤"
+      ],
+      "suggested_rule_file": "batch_巫师.json"
+    },
+    {
+      "card_id": 10671310,
+      "name": "天斧授予",
+      "class_name": "超越者",
+      "card_type": "法术",
+      "cost": 2,
+      "ability_keywords": [],
+      "hit_keywords": [
+        "抽取",
+        "造成.*伤害"
+      ],
+      "confidence": "high",
+      "why_recommended": "Covered keywords: 抽取, 造成.*伤害",
+      "required_primitives": [
+        "抽取",
+        "造成.*伤害"
+      ],
+      "suggested_rule_file": "batch_超越者.json"
+    },
+    {
+      "card_id": 10772310,
+      "name": "闪光一瞬",
+      "class_name": "超越者",
+      "card_type": "法术",
+      "cost": 2,
+      "ability_keywords": [],
+      "hit_keywords": [
+        "超进化"
+      ],
+      "confidence": "high",
+      "why_recommended": "Covered keywords: 超进化",
+      "required_primitives": [
+        "超进化"
+      ],
+      "suggested_rule_file": "batch_超越者.json"
     }
   ]
 }

@@ -2346,9 +2346,14 @@ class GameEngine:
         opponent = self.players[1 - frame.controller]
         name = frame.source_name
         if effect.kind is EffectKind.DRAW:
+            draw_player = (
+                1 - frame.controller
+                if effect.target is TargetKind.ENEMY_LEADER
+                else frame.controller
+            )
             for _ in range(effect.amount):
                 self._draw(
-                    frame.controller,
+                    draw_player,
                     reason=f"{name} {frame.label}抽牌",
                 )
         elif effect.kind is EffectKind.HEAL_LEADER:
