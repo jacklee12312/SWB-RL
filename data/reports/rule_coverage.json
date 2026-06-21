@@ -5,14 +5,14 @@
   },
   "summary": {
     "total_cards": 740,
-    "total_with_rules": 53,
+    "total_with_rules": 61,
     "test_or_synthetic_ids_with_rules": 26,
     "coverage_counts": {
-      "covered_exact": 25,
-      "supported_missing_rule": 566,
+      "covered_exact": 32,
+      "supported_missing_rule": 558,
       "text_unclear": 23,
       "missing_primitive": 41,
-      "covered_partial": 2,
+      "covered_partial": 3,
       "token_or_non_collectible": 83
     }
   },
@@ -718,8 +718,8 @@
       "cost": 2,
       "is_collectible": true,
       "card_set_id": 10000,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['谢幕曲', '召唤']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['last_words'], Ops: ['summon']",
       "hit_keywords": [
         "谢幕曲",
         "召唤"
@@ -1217,8 +1217,8 @@
       "cost": 1,
       "is_collectible": true,
       "card_set_id": 10000,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['谢幕曲', '将.*加入手牌']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['last_words'], Ops: ['add_card']",
       "hit_keywords": [
         "谢幕曲",
         "将.*加入手牌"
@@ -1992,8 +1992,8 @@
       "cost": 1,
       "is_collectible": true,
       "card_set_id": 10001,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['谢幕曲', '将.*加入手牌']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['last_words'], Ops: ['add_card']",
       "hit_keywords": [
         "谢幕曲",
         "将.*加入手牌"
@@ -4639,8 +4639,8 @@
       "cost": 1,
       "is_collectible": true,
       "card_set_id": 10001,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['谢幕曲', '将.*加入手牌']",
+      "coverage": "covered_partial",
+      "reason": "Partial rule. Triggers: ['last_words'], Ops: ['add_card']; unsupported: 『过往核心』自身的融合与无法使用文本尚未实现；生成后可能被引擎当作普通护符使用。",
       "hit_keywords": [
         "谢幕曲",
         "将.*加入手牌"
@@ -4652,7 +4652,12 @@
       "skill_texts": [
         "【<color=Keyword>谢幕曲</color>】将1张『<color=Keyword>过往核心</color>』加入手牌。"
       ],
-      "support_level": "unsupported"
+      "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "partial",
+        "implemented_text": "【谢幕曲】将1张『过往核心』加入手牌。",
+        "unsupported_text": "『过往核心』自身的融合与无法使用文本尚未实现；生成后可能被引擎当作普通护符使用。"
+      }
     },
     "10171120": {
       "card_id": 10171120,
@@ -6299,8 +6304,8 @@
       "cost": 1,
       "is_collectible": true,
       "card_set_id": 10002,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['谢幕曲', '将.*加入手牌']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['last_words'], Ops: ['add_card']",
       "hit_keywords": [
         "谢幕曲",
         "将.*加入手牌"
@@ -12464,8 +12469,8 @@
       "cost": 1,
       "is_collectible": true,
       "card_set_id": 10005,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['抽取']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['play'], Ops: ['draw']",
       "hit_keywords": [
         "抽取"
       ],
@@ -12653,8 +12658,8 @@
       "cost": 2,
       "is_collectible": true,
       "card_set_id": 10006,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['谢幕曲', '造成.*伤害']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['last_words'], Ops: ['damage_leader']",
       "hit_keywords": [
         "谢幕曲",
         "造成.*伤害"
@@ -13801,8 +13806,8 @@
       "cost": 2,
       "is_collectible": true,
       "card_set_id": 10006,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['谢幕曲', '抽取', '造成.*伤害']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['last_words'], Ops: ['draw', 'damage_leader']",
       "hit_keywords": [
         "谢幕曲",
         "抽取",
@@ -17452,23 +17457,6 @@
       "suggested_rule_file": "batch_超越者.json"
     },
     {
-      "card_id": 10571310,
-      "name": "尽小花的临照",
-      "class_name": "超越者",
-      "card_type": "法术",
-      "cost": 1,
-      "ability_keywords": [],
-      "hit_keywords": [
-        "抽取"
-      ],
-      "confidence": "high",
-      "why_recommended": "Covered keywords: 抽取",
-      "required_primitives": [
-        "抽取"
-      ],
-      "suggested_rule_file": "batch_超越者.json"
-    },
-    {
       "card_id": 10572310,
       "name": "苏生调律",
       "class_name": "超越者",
@@ -17759,6 +17747,27 @@
         "进化时",
         "超进化",
         "回合结束"
+      ],
+      "suggested_rule_file": "batch_龙族.json"
+    },
+    {
+      "card_id": 10442310,
+      "name": "至爱狂轰",
+      "class_name": "龙族",
+      "card_type": "法术",
+      "cost": 2,
+      "ability_keywords": [],
+      "hit_keywords": [
+        "回合结束",
+        "造成.*伤害",
+        "不能攻击|无法攻击"
+      ],
+      "confidence": "high",
+      "why_recommended": "Covered keywords: 回合结束, 造成.*伤害, 不能攻击|无法攻击",
+      "required_primitives": [
+        "回合结束",
+        "造成.*伤害",
+        "不能攻击|无法攻击"
       ],
       "suggested_rule_file": "batch_龙族.json"
     }

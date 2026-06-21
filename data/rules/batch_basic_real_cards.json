@@ -47,6 +47,66 @@
                 {"kind": "discard", "target": "own_hand"},
                 {"kind": "destroy", "target": "enemy_unit"}
             ]
+        },
+        {
+            "card_id": 10052110,
+            "trigger": "last_words",
+            "operations": [
+                {"kind": "add_card", "target": "own_leader", "card_id": 90051120}
+            ]
+        },
+        {
+            "card_id": 10112120,
+            "trigger": "last_words",
+            "operations": [
+                {"kind": "add_card", "target": "own_leader", "card_id": 90011110}
+            ]
+        },
+        {
+            "card_id": 10251120,
+            "trigger": "last_words",
+            "operations": [
+                {"kind": "add_card", "target": "own_leader", "card_id": 90051130}
+            ]
+        },
+        {
+            "card_id": 10171110,
+            "coverage": "partial",
+            "implemented_text": "【谢幕曲】将1张『过往核心』加入手牌。",
+            "unsupported_text": "『过往核心』自身的融合与无法使用文本尚未实现；生成后可能被引擎当作普通护符使用。",
+            "trigger": "last_words",
+            "operations": [
+                {"kind": "add_card", "target": "own_leader", "card_id": 90071220}
+            ]
+        },
+        {
+            "card_id": 10601110,
+            "trigger": "last_words",
+            "operations": [
+                {"kind": "damage_leader", "target": "enemy_leader", "amount": 1}
+            ]
+        },
+        {
+            "card_id": 10651110,
+            "trigger": "last_words",
+            "operations": [
+                {"kind": "draw", "target": "own_leader", "amount": 1},
+                {"kind": "damage_leader", "target": "own_leader", "amount": 1}
+            ]
+        },
+        {
+            "card_id": 10571310,
+            "trigger": "play",
+            "operations": [
+                {"kind": "draw", "target": "own_leader", "amount": 1}
+            ]
+        },
+        {
+            "card_id": 10022110,
+            "trigger": "last_words",
+            "operations": [
+                {"kind": "summon", "target": "own_leader", "card_id": 90021110}
+            ]
         }
     ]
 }

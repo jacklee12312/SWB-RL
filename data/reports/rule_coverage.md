@@ -8,18 +8,18 @@
 | Metric | Count |
 |---|---|
 | Total cards in DB | 740 |
-| Cards with rules | 53 |
+| Cards with rules | 61 |
 | Test/synthetic IDs with rules | 26 |
 
 ### Coverage Categories
 
 | Category | Count |
 |---|---|
-| covered_exact | 25 |
-| supported_missing_rule | 566 |
+| covered_exact | 32 |
+| supported_missing_rule | 558 |
 | text_unclear | 23 |
 | missing_primitive | 41 |
-| covered_partial | 2 |
+| covered_partial | 3 |
 | token_or_non_collectible | 83 |
 
 ## Rule Consistency Issues
@@ -100,20 +100,20 @@
 | 1 | 10012310 | 昆虫的忠告 | 精灵 | 1 | 法术 | high | Covered keywords: 造成.*伤害, 返回手牌 |
 | 2 | 10151310 | 死神挥刀 | 梦魇 | 1 | 法术 | high | Covered keywords: 破坏 |
 | 3 | 10171320 | 创造物充能 | 超越者 | 1 | 法术 | high | Covered keywords: 将.*加入手牌 |
-| 4 | 10571310 | 尽小花的临照 | 超越者 | 1 | 法术 | high | Covered keywords: 抽取 |
-| 5 | 10572310 | 苏生调律 | 超越者 | 1 | 法术 | high | Covered keywords: 将.*加入手牌, 破坏, 舍弃 |
-| 6 | 10632310 | 正常的侵蚀 | 巫师 | 1 | 法术 | high | Covered keywords: 抽取, 破坏 |
-| 7 | 10711310 | 人格切换 | 精灵 | 1 | 法术 | high | Covered keywords: 抽取, 返回牌 |
-| 8 | 10751310 | 灵魂调律 | 梦魇 | 1 | 法术 | high | Covered keywords: 抽取 |
-| 9 | 10021310 | 女仆的礼仪 | 皇家护卫 | 2 | 法术 | high | Covered keywords: 抽取, 返回牌 |
-| 10 | 10031320 | 召唤真理 | 巫师 | 2 | 法术 | high | Covered keywords: 召唤 |
-| 11 | 10153310 | 蛇神之怒 | 梦魇 | 2 | 法术 | high | Covered keywords: 造成.*伤害 |
-| 12 | 10172310 | 生命的奔流 | 超越者 | 2 | 法术 | high | Covered keywords: 将.*加入手牌, 造成.*伤害 |
-| 13 | 10221310 | 商谈成立 | 皇家护卫 | 2 | 法术 | high | Covered keywords: 抽取 |
-| 14 | 10251310 | 诅咒派对 | 梦魇 | 2 | 法术 | high | Covered keywords: 将.*加入手牌 |
-| 15 | 10252310 | 使唤蝙蝠 | 梦魇 | 2 | 法术 | high | Covered keywords: 召唤 |
-| 16 | 10333310 | 虚假的术式 | 巫师 | 2 | 法术 | high | Covered keywords: 破坏 |
-| 17 | 10341110 | 侮蔑的肯定者 | 龙族 | 2 | 随从 | high | Covered keywords: 抽取, 破坏 |
-| 18 | 10373310 | 歼灭的歌声 | 超越者 | 2 | 法术 | high | Covered keywords: 破坏, 召唤 |
-| 19 | 10411310 | 彗星 | 精灵 | 2 | 法术 | high | Covered keywords: 抽取, 造成.*伤害 |
-| 20 | 10441120 | 梅格的挚友·玛丽亲 | 龙族 | 2 | 随从 | high | Covered keywords: 进化时, 超进化, 回合结束 |
+| 4 | 10572310 | 苏生调律 | 超越者 | 1 | 法术 | high | Covered keywords: 将.*加入手牌, 破坏, 舍弃 |
+| 5 | 10632310 | 正常的侵蚀 | 巫师 | 1 | 法术 | high | Covered keywords: 抽取, 破坏 |
+| 6 | 10711310 | 人格切换 | 精灵 | 1 | 法术 | high | Covered keywords: 抽取, 返回牌 |
+| 7 | 10751310 | 灵魂调律 | 梦魇 | 1 | 法术 | high | Covered keywords: 抽取 |
+| 8 | 10021310 | 女仆的礼仪 | 皇家护卫 | 2 | 法术 | high | Covered keywords: 抽取, 返回牌 |
+| 9 | 10031320 | 召唤真理 | 巫师 | 2 | 法术 | high | Covered keywords: 召唤 |
+| 10 | 10153310 | 蛇神之怒 | 梦魇 | 2 | 法术 | high | Covered keywords: 造成.*伤害 |
+| 11 | 10172310 | 生命的奔流 | 超越者 | 2 | 法术 | high | Covered keywords: 将.*加入手牌, 造成.*伤害 |
+| 12 | 10221310 | 商谈成立 | 皇家护卫 | 2 | 法术 | high | Covered keywords: 抽取 |
+| 13 | 10251310 | 诅咒派对 | 梦魇 | 2 | 法术 | high | Covered keywords: 将.*加入手牌 |
+| 14 | 10252310 | 使唤蝙蝠 | 梦魇 | 2 | 法术 | high | Covered keywords: 召唤 |
+| 15 | 10333310 | 虚假的术式 | 巫师 | 2 | 法术 | high | Covered keywords: 破坏 |
+| 16 | 10341110 | 侮蔑的肯定者 | 龙族 | 2 | 随从 | high | Covered keywords: 抽取, 破坏 |
+| 17 | 10373310 | 歼灭的歌声 | 超越者 | 2 | 法术 | high | Covered keywords: 破坏, 召唤 |
+| 18 | 10411310 | 彗星 | 精灵 | 2 | 法术 | high | Covered keywords: 抽取, 造成.*伤害 |
+| 19 | 10441120 | 梅格的挚友·玛丽亲 | 龙族 | 2 | 随从 | high | Covered keywords: 进化时, 超进化, 回合结束 |
+| 20 | 10442310 | 至爱狂轰 | 龙族 | 2 | 法术 | high | Covered keywords: 回合结束, 造成.*伤害, 不能攻击|无法攻击 |
