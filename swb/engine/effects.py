@@ -193,6 +193,24 @@ class DeckFilter:
 
 
 @dataclass(frozen=True)
+class BoardFilter:
+    card_type: str | None = None
+    cost_min: int | None = None
+    cost_max: int | None = None
+    card_id: int | None = None
+    card_name: str | None = None
+
+    def matches(self, card: CardDefinition) -> bool:
+        return (
+            (self.card_type is None or card.card_type == self.card_type)
+            and (self.cost_min is None or card.cost >= self.cost_min)
+            and (self.cost_max is None or card.cost <= self.cost_max)
+            and (self.card_id is None or card.card_id == self.card_id)
+            and (self.card_name is None or card.name == self.card_name)
+        )
+
+
+@dataclass(frozen=True)
 class EffectOperation:
     kind: EffectKind
     target: TargetKind
@@ -217,6 +235,7 @@ class EffectOperation:
     graveyard_follower_only: bool = False
     graveyard_card_type: str | None = None
     deck_filter: DeckFilter | None = None
+    board_filter: BoardFilter | None = None
     then_operations: tuple["EffectOperation", ...] = ()
     else_operations: tuple["EffectOperation", ...] = ()
     choose_one_options: tuple["ChooseOneOption", ...] = ()

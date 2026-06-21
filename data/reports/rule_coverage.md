@@ -8,15 +8,15 @@
 | Metric | Count |
 |---|---|
 | Total cards in DB | 740 |
-| Cards with rules | 75 |
+| Cards with rules | 76 |
 | Test/synthetic IDs with rules | 26 |
 
 ### Coverage Categories
 
 | Category | Count |
 |---|---|
-| covered_exact | 44 |
-| supported_missing_rule | 546 |
+| covered_exact | 45 |
+| supported_missing_rule | 545 |
 | text_unclear | 23 |
 | missing_primitive | 41 |
 | covered_partial | 3 |
@@ -99,22 +99,22 @@
 | # | Card ID | Name | Class | Cost | Type | Confidence | Why |
 |---|---|---|---|---|---|---|---|
 | 1 | 10572310 | 苏生调律 | 超越者 | 1 | 法术 | high | Covered keywords: 将.*加入手牌, 破坏, 舍弃 |
-| 2 | 10632310 | 正常的侵蚀 | 巫师 | 1 | 法术 | high | Covered keywords: 抽取, 破坏 |
-| 3 | 10751310 | 灵魂调律 | 梦魇 | 1 | 法术 | high | Covered keywords: 抽取 |
-| 4 | 10153310 | 蛇神之怒 | 梦魇 | 2 | 法术 | high | Covered keywords: 造成.*伤害 |
-| 5 | 10251310 | 诅咒派对 | 梦魇 | 2 | 法术 | high | Covered keywords: 将.*加入手牌 |
-| 6 | 10333310 | 虚假的术式 | 巫师 | 2 | 法术 | high | Covered keywords: 破坏 |
-| 7 | 10341110 | 侮蔑的肯定者 | 龙族 | 2 | 随从 | high | Covered keywords: 抽取, 破坏 |
-| 8 | 10373310 | 歼灭的歌声 | 超越者 | 2 | 法术 | high | Covered keywords: 破坏, 召唤 |
-| 9 | 10411310 | 彗星 | 精灵 | 2 | 法术 | high | Covered keywords: 抽取, 造成.*伤害 |
-| 10 | 10441120 | 梅格的挚友·玛丽亲 | 龙族 | 2 | 随从 | high | Covered keywords: 进化时, 超进化, 回合结束 |
-| 11 | 10511310 | 虫风花的飞翔 | 精灵 | 2 | 法术 | high | Covered keywords: 将.*加入手牌 |
-| 12 | 10521310 | 丽金花的挥霍 | 皇家护卫 | 2 | 法术 | high | Covered keywords: 造成.*伤害, 舍弃 |
-| 13 | 10531310 | 明越花的转变 | 巫师 | 2 | 法术 | high | Covered keywords: 抽取, 舍弃 |
-| 14 | 10551310 | 奥夜花的开战 | 梦魇 | 2 | 法术 | high | Covered keywords: 造成.*伤害 |
-| 15 | 10552310 | 残虐的炸裂 | 梦魇 | 2 | 法术 | high | Covered keywords: 造成.*伤害 |
-| 16 | 10631310 | 天晶授予 | 巫师 | 2 | 法术 | high | Covered keywords: 召唤 |
-| 17 | 10671310 | 天斧授予 | 超越者 | 2 | 法术 | high | Covered keywords: 抽取, 造成.*伤害 |
-| 18 | 10772310 | 闪光一瞬 | 超越者 | 2 | 法术 | high | Covered keywords: 超进化 |
-| 19 | 10042310 | 龙之启示 | 龙族 | 3 | 法术 | high | Covered keywords: 抽取 |
-| 20 | 10102310 | 炽天使的福音 | 中立 | 3 | 法术 | high | Covered keywords: 抽取 |
+| 2 | 10751310 | 灵魂调律 | 梦魇 | 1 | 法术 | high | Covered keywords: 抽取 |
+| 3 | 10153310 | 蛇神之怒 | 梦魇 | 2 | 法术 | high | Covered keywords: 造成.*伤害 |
+| 4 | 10251310 | 诅咒派对 | 梦魇 | 2 | 法术 | high | Covered keywords: 将.*加入手牌 |
+| 5 | 10333310 | 虚假的术式 | 巫师 | 2 | 法术 | high | Covered keywords: 破坏 |
+| 6 | 10341110 | 侮蔑的肯定者 | 龙族 | 2 | 随从 | high | Covered keywords: 抽取, 破坏 |
+| 7 | 10373310 | 歼灭的歌声 | 超越者 | 2 | 法术 | high | Covered keywords: 破坏, 召唤 |
+| 8 | 10411310 | 彗星 | 精灵 | 2 | 法术 | high | Covered keywords: 抽取, 造成.*伤害 |
+| 9 | 10441120 | 梅格的挚友·玛丽亲 | 龙族 | 2 | 随从 | high | Covered keywords: 进化时, 超进化, 回合结束 |
+| 10 | 10511310 | 虫风花的飞翔 | 精灵 | 2 | 法术 | high | Covered keywords: 将.*加入手牌 |
+| 11 | 10521310 | 丽金花的挥霍 | 皇家护卫 | 2 | 法术 | high | Covered keywords: 造成.*伤害, 舍弃 |
+| 12 | 10531310 | 明越花的转变 | 巫师 | 2 | 法术 | high | Covered keywords: 抽取, 舍弃 |
+| 13 | 10551310 | 奥夜花的开战 | 梦魇 | 2 | 法术 | high | Covered keywords: 造成.*伤害 |
+| 14 | 10552310 | 残虐的炸裂 | 梦魇 | 2 | 法术 | high | Covered keywords: 造成.*伤害 |
+| 15 | 10631310 | 天晶授予 | 巫师 | 2 | 法术 | high | Covered keywords: 召唤 |
+| 16 | 10671310 | 天斧授予 | 超越者 | 2 | 法术 | high | Covered keywords: 抽取, 造成.*伤害 |
+| 17 | 10772310 | 闪光一瞬 | 超越者 | 2 | 法术 | high | Covered keywords: 超进化 |
+| 18 | 10042310 | 龙之启示 | 龙族 | 3 | 法术 | high | Covered keywords: 抽取 |
+| 19 | 10102310 | 炽天使的福音 | 中立 | 3 | 法术 | high | Covered keywords: 抽取 |
+| 20 | 10112310 | 薰交的思慕 | 精灵 | 3 | 法术 | high | Covered keywords: 抽取, 将.*加入手牌 |

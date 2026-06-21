@@ -2379,6 +2379,7 @@ class GameEngine:
                 graveyard_follower_only=operation.graveyard_follower_only,
                 graveyard_card_type=operation.graveyard_card_type,
                 deck_filter=operation.deck_filter,
+                board_filter=operation.board_filter,
                 emblem_remove_mode=operation.emblem_remove_mode,
             )
             self._execute_effect(resolved, frame, target_id)

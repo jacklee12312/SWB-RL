@@ -246,6 +246,11 @@ def target_candidates(
         return []
 
     candidates = [e for e in candidates if _effect_compatible(e, operation.kind)]
+    if operation.board_filter is not None:
+        candidates = [
+            e for e in candidates
+            if operation.board_filter.matches(e.definition)
+        ]
 
     if is_manual_target(operation.target):
         candidates = [

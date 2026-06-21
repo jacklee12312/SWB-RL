@@ -331,6 +331,46 @@ class FilteredDrawSchemaTests(unittest.TestCase):
             self._load_payload(payload)
         self.assertIn("cost_min", str(ctx.exception))
 
+    def test_json_parses_board_target_filters(self):
+        rb = self._load_payload({
+            "rules": [{
+                "card_id": 1,
+                "trigger": "play",
+                "operations": [{
+                    "kind": "destroy",
+                    "target": "own_unit",
+                    "target_card_type_filter": "随从",
+                    "target_cost_min": 1,
+                    "target_cost_max": 3,
+                    "target_card_id_filter": 900,
+                    "target_card_name_filter": "目标",
+                }],
+            }],
+        })
+        op = rb.operations_for(1, Trigger.PLAY)[0]
+        self.assertEqual(op.board_filter.card_type, "随从")
+        self.assertEqual(op.board_filter.cost_min, 1)
+        self.assertEqual(op.board_filter.cost_max, 3)
+        self.assertEqual(op.board_filter.card_id, 900)
+        self.assertEqual(op.board_filter.card_name, "目标")
+
+    def test_json_rejects_board_filters_on_non_board_targets(self):
+        payload = {
+            "rules": [{
+                "card_id": 1,
+                "trigger": "play",
+                "operations": [{
+                    "kind": "draw",
+                    "target": "own_leader",
+                    "amount": 1,
+                    "target_card_id_filter": 900,
+                }],
+            }],
+        }
+        with self.assertRaises(ValueError) as ctx:
+            self._load_payload(payload)
+        self.assertIn("board target", str(ctx.exception))
+
 
 if __name__ == "__main__":
     unittest.main()

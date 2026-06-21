@@ -5,7 +5,7 @@ import unittest
 from swb.db.repository import CardDefinition
 from swb.engine.card_rules import CardRule, RuleBook, Trigger
 from swb.engine.commands import Choose, PlayCard, EndTurn
-from swb.engine.effects import EffectKind, EffectOperation, TargetKind
+from swb.engine.effects import BoardFilter, EffectKind, EffectOperation, TargetKind
 from swb.engine.events import EventType
 from swb.engine.resolution import GameEngine, IllegalCommand
 from swb.engine.state import Amulet, Phase, Unit
@@ -255,6 +255,77 @@ class TargetingTests(unittest.TestCase):
         engine.apply(choice)
         self.assertEqual(engine.state.phase, Phase.MAIN)
         self.assertIsNone(engine.state.pending_choice)
+
+    def test_manual_board_filter_limits_choice_candidates(self):
+        rulebook = RuleBook((
+            CardRule(
+                card_id=1,
+                trigger=Trigger.PLAY,
+                operations=(
+                    EffectOperation(
+                        kind=EffectKind.DESTROY,
+                        target=TargetKind.OWN_UNIT,
+                        board_filter=BoardFilter(card_id=900),
+                    ),
+                ),
+            ),
+        ))
+        engine = GameEngine(
+            [card(i) for i in range(100, 140)],
+            [card(i) for i in range(200, 240)],
+            class_a=1, class_b=1, seed=1, rulebook=rulebook,
+        )
+        engine.reset(seed=1)
+        valid = Unit.summon(card(900, name="valid"))
+        invalid = Unit.summon(card(901, name="invalid"))
+        engine.players[0].board = [valid, invalid]
+        engine.players[0].mana = 10
+        engine.players[0].hand[0] = card(1, card_type="法术", attack=None, life=None)
+
+        engine.apply(PlayCard(0, 0))
+
+        choices = [c for c in engine.legal_commands() if isinstance(c, Choose)]
+        self.assertEqual([c.option_id for c in choices], [f"entity:{valid.entity_id}"])
+
+    def test_random_and_all_board_filters_share_candidate_logic(self):
+        rulebook = RuleBook((
+            CardRule(
+                card_id=1,
+                trigger=Trigger.PLAY,
+                operations=(
+                    EffectOperation(
+                        kind=EffectKind.DAMAGE_UNIT,
+                        target=TargetKind.RANDOM_ENEMY_UNIT,
+                        amount=2,
+                        board_filter=BoardFilter(cost_min=3, cost_max=3),
+                    ),
+                    EffectOperation(
+                        kind=EffectKind.DAMAGE_UNIT,
+                        target=TargetKind.ALL_ENEMY_UNITS,
+                        amount=1,
+                        board_filter=BoardFilter(card_name="target"),
+                    ),
+                ),
+            ),
+        ))
+        engine = GameEngine(
+            [card(i) for i in range(100, 140)],
+            [card(i) for i in range(200, 240)],
+            class_a=1, class_b=1, seed=1, rulebook=rulebook,
+        )
+        engine.reset(seed=1)
+        low = Unit.summon(card(900, cost=1, life=10, name="skip"))
+        target = Unit.summon(card(901, cost=3, life=10, name="target"))
+        high = Unit.summon(card(902, cost=5, life=10, name="skip"))
+        engine.players[1].board = [low, target, high]
+        engine.players[0].mana = 10
+        engine.players[0].hand[0] = card(1, card_type="法术", attack=None, life=None)
+
+        engine.apply(PlayCard(0, 0))
+
+        self.assertEqual(low.health, 10)
+        self.assertEqual(target.health, 7)
+        self.assertEqual(high.health, 10)
 
 
 class ZoneChangeTests(unittest.TestCase):

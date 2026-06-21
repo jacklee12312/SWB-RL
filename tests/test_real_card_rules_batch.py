@@ -238,6 +238,7 @@ class DatabaseVerificationBatch3Tests(unittest.TestCase):
             10711310: ("\u4eba\u683c\u5207\u6362", ["\u9009\u62e9\u81ea\u5df1\u76842\u5f20\u624b\u724c", "\u8fd4\u56de\u724c\u7ec4", "\u62bd\u53d62\u5f20"]),
             10661310: ("\u5929\u4e66\u6388\u4e88", ["\u62bd\u53d62\u5f20\u62a4\u7b26"]),
             10231120: ("\u9b54\u5bfc\u56fe\u4e66\u7ba1\u7406\u5458", ["\u8fd4\u56de\u724c\u7ec4", "\u62bd\u53d61\u5f20\u6cd5\u672f"]),
+            10632310: ("\u6b63\u5e38\u7684\u4fb5\u8680", ["\u5929\u6676\u9b54\u624b", "\u7834\u574f\u8be5\u968f\u4ece", "\u62bd\u53d62\u5f20\u5deb\u5e08\u00b7\u968f\u4ece"]),
         }
         for card_id, (name_part, substrings) in expected.items():
             with self.subTest(card_id=card_id):
@@ -649,6 +650,34 @@ class BehaviorBatch3Tests(unittest.TestCase):
         self.assertTrue({732, 733} & hand_ids)
         self.assertNotIn(731, hand_ids)
 
+    def test_10632310_only_targets_crystal_hand_and_draws_witch_followers(self):
+        engine = self._make_engine()
+        engine.reset(seed=42)
+        valid = Unit.summon(_card(10631110, name="\u5929\u6676\u9b54\u624b", class_id=3, class_name="\u5deb\u5e08"))
+        invalid = Unit.summon(_card(740, name="\u5176\u4ed6\u968f\u4ece", class_id=3, class_name="\u5deb\u5e08"))
+        engine.players[0].board = [invalid, valid]
+        engine.players[0].deck = [
+            _card(741, class_id=3, class_name="\u5deb\u5e08", card_type="\u6cd5\u672f", attack=None, life=None),
+            _card(742, class_id=1, class_name="\u7cbe\u7075", card_type="\u968f\u4ece"),
+            _card(743, class_id=3, class_name="\u5deb\u5e08", card_type="\u968f\u4ece"),
+            _card(744, class_id=3, class_name="\u5deb\u5e08", card_type="\u968f\u4ece"),
+        ]
+        _insert_card(engine, _card(10632310, card_type="\u6cd5\u672f", cost=1, attack=None, life=None))
+        engine.players[0].mana = 10
+
+        engine.apply(PlayCard(0, 0))
+        choices = [c for c in engine.legal_commands() if isinstance(c, Choose)]
+        self.assertEqual([c.option_id for c in choices], [f"entity:{valid.entity_id}"])
+        engine.apply(choices[0])
+
+        self.assertIn(invalid, engine.players[0].board)
+        self.assertNotIn(valid, engine.players[0].board)
+        hand_ids = {h.card_id for h in engine.players[0].hand}
+        self.assertIn(743, hand_ids)
+        self.assertIn(744, hand_ids)
+        self.assertNotIn(741, hand_ids)
+        self.assertNotIn(742, hand_ids)
+
 
 class DeterminismBatch2Tests(unittest.TestCase):
     def test_same_seed_same_result(self):
@@ -678,7 +707,7 @@ class RulesLoadTests(unittest.TestCase):
             10052110, 10112120, 10251120, 10171110, 10601110, 10651110,
             10571310, 10022110, 10012310, 10151310, 10171320, 10031320,
             10172310, 10221310, 10252310, 10442310, 10021310, 10711310,
-            10661310, 10231120,
+            10661310, 10231120, 10632310,
         ):
             ops_play = self.rb.operations_for(cid, Trigger.PLAY)
             ops_fanfare = self.rb.operations_for(cid, Trigger.FANFARE)

@@ -7,6 +7,7 @@ from pathlib import Path
 
 from swb.engine.abilities import RUNTIME_UNIT_KEYWORDS, normalize_keyword_name
 from swb.engine.effects import (
+    BoardFilter,
     ChooseOneOption,
     Condition,
     ConditionType,
@@ -854,10 +855,53 @@ def _parse_operation(raw: dict, source_file: str, card_id: int, _depth: int = 0)
         raise ValueError(
             f"{source_file}/card_name_filter card {card_id}: must be a string"
         )
+    target_card_type = raw.get("target_card_type_filter")
+    if target_card_type is not None:
+        if not isinstance(target_card_type, str):
+            raise ValueError(
+                f"{source_file}/target_card_type_filter card {card_id}: must be a string"
+            )
+        if target_card_type not in _VALID_CARD_TYPES:
+            raise ValueError(
+                f"{source_file}/target_card_type_filter card {card_id}: "
+                f"unknown card type {target_card_type!r}; valid: {sorted(_VALID_CARD_TYPES)}"
+            )
+    target_cost_min = raw.get("target_cost_min")
+    if target_cost_min is not None:
+        target_cost_min = _parse_non_negative_int(
+            target_cost_min,
+            f"{source_file}/target_cost_min",
+            card_id,
+        )
+    target_cost_max = raw.get("target_cost_max")
+    if target_cost_max is not None:
+        target_cost_max = _parse_non_negative_int(
+            target_cost_max,
+            f"{source_file}/target_cost_max",
+            card_id,
+        )
+    if target_cost_min is not None and target_cost_max is not None and target_cost_min > target_cost_max:
+        raise ValueError(
+            f"{source_file} card {card_id}: target_cost_min ({target_cost_min}) "
+            f"must not exceed target_cost_max ({target_cost_max})"
+        )
+    target_card_id = raw.get("target_card_id_filter")
+    if target_card_id is not None:
+        target_card_id = _parse_non_negative_int(
+            target_card_id,
+            f"{source_file}/target_card_id_filter",
+            card_id,
+        )
+    target_card_name = raw.get("target_card_name_filter")
+    if target_card_name is not None and not isinstance(target_card_name, str):
+        raise ValueError(
+            f"{source_file}/target_card_name_filter card {card_id}: must be a string"
+        )
 
     _is_graveyard_kind = kind in _GRAVEYARD_EFFECT_KINDS
     _is_deck_filter_kind = kind is EffectKind.DRAW_FILTERED
     deck_filter: DeckFilter | None = None
+    board_filter: BoardFilter | None = None
     if _is_deck_filter_kind and target not in (TargetKind.OWN_LEADER, TargetKind.ENEMY_LEADER):
         raise ValueError(
             f"{source_file} card {card_id}: draw_filtered requires own_leader "
@@ -906,7 +950,35 @@ def _parse_operation(raw: dict, source_file: str, card_id: int, _depth: int = 0)
                 f"{source_file} card {card_id}: {kind.value} requires a graveyard target, "
                 f"got {target.value!r}"
             )
-    else:
+    board_filter_fields_present = any([
+        target_card_type is not None,
+        target_cost_min is not None,
+        target_cost_max is not None,
+        target_card_id is not None,
+        target_card_name is not None,
+    ])
+    if board_filter_fields_present:
+        if target in _GRAVEYARD_TARGETS or target in (
+            TargetKind.OWN_HAND,
+            TargetKind.RANDOM_OWN_HAND,
+            TargetKind.ALL_OWN_HAND,
+            TargetKind.OWN_LEADER,
+            TargetKind.ENEMY_LEADER,
+            TargetKind.SELF,
+            TargetKind.PREVIOUS_TARGET,
+        ):
+            raise ValueError(
+                f"{source_file} card {card_id}: target_*_filter fields require "
+                f"a board target, got {target.value!r}"
+            )
+        board_filter = BoardFilter(
+            card_type=target_card_type,
+            cost_min=target_cost_min,
+            cost_max=target_cost_max,
+            card_id=target_card_id,
+            card_name=target_card_name,
+        )
+    elif not _is_graveyard_kind:
         has_graveyard_filter = any([
             raw.get("cost_max") is not None and not _is_deck_filter_kind,
             raw.get("cost_min") is not None and not _is_deck_filter_kind,
@@ -1104,6 +1176,7 @@ def _parse_operation(raw: dict, source_file: str, card_id: int, _depth: int = 0)
         graveyard_follower_only=graveyard_follower_only,
         graveyard_card_type=graveyard_card_type,
         deck_filter=deck_filter,
+        board_filter=board_filter,
         then_operations=then_ops,
         else_operations=else_ops,
         choose_one_options=choose_one_options,

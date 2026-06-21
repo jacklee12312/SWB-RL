@@ -239,6 +239,24 @@
                     "card_type_filter": "法术"
                 }
             ]
+        },
+        {
+            "card_id": 10632310,
+            "trigger": "play",
+            "operations": [
+                {
+                    "kind": "destroy",
+                    "target": "own_unit",
+                    "target_card_id_filter": 10631110
+                },
+                {
+                    "kind": "draw_filtered",
+                    "target": "own_leader",
+                    "amount": 2,
+                    "card_type_filter": "随从",
+                    "class_id_filter": 3
+                }
+            ]
         }
     ]
 }
