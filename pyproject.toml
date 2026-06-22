@@ -3,7 +3,7 @@ name = "swb-rl"
 version = "0.1.0"
 description = "Shadowverse card database and minimal reinforcement-learning game engine"
 requires-python = ">=3.11"
+dependencies = []
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-

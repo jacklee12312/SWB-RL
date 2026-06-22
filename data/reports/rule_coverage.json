@@ -5,11 +5,11 @@
   },
   "summary": {
     "total_cards": 740,
-    "total_with_rules": 78,
+    "total_with_rules": 84,
     "test_or_synthetic_ids_with_rules": 26,
     "coverage_counts": {
-      "covered_exact": 47,
-      "supported_missing_rule": 543,
+      "covered_exact": 53,
+      "supported_missing_rule": 537,
       "text_unclear": 23,
       "missing_primitive": 41,
       "covered_partial": 3,
@@ -4745,8 +4745,8 @@
       "cost": 3,
       "is_collectible": true,
       "card_set_id": 10001,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['召唤']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['play'], Ops: ['summon', 'summon']",
       "hit_keywords": [
         "召唤"
       ],
@@ -6331,8 +6331,8 @@
       "cost": 2,
       "is_collectible": true,
       "card_set_id": 10002,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['将.*加入手牌']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['play'], Ops: ['add_card', 'add_card', 'add_card']",
       "hit_keywords": [
         "将.*加入手牌"
       ],
@@ -10673,8 +10673,8 @@
       "cost": 3,
       "is_collectible": true,
       "card_set_id": 10004,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['造成.*伤害']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['play'], Ops: ['damage_unit', 'damage_unit', 'damage_unit', 'damage_unit', 'damage_unit', 'damage_unit']",
       "hit_keywords": [
         "造成.*伤害"
       ],
@@ -11231,8 +11231,8 @@
       "cost": 2,
       "is_collectible": true,
       "card_set_id": 10005,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['造成.*伤害', '舍弃']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['play'], Ops: ['discard', 'damage_unit', 'damage_unit']",
       "hit_keywords": [
         "造成.*伤害",
         "舍弃"
@@ -11476,8 +11476,8 @@
       "cost": 2,
       "is_collectible": true,
       "card_set_id": 10005,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['抽取', '舍弃']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['play'], Ops: ['discard', 'draw']",
       "hit_keywords": [
         "抽取",
         "舍弃"
@@ -13360,8 +13360,8 @@
       "cost": 2,
       "is_collectible": true,
       "card_set_id": 10006,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['召唤']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['play'], Ops: ['summon', 'summon']",
       "hit_keywords": [
         "召唤"
       ],
@@ -17463,23 +17463,6 @@
       "suggested_rule_file": "batch_梦魇.json"
     },
     {
-      "card_id": 10251310,
-      "name": "诅咒派对",
-      "class_name": "梦魇",
-      "card_type": "法术",
-      "cost": 2,
-      "ability_keywords": [],
-      "hit_keywords": [
-        "将.*加入手牌"
-      ],
-      "confidence": "high",
-      "why_recommended": "Covered keywords: 将.*加入手牌",
-      "required_primitives": [
-        "将.*加入手牌"
-      ],
-      "suggested_rule_file": "batch_梦魇.json"
-    },
-    {
       "card_id": 10333310,
       "name": "虚假的术式",
       "class_name": "巫师",
@@ -17573,44 +17556,6 @@
       "suggested_rule_file": "batch_精灵.json"
     },
     {
-      "card_id": 10521310,
-      "name": "丽金花的挥霍",
-      "class_name": "皇家护卫",
-      "card_type": "法术",
-      "cost": 2,
-      "ability_keywords": [],
-      "hit_keywords": [
-        "造成.*伤害",
-        "舍弃"
-      ],
-      "confidence": "high",
-      "why_recommended": "Covered keywords: 造成.*伤害, 舍弃",
-      "required_primitives": [
-        "造成.*伤害",
-        "舍弃"
-      ],
-      "suggested_rule_file": "batch_皇家护卫.json"
-    },
-    {
-      "card_id": 10531310,
-      "name": "明越花的转变",
-      "class_name": "巫师",
-      "card_type": "法术",
-      "cost": 2,
-      "ability_keywords": [],
-      "hit_keywords": [
-        "抽取",
-        "舍弃"
-      ],
-      "confidence": "high",
-      "why_recommended": "Covered keywords: 抽取, 舍弃",
-      "required_primitives": [
-        "抽取",
-        "舍弃"
-      ],
-      "suggested_rule_file": "batch_巫师.json"
-    },
-    {
       "card_id": 10551310,
       "name": "奥夜花的开战",
       "class_name": "梦魇",
@@ -17643,23 +17588,6 @@
         "造成.*伤害"
       ],
       "suggested_rule_file": "batch_梦魇.json"
-    },
-    {
-      "card_id": 10631310,
-      "name": "天晶授予",
-      "class_name": "巫师",
-      "card_type": "法术",
-      "cost": 2,
-      "ability_keywords": [],
-      "hit_keywords": [
-        "召唤"
-      ],
-      "confidence": "high",
-      "why_recommended": "Covered keywords: 召唤",
-      "required_primitives": [
-        "召唤"
-      ],
-      "suggested_rule_file": "batch_巫师.json"
     },
     {
       "card_id": 10772310,
@@ -17732,25 +17660,65 @@
       "suggested_rule_file": "batch_精灵.json"
     },
     {
-      "card_id": 10171310,
-      "name": "人偶替身",
+      "card_id": 10541310,
+      "name": "波摇花的裁决",
+      "class_name": "龙族",
+      "card_type": "法术",
+      "cost": 3,
+      "ability_keywords": [],
+      "hit_keywords": [
+        "抽取",
+        "造成.*伤害"
+      ],
+      "confidence": "high",
+      "why_recommended": "Covered keywords: 抽取, 造成.*伤害",
+      "required_primitives": [
+        "抽取",
+        "造成.*伤害"
+      ],
+      "suggested_rule_file": "batch_龙族.json"
+    },
+    {
+      "card_id": 10561310,
+      "name": "雾卷花的激愤",
+      "class_name": "主教",
+      "card_type": "法术",
+      "cost": 3,
+      "ability_keywords": [],
+      "hit_keywords": [
+        "抽取",
+        "返回牌"
+      ],
+      "confidence": "high",
+      "why_recommended": "Covered keywords: 抽取, 返回牌",
+      "required_primitives": [
+        "抽取",
+        "返回牌"
+      ],
+      "suggested_rule_file": "batch_主教.json"
+    },
+    {
+      "card_id": 10673310,
+      "name": "恶劣的天斧",
       "class_name": "超越者",
       "card_type": "法术",
       "cost": 3,
       "ability_keywords": [],
       "hit_keywords": [
-        "召唤"
+        "回合结束",
+        "造成.*伤害"
       ],
       "confidence": "high",
-      "why_recommended": "Covered keywords: 召唤",
+      "why_recommended": "Covered keywords: 回合结束, 造成.*伤害",
       "required_primitives": [
-        "召唤"
+        "回合结束",
+        "造成.*伤害"
       ],
       "suggested_rule_file": "batch_超越者.json"
     },
     {
-      "card_id": 10472310,
-      "name": "身无长物唯有石",
+      "card_id": 10773310,
+      "name": "瞬移斩击",
       "class_name": "超越者",
       "card_type": "法术",
       "cost": 3,
@@ -17764,6 +17732,44 @@
         "造成.*伤害"
       ],
       "suggested_rule_file": "batch_超越者.json"
+    },
+    {
+      "card_id": 10071310,
+      "name": "来自异次元的枪击",
+      "class_name": "超越者",
+      "card_type": "法术",
+      "cost": 4,
+      "ability_keywords": [],
+      "hit_keywords": [
+        "将.*加入手牌",
+        "破坏"
+      ],
+      "confidence": "high",
+      "why_recommended": "Covered keywords: 将.*加入手牌, 破坏",
+      "required_primitives": [
+        "将.*加入手牌",
+        "破坏"
+      ],
+      "suggested_rule_file": "batch_超越者.json"
+    },
+    {
+      "card_id": 10103310,
+      "name": "神之雷霆",
+      "class_name": "中立",
+      "card_type": "法术",
+      "cost": 4,
+      "ability_keywords": [],
+      "hit_keywords": [
+        "造成.*伤害",
+        "破坏"
+      ],
+      "confidence": "high",
+      "why_recommended": "Covered keywords: 造成.*伤害, 破坏",
+      "required_primitives": [
+        "造成.*伤害",
+        "破坏"
+      ],
+      "suggested_rule_file": "batch_中立.json"
     }
   ]
 }

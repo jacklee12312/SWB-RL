@@ -295,6 +295,60 @@
                     ]
                 }
             ]
+        },
+        {
+            "card_id": 10251310,
+            "trigger": "play",
+            "operations": [
+                {"kind": "add_card", "target": "own_leader", "card_id": 90051130},
+                {"kind": "add_card", "target": "own_leader", "card_id": 90051110},
+                {"kind": "add_card", "target": "own_leader", "card_id": 90051140}
+            ]
+        },
+        {
+            "card_id": 10531310,
+            "trigger": "play",
+            "operations": [
+                {"kind": "discard", "target": "own_hand"},
+                {"kind": "draw", "target": "own_leader", "amount": 2}
+            ]
+        },
+        {
+            "card_id": 10521310,
+            "trigger": "play",
+            "operations": [
+                {"kind": "discard", "target": "own_hand"},
+                {"kind": "damage_unit", "target": "random_enemy_unit", "amount": 3},
+                {"kind": "damage_unit", "target": "random_enemy_unit", "amount": 3}
+            ]
+        },
+        {
+            "card_id": 10631310,
+            "trigger": "play",
+            "operations": [
+                {"kind": "summon", "target": "own_leader", "card_id": 10631110},
+                {"kind": "summon", "target": "own_leader", "card_id": 10631110}
+            ]
+        },
+        {
+            "card_id": 10171310,
+            "trigger": "play",
+            "operations": [
+                {"kind": "summon", "target": "own_leader", "card_id": 90071120},
+                {"kind": "summon", "target": "own_leader", "card_id": 90071120}
+            ]
+        },
+        {
+            "card_id": 10472310,
+            "trigger": "play",
+            "operations": [
+                {"kind": "damage_unit", "target": "random_enemy_unit", "amount": 1},
+                {"kind": "damage_unit", "target": "random_enemy_unit", "amount": 1},
+                {"kind": "damage_unit", "target": "random_enemy_unit", "amount": 1},
+                {"kind": "damage_unit", "target": "random_enemy_unit", "amount": 1},
+                {"kind": "damage_unit", "target": "random_enemy_unit", "amount": 1},
+                {"kind": "damage_unit", "target": "random_enemy_unit", "amount": 1}
+            ]
         }
     ]
 }

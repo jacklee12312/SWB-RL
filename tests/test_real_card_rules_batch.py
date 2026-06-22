@@ -44,10 +44,14 @@ def _make_engine(rulebook=None):
             90011110: _card(90011110, name="\u5996\u7cbe", card_set_id=90000, is_collectible=False),
             90051120: _card(90051120, name="\u8760\u8760", card_set_id=90000, is_collectible=False),
             90051130: _card(90051130, name="\u6028\u7075", card_set_id=90000, is_collectible=False),
+            90051110: _card(90051110, name="\u9ab8\u9aa8\u58eb\u5175", cost=0, card_set_id=90000, is_collectible=False),
+            90051140: _card(90051140, name="\u8150\u81ed\u7684\u50f5\u5c38", cost=3, attack=2, life=2, card_set_id=90000, is_collectible=False),
+            90071120: _card(90071120, name="\u6539\u826f\u578b\u00b7\u60ac\u4e1d\u5080\u5121", cost=1, attack=3, life=3, card_set_id=90000, is_collectible=False),
             90071210: _card(90071210, name="\u672a\u6765\u6838\u5fc3", card_type="\u62a4\u7b26", attack=None, life=None, card_set_id=90000, is_collectible=False),
             90071220: _card(90071220, name="\u8fc7\u5f80\u6838\u5fc3", card_type="\u62a4\u7b26", attack=None, life=None, card_set_id=90000, is_collectible=False),
             90021110: _card(90021110, name="\u9a91\u58eb", cost=0, card_set_id=90000, is_collectible=False),
             90031110: _card(90031110, name="\u6ce5\u5c18\u5de8\u50cf", cost=1, attack=2, life=2, card_set_id=90000, is_collectible=False),
+            10631110: _card(10631110, name="\u5929\u6676\u9b54\u624b", class_id=3, class_name="\u5deb\u5e08", cost=1, attack=1, life=1),
         }),
     )
 
@@ -241,6 +245,37 @@ class DatabaseVerificationBatch3Tests(unittest.TestCase):
             10632310: ("\u6b63\u5e38\u7684\u4fb5\u8680", ["\u5929\u6676\u9b54\u624b", "\u7834\u574f\u8be5\u968f\u4ece", "\u62bd\u53d62\u5f20\u5deb\u5e08\u00b7\u968f\u4ece"]),
             10411310: ("\u5f57\u661f", ["4\u70b9\u4f24\u5bb3", "\u8fdb\u5316\u540e\u7684\u968f\u4ece", "\u62bd\u53d61\u5f20\u5361\u724c"]),
             10671310: ("\u5929\u65a7\u6388\u4e88", ["4\u70b9\u4f24\u5bb3", "\u539f\u59cb\u8d39\u7528\u4e3a5\u6216\u4ee5\u4e0a", "\u62bd\u53d61\u5f20\u5361\u724c"]),
+        }
+        for card_id, (name_part, substrings) in expected.items():
+            with self.subTest(card_id=card_id):
+                card = self.repo.get(card_id)
+                self.assertIn(name_part, card.name)
+                text = "\n".join(self._skill_texts(card_id))
+                for substring in substrings:
+                    self.assertIn(substring, text)
+
+
+class DatabaseVerificationBatch4Tests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.db_path = os.path.join(os.path.dirname(__file__), "..", "data", "cards.sqlite3")
+        if not os.path.exists(str(cls.db_path)):
+            raise unittest.SkipTest("cards.sqlite3 not found")
+        cls.repo = CardRepository(str(cls.db_path))
+
+    def _skill_texts(self, card_id):
+        with sqlite3.connect(str(self.db_path)) as conn:
+            return [row[0] for row in conn.execute(
+                "SELECT text_chs FROM skill_texts WHERE card_id=? ORDER BY position", (card_id,))]
+
+    def test_batch4_database_texts_match_supported_rules(self):
+        expected = {
+            10251310: ("\u8bc5\u5492\u6d3e\u5bf9", ["\u6028\u7075", "\u9ab8\u9aa8\u58eb\u5175", "\u8150\u81ed\u7684\u50f5\u5c38", "\u52a0\u5165\u624b\u724c"]),
+            10531310: ("\u660e\u8d8a\u82b1\u7684\u8f6c\u53d8", ["\u820d\u5f03\u8be5\u624b\u724c", "\u62bd\u53d62\u5f20\u5361\u724c"]),
+            10521310: ("\u4e3d\u91d1\u82b1\u7684\u6325\u970d", ["\u624b\u724c\u4e2d\u76841\u5f20\u6cd5\u672f", "\u968f\u673a1\u4e2a\u968f\u4ece", "3\u70b9\u4f24\u5bb3"]),
+            10631310: ("\u5929\u6676\u6388\u4e88", ["\u53ec\u55242\u4e2a", "\u5929\u6676\u9b54\u624b"]),
+            10171310: ("\u4eba\u5076\u66ff\u8eab", ["\u53ec\u55242\u4e2a", "\u6539\u826f\u578b\u00b7\u60ac\u4e1d\u5080\u5121"]),
+            10472310: ("\u8eab\u65e0\u957f\u7269\u552f\u6709\u77f3", ["\u53d1\u52a86\u6b21", "\u968f\u673a1\u4e2a\u968f\u4ece", "1\u70b9\u4f24\u5bb3"]),
         }
         for card_id, (name_part, substrings) in expected.items():
             with self.subTest(card_id=card_id):
@@ -754,6 +789,112 @@ class BehaviorBatch3Tests(unittest.TestCase):
         self.assertEqual(len(engine.players[0].hand), hand_before - 1)
 
 
+class BehaviorBatch4Tests(unittest.TestCase):
+    def setUp(self):
+        self.rb = RuleBook.from_directory("data/rules")
+
+    def _make_engine(self):
+        return _make_engine(self.rb)
+
+    def test_10251310_adds_three_nightmare_tokens_to_hand(self):
+        engine = self._make_engine()
+        engine.reset(seed=42)
+        _insert_card(engine, _card(10251310, card_type="\u6cd5\u672f", cost=2, attack=None, life=None))
+        engine.players[0].mana = 10
+
+        engine.apply(PlayCard(0, 0))
+
+        hand_ids = {h.card_id for h in engine.players[0].hand}
+        self.assertIn(90051130, hand_ids)
+        self.assertIn(90051110, hand_ids)
+        self.assertIn(90051140, hand_ids)
+
+    def test_10531310_discards_one_hand_card_then_draws_two(self):
+        engine = self._make_engine()
+        engine.reset(seed=42)
+        discarded = HandCard(definition=_card(760), entity_id=engine.state.allocate_entity_id())
+        engine.players[0].hand.append(discarded)
+        engine.players[0].hand_entity_ids.append(discarded.entity_id)
+        _insert_card(engine, _card(10531310, card_type="\u6cd5\u672f", cost=2, attack=None, life=None))
+        engine.players[0].mana = 10
+        deck_before = len(engine.players[0].deck)
+
+        engine.apply(PlayCard(0, 0))
+        engine.apply(_choose_hand_entity(engine, discarded.entity_id))
+
+        self.assertFalse(any(h.card_id == 760 for h in engine.players[0].hand))
+        self.assertEqual(len(engine.players[0].deck), deck_before - 2)
+        self.assertTrue(any(g.definition.card_id == 760 for g in engine.players[0].graveyard))
+
+    def test_10521310_discards_spell_then_deals_random_damage_twice(self):
+        engine = self._make_engine()
+        engine.reset(seed=42)
+        discarded = HandCard(
+            definition=_card(761, card_type="\u6cd5\u672f", attack=None, life=None),
+            entity_id=engine.state.allocate_entity_id(),
+        )
+        target = Unit.summon(_card(762, attack=1, life=7), entity_id=762)
+        engine.players[0].hand.append(discarded)
+        engine.players[0].hand_entity_ids.append(discarded.entity_id)
+        engine.players[1].board.append(target)
+        _insert_card(engine, _card(10521310, card_type="\u6cd5\u672f", cost=2, attack=None, life=None))
+        engine.players[0].mana = 10
+
+        engine.apply(PlayCard(0, 0))
+        engine.apply(_choose_hand_entity(engine, discarded.entity_id))
+
+        self.assertEqual(target.health, 1)
+        self.assertFalse(any(h.card_id == 761 for h in engine.players[0].hand))
+
+    def test_10631310_summons_two_crystal_hands(self):
+        engine = self._make_engine()
+        engine.reset(seed=42)
+        _insert_card(engine, _card(10631310, card_type="\u6cd5\u672f", cost=2, attack=None, life=None))
+        engine.players[0].mana = 10
+
+        engine.apply(PlayCard(0, 0))
+
+        summons = [u for u in engine.players[0].board if u.definition.card_id == 10631110]
+        self.assertEqual(len(summons), 2)
+
+    def test_10171310_summons_only_until_board_limit(self):
+        engine = self._make_engine()
+        engine.reset(seed=42)
+        engine.players[0].board = [
+            Unit.summon(_card(770 + i), entity_id=770 + i)
+            for i in range(4)
+        ]
+        _insert_card(engine, _card(10171310, card_type="\u6cd5\u672f", cost=3, attack=None, life=None))
+        engine.players[0].mana = 10
+
+        engine.apply(PlayCard(0, 0))
+
+        puppets = [u for u in engine.players[0].board if u.definition.card_id == 90071120]
+        self.assertEqual(len(engine.players[0].board), 5)
+        self.assertEqual(len(puppets), 1)
+
+    def test_10472310_deals_one_damage_six_times_to_random_enemy(self):
+        engine = self._make_engine()
+        engine.reset(seed=42)
+        target = Unit.summon(_card(780, attack=1, life=7), entity_id=780)
+        engine.players[1].board.append(target)
+        _insert_card(engine, _card(10472310, card_type="\u6cd5\u672f", cost=3, attack=None, life=None))
+        engine.players[0].mana = 10
+
+        engine.apply(PlayCard(0, 0))
+
+        self.assertEqual(target.health, 1)
+
+    def test_10472310_no_enemy_target_is_unplayable(self):
+        engine = self._make_engine()
+        engine.reset(seed=42)
+        _insert_card(engine, _card(10472310, card_type="\u6cd5\u672f", cost=3, attack=None, life=None))
+        engine.players[0].mana = 10
+
+        with self.assertRaises(IllegalCommand):
+            engine.apply(PlayCard(0, 0))
+
+
 class DeterminismBatch2Tests(unittest.TestCase):
     def test_same_seed_same_result(self):
         rb = RuleBook.from_directory("data/rules")
@@ -783,6 +924,7 @@ class RulesLoadTests(unittest.TestCase):
             10571310, 10022110, 10012310, 10151310, 10171320, 10031320,
             10172310, 10221310, 10252310, 10442310, 10021310, 10711310,
             10661310, 10231120, 10632310, 10411310, 10671310,
+            10251310, 10531310, 10521310, 10631310, 10171310, 10472310,
         ):
             ops_play = self.rb.operations_for(cid, Trigger.PLAY)
             ops_fanfare = self.rb.operations_for(cid, Trigger.FANFARE)

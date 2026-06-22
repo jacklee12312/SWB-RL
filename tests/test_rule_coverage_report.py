@@ -183,6 +183,25 @@ class CoverageReportTests(unittest.TestCase):
         rb = RuleBook.from_directory(self.rules_dir)
         self.assertIsInstance(rb, RuleBook)
 
+    def test_ability_status_reports_handler_and_primitive_columns(self):
+        """Ability status distinguishes handler state from primitive support."""
+        result = subprocess.run(
+            [sys.executable, os.path.join(self.project_root, "scripts", "ability_status.py")],
+            cwd=self.project_root,
+            capture_output=True,
+            text=True,
+            timeout=60,
+        )
+        self.assertEqual(
+            result.returncode,
+            0,
+            msg=f"stdout:\n{result.stdout}\nstderr:\n{result.stderr}",
+        )
+        self.assertIn("Handler", result.stdout)
+        self.assertIn("Primitive", result.stdout)
+        self.assertRegex(result.stdout, r"爆能强化\s+placeholder\s+covered")
+        self.assertRegex(result.stdout, r"融合\s+placeholder\s+missing")
+
     def test_json_output_writes_file(self):
         """JSON output file is created."""
         from scripts.report_rule_coverage import write_json_report, _build_coverage_report
