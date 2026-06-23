@@ -50,6 +50,7 @@ def _make_engine(rulebook=None):
             90071210: _card(90071210, name="\u672a\u6765\u6838\u5fc3", card_type="\u62a4\u7b26", attack=None, life=None, card_set_id=90000, is_collectible=False),
             90071220: _card(90071220, name="\u8fc7\u5f80\u6838\u5fc3", card_type="\u62a4\u7b26", attack=None, life=None, card_set_id=90000, is_collectible=False),
             90021110: _card(90021110, name="\u9a91\u58eb", cost=0, card_set_id=90000, is_collectible=False),
+            90021120: _card(90021120, name="\u94c1\u7532\u9a91\u58eb", cost=1, attack=2, life=2, card_set_id=90000, is_collectible=False),
             90031110: _card(90031110, name="\u6ce5\u5c18\u5de8\u50cf", cost=1, attack=2, life=2, card_set_id=90000, is_collectible=False),
             10631110: _card(10631110, name="\u5929\u6676\u9b54\u624b", class_id=3, class_name="\u5deb\u5e08", cost=1, attack=1, life=1),
         }),
@@ -277,6 +278,7 @@ class DatabaseVerificationBatch4Tests(unittest.TestCase):
             10171310: ("\u4eba\u5076\u66ff\u8eab", ["\u53ec\u55242\u4e2a", "\u6539\u826f\u578b\u00b7\u60ac\u4e1d\u5080\u5121"]),
             10472310: ("\u8eab\u65e0\u957f\u7269\u552f\u6709\u77f3", ["\u53d1\u52a86\u6b21", "\u968f\u673a1\u4e2a\u968f\u4ece", "1\u70b9\u4f24\u5bb3"]),
             10153310: ("\u86c7\u795e\u4e4b\u6012", ["\u968f\u4ece\u6216\u5bf9\u624b\u7684\u4e3b\u6218\u8005", "3\u70b9\u4f24\u5bb3", "\u81ea\u5df1\u7684\u4e3b\u6218\u8005", "2\u70b9\u4f24\u5bb3"]),
+            10121310: ("\u5251\u58eb\u7684\u65a9\u51fb", ["\u7834\u574f\u8be5\u968f\u4ece", "\u53ec\u55241\u4e2a", "\u94c1\u7532\u9a91\u58eb"]),
         }
         for card_id, (name_part, substrings) in expected.items():
             with self.subTest(card_id=card_id):
@@ -925,6 +927,55 @@ class BehaviorBatch4Tests(unittest.TestCase):
         self.assertEqual(engine.players[1].health, 17)
         self.assertEqual(engine.players[0].health, 18)
 
+    def test_10121310_destroys_enemy_unit_and_summons_steelclad_knight(self):
+        engine = self._make_engine()
+        engine.reset(seed=42)
+        target = Unit.summon(_card(783, attack=1, life=5), entity_id=783)
+        engine.players[1].board.append(target)
+        _insert_card(engine, _card(10121310, card_type="\u6cd5\u672f", cost=4, attack=None, life=None))
+        engine.players[0].mana = 10
+
+        engine.apply(PlayCard(0, 0))
+        engine.apply(Choose(0, f"entity:{target.entity_id}"))
+
+        self.assertNotIn(target, engine.players[1].board)
+        steelclads = [
+            unit for unit in engine.players[0].board
+            if unit.definition.card_id == 90021120
+        ]
+        self.assertEqual(len(steelclads), 1)
+        self.assertEqual((steelclads[0].attack, steelclads[0].health), (2, 2))
+
+    def test_10121310_requires_enemy_unit_target(self):
+        engine = self._make_engine()
+        engine.reset(seed=42)
+        _insert_card(engine, _card(10121310, card_type="\u6cd5\u672f", cost=4, attack=None, life=None))
+        engine.players[0].mana = 10
+
+        with self.assertRaises(IllegalCommand):
+            engine.apply(PlayCard(0, 0))
+
+    def test_10121310_full_board_still_destroys_but_skips_summon(self):
+        engine = self._make_engine()
+        engine.reset(seed=42)
+        engine.players[0].board = [
+            Unit.summon(_card(790 + index), entity_id=790 + index)
+            for index in range(5)
+        ]
+        target = Unit.summon(_card(784, attack=1, life=5), entity_id=784)
+        engine.players[1].board.append(target)
+        _insert_card(engine, _card(10121310, card_type="\u6cd5\u672f", cost=4, attack=None, life=None))
+        engine.players[0].mana = 10
+
+        engine.apply(PlayCard(0, 0))
+        engine.apply(Choose(0, f"entity:{target.entity_id}"))
+
+        self.assertNotIn(target, engine.players[1].board)
+        self.assertEqual(len(engine.players[0].board), 5)
+        self.assertFalse(
+            any(unit.definition.card_id == 90021120 for unit in engine.players[0].board)
+        )
+
 
 class DeterminismBatch2Tests(unittest.TestCase):
     def test_same_seed_same_result(self):
@@ -956,7 +1007,7 @@ class RulesLoadTests(unittest.TestCase):
             10172310, 10221310, 10252310, 10442310, 10021310, 10711310,
             10661310, 10231120, 10632310, 10411310, 10671310,
             10251310, 10531310, 10521310, 10631310, 10171310, 10472310,
-            10153310,
+            10153310, 10121310,
         ):
             ops_play = self.rb.operations_for(cid, Trigger.PLAY)
             ops_fanfare = self.rb.operations_for(cid, Trigger.FANFARE)

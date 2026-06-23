@@ -5,11 +5,11 @@
   },
   "summary": {
     "total_cards": 740,
-    "total_with_rules": 85,
+    "total_with_rules": 86,
     "test_or_synthetic_ids_with_rules": 26,
     "coverage_counts": {
-      "covered_exact": 54,
-      "supported_missing_rule": 536,
+      "covered_exact": 55,
+      "supported_missing_rule": 535,
       "text_unclear": 23,
       "missing_primitive": 41,
       "covered_partial": 3,
@@ -2415,8 +2415,8 @@
       "cost": 4,
       "is_collectible": true,
       "card_set_id": 10001,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['破坏', '召唤']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['play'], Ops: ['destroy', 'summon']",
       "hit_keywords": [
         "破坏",
         "召唤"
@@ -17755,23 +17755,23 @@
       "suggested_rule_file": "batch_中立.json"
     },
     {
-      "card_id": 10121310,
-      "name": "剑士的斩击",
-      "class_name": "皇家护卫",
+      "card_id": 10301310,
+      "name": "至高的凌驾",
+      "class_name": "中立",
       "card_type": "法术",
       "cost": 4,
       "ability_keywords": [],
       "hit_keywords": [
-        "破坏",
-        "召唤"
+        "抽取",
+        "回复"
       ],
       "confidence": "high",
-      "why_recommended": "Covered keywords: 破坏, 召唤",
+      "why_recommended": "Covered keywords: 抽取, 回复",
       "required_primitives": [
-        "破坏",
-        "召唤"
+        "抽取",
+        "回复"
       ],
-      "suggested_rule_file": "batch_皇家护卫.json"
+      "suggested_rule_file": "batch_中立.json"
     }
   ]
 }

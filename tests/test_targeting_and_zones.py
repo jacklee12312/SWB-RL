@@ -158,6 +158,19 @@ class TargetingTests(unittest.TestCase):
                 1,
             )
 
+    def test_requires_target_schema_requires_bool(self):
+        with self.assertRaisesRegex(ValueError, "requires_target.*boolean"):
+            from swb.engine.card_rules import _parse_operation
+            _parse_operation(
+                {
+                    "kind": "destroy",
+                    "target": "enemy_unit",
+                    "requires_target": "true",
+                },
+                "test.json/operations[0]",
+                1,
+            )
+
     def test_banish_enemy_unit_moves_to_banished_zone(self):
         rulebook = RuleBook((
             spell_rule(1, EffectKind.BANISH, TargetKind.ENEMY_UNIT),

@@ -257,6 +257,7 @@ class EffectOperation:
     optional_prompt: str | None = None
     optional_operations: tuple["EffectOperation", ...] = ()
     emblem_remove_mode: str = "first"
+    requires_target: bool = False
 
 
 @dataclass

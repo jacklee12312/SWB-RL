@@ -828,6 +828,12 @@ def _parse_operation(raw: dict, source_file: str, card_id: int, _depth: int = 0)
                 f"PREVIOUS_TARGET requires a non-empty target_key"
             )
 
+    requires_target = raw.get("requires_target", False)
+    if not isinstance(requires_target, bool):
+        raise ValueError(
+            f"{source_file}/requires_target card {card_id}: must be boolean"
+        )
+
     necromancy_ops: tuple = ()
     if kind is EffectKind.NECROMANCY:
         raw_inner = raw.get("operations")
@@ -1214,6 +1220,7 @@ def _parse_operation(raw: dict, source_file: str, card_id: int, _depth: int = 0)
         choose_one_options=choose_one_options,
         optional_prompt=optional_prompt,
         optional_operations=optional_ops,
+        requires_target=requires_target,
     )
 
 

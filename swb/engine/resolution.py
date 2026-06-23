@@ -508,6 +508,11 @@ class GameEngine:
                 return False
         ops = mode_def.operations if mode_def.operations else ()
         if ops:
+            if any(
+                op.requires_target and not self._has_candidates(op)
+                for op in ops
+            ):
+                return False
             all_require_target = all(
                 is_choice_target(op.target) or is_random_target(op.target) or is_all_target(op.target)
                 for op in ops
@@ -1524,6 +1529,12 @@ class GameEngine:
 
         if not operations:
             return True
+
+        if any(
+            op.requires_target and not self._has_candidates(op)
+            for op in operations
+        ):
+            return False
 
         all_require_target = all(
             is_choice_target(op.target) or is_random_target(op.target) or is_all_target(op.target)
@@ -3412,6 +3423,16 @@ class GameEngine:
                 if result is not PartialConditionResult.TRUE:
                     continue
             if opt.operations:
+                if any(
+                    op.requires_target
+                    and not self._has_candidates_for(
+                        op,
+                        frame.controller,
+                        source_entity_id=frame.source_entity_id,
+                    )
+                    for op in opt.operations
+                ):
+                    continue
                 all_need_target = all(
                     is_choice_target(op.target) or is_random_target(op.target) or is_all_target(op.target)
                     for op in opt.operations
@@ -3457,6 +3478,16 @@ class GameEngine:
     def _execute_optional(self, effect, frame) -> None:
         ops = effect.optional_operations
         if not ops:
+            return
+        if any(
+            op.requires_target
+            and not self._has_candidates_for(
+                op,
+                frame.controller,
+                source_entity_id=frame.source_entity_id,
+            )
+            for op in ops
+        ):
             return
         all_need_target = all(
             is_choice_target(op.target) or is_random_target(op.target) or is_all_target(op.target)

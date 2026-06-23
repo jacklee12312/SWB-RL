@@ -357,6 +357,14 @@
                 {"kind": "damage_unit", "target": "enemy_unit_or_leader", "amount": 3},
                 {"kind": "damage_leader", "target": "own_leader", "amount": 2}
             ]
+        },
+        {
+            "card_id": 10121310,
+            "trigger": "play",
+            "operations": [
+                {"kind": "destroy", "target": "enemy_unit", "requires_target": true},
+                {"kind": "summon", "target": "own_leader", "card_id": 90021120}
+            ]
         }
     ]
 }
