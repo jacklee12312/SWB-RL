@@ -15,6 +15,9 @@ _UNIT_TARGETS = frozenset({
     TargetKind.OWN_UNIT,
     TargetKind.ENEMY_UNIT,
     TargetKind.ANY_UNIT,
+    TargetKind.OWN_UNIT_OR_LEADER,
+    TargetKind.ENEMY_UNIT_OR_LEADER,
+    TargetKind.ANY_UNIT_OR_LEADER,
     TargetKind.RANDOM_OWN_UNIT,
     TargetKind.RANDOM_ENEMY_UNIT,
     TargetKind.ALL_OWN_UNITS,
@@ -44,6 +47,9 @@ _MANUAL_TARGETS = frozenset({
     TargetKind.OWN_UNIT,
     TargetKind.ENEMY_UNIT,
     TargetKind.ANY_UNIT,
+    TargetKind.OWN_UNIT_OR_LEADER,
+    TargetKind.ENEMY_UNIT_OR_LEADER,
+    TargetKind.ANY_UNIT_OR_LEADER,
     TargetKind.OWN_AMULET,
     TargetKind.ENEMY_AMULET,
     TargetKind.ANY_AMULET,
@@ -208,6 +214,12 @@ def target_candidates(
         candidates = _board_entities(enemy_board, units_only=True, amulets_only=False)
     elif target == TargetKind.ANY_UNIT:
         candidates = _board_entities(own_board, units_only=True, amulets_only=False) + _board_entities(enemy_board, units_only=True, amulets_only=False)
+    elif target == TargetKind.OWN_UNIT_OR_LEADER:
+        candidates = _board_entities(own_board, units_only=True, amulets_only=False)
+    elif target == TargetKind.ENEMY_UNIT_OR_LEADER:
+        candidates = _board_entities(enemy_board, units_only=True, amulets_only=False)
+    elif target == TargetKind.ANY_UNIT_OR_LEADER:
+        candidates = _board_entities(own_board, units_only=True, amulets_only=False) + _board_entities(enemy_board, units_only=True, amulets_only=False)
     elif target == TargetKind.OWN_AMULET:
         candidates = _board_entities(own_board, units_only=False, amulets_only=True)
     elif target == TargetKind.ENEMY_AMULET:
@@ -285,6 +297,35 @@ def build_choice_options(candidates: list[BoardCard]) -> list[ChoiceOption]:
         )
         for entity in candidates
     ]
+
+
+def leader_choice_options(target: TargetKind, controller: int) -> list[ChoiceOption]:
+    from swb.engine.commands import ChoiceOption
+
+    if target == TargetKind.OWN_UNIT_OR_LEADER:
+        leader_indexes = (controller,)
+    elif target == TargetKind.ENEMY_UNIT_OR_LEADER:
+        leader_indexes = (1 - controller,)
+    elif target == TargetKind.ANY_UNIT_OR_LEADER:
+        leader_indexes = (controller, 1 - controller)
+    else:
+        leader_indexes = ()
+    return [
+        ChoiceOption(
+            option_id=f"leader:{player_index}",
+            label=("己方主战者" if player_index == controller else "对方主战者"),
+            leader_player_index=player_index,
+        )
+        for player_index in leader_indexes
+    ]
+
+
+def has_leader_choice(target: TargetKind) -> bool:
+    return target in {
+        TargetKind.OWN_UNIT_OR_LEADER,
+        TargetKind.ENEMY_UNIT_OR_LEADER,
+        TargetKind.ANY_UNIT_OR_LEADER,
+    }
 
 
 def build_graveyard_choice_options(

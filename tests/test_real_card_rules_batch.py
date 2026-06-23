@@ -276,6 +276,7 @@ class DatabaseVerificationBatch4Tests(unittest.TestCase):
             10631310: ("\u5929\u6676\u6388\u4e88", ["\u53ec\u55242\u4e2a", "\u5929\u6676\u9b54\u624b"]),
             10171310: ("\u4eba\u5076\u66ff\u8eab", ["\u53ec\u55242\u4e2a", "\u6539\u826f\u578b\u00b7\u60ac\u4e1d\u5080\u5121"]),
             10472310: ("\u8eab\u65e0\u957f\u7269\u552f\u6709\u77f3", ["\u53d1\u52a86\u6b21", "\u968f\u673a1\u4e2a\u968f\u4ece", "1\u70b9\u4f24\u5bb3"]),
+            10153310: ("\u86c7\u795e\u4e4b\u6012", ["\u968f\u4ece\u6216\u5bf9\u624b\u7684\u4e3b\u6218\u8005", "3\u70b9\u4f24\u5bb3", "\u81ea\u5df1\u7684\u4e3b\u6218\u8005", "2\u70b9\u4f24\u5bb3"]),
         }
         for card_id, (name_part, substrings) in expected.items():
             with self.subTest(card_id=card_id):
@@ -894,6 +895,36 @@ class BehaviorBatch4Tests(unittest.TestCase):
         with self.assertRaises(IllegalCommand):
             engine.apply(PlayCard(0, 0))
 
+    def test_10153310_damages_enemy_unit_then_own_leader(self):
+        engine = self._make_engine()
+        engine.reset(seed=42)
+        target = Unit.summon(_card(781, attack=1, life=5), entity_id=781)
+        engine.players[1].board.append(target)
+        _insert_card(engine, _card(10153310, card_type="\u6cd5\u672f", cost=2, attack=None, life=None))
+        engine.players[0].mana = 10
+
+        engine.apply(PlayCard(0, 0))
+        engine.apply(Choose(0, f"entity:{target.entity_id}"))
+
+        self.assertEqual(target.health, 2)
+        self.assertEqual(engine.players[1].health, 20)
+        self.assertEqual(engine.players[0].health, 18)
+
+    def test_10153310_damages_enemy_leader_when_selected(self):
+        engine = self._make_engine()
+        engine.reset(seed=42)
+        target = Unit.summon(_card(782, attack=1, life=5), entity_id=782)
+        engine.players[1].board.append(target)
+        _insert_card(engine, _card(10153310, card_type="\u6cd5\u672f", cost=2, attack=None, life=None))
+        engine.players[0].mana = 10
+
+        engine.apply(PlayCard(0, 0))
+        engine.apply(Choose(0, "leader:1"))
+
+        self.assertEqual(target.health, 5)
+        self.assertEqual(engine.players[1].health, 17)
+        self.assertEqual(engine.players[0].health, 18)
+
 
 class DeterminismBatch2Tests(unittest.TestCase):
     def test_same_seed_same_result(self):
@@ -925,6 +956,7 @@ class RulesLoadTests(unittest.TestCase):
             10172310, 10221310, 10252310, 10442310, 10021310, 10711310,
             10661310, 10231120, 10632310, 10411310, 10671310,
             10251310, 10531310, 10521310, 10631310, 10171310, 10472310,
+            10153310,
         ):
             ops_play = self.rb.operations_for(cid, Trigger.PLAY)
             ops_fanfare = self.rb.operations_for(cid, Trigger.FANFARE)

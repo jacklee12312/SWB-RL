@@ -73,10 +73,12 @@ from swb.engine.targeting import (
     build_graveyard_choice_options,
     graveyard_candidates,
     hand_choice_options,
+    has_leader_choice,
     is_all_target,
     is_choice_target,
     is_graveyard_target,
     is_random_target,
+    leader_choice_options,
     pick_random,
     pick_random_graveyard,
     target_candidates,
@@ -115,6 +117,18 @@ class IllegalCommand(ValueError):
 
 
 MAX_RESOLUTION_STEPS = 20_000
+
+
+def _leader_target_id(player_index: int) -> int:
+    return -1 - player_index
+
+
+def _is_leader_target_id(target_id: int | None) -> bool:
+    return target_id is not None and target_id < 0
+
+
+def _leader_index_from_target_id(target_id: int) -> int:
+    return -1 - target_id
 
 _DURATION_EXPANSION: dict[ModifierDuration, tuple[str, ...]] = {
     ModifierDuration.UNTIL_END_OF_TURN: (
@@ -1314,6 +1328,14 @@ class GameEngine:
                     candidates = [e for e in candidates if not (isinstance(e, Unit) and e.ambush_active and self._entity_owner(e.entity_id) != frame.controller)]
                     candidates = [e for e in candidates if evaluate_target_conditions(operation.conditions, e, frame.controller, self.players, source_entity_id=frame.source_entity_id)]
                     options = build_choice_options(candidates)
+                    condition_state_for_choice = evaluate_conditions_without_target(
+                        operation.conditions,
+                        self._build_eval_context(frame, None),
+                    )
+                    if condition_state_for_choice is not PartialConditionResult.DEPENDS_ON_TARGET:
+                        options.extend(
+                            leader_choice_options(operation.target, frame.controller)
+                        )
 
                 if not options:
                     frame.next_index += 1
@@ -1321,7 +1343,11 @@ class GameEngine:
                 if frame.auto_resolve_choices:
                     chosen = self.random.choice(options)
                     self._log(frame.controller, f"自动选择目标：{chosen.label}")
-                    frame.pending_target_id = chosen.entity_id
+                    frame.pending_target_id = (
+                        _leader_target_id(chosen.leader_player_index)
+                        if chosen.leader_player_index is not None
+                        else chosen.entity_id
+                    )
                 else:
                     choice_kind = ChoiceKind.GENERIC
                     if operation.target in (TargetKind.OWN_HAND,):
@@ -1564,7 +1590,10 @@ class GameEngine:
                     source_entity_id=source_entity_id,
                 )
             ]
-        return bool(candidates)
+        return bool(candidates) or (
+            has_leader_choice(operation.target)
+            and condition_state is not PartialConditionResult.DEPENDS_ON_TARGET
+        )
 
     @staticmethod
     def _requires_choice(operation: EffectOperation) -> bool:
@@ -1580,7 +1609,9 @@ class GameEngine:
             return build_graveyard_choice_options(gc)
         candidates = target_candidates(operation, controller, self.players)
         candidates = [e for e in candidates if not (isinstance(e, Unit) and e.ambush_active and self._entity_owner(e.entity_id) != controller)]
-        return build_choice_options(candidates)
+        options = build_choice_options(candidates)
+        options.extend(leader_choice_options(operation.target, controller))
+        return options
 
     def _tick_countdowns(self, player_index: int) -> None:
         amulets = [
@@ -2047,7 +2078,11 @@ class GameEngine:
                     self._continue_effects()
                     self._try_spellboost_hand()
                     return
-            frame.pending_target_id = option.entity_id
+            frame.pending_target_id = (
+                _leader_target_id(option.leader_player_index)
+                if option.leader_player_index is not None
+                else option.entity_id
+            )
         self.state.pending_choice = None
         self.state.phase = Phase.MAIN
         if self.state.effect_stack:
@@ -2449,6 +2484,24 @@ class GameEngine:
                 f"（生命 {target_player.health}）",
             )
         elif effect.kind is EffectKind.DAMAGE_UNIT:
+            if _is_leader_target_id(target_id):
+                target_idx = _leader_index_from_target_id(target_id)
+                self.apply_damage(
+                    None,
+                    None,
+                    effect.amount,
+                    DamageType.EFFECT,
+                    frame.controller,
+                    target_player_index=target_idx,
+                )
+                target_player = self.players[target_idx]
+                target_name = "己方" if target_idx == frame.controller else "对方"
+                self._log(
+                    frame.controller,
+                    f"{name} {frame.label}对{target_name}主战者造成 {effect.amount} 点伤害"
+                    f"（生命 {target_player.health}）",
+                )
+                return
             target = self._find_board_entity(target_id)
             if not isinstance(target, Unit):
                 raise IllegalCommand("Damage target must be a follower")

@@ -999,6 +999,9 @@ def _parse_operation(raw: dict, source_file: str, card_id: int, _depth: int = 0)
             TargetKind.ALL_OWN_HAND,
             TargetKind.OWN_LEADER,
             TargetKind.ENEMY_LEADER,
+            TargetKind.OWN_UNIT_OR_LEADER,
+            TargetKind.ENEMY_UNIT_OR_LEADER,
+            TargetKind.ANY_UNIT_OR_LEADER,
             TargetKind.SELF,
             TargetKind.PREVIOUS_TARGET,
         ):

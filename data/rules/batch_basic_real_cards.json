@@ -349,6 +349,14 @@
                 {"kind": "damage_unit", "target": "random_enemy_unit", "amount": 1},
                 {"kind": "damage_unit", "target": "random_enemy_unit", "amount": 1}
             ]
+        },
+        {
+            "card_id": 10153310,
+            "trigger": "play",
+            "operations": [
+                {"kind": "damage_unit", "target": "enemy_unit_or_leader", "amount": 3},
+                {"kind": "damage_leader", "target": "own_leader", "amount": 2}
+            ]
         }
     ]
 }

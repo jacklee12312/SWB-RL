@@ -54,6 +54,110 @@ def spell_rule(card_id: int, kind: EffectKind, target: TargetKind, **kwargs) -> 
 class TargetingTests(unittest.TestCase):
     """Tests for the unified targeting system."""
 
+    def test_enemy_unit_or_leader_can_damage_selected_unit(self):
+        rulebook = RuleBook((
+            spell_rule(
+                1,
+                EffectKind.DAMAGE_UNIT,
+                TargetKind.ENEMY_UNIT_OR_LEADER,
+                amount=3,
+            ),
+        ))
+        engine = GameEngine(
+            [card(i) for i in range(100, 140)],
+            [card(i) for i in range(200, 240)],
+            class_a=1, class_b=1, seed=1, rulebook=rulebook,
+        )
+        engine.reset(seed=1)
+        target = Unit.summon(card(900, attack=1, life=5), entity_id=900)
+        engine.players[1].board = [target]
+        engine.players[0].mana = 10
+        engine.players[0].hand[0] = card(1, card_type="法术", attack=None, life=None)
+
+        engine.apply(PlayCard(0, 0))
+        options = engine.state.pending_choice.options
+        self.assertEqual(
+            [option.option_id for option in options],
+            [f"entity:{target.entity_id}", "leader:1"],
+        )
+        engine.apply(Choose(0, f"entity:{target.entity_id}"))
+
+        self.assertEqual(target.health, 2)
+        self.assertEqual(engine.players[1].health, 20)
+
+    def test_enemy_unit_or_leader_can_damage_selected_leader(self):
+        rulebook = RuleBook((
+            spell_rule(
+                1,
+                EffectKind.DAMAGE_UNIT,
+                TargetKind.ENEMY_UNIT_OR_LEADER,
+                amount=3,
+            ),
+        ))
+        engine = GameEngine(
+            [card(i) for i in range(100, 140)],
+            [card(i) for i in range(200, 240)],
+            class_a=1, class_b=1, seed=1, rulebook=rulebook,
+        )
+        engine.reset(seed=1)
+        target = Unit.summon(card(900, attack=1, life=5), entity_id=900)
+        engine.players[1].board = [target]
+        engine.players[0].mana = 10
+        engine.players[0].hand[0] = card(1, card_type="法术", attack=None, life=None)
+
+        engine.apply(PlayCard(0, 0))
+        engine.apply(Choose(0, "leader:1"))
+
+        self.assertEqual(target.health, 5)
+        self.assertEqual(engine.players[1].health, 17)
+
+    def test_enemy_unit_or_leader_remains_playable_without_enemy_units(self):
+        rulebook = RuleBook((
+            spell_rule(
+                1,
+                EffectKind.DAMAGE_UNIT,
+                TargetKind.ENEMY_UNIT_OR_LEADER,
+                amount=3,
+            ),
+        ))
+        engine = GameEngine(
+            [card(i) for i in range(100, 140)],
+            [card(i) for i in range(200, 240)],
+            class_a=1, class_b=1, seed=1, rulebook=rulebook,
+        )
+        engine.reset(seed=1)
+        engine.players[1].board = []
+        engine.players[0].mana = 10
+        engine.players[0].hand[0] = card(1, card_type="法术", attack=None, life=None)
+
+        play_cmds = [
+            command for command in engine.legal_commands()
+            if isinstance(command, PlayCard) and command.hand_index == 0
+        ]
+        self.assertEqual(len(play_cmds), 1)
+        engine.apply(play_cmds[0])
+        self.assertEqual(
+            [option.option_id for option in engine.state.pending_choice.options],
+            ["leader:1"],
+        )
+        engine.apply(Choose(0, "leader:1"))
+
+        self.assertEqual(engine.players[1].health, 17)
+
+    def test_unit_or_leader_target_rejects_board_filter_schema(self):
+        with self.assertRaisesRegex(ValueError, "target_.*filter fields"):
+            from swb.engine.card_rules import _parse_operation
+            _parse_operation(
+                {
+                    "kind": "damage_unit",
+                    "target": "enemy_unit_or_leader",
+                    "amount": 3,
+                    "target_card_type_filter": "随从",
+                },
+                "test.json/operations[0]",
+                1,
+            )
+
     def test_banish_enemy_unit_moves_to_banished_zone(self):
         rulebook = RuleBook((
             spell_rule(1, EffectKind.BANISH, TargetKind.ENEMY_UNIT),

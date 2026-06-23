@@ -5,11 +5,11 @@
   },
   "summary": {
     "total_cards": 740,
-    "total_with_rules": 84,
+    "total_with_rules": 85,
     "test_or_synthetic_ids_with_rules": 26,
     "coverage_counts": {
-      "covered_exact": 53,
-      "supported_missing_rule": 537,
+      "covered_exact": 54,
+      "supported_missing_rule": 536,
       "text_unclear": 23,
       "missing_primitive": 41,
       "covered_partial": 3,
@@ -4079,8 +4079,8 @@
       "cost": 2,
       "is_collectible": true,
       "card_set_id": 10001,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['造成.*伤害']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['play'], Ops: ['damage_unit', 'damage_leader']",
       "hit_keywords": [
         "造成.*伤害"
       ],
@@ -17446,23 +17446,6 @@
       "suggested_rule_file": "batch_梦魇.json"
     },
     {
-      "card_id": 10153310,
-      "name": "蛇神之怒",
-      "class_name": "梦魇",
-      "card_type": "法术",
-      "cost": 2,
-      "ability_keywords": [],
-      "hit_keywords": [
-        "造成.*伤害"
-      ],
-      "confidence": "high",
-      "why_recommended": "Covered keywords: 造成.*伤害",
-      "required_primitives": [
-        "造成.*伤害"
-      ],
-      "suggested_rule_file": "batch_梦魇.json"
-    },
-    {
       "card_id": 10333310,
       "name": "虚假的术式",
       "class_name": "巫师",
@@ -17770,6 +17753,25 @@
         "破坏"
       ],
       "suggested_rule_file": "batch_中立.json"
+    },
+    {
+      "card_id": 10121310,
+      "name": "剑士的斩击",
+      "class_name": "皇家护卫",
+      "card_type": "法术",
+      "cost": 4,
+      "ability_keywords": [],
+      "hit_keywords": [
+        "破坏",
+        "召唤"
+      ],
+      "confidence": "high",
+      "why_recommended": "Covered keywords: 破坏, 召唤",
+      "required_primitives": [
+        "破坏",
+        "召唤"
+      ],
+      "suggested_rule_file": "batch_皇家护卫.json"
     }
   ]
 }

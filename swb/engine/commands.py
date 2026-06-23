@@ -65,6 +65,7 @@ class ChoiceOption:
     option_id: str
     label: str
     entity_id: int | None = None
+    leader_player_index: int | None = None
 
 
 @dataclass(frozen=True)
