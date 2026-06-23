@@ -365,6 +365,21 @@
                 {"kind": "destroy", "target": "enemy_unit", "requires_target": true},
                 {"kind": "summon", "target": "own_leader", "card_id": 90021120}
             ]
+        },
+        {
+            "card_id": 10301310,
+            "trigger": "play",
+            "operations": [
+                {"kind": "draw", "target": "own_leader", "amount": 3},
+                {
+                    "kind": "restore_mana",
+                    "target": "own_leader",
+                    "amount": 3,
+                    "conditions": [
+                        {"type": "controller_deck_has_no_duplicates"}
+                    ]
+                }
+            ]
         }
     ]
 }

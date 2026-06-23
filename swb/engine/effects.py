@@ -22,6 +22,7 @@ class ConditionType(str, Enum):
     CONTROLLER_BOARD_HAS = "controller_board_has"
     OPPONENT_BOARD_HAS = "opponent_board_has"
     CONTROLLER_HAND_COUNT_AT_LEAST = "controller_hand_count_at_least"
+    CONTROLLER_DECK_HAS_NO_DUPLICATES = "controller_deck_has_no_duplicates"
     TARGET_ATTACK_AT_MOST = "target_attack_at_most"
     TARGET_ATTACK_AT_LEAST = "target_attack_at_least"
     TARGET_HEALTH_AT_MOST = "target_health_at_most"

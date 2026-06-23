@@ -8,15 +8,15 @@
 | Metric | Count |
 |---|---|
 | Total cards in DB | 740 |
-| Cards with rules | 86 |
+| Cards with rules | 87 |
 | Test/synthetic IDs with rules | 26 |
 
 ### Coverage Categories
 
 | Category | Count |
 |---|---|
-| covered_exact | 55 |
-| supported_missing_rule | 535 |
+| covered_exact | 56 |
+| supported_missing_rule | 534 |
 | text_unclear | 23 |
 | missing_primitive | 41 |
 | covered_partial | 3 |
@@ -117,4 +117,4 @@
 | 17 | 10773310 | 瞬移斩击 | 超越者 | 3 | 法术 | high | Covered keywords: 造成.*伤害 |
 | 18 | 10071310 | 来自异次元的枪击 | 超越者 | 4 | 法术 | high | Covered keywords: 将.*加入手牌, 破坏 |
 | 19 | 10103310 | 神之雷霆 | 中立 | 4 | 法术 | high | Covered keywords: 造成.*伤害, 破坏 |
-| 20 | 10301310 | 至高的凌驾 | 中立 | 4 | 法术 | high | Covered keywords: 抽取, 回复 |
+| 20 | 10332310 | 双重创造 | 巫师 | 4 | 法术 | high | Covered keywords: 召唤 |

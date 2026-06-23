@@ -102,6 +102,21 @@ class ConditionEvalTests(unittest.TestCase):
             ctx,
         ))
 
+    def test_controller_deck_has_no_duplicates(self):
+        own = _player()
+        own.deck = [card(10), card(11), card(12)]
+        ctx = EvalContext(0, [own, _player()])
+
+        self.assertTrue(evaluate_condition(
+            Condition(ConditionType.CONTROLLER_DECK_HAS_NO_DUPLICATES),
+            ctx,
+        ))
+        own.deck.append(card(11))
+        self.assertFalse(evaluate_condition(
+            Condition(ConditionType.CONTROLLER_DECK_HAS_NO_DUPLICATES),
+            ctx,
+        ))
+
 
 def _player(health=20, board_count=0):
     from swb.engine.state import PlayerState

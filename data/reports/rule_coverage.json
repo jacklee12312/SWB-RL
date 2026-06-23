@@ -5,11 +5,11 @@
   },
   "summary": {
     "total_cards": 740,
-    "total_with_rules": 86,
+    "total_with_rules": 87,
     "test_or_synthetic_ids_with_rules": 26,
     "coverage_counts": {
-      "covered_exact": 55,
-      "supported_missing_rule": 535,
+      "covered_exact": 56,
+      "supported_missing_rule": 534,
       "text_unclear": 23,
       "missing_primitive": 41,
       "covered_partial": 3,
@@ -7040,8 +7040,8 @@
       "cost": 4,
       "is_collectible": true,
       "card_set_id": 10003,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['抽取', '回复']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['play'], Ops: ['draw', 'restore_mana']",
       "hit_keywords": [
         "抽取",
         "回复"
@@ -17755,23 +17755,21 @@
       "suggested_rule_file": "batch_中立.json"
     },
     {
-      "card_id": 10301310,
-      "name": "至高的凌驾",
-      "class_name": "中立",
+      "card_id": 10332310,
+      "name": "双重创造",
+      "class_name": "巫师",
       "card_type": "法术",
       "cost": 4,
       "ability_keywords": [],
       "hit_keywords": [
-        "抽取",
-        "回复"
+        "召唤"
       ],
       "confidence": "high",
-      "why_recommended": "Covered keywords: 抽取, 回复",
+      "why_recommended": "Covered keywords: 召唤",
       "required_primitives": [
-        "抽取",
-        "回复"
+        "召唤"
       ],
-      "suggested_rule_file": "batch_中立.json"
+      "suggested_rule_file": "batch_巫师.json"
     }
   ]
 }

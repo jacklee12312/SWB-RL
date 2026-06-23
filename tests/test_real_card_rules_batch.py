@@ -279,6 +279,7 @@ class DatabaseVerificationBatch4Tests(unittest.TestCase):
             10472310: ("\u8eab\u65e0\u957f\u7269\u552f\u6709\u77f3", ["\u53d1\u52a86\u6b21", "\u968f\u673a1\u4e2a\u968f\u4ece", "1\u70b9\u4f24\u5bb3"]),
             10153310: ("\u86c7\u795e\u4e4b\u6012", ["\u968f\u4ece\u6216\u5bf9\u624b\u7684\u4e3b\u6218\u8005", "3\u70b9\u4f24\u5bb3", "\u81ea\u5df1\u7684\u4e3b\u6218\u8005", "2\u70b9\u4f24\u5bb3"]),
             10121310: ("\u5251\u58eb\u7684\u65a9\u51fb", ["\u7834\u574f\u8be5\u968f\u4ece", "\u53ec\u55241\u4e2a", "\u94c1\u7532\u9a91\u58eb"]),
+            10301310: ("\u81f3\u9ad8\u7684\u51cc\u9a7e", ["\u62bd\u53d63\u5f20\u5361\u724c", "\u81ea\u5df1\u7684\u724c\u7ec4\u4e2d\u6ca1\u6709\u91cd\u590d\u5361\u724c", "\u56de\u590d\u81ea\u5df13\u70b9\u80fd\u91cf\u70b9"]),
         }
         for card_id, (name_part, substrings) in expected.items():
             with self.subTest(card_id=card_id):
@@ -976,6 +977,38 @@ class BehaviorBatch4Tests(unittest.TestCase):
             any(unit.definition.card_id == 90021120 for unit in engine.players[0].board)
         )
 
+    def test_10301310_draws_three_and_restores_mana_with_unique_deck(self):
+        engine = self._make_engine()
+        engine.reset(seed=42)
+        engine.players[0].deck = [_card(810 + index) for index in range(5)]
+        _insert_card(engine, _card(10301310, card_type="\u6cd5\u672f", cost=4, attack=None, life=None))
+        engine.players[0].mana = 10
+        engine.players[0].max_mana = 10
+
+        engine.apply(PlayCard(0, 0))
+
+        self.assertEqual(len(engine.players[0].deck), 2)
+        self.assertEqual(engine.players[0].mana, 9)
+
+    def test_10301310_draws_three_without_restore_for_duplicate_deck(self):
+        engine = self._make_engine()
+        engine.reset(seed=42)
+        engine.players[0].deck = [
+            _card(823),
+            _card(823),
+            _card(820),
+            _card(821),
+            _card(822),
+        ]
+        _insert_card(engine, _card(10301310, card_type="\u6cd5\u672f", cost=4, attack=None, life=None))
+        engine.players[0].mana = 10
+        engine.players[0].max_mana = 10
+
+        engine.apply(PlayCard(0, 0))
+
+        self.assertEqual(len(engine.players[0].deck), 2)
+        self.assertEqual(engine.players[0].mana, 6)
+
 
 class DeterminismBatch2Tests(unittest.TestCase):
     def test_same_seed_same_result(self):
@@ -1007,7 +1040,7 @@ class RulesLoadTests(unittest.TestCase):
             10172310, 10221310, 10252310, 10442310, 10021310, 10711310,
             10661310, 10231120, 10632310, 10411310, 10671310,
             10251310, 10531310, 10521310, 10631310, 10171310, 10472310,
-            10153310, 10121310,
+            10153310, 10121310, 10301310,
         ):
             ops_play = self.rb.operations_for(cid, Trigger.PLAY)
             ops_fanfare = self.rb.operations_for(cid, Trigger.FANFARE)
