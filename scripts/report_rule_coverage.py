@@ -18,7 +18,7 @@ if __package__ in (None, ""):
     sys.path.insert(0, str(project_root))
 
 from swb.db.repository import CardDefinition, CardRepository
-from swb.engine.card_rules import RuleBook
+from swb.engine.card_rules import RuleBook, _iter_nested_operations
 
 
 # ---------------------------------------------------------------------------
@@ -32,6 +32,13 @@ PRIMITIVE_KEYWORD_MAP = OrderedDict([
     ("超进化", {"primitive": "SUPER_EVOLVE trigger", "covered": True}),
     ("攻击时", {"primitive": "ATTACK trigger", "covered": True}),
     ("交战时", {"primitive": "CLASH trigger", "covered": True}),
+    ("连击", {"primitive": "COMBO (placeholder)", "covered": False}),
+    ("觉醒", {"primitive": "OVERFLOW (placeholder)", "covered": False}),
+    ("策动", {"primitive": "ACTIVATE (placeholder)", "covered": False}),
+    ("威慑", {"primitive": "INTIMIDATE (placeholder)", "covered": False}),
+    ("灵气", {"primitive": "AURA (placeholder)", "covered": False}),
+    ("瞬念召唤", {"primitive": "INVOCATION (placeholder)", "covered": False}),
+    ("奥义", {"primitive": "UNION_BURST (placeholder)", "covered": False}),
     ("回合开始", {"primitive": "TURN_START trigger / Emblem", "covered": True}),
     ("回合结束", {"primitive": "TURN_END trigger / Emblem", "covered": True}),
     ("倒数", {"primitive": "COUNTDOWN / countdown", "covered": True}),
@@ -187,13 +194,16 @@ def _build_coverage_report(db_path: str, rules_dir: str) -> dict:
         ruled_cards.add(cid)
         ruled_ops.setdefault(cid, {"triggers": [], "effect_kinds": []})
         ruled_ops[cid]["triggers"].append(trigger.value)
-        for op in ops:
+        for op in _iter_nested_operations(ops):
             ruled_ops[cid]["effect_kinds"].append(op.kind.value)
     for cid in rulebook._play_modes:
         ruled_cards.add(cid)
         ruled_ops.setdefault(cid, {"triggers": [], "effect_kinds": []})
         ruled_ops[cid]["triggers"].append("play_modes")
         ruled_ops[cid]["effect_kinds"].append("play_mode")
+        for mode in rulebook._play_modes[cid]:
+            for op in _iter_nested_operations(mode.operations):
+                ruled_ops[cid]["effect_kinds"].append(op.kind.value)
     for cid, passives in rulebook._passives.items():
         ruled_cards.add(cid)
         ruled_ops.setdefault(cid, {"triggers": [], "effect_kinds": []})
@@ -205,8 +215,10 @@ def _build_coverage_report(db_path: str, rules_dir: str) -> dict:
         ruled_ops.setdefault(ed.source_card_id, {"triggers": [], "effect_kinds": []})
         ruled_ops[ed.source_card_id]["triggers"].append("emblem_source")
         for tr in ed.triggers:
-            for op in tr.operations:
+            for op in _iter_nested_operations(tr.operations):
                 ruled_ops[ed.source_card_id]["effect_kinds"].append(op.kind.value)
+        for op in _iter_nested_operations(ed.on_expire):
+            ruled_ops[ed.source_card_id]["effect_kinds"].append(op.kind.value)
 
     ability_map: dict[int, list[str]] = {}
     skill_text_map: dict[int, list[str]] = {}

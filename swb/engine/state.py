@@ -269,6 +269,7 @@ class Unit(BoardEntity):
     can_attack: bool = False
     attacks_remaining: int = 1
     evolved: bool = False
+    super_evolved: bool = False
     rush_only: bool = False
     barrier_charges: int = 0
     ambush_active: bool = False

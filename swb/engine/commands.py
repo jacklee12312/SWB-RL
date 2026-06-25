@@ -9,6 +9,7 @@ class CommandType(str, Enum):
     PLAY_CARD = "play_card"
     ATTACK = "attack"
     EVOLVE = "evolve"
+    SUPER_EVOLVE = "super_evolve"
     CHOOSE = "choose"
 
 
@@ -51,13 +52,20 @@ class Evolve:
 
 
 @dataclass(frozen=True)
+class SuperEvolve:
+    player_index: int
+    unit_id: int
+    type: CommandType = CommandType.SUPER_EVOLVE
+
+
+@dataclass(frozen=True)
 class Choose:
     player_index: int
     option_id: str
     type: CommandType = CommandType.CHOOSE
 
 
-GameCommand = EndTurn | PlayCard | Attack | Evolve | Choose
+GameCommand = EndTurn | PlayCard | Attack | Evolve | SuperEvolve | Choose
 
 
 @dataclass(frozen=True)

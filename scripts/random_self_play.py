@@ -13,6 +13,11 @@ def main() -> None:
     parser.add_argument("--database", type=Path, default=Path("data/cards.sqlite3"))
     parser.add_argument("--games", type=int, default=100)
     parser.add_argument("--seed", type=int, default=7)
+    parser.add_argument(
+        "--validate-invariants",
+        action="store_true",
+        help="Run the engine's runtime invariant checks after each command.",
+    )
     args = parser.parse_args()
 
     repository = CardRepository(args.database)
@@ -36,6 +41,7 @@ def main() -> None:
             class_b=class_b,
             seed=args.seed + game,
             card_resolver=repository.get,
+            validate_invariants=args.validate_invariants,
         )
         env.reset()
         while not env.terminated:

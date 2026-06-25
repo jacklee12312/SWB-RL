@@ -11,7 +11,7 @@ from swb.engine.abilities import (
     normalize_abilities,
 )
 from swb.engine.environment import ShadowverseEnv
-from swb.engine.model import Unit
+from swb.engine.model import HandCard, Unit
 from swb.rules import EffectDefinition
 
 
@@ -116,6 +116,19 @@ class EnvironmentTests(unittest.TestCase):
         self.assertEqual(self.env.players[0].evolution_points, 1)
         self.assertFalse(self.env.action_mask()[action])
 
+    def test_super_evolution_uses_appended_action_slots(self) -> None:
+        unit = Unit.summon(card(100, attack=2, life=3))
+        self.env.players[0].board = [unit]
+        self.env.players[0].turns_started = ShadowverseEnv.EVOLUTION_UNLOCK_TURN
+        action = ShadowverseEnv.SUPER_EVOLVE_OFFSET
+        self.assertTrue(self.env.action_mask()[action])
+        self.env.step(action)
+        self.assertTrue(unit.evolved)
+        self.assertTrue(unit.super_evolved)
+        self.assertEqual((unit.attack, unit.health), (4, 5))
+        self.assertEqual(self.env.players[0].evolution_points, 1)
+        self.assertGreaterEqual(action, 106)
+
     def test_simple_fanfare_effects_resolve(self) -> None:
         fanfare = card(
             200,
@@ -201,7 +214,7 @@ class EnvironmentTests(unittest.TestCase):
         self.env.players[0].board = [attacker]
         before_health = self.env.players[1].health
         self.env.step(ShadowverseEnv.ATTACK_OFFSET)
-        events = self.env.info()["placeholder_ability_events"]
+        events = self.env.info(debug=True)["placeholder_ability_events"]
         self.assertTrue(
             any(
                 event.ability is AbilityKeyword.INTIMIDATE
@@ -210,6 +223,73 @@ class EnvironmentTests(unittest.TestCase):
             )
         )
         self.assertEqual(self.env.players[1].health, before_health - 2)
+
+    def test_public_info_redacts_debug_transcript(self) -> None:
+        info = self.env.info()
+        self.assertIn("action_mask", info)
+        self.assertIn("placeholder_ability_count", info)
+        self.assertNotIn("log", info)
+        self.assertNotIn("events", info)
+        self.assertNotIn("placeholder_ability_events", info)
+
+    def test_debug_info_exposes_transcript_when_requested(self) -> None:
+        info = self.env.info(debug=True)
+        self.assertIn("log", info)
+        self.assertIn("events", info)
+        self.assertIn("placeholder_ability_events", info)
+
+    def test_constructor_debug_info_affects_reset_and_step_info(self) -> None:
+        env = ShadowverseEnv(
+            [card(i) for i in range(40)],
+            [card(i) for i in range(40)],
+            class_a=1,
+            class_b=1,
+            seed=1,
+            debug_info=True,
+        )
+        _, info = env.reset(seed=1)
+        self.assertIn("log", info)
+        result = env.step(ShadowverseEnv.END_TURN)
+        self.assertIn("events", result.info)
+
+    def test_public_observation_and_info_do_not_depend_on_opponent_hand_identity(self) -> None:
+        before_obs = self.env.observation()
+        before_info = self.env.info()
+        old = self.env.players[1].hand[0]
+        replacement = card(
+            9000,
+            cost=10,
+            attack=None,
+            life=None,
+            card_type="法术",
+        )
+        self.env.players[1].hand[0] = HandCard(
+            definition=replacement,
+            entity_id=old.entity_id,
+            origin=old.origin,
+            source_origin=old.source_origin,
+        )
+        self.assertEqual(self.env.observation(), before_obs)
+        self.assertEqual(self.env.info(), before_info)
+
+    def test_illegal_rl_action_does_not_mutate_core_state(self) -> None:
+        import copy
+
+        before = (
+            copy.deepcopy(self.env.core.state),
+            tuple(self.env.logs),
+            tuple(self.env.core.event_history),
+            self.env.core.random.getstate(),
+        )
+        with self.assertRaises(ValueError):
+            self.env.step(-1)
+        after = (
+            copy.deepcopy(self.env.core.state),
+            tuple(self.env.logs),
+            tuple(self.env.core.event_history),
+            self.env.core.random.getstate(),
+        )
+        self.assertEqual(after, before)
 
     def test_rl_choice_actions_resume_targeted_spell(self) -> None:
         spell = card(

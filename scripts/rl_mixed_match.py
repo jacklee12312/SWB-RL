@@ -22,9 +22,8 @@ PLAYER_CLASS_ID = 6
 def choose_action(env: ShadowverseEnv, rng: random.Random) -> int:
     mask = env.action_mask()
     legal = [index for index, allowed in enumerate(mask) if allowed]
-    choices = [action for action in legal if action >= env.CHOICE_OFFSET]
-    if choices:
-        return rng.choice(choices)
+    if env.core.state.pending_choice is not None:
+        return rng.choice(legal)
     plays = [
         action
         for action in legal
@@ -32,6 +31,13 @@ def choose_action(env: ShadowverseEnv, rng: random.Random) -> int:
     ]
     if plays:
         return rng.choice(plays)
+    mode_plays = [
+        action
+        for action in legal
+        if env.MODE_PLAY_OFFSET <= action < env.SUPER_EVOLVE_OFFSET
+    ]
+    if mode_plays:
+        return rng.choice(mode_plays)
     evolutions = [
         action
         for action in legal
@@ -39,6 +45,13 @@ def choose_action(env: ShadowverseEnv, rng: random.Random) -> int:
     ]
     if evolutions:
         return rng.choice(evolutions)
+    super_evolutions = [
+        action
+        for action in legal
+        if env.SUPER_EVOLVE_OFFSET <= action < env.ACTION_SIZE
+    ]
+    if super_evolutions:
+        return rng.choice(super_evolutions)
     attacks = [
         action
         for action in legal
@@ -58,6 +71,11 @@ def main() -> None:
         type=Path,
         default=Path("data/rl_mixed_match.log"),
     )
+    parser.add_argument(
+        "--validate-invariants",
+        action="store_true",
+        help="Run the engine's runtime invariant checks after each command.",
+    )
     args = parser.parse_args()
 
     repository = CardRepository(args.database)
@@ -71,6 +89,7 @@ def main() -> None:
         class_b=PLAYER_CLASS_ID,
         seed=args.seed,
         card_resolver=repository.get,
+        validate_invariants=args.validate_invariants,
     )
     env.reset(seed=args.seed)
     rng = random.Random(args.seed)

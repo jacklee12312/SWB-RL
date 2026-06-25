@@ -15,11 +15,11 @@
 
 | Category | Count |
 |---|---|
-| covered_exact | 56 |
-| supported_missing_rule | 534 |
-| text_unclear | 23 |
-| missing_primitive | 41 |
-| covered_partial | 3 |
+| covered_exact | 53 |
+| supported_missing_rule | 434 |
+| text_unclear | 18 |
+| missing_primitive | 146 |
+| covered_partial | 6 |
 | token_or_non_collectible | 83 |
 
 ## Rule Consistency Issues
@@ -61,6 +61,13 @@
 | 超进化 | SUPER_EVOLVE trigger | True |
 | 攻击时 | ATTACK trigger | True |
 | 交战时 | CLASH trigger | True |
+| 连击 | COMBO (placeholder) | False |
+| 觉醒 | OVERFLOW (placeholder) | False |
+| 策动 | ACTIVATE (placeholder) | False |
+| 威慑 | INTIMIDATE (placeholder) | False |
+| 灵气 | AURA (placeholder) | False |
+| 瞬念召唤 | INVOCATION (placeholder) | False |
+| 奥义 | UNION_BURST (placeholder) | False |
 | 回合开始 | TURN_START trigger / Emblem | True |
 | 回合结束 | TURN_END trigger / Emblem | True |
 | 倒数 | COUNTDOWN / countdown | True |

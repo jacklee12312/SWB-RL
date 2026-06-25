@@ -5,7 +5,7 @@ from pathlib import Path
 from typing import Callable, Sequence
 
 from swb.db.repository import CardDefinition
-from swb.engine.commands import Attack, ChoiceKind, Choose, EndTurn, Evolve, GameCommand, PlayCard
+from swb.engine.commands import Attack, ChoiceKind, Choose, EndTurn, Evolve, GameCommand, PlayCard, SuperEvolve
 from swb.engine.card_rules import RuleBook
 from swb.engine.play_modes import MAX_SPECIAL_MODES_PER_CARD
 from swb.engine.resolution import GameConfig, GameEngine
@@ -49,7 +49,9 @@ class ShadowverseEnv:
 
     MODE_PLAY_OFFSET = GRAVEYARD_SLOT_OFFSET + GRAVEYARD_PAGE_SIZE
 
-    ACTION_SIZE = MODE_PLAY_OFFSET + MAX_HAND * MAX_SPECIAL_MODES_PER_CARD
+    SUPER_EVOLVE_OFFSET = MODE_PLAY_OFFSET + MAX_HAND * MAX_SPECIAL_MODES_PER_CARD
+
+    ACTION_SIZE = SUPER_EVOLVE_OFFSET + MAX_BOARD
 
     DEFAULT_RULE_DIRECTORY = Path(__file__).resolve().parents[2] / "data" / "rules"
 
@@ -63,10 +65,13 @@ class ShadowverseEnv:
         seed: int | None = None,
         rulebook: RuleBook | None = None,
         card_resolver: Callable[[int], CardDefinition | None] | None = None,
+        debug_info: bool = False,
+        validate_invariants: bool = False,
     ):
         resolved_rulebook = rulebook or RuleBook.from_directory(
             self.DEFAULT_RULE_DIRECTORY
         )
+        self.debug_info = debug_info
         self.core = GameEngine(
             deck_a,
             deck_b,
@@ -83,6 +88,7 @@ class ShadowverseEnv:
                 starting_hand=self.STARTING_HAND,
                 starting_evolution_points=self.STARTING_EVOLUTION_POINTS,
                 evolution_unlock_turn=self.EVOLUTION_UNLOCK_TURN,
+                validate_invariants=validate_invariants,
             ),
         )
         self._graveyard_page: int = 0
@@ -224,23 +230,28 @@ class ShadowverseEnv:
                 values.extend(self._board_features(unit))
         return values
 
-    def info(self) -> dict[str, object]:
+    def info(self, *, debug: bool | None = None) -> dict[str, object]:
         self._sync_choice_page()
-        request = self.core.state.pending_choice
         total_pages = self._graveyard_total_pages()
-        return {
+        include_debug = self.debug_info if debug is None else debug
+        info: dict[str, object] = {
             "current_player": self.current_player,
             "decision_player": self.decision_player,
             "turn": self.turn,
             "winner": self.winner,
             "player_classes": self.core.player_classes,
             "action_mask": self.action_mask(),
-            "log": tuple(self.logs),
-            "events": tuple(self.core.event_history),
-            "placeholder_ability_events": tuple(self.placeholder_ability_events),
+            "placeholder_ability_count": len(self.placeholder_ability_events),
             "graveyard_page": self._graveyard_page,
             "graveyard_total_pages": total_pages,
         }
+        if include_debug:
+            info.update({
+                "log": tuple(self.logs),
+                "events": tuple(self.core.event_history),
+                "placeholder_ability_events": tuple(self.placeholder_ability_events),
+            })
+        return info
 
     def _decode_action(self, action: int) -> GameCommand:
         if action == self.END_TURN:
@@ -269,6 +280,12 @@ class ShadowverseEnv:
                 raise ValueError(f"Choice index {option_index} out of range")
             return Choose(request.player_index, request.options[option_index].option_id)
         if action >= self.MODE_PLAY_OFFSET:
+            if action >= self.SUPER_EVOLVE_OFFSET:
+                board_index = action - self.SUPER_EVOLVE_OFFSET
+                return SuperEvolve(
+                    self.current_player,
+                    self.players[self.current_player].board[board_index].entity_id,
+                )
             return self._decode_mode_play(action)
         if action < self.ATTACK_OFFSET:
             return PlayCard(self.current_player, action - self.PLAY_OFFSET)
@@ -331,6 +348,9 @@ class ShadowverseEnv:
         if isinstance(command, Evolve):
             index = self._unit_index(self.players[self.current_player].board, command.unit_id)
             return self.EVOLVE_OFFSET + index
+        if isinstance(command, SuperEvolve):
+            index = self._unit_index(self.players[self.current_player].board, command.unit_id)
+            return self.SUPER_EVOLVE_OFFSET + index
         if isinstance(command, Attack):
             attacker_index = self._unit_index(self.players[self.current_player].board, command.attacker_id)
             base = self.ATTACK_OFFSET + attacker_index * self.TARGETS_PER_ATTACKER
@@ -436,7 +456,7 @@ class ShadowverseEnv:
             1.0, unit.attack / 20, unit.health / 20,
             float(unit.can_attack), float(unit.has_guard),
             float(unit.has_keyword("疾驰")),
-            float(unit.evolved), float(unit.rush_only), 0.0,
+            float(unit.evolved), float(unit.rush_only), float(unit.super_evolved),
             float(unit.barrier_charges > 0), float(unit.ambush_active),
         ]
 

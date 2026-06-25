@@ -34,6 +34,8 @@ The first engine version supports:
 - `守护`, `疾驰`, and `突进`
 - follower evolution: +2/+2 and rush, once per turn, with configurable unlock
   timing/points
+- basic super-evolution commands and same-turn protection from damage/effect
+  destruction; the full resource model is still pending
 - simple unconditional fanfares: draw, leader damage/heal, self buff, mana restore
 - machine-authored spells, including effects that pause for a target choice
 - amulets sharing the five board slots with followers
@@ -42,9 +44,9 @@ The first engine version supports:
 - fixed-size observations and discrete action masks
 - deterministic reset and shuffle by seed
 
-Spells, amulets, super-evolution, emblems, generated cards, choices, targeted
-fanfares, conditional fanfares, and most triggered abilities are preserved in
-the database but are not executed yet.
+Generated cards, complete super-evolution resource rules, broad conditional
+fanfares, and most triggered abilities are preserved in the database but are not
+executed yet.
 
 ## Build the database
 
@@ -86,6 +88,12 @@ python -m unittest discover -v
 python -m scripts.random_self_play --games 100
 ```
 
+Enable runtime state-invariant checks during a smoke run with:
+
+```powershell
+python -m scripts.random_self_play --games 100 --validate-invariants
+```
+
 To print one deterministic match:
 
 ```powershell
@@ -123,15 +131,21 @@ Machine-authored card rules live in `data/rules`. Explicit rules are preferred
 over the temporary Chinese-text fanfare parser; the parser remains only as a
 compatibility fallback while card coverage is migrated.
 
-The environment has 61 actions:
+The environment has 111 actions:
 
 - `0`: end turn
 - `1..9`: play a hand slot
 - `10..39`: five attacker slots times six target slots
 - `40..44`: evolve a board slot
 - `45..60`: resolve one of up to 16 pending choice options
+- `61..78`: graveyard choice paging and slots
+- `79..105`: special play modes for hand slots
+- `106..110`: super-evolve a board slot
 
 Always apply `info["action_mask"]` before sampling or selecting an action.
+By default, `info()` is public and redacts debug transcripts/events. Use
+`ShadowverseEnv(..., debug_info=True)` or `env.info(debug=True)` only for
+diagnostics.
 
 The currently authored spell/amulet examples are in
 `data/rules/spells_and_amulets.json`. They cover:
@@ -147,6 +161,9 @@ Run a mixed-card RL smoke match and write its transcript:
 ```powershell
 python -m scripts.rl_mixed_match --output data/rl_mixed_match.log
 ```
+
+The mixed-card smoke match also accepts `--validate-invariants` for debugging
+state consistency regressions.
 
 ## Suggested next milestones
 

@@ -10,13 +10,10 @@ from swb.engine import CLASS_NAMES, DECK_SIZE, ShadowverseEnv
 def choose_action(env: ShadowverseEnv) -> int:
     mask = env.action_mask()
 
-    choices = [
-        action
-        for action in range(env.CHOICE_OFFSET, env.ACTION_SIZE)
-        if mask[action]
-    ]
-    if choices:
-        return choices[0]
+    if env.core.state.pending_choice is not None:
+        choices = [action for action, allowed in enumerate(mask) if allowed]
+        if choices:
+            return choices[0]
 
     playable = [
         action
@@ -27,9 +24,17 @@ def choose_action(env: ShadowverseEnv) -> int:
         player = env.players[env.current_player]
         return max(playable, key=lambda action: player.hand[action - env.PLAY_OFFSET].cost)
 
+    mode_plays = [
+        action
+        for action in range(env.MODE_PLAY_OFFSET, env.SUPER_EVOLVE_OFFSET)
+        if mask[action]
+    ]
+    if mode_plays:
+        return mode_plays[0]
+
     evolutions = [
         action
-        for action in range(env.EVOLVE_OFFSET, env.ACTION_SIZE)
+        for action in range(env.EVOLVE_OFFSET, env.CHOICE_OFFSET)
         if mask[action]
     ]
     if evolutions:
@@ -37,6 +42,18 @@ def choose_action(env: ShadowverseEnv) -> int:
         return max(
             evolutions,
             key=lambda action: player.board[action - env.EVOLVE_OFFSET].attack,
+        )
+
+    super_evolutions = [
+        action
+        for action in range(env.SUPER_EVOLVE_OFFSET, env.ACTION_SIZE)
+        if mask[action]
+    ]
+    if super_evolutions:
+        player = env.players[env.current_player]
+        return max(
+            super_evolutions,
+            key=lambda action: player.board[action - env.SUPER_EVOLVE_OFFSET].attack,
         )
 
     attacks = [

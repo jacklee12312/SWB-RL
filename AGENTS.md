@@ -28,9 +28,13 @@ summary. At the time this file was created:
 - The RL adapter provides a fixed action space, action mask, observation, and
   terminal reward.
 - `守护`, `疾驰`, and `突进` are implemented.
+- A minimal `SuperEvolve` command path exists, including the current
+  same-turn protection against effect damage and effect destruction. The full
+  SWB super-evolution resource model is still pending.
 - Most other ability keywords are placeholders or only partially implemented.
 - Explicit card rules live under `data/rules/`.
-- The test baseline is 19 passing `unittest` tests.
+- The test baseline is several hundred passing `unittest` tests; run the
+  suite rather than trusting this document for an exact count.
 
 The README may lag behind the implementation. Treat executable code and tests
 as the source of truth, then update documentation when behavior changes.
@@ -206,15 +210,36 @@ report the remaining work precisely.
 
 Unless the user gives a different priority:
 
-1. Generic target selection and effect execution.
-2. Missing zone-changing operations: summon, banish, add, return, discard,
-   transform, cost and keyword changes.
-3. Conditions and value expressions.
-4. Core combat keywords: bane, drain, barrier, ambush.
-5. Trigger ordering, simultaneous deaths, and last words.
-6. Class resources and class mechanics.
-7. Alternate play modes and super evolution.
+1. Runtime invariant checks and illegal-command no-mutation tests.
+2. RL public/debug information boundaries, especially hidden-information
+   redaction from default `Env.info()`.
+3. Complete super-evolution resource rules and edge semantics.
+4. Core class/mechanic conditions such as `觉醒` and `连击`, one vertical
+   slice at a time.
+5. Targeting and effect edge cases: multi-targets, no-target branches,
+   source/target leaving play, and zone-changing corner cases.
+6. Trigger ordering, simultaneous deaths, recursive trigger limits, and last
+   words.
+7. Remaining class resources and class mechanics.
 8. Card-rule coverage tooling and gradual card expansion.
+
+## Implementation Roadmap
+
+Prefer this sequence for long-running engine completion work:
+
+1. Harden the core: invariant checker, illegal no-mutation tests, public RL
+   information boundaries, deterministic replay checks.
+2. Finish super evolution: real resource availability, turn/side rules,
+   action legality, observation features, and protection edge cases.
+3. Implement one keyword/mechanic per slice: `觉醒`, `连击`, then decision
+   mechanics such as `策动`.
+4. Expand reusable primitives: conditions, value expressions, multi-target
+   choices, transform/banish/return/discard edge cases.
+5. Stabilize trigger semantics: ordering, simultaneous deaths, last words,
+   pending choices during triggers, and loop diagnostics.
+6. Expand real-card coverage only after the needed primitive is implemented
+   and tested; every real-card rule must stay auditable and must not hide
+   unsupported text behind `covered_exact`.
 
 ## Completion Report
 

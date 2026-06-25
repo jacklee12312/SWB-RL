@@ -152,6 +152,35 @@ class CoverageReportTests(unittest.TestCase):
         self.assertEqual(result["coverage"], "supported_missing_rule")
         self.assertIn("死灵术|唤灵", result["hit_keywords"])
 
+    def test_placeholder_keyword_with_rule_is_not_covered_exact(self):
+        """A real rule does not hide missing primitives such as combo."""
+        from scripts.report_rule_coverage import _classify_card
+        card = CardDefinition(
+            card_id=123457,
+            card_set_id=10000,
+            class_id=1,
+            class_name="精灵",
+            name="测试连击",
+            cost=2,
+            card_type="随从",
+            attack=2,
+            life=2,
+            keywords=frozenset(),
+            support_level="unsupported",
+            is_collectible=True,
+        )
+        result = _classify_card(
+            card,
+            ruled_cards={123457},
+            ruled_ops={123457: {"triggers": ["attack"], "effect_kinds": ["heal_leader"]}},
+            rule_metadata={},
+            ability_map={123457: ["连击"]},
+            skill_text_map={},
+            support_map={},
+        )
+        self.assertEqual(result["coverage"], "covered_partial")
+        self.assertIn("连击", result["missing_primitives"])
+
     def test_top_20_recommendations_fields(self):
         """Top 20 recommendations have complete fields."""
         from scripts.report_rule_coverage import _build_coverage_report

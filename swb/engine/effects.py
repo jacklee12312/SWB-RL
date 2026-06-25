@@ -234,7 +234,6 @@ class EffectOperation:
     secondary_amount: int = 0
     card_id: int | None = None
     emblem_id: str | None = None
-    emblem_remove_mode: str = "first"
     keyword: str | None = None
     restriction: str | None = None
     conditions: tuple[Condition, ...] = ()

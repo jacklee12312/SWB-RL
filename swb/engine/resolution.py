@@ -24,6 +24,7 @@ from swb.engine.commands import (
     Evolve,
     GameCommand,
     PlayCard,
+    SuperEvolve,
 )
 from swb.engine.deck import CLASS_NAMES, validate_deck
 from swb.engine.effects import (
@@ -169,6 +170,7 @@ class GameConfig:
     starting_evolution_points: int = 2
     evolution_unlock_turn: int = 4
     starting_health: int = 20
+    validate_invariants: bool = False
 
 
 @dataclass(frozen=True)
@@ -341,10 +343,14 @@ class GameEngine:
                 self._draw(player_index, reason="起手")
         self._start_turn(0)
         self._resolve_event_queue()
+        if self.config.validate_invariants:
+            self.assert_invariants()
         return self.state
 
     def apply(self, command: GameCommand) -> CoreTransition:
         self._ensure_entity_ids()
+        if self.config.validate_invariants:
+            self.assert_invariants()
         if self.terminated:
             raise IllegalCommand("The match has ended")
         if self.state.pending_choice is not None and not isinstance(command, Choose):
@@ -366,6 +372,8 @@ class GameEngine:
             self._attack(command)
         elif isinstance(command, Evolve):
             self._evolve(command)
+        elif isinstance(command, SuperEvolve):
+            self._super_evolve(command)
         elif isinstance(command, Choose):
             self._choose(command)
         else:
@@ -374,6 +382,8 @@ class GameEngine:
         self._resolve_event_queue()
         self._stabilize()
         self._resume_suspended_action()
+        if self.config.validate_invariants:
+            self.assert_invariants()
         return CoreTransition(
             command=command,
             events=tuple(self.event_history[event_start:]),
@@ -389,6 +399,9 @@ class GameEngine:
             if action == "attack":
                 self._resume_attack(state)
             elif action == "evolve":
+                self._suspended_action = None
+                self._suspended_action_state = None
+            elif action == "super_evolve":
                 self._suspended_action = None
                 self._suspended_action_state = None
             elif action == "turn_end":
@@ -436,12 +449,10 @@ class GameEngine:
             and player.turns_started >= self.config.evolution_unlock_turn
             and not player.evolved_this_turn
         ):
-            commands.extend(
-                Evolve(self.current_player, unit.entity_id)
-                for unit in player.board
-                if isinstance(unit, Unit)
-                and not unit.evolved
-            )
+            for unit in player.board:
+                if isinstance(unit, Unit) and not unit.evolved:
+                    commands.append(Evolve(self.current_player, unit.entity_id))
+                    commands.append(SuperEvolve(self.current_player, unit.entity_id))
         guards = [
             unit
             for unit in opponent.board
@@ -959,6 +970,12 @@ class GameEngine:
             )
             return DamageResult(requested_amount=amount)
 
+    def _super_evolution_prevents_damage(self, target: Unit) -> bool:
+        return target.super_evolved and self._entity_owner(target.entity_id) == self.current_player
+
+    def _super_evolution_prevents_effect_destroy(self, target: Unit) -> bool:
+        return target.super_evolved and self._entity_owner(target.entity_id) == self.current_player
+
     def _apply_damage_to_unit(
         self,
         source: Unit | CardDefinition | None,
@@ -972,6 +989,31 @@ class GameEngine:
         health_before = target.health
         prevented = 0
         barrier_consumed = False
+
+        if self._super_evolution_prevents_damage(target):
+            self._emit(GameEvent(
+                EventType.DAMAGE_PREVENTED, controller,
+                source_id=source.entity_id if hasattr(source, 'entity_id') else None,
+                target_id=target.entity_id,
+                amount=amount,
+                metadata={
+                    "super_evolved": True,
+                    "damage_type": damage_type.value,
+                },
+            ))
+            self._log(
+                controller,
+                f"{target.definition.name} 的超进化保护阻止了 {amount} 点伤害",
+            )
+            return DamageResult(
+                requested_amount=amount,
+                prevented_amount=amount,
+                actual_amount=0,
+                target_health_before=health_before,
+                target_health_after=health_before,
+                barrier_consumed=False,
+                lethal=False,
+            )
 
         if amount > 0 and target.barrier_charges > 0:
             target.barrier_charges -= 1
@@ -1659,9 +1701,18 @@ class GameEngine:
             self._suspended_action = None
             self._suspended_action_state = None
             return
+        self._evolve_unit(command.unit_id, super_evolve=False)
 
+    def _super_evolve(self, command: SuperEvolve) -> None:
+        if self._suspended_action_state is not None and self._suspended_action == "super_evolve":
+            self._suspended_action = None
+            self._suspended_action_state = None
+            return
+        self._evolve_unit(command.unit_id, super_evolve=True)
+
+    def _evolve_unit(self, unit_id: int, *, super_evolve: bool) -> None:
         player = self.players[self.current_player]
-        unit = self._find_unit(player.board, command.unit_id)
+        unit = self._find_unit(player.board, unit_id)
         if player.evolution_points <= 0:
             raise IllegalCommand("No evolution points")
         if player.turns_started < self.config.evolution_unlock_turn:
@@ -1671,6 +1722,7 @@ class GameEngine:
 
         could_attack_leader = unit.can_attack_leader
         unit.evolved = True
+        unit.super_evolved = super_evolve
         unit.base_attack += 2
         unit.base_health += 2
         unit._recompute_attack()
@@ -1681,14 +1733,15 @@ class GameEngine:
         if unit.attacks_remaining > 0:
             unit.can_attack = True
             unit.rush_only = not could_attack_leader
+        action_name = "超进化" if super_evolve else "进化"
         self._log(
             self.current_player,
-            f"进化 {unit.definition.name}，变为 {unit.attack}/{unit.health}，"
+            f"{action_name} {unit.definition.name}，变为 {unit.attack}/{unit.health}，"
             f"剩余进化点 {player.evolution_points}",
         )
         self._emit(
             GameEvent(
-                EventType.FOLLOWER_EVOLVED,
+                EventType.FOLLOWER_SUPER_EVOLVED if super_evolve else EventType.FOLLOWER_EVOLVED,
                 self.current_player,
                 source_id=unit.entity_id,
                 metadata={"source": unit},
@@ -1696,7 +1749,7 @@ class GameEngine:
         )
         self._resolve_event_queue()
         if self.state.pending_choice is not None:
-            self._suspended_action = "evolve"
+            self._suspended_action = "super_evolve" if super_evolve else "evolve"
             self._suspended_action_state = {"unit_id": unit.entity_id}
             return
 
@@ -2549,6 +2602,12 @@ class GameEngine:
         elif effect.kind is EffectKind.DESTROY:
             target = self._find_board_entity(target_id)
             if isinstance(target, Unit):
+                if self._super_evolution_prevents_effect_destroy(target):
+                    self._log(
+                        frame.controller,
+                        f"{target.definition.name} 的超进化保护阻止了效果破坏",
+                    )
+                    return
                 self._death_causes[target.entity_id] = DeathCause.EFFECT_DESTROY
                 target.health = 0
             elif isinstance(target, Amulet):
@@ -2723,6 +2782,7 @@ class GameEngine:
         target.can_attack = can_attack
         target.attacks_remaining = attacks_remaining
         target.evolved = False
+        target.super_evolved = False
         target.rush_only = False
         target.barrier_charges = fresh.barrier_charges
         target.ambush_active = fresh.ambush_active
@@ -3932,6 +3992,7 @@ class GameEngine:
             EventType.CARD_PLAYED: AbilityEvent.CARD_PLAYED,
             EventType.FOLLOWER_SUMMONED: AbilityEvent.FOLLOWER_SUMMONED,
             EventType.FOLLOWER_EVOLVED: AbilityEvent.FOLLOWER_EVOLVED,
+            EventType.FOLLOWER_SUPER_EVOLVED: AbilityEvent.FOLLOWER_SUPER_EVOLVED,
             EventType.ATTACK_DECLARED: AbilityEvent.BEFORE_ATTACK,
             EventType.COMBAT_STARTED: AbilityEvent.BEFORE_COMBAT,
             EventType.DAMAGE_DEALT: AbilityEvent.AFTER_DAMAGE,
@@ -4276,6 +4337,204 @@ class GameEngine:
                 )
             )
             self._resolve_event_queue()
+
+    def assert_invariants(self) -> None:
+        """Raise IllegalCommand if the mutable game state is internally invalid."""
+        state = self.state
+        if len(state.players) != 2:
+            raise IllegalCommand("Invariant failed: game must have exactly two players")
+        if state.active_player not in (0, 1):
+            raise IllegalCommand(
+                f"Invariant failed: active_player out of range: {state.active_player}"
+            )
+        if state.turn < 1:
+            raise IllegalCommand(f"Invariant failed: turn must be positive: {state.turn}")
+        if state.next_entity_id <= 0:
+            raise IllegalCommand(
+                f"Invariant failed: next_entity_id must be positive: {state.next_entity_id}"
+            )
+        if state.winner not in (None, 0, 1):
+            raise IllegalCommand(f"Invariant failed: invalid winner {state.winner!r}")
+        if state.terminated:
+            if state.phase is not Phase.FINISHED:
+                raise IllegalCommand("Invariant failed: terminated state must be FINISHED")
+        elif state.phase is Phase.FINISHED:
+            raise IllegalCommand("Invariant failed: FINISHED phase without termination")
+
+        if state.pending_choice is not None:
+            request = state.pending_choice
+            if state.phase is not Phase.AWAITING_CHOICE:
+                raise IllegalCommand(
+                    "Invariant failed: pending_choice requires AWAITING_CHOICE phase"
+                )
+            if request.player_index not in (0, 1):
+                raise IllegalCommand(
+                    f"Invariant failed: choice player out of range: {request.player_index}"
+                )
+            if not request.options:
+                raise IllegalCommand("Invariant failed: pending choice has no options")
+            if request.request_id < 0:
+                raise IllegalCommand(
+                    f"Invariant failed: negative choice request_id {request.request_id}"
+                )
+        elif state.phase is Phase.AWAITING_CHOICE:
+            raise IllegalCommand("Invariant failed: AWAITING_CHOICE without pending_choice")
+
+        seen_entities: dict[int, str] = {}
+
+        def remember(entity_id: int, zone: str) -> None:
+            if entity_id <= 0:
+                raise IllegalCommand(
+                    f"Invariant failed: {zone} has non-positive entity_id {entity_id}"
+                )
+            previous = seen_entities.get(entity_id)
+            if previous is not None:
+                raise IllegalCommand(
+                    f"Invariant failed: entity_id {entity_id} appears in both "
+                    f"{previous} and {zone}"
+                )
+            seen_entities[entity_id] = zone
+
+        for player_index, player in enumerate(state.players):
+            prefix = f"player {player_index + 1}"
+            if len(player.hand) != len(player.hand_entity_ids):
+                raise IllegalCommand(
+                    f"Invariant failed: {prefix} hand/entity_id length mismatch"
+                )
+            if len(player.hand) > self.config.max_hand:
+                raise IllegalCommand(
+                    f"Invariant failed: {prefix} hand exceeds max_hand"
+                )
+            if len(player.board) > self.config.max_board:
+                raise IllegalCommand(
+                    f"Invariant failed: {prefix} board exceeds max_board"
+                )
+            if not (0 <= player.max_mana <= self.config.max_mana):
+                raise IllegalCommand(
+                    f"Invariant failed: {prefix} max_mana out of range: {player.max_mana}"
+                )
+            if not (0 <= player.mana <= player.max_mana):
+                raise IllegalCommand(
+                    f"Invariant failed: {prefix} mana out of range: {player.mana}/{player.max_mana}"
+                )
+            if player.health < 0 or player.health > self.config.starting_health:
+                raise IllegalCommand(
+                    f"Invariant failed: {prefix} health out of range: {player.health}"
+                )
+            for name, value in (
+                ("fatigue", player.fatigue),
+                ("evolution_points", player.evolution_points),
+                ("turns_started", player.turns_started),
+                ("cards_played_this_turn", player.cards_played_this_turn),
+                ("followers_destroyed_this_turn", player.followers_destroyed_this_turn),
+                ("cooperation", player.cooperation),
+                ("shadows", player.shadows),
+                ("faith", player.faith),
+            ):
+                if value < 0:
+                    raise IllegalCommand(
+                        f"Invariant failed: {prefix} {name} is negative: {value}"
+                    )
+
+            for hand_index, hand_card in enumerate(player.hand):
+                if not isinstance(hand_card, HandCard):
+                    raise IllegalCommand(
+                        f"Invariant failed: {prefix} hand[{hand_index}] is not HandCard"
+                    )
+                expected = player.hand_entity_ids[hand_index]
+                if hand_card.entity_id != expected:
+                    raise IllegalCommand(
+                        f"Invariant failed: {prefix} hand[{hand_index}] "
+                        f"entity_id {hand_card.entity_id} != hand_entity_ids {expected}"
+                    )
+                remember(hand_card.entity_id, f"{prefix} hand[{hand_index}]")
+
+            for board_index, entity in enumerate(player.board):
+                zone = f"{prefix} board[{board_index}]"
+                if not isinstance(entity, (Unit, Amulet)):
+                    raise IllegalCommand(f"Invariant failed: {zone} is not a board entity")
+                remember(entity.entity_id, zone)
+                if isinstance(entity, Unit):
+                    if entity.attack < 0:
+                        raise IllegalCommand(
+                            f"Invariant failed: {zone} attack is negative"
+                        )
+                    if entity.max_health < 1:
+                        raise IllegalCommand(
+                            f"Invariant failed: {zone} max_health is below 1"
+                        )
+                    if entity.health <= 0:
+                        raise IllegalCommand(
+                            f"Invariant failed: {zone} has non-positive health"
+                        )
+                    if entity.health > entity.max_health:
+                        raise IllegalCommand(
+                            f"Invariant failed: {zone} health exceeds max_health"
+                        )
+                    if entity.attacks_remaining < 0:
+                        raise IllegalCommand(
+                            f"Invariant failed: {zone} attacks_remaining is negative"
+                        )
+                    if entity.barrier_charges < 0:
+                        raise IllegalCommand(
+                            f"Invariant failed: {zone} barrier_charges is negative"
+                        )
+                elif entity.countdown is not None and entity.countdown < 0:
+                    raise IllegalCommand(
+                        f"Invariant failed: {zone} countdown is negative"
+                    )
+
+            for grave_index, graveyard_card in enumerate(player.graveyard):
+                zone = f"{prefix} graveyard[{grave_index}]"
+                if graveyard_card.owner != player_index:
+                    raise IllegalCommand(
+                        f"Invariant failed: {zone} owner mismatch"
+                    )
+                if graveyard_card.entered_sequence <= 0:
+                    raise IllegalCommand(
+                        f"Invariant failed: {zone} entered_sequence must be positive"
+                    )
+                remember(graveyard_card.entity_id, zone)
+
+            for emblem_index, emblem in enumerate(player.emblems):
+                zone = f"{prefix} emblems[{emblem_index}]"
+                if emblem.controller != player_index:
+                    raise IllegalCommand(
+                        f"Invariant failed: {zone} controller mismatch"
+                    )
+                if emblem.created_sequence <= 0:
+                    raise IllegalCommand(
+                        f"Invariant failed: {zone} created_sequence must be positive"
+                    )
+                if emblem.countdown is not None and emblem.countdown < 0:
+                    raise IllegalCommand(
+                        f"Invariant failed: {zone} countdown is negative"
+                    )
+                remember(emblem.entity_id, zone)
+
+        for frame_index, frame in enumerate(state.effect_stack):
+            if frame.controller not in (0, 1):
+                raise IllegalCommand(
+                    f"Invariant failed: effect_stack[{frame_index}] controller out of range"
+                )
+        for event_index, event in enumerate(state.event_queue):
+            if event.player_index not in (0, 1):
+                raise IllegalCommand(
+                    f"Invariant failed: event_queue[{event_index}] player out of range"
+                )
+        for record in state.destroyed_followers:
+            if record.owner not in (0, 1):
+                raise IllegalCommand("Invariant failed: destroyed follower owner out of range")
+            if record.death_sequence <= 0:
+                raise IllegalCommand(
+                    "Invariant failed: destroyed follower death_sequence must be positive"
+                )
+        for batch in state.death_queue:
+            if batch.batch_id <= 0:
+                raise IllegalCommand("Invariant failed: death batch id must be positive")
+            for record in batch.records:
+                if record.owner not in (0, 1):
+                    raise IllegalCommand("Invariant failed: death record owner out of range")
 
     def _emit(self, event: GameEvent) -> None:
         self.state.event_queue.append(event)

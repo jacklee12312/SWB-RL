@@ -540,7 +540,7 @@ class ObservationTests(unittest.TestCase):
         self.assertEqual(after[22:28], [0.1, 0.0, 1.0, 0.0, 0.3, 0.0])
 
     def test_action_size(self):
-        self.assertEqual(ShadowverseEnv.ACTION_SIZE, 106)
+        self.assertEqual(ShadowverseEnv.ACTION_SIZE, 111)
 
 
 # ---------------------------------------------------------------------------

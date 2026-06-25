@@ -8,11 +8,11 @@
     "total_with_rules": 87,
     "test_or_synthetic_ids_with_rules": 26,
     "coverage_counts": {
-      "covered_exact": 56,
-      "supported_missing_rule": 534,
-      "text_unclear": 23,
-      "missing_primitive": 41,
-      "covered_partial": 3,
+      "covered_exact": 53,
+      "supported_missing_rule": 434,
+      "text_unclear": 18,
+      "missing_primitive": 146,
+      "covered_partial": 6,
       "token_or_non_collectible": 83
     }
   },
@@ -173,6 +173,34 @@
       "primitive": "CLASH trigger",
       "covered": true
     },
+    "连击": {
+      "primitive": "COMBO (placeholder)",
+      "covered": false
+    },
+    "觉醒": {
+      "primitive": "OVERFLOW (placeholder)",
+      "covered": false
+    },
+    "策动": {
+      "primitive": "ACTIVATE (placeholder)",
+      "covered": false
+    },
+    "威慑": {
+      "primitive": "INTIMIDATE (placeholder)",
+      "covered": false
+    },
+    "灵气": {
+      "primitive": "AURA (placeholder)",
+      "covered": false
+    },
+    "瞬念召唤": {
+      "primitive": "INVOCATION (placeholder)",
+      "covered": false
+    },
+    "奥义": {
+      "primitive": "UNION_BURST (placeholder)",
+      "covered": false
+    },
     "回合开始": {
       "primitive": "TURN_START trigger / Emblem",
       "covered": true
@@ -312,7 +340,7 @@
       "is_collectible": true,
       "card_set_id": 10000,
       "coverage": "covered_exact",
-      "reason": "Triggers: ['fanfare', 'play_modes'], Ops: ['play_mode']",
+      "reason": "Triggers: ['fanfare', 'play_modes'], Ops: ['play_mode', 'buff_unit']",
       "hit_keywords": [
         "爆能强化"
       ],
@@ -379,12 +407,14 @@
       "cost": 2,
       "is_collectible": true,
       "card_set_id": 10000,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['破坏']",
+      "coverage": "missing_primitive",
+      "reason": "Missing primitives: ['策动']",
       "hit_keywords": [
         "破坏"
       ],
-      "missing_primitives": [],
+      "missing_primitives": [
+        "策动"
+      ],
       "ability_keywords": [
         "守护",
         "策动"
@@ -443,14 +473,16 @@
       "cost": 3,
       "is_collectible": true,
       "card_set_id": 10000,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '抽取', '破坏']",
+      "coverage": "missing_primitive",
+      "reason": "Missing primitives: ['策动']",
       "hit_keywords": [
         "入场曲",
         "抽取",
         "破坏"
       ],
-      "missing_primitives": [],
+      "missing_primitives": [
+        "策动"
+      ],
       "ability_keywords": [
         "入场曲",
         "突进",
@@ -492,12 +524,14 @@
       "cost": 2,
       "is_collectible": true,
       "card_set_id": 10000,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲']",
+      "coverage": "missing_primitive",
+      "reason": "Missing primitives: ['连击']",
       "hit_keywords": [
         "入场曲"
       ],
-      "missing_primitives": [],
+      "missing_primitives": [
+        "连击"
+      ],
       "ability_keywords": [
         "入场曲",
         "连击"
@@ -515,14 +549,16 @@
       "cost": 4,
       "is_collectible": true,
       "card_set_id": 10000,
-      "coverage": "covered_exact",
+      "coverage": "covered_partial",
       "reason": "Triggers: ['attack'], Ops: ['heal_leader']",
       "hit_keywords": [
         "入场曲",
         "攻击时",
         "回复"
       ],
-      "missing_primitives": [],
+      "missing_primitives": [
+        "连击"
+      ],
       "ability_keywords": [
         "入场曲",
         "攻击时",
@@ -567,13 +603,15 @@
       "cost": 1,
       "is_collectible": true,
       "card_set_id": 10000,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '造成.*伤害']",
+      "coverage": "missing_primitive",
+      "reason": "Missing primitives: ['连击']",
       "hit_keywords": [
         "入场曲",
         "造成.*伤害"
       ],
-      "missing_primitives": [],
+      "missing_primitives": [
+        "连击"
+      ],
       "ability_keywords": [
         "入场曲",
         "连击"
@@ -828,6 +866,7 @@
         "抽取"
       ],
       "missing_primitives": [
+        "策动",
         "土之秘术|土之印"
       ],
       "ability_keywords": [
@@ -1035,7 +1074,9 @@
       "hit_keywords": [
         "造成.*伤害"
       ],
-      "missing_primitives": [],
+      "missing_primitives": [
+        "觉醒"
+      ],
       "ability_keywords": [
         "觉醒"
       ],
@@ -1172,7 +1213,7 @@
       "is_collectible": true,
       "card_set_id": 10000,
       "coverage": "covered_exact",
-      "reason": "Triggers: ['fanfare'], Ops: ['necromancy']",
+      "reason": "Triggers: ['fanfare'], Ops: ['necromancy', 'add_keyword']",
       "hit_keywords": [
         "入场曲",
         "死灵术|唤灵"
@@ -1360,14 +1401,16 @@
       "cost": 4,
       "is_collectible": true,
       "card_set_id": 10000,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['谢幕曲', '倒数', '召唤']",
+      "coverage": "missing_primitive",
+      "reason": "Missing primitives: ['策动']",
       "hit_keywords": [
         "谢幕曲",
         "倒数",
         "召唤"
       ],
-      "missing_primitives": [],
+      "missing_primitives": [
+        "策动"
+      ],
       "ability_keywords": [
         "倒数",
         "策动",
@@ -1411,10 +1454,12 @@
       "cost": 8,
       "is_collectible": true,
       "card_set_id": 10000,
-      "coverage": "text_unclear",
-      "reason": "No ability keywords in database",
+      "coverage": "missing_primitive",
+      "reason": "Missing primitives: ['策动']",
       "hit_keywords": [],
-      "missing_primitives": [],
+      "missing_primitives": [
+        "策动"
+      ],
       "ability_keywords": [
         "守护",
         "疾驰",
@@ -1433,14 +1478,16 @@
       "cost": 1,
       "is_collectible": true,
       "card_set_id": 10000,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['谢幕曲', '倒数', '召唤']",
+      "coverage": "missing_primitive",
+      "reason": "Missing primitives: ['策动']",
       "hit_keywords": [
         "谢幕曲",
         "倒数",
         "召唤"
       ],
-      "missing_primitives": [],
+      "missing_primitives": [
+        "策动"
+      ],
       "ability_keywords": [
         "倒数",
         "策动",
@@ -1830,12 +1877,14 @@
       "cost": 2,
       "is_collectible": true,
       "card_set_id": 10001,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲']",
+      "coverage": "missing_primitive",
+      "reason": "Missing primitives: ['连击']",
       "hit_keywords": [
         "入场曲"
       ],
-      "missing_primitives": [],
+      "missing_primitives": [
+        "连击"
+      ],
       "ability_keywords": [
         "入场曲",
         "连击"
@@ -1903,13 +1952,15 @@
       "cost": 3,
       "is_collectible": true,
       "card_set_id": 10001,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '抽取']",
+      "coverage": "missing_primitive",
+      "reason": "Missing primitives: ['连击']",
       "hit_keywords": [
         "入场曲",
         "抽取"
       ],
-      "missing_primitives": [],
+      "missing_primitives": [
+        "连击"
+      ],
       "ability_keywords": [
         "入场曲",
         "连击"
@@ -1927,13 +1978,15 @@
       "cost": 4,
       "is_collectible": true,
       "card_set_id": 10001,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '造成.*伤害']",
+      "coverage": "missing_primitive",
+      "reason": "Missing primitives: ['连击']",
       "hit_keywords": [
         "入场曲",
         "造成.*伤害"
       ],
-      "missing_primitives": [],
+      "missing_primitives": [
+        "连击"
+      ],
       "ability_keywords": [
         "入场曲",
         "连击"
@@ -2046,14 +2099,17 @@
       "cost": 2,
       "is_collectible": true,
       "card_set_id": 10001,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '将.*加入手牌', '破坏']",
+      "coverage": "missing_primitive",
+      "reason": "Missing primitives: ['连击', '策动']",
       "hit_keywords": [
         "入场曲",
         "将.*加入手牌",
         "破坏"
       ],
-      "missing_primitives": [],
+      "missing_primitives": [
+        "连击",
+        "策动"
+      ],
       "ability_keywords": [
         "入场曲",
         "策动",
@@ -2093,15 +2149,17 @@
       "cost": 2,
       "is_collectible": true,
       "card_set_id": 10001,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '进化时', '抽取', '造成.*伤害']",
+      "coverage": "missing_primitive",
+      "reason": "Missing primitives: ['连击']",
       "hit_keywords": [
         "入场曲",
         "进化时",
         "抽取",
         "造成.*伤害"
       ],
-      "missing_primitives": [],
+      "missing_primitives": [
+        "连击"
+      ],
       "ability_keywords": [
         "入场曲",
         "进化时",
@@ -2168,12 +2226,14 @@
       "cost": 3,
       "is_collectible": true,
       "card_set_id": 10001,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲']",
+      "coverage": "missing_primitive",
+      "reason": "Missing primitives: ['连击']",
       "hit_keywords": [
         "入场曲"
       ],
-      "missing_primitives": [],
+      "missing_primitives": [
+        "连击"
+      ],
       "ability_keywords": [
         "入场曲",
         "疾驰",
@@ -2192,15 +2252,18 @@
       "cost": 3,
       "is_collectible": true,
       "card_set_id": 10001,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['回合结束', '抽取', '破坏', '返回手牌']",
+      "coverage": "missing_primitive",
+      "reason": "Missing primitives: ['连击', '策动']",
       "hit_keywords": [
         "回合结束",
         "抽取",
         "破坏",
         "返回手牌"
       ],
-      "missing_primitives": [],
+      "missing_primitives": [
+        "连击",
+        "策动"
+      ],
       "ability_keywords": [
         "策动",
         "连击"
@@ -3275,12 +3338,14 @@
       "cost": 5,
       "is_collectible": true,
       "card_set_id": 10001,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲']",
+      "coverage": "missing_primitive",
+      "reason": "Missing primitives: ['觉醒']",
       "hit_keywords": [
         "入场曲"
       ],
-      "missing_primitives": [],
+      "missing_primitives": [
+        "觉醒"
+      ],
       "ability_keywords": [
         "入场曲",
         "疾驰",
@@ -3347,13 +3412,15 @@
       "cost": 4,
       "is_collectible": true,
       "card_set_id": 10001,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '回复']",
+      "coverage": "missing_primitive",
+      "reason": "Missing primitives: ['觉醒']",
       "hit_keywords": [
         "入场曲",
         "回复"
       ],
-      "missing_primitives": [],
+      "missing_primitives": [
+        "觉醒"
+      ],
       "ability_keywords": [
         "入场曲",
         "觉醒"
@@ -3413,12 +3480,15 @@
       "cost": 3,
       "is_collectible": true,
       "card_set_id": 10001,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲']",
+      "coverage": "missing_primitive",
+      "reason": "Missing primitives: ['觉醒', '威慑']",
       "hit_keywords": [
         "入场曲"
       ],
-      "missing_primitives": [],
+      "missing_primitives": [
+        "觉醒",
+        "威慑"
+      ],
       "ability_keywords": [
         "入场曲",
         "威慑",
@@ -3462,12 +3532,14 @@
       "cost": 4,
       "is_collectible": true,
       "card_set_id": 10001,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲']",
+      "coverage": "missing_primitive",
+      "reason": "Missing primitives: ['觉醒']",
       "hit_keywords": [
         "入场曲"
       ],
-      "missing_primitives": [],
+      "missing_primitives": [
+        "觉醒"
+      ],
       "ability_keywords": [
         "入场曲",
         "觉醒"
@@ -3485,13 +3557,15 @@
       "cost": 3,
       "is_collectible": true,
       "card_set_id": 10001,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['抽取', '回复']",
+      "coverage": "missing_primitive",
+      "reason": "Missing primitives: ['觉醒']",
       "hit_keywords": [
         "抽取",
         "回复"
       ],
-      "missing_primitives": [],
+      "missing_primitives": [
+        "觉醒"
+      ],
       "ability_keywords": [
         "觉醒"
       ],
@@ -3528,13 +3602,15 @@
       "cost": 3,
       "is_collectible": true,
       "card_set_id": 10001,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '进化时']",
+      "coverage": "missing_primitive",
+      "reason": "Missing primitives: ['觉醒']",
       "hit_keywords": [
         "入场曲",
         "进化时"
       ],
-      "missing_primitives": [],
+      "missing_primitives": [
+        "觉醒"
+      ],
       "ability_keywords": [
         "入场曲",
         "觉醒"
@@ -3602,13 +3678,15 @@
       "cost": 1,
       "is_collectible": true,
       "card_set_id": 10001,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['召唤', '舍弃']",
+      "coverage": "missing_primitive",
+      "reason": "Missing primitives: ['策动']",
       "hit_keywords": [
         "召唤",
         "舍弃"
       ],
-      "missing_primitives": [],
+      "missing_primitives": [
+        "策动"
+      ],
       "ability_keywords": [
         "策动"
       ],
@@ -3654,10 +3732,12 @@
       "cost": 6,
       "is_collectible": true,
       "card_set_id": 10001,
-      "coverage": "text_unclear",
-      "reason": "No ability keywords in database",
+      "coverage": "missing_primitive",
+      "reason": "Missing primitives: ['威慑']",
       "hit_keywords": [],
-      "missing_primitives": [],
+      "missing_primitives": [
+        "威慑"
+      ],
       "ability_keywords": [
         "威慑",
         "疾驰"
@@ -3947,14 +4027,16 @@
       "cost": 3,
       "is_collectible": true,
       "card_set_id": 10001,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '破坏', '召唤']",
+      "coverage": "missing_primitive",
+      "reason": "Missing primitives: ['策动']",
       "hit_keywords": [
         "入场曲",
         "破坏",
         "召唤"
       ],
-      "missing_primitives": [],
+      "missing_primitives": [
+        "策动"
+      ],
       "ability_keywords": [
         "入场曲",
         "策动"
@@ -4250,12 +4332,15 @@
       "cost": 2,
       "is_collectible": true,
       "card_set_id": 10001,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['回合结束']",
+      "coverage": "missing_primitive",
+      "reason": "Missing primitives: ['策动', '灵气']",
       "hit_keywords": [
         "回合结束"
       ],
-      "missing_primitives": [],
+      "missing_primitives": [
+        "策动",
+        "灵气"
+      ],
       "ability_keywords": [
         "灵气",
         "策动"
@@ -4273,14 +4358,16 @@
       "cost": 1,
       "is_collectible": true,
       "card_set_id": 10001,
-      "coverage": "covered_exact",
+      "coverage": "covered_partial",
       "reason": "Triggers: ['play', 'countdown_expired'], Ops: ['draw']",
       "hit_keywords": [
         "谢幕曲",
         "倒数",
         "抽取"
       ],
-      "missing_primitives": [],
+      "missing_primitives": [
+        "策动"
+      ],
       "ability_keywords": [
         "倒数",
         "策动",
@@ -4397,12 +4484,14 @@
       "cost": 2,
       "is_collectible": true,
       "card_set_id": 10001,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['回复']",
+      "coverage": "missing_primitive",
+      "reason": "Missing primitives: ['策动']",
       "hit_keywords": [
         "回复"
       ],
-      "missing_primitives": [],
+      "missing_primitives": [
+        "策动"
+      ],
       "ability_keywords": [
         "策动"
       ],
@@ -4419,14 +4508,16 @@
       "cost": 3,
       "is_collectible": true,
       "card_set_id": 10001,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['回复', '造成.*伤害', '破坏']",
+      "coverage": "missing_primitive",
+      "reason": "Missing primitives: ['策动']",
       "hit_keywords": [
         "回复",
         "造成.*伤害",
         "破坏"
       ],
-      "missing_primitives": [],
+      "missing_primitives": [
+        "策动"
+      ],
       "ability_keywords": [
         "策动"
       ],
@@ -4515,14 +4606,16 @@
       "cost": 2,
       "is_collectible": true,
       "card_set_id": 10001,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['谢幕曲', '倒数', '召唤']",
+      "coverage": "missing_primitive",
+      "reason": "Missing primitives: ['策动']",
       "hit_keywords": [
         "谢幕曲",
         "倒数",
         "召唤"
       ],
-      "missing_primitives": [],
+      "missing_primitives": [
+        "策动"
+      ],
       "ability_keywords": [
         "倒数",
         "策动",
@@ -4541,12 +4634,14 @@
       "cost": 6,
       "is_collectible": true,
       "card_set_id": 10001,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['破坏']",
+      "coverage": "missing_primitive",
+      "reason": "Missing primitives: ['策动']",
       "hit_keywords": [
         "破坏"
       ],
-      "missing_primitives": [],
+      "missing_primitives": [
+        "策动"
+      ],
       "ability_keywords": [
         "策动"
       ],
@@ -5304,13 +5399,15 @@
       "cost": 5,
       "is_collectible": true,
       "card_set_id": 10002,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '造成.*伤害']",
+      "coverage": "missing_primitive",
+      "reason": "Missing primitives: ['连击']",
       "hit_keywords": [
         "入场曲",
         "造成.*伤害"
       ],
-      "missing_primitives": [],
+      "missing_primitives": [
+        "连击"
+      ],
       "ability_keywords": [
         "入场曲",
         "连击"
@@ -5397,12 +5494,14 @@
       "cost": 1,
       "is_collectible": true,
       "card_set_id": 10002,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['造成.*伤害']",
+      "coverage": "missing_primitive",
+      "reason": "Missing primitives: ['连击']",
       "hit_keywords": [
         "造成.*伤害"
       ],
-      "missing_primitives": [],
+      "missing_primitives": [
+        "连击"
+      ],
       "ability_keywords": [
         "连击"
       ],
@@ -5971,7 +6070,7 @@
       "is_collectible": true,
       "card_set_id": 10002,
       "coverage": "missing_primitive",
-      "reason": "Missing primitives: ['土之秘术|土之印']",
+      "reason": "Missing primitives: ['灵气', '土之秘术|土之印']",
       "hit_keywords": [
         "谢幕曲",
         "进化时",
@@ -5980,6 +6079,7 @@
         "召唤"
       ],
       "missing_primitives": [
+        "灵气",
         "土之秘术|土之印"
       ],
       "ability_keywords": [
@@ -6060,13 +6160,15 @@
       "cost": 1,
       "is_collectible": true,
       "card_set_id": 10002,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '抽取']",
+      "coverage": "missing_primitive",
+      "reason": "Missing primitives: ['觉醒']",
       "hit_keywords": [
         "入场曲",
         "抽取"
       ],
-      "missing_primitives": [],
+      "missing_primitives": [
+        "觉醒"
+      ],
       "ability_keywords": [
         "入场曲",
         "突进",
@@ -6085,13 +6187,15 @@
       "cost": 2,
       "is_collectible": true,
       "card_set_id": 10002,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['抽取', '召唤']",
+      "coverage": "missing_primitive",
+      "reason": "Missing primitives: ['觉醒']",
       "hit_keywords": [
         "抽取",
         "召唤"
       ],
-      "missing_primitives": [],
+      "missing_primitives": [
+        "觉醒"
+      ],
       "ability_keywords": [
         "觉醒"
       ],
@@ -6157,14 +6261,16 @@
       "cost": 1,
       "is_collectible": true,
       "card_set_id": 10002,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['谢幕曲', '破坏', '召唤']",
+      "coverage": "missing_primitive",
+      "reason": "Missing primitives: ['策动']",
       "hit_keywords": [
         "谢幕曲",
         "破坏",
         "召唤"
       ],
-      "missing_primitives": [],
+      "missing_primitives": [
+        "策动"
+      ],
       "ability_keywords": [
         "策动",
         "谢幕曲"
@@ -6231,8 +6337,8 @@
       "cost": 2,
       "is_collectible": true,
       "card_set_id": 10002,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '进化时', '将.*加入手牌', '造成.*伤害', '必杀']",
+      "coverage": "missing_primitive",
+      "reason": "Missing primitives: ['觉醒']",
       "hit_keywords": [
         "入场曲",
         "进化时",
@@ -6240,7 +6346,9 @@
         "造成.*伤害",
         "必杀"
       ],
-      "missing_primitives": [],
+      "missing_primitives": [
+        "觉醒"
+      ],
       "ability_keywords": [
         "入场曲",
         "必杀",
@@ -6575,13 +6683,15 @@
       "cost": 2,
       "is_collectible": true,
       "card_set_id": 10002,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['回复', '破坏']",
+      "coverage": "missing_primitive",
+      "reason": "Missing primitives: ['策动']",
       "hit_keywords": [
         "回复",
         "破坏"
       ],
-      "missing_primitives": [],
+      "missing_primitives": [
+        "策动"
+      ],
       "ability_keywords": [
         "策动"
       ],
@@ -6713,15 +6823,17 @@
       "cost": 7,
       "is_collectible": true,
       "card_set_id": 10002,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '进化时', '超进化', '召唤']",
+      "coverage": "missing_primitive",
+      "reason": "Missing primitives: ['灵气']",
       "hit_keywords": [
         "入场曲",
         "进化时",
         "超进化",
         "召唤"
       ],
-      "missing_primitives": [],
+      "missing_primitives": [
+        "灵气"
+      ],
       "ability_keywords": [
         "入场曲",
         "守护",
@@ -6820,8 +6932,8 @@
       "cost": 1,
       "is_collectible": true,
       "card_set_id": 10002,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '回合结束', '将.*加入手牌', '破坏', '召唤']",
+      "coverage": "missing_primitive",
+      "reason": "Missing primitives: ['策动']",
       "hit_keywords": [
         "入场曲",
         "回合结束",
@@ -6829,7 +6941,9 @@
         "破坏",
         "召唤"
       ],
-      "missing_primitives": [],
+      "missing_primitives": [
+        "策动"
+      ],
       "ability_keywords": [
         "入场曲",
         "策动"
@@ -7110,14 +7224,16 @@
       "cost": 3,
       "is_collectible": true,
       "card_set_id": 10003,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '抽取', '消失']",
+      "coverage": "missing_primitive",
+      "reason": "Missing primitives: ['策动']",
       "hit_keywords": [
         "入场曲",
         "抽取",
         "消失"
       ],
-      "missing_primitives": [],
+      "missing_primitives": [
+        "策动"
+      ],
       "ability_keywords": [
         "入场曲",
         "策动"
@@ -7231,13 +7347,15 @@
       "cost": 2,
       "is_collectible": true,
       "card_set_id": 10003,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['抽取', '造成.*伤害']",
+      "coverage": "missing_primitive",
+      "reason": "Missing primitives: ['连击']",
       "hit_keywords": [
         "抽取",
         "造成.*伤害"
       ],
-      "missing_primitives": [],
+      "missing_primitives": [
+        "连击"
+      ],
       "ability_keywords": [
         "连击"
       ],
@@ -7302,15 +7420,17 @@
       "cost": 3,
       "is_collectible": true,
       "card_set_id": 10003,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '抽取', '破坏', '舍弃']",
+      "coverage": "missing_primitive",
+      "reason": "Missing primitives: ['策动']",
       "hit_keywords": [
         "入场曲",
         "抽取",
         "破坏",
         "舍弃"
       ],
-      "missing_primitives": [],
+      "missing_primitives": [
+        "策动"
+      ],
       "ability_keywords": [
         "入场曲",
         "策动"
@@ -7351,10 +7471,12 @@
       "cost": 1,
       "is_collectible": true,
       "card_set_id": 10003,
-      "coverage": "text_unclear",
-      "reason": "No ability keywords in database",
+      "coverage": "missing_primitive",
+      "reason": "Missing primitives: ['连击']",
       "hit_keywords": [],
-      "missing_primitives": [],
+      "missing_primitives": [
+        "连击"
+      ],
       "ability_keywords": [
         "连击"
       ],
@@ -7545,14 +7667,16 @@
       "cost": 1,
       "is_collectible": true,
       "card_set_id": 10003,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['将.*加入手牌', '破坏', '选择一项|模式']",
+      "coverage": "missing_primitive",
+      "reason": "Missing primitives: ['策动']",
       "hit_keywords": [
         "将.*加入手牌",
         "破坏",
         "选择一项|模式"
       ],
-      "missing_primitives": [],
+      "missing_primitives": [
+        "策动"
+      ],
       "ability_keywords": [
         "模式",
         "策动"
@@ -7776,13 +7900,15 @@
       "cost": 3,
       "is_collectible": true,
       "card_set_id": 10003,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['倒数', '抽取']",
+      "coverage": "missing_primitive",
+      "reason": "Missing primitives: ['策动']",
       "hit_keywords": [
         "倒数",
         "抽取"
       ],
-      "missing_primitives": [],
+      "missing_primitives": [
+        "策动"
+      ],
       "ability_keywords": [
         "倒数",
         "策动"
@@ -7962,12 +8088,14 @@
       "cost": 3,
       "is_collectible": true,
       "card_set_id": 10003,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['造成.*伤害']",
+      "coverage": "missing_primitive",
+      "reason": "Missing primitives: ['觉醒']",
       "hit_keywords": [
         "造成.*伤害"
       ],
-      "missing_primitives": [],
+      "missing_primitives": [
+        "觉醒"
+      ],
       "ability_keywords": [
         "觉醒"
       ],
@@ -8008,13 +8136,15 @@
       "cost": 3,
       "is_collectible": true,
       "card_set_id": 10003,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '召唤']",
+      "coverage": "missing_primitive",
+      "reason": "Missing primitives: ['觉醒']",
       "hit_keywords": [
         "入场曲",
         "召唤"
       ],
-      "missing_primitives": [],
+      "missing_primitives": [
+        "觉醒"
+      ],
       "ability_keywords": [
         "入场曲",
         "守护",
@@ -8033,13 +8163,15 @@
       "cost": 2,
       "is_collectible": true,
       "card_set_id": 10003,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['倒数', '造成.*伤害']",
+      "coverage": "missing_primitive",
+      "reason": "Missing primitives: ['策动']",
       "hit_keywords": [
         "倒数",
         "造成.*伤害"
       ],
-      "missing_primitives": [],
+      "missing_primitives": [
+        "策动"
+      ],
       "ability_keywords": [
         "倒数",
         "策动"
@@ -8081,13 +8213,15 @@
       "cost": 1,
       "is_collectible": true,
       "card_set_id": 10003,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['抽取', '造成.*伤害']",
+      "coverage": "missing_primitive",
+      "reason": "Missing primitives: ['觉醒']",
       "hit_keywords": [
         "抽取",
         "造成.*伤害"
       ],
-      "missing_primitives": [],
+      "missing_primitives": [
+        "觉醒"
+      ],
       "ability_keywords": [
         "觉醒"
       ],
@@ -8286,15 +8420,17 @@
       "cost": 2,
       "is_collectible": true,
       "card_set_id": 10003,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '抽取', '破坏', '选择一项|模式']",
+      "coverage": "missing_primitive",
+      "reason": "Missing primitives: ['策动']",
       "hit_keywords": [
         "入场曲",
         "抽取",
         "破坏",
         "选择一项|模式"
       ],
-      "missing_primitives": [],
+      "missing_primitives": [
+        "策动"
+      ],
       "ability_keywords": [
         "入场曲",
         "模式",
@@ -8520,8 +8656,8 @@
       "cost": 3,
       "is_collectible": true,
       "card_set_id": 10003,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['谢幕曲', '倒数', '回复', '纹章', '屏障']",
+      "coverage": "missing_primitive",
+      "reason": "Missing primitives: ['策动']",
       "hit_keywords": [
         "谢幕曲",
         "倒数",
@@ -8529,7 +8665,9 @@
         "纹章",
         "屏障"
       ],
-      "missing_primitives": [],
+      "missing_primitives": [
+        "策动"
+      ],
       "ability_keywords": [
         "倒数",
         "屏障",
@@ -8549,14 +8687,16 @@
       "cost": 3,
       "is_collectible": true,
       "card_set_id": 10003,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['谢幕曲', '倒数', '召唤']",
+      "coverage": "missing_primitive",
+      "reason": "Missing primitives: ['策动']",
       "hit_keywords": [
         "谢幕曲",
         "倒数",
         "召唤"
       ],
-      "missing_primitives": [],
+      "missing_primitives": [
+        "策动"
+      ],
       "ability_keywords": [
         "倒数",
         "策动",
@@ -8602,15 +8742,17 @@
       "cost": 4,
       "is_collectible": true,
       "card_set_id": 10003,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['谢幕曲', '倒数', '回复', '纹章']",
+      "coverage": "missing_primitive",
+      "reason": "Missing primitives: ['策动']",
       "hit_keywords": [
         "谢幕曲",
         "倒数",
         "回复",
         "纹章"
       ],
-      "missing_primitives": [],
+      "missing_primitives": [
+        "策动"
+      ],
       "ability_keywords": [
         "倒数",
         "策动",
@@ -8926,13 +9068,15 @@
       "cost": 5,
       "is_collectible": true,
       "card_set_id": 10004,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '造成.*伤害']",
+      "coverage": "missing_primitive",
+      "reason": "Missing primitives: ['奥义']",
       "hit_keywords": [
         "入场曲",
         "造成.*伤害"
       ],
-      "missing_primitives": [],
+      "missing_primitives": [
+        "奥义"
+      ],
       "ability_keywords": [
         "入场曲",
         "奥义",
@@ -8974,13 +9118,15 @@
       "cost": 3,
       "is_collectible": true,
       "card_set_id": 10004,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['回合结束', '回复']",
+      "coverage": "missing_primitive",
+      "reason": "Missing primitives: ['灵气']",
       "hit_keywords": [
         "回合结束",
         "回复"
       ],
-      "missing_primitives": [],
+      "missing_primitives": [
+        "灵气"
+      ],
       "ability_keywords": [
         "灵气"
       ],
@@ -8997,15 +9143,17 @@
       "cost": 4,
       "is_collectible": true,
       "card_set_id": 10004,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '抽取', '造成.*伤害', '选择一项|模式']",
+      "coverage": "missing_primitive",
+      "reason": "Missing primitives: ['奥义']",
       "hit_keywords": [
         "入场曲",
         "抽取",
         "造成.*伤害",
         "选择一项|模式"
       ],
-      "missing_primitives": [],
+      "missing_primitives": [
+        "奥义"
+      ],
       "ability_keywords": [
         "入场曲",
         "奥义",
@@ -9050,8 +9198,8 @@
       "cost": 6,
       "is_collectible": true,
       "card_set_id": 10004,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '回合开始', '造成.*伤害', '召唤', '返回手牌', '纹章']",
+      "coverage": "missing_primitive",
+      "reason": "Missing primitives: ['瞬念召唤', '奥义']",
       "hit_keywords": [
         "入场曲",
         "回合开始",
@@ -9060,7 +9208,10 @@
         "返回手牌",
         "纹章"
       ],
-      "missing_primitives": [],
+      "missing_primitives": [
+        "瞬念召唤",
+        "奥义"
+      ],
       "ability_keywords": [
         "入场曲",
         "奥义",
@@ -9194,13 +9345,15 @@
       "cost": 1,
       "is_collectible": true,
       "card_set_id": 10004,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['造成.*伤害', '纹章']",
+      "coverage": "missing_primitive",
+      "reason": "Missing primitives: ['连击']",
       "hit_keywords": [
         "造成.*伤害",
         "纹章"
       ],
-      "missing_primitives": [],
+      "missing_primitives": [
+        "连击"
+      ],
       "ability_keywords": [
         "纹章",
         "连击"
@@ -9218,14 +9371,16 @@
       "cost": 4,
       "is_collectible": true,
       "card_set_id": 10004,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '进化时', '造成.*伤害']",
+      "coverage": "missing_primitive",
+      "reason": "Missing primitives: ['奥义']",
       "hit_keywords": [
         "入场曲",
         "进化时",
         "造成.*伤害"
       ],
-      "missing_primitives": [],
+      "missing_primitives": [
+        "奥义"
+      ],
       "ability_keywords": [
         "入场曲",
         "奥义"
@@ -9243,14 +9398,16 @@
       "cost": 2,
       "is_collectible": true,
       "card_set_id": 10004,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['抽取', '回复', '选择一项|模式']",
+      "coverage": "missing_primitive",
+      "reason": "Missing primitives: ['奥义']",
       "hit_keywords": [
         "抽取",
         "回复",
         "选择一项|模式"
       ],
-      "missing_primitives": [],
+      "missing_primitives": [
+        "奥义"
+      ],
       "ability_keywords": [
         "奥义",
         "守护",
@@ -9270,13 +9427,15 @@
       "cost": 2,
       "is_collectible": true,
       "card_set_id": 10004,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '回复']",
+      "coverage": "missing_primitive",
+      "reason": "Missing primitives: ['奥义']",
       "hit_keywords": [
         "入场曲",
         "回复"
       ],
-      "missing_primitives": [],
+      "missing_primitives": [
+        "奥义"
+      ],
       "ability_keywords": [
         "入场曲",
         "奥义",
@@ -9394,13 +9553,15 @@
       "cost": 6,
       "is_collectible": true,
       "card_set_id": 10004,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '造成.*伤害']",
+      "coverage": "missing_primitive",
+      "reason": "Missing primitives: ['威慑']",
       "hit_keywords": [
         "入场曲",
         "造成.*伤害"
       ],
-      "missing_primitives": [],
+      "missing_primitives": [
+        "威慑"
+      ],
       "ability_keywords": [
         "入场曲",
         "威慑"
@@ -9540,13 +9701,15 @@
       "cost": 4,
       "is_collectible": true,
       "card_set_id": 10004,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '超进化']",
+      "coverage": "missing_primitive",
+      "reason": "Missing primitives: ['奥义']",
       "hit_keywords": [
         "入场曲",
         "超进化"
       ],
-      "missing_primitives": [],
+      "missing_primitives": [
+        "奥义"
+      ],
       "ability_keywords": [
         "入场曲",
         "奥义"
@@ -9737,11 +9900,12 @@
       "is_collectible": true,
       "card_set_id": 10004,
       "coverage": "missing_primitive",
-      "reason": "Missing primitives: ['土之秘术|土之印']",
+      "reason": "Missing primitives: ['奥义', '土之秘术|土之印']",
       "hit_keywords": [
         "造成.*伤害"
       ],
       "missing_primitives": [
+        "奥义",
         "土之秘术|土之印"
       ],
       "ability_keywords": [
@@ -9792,13 +9956,14 @@
       "is_collectible": true,
       "card_set_id": 10004,
       "coverage": "missing_primitive",
-      "reason": "Missing primitives: ['土之秘术|土之印']",
+      "reason": "Missing primitives: ['奥义', '土之秘术|土之印']",
       "hit_keywords": [
         "入场曲",
         "将.*加入手牌",
         "纹章"
       ],
       "missing_primitives": [
+        "奥义",
         "土之秘术|土之印"
       ],
       "ability_keywords": [
@@ -9819,10 +9984,12 @@
       "cost": 3,
       "is_collectible": true,
       "card_set_id": 10004,
-      "coverage": "text_unclear",
-      "reason": "No ability keywords in database",
+      "coverage": "missing_primitive",
+      "reason": "Missing primitives: ['灵气']",
       "hit_keywords": [],
-      "missing_primitives": [],
+      "missing_primitives": [
+        "灵气"
+      ],
       "ability_keywords": [
         "守护",
         "灵气"
@@ -9908,15 +10075,17 @@
       "cost": 8,
       "is_collectible": true,
       "card_set_id": 10004,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '进化时', '超进化', '破坏']",
+      "coverage": "missing_primitive",
+      "reason": "Missing primitives: ['奥义']",
       "hit_keywords": [
         "入场曲",
         "进化时",
         "超进化",
         "破坏"
       ],
-      "missing_primitives": [],
+      "missing_primitives": [
+        "奥义"
+      ],
       "ability_keywords": [
         "入场曲",
         "奥义",
@@ -9958,13 +10127,15 @@
       "cost": 3,
       "is_collectible": true,
       "card_set_id": 10004,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '超进化']",
+      "coverage": "missing_primitive",
+      "reason": "Missing primitives: ['奥义']",
       "hit_keywords": [
         "入场曲",
         "超进化"
       ],
-      "missing_primitives": [],
+      "missing_primitives": [
+        "奥义"
+      ],
       "ability_keywords": [
         "入场曲",
         "奥义",
@@ -10003,14 +10174,16 @@
       "cost": 7,
       "is_collectible": true,
       "card_set_id": 10004,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '进化时', '造成.*伤害']",
+      "coverage": "missing_primitive",
+      "reason": "Missing primitives: ['威慑']",
       "hit_keywords": [
         "入场曲",
         "进化时",
         "造成.*伤害"
       ],
-      "missing_primitives": [],
+      "missing_primitives": [
+        "威慑"
+      ],
       "ability_keywords": [
         "入场曲",
         "威慑",
@@ -10078,14 +10251,16 @@
       "cost": 6,
       "is_collectible": true,
       "card_set_id": 10004,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['谢幕曲', '造成.*伤害', '召唤']",
+      "coverage": "missing_primitive",
+      "reason": "Missing primitives: ['威慑']",
       "hit_keywords": [
         "谢幕曲",
         "造成.*伤害",
         "召唤"
       ],
-      "missing_primitives": [],
+      "missing_primitives": [
+        "威慑"
+      ],
       "ability_keywords": [
         "威慑",
         "谢幕曲"
@@ -10149,12 +10324,14 @@
       "cost": 3,
       "is_collectible": true,
       "card_set_id": 10004,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲']",
+      "coverage": "missing_primitive",
+      "reason": "Missing primitives: ['灵气']",
       "hit_keywords": [
         "入场曲"
       ],
-      "missing_primitives": [],
+      "missing_primitives": [
+        "灵气"
+      ],
       "ability_keywords": [
         "入场曲",
         "灵气"
@@ -10222,13 +10399,15 @@
       "cost": 5,
       "is_collectible": true,
       "card_set_id": 10004,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['破坏', '纹章']",
+      "coverage": "missing_primitive",
+      "reason": "Missing primitives: ['奥义']",
       "hit_keywords": [
         "破坏",
         "纹章"
       ],
-      "missing_primitives": [],
+      "missing_primitives": [
+        "奥义"
+      ],
       "ability_keywords": [
         "奥义",
         "纹章"
@@ -10273,8 +10452,8 @@
       "cost": 7,
       "is_collectible": true,
       "card_set_id": 10004,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '进化时', '超进化', '造成.*伤害', '纹章']",
+      "coverage": "missing_primitive",
+      "reason": "Missing primitives: ['奥义']",
       "hit_keywords": [
         "入场曲",
         "进化时",
@@ -10282,7 +10461,9 @@
         "造成.*伤害",
         "纹章"
       ],
-      "missing_primitives": [],
+      "missing_primitives": [
+        "奥义"
+      ],
       "ability_keywords": [
         "入场曲",
         "奥义",
@@ -10302,12 +10483,14 @@
       "cost": 3,
       "is_collectible": true,
       "card_set_id": 10004,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['吸血']",
+      "coverage": "missing_primitive",
+      "reason": "Missing primitives: ['策动']",
       "hit_keywords": [
         "吸血"
       ],
-      "missing_primitives": [],
+      "missing_primitives": [
+        "策动"
+      ],
       "ability_keywords": [
         "吸血",
         "疾驰",
@@ -10351,13 +10534,15 @@
       "cost": 0,
       "is_collectible": true,
       "card_set_id": 10004,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['抽取', '破坏']",
+      "coverage": "missing_primitive",
+      "reason": "Missing primitives: ['策动']",
       "hit_keywords": [
         "抽取",
         "破坏"
       ],
-      "missing_primitives": [],
+      "missing_primitives": [
+        "策动"
+      ],
       "ability_keywords": [
         "策动"
       ],
@@ -10428,12 +10613,14 @@
       "cost": 4,
       "is_collectible": true,
       "card_set_id": 10004,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['破坏']",
+      "coverage": "missing_primitive",
+      "reason": "Missing primitives: ['策动']",
       "hit_keywords": [
         "破坏"
       ],
-      "missing_primitives": [],
+      "missing_primitives": [
+        "策动"
+      ],
       "ability_keywords": [
         "策动"
       ],
@@ -10450,14 +10637,16 @@
       "cost": 1,
       "is_collectible": true,
       "card_set_id": 10004,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['进化时', '回复', '造成.*伤害']",
+      "coverage": "missing_primitive",
+      "reason": "Missing primitives: ['策动']",
       "hit_keywords": [
         "进化时",
         "回复",
         "造成.*伤害"
       ],
-      "missing_primitives": [],
+      "missing_primitives": [
+        "策动"
+      ],
       "ability_keywords": [
         "策动",
         "进化时"
@@ -10475,14 +10664,16 @@
       "cost": 3,
       "is_collectible": true,
       "card_set_id": 10004,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['抽取', '破坏', '选择一项|模式']",
+      "coverage": "missing_primitive",
+      "reason": "Missing primitives: ['策动']",
       "hit_keywords": [
         "抽取",
         "破坏",
         "选择一项|模式"
       ],
-      "missing_primitives": [],
+      "missing_primitives": [
+        "策动"
+      ],
       "ability_keywords": [
         "模式",
         "策动"
@@ -10524,14 +10715,16 @@
       "cost": 8,
       "is_collectible": true,
       "card_set_id": 10004,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '超进化', '消失']",
+      "coverage": "missing_primitive",
+      "reason": "Missing primitives: ['奥义']",
       "hit_keywords": [
         "入场曲",
         "超进化",
         "消失"
       ],
-      "missing_primitives": [],
+      "missing_primitives": [
+        "奥义"
+      ],
       "ability_keywords": [
         "入场曲",
         "奥义",
@@ -10576,12 +10769,14 @@
       "cost": 2,
       "is_collectible": true,
       "card_set_id": 10004,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲']",
+      "coverage": "missing_primitive",
+      "reason": "Missing primitives: ['奥义']",
       "hit_keywords": [
         "入场曲"
       ],
-      "missing_primitives": [],
+      "missing_primitives": [
+        "奥义"
+      ],
       "ability_keywords": [
         "入场曲",
         "突进"
@@ -10622,14 +10817,16 @@
       "cost": 5,
       "is_collectible": true,
       "card_set_id": 10004,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '交战时', '造成.*伤害']",
+      "coverage": "missing_primitive",
+      "reason": "Missing primitives: ['奥义']",
       "hit_keywords": [
         "入场曲",
         "交战时",
         "造成.*伤害"
       ],
-      "missing_primitives": [],
+      "missing_primitives": [
+        "奥义"
+      ],
       "ability_keywords": [
         "交战时",
         "入场曲",
@@ -10719,12 +10916,14 @@
       "cost": 6,
       "is_collectible": true,
       "card_set_id": 10004,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['造成.*伤害']",
+      "coverage": "missing_primitive",
+      "reason": "Missing primitives: ['奥义']",
       "hit_keywords": [
         "造成.*伤害"
       ],
-      "missing_primitives": [],
+      "missing_primitives": [
+        "奥义"
+      ],
       "ability_keywords": [
         "奥义"
       ],
@@ -10741,14 +10940,16 @@
       "cost": 5,
       "is_collectible": true,
       "card_set_id": 10004,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '造成.*伤害', '纹章']",
+      "coverage": "missing_primitive",
+      "reason": "Missing primitives: ['奥义']",
       "hit_keywords": [
         "入场曲",
         "造成.*伤害",
         "纹章"
       ],
-      "missing_primitives": [],
+      "missing_primitives": [
+        "奥义"
+      ],
       "ability_keywords": [
         "入场曲",
         "奥义",
@@ -11005,13 +11206,15 @@
       "cost": 2,
       "is_collectible": true,
       "card_set_id": 10005,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '召唤']",
+      "coverage": "missing_primitive",
+      "reason": "Missing primitives: ['连击']",
       "hit_keywords": [
         "入场曲",
         "召唤"
       ],
-      "missing_primitives": [],
+      "missing_primitives": [
+        "连击"
+      ],
       "ability_keywords": [
         "入场曲",
         "连击"
@@ -11054,12 +11257,14 @@
       "cost": 3,
       "is_collectible": true,
       "card_set_id": 10005,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['造成.*伤害']",
+      "coverage": "missing_primitive",
+      "reason": "Missing primitives: ['连击']",
       "hit_keywords": [
         "造成.*伤害"
       ],
-      "missing_primitives": [],
+      "missing_primitives": [
+        "连击"
+      ],
       "ability_keywords": [
         "连击"
       ],
@@ -11105,12 +11310,14 @@
       "cost": 3,
       "is_collectible": true,
       "card_set_id": 10005,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['抽取']",
+      "coverage": "missing_primitive",
+      "reason": "Missing primitives: ['连击']",
       "hit_keywords": [
         "抽取"
       ],
-      "missing_primitives": [],
+      "missing_primitives": [
+        "连击"
+      ],
       "ability_keywords": [
         "连击"
       ],
@@ -11127,14 +11334,16 @@
       "cost": 2,
       "is_collectible": true,
       "card_set_id": 10005,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '进化时', '舍弃']",
+      "coverage": "missing_primitive",
+      "reason": "Missing primitives: ['连击']",
       "hit_keywords": [
         "入场曲",
         "进化时",
         "舍弃"
       ],
-      "missing_primitives": [],
+      "missing_primitives": [
+        "连击"
+      ],
       "ability_keywords": [
         "入场曲",
         "进化时",
@@ -11839,12 +12048,14 @@
       "cost": 2,
       "is_collectible": true,
       "card_set_id": 10005,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['造成.*伤害']",
+      "coverage": "missing_primitive",
+      "reason": "Missing primitives: ['觉醒']",
       "hit_keywords": [
         "造成.*伤害"
       ],
-      "missing_primitives": [],
+      "missing_primitives": [
+        "觉醒"
+      ],
       "ability_keywords": [
         "觉醒"
       ],
@@ -11861,15 +12072,17 @@
       "cost": 10,
       "is_collectible": true,
       "card_set_id": 10005,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['进化时', '回合结束', '回复', '造成.*伤害']",
+      "coverage": "missing_primitive",
+      "reason": "Missing primitives: ['威慑']",
       "hit_keywords": [
         "进化时",
         "回合结束",
         "回复",
         "造成.*伤害"
       ],
-      "missing_primitives": [],
+      "missing_primitives": [
+        "威慑"
+      ],
       "ability_keywords": [
         "威慑",
         "守护",
@@ -12290,13 +12503,15 @@
       "cost": 2,
       "is_collectible": true,
       "card_set_id": 10005,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['抽取', '破坏']",
+      "coverage": "missing_primitive",
+      "reason": "Missing primitives: ['策动']",
       "hit_keywords": [
         "抽取",
         "破坏"
       ],
-      "missing_primitives": [],
+      "missing_primitives": [
+        "策动"
+      ],
       "ability_keywords": [
         "守护",
         "策动"
@@ -12343,7 +12558,7 @@
       "cost": 3,
       "is_collectible": true,
       "card_set_id": 10005,
-      "coverage": "covered_exact",
+      "coverage": "covered_partial",
       "reason": "Triggers: ['play'], Ops: ['damage_unit']",
       "hit_keywords": [
         "入场曲",
@@ -12352,7 +12567,9 @@
         "破坏",
         "返回牌"
       ],
-      "missing_primitives": [],
+      "missing_primitives": [
+        "策动"
+      ],
       "ability_keywords": [
         "入场曲",
         "策动"
@@ -12710,10 +12927,12 @@
       "cost": 3,
       "is_collectible": true,
       "card_set_id": 10006,
-      "coverage": "text_unclear",
-      "reason": "No ability keywords in database",
+      "coverage": "missing_primitive",
+      "reason": "Missing primitives: ['策动']",
       "hit_keywords": [],
-      "missing_primitives": [],
+      "missing_primitives": [
+        "策动"
+      ],
       "ability_keywords": [
         "策动"
       ],
@@ -12730,15 +12949,18 @@
       "cost": 6,
       "is_collectible": true,
       "card_set_id": 10006,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '必杀', '吸血', '屏障']",
+      "coverage": "missing_primitive",
+      "reason": "Missing primitives: ['威慑', '灵气']",
       "hit_keywords": [
         "入场曲",
         "必杀",
         "吸血",
         "屏障"
       ],
-      "missing_primitives": [],
+      "missing_primitives": [
+        "威慑",
+        "灵气"
+      ],
       "ability_keywords": [
         "入场曲",
         "吸血",
@@ -12839,12 +13061,14 @@
       "cost": 3,
       "is_collectible": true,
       "card_set_id": 10006,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲']",
+      "coverage": "missing_primitive",
+      "reason": "Missing primitives: ['连击']",
       "hit_keywords": [
         "入场曲"
       ],
-      "missing_primitives": [],
+      "missing_primitives": [
+        "连击"
+      ],
       "ability_keywords": [
         "入场曲",
         "连击"
@@ -13753,15 +13977,17 @@
       "cost": 7,
       "is_collectible": true,
       "card_set_id": 10006,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '将.*加入手牌', '舍弃', '必杀']",
+      "coverage": "missing_primitive",
+      "reason": "Missing primitives: ['灵气']",
       "hit_keywords": [
         "入场曲",
         "将.*加入手牌",
         "舍弃",
         "必杀"
       ],
-      "missing_primitives": [],
+      "missing_primitives": [
+        "灵气"
+      ],
       "ability_keywords": [
         "入场曲",
         "必杀",
@@ -14003,15 +14229,17 @@
       "cost": 9,
       "is_collectible": true,
       "card_set_id": 10006,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['进化时', '超进化', '交战时', '破坏']",
+      "coverage": "missing_primitive",
+      "reason": "Missing primitives: ['灵气']",
       "hit_keywords": [
         "进化时",
         "超进化",
         "交战时",
         "破坏"
       ],
-      "missing_primitives": [],
+      "missing_primitives": [
+        "灵气"
+      ],
       "ability_keywords": [
         "交战时",
         "灵气",
@@ -14080,15 +14308,17 @@
       "cost": 2,
       "is_collectible": true,
       "card_set_id": 10006,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['谢幕曲', '倒数', '抽取', '破坏']",
+      "coverage": "missing_primitive",
+      "reason": "Missing primitives: ['策动']",
       "hit_keywords": [
         "谢幕曲",
         "倒数",
         "抽取",
         "破坏"
       ],
-      "missing_primitives": [],
+      "missing_primitives": [
+        "策动"
+      ],
       "ability_keywords": [
         "倒数",
         "策动",
@@ -14202,8 +14432,8 @@
       "cost": 6,
       "is_collectible": true,
       "card_set_id": 10006,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '进化时', '破坏', '召唤', '必杀']",
+      "coverage": "missing_primitive",
+      "reason": "Missing primitives: ['灵气']",
       "hit_keywords": [
         "入场曲",
         "进化时",
@@ -14211,7 +14441,9 @@
         "召唤",
         "必杀"
       ],
-      "missing_primitives": [],
+      "missing_primitives": [
+        "灵气"
+      ],
       "ability_keywords": [
         "入场曲",
         "必杀",
@@ -14320,7 +14552,7 @@
       "is_collectible": true,
       "card_set_id": 10006,
       "coverage": "covered_exact",
-      "reason": "Triggers: ['fanfare', 'play', 'play_modes'], Ops: ['draw', 'play_mode']",
+      "reason": "Triggers: ['fanfare', 'play', 'play_modes'], Ops: ['draw', 'play_mode', 'summon']",
       "hit_keywords": [
         "入场曲",
         "抽取"
@@ -14649,8 +14881,8 @@
       "cost": 1,
       "is_collectible": true,
       "card_set_id": 10007,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['回合结束', '倒数', '回复', '造成.*伤害', '破坏', '舍弃']",
+      "coverage": "missing_primitive",
+      "reason": "Missing primitives: ['策动']",
       "hit_keywords": [
         "回合结束",
         "倒数",
@@ -14659,7 +14891,9 @@
         "破坏",
         "舍弃"
       ],
-      "missing_primitives": [],
+      "missing_primitives": [
+        "策动"
+      ],
       "ability_keywords": [
         "倒数",
         "策动"
@@ -14801,12 +15035,14 @@
       "cost": 2,
       "is_collectible": true,
       "card_set_id": 10007,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲']",
+      "coverage": "missing_primitive",
+      "reason": "Missing primitives: ['连击']",
       "hit_keywords": [
         "入场曲"
       ],
-      "missing_primitives": [],
+      "missing_primitives": [
+        "连击"
+      ],
       "ability_keywords": [
         "入场曲",
         "疾驰",
@@ -14825,14 +15061,16 @@
       "cost": 5,
       "is_collectible": true,
       "card_set_id": 10007,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '进化时', '造成.*伤害']",
+      "coverage": "missing_primitive",
+      "reason": "Missing primitives: ['连击']",
       "hit_keywords": [
         "入场曲",
         "进化时",
         "造成.*伤害"
       ],
-      "missing_primitives": [],
+      "missing_primitives": [
+        "连击"
+      ],
       "ability_keywords": [
         "入场曲",
         "进化时",
@@ -14851,13 +15089,15 @@
       "cost": 1,
       "is_collectible": true,
       "card_set_id": 10007,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['回复', '纹章']",
+      "coverage": "missing_primitive",
+      "reason": "Missing primitives: ['连击']",
       "hit_keywords": [
         "回复",
         "纹章"
       ],
-      "missing_primitives": [],
+      "missing_primitives": [
+        "连击"
+      ],
       "ability_keywords": [
         "纹章",
         "连击"
@@ -14875,15 +15115,17 @@
       "cost": 3,
       "is_collectible": true,
       "card_set_id": 10007,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '回合结束', '抽取', '造成.*伤害']",
+      "coverage": "missing_primitive",
+      "reason": "Missing primitives: ['连击']",
       "hit_keywords": [
         "入场曲",
         "回合结束",
         "抽取",
         "造成.*伤害"
       ],
-      "missing_primitives": [],
+      "missing_primitives": [
+        "连击"
+      ],
       "ability_keywords": [
         "入场曲",
         "连击"
@@ -14901,13 +15143,15 @@
       "cost": 1,
       "is_collectible": true,
       "card_set_id": 10007,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['造成.*伤害', '纹章']",
+      "coverage": "missing_primitive",
+      "reason": "Missing primitives: ['连击']",
       "hit_keywords": [
         "造成.*伤害",
         "纹章"
       ],
-      "missing_primitives": [],
+      "missing_primitives": [
+        "连击"
+      ],
       "ability_keywords": [
         "纹章",
         "连击"
@@ -14925,14 +15169,16 @@
       "cost": 4,
       "is_collectible": true,
       "card_set_id": 10007,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '进化时', '纹章']",
+      "coverage": "missing_primitive",
+      "reason": "Missing primitives: ['连击']",
       "hit_keywords": [
         "入场曲",
         "进化时",
         "纹章"
       ],
-      "missing_primitives": [],
+      "missing_primitives": [
+        "连击"
+      ],
       "ability_keywords": [
         "入场曲",
         "纹章",
@@ -15453,7 +15699,7 @@
       "is_collectible": true,
       "card_set_id": 10007,
       "coverage": "missing_primitive",
-      "reason": "Missing primitives: ['土之秘术|土之印']",
+      "reason": "Missing primitives: ['灵气', '土之秘术|土之印']",
       "hit_keywords": [
         "入场曲",
         "进化时",
@@ -15461,6 +15707,7 @@
         "纹章"
       ],
       "missing_primitives": [
+        "灵气",
         "土之秘术|土之印"
       ],
       "ability_keywords": [
@@ -15630,13 +15877,15 @@
       "cost": 3,
       "is_collectible": true,
       "card_set_id": 10007,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['抽取', '回复']",
+      "coverage": "missing_primitive",
+      "reason": "Missing primitives: ['觉醒']",
       "hit_keywords": [
         "抽取",
         "回复"
       ],
-      "missing_primitives": [],
+      "missing_primitives": [
+        "觉醒"
+      ],
       "ability_keywords": [
         "觉醒"
       ],
@@ -16056,15 +16305,17 @@
       "cost": 1,
       "is_collectible": true,
       "card_set_id": 10007,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '抽取', '破坏', '返回牌']",
+      "coverage": "missing_primitive",
+      "reason": "Missing primitives: ['策动']",
       "hit_keywords": [
         "入场曲",
         "抽取",
         "破坏",
         "返回牌"
       ],
-      "missing_primitives": [],
+      "missing_primitives": [
+        "策动"
+      ],
       "ability_keywords": [
         "入场曲",
         "策动"
@@ -16130,14 +16381,16 @@
       "cost": 2,
       "is_collectible": true,
       "card_set_id": 10007,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['造成.*伤害', '破坏', '爆能强化']",
+      "coverage": "missing_primitive",
+      "reason": "Missing primitives: ['策动']",
       "hit_keywords": [
         "造成.*伤害",
         "破坏",
         "爆能强化"
       ],
-      "missing_primitives": [],
+      "missing_primitives": [
+        "策动"
+      ],
       "ability_keywords": [
         "爆能强化",
         "策动"
@@ -16183,14 +16436,16 @@
       "cost": 3,
       "is_collectible": true,
       "card_set_id": 10007,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '造成.*伤害', '破坏']",
+      "coverage": "missing_primitive",
+      "reason": "Missing primitives: ['策动']",
       "hit_keywords": [
         "入场曲",
         "造成.*伤害",
         "破坏"
       ],
-      "missing_primitives": [],
+      "missing_primitives": [
+        "策动"
+      ],
       "ability_keywords": [
         "入场曲",
         "策动"
@@ -16233,8 +16488,8 @@
       "cost": 7,
       "is_collectible": true,
       "card_set_id": 10007,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '进化时', '超进化', '回复', '消失']",
+      "coverage": "missing_primitive",
+      "reason": "Missing primitives: ['灵气']",
       "hit_keywords": [
         "入场曲",
         "进化时",
@@ -16242,7 +16497,9 @@
         "回复",
         "消失"
       ],
-      "missing_primitives": [],
+      "missing_primitives": [
+        "灵气"
+      ],
       "ability_keywords": [
         "入场曲",
         "守护",

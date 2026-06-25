@@ -447,6 +447,57 @@ class SchemaValidationTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             _parse_operation(current, "test.json", 1)
 
+    def test_duplicate_card_trigger_rule_rejected(self):
+        payload = {
+            "rules": [
+                {
+                    "card_id": 999969,
+                    "trigger": "play",
+                    "operations": [{"kind": "draw", "target": "own_leader", "amount": 1}],
+                },
+                {
+                    "card_id": 999969,
+                    "trigger": "play",
+                    "operations": [{"kind": "draw", "target": "own_leader", "amount": 1}],
+                },
+            ]
+        }
+        with tempfile.TemporaryDirectory() as directory:
+            path = f"{directory}/rules.json"
+            with open(path, "w", encoding="utf-8") as handle:
+                json.dump(payload, handle)
+            with self.assertRaisesRegex(ValueError, "duplicate rule"):
+                RuleBook.from_directory(directory)
+
+    def test_nested_emblem_reference_is_validated(self):
+        payload = {
+            "rules": [
+                {
+                    "card_id": 999970,
+                    "trigger": "play",
+                    "operations": [
+                        {
+                            "kind": "conditional",
+                            "conditions": [{"type": "always"}],
+                            "then": [
+                                {
+                                    "kind": "gain_emblem",
+                                    "target": "own_leader",
+                                    "emblem_id": "missing",
+                                }
+                            ],
+                        }
+                    ],
+                }
+            ]
+        }
+        with tempfile.TemporaryDirectory() as directory:
+            path = f"{directory}/rules.json"
+            with open(path, "w", encoding="utf-8") as handle:
+                json.dump(payload, handle)
+            with self.assertRaisesRegex(ValueError, "unknown emblem_id"):
+                RuleBook.from_directory(directory)
+
     def test_old_json_still_loads(self):
         rb = RuleBook.from_directory("data/rules")
         self.assertIsInstance(rb, RuleBook)

@@ -4,7 +4,7 @@ import unittest
 
 from swb.db.repository import CardDefinition
 from swb.engine.card_rules import CardRule, RuleBook, Trigger
-from swb.engine.commands import Attack, Choose, EndTurn, Evolve, PlayCard
+from swb.engine.commands import Attack, Choose, EndTurn, Evolve, PlayCard, SuperEvolve
 from swb.engine.effects import EffectKind, EffectOperation, TargetKind
 from swb.engine.events import EventType
 from swb.engine.resolution import GameEngine
@@ -104,6 +104,23 @@ class EvolveTriggerTests(unittest.TestCase):
         self.assertEqual(eng.players[1].health, hp_before - 3)
         self.assertEqual(u.attack, 4)
         self.assertEqual(u.health, 5)
+
+    def test_super_evolve_trigger_fires_after_stat_change(self):
+        rulebook = RuleBook((CardRule(card_id=900, trigger=Trigger.SUPER_EVOLVE, operations=(
+            EffectOperation(kind=EffectKind.DAMAGE_LEADER, target=TargetKind.ENEMY_LEADER, amount=3),
+        ),),))
+        eng = mkengine(rulebook=rulebook)
+        u = mkunit(eng, 900, attack=2, life=3, keywords=frozenset({"超进化时"}))
+        eng.players[0].board = [u]
+        eng.players[0].turns_started = 4
+        hp_before = eng.players[1].health
+        eng.apply(SuperEvolve(0, u.entity_id))
+        self.assertTrue(u.evolved)
+        self.assertTrue(u.super_evolved)
+        self.assertEqual(eng.players[1].health, hp_before - 3)
+        self.assertEqual(u.attack, 4)
+        self.assertEqual(u.health, 5)
+        self.assertTrue(any(e.type is EventType.FOLLOWER_SUPER_EVOLVED for e in eng.event_history))
 
 
 class TurnTriggerTests(unittest.TestCase):

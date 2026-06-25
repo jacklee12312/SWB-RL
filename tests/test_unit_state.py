@@ -136,6 +136,76 @@ class MaxHealthTests(unittest.TestCase):
         self.assertEqual(replayed.health, 3)
 
 
+class SuperEvolveProtectionTests(unittest.TestCase):
+    def _play_spell_and_choose_entity(
+        self, engine: GameEngine, player_index: int, entity_id: int
+    ) -> None:
+        engine.apply(PlayCard(player_index, 0))
+        request = engine.state.pending_choice
+        if request is None:
+            return
+        option = next(
+            option for option in request.options if option.entity_id == entity_id
+        )
+        engine.apply(Choose(request.player_index, option.option_id))
+
+    def test_super_evolved_follower_takes_no_damage_on_own_turn(self):
+        eng = mkengine()
+        unit = mkunit(eng, 1, attack=1, life=5)
+        unit.evolved = True
+        unit.super_evolved = True
+        eng.players[0].board = [unit]
+        result = eng.apply_damage(None, unit, 3, DamageType.EFFECT, 0)
+        self.assertEqual(unit.health, 5)
+        self.assertEqual(result.prevented_amount, 3)
+        self.assertEqual(result.actual_amount, 0)
+
+    def test_super_evolved_follower_can_take_damage_on_opponents_turn(self):
+        eng = mkengine()
+        unit = mkunit(eng, 1, attack=1, life=5)
+        unit.evolved = True
+        unit.super_evolved = True
+        eng.players[0].board = [unit]
+        eng.state.active_player = 1
+        result = eng.apply_damage(None, unit, 3, DamageType.EFFECT, 1)
+        self.assertEqual(unit.health, 2)
+        self.assertEqual(result.actual_amount, 3)
+
+    def test_super_evolved_follower_ignores_effect_destroy_on_own_turn(self):
+        rulebook = RuleBook((CardRule(
+            card_id=100,
+            trigger=Trigger.PLAY,
+            operations=(EffectOperation(EffectKind.DESTROY, TargetKind.OWN_UNIT),),
+        ),))
+        eng = mkengine(rulebook=rulebook)
+        unit = mkunit(eng, 1, attack=1, life=5)
+        unit.evolved = True
+        unit.super_evolved = True
+        eng.players[0].board = [unit]
+        eng.players[0].hand[0] = card(100, card_type="法术", attack=None, life=None)
+        eng.players[0].mana = 10
+        self._play_spell_and_choose_entity(eng, 0, unit.entity_id)
+        self.assertIn(unit, eng.players[0].board)
+        self.assertEqual(unit.health, 5)
+
+    def test_super_evolved_follower_can_be_effect_destroyed_on_opponents_turn(self):
+        rulebook = RuleBook((CardRule(
+            card_id=100,
+            trigger=Trigger.PLAY,
+            operations=(EffectOperation(EffectKind.DESTROY, TargetKind.ENEMY_UNIT),),
+        ),))
+        eng = mkengine(rulebook=rulebook)
+        unit = mkunit(eng, 1, attack=1, life=5)
+        unit.evolved = True
+        unit.super_evolved = True
+        eng.players[0].board = [unit]
+        eng.players[1].hand[0] = card(100, card_type="法术", attack=None, life=None)
+        eng.players[1].mana = 10
+        eng.state.active_player = 1
+        self._play_spell_and_choose_entity(eng, 1, unit.entity_id)
+        self.assertNotIn(unit, eng.players[0].board)
+
+
 # ---------- attack restriction tests ----------
 
 class AttackRestrictionTests(unittest.TestCase):

@@ -801,8 +801,8 @@ class ObservationTests(unittest.TestCase):
         obs, _ = env.reset(seed=42)
         self.assertEqual(len(obs), 215)
 
-    def test_action_size_is_106(self):
-        self.assertEqual(ShadowverseEnv.ACTION_SIZE, 106)
+    def test_action_size_is_111(self):
+        self.assertEqual(ShadowverseEnv.ACTION_SIZE, 111)
 
 
 # ---------------------------------------------------------------------------

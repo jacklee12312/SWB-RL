@@ -178,9 +178,15 @@ class RuleBook:
         play_modes: dict[int, tuple[PlayModeDefinition, ...]] | None = None,
         emblem_defs: dict[str, EmblemDefinition] | None = None,
     ):
-        self._rules: dict[tuple[int, Trigger], tuple[EffectOperation, ...]] = {
-            (rule.card_id, rule.trigger): rule.operations for rule in rules
-        }
+        self._rules: dict[tuple[int, Trigger], tuple[EffectOperation, ...]] = {}
+        for rule in rules:
+            key = (rule.card_id, rule.trigger)
+            if key in self._rules:
+                raise ValueError(
+                    f"duplicate rule for card {rule.card_id} trigger "
+                    f"{rule.trigger.value!r}"
+                )
+            self._rules[key] = rule.operations
         self._countdowns = {
             rule.card_id: rule.countdown
             for rule in rules
@@ -250,6 +256,7 @@ class RuleBook:
         if not path.exists():
             return cls()
         rules: list[CardRule] = []
+        seen_rules: dict[tuple[int, Trigger], str] = {}
         passives: list[tuple[CardPassive, str]] = []
         all_play_modes: dict[int, list[PlayModeDefinition]] = {}
         all_emblem_defs: dict[str, EmblemDefinition] = {}
@@ -291,10 +298,20 @@ class RuleBook:
                     )
                 )
                 _validate_target_keys(operations, f"{file_path.name} card {entry['card_id']}")
+                card_id = int(entry["card_id"])
+                trigger = Trigger(entry["trigger"])
+                source = f"{file_path.name} card {card_id} trigger {trigger.value!r}"
+                key = (card_id, trigger)
+                if key in seen_rules:
+                    raise ValueError(
+                        f"{source}: duplicate rule; first defined at "
+                        f"{seen_rules[key]}"
+                    )
+                seen_rules[key] = source
                 rules.append(
                     CardRule(
-                        card_id=int(entry["card_id"]),
-                        trigger=Trigger(entry["trigger"]),
+                        card_id=card_id,
+                        trigger=trigger,
                         operations=operations,
                         countdown=entry.get("countdown"),
                     )
@@ -515,6 +532,14 @@ def _iter_nested_operations(
         yield operation
         if operation.necromancy_operations:
             yield from _iter_nested_operations(operation.necromancy_operations)
+        if operation.then_operations:
+            yield from _iter_nested_operations(operation.then_operations)
+        if operation.else_operations:
+            yield from _iter_nested_operations(operation.else_operations)
+        if operation.optional_operations:
+            yield from _iter_nested_operations(operation.optional_operations)
+        for option in operation.choose_one_options:
+            yield from _iter_nested_operations(option.operations)
 
 
 def _validate_emblem_references(
@@ -654,6 +679,26 @@ def _validate_target_keys(operations: tuple[EffectOperation, ...], source: str) 
             _validate_target_keys(
                 op.necromancy_operations,
                 f"{source}/operations[{i}]/necromancy",
+            )
+        if op.then_operations:
+            _validate_target_keys(
+                op.then_operations,
+                f"{source}/operations[{i}]/then",
+            )
+        if op.else_operations:
+            _validate_target_keys(
+                op.else_operations,
+                f"{source}/operations[{i}]/else",
+            )
+        if op.optional_operations:
+            _validate_target_keys(
+                op.optional_operations,
+                f"{source}/operations[{i}]/optional",
+            )
+        for option_index, option in enumerate(op.choose_one_options):
+            _validate_target_keys(
+                option.operations,
+                f"{source}/operations[{i}]/options[{option_index}]",
             )
 
 
