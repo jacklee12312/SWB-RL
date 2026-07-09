@@ -174,6 +174,49 @@ class ChooseOneTests(unittest.TestCase):
         self.assertEqual(enemy.health, 1)
         self.assertEqual(len(engine.state.effect_stack), 0)
 
+    def test_choose_one_branch_stale_target_skips_and_continues(self):
+        op = EffectOperation(
+            EffectKind.CHOOSE_ONE, TargetKind.OWN_LEADER,
+            choose_one_options=(
+                ChooseOneOption(
+                    "damage_draw",
+                    "伤害并抽牌",
+                    operations=(
+                        EffectOperation(EffectKind.DAMAGE_UNIT, TargetKind.ENEMY_UNIT, 2),
+                        EffectOperation(EffectKind.DRAW, TargetKind.OWN_LEADER, 1),
+                    ),
+                ),
+            ),
+        )
+        engine = _engine(_sr(999971, op))
+        engine.reset(seed=42)
+        enemy = Unit.summon(_card(999972, life=5), entity_id=engine.state.allocate_entity_id())
+        engine.players[1].board.append(enemy)
+        _insert_card(engine, _card(999971, card_type="法术", cost=1))
+        engine.players[0].mana = 10
+        engine.apply(PlayCard(0, 0))
+        mode_choice = engine.state.pending_choice
+        self.assertIsNotNone(mode_choice)
+
+        engine.apply(Choose(mode_choice.player_index, mode_choice.options[0].option_id))
+        target_choice = engine.state.pending_choice
+        self.assertIsNotNone(target_choice)
+        engine.players[1].board.remove(enemy)
+        engine._send_to_graveyard(
+            1,
+            enemy.definition,
+            "test_target_left_play",
+            source_entity_id=enemy.entity_id,
+        )
+        deck_before = len(engine.players[0].deck)
+
+        engine.apply(Choose(target_choice.player_index, target_choice.options[0].option_id))
+
+        self.assertIsNone(engine.state.pending_choice)
+        self.assertEqual(enemy.health, 5)
+        self.assertEqual(len(engine.players[0].deck), deck_before - 1)
+        self.assertEqual(len(engine.state.effect_stack), 0)
+
     def test_choose_one_uses_frame_controller_for_target_legality(self):
         op = EffectOperation(
             EffectKind.CHOOSE_ONE, TargetKind.OWN_LEADER,
@@ -510,14 +553,14 @@ class SchemaValidationTests(unittest.TestCase):
 
 
 class ObservationTests(unittest.TestCase):
-    def test_observation_215(self):
+    def test_observation_223(self):
         env = ShadowverseEnv(
             deck_a=[_card(100 + i) for i in range(40)],
             deck_b=[_card(200 + i) for i in range(40)],
             class_a=1, class_b=1, seed=42,
         )
         obs, _ = env.reset(seed=42)
-        self.assertEqual(len(obs), 215)
+        self.assertEqual(len(obs), 223)
 
     def test_action_size(self):
         self.assertGreater(ShadowverseEnv.ACTION_SIZE, 100)

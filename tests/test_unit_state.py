@@ -137,6 +137,11 @@ class MaxHealthTests(unittest.TestCase):
 
 
 class SuperEvolveProtectionTests(unittest.TestCase):
+    def _mark_super_evolved_this_turn(self, engine: GameEngine, unit: Unit) -> None:
+        unit.evolved = True
+        unit.super_evolved = True
+        unit.super_evolved_turn = engine.turn
+
     def _play_spell_and_choose_entity(
         self, engine: GameEngine, player_index: int, entity_id: int
     ) -> None:
@@ -152,24 +157,54 @@ class SuperEvolveProtectionTests(unittest.TestCase):
     def test_super_evolved_follower_takes_no_damage_on_own_turn(self):
         eng = mkengine()
         unit = mkunit(eng, 1, attack=1, life=5)
-        unit.evolved = True
-        unit.super_evolved = True
+        self._mark_super_evolved_this_turn(eng, unit)
         eng.players[0].board = [unit]
         result = eng.apply_damage(None, unit, 3, DamageType.EFFECT, 0)
         self.assertEqual(unit.health, 5)
         self.assertEqual(result.prevented_amount, 3)
         self.assertEqual(result.actual_amount, 0)
 
+    def test_super_evolved_follower_takes_effect_damage_on_later_own_turn(self):
+        eng = mkengine()
+        unit = mkunit(eng, 1, attack=1, life=5)
+        self._mark_super_evolved_this_turn(eng, unit)
+        eng.players[0].board = [unit]
+        eng.state.turn += 2
+        eng.state.active_player = 0
+
+        result = eng.apply_damage(None, unit, 3, DamageType.EFFECT, 0)
+
+        self.assertEqual(unit.health, 2)
+        self.assertEqual(result.actual_amount, 3)
+
     def test_super_evolved_follower_can_take_damage_on_opponents_turn(self):
         eng = mkengine()
         unit = mkunit(eng, 1, attack=1, life=5)
-        unit.evolved = True
-        unit.super_evolved = True
+        self._mark_super_evolved_this_turn(eng, unit)
         eng.players[0].board = [unit]
         eng.state.active_player = 1
         result = eng.apply_damage(None, unit, 3, DamageType.EFFECT, 1)
         self.assertEqual(unit.health, 2)
         self.assertEqual(result.actual_amount, 3)
+
+    def test_super_evolved_follower_takes_combat_damage_on_own_turn(self):
+        eng = mkengine()
+        attacker = mkunit(eng, 1, attack=2, life=5)
+        self._mark_super_evolved_this_turn(eng, attacker)
+        attacker.can_attack = True
+        defender = mkunit(eng, 2, attack=3, life=5)
+        eng.players[0].board = [attacker]
+        eng.players[1].board = [defender]
+
+        eng.apply(Attack(0, attacker.entity_id, defender.entity_id))
+
+        self.assertEqual(attacker.health, 2)
+        self.assertTrue(any(
+            event.type is EventType.DAMAGE_APPLIED
+            and event.target_id == attacker.entity_id
+            and event.metadata.get("damage_type") == DamageType.COMBAT.value
+            for event in eng.event_history
+        ))
 
     def test_super_evolved_follower_ignores_effect_destroy_on_own_turn(self):
         rulebook = RuleBook((CardRule(
@@ -179,14 +214,32 @@ class SuperEvolveProtectionTests(unittest.TestCase):
         ),))
         eng = mkengine(rulebook=rulebook)
         unit = mkunit(eng, 1, attack=1, life=5)
-        unit.evolved = True
-        unit.super_evolved = True
+        self._mark_super_evolved_this_turn(eng, unit)
         eng.players[0].board = [unit]
         eng.players[0].hand[0] = card(100, card_type="法术", attack=None, life=None)
         eng.players[0].mana = 10
         self._play_spell_and_choose_entity(eng, 0, unit.entity_id)
         self.assertIn(unit, eng.players[0].board)
         self.assertEqual(unit.health, 5)
+
+    def test_super_evolved_follower_can_be_effect_destroyed_on_later_own_turn(self):
+        rulebook = RuleBook((CardRule(
+            card_id=100,
+            trigger=Trigger.PLAY,
+            operations=(EffectOperation(EffectKind.DESTROY, TargetKind.OWN_UNIT),),
+        ),))
+        eng = mkengine(rulebook=rulebook)
+        unit = mkunit(eng, 1, attack=1, life=5)
+        self._mark_super_evolved_this_turn(eng, unit)
+        eng.players[0].board = [unit]
+        eng.state.turn += 2
+        eng.state.active_player = 0
+        eng.players[0].hand[0] = card(100, card_type="法术", attack=None, life=None)
+        eng.players[0].mana = 10
+
+        self._play_spell_and_choose_entity(eng, 0, unit.entity_id)
+
+        self.assertNotIn(unit, eng.players[0].board)
 
     def test_super_evolved_follower_can_be_effect_destroyed_on_opponents_turn(self):
         rulebook = RuleBook((CardRule(
@@ -196,14 +249,110 @@ class SuperEvolveProtectionTests(unittest.TestCase):
         ),))
         eng = mkengine(rulebook=rulebook)
         unit = mkunit(eng, 1, attack=1, life=5)
-        unit.evolved = True
-        unit.super_evolved = True
+        self._mark_super_evolved_this_turn(eng, unit)
         eng.players[0].board = [unit]
         eng.players[1].hand[0] = card(100, card_type="法术", attack=None, life=None)
         eng.players[1].mana = 10
         eng.state.active_player = 1
         self._play_spell_and_choose_entity(eng, 1, unit.entity_id)
         self.assertNotIn(unit, eng.players[0].board)
+
+    def test_super_evolved_attacker_ignores_opponent_clash_damage_on_own_turn(self):
+        rulebook = RuleBook((CardRule(
+            card_id=901,
+            trigger=Trigger.CLASH,
+            operations=(
+                EffectOperation(
+                    EffectKind.DAMAGE_UNIT,
+                    TargetKind.ALL_ENEMY_UNITS,
+                    amount=3,
+                ),
+            ),
+        ),))
+        eng = mkengine(rulebook=rulebook)
+        attacker = mkunit(eng, 900, attack=1, life=5)
+        self._mark_super_evolved_this_turn(eng, attacker)
+        attacker.can_attack = True
+        defender = mkunit(
+            eng,
+            901,
+            attack=0,
+            life=5,
+            keywords=frozenset({"交战时"}),
+        )
+        eng.players[0].board = [attacker]
+        eng.players[1].board = [defender]
+
+        eng.apply(Attack(0, attacker.entity_id, defender.entity_id))
+
+        self.assertIn(attacker, eng.players[0].board)
+        self.assertEqual(attacker.health, 5)
+        self.assertTrue(any(
+            event.type is EventType.DAMAGE_PREVENTED
+            and event.target_id == attacker.entity_id
+            for event in eng.event_history
+        ))
+
+    def test_super_evolved_attacker_ignores_opponent_clash_destroy_on_own_turn(self):
+        rulebook = RuleBook((CardRule(
+            card_id=901,
+            trigger=Trigger.CLASH,
+            operations=(
+                EffectOperation(
+                    EffectKind.DESTROY,
+                    TargetKind.ALL_ENEMY_UNITS,
+                ),
+            ),
+        ),))
+        eng = mkengine(rulebook=rulebook)
+        attacker = mkunit(eng, 900, attack=1, life=5)
+        self._mark_super_evolved_this_turn(eng, attacker)
+        attacker.can_attack = True
+        defender = mkunit(
+            eng,
+            901,
+            attack=0,
+            life=5,
+            keywords=frozenset({"交战时"}),
+        )
+        eng.players[0].board = [attacker]
+        eng.players[1].board = [defender]
+
+        eng.apply(Attack(0, attacker.entity_id, defender.entity_id))
+
+        self.assertIn(attacker, eng.players[0].board)
+        self.assertEqual(attacker.health, 5)
+
+    def test_super_evolved_defender_takes_own_clash_damage_on_opponents_turn(self):
+        rulebook = RuleBook((CardRule(
+            card_id=901,
+            trigger=Trigger.CLASH,
+            operations=(
+                EffectOperation(
+                    EffectKind.DAMAGE_UNIT,
+                    TargetKind.ALL_OWN_UNITS,
+                    amount=3,
+                ),
+            ),
+        ),))
+        eng = mkengine(rulebook=rulebook)
+        attacker = mkunit(eng, 900, attack=1, life=5)
+        attacker.can_attack = True
+        defender = mkunit(
+            eng,
+            901,
+            attack=0,
+            life=5,
+            keywords=frozenset({"交战时"}),
+        )
+        self._mark_super_evolved_this_turn(eng, defender)
+        eng.players[0].board = [attacker]
+        eng.players[1].board = [defender]
+
+        eng.apply(Attack(0, attacker.entity_id, defender.entity_id))
+
+        self.assertIn(defender, eng.players[1].board)
+        self.assertEqual(defender.health, 1)
 
 
 # ---------- attack restriction tests ----------
@@ -647,6 +796,54 @@ class TargetBindingTests(unittest.TestCase):
         eng.apply(choice)
         self.assertIsNone(eng.state.pending_choice)
 
+    def test_previous_target_revalidates_original_candidate_after_pause(self):
+        rulebook = RuleBook((
+            CardRule(card_id=1, trigger=Trigger.PLAY, operations=(
+                EffectOperation(
+                    kind=EffectKind.DAMAGE_UNIT,
+                    target=TargetKind.ENEMY_UNIT,
+                    amount=0,
+                    target_key="sel",
+                ),
+                EffectOperation(
+                    kind=EffectKind.OPTIONAL,
+                    target=TargetKind.OWN_LEADER,
+                    optional_operations=(
+                        EffectOperation(
+                            EffectKind.DRAW,
+                            TargetKind.OWN_LEADER,
+                            amount=1,
+                        ),
+                    ),
+                ),
+                EffectOperation(
+                    kind=EffectKind.SET_STATS,
+                    target=TargetKind.PREVIOUS_TARGET,
+                    target_key="sel",
+                    secondary_amount=1,
+                    set_health=True,
+                ),
+            ),),
+        ))
+        eng = mkengine(rulebook=rulebook)
+        target = mkunit(eng, 1, attack=3, life=5)
+        eng.players[1].board = [target]
+        eng.players[0].mana = 10
+        eng.players[0].hand[0] = card(1, card_type="法术", attack=None, life=None)
+
+        eng.apply(PlayCard(0, 0))
+        target_choice = next(c for c in eng.legal_commands() if isinstance(c, Choose))
+        eng.apply(target_choice)
+        self.assertIsNotNone(eng.state.pending_choice)
+        eng.players[1].board.remove(target)
+        eng.players[0].board.append(target)
+
+        eng.apply(Choose(0, "optional:no"))
+
+        self.assertIsNone(eng.state.pending_choice)
+        self.assertEqual(target.health, 5)
+        self.assertEqual(eng.players[0].board, [target])
+
     def test_schema_rejects_non_single_entity_target_bindings(self):
         import json
         import tempfile
@@ -884,7 +1081,7 @@ class SpellboostTests(unittest.TestCase):
         )
         env.reset(seed=1)
         obs = env.observation()
-        self.assertEqual(len(obs), 215)
+        self.assertEqual(len(obs), 223)
 
     def test_auto_boost_after_choice_spell(self):
         rulebook = RuleBook((

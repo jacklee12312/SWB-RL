@@ -300,6 +300,84 @@ class GraveyardTargetingTests(unittest.TestCase):
         engine.apply(Choose(0, engine.state.pending_choice.options[0].option_id))
         self.assertIsNone(engine.state.pending_choice)
 
+    def test_graveyard_choice_target_moved_to_hand_skips_and_draws(self):
+        f1 = _card(200, name="F1", cost=2)
+        f2 = _card(201, name="F2", cost=3)
+        engine = _make_engine(
+            _spell_rule(
+                100,
+                EffectOperation(
+                    kind=EffectKind.RETURN_FROM_GRAVEYARD_TO_HAND,
+                    target=TargetKind.OWN_GRAVEYARD_CARD,
+                ),
+                EffectOperation(
+                    kind=EffectKind.DRAW,
+                    target=TargetKind.OWN_LEADER,
+                    amount=1,
+                ),
+            ),
+            card_defs={
+                100: _card(100, card_type="法术", name="ReturnG", cost=4),
+                200: f1,
+                201: f2,
+            },
+        )
+        self._setup_graveyard(engine, [f1, f2])
+        engine.players[0].mana = 10
+        sp = engine.card_resolver(100)
+        spell = HandCard(
+            definition=sp,
+            entity_id=engine.state.allocate_entity_id(),
+        )
+        engine.players[0].hand.insert(0, spell)
+        engine.players[0].hand_entity_ids.insert(0, spell.entity_id)
+
+        engine.apply(PlayCard(0, 0))
+        option = engine.state.pending_choice.options[0]
+        chosen_id = option.entity_id
+        chosen = next(
+            graveyard_card
+            for graveyard_card in engine.players[0].graveyard
+            if graveyard_card.entity_id == chosen_id
+        )
+        engine.players[0].graveyard.remove(chosen)
+        moved = HandCard(
+            definition=chosen.definition,
+            entity_id=chosen.entity_id,
+            origin=chosen.origin,
+            source_origin=chosen.source_origin,
+        )
+        engine.players[0].hand.append(moved)
+        engine.players[0].hand_entity_ids.append(moved.entity_id)
+        before = engine.deterministic_fingerprint()
+        with self.assertRaises(IllegalCommand):
+            engine.apply(Choose(0, "entity:999999"))
+        self.assertEqual(engine.deterministic_fingerprint(), before)
+        deck_before = len(engine.players[0].deck)
+        hand_before = len(engine.players[0].hand)
+
+        transition = engine.apply(Choose(0, option.option_id))
+
+        self.assertIsNone(engine.state.pending_choice)
+        self.assertEqual(len(engine.players[0].deck), deck_before - 1)
+        self.assertEqual(len(engine.players[0].hand), hand_before + 1)
+        self.assertEqual(
+            sum(
+                hand_card.entity_id == chosen_id
+                for hand_card in engine.players[0].hand
+                if isinstance(hand_card, HandCard)
+            ),
+            1,
+        )
+        self.assertFalse(
+            any(
+                event.type is EventType.GRAVEYARD_CARD_RETURNED
+                and event.target_id == chosen_id
+                for event in transition.events
+            )
+        )
+        self.assertTrue(any("已不在墓地，跳过" in log for log in engine.logs))
+
     def test_graveyard_filter_card_type(self):
         f1 = _card(200, name="F1", cost=2, card_type="随从")
         s1 = _card(201, name="S1", cost=2, card_type="法术")

@@ -5,7 +5,16 @@ import unittest
 from swb.db.repository import CardDefinition
 from swb.engine.card_rules import CardRule, RuleBook, Trigger
 from swb.engine.commands import Choose, PlayCard, EndTurn
-from swb.engine.effects import BoardFilter, EffectKind, EffectOperation, TargetKind
+from swb.engine.effects import (
+    BoardFilter,
+    Condition,
+    ConditionType,
+    EffectKind,
+    EffectOperation,
+    ExprType,
+    TargetKind,
+    ValueExpression,
+)
 from swb.engine.events import EventType
 from swb.engine.resolution import GameEngine, IllegalCommand
 from swb.engine.state import Amulet, Phase, Unit
@@ -53,6 +62,51 @@ def spell_rule(card_id: int, kind: EffectKind, target: TargetKind, **kwargs) -> 
 
 class TargetingTests(unittest.TestCase):
     """Tests for the unified targeting system."""
+
+    def _real_pending_target_moved_to_graveyard(self):
+        rulebook = RuleBook.from_directory("data/rules")
+        spell = card(
+            10153310,
+            attack=None,
+            life=None,
+            cost=2,
+            card_type="法术",
+        )
+        engine = GameEngine(
+            [card(i) for i in range(100, 140)],
+            [card(i) for i in range(200, 240)],
+            class_a=1,
+            class_b=1,
+            seed=11,
+            rulebook=rulebook,
+        )
+        engine.reset(seed=11)
+        target = Unit.summon(
+            card(900, attack=1, life=5),
+            entity_id=engine.state.allocate_entity_id(),
+        )
+        engine.players[1].board = [target]
+        engine.players[0].mana = 10
+        engine.players[0].hand[0] = spell
+
+        engine.apply(PlayCard(0, 0))
+        self.assertIsNotNone(engine.state.pending_choice)
+        choice = next(
+            command
+            for command in engine.legal_commands()
+            if (
+                isinstance(command, Choose)
+                and command.option_id == f"entity:{target.entity_id}"
+            )
+        )
+        engine.players[1].board.remove(target)
+        engine._send_to_graveyard(
+            1,
+            target.definition,
+            "test_pending_target_left_play",
+            source_entity_id=target.entity_id,
+        )
+        return engine, target, choice
 
     def test_enemy_unit_or_leader_can_damage_selected_unit(self):
         rulebook = RuleBook((
@@ -110,6 +164,108 @@ class TargetingTests(unittest.TestCase):
 
         self.assertEqual(target.health, 5)
         self.assertEqual(engine.players[1].health, 17)
+
+    def test_real_card_pending_target_moved_to_graveyard_skips_and_continues(self):
+        engine, target, choice = self._real_pending_target_moved_to_graveyard()
+
+        engine.apply(choice)
+
+        self.assertIsNone(engine.state.pending_choice)
+        self.assertEqual(engine.state.phase, Phase.MAIN)
+        self.assertEqual(target.health, 5)
+        self.assertEqual(engine.players[1].health, 20)
+        self.assertEqual(engine.players[0].health, 18)
+        self.assertTrue(
+            any(
+                graveyard_card.entity_id == target.entity_id
+                for graveyard_card in engine.players[1].graveyard
+            )
+        )
+        self.assertEqual(
+            engine.players[0].graveyard[-1].definition.card_id,
+            10153310,
+        )
+        self.assertTrue(any("已离场，跳过" in log for log in engine.logs))
+
+        replay, _, replay_choice = self._real_pending_target_moved_to_graveyard()
+        replay.apply(replay_choice)
+        self.assertEqual(
+            engine.deterministic_fingerprint(),
+            replay.deterministic_fingerprint(),
+        )
+
+    def test_invalid_choice_after_target_zone_change_does_not_mutate(self):
+        engine, target, choice = self._real_pending_target_moved_to_graveyard()
+        before = engine.deterministic_fingerprint()
+
+        with self.assertRaises(IllegalCommand):
+            engine.apply(Choose(0, "entity:999999"))
+
+        self.assertEqual(engine.deterministic_fingerprint(), before)
+        engine.apply(choice)
+        self.assertIsNone(engine.state.pending_choice)
+        self.assertEqual(engine.players[0].health, 18)
+
+    def test_pending_choice_target_changed_controller_skips_and_draws(self):
+        rulebook = RuleBook((
+            CardRule(
+                card_id=1,
+                trigger=Trigger.PLAY,
+                operations=(
+                    EffectOperation(
+                        kind=EffectKind.DAMAGE_UNIT,
+                        target=TargetKind.ENEMY_UNIT,
+                        amount=3,
+                    ),
+                    EffectOperation(
+                        kind=EffectKind.DRAW,
+                        target=TargetKind.OWN_LEADER,
+                        amount=1,
+                    ),
+                ),
+            ),
+        ))
+        engine = GameEngine(
+            [card(i) for i in range(100, 140)],
+            [card(i) for i in range(200, 240)],
+            class_a=1,
+            class_b=1,
+            seed=13,
+            rulebook=rulebook,
+        )
+        engine.reset(seed=13)
+        target = Unit.summon(
+            card(901, attack=1, life=5),
+            entity_id=engine.state.allocate_entity_id(),
+        )
+        engine.players[1].board = [target]
+        engine.players[0].mana = 10
+        engine.players[0].hand[0] = card(
+            1,
+            attack=None,
+            life=None,
+            card_type="法术",
+        )
+        engine.apply(PlayCard(0, 0))
+        choice = next(
+            command
+            for command in engine.legal_commands()
+            if (
+                isinstance(command, Choose)
+                and command.option_id == f"entity:{target.entity_id}"
+            )
+        )
+        deck_before = len(engine.players[0].deck)
+        engine.players[1].board.remove(target)
+        engine.players[0].board.append(target)
+
+        engine.apply(choice)
+
+        self.assertIsNone(engine.state.pending_choice)
+        self.assertIn(target, engine.players[0].board)
+        self.assertEqual(target.health, 5)
+        self.assertEqual(len(engine.players[0].deck), deck_before - 1)
+        self.assertTrue(any("已不再是合法目标，跳过" in log for log in engine.logs))
 
     def test_enemy_unit_or_leader_remains_playable_without_enemy_units(self):
         rulebook = RuleBook((
@@ -170,6 +326,505 @@ class TargetingTests(unittest.TestCase):
                 "test.json/operations[0]",
                 1,
             )
+
+    def test_requires_target_schema_rejects_ambiguous_targets(self):
+        from swb.engine.card_rules import _parse_operation
+
+        cases = (
+            {"kind": "draw", "target": "own_leader", "amount": 1},
+            {"kind": "damage_leader", "target": "enemy_leader", "amount": 1},
+            {"kind": "buff_unit", "target": "self", "amount": 1},
+            {
+                "kind": "damage_unit",
+                "target": "previous_target",
+                "target_key": "picked",
+                "amount": 1,
+            },
+            {
+                "kind": "damage_unit",
+                "target": "enemy_unit_or_leader",
+                "amount": 1,
+            },
+        )
+        for raw in cases:
+            with self.subTest(target=raw["target"]):
+                raw = {**raw, "requires_target": True}
+                with self.assertRaisesRegex(
+                    ValueError,
+                    "requires_target.*explicit candidate sets",
+                ):
+                    _parse_operation(raw, "test.json/operations[0]", 1)
+
+    def test_requires_target_schema_allows_candidate_targets(self):
+        from swb.engine.card_rules import _parse_operation
+
+        cases = (
+            {"kind": "destroy", "target": "enemy_unit"},
+            {"kind": "destroy", "target": "random_enemy_unit"},
+            {"kind": "damage_unit", "target": "all_enemy_units", "amount": 1},
+            {"kind": "destroy", "target": "all_board"},
+            {"kind": "discard", "target": "own_hand"},
+            {
+                "kind": "return_from_graveyard_to_hand",
+                "target": "own_graveyard_card",
+            },
+        )
+        for raw in cases:
+            with self.subTest(target=raw["target"]):
+                _parse_operation(
+                    {**raw, "requires_target": True},
+                    "test.json/operations[0]",
+                    1,
+                )
+
+    def test_all_board_requires_target_no_candidates_is_illegal_no_mutation(self):
+        rulebook = RuleBook((
+            CardRule(card_id=1, trigger=Trigger.PLAY, operations=(
+                EffectOperation(
+                    kind=EffectKind.DESTROY,
+                    target=TargetKind.ALL_BOARD,
+                    requires_target=True,
+                ),
+            ),),
+        ))
+        engine = GameEngine(
+            [card(i) for i in range(100, 140)],
+            [card(i) for i in range(200, 240)],
+            class_a=1, class_b=1, seed=1, rulebook=rulebook,
+        )
+        engine.reset(seed=1)
+        engine.players[0].mana = 10
+        engine.players[0].hand[0] = card(1, card_type="法术", attack=None, life=None)
+        before = (
+            engine.players[0].mana,
+            tuple(c.card_id for c in engine.players[0].hand),
+            tuple(engine.players[0].board),
+            tuple(engine.players[1].board),
+            tuple(engine.event_history),
+            tuple(engine.logs),
+            tuple(engine.state.death_queue),
+            engine.state.phase,
+        )
+
+        with self.assertRaisesRegex(IllegalCommand, "not currently playable"):
+            engine.apply(PlayCard(0, 0))
+
+        after = (
+            engine.players[0].mana,
+            tuple(c.card_id for c in engine.players[0].hand),
+            tuple(engine.players[0].board),
+            tuple(engine.players[1].board),
+            tuple(engine.event_history),
+            tuple(engine.logs),
+            tuple(engine.state.death_queue),
+            engine.state.phase,
+        )
+        self.assertEqual(after, before)
+
+    def test_multi_target_schema_fields_are_explicitly_unsupported(self):
+        from swb.engine.card_rules import _parse_operation
+
+        cases = (
+            {"target_count": 2},
+            {"target_count_expr": {"type": "constant", "value": 2}},
+            {"allow_duplicate_targets": False},
+            {"allow_duplicates": True},
+            {"targets": ["enemy_unit", "enemy_unit"]},
+        )
+        for extra in cases:
+            with self.subTest(extra=extra):
+                raw = {
+                    "kind": "damage_unit",
+                    "target": "enemy_unit",
+                    "amount": 1,
+                    **extra,
+                }
+                with self.assertRaisesRegex(ValueError, "multi-target choices are unsupported"):
+                    _parse_operation(raw, "test.json/operations[0]", 1)
+
+    def test_nested_multi_target_schema_fields_are_explicitly_unsupported(self):
+        from swb.engine.card_rules import _parse_operation
+
+        raw = {
+            "kind": "choose_one",
+            "target": "own_leader",
+            "options": [
+                {
+                    "id": "bad",
+                    "operations": [
+                        {
+                            "kind": "damage_unit",
+                            "target": "enemy_unit",
+                            "amount": 1,
+                            "target_count": 2,
+                        },
+                    ],
+                },
+            ],
+        }
+        with self.assertRaisesRegex(ValueError, "multi-target choices are unsupported"):
+            _parse_operation(raw, "test.json/operations[0]", 1)
+
+    def test_target_exists_schema_loads_then_else_branches(self):
+        from swb.engine.card_rules import _parse_operation
+
+        operation = _parse_operation(
+            {
+                "kind": "target_exists",
+                "target": "enemy_unit",
+                "then": [
+                    {
+                        "kind": "damage_unit",
+                        "target": "enemy_unit",
+                        "amount": 2,
+                    },
+                ],
+                "else": [
+                    {"kind": "draw", "target": "own_leader", "amount": 1},
+                ],
+            },
+            "test.json/operations[0]",
+            1,
+        )
+
+        self.assertEqual(operation.kind, EffectKind.TARGET_EXISTS)
+        self.assertEqual(operation.target, TargetKind.ENEMY_UNIT)
+        self.assertEqual(len(operation.then_operations), 1)
+        self.assertEqual(len(operation.else_operations), 1)
+
+    def test_target_exists_schema_allows_unit_or_leader_targets(self):
+        from swb.engine.card_rules import _parse_operation
+
+        operation = _parse_operation(
+            {
+                "kind": "target_exists",
+                "target": "enemy_unit_or_leader",
+                "then": [
+                    {
+                        "kind": "damage_unit",
+                        "target": "enemy_unit_or_leader",
+                        "amount": 2,
+                    },
+                ],
+            },
+            "test.json/operations[0]",
+            1,
+        )
+
+        self.assertEqual(operation.kind, EffectKind.TARGET_EXISTS)
+        self.assertEqual(operation.target, TargetKind.ENEMY_UNIT_OR_LEADER)
+        self.assertEqual(len(operation.then_operations), 1)
+
+    def test_target_exists_schema_rejects_non_candidate_targets(self):
+        from swb.engine.card_rules import _parse_operation
+
+        cases = (
+            {
+                "kind": "target_exists",
+                "target": "own_leader",
+                "then": [{"kind": "draw", "target": "own_leader", "amount": 1}],
+            },
+            {
+                "kind": "target_exists",
+                "target": "previous_target",
+                "target_key": "old",
+                "then": [{"kind": "draw", "target": "own_leader", "amount": 1}],
+            },
+        )
+        for raw in cases:
+            with self.subTest(target=raw["target"]):
+                with self.assertRaisesRegex(ValueError, "target_exists requires"):
+                    _parse_operation(raw, "test.json/operations[0]", 1)
+
+    def test_target_exists_schema_rejects_requires_target(self):
+        from swb.engine.card_rules import _parse_operation
+
+        with self.assertRaisesRegex(ValueError, "defines its own no-target"):
+            _parse_operation(
+                {
+                    "kind": "target_exists",
+                    "target": "enemy_unit",
+                    "requires_target": True,
+                    "then": [
+                        {"kind": "destroy", "target": "enemy_unit"},
+                    ],
+                },
+                "test.json/operations[0]",
+                1,
+            )
+
+    def test_target_exists_then_branch_uses_existing_choice_flow(self):
+        rulebook = RuleBook((
+            CardRule(
+                card_id=1,
+                trigger=Trigger.PLAY,
+                operations=(
+                    EffectOperation(
+                        kind=EffectKind.TARGET_EXISTS,
+                        target=TargetKind.ENEMY_UNIT,
+                        then_operations=(
+                            EffectOperation(
+                                kind=EffectKind.DAMAGE_UNIT,
+                                target=TargetKind.ENEMY_UNIT,
+                                amount=3,
+                            ),
+                        ),
+                        else_operations=(
+                            EffectOperation(
+                                kind=EffectKind.DRAW,
+                                target=TargetKind.OWN_LEADER,
+                                amount=1,
+                            ),
+                        ),
+                    ),
+                ),
+            ),
+        ))
+        engine = GameEngine(
+            [card(i) for i in range(100, 140)],
+            [card(i) for i in range(200, 240)],
+            class_a=1,
+            class_b=1,
+            seed=1,
+            rulebook=rulebook,
+        )
+        engine.reset(seed=1)
+        target = Unit.summon(card(900, attack=1, life=5), entity_id=900)
+        engine.players[1].board = [target]
+        engine.players[0].mana = 10
+        engine.players[0].hand[0] = card(1, card_type="法术", attack=None, life=None)
+        deck_before = len(engine.players[0].deck)
+
+        engine.apply(PlayCard(0, 0))
+
+        self.assertEqual(engine.state.phase, Phase.AWAITING_CHOICE)
+        choice = next(
+            command for command in engine.legal_commands()
+            if isinstance(command, Choose)
+            and command.option_id == f"entity:{target.entity_id}"
+        )
+        engine.apply(choice)
+        self.assertEqual(target.health, 2)
+        self.assertEqual(len(engine.players[0].deck), deck_before)
+
+    def test_target_exists_else_branch_runs_without_target(self):
+        rulebook = RuleBook((
+            CardRule(
+                card_id=1,
+                trigger=Trigger.PLAY,
+                operations=(
+                    EffectOperation(
+                        kind=EffectKind.TARGET_EXISTS,
+                        target=TargetKind.ENEMY_UNIT,
+                        then_operations=(
+                            EffectOperation(
+                                kind=EffectKind.DAMAGE_UNIT,
+                                target=TargetKind.ENEMY_UNIT,
+                                amount=3,
+                            ),
+                        ),
+                        else_operations=(
+                            EffectOperation(
+                                kind=EffectKind.DRAW,
+                                target=TargetKind.OWN_LEADER,
+                                amount=1,
+                            ),
+                        ),
+                    ),
+                ),
+            ),
+        ))
+        engine = GameEngine(
+            [card(i) for i in range(100, 140)],
+            [card(i) for i in range(200, 240)],
+            class_a=1,
+            class_b=1,
+            seed=1,
+            rulebook=rulebook,
+        )
+        engine.reset(seed=1)
+        engine.players[1].board = []
+        engine.players[0].mana = 10
+        engine.players[0].hand[0] = card(1, card_type="法术", attack=None, life=None)
+        deck_before = len(engine.players[0].deck)
+
+        play_cmds = [
+            command for command in engine.legal_commands()
+            if isinstance(command, PlayCard) and command.hand_index == 0
+        ]
+        self.assertEqual(len(play_cmds), 1)
+        engine.apply(play_cmds[0])
+
+        self.assertIsNone(engine.state.pending_choice)
+        self.assertEqual(engine.state.phase, Phase.MAIN)
+        self.assertEqual(len(engine.players[0].deck), deck_before - 1)
+
+    def test_target_exists_unit_or_leader_then_branch_can_choose_leader(self):
+        rulebook = RuleBook((
+            CardRule(
+                card_id=1,
+                trigger=Trigger.PLAY,
+                operations=(
+                    EffectOperation(
+                        kind=EffectKind.TARGET_EXISTS,
+                        target=TargetKind.ENEMY_UNIT_OR_LEADER,
+                        then_operations=(
+                            EffectOperation(
+                                kind=EffectKind.DAMAGE_UNIT,
+                                target=TargetKind.ENEMY_UNIT_OR_LEADER,
+                                amount=3,
+                            ),
+                        ),
+                        else_operations=(
+                            EffectOperation(
+                                kind=EffectKind.DRAW,
+                                target=TargetKind.OWN_LEADER,
+                                amount=1,
+                            ),
+                        ),
+                    ),
+                ),
+            ),
+        ))
+        engine = GameEngine(
+            [card(i) for i in range(100, 140)],
+            [card(i) for i in range(200, 240)],
+            class_a=1,
+            class_b=1,
+            seed=1,
+            rulebook=rulebook,
+        )
+        engine.reset(seed=1)
+        engine.players[1].board = []
+        engine.players[0].mana = 10
+        engine.players[0].hand[0] = card(1, card_type="法术", attack=None, life=None)
+        deck_before = len(engine.players[0].deck)
+
+        engine.apply(PlayCard(0, 0))
+
+        self.assertEqual(engine.state.phase, Phase.AWAITING_CHOICE)
+        self.assertEqual(
+            [option.option_id for option in engine.state.pending_choice.options],
+            ["leader:1"],
+        )
+        engine.apply(Choose(0, "leader:1"))
+
+        self.assertIsNone(engine.state.pending_choice)
+        self.assertEqual(engine.players[1].health, 17)
+        self.assertEqual(len(engine.players[0].deck), deck_before)
+
+    def test_target_exists_unit_or_leader_target_conditions_do_not_match_leader(self):
+        rulebook = RuleBook((
+            CardRule(
+                card_id=1,
+                trigger=Trigger.PLAY,
+                operations=(
+                    EffectOperation(
+                        kind=EffectKind.TARGET_EXISTS,
+                        target=TargetKind.ENEMY_UNIT_OR_LEADER,
+                        conditions=(
+                            Condition(
+                                ConditionType.TARGET_HEALTH_AT_MOST,
+                                value=3,
+                            ),
+                        ),
+                        then_operations=(
+                            EffectOperation(
+                                kind=EffectKind.DAMAGE_LEADER,
+                                target=TargetKind.ENEMY_LEADER,
+                                amount=3,
+                            ),
+                        ),
+                        else_operations=(
+                            EffectOperation(
+                                kind=EffectKind.DRAW,
+                                target=TargetKind.OWN_LEADER,
+                                amount=1,
+                            ),
+                        ),
+                    ),
+                ),
+            ),
+        ))
+        engine = GameEngine(
+            [card(i) for i in range(100, 140)],
+            [card(i) for i in range(200, 240)],
+            class_a=1,
+            class_b=1,
+            seed=1,
+            rulebook=rulebook,
+        )
+        engine.reset(seed=1)
+        engine.players[1].board = []
+        engine.players[0].mana = 10
+        engine.players[0].hand[0] = card(1, card_type="法术", attack=None, life=None)
+        deck_before = len(engine.players[0].deck)
+
+        engine.apply(PlayCard(0, 0))
+
+        self.assertIsNone(engine.state.pending_choice)
+        self.assertEqual(engine.players[1].health, 20)
+        self.assertEqual(len(engine.players[0].deck), deck_before - 1)
+
+    def test_target_exists_conditions_filter_candidates_for_else_branch(self):
+        rulebook = RuleBook((
+            CardRule(
+                card_id=1,
+                trigger=Trigger.PLAY,
+                operations=(
+                    EffectOperation(
+                        kind=EffectKind.TARGET_EXISTS,
+                        target=TargetKind.ENEMY_UNIT,
+                        conditions=(
+                            Condition(
+                                ConditionType.TARGET_HEALTH_AT_MOST,
+                                value=3,
+                            ),
+                        ),
+                        then_operations=(
+                            EffectOperation(
+                                kind=EffectKind.DAMAGE_UNIT,
+                                target=TargetKind.ENEMY_UNIT,
+                                conditions=(
+                                    Condition(
+                                        ConditionType.TARGET_HEALTH_AT_MOST,
+                                        value=3,
+                                    ),
+                                ),
+                                amount=3,
+                            ),
+                        ),
+                        else_operations=(
+                            EffectOperation(
+                                kind=EffectKind.DRAW,
+                                target=TargetKind.OWN_LEADER,
+                                amount=1,
+                            ),
+                        ),
+                    ),
+                ),
+            ),
+        ))
+        engine = GameEngine(
+            [card(i) for i in range(100, 140)],
+            [card(i) for i in range(200, 240)],
+            class_a=1,
+            class_b=1,
+            seed=1,
+            rulebook=rulebook,
+        )
+        engine.reset(seed=1)
+        target = Unit.summon(card(900, attack=1, life=5), entity_id=900)
+        engine.players[1].board = [target]
+        engine.players[0].mana = 10
+        engine.players[0].hand[0] = card(1, card_type="法术", attack=None, life=None)
+        deck_before = len(engine.players[0].deck)
+
+        engine.apply(PlayCard(0, 0))
+
+        self.assertIsNone(engine.state.pending_choice)
+        self.assertEqual(target.health, 5)
+        self.assertEqual(len(engine.players[0].deck), deck_before - 1)
 
     def test_banish_enemy_unit_moves_to_banished_zone(self):
         rulebook = RuleBook((
@@ -372,6 +1027,108 @@ class TargetingTests(unittest.TestCase):
         engine.apply(choice)
         self.assertEqual(engine.state.phase, Phase.MAIN)
         self.assertIsNone(engine.state.pending_choice)
+
+    def test_own_target_entered_graveyard_during_choice_skips_and_continues(self):
+        rulebook = RuleBook((
+            CardRule(
+                card_id=1,
+                trigger=Trigger.PLAY,
+                operations=(
+                    EffectOperation(EffectKind.DESTROY, TargetKind.OWN_UNIT),
+                    EffectOperation(
+                        EffectKind.DRAW,
+                        TargetKind.OWN_LEADER,
+                        amount=1,
+                    ),
+                ),
+            ),
+        ))
+        engine = GameEngine(
+            [card(i) for i in range(100, 140)],
+            [card(i) for i in range(200, 240)],
+            class_a=1, class_b=1, seed=1, rulebook=rulebook,
+        )
+        engine.reset(seed=1)
+        target = Unit.summon(card(900, attack=1, life=2))
+        engine.players[0].board = [target]
+        engine.players[0].mana = 10
+        engine.players[0].hand[0] = card(1, card_type="法术", attack=None, life=None)
+
+        engine.apply(PlayCard(0, 0))
+        self.assertEqual(engine.state.phase, Phase.AWAITING_CHOICE)
+        choice = next(
+            command
+            for command in engine.legal_commands()
+            if isinstance(command, Choose)
+            and command.option_id == f"entity:{target.entity_id}"
+        )
+        engine.players[0].board.remove(target)
+        engine._send_to_graveyard(
+            0,
+            target.definition,
+            "test_target_left_play",
+            source_entity_id=target.entity_id,
+        )
+        deck_before = len(engine.players[0].deck)
+
+        engine.apply(choice)
+
+        self.assertEqual(engine.state.phase, Phase.MAIN)
+        self.assertIsNone(engine.state.pending_choice)
+        self.assertEqual(engine.players[0].board, [])
+        self.assertEqual(len(engine.players[0].graveyard), 2)
+        self.assertEqual(len(engine.players[0].deck), deck_before - 1)
+
+    def test_board_target_changed_controller_during_choice_skips_and_continues(self):
+        rulebook = RuleBook((
+            CardRule(
+                card_id=1,
+                trigger=Trigger.PLAY,
+                operations=(
+                    EffectOperation(
+                        EffectKind.DAMAGE_UNIT,
+                        TargetKind.ENEMY_UNIT,
+                        amount=3,
+                    ),
+                    EffectOperation(
+                        EffectKind.DRAW,
+                        TargetKind.OWN_LEADER,
+                        amount=1,
+                    ),
+                ),
+            ),
+        ))
+        engine = GameEngine(
+            [card(i) for i in range(100, 140)],
+            [card(i) for i in range(200, 240)],
+            class_a=1, class_b=1, seed=1, rulebook=rulebook,
+        )
+        engine.reset(seed=1)
+        target = Unit.summon(card(900, attack=1, life=5), entity_id=900)
+        engine.players[1].board = [target]
+        engine.players[0].mana = 10
+        engine.players[0].hand[0] = card(1, card_type="法术", attack=None, life=None)
+
+        engine.apply(PlayCard(0, 0))
+        self.assertEqual(engine.state.phase, Phase.AWAITING_CHOICE)
+        choice = next(
+            command
+            for command in engine.legal_commands()
+            if isinstance(command, Choose)
+            and command.option_id == f"entity:{target.entity_id}"
+        )
+        engine.players[1].board.remove(target)
+        engine.players[0].board.append(target)
+        deck_before = len(engine.players[0].deck)
+
+        engine.apply(choice)
+
+        self.assertEqual(engine.state.phase, Phase.MAIN)
+        self.assertIsNone(engine.state.pending_choice)
+        self.assertEqual(target.health, 5)
+        self.assertEqual(engine.players[0].board, [target])
+        self.assertEqual(len(engine.players[0].deck), deck_before - 1)
+        self.assertTrue(any("已不再是合法目标，跳过" in log for log in engine.logs))
 
     def test_manual_board_filter_limits_choice_candidates(self):
         rulebook = RuleBook((
@@ -916,6 +1673,171 @@ class ZoneChangeTests(unittest.TestCase):
         commands = engine.legal_commands()
         play_cmds = [c for c in commands if isinstance(c, PlayCard)]
         self.assertEqual(len(play_cmds), 1)
+
+
+class SourceLeavesPlayResolutionTests(unittest.TestCase):
+    def _engine(self, rulebook: RuleBook) -> GameEngine:
+        engine = GameEngine(
+            [card(i) for i in range(100, 140)],
+            [card(i) for i in range(200, 240)],
+            class_a=1,
+            class_b=1,
+            seed=1,
+            rulebook=rulebook,
+        )
+        engine.reset(seed=1)
+        engine.players[0].mana = 10
+        return engine
+
+    def test_self_operation_after_source_leaves_play_is_skipped(self):
+        rulebook = RuleBook((
+            CardRule(
+                card_id=1,
+                trigger=Trigger.FANFARE,
+                operations=(
+                    EffectOperation(EffectKind.DESTROY, TargetKind.SELF),
+                    EffectOperation(
+                        EffectKind.BUFF_UNIT,
+                        TargetKind.SELF,
+                        amount=2,
+                        secondary_amount=2,
+                    ),
+                    EffectOperation(
+                        EffectKind.DRAW,
+                        TargetKind.OWN_LEADER,
+                        amount=1,
+                    ),
+                ),
+            ),
+        ))
+        engine = self._engine(rulebook)
+        engine.players[0].hand[0] = card(1, attack=2, life=2)
+        deck_before = len(engine.players[0].deck)
+
+        engine.apply(PlayCard(0, 0))
+
+        self.assertEqual(engine.players[0].board, [])
+        self.assertEqual(engine.players[0].graveyard[-1].definition.card_id, 1)
+        self.assertEqual(len(engine.players[0].deck), deck_before - 1)
+
+    def test_source_expression_after_source_leaves_play_is_skipped(self):
+        rulebook = RuleBook((
+            CardRule(
+                card_id=1,
+                trigger=Trigger.FANFARE,
+                operations=(
+                    EffectOperation(EffectKind.DESTROY, TargetKind.SELF),
+                    EffectOperation(
+                        EffectKind.DAMAGE_LEADER,
+                        TargetKind.ENEMY_LEADER,
+                        amount_expr=ValueExpression(ExprType.SOURCE_ATTACK),
+                    ),
+                    EffectOperation(
+                        EffectKind.DRAW,
+                        TargetKind.OWN_LEADER,
+                        amount=1,
+                    ),
+                ),
+            ),
+        ))
+        engine = self._engine(rulebook)
+        engine.players[0].hand[0] = card(1, attack=4, life=2)
+        deck_before = len(engine.players[0].deck)
+
+        engine.apply(PlayCard(0, 0))
+
+        self.assertEqual(engine.players[1].health, 20)
+        self.assertEqual(len(engine.players[0].deck), deck_before - 1)
+
+    def test_pending_choice_resumes_when_source_left_play(self):
+        rulebook = RuleBook((
+            CardRule(
+                card_id=1,
+                trigger=Trigger.FANFARE,
+                operations=(
+                    EffectOperation(
+                        EffectKind.DAMAGE_UNIT,
+                        TargetKind.ENEMY_UNIT,
+                        amount_expr=ValueExpression(ExprType.SOURCE_ATTACK),
+                    ),
+                    EffectOperation(
+                        EffectKind.DRAW,
+                        TargetKind.OWN_LEADER,
+                        amount=1,
+                    ),
+                ),
+            ),
+        ))
+        engine = self._engine(rulebook)
+        target = Unit.summon(card(20, attack=1, life=5))
+        engine.players[1].board = [target]
+        engine.players[0].hand[0] = card(1, attack=3, life=2)
+
+        engine.apply(PlayCard(0, 0))
+        self.assertIsNotNone(engine.state.pending_choice)
+        source = engine.players[0].board[0]
+        engine.players[0].board.remove(source)
+        engine._send_to_graveyard(
+            0,
+            source.definition,
+            "test_source_left_play",
+            source_entity_id=source.entity_id,
+        )
+        deck_before = len(engine.players[0].deck)
+        choice = next(
+            command
+            for command in engine.legal_commands()
+            if isinstance(command, Choose)
+        )
+
+        engine.apply(choice)
+
+        self.assertIsNone(engine.state.pending_choice)
+        self.assertEqual(target.health, 5)
+        self.assertEqual(len(engine.players[0].deck), deck_before - 1)
+
+    def test_source_left_play_resume_is_seed_deterministic(self):
+        def run_once() -> tuple[int, int, tuple[str, ...]]:
+            rulebook = RuleBook((
+                CardRule(
+                    card_id=1,
+                    trigger=Trigger.FANFARE,
+                    operations=(
+                        EffectOperation(
+                            EffectKind.DAMAGE_UNIT,
+                            TargetKind.ENEMY_UNIT,
+                            amount_expr=ValueExpression(ExprType.SOURCE_ATTACK),
+                        ),
+                        EffectOperation(
+                            EffectKind.DRAW,
+                            TargetKind.OWN_LEADER,
+                            amount=1,
+                        ),
+                    ),
+                ),
+            ))
+            engine = self._engine(rulebook)
+            target = Unit.summon(card(20, attack=1, life=5))
+            engine.players[1].board = [target]
+            engine.players[0].hand[0] = card(1, attack=3, life=2)
+            engine.apply(PlayCard(0, 0))
+            source = engine.players[0].board[0]
+            engine.players[0].board.remove(source)
+            engine._send_to_graveyard(
+                0,
+                source.definition,
+                "test_source_left_play",
+                source_entity_id=source.entity_id,
+            )
+            choice = next(
+                command
+                for command in engine.legal_commands()
+                if isinstance(command, Choose)
+            )
+            engine.apply(choice)
+            return target.health, len(engine.players[0].deck), tuple(engine.logs)
+
+        self.assertEqual(run_once(), run_once())
 
 
 if __name__ == "__main__":

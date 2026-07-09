@@ -75,6 +75,7 @@ _ALL_TARGETS = frozenset({
     TargetKind.ALL_UNITS,
     TargetKind.ALL_OWN_BOARD,
     TargetKind.ALL_ENEMY_BOARD,
+    TargetKind.ALL_BOARD,
     TargetKind.ALL_OWN_AMULETS,
     TargetKind.ALL_ENEMY_AMULETS,
     TargetKind.ALL_OWN_HAND,
@@ -250,6 +251,8 @@ def target_candidates(
         candidates = list(own_board)
     elif target == TargetKind.ALL_ENEMY_BOARD:
         candidates = list(enemy_board)
+    elif target == TargetKind.ALL_BOARD:
+        candidates = list(own_board) + list(enemy_board)
     elif target == TargetKind.ALL_OWN_AMULETS:
         candidates = _board_entities(own_board, units_only=False, amulets_only=True)
     elif target == TargetKind.ALL_ENEMY_AMULETS:
