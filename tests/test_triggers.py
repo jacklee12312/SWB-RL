@@ -112,7 +112,7 @@ class EvolveTriggerTests(unittest.TestCase):
         eng = mkengine(rulebook=rulebook)
         u = mkunit(eng, 900, attack=2, life=3, keywords=frozenset({"超进化时"}))
         eng.players[0].board = [u]
-        eng.players[0].turns_started = 4
+        eng.players[0].turns_started = eng.config.first_player_super_evolution_unlock_turn
         hp_before = eng.players[1].health
         eng.apply(SuperEvolve(0, u.entity_id))
         self.assertTrue(u.evolved)
@@ -281,6 +281,38 @@ class TriggerContinuationTests(unittest.TestCase):
         choice = next(cmd for cmd in eng.legal_commands() if isinstance(cmd, Choose))
         eng.apply(choice)
         self.assertIsNone(eng.state.pending_choice)
+
+    def test_turn_end_choice_target_entered_own_graveyard_skips_and_resumes(self):
+        rulebook = RuleBook((CardRule(card_id=900, trigger=Trigger.TURN_END, operations=(
+            EffectOperation(kind=EffectKind.DAMAGE_UNIT, target=TargetKind.OWN_UNIT, amount=1),
+            EffectOperation(kind=EffectKind.DRAW, target=TargetKind.OWN_LEADER, amount=1),
+        ),),))
+        eng = mkengine(rulebook=rulebook)
+        source = mkunit(eng, 900, attack=1, life=3)
+        stale_target = mkunit(eng, 901, attack=1, life=3)
+        eng.players[0].board = [source, stale_target]
+        eng.apply(EndTurn(0))
+        self.assertIsNotNone(eng.state.pending_choice)
+        choice = next(
+            cmd for cmd in eng.legal_commands()
+            if isinstance(cmd, Choose)
+            and cmd.option_id == f"entity:{stale_target.entity_id}"
+        )
+        eng.players[0].board.remove(stale_target)
+        eng._send_to_graveyard(
+            0,
+            stale_target.definition,
+            "test_target_left_play",
+            source_entity_id=stale_target.entity_id,
+        )
+        deck_before = len(eng.players[0].deck)
+
+        eng.apply(choice)
+
+        self.assertIsNone(eng.state.pending_choice)
+        self.assertEqual(eng.state.active_player, 1)
+        self.assertEqual(stale_target.health, 3)
+        self.assertEqual(len(eng.players[0].deck), deck_before - 1)
 
     def test_target_leaves_play_during_trigger_choice(self):
         """When attack target is destroyed by trigger, combat is cancelled silently."""

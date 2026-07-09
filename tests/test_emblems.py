@@ -14,12 +14,19 @@ from swb.db.repository import CardDefinition, CardRepository
 from swb.engine.card_rules import CardRule, RuleBook, Trigger, _parse_operation
 from swb.engine.commands import Choose, EndTurn, PlayCard
 from swb.engine.effects import EffectKind, EffectOperation, TargetKind
-from swb.engine.emblem import EmblemDefinition, EmblemStacking, EmblemTriggerRule, TurnScope
+from swb.engine.emblem import (
+    EmblemDefinition,
+    EmblemStacking,
+    EmblemTriggerRule,
+    EventScope,
+    TurnScope,
+)
 from swb.engine.environment import ShadowverseEnv
 from swb.engine.events import EventType
 from swb.engine.origin import CardOrigin
 from swb.engine.resolution import GameEngine, IllegalCommand
 from swb.engine.state import (
+    Amulet,
     EmblemInstance,
     HandCard,
     Unit,
@@ -239,6 +246,68 @@ class TurnEndEmblemTests(unittest.TestCase):
         self.assertEqual(engine.current_player, 1)
         self.assertEqual(engine.turn, 2)
 
+    def test_choice_emblem_stale_target_skips_and_resumes_remaining_emblems(self):
+        first = EmblemDefinition(
+            "choice_stale",
+            999901,
+            triggers=(
+                EmblemTriggerRule(
+                    "turn_end",
+                    operations=(
+                        EffectOperation(
+                            EffectKind.DAMAGE_UNIT,
+                            TargetKind.ENEMY_UNIT,
+                            2,
+                        ),
+                    ),
+                ),
+            ),
+        )
+        second = EmblemDefinition(
+            "after_stale",
+            999902,
+            triggers=(
+                EmblemTriggerRule(
+                    "turn_end",
+                    operations=(
+                        EffectOperation(
+                            EffectKind.DAMAGE_LEADER,
+                            TargetKind.ENEMY_LEADER,
+                            3,
+                        ),
+                    ),
+                ),
+            ),
+        )
+        engine = _engine()
+        engine.reset(seed=42)
+        target = Unit.summon(_card(901, life=5), entity_id=901)
+        engine.players[1].board.append(target)
+        engine._add_emblem_to_player(0, first, first.source_card_id)
+        engine._add_emblem_to_player(0, second, second.source_card_id)
+
+        engine.apply(EndTurn(0))
+        self.assertIsNotNone(engine.state.pending_choice)
+        choose = next(
+            command for command in engine.legal_commands()
+            if isinstance(command, Choose)
+        )
+        engine.players[1].board.remove(target)
+        engine._send_to_graveyard(
+            1,
+            target.definition,
+            "test_target_left_play",
+            source_entity_id=target.entity_id,
+        )
+
+        engine.apply(choose)
+
+        self.assertIsNone(engine.state.pending_choice)
+        self.assertEqual(target.health, 5)
+        self.assertEqual(engine.players[1].health, 17)
+        self.assertEqual(engine.current_player, 1)
+        self.assertEqual(engine.turn, 2)
+
 
 class EventEmblemTests(unittest.TestCase):
     def _damage_emblem(self, trigger):
@@ -268,6 +337,294 @@ class EventEmblemTests(unittest.TestCase):
         engine.players[0].mana = 10
         engine.apply(PlayCard(0, 0))
         self.assertEqual(engine.players[1].health, 19)
+
+    def test_follower_destroyed_emblem_fires(self):
+        destroy_card = 999924
+        engine = _engine(
+            CardRule(card_id=destroy_card, trigger=Trigger.PLAY, operations=(
+                EffectOperation(
+                    EffectKind.DAMAGE_UNIT,
+                    TargetKind.ALL_ENEMY_UNITS,
+                    5,
+                ),
+            ),)
+        )
+        engine.reset(seed=42)
+        definition = self._damage_emblem("follower_destroyed")
+        engine._add_emblem_to_player(1, definition, definition.source_card_id)
+        engine.players[1].board.append(Unit.summon(_card(999925, life=1)))
+        _insert_card(
+            engine,
+            _card(destroy_card, cost=1, card_type="法术", attack=None, life=None),
+        )
+        engine.players[0].mana = 10
+
+        transition = engine.apply(PlayCard(0, 0))
+
+        self.assertEqual(engine.players[0].health, 19)
+        self.assertEqual(engine.players[1].board, [])
+        self.assertTrue(
+            any(
+                event.type == EventType.EMBLEM_TRIGGERED
+                and event.metadata["trigger"] == "follower_destroyed"
+                for event in transition.events
+            )
+        )
+
+    def test_amulet_destroyed_emblem_fires(self):
+        destroy_card = 999927
+        engine = _engine(
+            CardRule(card_id=destroy_card, trigger=Trigger.PLAY, operations=(
+                EffectOperation(
+                    EffectKind.DESTROY,
+                    TargetKind.ALL_OWN_AMULETS,
+                ),
+            ),)
+        )
+        engine.reset(seed=42)
+        definition = self._damage_emblem("amulet_destroyed")
+        engine._add_emblem_to_player(0, definition, definition.source_card_id)
+        engine.players[0].board.append(
+            Amulet(
+                definition=_card(999928, card_type="护符", attack=None, life=None),
+                entity_id=999928,
+            )
+        )
+        _insert_card(
+            engine,
+            _card(destroy_card, cost=1, card_type="法术", attack=None, life=None),
+        )
+        engine.players[0].mana = 10
+
+        transition = engine.apply(PlayCard(0, 0))
+
+        self.assertEqual(engine.players[1].health, 19)
+        self.assertEqual(engine.players[0].board, [])
+        self.assertTrue(
+            any(
+                event.type == EventType.EMBLEM_TRIGGERED
+                and event.metadata["trigger"] == "amulet_destroyed"
+                for event in transition.events
+            )
+        )
+
+    def test_follower_destroyed_emblem_trigger_loads_from_json(self):
+        payload = {
+            "emblems": [
+                {
+                    "id": "death_watch",
+                    "source_card_id": 999926,
+                    "triggers": [
+                        {
+                            "trigger": "follower_destroyed",
+                            "event_scope": "any_event",
+                            "operations": [
+                                {
+                                    "kind": "damage_leader",
+                                    "target": "enemy_leader",
+                                    "amount": 1,
+                                },
+                            ],
+                        },
+                    ],
+                },
+            ],
+            "rules": [],
+        }
+        with tempfile.TemporaryDirectory() as tmp:
+            Path(tmp, "rules.json").write_text(
+                json.dumps(payload),
+                encoding="utf-8",
+            )
+            rulebook = RuleBook.from_directory(tmp)
+
+        operations = rulebook.emblem_trigger_ops_for(
+            "death_watch",
+            "follower_destroyed",
+        )
+        self.assertEqual(len(operations), 1)
+        self.assertEqual(operations[0].kind, EffectKind.DAMAGE_LEADER)
+        self.assertEqual(operations[0].target, TargetKind.ENEMY_LEADER)
+        self.assertEqual(
+            rulebook.emblem_def("death_watch").triggers[0].event_scope,
+            EventScope.ANY_EVENT,
+        )
+
+    def test_amulet_destroyed_emblem_trigger_loads_from_json(self):
+        payload = {
+            "emblems": [
+                {
+                    "id": "amulet_death_watch",
+                    "source_card_id": 999929,
+                    "triggers": [
+                        {
+                            "trigger": "amulet_destroyed",
+                            "event_scope": "owner_event",
+                            "operations": [
+                                {
+                                    "kind": "damage_leader",
+                                    "target": "enemy_leader",
+                                    "amount": 1,
+                                },
+                            ],
+                        },
+                    ],
+                },
+            ],
+            "rules": [],
+        }
+        with tempfile.TemporaryDirectory() as tmp:
+            Path(tmp, "rules.json").write_text(
+                json.dumps(payload),
+                encoding="utf-8",
+            )
+            rulebook = RuleBook.from_directory(tmp)
+
+        operations = rulebook.emblem_trigger_ops_for(
+            "amulet_death_watch",
+            "amulet_destroyed",
+        )
+        self.assertEqual(len(operations), 1)
+        self.assertEqual(operations[0].kind, EffectKind.DAMAGE_LEADER)
+        self.assertEqual(operations[0].target, TargetKind.ENEMY_LEADER)
+        self.assertEqual(
+            rulebook.emblem_def("amulet_death_watch").triggers[0].event_scope,
+            EventScope.OWNER_EVENT,
+        )
+
+    def test_death_batch_end_emblem_trigger_loads_from_json(self):
+        payload = {
+            "emblems": [
+                {
+                    "id": "batch_end_watch",
+                    "source_card_id": 999930,
+                    "triggers": [
+                        {
+                            "trigger": "death_batch_end",
+                            "event_scope": "any_event",
+                            "operations": [
+                                {
+                                    "kind": "damage_leader",
+                                    "target": "enemy_leader",
+                                    "amount": 1,
+                                },
+                            ],
+                        },
+                    ],
+                },
+            ],
+            "rules": [],
+        }
+        with tempfile.TemporaryDirectory() as tmp:
+            Path(tmp, "rules.json").write_text(
+                json.dumps(payload),
+                encoding="utf-8",
+            )
+            rulebook = RuleBook.from_directory(tmp)
+
+        operations = rulebook.emblem_trigger_ops_for(
+            "batch_end_watch",
+            "death_batch_end",
+        )
+        trigger = rulebook.emblem_def("batch_end_watch").triggers[0]
+        self.assertEqual(len(operations), 1)
+        self.assertEqual(operations[0].kind, EffectKind.DAMAGE_LEADER)
+        self.assertEqual(trigger.trigger, "death_batch_end")
+        self.assertEqual(trigger.event_scope, EventScope.ANY_EVENT)
+
+    def test_death_batch_start_emblem_trigger_remains_unsupported(self):
+        payload = {
+            "emblems": [
+                {
+                    "id": "batch_start_watch",
+                    "source_card_id": 999931,
+                    "triggers": [
+                        {
+                            "trigger": "death_batch_start",
+                            "operations": [
+                                {
+                                    "kind": "damage_leader",
+                                    "target": "enemy_leader",
+                                    "amount": 1,
+                                },
+                            ],
+                        },
+                    ],
+                },
+            ],
+            "rules": [],
+        }
+        with tempfile.TemporaryDirectory() as tmp:
+            Path(tmp, "rules.json").write_text(
+                json.dumps(payload),
+                encoding="utf-8",
+            )
+            with self.assertRaisesRegex(ValueError, "death_batch_start"):
+                RuleBook.from_directory(tmp)
+
+    def test_emblem_trigger_multi_target_fields_are_explicitly_unsupported(self):
+        payload = {
+            "emblems": [
+                {
+                    "id": "bad_multi_trigger",
+                    "source_card_id": 999932,
+                    "triggers": [
+                        {
+                            "trigger": "card_played",
+                            "operations": [
+                                {
+                                    "kind": "damage_unit",
+                                    "target": "enemy_unit",
+                                    "amount": 1,
+                                    "target_count": 2,
+                                },
+                            ],
+                        },
+                    ],
+                },
+            ],
+            "rules": [],
+        }
+        with tempfile.TemporaryDirectory() as tmp:
+            Path(tmp, "rules.json").write_text(
+                json.dumps(payload),
+                encoding="utf-8",
+            )
+            with self.assertRaisesRegex(
+                ValueError,
+                "multi-target choices are unsupported",
+            ):
+                RuleBook.from_directory(tmp)
+
+    def test_emblem_on_expire_multi_target_fields_are_explicitly_unsupported(self):
+        payload = {
+            "emblems": [
+                {
+                    "id": "bad_multi_expire",
+                    "source_card_id": 999933,
+                    "countdown": 1,
+                    "on_expire": [
+                        {
+                            "kind": "damage_unit",
+                            "target": "enemy_unit",
+                            "amount": 1,
+                            "allow_duplicate_targets": False,
+                        },
+                    ],
+                },
+            ],
+            "rules": [],
+        }
+        with tempfile.TemporaryDirectory() as tmp:
+            Path(tmp, "rules.json").write_text(
+                json.dumps(payload),
+                encoding="utf-8",
+            )
+            with self.assertRaisesRegex(
+                ValueError,
+                "multi-target choices are unsupported",
+            ):
+                RuleBook.from_directory(tmp)
 
     def test_card_played_emblem_fires(self):
         engine = _engine()
@@ -524,7 +881,7 @@ class ObservationTests(unittest.TestCase):
             class_a=1, class_b=1, seed=42,
         )
         obs, _ = env.reset(seed=42)
-        self.assertEqual(len(obs), 215)
+        self.assertEqual(len(obs), 223)
 
     def test_observation_exposes_public_emblem_state(self):
         env = ShadowverseEnv(
@@ -537,7 +894,7 @@ class ObservationTests(unittest.TestCase):
         env.core._add_emblem_to_player(0, definition, definition.source_card_id)
         after = env.observation()
         self.assertNotEqual(before, after)
-        self.assertEqual(after[22:28], [0.1, 0.0, 1.0, 0.0, 0.3, 0.0])
+        self.assertEqual(after[24:30], [0.1, 0.0, 1.0, 0.0, 0.3, 0.0])
 
     def test_action_size(self):
         self.assertEqual(ShadowverseEnv.ACTION_SIZE, 111)

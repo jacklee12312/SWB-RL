@@ -58,7 +58,12 @@ class CoreEngineTests(unittest.TestCase):
         transition = self.engine.apply(PlayCard(0, 0))
         self.assertEqual(
             [event.type for event in transition.events],
-            [EventType.COOPERATION_CHANGED, EventType.CARD_PLAYED, EventType.FOLLOWER_SUMMONED],
+            [
+                EventType.COMBO_CHANGED,
+                EventType.COOPERATION_CHANGED,
+                EventType.CARD_PLAYED,
+                EventType.FOLLOWER_SUMMONED,
+            ],
         )
         unit = self.engine.players[0].board[0]
         self.assertGreater(unit.entity_id, 0)
@@ -156,6 +161,73 @@ class CoreEngineTests(unittest.TestCase):
         self.assertEqual(engine.state.phase, Phase.MAIN)
         self.assertEqual(engine.players[1].board, [])
         self.assertEqual(engine.players[0].graveyard[-1].definition.card_id, spell.card_id)
+
+    def test_same_seed_command_replay_fingerprint_matches_real_rules(self) -> None:
+        rulebook = RuleBook.from_directory("data/rules")
+        choice_spell = card(
+            10153310,
+            attack=None,
+            life=None,
+            cost=2,
+            card_type="法术",
+        )
+        random_spell = card(
+            10472310,
+            attack=None,
+            life=None,
+            cost=3,
+            card_type="法术",
+        )
+
+        def make_engine() -> GameEngine:
+            engine = GameEngine(
+                [card(1000 + index) for index in range(40)],
+                [card(2000 + index) for index in range(40)],
+                class_a=1,
+                class_b=1,
+                seed=17,
+                rulebook=rulebook,
+            )
+            engine.reset(seed=17)
+            engine.players[0].hand[0] = choice_spell
+            engine.players[0].hand[1] = random_spell
+            engine.players[0].mana = 10
+            engine.players[1].board = [
+                Unit.summon(
+                    card(700, attack=1, life=10),
+                    entity_id=engine.state.allocate_entity_id(),
+                ),
+                Unit.summon(
+                    card(701, attack=1, life=10),
+                    entity_id=engine.state.allocate_entity_id(),
+                ),
+            ]
+            return engine
+
+        first = make_engine()
+        second = make_engine()
+
+        for engine in (first, second):
+            engine.apply(PlayCard(0, 0))
+        self.assertIsNotNone(first.state.pending_choice)
+        self.assertEqual(
+            first.deterministic_fingerprint(),
+            second.deterministic_fingerprint(),
+        )
+
+        for engine in (first, second):
+            engine.apply(Choose(0, "leader:1"))
+        self.assertEqual(
+            first.deterministic_fingerprint(),
+            second.deterministic_fingerprint(),
+        )
+
+        for engine in (first, second):
+            engine.apply(PlayCard(0, 0))
+        self.assertEqual(
+            first.deterministic_fingerprint(),
+            second.deterministic_fingerprint(),
+        )
 
     def test_countdown_amulet_expires_and_runs_last_words(self) -> None:
         rulebook = RuleBook.from_directory("data/rules")

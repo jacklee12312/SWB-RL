@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import random
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from enum import Enum
 from typing import Callable, Sequence
 
@@ -143,6 +143,57 @@ _DURATION_EXPANSION: dict[ModifierDuration, tuple[str, ...]] = {
     ),
 }
 
+_SOURCE_REQUIRED_SELF_TARGET_EFFECTS = frozenset({
+    EffectKind.DAMAGE_UNIT,
+    EffectKind.BUFF_UNIT,
+    EffectKind.DESTROY,
+    EffectKind.BANISH,
+    EffectKind.RETURN_TO_HAND,
+    EffectKind.RETURN_TO_DECK,
+    EffectKind.ADD_KEYWORD,
+    EffectKind.REMOVE_KEYWORD,
+    EffectKind.TRANSFORM,
+    EffectKind.SET_STATS,
+    EffectKind.ADD_ATTACK_RESTRICTION,
+    EffectKind.REMOVE_ATTACK_RESTRICTION,
+    EffectKind.ADD_TARGETING_RESTRICTION,
+    EffectKind.REMOVE_TARGETING_RESTRICTION,
+})
+
+_SOURCE_CONDITION_TYPES = frozenset({
+    ConditionType.SOURCE_EVOLVED,
+    ConditionType.SOURCE_HAS_KEYWORD,
+})
+
+_SOURCE_EXPRESSION_TYPES = frozenset({
+    ExprType.SOURCE_ATTACK,
+    ExprType.SOURCE_HEALTH,
+})
+
+
+def _condition_depends_on_source(condition: Condition) -> bool:
+    return (
+        condition.type in _SOURCE_CONDITION_TYPES
+        or any(
+            _condition_depends_on_source(child)
+            for child in condition.conditions
+        )
+    )
+
+
+def _expression_depends_on_source(
+    expression: ValueExpression | None,
+) -> bool:
+    if expression is None:
+        return False
+    return (
+        expression.type in _SOURCE_EXPRESSION_TYPES
+        or any(
+            _expression_depends_on_source(child)
+            for child in expression.values
+        )
+    )
+
 
 def _expire_duration_values(duration: ModifierDuration) -> tuple[str, ...]:
     return _DURATION_EXPANSION.get(duration, (duration.value,))
@@ -169,6 +220,9 @@ class GameConfig:
     starting_hand: int = 4
     starting_evolution_points: int = 2
     evolution_unlock_turn: int = 4
+    starting_super_evolution_points: int = 2
+    first_player_super_evolution_unlock_turn: int = 7
+    second_player_super_evolution_unlock_turn: int = 6
     starting_health: int = 20
     validate_invariants: bool = False
 
@@ -230,6 +284,10 @@ class GameEngine:
         self._pending_spellboost_player: int = 0
         self._pending_spellboost_source_card_id: int = 0
         self._pending_spellboost_source_entity_id: int | None = None
+        self._emblem_batches: dict[int, dict[str, object]] = {}
+        self._next_emblem_batch_id: int = 1
+        self._emblem_expiration_batches: dict[int, dict[str, object]] = {}
+        self._next_emblem_expiration_batch_id: int = 1
 
     def _execute_trigger_rules(self, trigger, context) -> None:
         if isinstance(trigger, str):
@@ -240,12 +298,13 @@ class GameEngine:
         ops = self.rulebook.operations_for(source.definition.card_id, trigger)
         if not ops:
             return
-        saved = self.state.active_player
-        self.state.active_player = context.player_index
-        try:
-            self._start_effects(source.definition, source.entity_id, ops, label=trigger.value)
-        finally:
-            self.state.active_player = saved
+        self._start_effects(
+            source.definition,
+            source.entity_id,
+            ops,
+            controller=context.player_index,
+            label=trigger.value,
+        )
 
     def _is_ability_covered(self, context, ability) -> bool:
         card = (
@@ -253,11 +312,87 @@ class GameEngine:
             if hasattr(context.source, "definition")
             else context.source
         )
+        if card is None:
+            return False
+        if ability in (AbilityKeyword.OVERFLOW, AbilityKeyword.COMBO):
+            if ability is AbilityKeyword.OVERFLOW:
+                condition_types = (
+                    ConditionType.CONTROLLER_OVERFLOW,
+                    ConditionType.OPPONENT_OVERFLOW,
+                )
+                expression_types = (
+                    ExprType.CONTROLLER_OVERFLOW,
+                    ExprType.OPPONENT_OVERFLOW,
+                )
+                effect_kinds: tuple[EffectKind, ...] = ()
+            else:
+                condition_types = (
+                    ConditionType.CONTROLLER_COMBO_AT_LEAST,
+                    ConditionType.OPPONENT_COMBO_AT_LEAST,
+                )
+                expression_types = (
+                    ExprType.CONTROLLER_COMBO,
+                    ExprType.OPPONENT_COMBO,
+                )
+                effect_kinds = (EffectKind.ADD_COMBO,)
+
+            def condition_contains(conditions: tuple[Condition, ...]) -> bool:
+                for condition in conditions:
+                    if condition.type in condition_types:
+                        return True
+                    if condition_contains(tuple(condition.conditions)):
+                        return True
+                return False
+
+            def expression_contains(expression: ValueExpression | None) -> bool:
+                if expression is None:
+                    return False
+                if expression.type in expression_types:
+                    return True
+                return any(
+                    expression_contains(value)
+                    for value in expression.values
+                )
+
+            def operation_contains(
+                operations: tuple[EffectOperation, ...],
+            ) -> bool:
+                for operation in operations:
+                    if operation.kind in effect_kinds:
+                        return True
+                    if condition_contains(operation.conditions):
+                        return True
+                    if expression_contains(operation.amount_expr):
+                        return True
+                    if expression_contains(operation.secondary_expr):
+                        return True
+                    nested = (
+                        operation.necromancy_operations
+                        + operation.then_operations
+                        + operation.else_operations
+                        + operation.optional_operations
+                    )
+                    if operation_contains(nested):
+                        return True
+                    for option in operation.choose_one_options:
+                        if condition_contains(option.conditions):
+                            return True
+                        if operation_contains(option.operations):
+                            return True
+                return False
+
+            return any(
+                operation_contains(
+                    self.rulebook.operations_for(card.card_id, trigger)
+                )
+                for trigger in Trigger
+            )
+
         expected_kind = {
             AbilityKeyword.NECROMANCY: EffectKind.NECROMANCY,
             AbilityKeyword.REANIMATE: EffectKind.REANIMATE,
         }.get(ability)
-        if card is None or expected_kind is None:
+        if expected_kind is None:
             return False
 
         def contains_kind(operations: tuple[EffectOperation, ...]) -> bool:
@@ -306,6 +441,7 @@ class GameEngine:
                     class_name=CLASS_NAMES[self.player_classes[index]],
                     health=self.config.starting_health,
                     evolution_points=self.config.starting_evolution_points,
+                    super_evolution_points=self.config.starting_super_evolution_points,
                 )
                 for index, deck in enumerate(decks)
             ]
@@ -444,15 +580,24 @@ class GameEngine:
             for mode_def in modes:
                 if self._is_mode_playable(card, player, mode_def):
                     commands.append(PlayCard(self.current_player, index, mode_def.mode_id))
-        if (
+        can_evolve = (
             player.evolution_points > 0
             and player.turns_started >= self.config.evolution_unlock_turn
             and not player.evolved_this_turn
-        ):
+        )
+        can_super_evolve = (
+            player.super_evolution_points > 0
+            and player.turns_started >= self._super_evolution_unlock_turn(self.current_player)
+            and not player.evolved_this_turn
+            and not player.super_evolved_this_turn
+        )
+        if can_evolve or can_super_evolve:
             for unit in player.board:
                 if isinstance(unit, Unit) and not unit.evolved:
-                    commands.append(Evolve(self.current_player, unit.entity_id))
-                    commands.append(SuperEvolve(self.current_player, unit.entity_id))
+                    if can_evolve:
+                        commands.append(Evolve(self.current_player, unit.entity_id))
+                    if can_super_evolve:
+                        commands.append(SuperEvolve(self.current_player, unit.entity_id))
         guards = [
             unit
             for unit in opponent.board
@@ -474,6 +619,11 @@ class GameEngine:
                     for target in targets
                 )
         return commands
+
+    def _super_evolution_unlock_turn(self, player_index: int) -> int:
+        if player_index == 0:
+            return self.config.first_player_super_evolution_unlock_turn
+        return self.config.second_player_super_evolution_unlock_turn
 
     def effective_play_cost(self, hand_card, mode_def) -> int:
         """Compute the effective play cost for a hand card with optional mode."""
@@ -525,7 +675,7 @@ class GameEngine:
             ):
                 return False
             all_require_target = all(
-                is_choice_target(op.target) or is_random_target(op.target) or is_all_target(op.target)
+                self._operation_consumes_target(op)
                 for op in ops
             )
             if all_require_target and all(not self._has_candidates(op) for op in ops):
@@ -558,6 +708,36 @@ class GameEngine:
                     "source_card_id": source_card_id,
                     "source_entity_id": source_entity_id,
                     "summon_cause": summon_cause,
+                },
+            )
+        )
+
+    def _record_combo(
+        self,
+        player_index: int,
+        amount: int,
+        *,
+        source_card_id: int | None = None,
+        source_entity_id: int | None = None,
+        cause: str = "effect",
+    ) -> None:
+        if amount == 0:
+            return
+        player = self.players[player_index]
+        before = player.cards_played_this_turn
+        player.add_combo(amount)
+        self._emit(
+            GameEvent(
+                EventType.COMBO_CHANGED,
+                player_index,
+                amount=amount,
+                source_id=source_entity_id,
+                metadata={
+                    "combo_before": before,
+                    "combo_after": player.cards_played_this_turn,
+                    "source_card_id": source_card_id,
+                    "source_entity_id": source_entity_id,
+                    "cause": cause,
                 },
             )
         )
@@ -639,7 +819,13 @@ class GameEngine:
         player.hand.pop(command.hand_index)
         player.hand_entity_ids.pop(command.hand_index)
         player.mana -= play_cost
-        player.cards_played_this_turn += 1
+        self._record_combo(
+            self.current_player,
+            1,
+            source_card_id=card.card_id,
+            source_entity_id=hand_entity_id,
+            cause="play",
+        )
 
         if mode_def is not None and mode_def.is_accelerate:
             self._play_accelerate(card, play_cost, hand_entity_id, hand_origin, hand_source_origin, mode_def)
@@ -930,18 +1116,1001 @@ class GameEngine:
         self.state.effect_stack.append(frame)
         return frame
 
+    def _debug_value(self, value):
+        if value is None or isinstance(value, (str, int, float, bool)):
+            return value
+        if isinstance(value, Enum):
+            return value.value
+        if isinstance(value, CardDefinition):
+            return {
+                "card_id": value.card_id,
+                "name": value.name,
+                "card_type": value.card_type,
+            }
+        if isinstance(value, (Unit, Amulet, HandCard, GraveyardCard)):
+            definition = getattr(value, "definition", None)
+            return {
+                "entity_id": getattr(value, "entity_id", None),
+                "card_id": None if definition is None else definition.card_id,
+                "name": None if definition is None else definition.name,
+                "zone_type": type(value).__name__,
+            }
+        if isinstance(value, (list, tuple)):
+            return [self._debug_value(item) for item in value[:5]]
+        if isinstance(value, dict):
+            return {
+                str(key): self._debug_value(value[key])
+                for key in sorted(value, key=str)
+            }
+        return repr(value)
+
+    def _event_debug_summary(self, event: GameEvent) -> dict:
+        return {
+            "type": event.type.value,
+            "player_index": event.player_index,
+            "source_id": event.source_id,
+            "target_id": event.target_id,
+            "amount": event.amount,
+            "metadata": {
+                key: self._debug_value(event.metadata[key])
+                for key in sorted(event.metadata, key=str)
+            },
+        }
+
+    def _operation_debug_summary(self, operation: EffectOperation) -> dict:
+        summary = {
+            "kind": operation.kind.value,
+            "target": operation.target.value,
+            "amount": operation.amount,
+            "secondary_amount": operation.secondary_amount,
+            "requires_target": operation.requires_target,
+        }
+        if operation.card_id is not None:
+            summary["card_id"] = operation.card_id
+        if operation.emblem_id is not None:
+            summary["emblem_id"] = operation.emblem_id
+        if operation.target_key is not None:
+            summary["target_key"] = operation.target_key
+        if operation.keyword is not None:
+            summary["keyword"] = operation.keyword
+        if operation.amount_expr is not None:
+            summary["amount_expr"] = operation.amount_expr.type.value
+        if operation.secondary_expr is not None:
+            summary["secondary_expr"] = operation.secondary_expr.type.value
+        nested_counts = {
+            "necromancy": len(operation.necromancy_operations),
+            "then": len(operation.then_operations),
+            "else": len(operation.else_operations),
+            "choose_one": len(operation.choose_one_options),
+            "optional": len(operation.optional_operations),
+        }
+        if any(nested_counts.values()):
+            summary["nested_counts"] = nested_counts
+        return summary
+
+    def _frame_debug_summary(self, frame: EffectFrame) -> dict:
+        upcoming = frame.operations[frame.next_index:frame.next_index + 3]
+        return {
+            "controller": frame.controller,
+            "source_card_id": frame.source_card_id,
+            "source_name": frame.source_name,
+            "source_entity_id": frame.source_entity_id,
+            "label": frame.label,
+            "next_index": frame.next_index,
+            "operation_count": len(frame.operations),
+            "pending_target_id": frame.pending_target_id,
+            "upcoming_operations": [
+                self._operation_debug_summary(operation)
+                for operation in upcoming
+            ],
+        }
+
+    def _death_record_debug_summary(self, record: DeathRecord) -> dict:
+        return {
+            "owner": record.owner,
+            "entity_id": record.entity_id,
+            "card_id": record.card_id,
+            "card_name": record.card_name,
+            "cause": record.cause.value,
+            "source_player": record.source_player,
+            "source_entity_id": record.source_entity_id,
+            "allows_last_words": record.allows_last_words,
+        }
+
+    def _emblem_batch_debug_summary(
+        self,
+        batch_id: int,
+        batch: dict[str, object],
+    ) -> dict:
+        records = batch.get("records", [])
+        record_summaries = []
+        if isinstance(records, list):
+            for record in records[:5]:
+                if (
+                    isinstance(record, tuple)
+                    and len(record) == 4
+                ):
+                    owner, entity_id, trigger_index, event_type = record
+                    record_summaries.append({
+                        "owner": owner,
+                        "emblem_entity_id": entity_id,
+                        "trigger_index": trigger_index,
+                        "trigger": event_type,
+                    })
+                else:
+                    record_summaries.append(self._debug_value(record))
+        return {
+            "batch_id": batch_id,
+            "record_count": len(records) if isinstance(records, list) else None,
+            "records": record_summaries,
+            "source_id": batch.get("source_id"),
+            "event_player": batch.get("event_player"),
+            "trigger_batch_id": batch.get("trigger_batch_id"),
+            "trigger_batch_order_index": batch.get("trigger_batch_order_index"),
+            "trigger_batch_record_count": batch.get("trigger_batch_record_count"),
+        }
+
+    def _suspended_event_debug_summary(self) -> dict | None:
+        state = self._suspended_event_state
+        if state is None:
+            return None
+        remaining = state.get("remaining_events", [])
+        event = state.get("event")
+        return {
+            "phase": state.get("phase"),
+            "event": (
+                self._event_debug_summary(event)
+                if isinstance(event, GameEvent)
+                else self._debug_value(event)
+            ),
+            "remaining_event_count": (
+                len(remaining) if isinstance(remaining, list) else None
+            ),
+            "remaining_events": [
+                self._event_debug_summary(candidate)
+                for candidate in remaining[:5]
+                if isinstance(candidate, GameEvent)
+            ] if isinstance(remaining, list) else [],
+        }
+
+    def _suspended_death_batch_debug_summary(self) -> dict | None:
+        batch = self._suspended_batch
+        if batch is None:
+            return None
+        return {
+            "batch_id": batch.batch_id,
+            "record_count": len(batch.records),
+            "records": [
+                self._death_record_debug_summary(record)
+                for record in batch.records[:5]
+            ],
+            "current_record": (
+                None
+                if self._suspended_record is None
+                else self._death_record_debug_summary(self._suspended_record)
+            ),
+            "remaining_lw_count": len(self._suspended_lw_records),
+            "remaining_lw_records": [
+                self._death_record_debug_summary(record)
+                for record in self._suspended_lw_records[:5]
+            ],
+        }
+
+    def _loop_diagnostics(self) -> dict:
+        pending_choice = None
+        if self.state.pending_choice is not None:
+            pending_choice = {
+                "player_index": self.state.pending_choice.player_index,
+                "choice_kind": self.state.pending_choice.choice_kind.value,
+                "request_id": self.state.pending_choice.request_id,
+                "option_count": len(self.state.pending_choice.options),
+                "options": [
+                    {
+                        "option_id": option.option_id,
+                        "entity_id": option.entity_id,
+                        "leader_player_index": option.leader_player_index,
+                    }
+                    for option in self.state.pending_choice.options[:5]
+                ],
+            }
+        return {
+            "turn": self.turn,
+            "active_player": self.current_player,
+            "resolution_steps": self.state.resolution_steps,
+            "limit": MAX_RESOLUTION_STEPS,
+            "pending_choice": pending_choice,
+            "recent_events": [
+                self._event_debug_summary(event)
+                for event in self.event_history[-20:]
+            ],
+            "event_queue": [
+                self._event_debug_summary(event)
+                for event in list(self.state.event_queue)[:20]
+            ],
+            "effect_stack": [
+                self._frame_debug_summary(frame)
+                for frame in self.state.effect_stack[-5:]
+            ],
+            "death_queue": [
+                {
+                    "batch_id": batch.batch_id,
+                    "record_count": len(batch.records),
+                    "records": [
+                        self._death_record_debug_summary(record)
+                        for record in batch.records[:5]
+                    ],
+                }
+                for batch in self.state.death_queue[-3:]
+            ],
+            "emblem_batches": [
+                self._emblem_batch_debug_summary(batch_id, batch)
+                for batch_id, batch in sorted(self._emblem_batches.items())[-5:]
+            ],
+            "recent_emblem_triggers": [
+                self._event_debug_summary(event)
+                for event in self.event_history[-40:]
+                if event.type is EventType.EMBLEM_TRIGGERED
+            ][-10:],
+            "suspended_event": self._suspended_event_debug_summary(),
+            "suspended_death_batch": self._suspended_death_batch_debug_summary(),
+            "suspended": {
+                "action": self._suspended_action,
+                "has_action_state": self._suspended_action_state is not None,
+                "has_event_state": self._suspended_event_state is not None,
+                "has_death_batch": self._suspended_batch is not None,
+                "has_death_record": self._suspended_record is not None,
+            },
+            "logs_tail": self.logs[-10:],
+        }
+
+    def deterministic_fingerprint(self) -> dict[str, object]:
+        """Return a comparable full-state summary for replay diagnostics.
+
+        The fingerprint intentionally includes hidden state such as deck order
+        and RNG state. It is for engine tests and debugging, not RL
+        observations or public match info.
+        """
+        return {
+            "state": {
+                "active_player": self.state.active_player,
+                "turn": self.state.turn,
+                "phase": self.state.phase.value,
+                "winner": self.state.winner,
+                "resolution_steps": self.state.resolution_steps,
+                "next_entity_id": self.state.next_entity_id,
+                "next_death_sequence": self.state._next_death_sequence,
+                "players": tuple(
+                    self._player_fingerprint(player)
+                    for player in self.state.players
+                ),
+                "event_queue": tuple(
+                    self._event_fingerprint(event)
+                    for event in self.state.event_queue
+                ),
+                "pending_choice": self._choice_fingerprint(
+                    self.state.pending_choice
+                ),
+                "effect_stack": tuple(
+                    self._effect_frame_fingerprint(frame)
+                    for frame in self.state.effect_stack
+                ),
+                "death_queue": tuple(
+                    self._death_batch_fingerprint(batch)
+                    for batch in self.state.death_queue
+                ),
+                "destroyed_followers": tuple(
+                    self._destroyed_follower_fingerprint(record)
+                    for record in self.state.destroyed_followers
+                ),
+            },
+            "logs": tuple(self.logs),
+            "event_history": tuple(
+                self._event_fingerprint(event)
+                for event in self.event_history
+            ),
+            "placeholder_ability_events": tuple(
+                self._placeholder_event_fingerprint(event)
+                for event in self.placeholder_ability_events
+            ),
+            "rng_state": self.random.getstate(),
+            "internals": {
+                "death_causes": tuple(
+                    (entity_id, cause.value)
+                    for entity_id, cause in sorted(self._death_causes.items())
+                ),
+                "suspended_batch": self._death_batch_fingerprint(
+                    self._suspended_batch
+                ),
+                "suspended_record": self._death_record_fingerprint(
+                    self._suspended_record
+                ),
+                "suspended_lw_records": tuple(
+                    self._death_record_fingerprint(record)
+                    for record in self._suspended_lw_records
+                ),
+                "suspended_action": self._suspended_action,
+                "suspended_action_state": self._fingerprint_value(
+                    self._suspended_action_state
+                ),
+                "suspended_event_state": self._fingerprint_value(
+                    self._suspended_event_state
+                ),
+                "spellboost_pending": self._spellboost_pending,
+                "pending_spellboost_player": self._pending_spellboost_player,
+                "pending_spellboost_source_card_id": (
+                    self._pending_spellboost_source_card_id
+                ),
+                "pending_spellboost_source_entity_id": (
+                    self._pending_spellboost_source_entity_id
+                ),
+                "emblem_batches": tuple(
+                    (
+                        batch_id,
+                        self._fingerprint_value(batch),
+                    )
+                    for batch_id, batch in sorted(self._emblem_batches.items())
+                ),
+                "next_emblem_batch_id": self._next_emblem_batch_id,
+                "emblem_expiration_batches": tuple(
+                    (
+                        batch_id,
+                        self._fingerprint_value(batch),
+                    )
+                    for batch_id, batch in sorted(
+                        self._emblem_expiration_batches.items()
+                    )
+                ),
+                "next_emblem_expiration_batch_id": (
+                    self._next_emblem_expiration_batch_id
+                ),
+                "stabilizing": self._stabilizing,
+                "next_modifier_id": self._next_modifier_id,
+                "next_choice_request_id": self._next_choice_request_id,
+            },
+        }
+
+    def _player_fingerprint(self, player: PlayerState) -> dict[str, object]:
+        return {
+            "class_id": player.class_id,
+            "class_name": player.class_name,
+            "health": player.health,
+            "max_mana": player.max_mana,
+            "mana": player.mana,
+            "fatigue": player.fatigue,
+            "evolution_points": player.evolution_points,
+            "super_evolution_points": player.super_evolution_points,
+            "turns_started": player.turns_started,
+            "evolved_this_turn": player.evolved_this_turn,
+            "super_evolved_this_turn": player.super_evolved_this_turn,
+            "cards_played_this_turn": player.cards_played_this_turn,
+            "followers_destroyed_this_turn": (
+                player.followers_destroyed_this_turn
+            ),
+            "cooperation": player.cooperation,
+            "shadows": player.shadows,
+            "faith": player.faith,
+            "next_graveyard_sequence": player._next_graveyard_sequence,
+            "next_emblem_sequence": player._next_emblem_sequence,
+            "deck": tuple(
+                self._card_fingerprint(card)
+                for card in player.deck
+            ),
+            "hand": tuple(
+                self._hand_card_fingerprint(card)
+                for card in player.hand
+            ),
+            "hand_entity_ids": tuple(player.hand_entity_ids),
+            "board": tuple(
+                self._board_entity_fingerprint(entity)
+                for entity in player.board
+            ),
+            "graveyard": tuple(
+                self._graveyard_card_fingerprint(card)
+                for card in player.graveyard
+            ),
+            "banished": tuple(
+                self._card_fingerprint(card)
+                for card in player.banished
+            ),
+            "emblems": tuple(
+                self._emblem_instance_fingerprint(emblem)
+                for emblem in player.emblems
+            ),
+        }
+
+    def _card_fingerprint(
+        self,
+        card: CardDefinition | None,
+    ) -> tuple[object, ...] | None:
+        if card is None:
+            return None
+        return (
+            card.card_id,
+            card.card_set_id,
+            card.class_id,
+            card.class_name,
+            card.name,
+            card.cost,
+            card.card_type,
+            card.attack,
+            card.life,
+            tuple(sorted(card.keywords)),
+            card.support_level,
+            card.is_collectible,
+            tuple(
+                (
+                    effect.kind,
+                    effect.amount,
+                    effect.secondary_amount,
+                )
+                for effect in card.fanfare_effects
+            ),
+            tuple(sorted(ability.value for ability in card.ability_keywords)),
+        )
+
+    def _hand_card_fingerprint(self, card) -> dict[str, object]:
+        if not isinstance(card, HandCard):
+            return {
+                "zone_type": type(card).__name__,
+                "definition": self._card_fingerprint(card),
+                "entity_id": None,
+            }
+        return {
+            "zone_type": "HandCard",
+            "definition": self._card_fingerprint(card.definition),
+            "entity_id": card.entity_id,
+            "current_cost": card.current_cost,
+            "spellboost_count": card.spellboost_count,
+            "spellboost_cost_reduction": card.spellboost_cost_reduction,
+            "cannot_be_played": card.cannot_be_played,
+            "origin": card.origin.value,
+            "source_origin": (
+                None if card.source_origin is None else card.source_origin.value
+            ),
+            "cost_modifiers": tuple(
+                self._cost_modifier_fingerprint(modifier)
+                for modifier in card.cost_modifiers
+            ),
+        }
+
+    def _board_entity_fingerprint(
+        self,
+        entity: BoardCard,
+    ) -> dict[str, object]:
+        base = {
+            "zone_type": type(entity).__name__,
+            "definition": self._card_fingerprint(entity.definition),
+            "entity_id": entity.entity_id,
+            "origin": entity.origin.value,
+            "source_origin": (
+                None if entity.source_origin is None else entity.source_origin.value
+            ),
+        }
+        if isinstance(entity, Unit):
+            base.update({
+                "attack": entity.attack,
+                "health": entity.health,
+                "max_health": entity.max_health,
+                "base_attack": entity.base_attack,
+                "base_health": entity.base_health,
+                "can_attack": entity.can_attack,
+                "attacks_remaining": entity.attacks_remaining,
+                "evolved": entity.evolved,
+                "super_evolved": entity.super_evolved,
+                "super_evolved_turn": entity.super_evolved_turn,
+                "rush_only": entity.rush_only,
+                "barrier_charges": entity.barrier_charges,
+                "ambush_active": entity.ambush_active,
+                "summoned_this_turn": entity.summoned_this_turn,
+                "permanent_keywords": tuple(sorted(entity.permanent_keywords)),
+                "temporary_keywords": tuple(
+                    self._keyword_modifier_fingerprint(modifier)
+                    for modifier in entity.temporary_keywords
+                ),
+                "removed_keywords": tuple(sorted(entity.removed_keywords)),
+                "temporary_keyword_removals": tuple(
+                    self._keyword_removal_fingerprint(modifier)
+                    for modifier in entity.temporary_keyword_removals
+                ),
+                "stat_modifiers": tuple(
+                    self._stat_modifier_fingerprint(modifier)
+                    for modifier in entity.stat_modifiers
+                ),
+                "attack_restrictions": tuple(
+                    self._attack_restriction_fingerprint(modifier)
+                    for modifier in entity.attack_restrictions
+                ),
+                "targeting_restrictions": tuple(
+                    self._targeting_restriction_fingerprint(modifier)
+                    for modifier in entity.targeting_restrictions
+                ),
+            })
+        elif isinstance(entity, Amulet):
+            base.update({
+                "countdown": entity.countdown,
+                "entered_turn": entity.entered_turn,
+                "pending_destroy": entity.pending_destroy,
+            })
+        return base
+
+    def _graveyard_card_fingerprint(
+        self,
+        card: GraveyardCard,
+    ) -> tuple[object, ...]:
+        return (
+            self._card_fingerprint(card.definition),
+            card.entity_id,
+            card.owner,
+            card.entered_sequence,
+            card.entry_cause,
+            card.derived,
+            card.origin.value,
+            card.token,
+            None if card.source_origin is None else card.source_origin.value,
+        )
+
+    def _destroyed_follower_fingerprint(
+        self,
+        record: DestroyedFollowerRecord,
+    ) -> tuple[object, ...]:
+        return (
+            self._card_fingerprint(record.definition),
+            record.owner,
+            record.death_sequence,
+            record.cause.value,
+            record.derived,
+            record.token,
+            record.origin.value,
+            None if record.source_origin is None else record.source_origin.value,
+        )
+
+    def _event_fingerprint(self, event: GameEvent) -> tuple[object, ...]:
+        return (
+            event.type.value,
+            event.player_index,
+            event.source_id,
+            event.target_id,
+            event.amount,
+            self._fingerprint_value(event.metadata),
+        )
+
+    def _choice_fingerprint(
+        self,
+        request: ChoiceRequest | None,
+    ) -> dict[str, object] | None:
+        if request is None:
+            return None
+        return {
+            "player_index": request.player_index,
+            "prompt": request.prompt,
+            "continuation_id": request.continuation_id,
+            "choice_kind": request.choice_kind.value,
+            "request_id": request.request_id,
+            "options": tuple(
+                (
+                    option.option_id,
+                    option.label,
+                    option.entity_id,
+                    option.leader_player_index,
+                )
+                for option in request.options
+            ),
+        }
+
+    def _effect_frame_fingerprint(
+        self,
+        frame: EffectFrame,
+    ) -> dict[str, object]:
+        return {
+            "controller": frame.controller,
+            "source_card_id": frame.source_card_id,
+            "source_name": frame.source_name,
+            "source_entity_id": frame.source_entity_id,
+            "source_card": self._card_fingerprint(frame.source_card),
+            "operations": tuple(
+                self._operation_fingerprint(operation)
+                for operation in frame.operations
+            ),
+            "label": frame.label,
+            "next_index": frame.next_index,
+            "pending_target_id": frame.pending_target_id,
+            "move_source_to_graveyard": frame.move_source_to_graveyard,
+            "all_target_ids": tuple(frame._all_target_ids),
+            "all_target_index": frame._all_target_index,
+            "defer_stabilize": frame.defer_stabilize,
+            "auto_resolve_choices": frame.auto_resolve_choices,
+            "hand_source_entity_id": frame._hand_source_entity_id,
+            "hand_source_origin": self._fingerprint_value(
+                frame._hand_source_origin
+            ),
+            "hand_source_origin_parent": self._fingerprint_value(
+                frame._hand_source_origin_parent
+            ),
+            "target_bindings": self._fingerprint_value(frame._target_bindings),
+            "target_binding_operations": self._fingerprint_value(
+                frame._target_binding_operations
+            ),
+            "decision_meta": self._fingerprint_value(frame._decision_meta),
+            "emblem_batch_id": frame.emblem_batch_id,
+            "emblem_activation_owner": frame.emblem_activation_owner,
+            "emblem_activation_entity_id": frame.emblem_activation_entity_id,
+            "emblem_activation_trigger_index": (
+                frame.emblem_activation_trigger_index
+            ),
+            "emblem_expiration_batch_id": frame.emblem_expiration_batch_id,
+            "expiring_emblem_owner": frame.expiring_emblem_owner,
+            "expiring_emblem_entity_id": frame.expiring_emblem_entity_id,
+        }
+
+    def _operation_fingerprint(
+        self,
+        operation: EffectOperation,
+    ) -> tuple[object, ...]:
+        return (
+            operation.kind.value,
+            operation.target.value,
+            operation.amount,
+            operation.secondary_amount,
+            operation.card_id,
+            operation.emblem_id,
+            operation.keyword,
+            operation.restriction,
+            tuple(
+                self._condition_fingerprint(condition)
+                for condition in operation.conditions
+            ),
+            self._expression_fingerprint(operation.amount_expr),
+            self._expression_fingerprint(operation.secondary_expr),
+            None if operation.mode is None else operation.mode.value,
+            operation.duration.value,
+            operation.set_attack,
+            operation.set_health,
+            operation.target_key,
+            tuple(
+                self._operation_fingerprint(nested)
+                for nested in operation.necromancy_operations
+            ),
+            operation.graveyard_cost_max,
+            operation.graveyard_cost_min,
+            operation.graveyard_follower_only,
+            operation.graveyard_card_type,
+            self._deck_filter_fingerprint(operation.deck_filter),
+            self._board_filter_fingerprint(operation.board_filter),
+            tuple(
+                self._operation_fingerprint(nested)
+                for nested in operation.then_operations
+            ),
+            tuple(
+                self._operation_fingerprint(nested)
+                for nested in operation.else_operations
+            ),
+            tuple(
+                (
+                    option.option_id,
+                    option.label,
+                    tuple(
+                        self._condition_fingerprint(condition)
+                        for condition in option.conditions
+                    ),
+                    tuple(
+                        self._operation_fingerprint(nested)
+                        for nested in option.operations
+                    ),
+                )
+                for option in operation.choose_one_options
+            ),
+            operation.optional_prompt,
+            tuple(
+                self._operation_fingerprint(nested)
+                for nested in operation.optional_operations
+            ),
+            operation.emblem_remove_mode,
+            operation.requires_target,
+        )
+
+    def _condition_fingerprint(
+        self,
+        condition: Condition,
+    ) -> tuple[object, ...]:
+        return (
+            condition.type.value,
+            condition.value,
+            condition.keyword,
+            self._board_filter_fingerprint(condition.board_filter),
+            tuple(
+                self._condition_fingerprint(nested)
+                for nested in condition.conditions
+            ),
+        )
+
+    def _expression_fingerprint(
+        self,
+        expression: ValueExpression | None,
+    ) -> tuple[object, ...] | None:
+        if expression is None:
+            return None
+        return (
+            expression.type.value,
+            expression.value,
+            tuple(
+                self._expression_fingerprint(value)
+                for value in expression.values
+            ),
+        )
+
+    def _deck_filter_fingerprint(
+        self,
+        deck_filter: DeckFilter | None,
+    ) -> tuple[object, ...] | None:
+        if deck_filter is None:
+            return None
+        return (
+            deck_filter.card_type,
+            deck_filter.class_id,
+            deck_filter.class_name,
+            deck_filter.cost_min,
+            deck_filter.cost_max,
+            deck_filter.card_id,
+            deck_filter.card_name,
+        )
+
+    def _board_filter_fingerprint(
+        self,
+        board_filter,
+    ) -> tuple[object, ...] | None:
+        if board_filter is None:
+            return None
+        return (
+            board_filter.card_type,
+            board_filter.cost_min,
+            board_filter.cost_max,
+            board_filter.card_id,
+            board_filter.card_name,
+            board_filter.evolved,
+        )
+
+    def _death_batch_fingerprint(
+        self,
+        batch: DeathBatch | None,
+    ) -> tuple[object, ...] | None:
+        if batch is None:
+            return None
+        return (
+            batch.batch_id,
+            tuple(
+                self._death_record_fingerprint(record)
+                for record in batch.records
+            ),
+        )
+
+    def _death_record_fingerprint(
+        self,
+        record: DeathRecord | None,
+    ) -> tuple[object, ...] | None:
+        if record is None:
+            return None
+        return (
+            record.owner,
+            record.entity_id,
+            record.card_id,
+            record.card_name,
+            record.card_type,
+            self._card_fingerprint(record.definition),
+            record.cause.value,
+            record.source_player,
+            record.source_entity_id,
+            record.board_position,
+            record.allows_last_words,
+        )
+
+    def _emblem_instance_fingerprint(
+        self,
+        emblem,
+    ) -> dict[str, object]:
+        return {
+            "emblem_id": emblem.emblem_id,
+            "definition": self._emblem_definition_fingerprint(
+                emblem.definition
+            ),
+            "entity_id": emblem.entity_id,
+            "controller": emblem.controller,
+            "created_sequence": emblem.created_sequence,
+            "countdown": emblem.countdown,
+            "countdown_before": emblem.countdown_before,
+            "activation_counts": tuple(
+                sorted(emblem.activation_counts.items())
+            ),
+            "once_per_turn_used": tuple(sorted(emblem._once_per_turn_used)),
+        }
+
+    def _emblem_definition_fingerprint(
+        self,
+        definition,
+    ) -> tuple[object, ...]:
+        return (
+            definition.emblem_id,
+            definition.source_card_id,
+            definition.stacking.value,
+            definition.countdown,
+            tuple(
+                (
+                    trigger.trigger,
+                    tuple(
+                        self._operation_fingerprint(operation)
+                        for operation in trigger.operations
+                    ),
+                    tuple(
+                        self._condition_fingerprint(condition)
+                        for condition in trigger.conditions
+                    ),
+                    None if trigger.turn_scope is None else trigger.turn_scope.value,
+                    None if trigger.event_scope is None else trigger.event_scope.value,
+                    trigger.once_per_turn,
+                    trigger.max_activations,
+                )
+                for trigger in definition.triggers
+            ),
+            tuple(
+                self._operation_fingerprint(operation)
+                for operation in definition.on_expire
+            ),
+        )
+
+    def _cost_modifier_fingerprint(
+        self,
+        modifier: CostModifier,
+    ) -> tuple[object, ...]:
+        return (
+            modifier.modifier_id,
+            modifier.mode,
+            modifier.amount,
+            modifier.duration,
+            modifier.expires_for_player,
+        )
+
+    def _keyword_modifier_fingerprint(
+        self,
+        modifier,
+    ) -> tuple[object, ...]:
+        return (
+            modifier.keyword,
+            modifier.duration,
+            modifier.expires_for_player,
+        )
+
+    def _keyword_removal_fingerprint(
+        self,
+        modifier,
+    ) -> tuple[object, ...]:
+        return (
+            modifier.keyword,
+            modifier.duration,
+            modifier.expires_for_player,
+            modifier.restore_barrier_charge,
+            modifier.restore_ambush,
+        )
+
+    def _stat_modifier_fingerprint(
+        self,
+        modifier: StatModifier,
+    ) -> tuple[object, ...]:
+        return (
+            modifier.modifier_id,
+            modifier.attack_delta,
+            modifier.health_delta,
+            modifier.duration,
+            modifier.expires_for_player,
+        )
+
+    def _attack_restriction_fingerprint(
+        self,
+        modifier,
+    ) -> tuple[object, ...]:
+        return (
+            modifier.restriction.value,
+            modifier.duration,
+            modifier.expires_for_player,
+        )
+
+    def _targeting_restriction_fingerprint(
+        self,
+        modifier,
+    ) -> tuple[object, ...]:
+        return (
+            modifier.restriction.value,
+            modifier.duration,
+            modifier.expires_for_player,
+        )
+
+    def _placeholder_event_fingerprint(
+        self,
+        event: PlaceholderAbilityEvent,
+    ) -> tuple[object, ...]:
+        return (
+            event.turn,
+            event.player_index,
+            event.card_id,
+            event.card_name,
+            event.ability.value,
+            event.event.value,
+        )
+
+    def _fingerprint_value(self, value):
+        if value is None or isinstance(value, (str, int, float, bool)):
+            return value
+        if isinstance(value, Enum):
+            return value.value
+        if isinstance(value, CardDefinition):
+            return self._card_fingerprint(value)
+        if isinstance(value, GameEvent):
+            return self._event_fingerprint(value)
+        if isinstance(value, EffectOperation):
+            return self._operation_fingerprint(value)
+        if isinstance(value, Condition):
+            return self._condition_fingerprint(value)
+        if isinstance(value, ValueExpression):
+            return self._expression_fingerprint(value)
+        if isinstance(value, EffectFrame):
+            return self._effect_frame_fingerprint(value)
+        if isinstance(value, ChoiceRequest):
+            return self._choice_fingerprint(value)
+        if isinstance(value, ChoiceOption):
+            return (
+                value.option_id,
+                value.label,
+                value.entity_id,
+                value.leader_player_index,
+            )
+        if isinstance(value, DeathBatch):
+            return self._death_batch_fingerprint(value)
+        if isinstance(value, DeathRecord):
+            return self._death_record_fingerprint(value)
+        if isinstance(value, DestroyedFollowerRecord):
+            return self._destroyed_follower_fingerprint(value)
+        if isinstance(value, GraveyardCard):
+            return self._graveyard_card_fingerprint(value)
+        if isinstance(value, HandCard):
+            return self._hand_card_fingerprint(value)
+        if isinstance(value, (Unit, Amulet)):
+            return self._board_entity_fingerprint(value)
+        if isinstance(value, (list, tuple)):
+            return tuple(self._fingerprint_value(item) for item in value)
+        if isinstance(value, (set, frozenset)):
+            return tuple(
+                sorted(
+                    (
+                        self._fingerprint_value(item)
+                        for item in value
+                    ),
+                    key=repr,
+                )
+            )
+        if isinstance(value, dict):
+            return tuple(
+                (
+                    self._fingerprint_value(key),
+                    self._fingerprint_value(item),
+                )
+                for key, item in sorted(value.items(), key=lambda pair: repr(pair[0]))
+            )
+        return repr(value)
+
     def _step(self) -> None:
         self.state.resolution_steps += 1
         if self.state.resolution_steps > MAX_RESOLUTION_STEPS:
-            recent = [e.type.value for e in self.event_history[-20:]]
-            frames = [(f.source_name, f.next_index, f.label) for f in self.state.effect_stack[-5:]]
-            batches = [len(b.records) for b in self.state.death_queue[-3:]]
+            diagnostics = self._loop_diagnostics()
             raise ResolutionLoopError(
                 f"Resolution step limit exceeded at turn {self.turn}, "
                 f"player {self.current_player + 1}. "
-                f"Recent events: {recent}. "
-                f"Effect stack: {frames}. "
-                f"Death queue sizes: {batches}."
+                f"Recent events: "
+                f"{[event['type'] for event in diagnostics['recent_events']]}. "
+                f"Queued events: "
+                f"{[event['type'] for event in diagnostics['event_queue']]}. "
+                f"Effect stack: {diagnostics['effect_stack']}. "
+                f"Death queue: {diagnostics['death_queue']}. "
+                f"Emblem batches: {diagnostics['emblem_batches']}."
+                ,
+                diagnostics=diagnostics,
             )
 
     def apply_damage(
@@ -970,11 +2139,28 @@ class GameEngine:
             )
             return DamageResult(requested_amount=amount)
 
-    def _super_evolution_prevents_damage(self, target: Unit) -> bool:
-        return target.super_evolved and self._entity_owner(target.entity_id) == self.current_player
+    def _unit_is_on_owners_turn(self, target: Unit) -> bool:
+        return self._entity_owner(target.entity_id) == self.state.active_player
+
+    def _super_evolution_prevents_damage(
+        self,
+        target: Unit,
+        damage_type: DamageType,
+    ) -> bool:
+        return (
+            damage_type is DamageType.EFFECT
+            and self._super_evolution_protection_active(target)
+        )
 
     def _super_evolution_prevents_effect_destroy(self, target: Unit) -> bool:
-        return target.super_evolved and self._entity_owner(target.entity_id) == self.current_player
+        return self._super_evolution_protection_active(target)
+
+    def _super_evolution_protection_active(self, target: Unit) -> bool:
+        return (
+            target.super_evolved
+            and target.super_evolved_turn == self.turn
+            and self._unit_is_on_owners_turn(target)
+        )
 
     def _apply_damage_to_unit(
         self,
@@ -990,7 +2176,7 @@ class GameEngine:
         prevented = 0
         barrier_consumed = False
 
-        if self._super_evolution_prevents_damage(target):
+        if self._super_evolution_prevents_damage(target, damage_type):
             self._emit(GameEvent(
                 EventType.DAMAGE_PREVENTED, controller,
                 source_id=source.entity_id if hasattr(source, 'entity_id') else None,
@@ -1289,7 +2475,10 @@ class GameEngine:
 
             operation = frame.operations[frame.next_index]
             is_meta_effect = operation.kind in (
-                EffectKind.CONDITIONAL, EffectKind.CHOOSE_ONE, EffectKind.OPTIONAL,
+                EffectKind.CONDITIONAL,
+                EffectKind.CHOOSE_ONE,
+                EffectKind.OPTIONAL,
+                EffectKind.TARGET_EXISTS,
             )
             if not is_meta_effect:
                 condition_state = evaluate_conditions_without_target(
@@ -1300,15 +2489,24 @@ class GameEngine:
                     frame.next_index += 1
                     continue
 
+            if operation.kind is EffectKind.TARGET_EXISTS:
+                self._checked_execute(operation, frame, None)
+                frame.next_index += 1
+                self._resolve_event_queue()
+                self._stabilize()
+                continue
+
             if operation.target is TargetKind.PREVIOUS_TARGET:
                 if not operation.target_key or operation.target_key not in frame._target_bindings:
                     raise IllegalCommand(
                         f"PREVIOUS_TARGET requires a bound target_key"
                     )
                 target_id = frame._target_bindings[operation.target_key]
-                try:
-                    self._find_board_entity(target_id)
-                except IllegalCommand:
+                if not self._previous_target_still_legal(
+                    frame,
+                    operation.target_key,
+                    target_id,
+                ):
                     frame.next_index += 1
                     continue
                 self._checked_execute(operation, frame, target_id)
@@ -1369,20 +2567,7 @@ class GameEngine:
                 target_id = chosen_gc.entity_id
 
             if is_choice_target(operation.target) and not is_graveyard_target(operation.target) and frame.pending_target_id is None:
-                options = self._target_options(operation, frame.controller)
-                if operation.conditions and operation.target is not TargetKind.OWN_HAND:
-                    candidates = target_candidates(operation, frame.controller, self.players)
-                    candidates = [e for e in candidates if not (isinstance(e, Unit) and e.ambush_active and self._entity_owner(e.entity_id) != frame.controller)]
-                    candidates = [e for e in candidates if evaluate_target_conditions(operation.conditions, e, frame.controller, self.players, source_entity_id=frame.source_entity_id)]
-                    options = build_choice_options(candidates)
-                    condition_state_for_choice = evaluate_conditions_without_target(
-                        operation.conditions,
-                        self._build_eval_context(frame, None),
-                    )
-                    if condition_state_for_choice is not PartialConditionResult.DEPENDS_ON_TARGET:
-                        options.extend(
-                            leader_choice_options(operation.target, frame.controller)
-                        )
+                options = self._target_choice_options(operation, frame)
 
                 if not options:
                     frame.next_index += 1
@@ -1515,6 +2700,7 @@ class GameEngine:
                         "target_key requires a resolved board entity"
                     ) from exc
                 frame._target_bindings[operation.target_key] = target_id
+                frame._target_binding_operations[operation.target_key] = operation
             frame.next_index += 1
             self._resolve_event_queue()
             self._stabilize()
@@ -1579,7 +2765,7 @@ class GameEngine:
             return False
 
         all_require_target = all(
-            is_choice_target(op.target) or is_random_target(op.target) or is_all_target(op.target)
+            self._operation_consumes_target(op)
             for op in operations
         )
         if all_require_target and all(
@@ -1652,6 +2838,73 @@ class GameEngine:
     def _requires_choice(operation: EffectOperation) -> bool:
         return is_choice_target(operation.target)
 
+    @staticmethod
+    def _operation_consumes_target(operation: EffectOperation) -> bool:
+        if operation.kind in {
+            EffectKind.CONDITIONAL,
+            EffectKind.CHOOSE_ONE,
+            EffectKind.OPTIONAL,
+            EffectKind.TARGET_EXISTS,
+        }:
+            return False
+        return (
+            is_choice_target(operation.target)
+            or is_random_target(operation.target)
+            or is_all_target(operation.target)
+        )
+
+    def _target_exists_for(
+        self,
+        operation: EffectOperation,
+        controller: int,
+        *,
+        source_entity_id: int | None = None,
+    ) -> bool:
+        condition_state = evaluate_conditions_without_target(
+            operation.conditions,
+            EvalContext(
+                controller=controller,
+                players=self.players,
+                source_entity_id=source_entity_id,
+            ),
+        )
+        if condition_state is PartialConditionResult.FALSE:
+            return False
+        if operation.target in {
+            TargetKind.OWN_HAND,
+            TargetKind.RANDOM_OWN_HAND,
+            TargetKind.ALL_OWN_HAND,
+        }:
+            return bool(self._hand_cards(controller))
+        if is_graveyard_target(operation.target):
+            return bool(graveyard_candidates(operation, controller, self.players))
+        candidates = target_candidates(operation, controller, self.players)
+        if is_choice_target(operation.target):
+            candidates = [
+                e for e in candidates
+                if not (
+                    isinstance(e, Unit)
+                    and e.ambush_active
+                    and self._entity_owner(e.entity_id) != controller
+                )
+            ]
+        if condition_state is PartialConditionResult.DEPENDS_ON_TARGET:
+            candidates = [
+                entity
+                for entity in candidates
+                if evaluate_target_conditions(
+                    operation.conditions,
+                    entity,
+                    controller,
+                    self.players,
+                    source_entity_id=source_entity_id,
+                )
+            ]
+        return bool(candidates) or (
+            has_leader_choice(operation.target)
+            and condition_state is not PartialConditionResult.DEPENDS_ON_TARGET
+        )
+
     def _target_options(
         self, operation: EffectOperation, controller: int
     ) -> list[ChoiceOption]:
@@ -1665,6 +2918,124 @@ class GameEngine:
         options = build_choice_options(candidates)
         options.extend(leader_choice_options(operation.target, controller))
         return options
+
+    def _target_choice_options(
+        self, operation: EffectOperation, frame: EffectFrame
+    ) -> list[ChoiceOption]:
+        if operation.target == TargetKind.OWN_HAND:
+            return hand_choice_options(self.players[frame.controller])
+        if is_graveyard_target(operation.target):
+            gc = graveyard_candidates(operation, frame.controller, self.players)
+            return build_graveyard_choice_options(gc)
+        options = self._target_options(operation, frame.controller)
+        if operation.conditions:
+            candidates = target_candidates(operation, frame.controller, self.players)
+            candidates = [
+                e for e in candidates
+                if not (
+                    isinstance(e, Unit)
+                    and e.ambush_active
+                    and self._entity_owner(e.entity_id) != frame.controller
+                )
+            ]
+            candidates = [
+                e for e in candidates
+                if evaluate_target_conditions(
+                    operation.conditions,
+                    e,
+                    frame.controller,
+                    self.players,
+                    source_entity_id=frame.source_entity_id,
+                )
+            ]
+            options = build_choice_options(candidates)
+            condition_state_for_choice = evaluate_conditions_without_target(
+                operation.conditions,
+                self._build_eval_context(frame, None),
+            )
+            if condition_state_for_choice is not PartialConditionResult.DEPENDS_ON_TARGET:
+                options.extend(
+                    leader_choice_options(operation.target, frame.controller)
+                )
+        return options
+
+    def _choice_option_still_legal(
+        self,
+        frame: EffectFrame,
+        request: ChoiceRequest,
+        option: ChoiceOption,
+    ) -> bool:
+        if frame.next_index >= len(frame.operations):
+            return False
+        if option.leader_player_index is not None:
+            return option.option_id in {
+                current.option_id
+                for current in self._target_choice_options(
+                    frame.operations[frame.next_index],
+                    frame,
+                )
+            }
+        if option.entity_id is None:
+            return True
+        operation = frame.operations[frame.next_index]
+        if request.choice_kind is ChoiceKind.GRAVEYARD:
+            legal_options = self._target_choice_options(operation, frame)
+        elif option.option_id.startswith("hand:"):
+            legal_options = self._target_choice_options(operation, frame)
+        elif option.option_id.startswith("entity:"):
+            legal_options = self._target_choice_options(operation, frame)
+        else:
+            return True
+        return option.option_id in {
+            current.option_id for current in legal_options
+        }
+
+    def _previous_target_still_legal(
+        self,
+        frame: EffectFrame,
+        target_key: str,
+        target_id: int,
+    ) -> bool:
+        try:
+            self._find_board_entity(target_id)
+        except IllegalCommand:
+            return False
+        binding_operation = frame._target_binding_operations.get(target_key)
+        if binding_operation is None:
+            return True
+        return f"entity:{target_id}" in {
+            option.option_id
+            for option in self._target_choice_options(binding_operation, frame)
+        }
+
+    def _stale_choice_reason(
+        self,
+        frame: EffectFrame,
+        request: ChoiceRequest,
+        option: ChoiceOption,
+    ) -> str:
+        if option.entity_id is None:
+            return "已不再是合法目标"
+        if request.choice_kind is ChoiceKind.GRAVEYARD:
+            in_graveyard = any(
+                gc.entity_id == option.entity_id
+                for gc in self.players[frame.controller].graveyard
+            )
+            return "已不在墓地" if not in_graveyard else "已不再是合法目标"
+        if option.option_id.startswith("hand:"):
+            in_hand = any(
+                hand_card.entity_id == option.entity_id
+                for hand_card in self._hand_cards(frame.controller)
+            )
+            return "已离手" if not in_hand else "已不再是合法目标"
+        if option.option_id.startswith("entity:"):
+            in_play = any(
+                entity.entity_id == option.entity_id
+                for player in self.players
+                for entity in player.board
+            )
+            return "已离场" if not in_play else "已不再是合法目标"
+        return "已不再是合法目标"
 
     def _tick_countdowns(self, player_index: int) -> None:
         amulets = [
@@ -1713,31 +3084,50 @@ class GameEngine:
     def _evolve_unit(self, unit_id: int, *, super_evolve: bool) -> None:
         player = self.players[self.current_player]
         unit = self._find_unit(player.board, unit_id)
-        if player.evolution_points <= 0:
-            raise IllegalCommand("No evolution points")
-        if player.turns_started < self.config.evolution_unlock_turn:
-            raise IllegalCommand("Evolution is not unlocked")
         if player.evolved_this_turn or unit.evolved:
             raise IllegalCommand("Evolution is not available")
+        if super_evolve:
+            if player.super_evolution_points <= 0:
+                raise IllegalCommand("No super evolution points")
+            unlock_turn = self._super_evolution_unlock_turn(self.current_player)
+            if player.turns_started < unlock_turn:
+                raise IllegalCommand("Super evolution is not unlocked")
+            if player.super_evolved_this_turn:
+                raise IllegalCommand("Super evolution is already used this turn")
+        else:
+            if player.evolution_points <= 0:
+                raise IllegalCommand("No evolution points")
+            if player.turns_started < self.config.evolution_unlock_turn:
+                raise IllegalCommand("Evolution is not unlocked")
 
         could_attack_leader = unit.can_attack_leader
         unit.evolved = True
         unit.super_evolved = super_evolve
+        unit.super_evolved_turn = self.turn if super_evolve else None
         unit.base_attack += 2
         unit.base_health += 2
         unit._recompute_attack()
         unit.health += 2
         unit._recompute_max()
-        player.evolution_points -= 1
+        if super_evolve:
+            player.super_evolution_points -= 1
+            player.super_evolved_this_turn = True
+        else:
+            player.evolution_points -= 1
         player.evolved_this_turn = True
         if unit.attacks_remaining > 0:
             unit.can_attack = True
             unit.rush_only = not could_attack_leader
         action_name = "超进化" if super_evolve else "进化"
+        resource_text = (
+            f"剩余超进化次数 {player.super_evolution_points}"
+            if super_evolve
+            else f"剩余进化点 {player.evolution_points}"
+        )
         self._log(
             self.current_player,
             f"{action_name} {unit.definition.name}，变为 {unit.attack}/{unit.health}，"
-            f"剩余进化点 {player.evolution_points}",
+            f"{resource_text}",
         )
         self._emit(
             GameEvent(
@@ -2021,6 +3411,7 @@ class GameEngine:
                     return
         self._emit(GameEvent(EventType.TURN_ENDED, player_index))
         self._log(player_index, "结束回合")
+        self.players[player_index].cards_played_this_turn = 0
         self.state.active_player = 1 - player_index
         self.state.turn += 1
         self._start_turn(self.current_player)
@@ -2058,6 +3449,7 @@ class GameEngine:
                     return
         self._emit(GameEvent(EventType.TURN_ENDED, player_index))
         self._log(player_index, "结束回合")
+        self.players[player_index].cards_played_this_turn = 0
         self.state.active_player = 1 - player_index
         self.state.turn += 1
         self._start_turn(self.current_player)
@@ -2103,45 +3495,18 @@ class GameEngine:
                 self._continue_effects()
                 self._try_spellboost_hand()
                 return
-            if option.entity_id is not None and option.option_id.startswith("entity:"):
-                on_board = False
-                for p in self.players:
-                    if any(e.entity_id == option.entity_id for e in p.board):
-                        on_board = True
-                        break
-                in_graveyard = any(
-                    gc.entity_id == option.entity_id for gc in self.players[command.player_index].graveyard
+            if not self._choice_option_still_legal(frame, request, option):
+                self._log(
+                    command.player_index,
+                    f"目标 {option.label} {self._stale_choice_reason(frame, request, option)}，跳过",
                 )
-                if not on_board and not in_graveyard:
-                    self._log(
-                        command.player_index,
-                        f"目标 {option.label} 已离场，跳过",
-                    )
-                    self.state.pending_choice = None
-                    self.state.phase = Phase.MAIN
-                    frame.pending_target_id = None
-                    frame.next_index += 1
-                    self._continue_effects()
-                    self._try_spellboost_hand()
-                    return
-            if option.entity_id is not None and option.option_id.startswith("hand:"):
-                found = False
-                for p in self.players:
-                    if option.entity_id in p.hand_entity_ids:
-                        found = True
-                        break
-                if not found:
-                    self._log(
-                        command.player_index,
-                        f"目标 {option.label} 已离手，跳过",
-                    )
-                    self.state.pending_choice = None
-                    self.state.phase = Phase.MAIN
-                    frame.pending_target_id = None
-                    frame.next_index += 1
-                    self._continue_effects()
-                    self._try_spellboost_hand()
-                    return
+                self.state.pending_choice = None
+                self.state.phase = Phase.MAIN
+                frame.pending_target_id = None
+                frame.next_index += 1
+                self._continue_effects()
+                self._try_spellboost_hand()
+                return
             frame.pending_target_id = (
                 _leader_target_id(option.leader_player_index)
                 if option.leader_player_index is not None
@@ -2174,6 +3539,7 @@ class GameEngine:
                 ei.reset_turn_limits()
         player.turns_started += 1
         player.evolved_this_turn = False
+        player.super_evolved_this_turn = False
         player.cards_played_this_turn = 0
         player.followers_destroyed_this_turn = 0
         player.max_mana = min(self.config.max_mana, player.max_mana + 1)
@@ -2441,13 +3807,49 @@ class GameEngine:
             return evaluate_expression(operation.secondary_expr, ctx)
         return operation.secondary_amount
 
+    def _source_entity_in_play(self, frame: EffectFrame) -> bool:
+        if frame.source_entity_id is None:
+            return False
+        return any(
+            entity.entity_id == frame.source_entity_id
+            for player in self.players
+            for entity in player.board
+        )
+
+    @staticmethod
+    def _operation_requires_source_in_play(
+        operation: EffectOperation,
+    ) -> bool:
+        return (
+            (
+                operation.target is TargetKind.SELF
+                and operation.kind in _SOURCE_REQUIRED_SELF_TARGET_EFFECTS
+            )
+            or _expression_depends_on_source(operation.amount_expr)
+            or _expression_depends_on_source(operation.secondary_expr)
+            or any(
+                _condition_depends_on_source(condition)
+                for condition in operation.conditions
+            )
+        )
+
     def _checked_execute(
         self, operation: EffectOperation, frame: EffectFrame, target_id: int | None,
     ) -> None:
+        if (
+            self._operation_requires_source_in_play(operation)
+            and not self._source_entity_in_play(frame)
+        ):
+            return
         if operation.target is TargetKind.SELF:
             target_id = frame.source_entity_id
         ctx = self._build_eval_context(frame, target_id)
-        is_meta = operation.kind in (EffectKind.CONDITIONAL, EffectKind.CHOOSE_ONE, EffectKind.OPTIONAL)
+        is_meta = operation.kind in (
+            EffectKind.CONDITIONAL,
+            EffectKind.CHOOSE_ONE,
+            EffectKind.OPTIONAL,
+            EffectKind.TARGET_EXISTS,
+        )
         if not is_meta:
             for cond in operation.conditions:
                 if not evaluate_condition(cond, ctx):
@@ -2457,29 +3859,12 @@ class GameEngine:
         if operation.kind is EffectKind.HEAL_LEADER:
             amount = max(0, amount)
         if operation.amount_expr is not None or operation.secondary_expr is not None or amount != operation.amount or secondary != operation.secondary_amount:
-            resolved = EffectOperation(
-                kind=operation.kind,
-                target=operation.target,
+            resolved = replace(
+                operation,
                 amount=amount,
                 secondary_amount=secondary,
-                card_id=operation.card_id,
-                emblem_id=operation.emblem_id,
-                keyword=operation.keyword,
-                restriction=operation.restriction,
-                conditions=operation.conditions,
-                mode=operation.mode,
-                duration=operation.duration,
-                set_attack=operation.set_attack,
-                set_health=operation.set_health,
-                target_key=operation.target_key,
-                necromancy_operations=operation.necromancy_operations,
-                graveyard_cost_max=operation.graveyard_cost_max,
-                graveyard_cost_min=operation.graveyard_cost_min,
-                graveyard_follower_only=operation.graveyard_follower_only,
-                graveyard_card_type=operation.graveyard_card_type,
-                deck_filter=operation.deck_filter,
-                board_filter=operation.board_filter,
-                emblem_remove_mode=operation.emblem_remove_mode,
+                amount_expr=None,
+                secondary_expr=None,
             )
             self._execute_effect(resolved, frame, target_id)
         else:
@@ -2644,6 +4029,8 @@ class GameEngine:
             self._execute_targeting_restriction(effect, frame, target_id, add=False)
         elif effect.kind is EffectKind.SPELLBOOST_HAND:
             self._execute_spellboost_hand(effect, frame, target_id)
+        elif effect.kind is EffectKind.ADD_COMBO:
+            self._execute_add_combo(effect, frame)
         elif effect.kind is EffectKind.NECROMANCY:
             self._execute_necromancy(effect, frame, target_id)
         elif effect.kind is EffectKind.REANIMATE:
@@ -2664,10 +4051,38 @@ class GameEngine:
             self._execute_choose_one(effect, frame)
         elif effect.kind is EffectKind.OPTIONAL:
             self._execute_optional(effect, frame)
+        elif effect.kind is EffectKind.TARGET_EXISTS:
+            self._execute_target_exists(effect, frame)
         else:
             self._log(
                 frame.controller,
                 f"[未实现效果] {name} {frame.label}: {effect.kind.value}",
+            )
+
+    def _execute_add_combo(
+        self,
+        effect: EffectOperation,
+        frame: EffectFrame,
+    ) -> None:
+        if effect.amount < 0:
+            raise IllegalCommand("add_combo amount must be non-negative")
+        player_index = (
+            1 - frame.controller
+            if effect.target is TargetKind.ENEMY_LEADER
+            else frame.controller
+        )
+        self._record_combo(
+            player_index,
+            effect.amount,
+            source_card_id=frame.source_card_id,
+            source_entity_id=frame.source_entity_id,
+            cause="effect",
+        )
+        if effect.amount:
+            owner_name = "对方" if player_index != frame.controller else "自己"
+            self._log(
+                frame.controller,
+                f"{frame.source_name} {frame.label}使{owner_name}的连击 +{effect.amount}",
             )
 
     def _execute_keyword_change(
@@ -2783,6 +4198,7 @@ class GameEngine:
         target.attacks_remaining = attacks_remaining
         target.evolved = False
         target.super_evolved = False
+        target.super_evolved_turn = None
         target.rush_only = False
         target.barrier_charges = fresh.barrier_charges
         target.ambush_active = fresh.ambush_active
@@ -3218,6 +4634,17 @@ class GameEngine:
         controller: int,
         source_entity_id: int | None,
     ) -> bool:
+        if operation.kind is EffectKind.TARGET_EXISTS:
+            branch_ops = (
+                operation.then_operations
+                if self._target_exists_for(
+                    operation,
+                    controller,
+                    source_entity_id=source_entity_id,
+                )
+                else operation.else_operations
+            )
+            return bool(branch_ops)
         condition_state = evaluate_conditions_without_target(
             operation.conditions,
             EvalContext(
@@ -3284,6 +4711,7 @@ class GameEngine:
         self, player_index: int, event_type: str,
         event_player: int | None = None,
         source_id: int | None = None,
+        event_metadata: dict[str, object] | None = None,
     ) -> None:
         records: list[tuple[int, int, int, str]] = []
         for pi in (0, 1):
@@ -3310,6 +4738,19 @@ class GameEngine:
             "records": records,
             "source_id": source_id,
             "event_player": event_player,
+            "trigger_batch_id": (
+                None if event_metadata is None else event_metadata.get("batch_id")
+            ),
+            "trigger_batch_order_index": (
+                None
+                if event_metadata is None
+                else event_metadata.get("batch_order_index")
+            ),
+            "trigger_batch_record_count": (
+                None
+                if event_metadata is None
+                else event_metadata.get("batch_record_count")
+            ),
         }
         self._queue_next_emblem_trigger(batch_id)
         self._continue_effects()
@@ -3381,22 +4822,13 @@ class GameEngine:
                 for operation in tr.operations
             ):
                 continue
-            self._emit(GameEvent(
-                EventType.EMBLEM_TRIGGERED, player_index,
-                source_id=ei.entity_id,
-                metadata={
-                    "emblem_id": ei.emblem_id,
-                    "emblem_entity_id": ei.entity_id,
-                    "owner": player_index,
-                    "trigger": event_type,
-                    "trigger_index": trigger_index,
-                    "activation_count": ei.activation_counts.get(trigger_index, 0) + 1,
-                    "source_card_id": ei.definition.source_card_id,
-                    "source_entity_id": batch.get("source_id"),
-                    "event_player": batch.get("event_player"),
-                    "active_player": self.state.active_player,
-                },
-            ))
+            self._record_emblem_trigger_event(
+                player_index,
+                ei,
+                trigger_index,
+                event_type,
+                batch,
+            )
             if not tr.operations:
                 ei.record_activation(trigger_index)
                 continue
@@ -3425,6 +4857,35 @@ class GameEngine:
             frame.emblem_activation_trigger_index = trigger_index
             return
         self._emblem_batches.pop(batch_id, None)
+
+    def _record_emblem_trigger_event(
+        self,
+        player_index: int,
+        emblem,
+        trigger_index: int,
+        event_type: str,
+        batch: dict[str, object],
+    ) -> None:
+        self.event_history.append(GameEvent(
+            EventType.EMBLEM_TRIGGERED,
+            player_index,
+            source_id=emblem.entity_id,
+            metadata={
+                "emblem_id": emblem.emblem_id,
+                "emblem_entity_id": emblem.entity_id,
+                "owner": player_index,
+                "trigger": event_type,
+                "trigger_index": trigger_index,
+                "activation_count": emblem.activation_counts.get(trigger_index, 0) + 1,
+                "source_card_id": emblem.definition.source_card_id,
+                "source_entity_id": batch.get("source_id"),
+                "event_player": batch.get("event_player"),
+                "active_player": self.state.active_player,
+                "trigger_batch_id": batch.get("trigger_batch_id"),
+                "trigger_batch_order_index": batch.get("trigger_batch_order_index"),
+                "trigger_batch_record_count": batch.get("trigger_batch_record_count"),
+            },
+        ))
 
     def _record_emblem_frame_activation(self, frame: EffectFrame) -> None:
         player_index = frame.emblem_activation_owner
@@ -3470,6 +4931,25 @@ class GameEngine:
                 label=f"{frame.label}/conditional",
             )
 
+    def _execute_target_exists(self, effect, frame) -> None:
+        branch_ops = (
+            effect.then_operations
+            if self._target_exists_for(
+                effect,
+                frame.controller,
+                source_entity_id=frame.source_entity_id,
+            )
+            else effect.else_operations
+        )
+        if branch_ops:
+            self._queue_effects(
+                frame.source_card,
+                frame.source_entity_id,
+                branch_ops,
+                controller=frame.controller,
+                label=f"{frame.label}/target_exists",
+            )
+
     def _execute_choose_one(self, effect, frame) -> None:
         legal_options = []
         for opt in effect.choose_one_options:
@@ -3494,7 +4974,7 @@ class GameEngine:
                 ):
                     continue
                 all_need_target = all(
-                    is_choice_target(op.target) or is_random_target(op.target) or is_all_target(op.target)
+                    self._operation_consumes_target(op)
                     for op in opt.operations
                 )
                 if all_need_target and all(
@@ -3550,7 +5030,7 @@ class GameEngine:
         ):
             return
         all_need_target = all(
-            is_choice_target(op.target) or is_random_target(op.target) or is_all_target(op.target)
+            self._operation_consumes_target(op)
             for op in ops
         )
         if all_need_target and all(
@@ -3985,6 +5465,8 @@ class GameEngine:
 
     def _resolve_event_queue(self) -> None:
         if self._suspended_event_state is not None and self.state.pending_choice is None:
+            if self._event_emblem_batch_active():
+                return
             self._resume_event_queue()
             return
 
@@ -4002,6 +5484,9 @@ class GameEngine:
             EventType.CARD_PLAYED: "card_played",
             EventType.FOLLOWER_SUMMONED: "follower_summoned",
             EventType.FOLLOWER_EVOLVED: "follower_evolved",
+            EventType.FOLLOWER_DESTROYED: "follower_destroyed",
+            EventType.AMULET_DESTROYED: "amulet_destroyed",
+            EventType.DEATH_BATCH_END: "death_batch_end",
             EventType.LEADER_HEALED: "leader_healed",
         }
         while self.state.event_queue:
@@ -4047,6 +5532,7 @@ class GameEngine:
                     emblem_trigger,
                     event_player=event.player_index,
                     source_id=event.source_id,
+                    event_metadata=event.metadata,
                 )
                 if self.state.pending_choice is not None:
                     self._save_event_continuation(
@@ -4097,10 +5583,20 @@ class GameEngine:
             self.state.event_queue.append(e)
         self._resolve_event_queue()
 
+    def _event_emblem_batch_active(self) -> bool:
+        if self._suspended_event_state is None:
+            return False
+        return any(
+            frame.emblem_batch_id is not None
+            for frame in self.state.effect_stack
+        )
+
     def _stabilize(self) -> None:
         if self._stabilizing:
             return
         if self.state.pending_choice is not None:
+            return
+        if self._event_emblem_batch_active():
             return
         self._stabilizing = True
         try:
@@ -4117,11 +5613,17 @@ class GameEngine:
     def _resume_death_batch(self) -> None:
         record = self._suspended_record
         self._suspended_record = None
+        batch = self._suspended_batch
+        metadata = (
+            self._last_words_event_metadata(batch, record)
+            if batch is not None
+            else {"card_id": record.card_id}
+        )
         self._emit(GameEvent(
             EventType.LAST_WORDS_COMPLETE,
             record.owner,
             source_id=record.entity_id,
-            metadata={"card_id": record.card_id},
+            metadata=metadata,
         ))
 
     def _continue_batch_lws(self) -> None:
@@ -4130,7 +5632,7 @@ class GameEngine:
         while lw_records:
             record = lw_records[0]
             self._suspended_lw_records = lw_records[1:]
-            self._execute_last_words(record)
+            self._execute_last_words(record, batch)
             self._continue_effects()
             if self.state.pending_choice is not None:
                 self._suspended_record = record
@@ -4141,13 +5643,13 @@ class GameEngine:
                 EventType.LAST_WORDS_COMPLETE,
                 record.owner,
                 source_id=record.entity_id,
-                metadata={"card_id": record.card_id},
+                metadata=self._last_words_event_metadata(batch, record),
             ))
             lw_records = self._suspended_lw_records
         self._emit(GameEvent(
             EventType.DEATH_BATCH_END,
             self.current_player,
-            metadata={"batch_id": batch.batch_id},
+            metadata=self._death_batch_event_metadata(batch),
         ))
         self._resolve_event_queue()
         self._suspended_batch = None
@@ -4163,18 +5665,23 @@ class GameEngine:
                 GameEvent(
                     EventType.DEATH_BATCH_START,
                     self.current_player,
-                    metadata={"batch_id": batch.batch_id, "count": len(batch.records)},
+                    metadata=self._death_batch_event_metadata(batch),
                 )
             )
+            ordered_records = self._death_batch_ordered_records(batch)
 
-            for record in sorted(batch.records, key=self._last_words_order_key):
+            for record in ordered_records:
                 player = self.players[record.owner]
+                event_metadata = self._death_event_metadata(batch, record)
                 if record.card_type == "护符":
                     self._log(record.owner, f"护符 {record.card_name} 被破坏")
                     self._emit(GameEvent(
                         EventType.AMULET_DESTROYED, record.owner,
                         source_id=record.entity_id,
-                        metadata={"card_id": record.card_id, "cause": record.cause.value, "definition": record.definition},
+                        metadata={
+                            **event_metadata,
+                            "definition": record.definition,
+                        },
                     ))
                 else:
                     player.followers_destroyed_this_turn += 1
@@ -4182,27 +5689,24 @@ class GameEngine:
                     self._emit(GameEvent(
                         EventType.FOLLOWER_DESTROYED, record.owner,
                         source_id=record.entity_id,
-                        metadata={"card_id": record.card_id, "cause": record.cause.value, "definition": record.definition},
+                        metadata={
+                            **event_metadata,
+                            "definition": record.definition,
+                        },
                     ))
                 self._emit(GameEvent(
                     EventType.ENTITY_LEFT_PLAY, record.owner,
                     source_id=record.entity_id,
-                    metadata={"card_id": record.card_id, "cause": record.cause.value},
+                    metadata=event_metadata,
                 ))
 
-            self._resolve_event_queue()
-
-            lw_records = [r for r in sorted(batch.records, key=self._last_words_order_key) if r.allows_last_words]
-            if not lw_records:
-                self._emit(GameEvent(
-                    EventType.DEATH_BATCH_END, self.current_player,
-                    metadata={"batch_id": batch.batch_id},
-                ))
-                self._resolve_event_queue()
-                continue
-
+            lw_records = [r for r in ordered_records if r.allows_last_words]
             self._suspended_batch = batch
             self._suspended_lw_records = list(lw_records)
+            self._resolve_event_queue()
+            if self.state.pending_choice is not None:
+                return
+
             self._continue_batch_lws()
             if self.state.pending_choice is not None:
                 return
@@ -4282,13 +5786,109 @@ class GameEngine:
         active = self.state.active_player
         return (0 if record.owner == active else 1, record.owner, record.board_position)
 
-    def _execute_last_words(self, record: DeathRecord) -> None:
+    def _death_batch_ordered_records(self, batch: DeathBatch) -> list[DeathRecord]:
+        return sorted(batch.records, key=self._last_words_order_key)
+
+    def _death_record_order_index(self, batch: DeathBatch, record: DeathRecord) -> int:
+        for index, candidate in enumerate(self._death_batch_ordered_records(batch)):
+            if candidate.entity_id == record.entity_id:
+                return index
+        return -1
+
+    def _death_batch_composition(self, batch: DeathBatch) -> dict[str, object]:
+        owner_counts = []
+        total_followers = 0
+        total_amulets = 0
+        for owner in (0, 1):
+            owner_records = [record for record in batch.records if record.owner == owner]
+            follower_count = sum(
+                1 for record in owner_records
+                if record.card_type != "护符"
+            )
+            amulet_count = sum(
+                1 for record in owner_records
+                if record.card_type == "护符"
+            )
+            total_followers += follower_count
+            total_amulets += amulet_count
+            owner_counts.append({
+                "owner": owner,
+                "record_count": len(owner_records),
+                "follower_count": follower_count,
+                "amulet_count": amulet_count,
+            })
+        return {
+            "follower_count": total_followers,
+            "amulet_count": total_amulets,
+            "owner_counts": owner_counts,
+        }
+
+    def _death_batch_event_metadata(self, batch: DeathBatch) -> dict[str, object]:
+        ordered_records = self._death_batch_ordered_records(batch)
+        composition = self._death_batch_composition(batch)
+        return {
+            "batch_id": batch.batch_id,
+            "count": len(batch.records),
+            "batch_record_count": len(batch.records),
+            "active_player": self.state.active_player,
+            **composition,
+            "ordered_records": [
+                self._death_record_order_summary(batch, record)
+                for record in ordered_records
+            ],
+        }
+
+    def _death_record_order_summary(
+        self,
+        batch: DeathBatch,
+        record: DeathRecord,
+    ) -> dict[str, object]:
+        return {
+            "batch_order_index": self._death_record_order_index(batch, record),
+            "owner": record.owner,
+            "entity_id": record.entity_id,
+            "card_id": record.card_id,
+            "card_type": record.card_type,
+            "board_position": record.board_position,
+            "cause": record.cause.value,
+            "allows_last_words": record.allows_last_words,
+        }
+
+    def _death_event_metadata(
+        self,
+        batch: DeathBatch,
+        record: DeathRecord,
+    ) -> dict[str, object]:
+        composition = self._death_batch_composition(batch)
+        return {
+            "card_id": record.card_id,
+            "cause": record.cause.value,
+            "batch_id": batch.batch_id,
+            "batch_order_index": self._death_record_order_index(batch, record),
+            "batch_record_count": len(batch.records),
+            "batch_follower_count": composition["follower_count"],
+            "batch_amulet_count": composition["amulet_count"],
+            "batch_owner_counts": composition["owner_counts"],
+            "active_player": self.state.active_player,
+            "owner": record.owner,
+            "card_type": record.card_type,
+            "board_position": record.board_position,
+        }
+
+    def _last_words_event_metadata(
+        self,
+        batch: DeathBatch,
+        record: DeathRecord,
+    ) -> dict[str, object]:
+        return self._death_event_metadata(batch, record)
+
+    def _execute_last_words(self, record: DeathRecord, batch: DeathBatch) -> None:
         self._step()
         self._emit(GameEvent(
             EventType.LAST_WORDS_START,
             record.owner,
             source_id=record.entity_id,
-            metadata={"card_id": record.card_id},
+            metadata=self._last_words_event_metadata(batch, record),
         ))
         self._log(record.owner, f"{record.card_name} 谢幕曲开始")
 
@@ -4297,17 +5897,13 @@ class GameEngine:
             operations = self.rulebook.operations_for(record.card_id, Trigger.COUNTDOWN_EXPIRED)
 
         if operations:
-            saved_active = self.state.active_player
-            self.state.active_player = record.owner
-            try:
-                self._queue_effects(
-                    record.definition,
-                    record.entity_id,
-                    operations,
-                    label="谢幕曲",
-                )
-            finally:
-                self.state.active_player = saved_active
+            self._queue_effects(
+                record.definition,
+                record.entity_id,
+                operations,
+                controller=record.owner,
+                label="谢幕曲",
+            )
 
     def _check_game_over(self) -> None:
         dead = [index for index, player in enumerate(self.players) if player.health <= 0]
@@ -4377,6 +5973,64 @@ class GameEngine:
                 raise IllegalCommand(
                     f"Invariant failed: negative choice request_id {request.request_id}"
                 )
+            if not isinstance(request.choice_kind, ChoiceKind):
+                raise IllegalCommand(
+                    f"Invariant failed: invalid choice_kind {request.choice_kind!r}"
+                )
+            seen_option_ids: set[str] = set()
+            for option_index, option in enumerate(request.options):
+                zone = f"pending_choice option[{option_index}]"
+                if not isinstance(option.option_id, str) or not option.option_id:
+                    raise IllegalCommand(
+                        f"Invariant failed: {zone} has empty option_id"
+                    )
+                if option.option_id in seen_option_ids:
+                    raise IllegalCommand(
+                        f"Invariant failed: duplicate choice option_id {option.option_id!r}"
+                    )
+                seen_option_ids.add(option.option_id)
+                if option.entity_id is not None and option.entity_id <= 0:
+                    raise IllegalCommand(
+                        f"Invariant failed: {zone} has non-positive entity_id "
+                        f"{option.entity_id}"
+                    )
+                if option.entity_id is not None:
+                    for prefix in ("entity:", "hand:"):
+                        if not option.option_id.startswith(prefix):
+                            continue
+                        raw_target_id = option.option_id[len(prefix):]
+                        try:
+                            option_target_id = int(raw_target_id)
+                        except ValueError as exc:
+                            raise IllegalCommand(
+                                f"Invariant failed: {zone} {prefix} option_id "
+                                f"has malformed entity id {raw_target_id!r}"
+                            ) from exc
+                        if option_target_id != option.entity_id:
+                            raise IllegalCommand(
+                                f"Invariant failed: {zone} {prefix} option_id mismatch: "
+                                f"{option_target_id} != {option.entity_id}"
+                            )
+                        break
+                if (
+                    option.leader_player_index is not None
+                    and option.leader_player_index not in (0, 1)
+                ):
+                    raise IllegalCommand(
+                        f"Invariant failed: {zone} leader_player_index out of range: "
+                        f"{option.leader_player_index}"
+                    )
+                if option.entity_id is not None and option.leader_player_index is not None:
+                    raise IllegalCommand(
+                        f"Invariant failed: {zone} cannot target both entity and leader"
+                    )
+                if option.leader_player_index is not None:
+                    expected_option_id = f"leader:{option.leader_player_index}"
+                    if option.option_id != expected_option_id:
+                        raise IllegalCommand(
+                            f"Invariant failed: {zone} leader option_id mismatch: "
+                            f"{option.option_id!r} != {expected_option_id!r}"
+                        )
         elif state.phase is Phase.AWAITING_CHOICE:
             raise IllegalCommand("Invariant failed: AWAITING_CHOICE without pending_choice")
 
@@ -4424,6 +6078,7 @@ class GameEngine:
             for name, value in (
                 ("fatigue", player.fatigue),
                 ("evolution_points", player.evolution_points),
+                ("super_evolution_points", player.super_evolution_points),
                 ("turns_started", player.turns_started),
                 ("cards_played_this_turn", player.cards_played_this_turn),
                 ("followers_destroyed_this_turn", player.followers_destroyed_this_turn),
@@ -4475,6 +6130,23 @@ class GameEngine:
                         raise IllegalCommand(
                             f"Invariant failed: {zone} attacks_remaining is negative"
                         )
+                    if entity.super_evolved:
+                        if entity.super_evolved_turn is None:
+                            raise IllegalCommand(
+                                f"Invariant failed: {zone} super_evolved without turn stamp"
+                            )
+                        if entity.super_evolved_turn <= 0:
+                            raise IllegalCommand(
+                                f"Invariant failed: {zone} super_evolved_turn is not positive"
+                            )
+                        if entity.super_evolved_turn > state.turn:
+                            raise IllegalCommand(
+                                f"Invariant failed: {zone} super_evolved_turn is in the future"
+                            )
+                    elif entity.super_evolved_turn is not None:
+                        raise IllegalCommand(
+                            f"Invariant failed: {zone} super_evolved_turn without super_evolved"
+                        )
                     if entity.barrier_charges < 0:
                         raise IllegalCommand(
                             f"Invariant failed: {zone} barrier_charges is negative"
@@ -4513,9 +6185,185 @@ class GameEngine:
                 remember(emblem.entity_id, zone)
 
         for frame_index, frame in enumerate(state.effect_stack):
+            zone = f"effect_stack[{frame_index}]"
+            if not isinstance(frame, EffectFrame):
+                raise IllegalCommand(
+                    f"Invariant failed: {zone} is not EffectFrame"
+                )
             if frame.controller not in (0, 1):
                 raise IllegalCommand(
-                    f"Invariant failed: effect_stack[{frame_index}] controller out of range"
+                    f"Invariant failed: {zone} controller out of range"
+                )
+            if not isinstance(frame.operations, tuple):
+                raise IllegalCommand(
+                    f"Invariant failed: {zone} operations must be a tuple"
+                )
+            if (
+                not isinstance(frame.next_index, int)
+                or isinstance(frame.next_index, bool)
+                or frame.next_index < 0
+                or frame.next_index > len(frame.operations)
+            ):
+                raise IllegalCommand(
+                    f"Invariant failed: {zone} next_index out of range: "
+                    f"{frame.next_index}/{len(frame.operations)}"
+                )
+            source_card_id = getattr(frame.source_card, "card_id", None)
+            if frame.source_card_id != source_card_id:
+                raise IllegalCommand(
+                    f"Invariant failed: {zone} source_card_id mismatch"
+                )
+            if not isinstance(frame.source_name, str) or not frame.source_name:
+                raise IllegalCommand(
+                    f"Invariant failed: {zone} source_name is empty"
+                )
+            if frame.source_entity_id is not None and frame.source_entity_id <= 0:
+                raise IllegalCommand(
+                    f"Invariant failed: {zone} source_entity_id must be positive"
+                )
+            if not isinstance(frame.label, str) or not frame.label:
+                raise IllegalCommand(
+                    f"Invariant failed: {zone} label is empty"
+                )
+
+            def check_effect_target_id(value: int | None, field: str) -> None:
+                if value is None:
+                    return
+                if not isinstance(value, int) or isinstance(value, bool):
+                    raise IllegalCommand(
+                        f"Invariant failed: {zone} {field} is not an integer target id"
+                    )
+                if _is_leader_target_id(value):
+                    leader_index = _leader_index_from_target_id(value)
+                    if leader_index not in (0, 1):
+                        raise IllegalCommand(
+                            f"Invariant failed: {zone} {field} leader index out of range"
+                        )
+                elif value <= 0:
+                    raise IllegalCommand(
+                        f"Invariant failed: {zone} {field} must be positive or leader"
+                    )
+
+            check_effect_target_id(frame.pending_target_id, "pending_target_id")
+            if not isinstance(frame._all_target_ids, list):
+                raise IllegalCommand(
+                    f"Invariant failed: {zone} _all_target_ids must be a list"
+                )
+            for target_index, target_id in enumerate(frame._all_target_ids):
+                check_effect_target_id(target_id, f"_all_target_ids[{target_index}]")
+            if (
+                not isinstance(frame._all_target_index, int)
+                or isinstance(frame._all_target_index, bool)
+                or frame._all_target_index < 0
+                or frame._all_target_index > len(frame._all_target_ids)
+            ):
+                raise IllegalCommand(
+                    f"Invariant failed: {zone} _all_target_index out of range"
+                )
+            if not isinstance(frame._target_bindings, dict):
+                raise IllegalCommand(
+                    f"Invariant failed: {zone} _target_bindings must be a dict"
+                )
+            for key, target_id in frame._target_bindings.items():
+                if not isinstance(key, str) or not key:
+                    raise IllegalCommand(
+                        f"Invariant failed: {zone} has invalid target binding key"
+                    )
+                check_effect_target_id(target_id, f"_target_bindings[{key!r}]")
+            if not isinstance(frame._target_binding_operations, dict):
+                raise IllegalCommand(
+                    f"Invariant failed: {zone} _target_binding_operations must be a dict"
+                )
+            for key, operation in frame._target_binding_operations.items():
+                if key not in frame._target_bindings:
+                    raise IllegalCommand(
+                        f"Invariant failed: {zone} target binding operation lacks target"
+                    )
+                if not isinstance(operation, EffectOperation):
+                    raise IllegalCommand(
+                        f"Invariant failed: {zone} target binding operation is invalid"
+                    )
+            if not isinstance(frame._decision_meta, dict):
+                raise IllegalCommand(
+                    f"Invariant failed: {zone} _decision_meta must be a dict"
+                )
+            for operation_index, operation in enumerate(frame.operations):
+                operation_zone = f"{zone} operation[{operation_index}]"
+                if not isinstance(operation, EffectOperation):
+                    raise IllegalCommand(
+                        f"Invariant failed: {operation_zone} is not EffectOperation"
+                    )
+                if not isinstance(operation.kind, EffectKind):
+                    raise IllegalCommand(
+                        f"Invariant failed: {operation_zone} kind is invalid"
+                    )
+                if not isinstance(operation.target, TargetKind):
+                    raise IllegalCommand(
+                        f"Invariant failed: {operation_zone} target is invalid"
+                    )
+
+            def check_positive_int(value: int | None, field: str) -> None:
+                if value is None:
+                    return
+                if not isinstance(value, int) or isinstance(value, bool) or value <= 0:
+                    raise IllegalCommand(
+                        f"Invariant failed: {zone} {field} must be positive"
+                    )
+
+            check_positive_int(frame.emblem_batch_id, "emblem_batch_id")
+            if frame.emblem_batch_id is None:
+                if any(
+                    value is not None
+                    for value in (
+                        frame.emblem_activation_owner,
+                        frame.emblem_activation_entity_id,
+                        frame.emblem_activation_trigger_index,
+                    )
+                ):
+                    raise IllegalCommand(
+                        f"Invariant failed: {zone} emblem activation fields require batch"
+                    )
+            else:
+                if frame.emblem_activation_owner not in (0, 1):
+                    raise IllegalCommand(
+                        f"Invariant failed: {zone} emblem_activation_owner out of range"
+                    )
+                check_positive_int(
+                    frame.emblem_activation_entity_id,
+                    "emblem_activation_entity_id",
+                )
+                if (
+                    not isinstance(frame.emblem_activation_trigger_index, int)
+                    or isinstance(frame.emblem_activation_trigger_index, bool)
+                    or frame.emblem_activation_trigger_index < 0
+                ):
+                    raise IllegalCommand(
+                        f"Invariant failed: {zone} emblem_activation_trigger_index invalid"
+                    )
+
+            check_positive_int(
+                frame.emblem_expiration_batch_id,
+                "emblem_expiration_batch_id",
+            )
+            if frame.emblem_expiration_batch_id is None:
+                if any(
+                    value is not None
+                    for value in (
+                        frame.expiring_emblem_owner,
+                        frame.expiring_emblem_entity_id,
+                    )
+                ):
+                    raise IllegalCommand(
+                        f"Invariant failed: {zone} emblem expiration fields require batch"
+                    )
+            else:
+                if frame.expiring_emblem_owner not in (0, 1):
+                    raise IllegalCommand(
+                        f"Invariant failed: {zone} expiring_emblem_owner out of range"
+                    )
+                check_positive_int(
+                    frame.expiring_emblem_entity_id,
+                    "expiring_emblem_entity_id",
                 )
         for event_index, event in enumerate(state.event_queue):
             if event.player_index not in (0, 1):
