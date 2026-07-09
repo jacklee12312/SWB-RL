@@ -56,6 +56,30 @@ _TARGET_DEPENDENT_CONDITIONS = frozenset({
     ConditionType.TARGET_HAS_KEYWORD,
 })
 
+_UNSUPPORTED_MULTI_TARGET_FIELDS = frozenset({
+    "target_count",
+    "target_count_expr",
+    "targets",
+    "target_ids",
+    "allow_duplicate_targets",
+    "allow_duplicates",
+    "duplicate_targets",
+})
+
+
+def _reject_unsupported_multi_target_fields(
+    raw: dict,
+    source_file: str,
+    card_id: int,
+) -> None:
+    fields = sorted(set(raw) & _UNSUPPORTED_MULTI_TARGET_FIELDS)
+    if fields:
+        raise ValueError(
+            f"{source_file} card {card_id}: multi-target choices are unsupported; "
+            f"fields {fields} require explicit command and duplicate-target "
+            f"semantics before they can be used"
+        )
+
 
 def _check_target_conditions(conditions: tuple[Condition, ...], source: str) -> set[str]:
     invalid: set[str] = set()
@@ -415,7 +439,8 @@ def _parse_emblem_definition(raw: dict, source_file: str, ops_parser) -> EmblemD
     triggers: list[EmblemTriggerRule] = []
     _VALID_EMBLEM_TRIGGERS = frozenset({
         "turn_start", "turn_end", "follower_summoned",
-        "follower_evolved", "card_played", "leader_healed",
+        "follower_evolved", "follower_destroyed", "amulet_destroyed",
+        "card_played", "leader_healed", "death_batch_end",
     })
     for i, rt in enumerate(raw_triggers):
         t_source = f"{error_prefix}/triggers[{i}]"
@@ -648,6 +673,42 @@ _BINDABLE_TARGETS = frozenset({
     TargetKind.RANDOM_ENEMY_BOARD,
 })
 
+_REQUIRES_TARGET_TARGETS = frozenset({
+    TargetKind.OWN_UNIT,
+    TargetKind.ENEMY_UNIT,
+    TargetKind.ANY_UNIT,
+    TargetKind.OWN_AMULET,
+    TargetKind.ENEMY_AMULET,
+    TargetKind.ANY_AMULET,
+    TargetKind.OWN_BOARD,
+    TargetKind.ENEMY_BOARD,
+    TargetKind.ANY_BOARD,
+    TargetKind.OWN_HAND,
+    TargetKind.OWN_GRAVEYARD_CARD,
+    TargetKind.RANDOM_OWN_UNIT,
+    TargetKind.RANDOM_ENEMY_UNIT,
+    TargetKind.RANDOM_OWN_BOARD,
+    TargetKind.RANDOM_ENEMY_BOARD,
+    TargetKind.RANDOM_OWN_HAND,
+    TargetKind.RANDOM_OWN_GRAVEYARD_CARD,
+    TargetKind.ALL_OWN_UNITS,
+    TargetKind.ALL_ENEMY_UNITS,
+    TargetKind.ALL_UNITS,
+    TargetKind.ALL_OWN_BOARD,
+    TargetKind.ALL_ENEMY_BOARD,
+    TargetKind.ALL_BOARD,
+    TargetKind.ALL_OWN_AMULETS,
+    TargetKind.ALL_ENEMY_AMULETS,
+    TargetKind.ALL_OWN_HAND,
+    TargetKind.ALL_OWN_GRAVEYARD_CARDS,
+})
+
+_TARGET_EXISTS_TARGETS = _REQUIRES_TARGET_TARGETS | frozenset({
+    TargetKind.OWN_UNIT_OR_LEADER,
+    TargetKind.ENEMY_UNIT_OR_LEADER,
+    TargetKind.ANY_UNIT_OR_LEADER,
+})
+
 
 def _validate_target_keys(operations: tuple[EffectOperation, ...], source: str) -> None:
     defined: set[str] = set()
@@ -711,6 +772,7 @@ def _parse_operation(raw: dict, source_file: str, card_id: int, _depth: int = 0)
             f"{error_prefix}: operation must be an object, "
             f"got {type(raw).__name__}"
         )
+    _reject_unsupported_multi_target_fields(raw, source_file, card_id)
     try:
         kind = EffectKind(raw["kind"])
         raw_target = raw.get("target", "own_leader" if kind in (EffectKind.NECROMANCY, EffectKind.REANIMATE, EffectKind.CONDITIONAL, EffectKind.CHOOSE_ONE, EffectKind.OPTIONAL) else None)
@@ -878,6 +940,23 @@ def _parse_operation(raw: dict, source_file: str, card_id: int, _depth: int = 0)
         raise ValueError(
             f"{source_file}/requires_target card {card_id}: must be boolean"
         )
+    if requires_target and target not in _REQUIRES_TARGET_TARGETS:
+        raise ValueError(
+            f"{source_file}/requires_target card {card_id}: requires_target "
+            f"is only valid for targets with explicit candidate sets, "
+            f"got {target.value!r}"
+        )
+    if kind is EffectKind.TARGET_EXISTS:
+        if requires_target:
+            raise ValueError(
+                f"{source_file}/requires_target card {card_id}: "
+                "target_exists defines its own no-target branch semantics"
+            )
+        if target not in _TARGET_EXISTS_TARGETS:
+            raise ValueError(
+                f"{source_file}/target card {card_id}: target_exists requires "
+                f"a target with explicit candidate sets, got {target.value!r}"
+            )
 
     necromancy_ops: tuple = ()
     if kind is EffectKind.NECROMANCY:
@@ -925,6 +1004,19 @@ def _parse_operation(raw: dict, source_file: str, card_id: int, _depth: int = 0)
                 f"{source_file}/amount card {card_id}: "
                 f"REANIMATE amount must be an integer, got {raw_amount!r}"
             )
+
+    if kind is EffectKind.ADD_COMBO:
+        if target not in (TargetKind.OWN_LEADER, TargetKind.ENEMY_LEADER):
+            raise ValueError(
+                f"{source_file} card {card_id}: add_combo requires own_leader "
+                f"or enemy_leader target, got {target.value!r}"
+            )
+        if raw_amount is None or isinstance(raw_amount, dict):
+            raise ValueError(
+                f"{source_file}/amount card {card_id}: "
+                f"add_combo requires a non-negative integer amount"
+            )
+        _parse_non_negative_int(raw_amount, f"{source_file}/amount", card_id)
 
     raw_cost_max = raw.get("cost_max")
     raw_cost_min = raw.get("cost_min")
@@ -1140,6 +1232,58 @@ def _parse_operation(raw: dict, source_file: str, card_id: int, _depth: int = 0)
             )
             _validate_target_keys(else_ops, f"{source_file}/else (card {card_id})")
 
+    elif kind is EffectKind.TARGET_EXISTS:
+        unknown_target_exists_keys = set(raw) - {
+            "kind", "target", "conditions", "then", "else",
+            "target_card_type_filter", "target_cost_min", "target_cost_max",
+            "target_card_id_filter", "target_card_name_filter",
+            "target_evolved_filter",
+        }
+        if unknown_target_exists_keys:
+            raise ValueError(
+                f"{error_prefix}: unknown fields {sorted(unknown_target_exists_keys)}"
+            )
+        if not ("then" in raw or "else" in raw):
+            raise ValueError(
+                f"{error_prefix}: TARGET_EXISTS requires at least one of 'then' or 'else'"
+            )
+        invalid_target_conditions = _check_target_conditions(
+            conditions,
+            f"{source_file} card {card_id}",
+        )
+        if invalid_target_conditions and (
+            target in _GRAVEYARD_TARGETS
+            or target in {
+                TargetKind.OWN_HAND,
+                TargetKind.RANDOM_OWN_HAND,
+                TargetKind.ALL_OWN_HAND,
+            }
+        ):
+            raise ValueError(
+                f"{error_prefix}/conditions: target_exists conditions cannot "
+                f"depend on non-board targets: {sorted(invalid_target_conditions)}"
+            )
+        raw_then = raw.get("then", [])
+        if not isinstance(raw_then, list):
+            raise ValueError(f"{error_prefix}/then: must be a list")
+        then_ops = tuple(
+            _parse_operation(op, f"{source_file}/then[{idx}]", card_id, _depth + 1)
+            for idx, op in enumerate(raw_then)
+        )
+        _validate_target_keys(then_ops, f"{source_file}/then (card {card_id})")
+        raw_else = raw.get("else", [])
+        if not isinstance(raw_else, list):
+            raise ValueError(f"{error_prefix}/else: must be a list")
+        else_ops = tuple(
+            _parse_operation(op, f"{source_file}/else[{idx}]", card_id, _depth + 1)
+            for idx, op in enumerate(raw_else)
+        )
+        _validate_target_keys(else_ops, f"{source_file}/else (card {card_id})")
+        if not then_ops and not else_ops:
+            raise ValueError(
+                f"{error_prefix}: TARGET_EXISTS requires a non-empty branch"
+            )
+
     elif kind is EffectKind.CHOOSE_ONE:
         unknown_choose_keys = set(raw) - {
             "kind", "target", "options",
@@ -1301,6 +1445,8 @@ def _parse_condition(raw: dict, source_path: str, card_id: int) -> Condition:
     cooperation_threshold_types = (
         ConditionType.CONTROLLER_COOPERATION_AT_LEAST,
         ConditionType.OPPONENT_COOPERATION_AT_LEAST,
+        ConditionType.CONTROLLER_COMBO_AT_LEAST,
+        ConditionType.OPPONENT_COMBO_AT_LEAST,
     )
     if t in cooperation_threshold_types:
         if "value" not in raw:
@@ -1379,7 +1525,9 @@ def _parse_expression(raw: dict, source_path: str, card_id: int) -> ValueExpress
                ExprType.CONTROLLER_HAND_COUNT, ExprType.SOURCE_ATTACK, ExprType.SOURCE_HEALTH,
                ExprType.TARGET_ATTACK, ExprType.TARGET_HEALTH,
                ExprType.CONTROLLER_SHADOWS, ExprType.OPPONENT_SHADOWS,
-               ExprType.CONTROLLER_COOPERATION, ExprType.OPPONENT_COOPERATION):
+               ExprType.CONTROLLER_COOPERATION, ExprType.OPPONENT_COOPERATION,
+               ExprType.CONTROLLER_OVERFLOW, ExprType.OPPONENT_OVERFLOW,
+               ExprType.CONTROLLER_COMBO, ExprType.OPPONENT_COMBO):
         if sub:
             raise ValueError(
                 f"{error_prefix}: '{t.value}' must not have 'values'"

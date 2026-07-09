@@ -19,12 +19,107 @@
         },
         {
             "card_id": 10041310,
-            "coverage": "partial",
-            "implemented_text": "选择对手的战场上的1个随从，对其造成2点伤害。",
-            "unsupported_text": "若为觉醒，则改为4点伤害。觉醒资源尚未实现。",
             "trigger": "play",
             "operations": [
-                {"kind": "damage_unit", "target": "enemy_unit", "amount": 2}
+                {
+                    "kind": "damage_unit",
+                    "target": "enemy_unit",
+                    "amount": 4,
+                    "requires_target": true,
+                    "conditions": [
+                        {"type": "controller_overflow"}
+                    ]
+                },
+                {
+                    "kind": "damage_unit",
+                    "target": "enemy_unit",
+                    "amount": 2,
+                    "requires_target": true,
+                    "conditions": [
+                        {
+                            "type": "not",
+                            "conditions": [
+                                {"type": "controller_overflow"}
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "card_id": 10051310,
+            "trigger": "play",
+            "operations": [
+                {
+                    "kind": "choose_one",
+                    "target": "own_leader",
+                    "options": [
+                        {
+                            "id": "draw_follower",
+                            "label": "抽取1张随从",
+                            "operations": [
+                                {
+                                    "kind": "draw_filtered",
+                                    "target": "own_leader",
+                                    "amount": 1,
+                                    "card_type_filter": "随从"
+                                }
+                            ]
+                        },
+                        {
+                            "id": "reanimate_2",
+                            "label": "亡者召还_2",
+                            "operations": [
+                                {
+                                    "kind": "reanimate",
+                                    "target": "own_leader",
+                                    "amount": 2
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "card_id": 10011120,
+            "trigger": "fanfare",
+            "operations": [
+                {"kind": "add_combo", "target": "own_leader", "amount": 1}
+            ]
+        },
+        {
+            "card_id": 10311310,
+            "trigger": "play",
+            "operations": [
+                {
+                    "kind": "damage_unit",
+                    "target": "enemy_unit",
+                    "amount": 4,
+                    "requires_target": true
+                },
+                {
+                    "kind": "draw",
+                    "target": "own_leader",
+                    "amount": 1,
+                    "conditions": [
+                        {"type": "controller_combo_at_least", "value": 3}
+                    ]
+                }
+            ]
+        },
+        {
+            "card_id": 10713110,
+            "coverage": "partial",
+            "implemented_text": "【入场曲】选择对手的战场上的1个随从，对其造成X点伤害。X为本随从的攻击力。",
+            "unsupported_text": "自己的回合结束时，【连击_3】抽取1张卡牌。",
+            "trigger": "fanfare",
+            "operations": [
+                {
+                    "kind": "damage_unit",
+                    "target": "enemy_unit",
+                    "amount": {"type": "source_attack"}
+                }
             ]
         },
         {
@@ -123,7 +218,13 @@
             "trigger": "play",
             "operations": [
                 {"kind": "return_to_hand", "target": "own_board"},
-                {"kind": "damage_unit", "target": "random_enemy_unit", "amount": 2}
+                {
+                    "kind": "target_exists",
+                    "target": "random_enemy_unit",
+                    "then": [
+                        {"kind": "damage_unit", "target": "random_enemy_unit", "amount": 2}
+                    ]
+                }
             ]
         },
         {
@@ -354,7 +455,13 @@
             "card_id": 10153310,
             "trigger": "play",
             "operations": [
-                {"kind": "damage_unit", "target": "enemy_unit_or_leader", "amount": 3},
+                {
+                    "kind": "target_exists",
+                    "target": "enemy_unit_or_leader",
+                    "then": [
+                        {"kind": "damage_unit", "target": "enemy_unit_or_leader", "amount": 3}
+                    ]
+                },
                 {"kind": "damage_leader", "target": "own_leader", "amount": 2}
             ]
         },

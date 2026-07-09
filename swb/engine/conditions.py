@@ -11,6 +11,9 @@ if TYPE_CHECKING:
     from swb.engine.state import PlayerState
 
 
+OVERFLOW_MAX_MANA_THRESHOLD = 7
+
+
 @dataclass
 class EvalContext:
     controller: int
@@ -186,6 +189,14 @@ def evaluate_condition(cond: Condition | None, ctx: EvalContext | None) -> bool:
         return player.cooperation >= cond.value
     elif t == ConditionType.OPPONENT_COOPERATION_AT_LEAST:
         return opponent.cooperation >= cond.value
+    elif t == ConditionType.CONTROLLER_OVERFLOW:
+        return player.max_mana >= OVERFLOW_MAX_MANA_THRESHOLD
+    elif t == ConditionType.OPPONENT_OVERFLOW:
+        return opponent.max_mana >= OVERFLOW_MAX_MANA_THRESHOLD
+    elif t == ConditionType.CONTROLLER_COMBO_AT_LEAST:
+        return player.cards_played_this_turn >= cond.value
+    elif t == ConditionType.OPPONENT_COMBO_AT_LEAST:
+        return opponent.cards_played_this_turn >= cond.value
     elif t == ConditionType.TARGET_ATTACK_AT_MOST:
         return isinstance(target, Unit) and target.attack <= cond.value
     elif t == ConditionType.TARGET_ATTACK_AT_LEAST:
@@ -265,5 +276,21 @@ def evaluate_expression(expr: ValueExpression | None, ctx: EvalContext | None) -
         return player.cooperation if player else 0
     elif t == ExprType.OPPONENT_COOPERATION:
         return opponent.cooperation if opponent else 0
+    elif t == ExprType.CONTROLLER_OVERFLOW:
+        return (
+            1
+            if player and player.max_mana >= OVERFLOW_MAX_MANA_THRESHOLD
+            else 0
+        )
+    elif t == ExprType.OPPONENT_OVERFLOW:
+        return (
+            1
+            if opponent and opponent.max_mana >= OVERFLOW_MAX_MANA_THRESHOLD
+            else 0
+        )
+    elif t == ExprType.CONTROLLER_COMBO:
+        return player.cards_played_this_turn if player else 0
+    elif t == ExprType.OPPONENT_COMBO:
+        return opponent.cards_played_this_turn if opponent else 0
 
     raise ValueError(f"Unknown expression type: {t}")

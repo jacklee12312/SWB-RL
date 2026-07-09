@@ -34,6 +34,10 @@ class ConditionType(str, Enum):
     OPPONENT_SHADOWS_AT_LEAST = "opponent_shadows_at_least"
     CONTROLLER_COOPERATION_AT_LEAST = "controller_cooperation_at_least"
     OPPONENT_COOPERATION_AT_LEAST = "opponent_cooperation_at_least"
+    CONTROLLER_OVERFLOW = "controller_overflow"
+    OPPONENT_OVERFLOW = "opponent_overflow"
+    CONTROLLER_COMBO_AT_LEAST = "controller_combo_at_least"
+    OPPONENT_COMBO_AT_LEAST = "opponent_combo_at_least"
 
 
 class ExprType(str, Enum):
@@ -54,6 +58,10 @@ class ExprType(str, Enum):
     OPPONENT_SHADOWS = "opponent_shadows"
     CONTROLLER_COOPERATION = "controller_cooperation"
     OPPONENT_COOPERATION = "opponent_cooperation"
+    CONTROLLER_OVERFLOW = "controller_overflow"
+    OPPONENT_OVERFLOW = "opponent_overflow"
+    CONTROLLER_COMBO = "controller_combo"
+    OPPONENT_COMBO = "opponent_combo"
 
 
 @dataclass
@@ -108,6 +116,7 @@ class EffectKind(str, Enum):
     ADD_TARGETING_RESTRICTION = "add_targeting_restriction"
     REMOVE_TARGETING_RESTRICTION = "remove_targeting_restriction"
     SPELLBOOST_HAND = "spellboost_hand"
+    ADD_COMBO = "add_combo"
     NECROMANCY = "necromancy"
     REANIMATE = "reanimate"
     RETURN_FROM_GRAVEYARD_TO_HAND = "return_from_graveyard_to_hand"
@@ -116,6 +125,7 @@ class EffectKind(str, Enum):
     CONDITIONAL = "conditional"
     CHOOSE_ONE = "choose_one"
     OPTIONAL = "optional"
+    TARGET_EXISTS = "target_exists"
 
 
 class TargetKind(str, Enum):
@@ -143,6 +153,7 @@ class TargetKind(str, Enum):
     ALL_UNITS = "all_units"
     ALL_OWN_BOARD = "all_own_board"
     ALL_ENEMY_BOARD = "all_enemy_board"
+    ALL_BOARD = "all_board"
     ALL_OWN_AMULETS = "all_own_amulets"
     ALL_ENEMY_AMULETS = "all_enemy_amulets"
     OWN_HAND = "own_hand"
@@ -280,6 +291,7 @@ class EffectFrame:
     _hand_source_origin: Any = None
     _hand_source_origin_parent: Any = None
     _target_bindings: dict[str, int] = field(default_factory=dict)
+    _target_binding_operations: dict[str, EffectOperation] = field(default_factory=dict)
     _decision_meta: dict[str, Any] = field(default_factory=dict)
     emblem_batch_id: int | None = None
     emblem_activation_owner: int | None = None

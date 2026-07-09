@@ -330,7 +330,9 @@ class AbilityHandlers:
         )
 
     def handle_combo(self, context: AbilityContext) -> None:
-        self._placeholder(context, AbilityKeyword.COMBO)
+        covered = getattr(self.environment, "_is_ability_covered", None)
+        if covered is None or not covered(context, AbilityKeyword.COMBO):
+            self._placeholder(context, AbilityKeyword.COMBO)
 
     def handle_cooperation(self, context: AbilityContext) -> None:
         self._placeholder(context, AbilityKeyword.COOPERATION)
@@ -345,7 +347,9 @@ class AbilityHandlers:
         self._placeholder(context, AbilityKeyword.EARTH_SIGIL)
 
     def handle_overflow(self, context: AbilityContext) -> None:
-        self._placeholder(context, AbilityKeyword.OVERFLOW)
+        covered = getattr(self.environment, "_is_ability_covered", None)
+        if covered is None or not covered(context, AbilityKeyword.OVERFLOW):
+            self._placeholder(context, AbilityKeyword.OVERFLOW)
 
     def handle_necromancy(self, context: AbilityContext) -> None:
         covered = getattr(self.environment, "_is_ability_covered", None)

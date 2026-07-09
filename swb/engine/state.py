@@ -3,7 +3,7 @@ from __future__ import annotations
 from collections import deque
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from swb.db.repository import CardDefinition
 from swb.engine.abilities import RUNTIME_UNIT_KEYWORDS, normalize_keyword_name
@@ -118,7 +118,9 @@ class DeathBatch:
 
 
 class ResolutionLoopError(Exception):
-    pass
+    def __init__(self, message: str, diagnostics: dict[str, Any] | None = None):
+        super().__init__(message)
+        self.diagnostics = diagnostics or {}
 
 
 @dataclass(kw_only=True)
@@ -270,6 +272,7 @@ class Unit(BoardEntity):
     attacks_remaining: int = 1
     evolved: bool = False
     super_evolved: bool = False
+    super_evolved_turn: int | None = None
     rush_only: bool = False
     barrier_charges: int = 0
     ambush_active: bool = False
@@ -643,8 +646,10 @@ class PlayerState:
     mana: int = 0
     fatigue: int = 0
     evolution_points: int = 2
+    super_evolution_points: int = 2
     turns_started: int = 0
     evolved_this_turn: bool = False
+    super_evolved_this_turn: bool = False
     cards_played_this_turn: int = 0
     followers_destroyed_this_turn: int = 0
     cooperation: int = 0
@@ -670,6 +675,11 @@ class PlayerState:
         if amount < 0:
             raise ValueError("cooperation increase must be non-negative")
         self.cooperation += amount
+
+    def add_combo(self, amount: int) -> None:
+        if amount < 0:
+            raise ValueError("combo increase must be non-negative")
+        self.cards_played_this_turn += amount
 
 
 @dataclass
