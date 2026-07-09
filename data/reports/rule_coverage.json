@@ -4,16 +4,16 @@
     "rules_directory": "data/rules"
   },
   "summary": {
-    "total_cards": 740,
-    "total_with_rules": 87,
+    "total_cards": 826,
+    "total_with_rules": 91,
     "test_or_synthetic_ids_with_rules": 26,
     "coverage_counts": {
-      "covered_exact": 53,
-      "supported_missing_rule": 434,
-      "text_unclear": 18,
-      "missing_primitive": 146,
-      "covered_partial": 6,
-      "token_or_non_collectible": 83
+      "covered_exact": 58,
+      "supported_missing_rule": 539,
+      "text_unclear": 19,
+      "missing_primitive": 114,
+      "covered_partial": 5,
+      "token_or_non_collectible": 91
     }
   },
   "rule_consistency_issues": [
@@ -174,12 +174,12 @@
       "covered": true
     },
     "连击": {
-      "primitive": "COMBO (placeholder)",
-      "covered": false
+      "primitive": "COMBO condition / expression / add_combo",
+      "covered": true
     },
     "觉醒": {
-      "primitive": "OVERFLOW (placeholder)",
-      "covered": false
+      "primitive": "OVERFLOW condition / expression",
+      "covered": true
     },
     "策动": {
       "primitive": "ACTIVATE (placeholder)",
@@ -524,14 +524,13 @@
       "cost": 2,
       "is_collectible": true,
       "card_set_id": 10000,
-      "coverage": "missing_primitive",
-      "reason": "Missing primitives: ['连击']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['fanfare'], Ops: ['add_combo']",
       "hit_keywords": [
-        "入场曲"
-      ],
-      "missing_primitives": [
+        "入场曲",
         "连击"
       ],
+      "missing_primitives": [],
       "ability_keywords": [
         "入场曲",
         "连击"
@@ -549,16 +548,15 @@
       "cost": 4,
       "is_collectible": true,
       "card_set_id": 10000,
-      "coverage": "covered_partial",
+      "coverage": "covered_exact",
       "reason": "Triggers: ['attack'], Ops: ['heal_leader']",
       "hit_keywords": [
         "入场曲",
         "攻击时",
+        "连击",
         "回复"
       ],
-      "missing_primitives": [
-        "连击"
-      ],
+      "missing_primitives": [],
       "ability_keywords": [
         "入场曲",
         "攻击时",
@@ -603,15 +601,14 @@
       "cost": 1,
       "is_collectible": true,
       "card_set_id": 10000,
-      "coverage": "missing_primitive",
-      "reason": "Missing primitives: ['连击']",
+      "coverage": "supported_missing_rule",
+      "reason": "Covered keywords: ['入场曲', '连击', '造成.*伤害']",
       "hit_keywords": [
         "入场曲",
+        "连击",
         "造成.*伤害"
       ],
-      "missing_primitives": [
-        "连击"
-      ],
+      "missing_primitives": [],
       "ability_keywords": [
         "入场曲",
         "连击"
@@ -655,7 +652,7 @@
       "is_collectible": true,
       "card_set_id": 10000,
       "coverage": "covered_exact",
-      "reason": "Triggers: ['play'], Ops: ['return_to_hand', 'damage_unit']",
+      "reason": "Triggers: ['play'], Ops: ['return_to_hand', 'target_exists', 'damage_unit']",
       "hit_keywords": [
         "造成.*伤害",
         "返回手牌"
@@ -1069,26 +1066,20 @@
       "cost": 1,
       "is_collectible": true,
       "card_set_id": 10000,
-      "coverage": "covered_partial",
-      "reason": "Partial rule. Triggers: ['play'], Ops: ['damage_unit']; unsupported: 若为觉醒，则改为4点伤害。觉醒资源尚未实现。",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['play'], Ops: ['damage_unit', 'damage_unit']",
       "hit_keywords": [
+        "觉醒",
         "造成.*伤害"
       ],
-      "missing_primitives": [
-        "觉醒"
-      ],
+      "missing_primitives": [],
       "ability_keywords": [
         "觉醒"
       ],
       "skill_texts": [
         "选择对手的战场上的1个随从，对其造成2点伤害。若为【<color=Keyword>觉醒</color>】，则改为4点伤害。"
       ],
-      "support_level": "unsupported",
-      "rule_metadata": {
-        "coverage": "partial",
-        "implemented_text": "选择对手的战场上的1个随从，对其造成2点伤害。",
-        "unsupported_text": "若为觉醒，则改为4点伤害。觉醒资源尚未实现。"
-      }
+      "support_level": "unsupported"
     },
     "10042110": {
       "card_id": 10042110,
@@ -1237,8 +1228,8 @@
       "cost": 2,
       "is_collectible": true,
       "card_set_id": 10000,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['抽取', '亡者召还', '选择一项|模式']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['play'], Ops: ['choose_one', 'draw_filtered', 'reanimate']",
       "hit_keywords": [
         "抽取",
         "亡者召还",
@@ -1877,14 +1868,13 @@
       "cost": 2,
       "is_collectible": true,
       "card_set_id": 10001,
-      "coverage": "missing_primitive",
-      "reason": "Missing primitives: ['连击']",
+      "coverage": "supported_missing_rule",
+      "reason": "Covered keywords: ['入场曲', '连击']",
       "hit_keywords": [
-        "入场曲"
-      ],
-      "missing_primitives": [
+        "入场曲",
         "连击"
       ],
+      "missing_primitives": [],
       "ability_keywords": [
         "入场曲",
         "连击"
@@ -1952,15 +1942,14 @@
       "cost": 3,
       "is_collectible": true,
       "card_set_id": 10001,
-      "coverage": "missing_primitive",
-      "reason": "Missing primitives: ['连击']",
+      "coverage": "supported_missing_rule",
+      "reason": "Covered keywords: ['入场曲', '连击', '抽取']",
       "hit_keywords": [
         "入场曲",
+        "连击",
         "抽取"
       ],
-      "missing_primitives": [
-        "连击"
-      ],
+      "missing_primitives": [],
       "ability_keywords": [
         "入场曲",
         "连击"
@@ -1978,15 +1967,14 @@
       "cost": 4,
       "is_collectible": true,
       "card_set_id": 10001,
-      "coverage": "missing_primitive",
-      "reason": "Missing primitives: ['连击']",
+      "coverage": "supported_missing_rule",
+      "reason": "Covered keywords: ['入场曲', '连击', '造成.*伤害']",
       "hit_keywords": [
         "入场曲",
+        "连击",
         "造成.*伤害"
       ],
-      "missing_primitives": [
-        "连击"
-      ],
+      "missing_primitives": [],
       "ability_keywords": [
         "入场曲",
         "连击"
@@ -2100,14 +2088,14 @@
       "is_collectible": true,
       "card_set_id": 10001,
       "coverage": "missing_primitive",
-      "reason": "Missing primitives: ['连击', '策动']",
+      "reason": "Missing primitives: ['策动']",
       "hit_keywords": [
         "入场曲",
+        "连击",
         "将.*加入手牌",
         "破坏"
       ],
       "missing_primitives": [
-        "连击",
         "策动"
       ],
       "ability_keywords": [
@@ -2149,17 +2137,16 @@
       "cost": 2,
       "is_collectible": true,
       "card_set_id": 10001,
-      "coverage": "missing_primitive",
-      "reason": "Missing primitives: ['连击']",
+      "coverage": "supported_missing_rule",
+      "reason": "Covered keywords: ['入场曲', '进化时', '连击', '抽取', '造成.*伤害']",
       "hit_keywords": [
         "入场曲",
         "进化时",
+        "连击",
         "抽取",
         "造成.*伤害"
       ],
-      "missing_primitives": [
-        "连击"
-      ],
+      "missing_primitives": [],
       "ability_keywords": [
         "入场曲",
         "进化时",
@@ -2226,14 +2213,13 @@
       "cost": 3,
       "is_collectible": true,
       "card_set_id": 10001,
-      "coverage": "missing_primitive",
-      "reason": "Missing primitives: ['连击']",
+      "coverage": "supported_missing_rule",
+      "reason": "Covered keywords: ['入场曲', '连击']",
       "hit_keywords": [
-        "入场曲"
-      ],
-      "missing_primitives": [
+        "入场曲",
         "连击"
       ],
+      "missing_primitives": [],
       "ability_keywords": [
         "入场曲",
         "疾驰",
@@ -2253,15 +2239,15 @@
       "is_collectible": true,
       "card_set_id": 10001,
       "coverage": "missing_primitive",
-      "reason": "Missing primitives: ['连击', '策动']",
+      "reason": "Missing primitives: ['策动']",
       "hit_keywords": [
+        "连击",
         "回合结束",
         "抽取",
         "破坏",
         "返回手牌"
       ],
       "missing_primitives": [
-        "连击",
         "策动"
       ],
       "ability_keywords": [
@@ -3338,14 +3324,13 @@
       "cost": 5,
       "is_collectible": true,
       "card_set_id": 10001,
-      "coverage": "missing_primitive",
-      "reason": "Missing primitives: ['觉醒']",
+      "coverage": "supported_missing_rule",
+      "reason": "Covered keywords: ['入场曲', '觉醒']",
       "hit_keywords": [
-        "入场曲"
-      ],
-      "missing_primitives": [
+        "入场曲",
         "觉醒"
       ],
+      "missing_primitives": [],
       "ability_keywords": [
         "入场曲",
         "疾驰",
@@ -3412,15 +3397,14 @@
       "cost": 4,
       "is_collectible": true,
       "card_set_id": 10001,
-      "coverage": "missing_primitive",
-      "reason": "Missing primitives: ['觉醒']",
+      "coverage": "supported_missing_rule",
+      "reason": "Covered keywords: ['入场曲', '觉醒', '回复']",
       "hit_keywords": [
         "入场曲",
+        "觉醒",
         "回复"
       ],
-      "missing_primitives": [
-        "觉醒"
-      ],
+      "missing_primitives": [],
       "ability_keywords": [
         "入场曲",
         "觉醒"
@@ -3481,12 +3465,12 @@
       "is_collectible": true,
       "card_set_id": 10001,
       "coverage": "missing_primitive",
-      "reason": "Missing primitives: ['觉醒', '威慑']",
+      "reason": "Missing primitives: ['威慑']",
       "hit_keywords": [
-        "入场曲"
+        "入场曲",
+        "觉醒"
       ],
       "missing_primitives": [
-        "觉醒",
         "威慑"
       ],
       "ability_keywords": [
@@ -3532,14 +3516,13 @@
       "cost": 4,
       "is_collectible": true,
       "card_set_id": 10001,
-      "coverage": "missing_primitive",
-      "reason": "Missing primitives: ['觉醒']",
+      "coverage": "supported_missing_rule",
+      "reason": "Covered keywords: ['入场曲', '觉醒']",
       "hit_keywords": [
-        "入场曲"
-      ],
-      "missing_primitives": [
+        "入场曲",
         "觉醒"
       ],
+      "missing_primitives": [],
       "ability_keywords": [
         "入场曲",
         "觉醒"
@@ -3557,15 +3540,14 @@
       "cost": 3,
       "is_collectible": true,
       "card_set_id": 10001,
-      "coverage": "missing_primitive",
-      "reason": "Missing primitives: ['觉醒']",
+      "coverage": "supported_missing_rule",
+      "reason": "Covered keywords: ['觉醒', '抽取', '回复']",
       "hit_keywords": [
+        "觉醒",
         "抽取",
         "回复"
       ],
-      "missing_primitives": [
-        "觉醒"
-      ],
+      "missing_primitives": [],
       "ability_keywords": [
         "觉醒"
       ],
@@ -3602,15 +3584,14 @@
       "cost": 3,
       "is_collectible": true,
       "card_set_id": 10001,
-      "coverage": "missing_primitive",
-      "reason": "Missing primitives: ['觉醒']",
+      "coverage": "supported_missing_rule",
+      "reason": "Covered keywords: ['入场曲', '进化时', '觉醒']",
       "hit_keywords": [
         "入场曲",
-        "进化时"
-      ],
-      "missing_primitives": [
+        "进化时",
         "觉醒"
       ],
+      "missing_primitives": [],
       "ability_keywords": [
         "入场曲",
         "觉醒"
@@ -4162,7 +4143,7 @@
       "is_collectible": true,
       "card_set_id": 10001,
       "coverage": "covered_exact",
-      "reason": "Triggers: ['play'], Ops: ['damage_unit', 'damage_leader']",
+      "reason": "Triggers: ['play'], Ops: ['target_exists', 'damage_unit', 'damage_leader']",
       "hit_keywords": [
         "造成.*伤害"
       ],
@@ -5399,15 +5380,14 @@
       "cost": 5,
       "is_collectible": true,
       "card_set_id": 10002,
-      "coverage": "missing_primitive",
-      "reason": "Missing primitives: ['连击']",
+      "coverage": "supported_missing_rule",
+      "reason": "Covered keywords: ['入场曲', '连击', '造成.*伤害']",
       "hit_keywords": [
         "入场曲",
+        "连击",
         "造成.*伤害"
       ],
-      "missing_primitives": [
-        "连击"
-      ],
+      "missing_primitives": [],
       "ability_keywords": [
         "入场曲",
         "连击"
@@ -5494,14 +5474,13 @@
       "cost": 1,
       "is_collectible": true,
       "card_set_id": 10002,
-      "coverage": "missing_primitive",
-      "reason": "Missing primitives: ['连击']",
+      "coverage": "supported_missing_rule",
+      "reason": "Covered keywords: ['连击', '造成.*伤害']",
       "hit_keywords": [
+        "连击",
         "造成.*伤害"
       ],
-      "missing_primitives": [
-        "连击"
-      ],
+      "missing_primitives": [],
       "ability_keywords": [
         "连击"
       ],
@@ -6160,15 +6139,14 @@
       "cost": 1,
       "is_collectible": true,
       "card_set_id": 10002,
-      "coverage": "missing_primitive",
-      "reason": "Missing primitives: ['觉醒']",
+      "coverage": "supported_missing_rule",
+      "reason": "Covered keywords: ['入场曲', '觉醒', '抽取']",
       "hit_keywords": [
         "入场曲",
+        "觉醒",
         "抽取"
       ],
-      "missing_primitives": [
-        "觉醒"
-      ],
+      "missing_primitives": [],
       "ability_keywords": [
         "入场曲",
         "突进",
@@ -6187,15 +6165,14 @@
       "cost": 2,
       "is_collectible": true,
       "card_set_id": 10002,
-      "coverage": "missing_primitive",
-      "reason": "Missing primitives: ['觉醒']",
+      "coverage": "supported_missing_rule",
+      "reason": "Covered keywords: ['觉醒', '抽取', '召唤']",
       "hit_keywords": [
+        "觉醒",
         "抽取",
         "召唤"
       ],
-      "missing_primitives": [
-        "觉醒"
-      ],
+      "missing_primitives": [],
       "ability_keywords": [
         "觉醒"
       ],
@@ -6337,18 +6314,17 @@
       "cost": 2,
       "is_collectible": true,
       "card_set_id": 10002,
-      "coverage": "missing_primitive",
-      "reason": "Missing primitives: ['觉醒']",
+      "coverage": "supported_missing_rule",
+      "reason": "Covered keywords: ['入场曲', '进化时', '觉醒', '将.*加入手牌', '造成.*伤害', '必杀']",
       "hit_keywords": [
         "入场曲",
         "进化时",
+        "觉醒",
         "将.*加入手牌",
         "造成.*伤害",
         "必杀"
       ],
-      "missing_primitives": [
-        "觉醒"
-      ],
+      "missing_primitives": [],
       "ability_keywords": [
         "入场曲",
         "必杀",
@@ -7347,15 +7323,14 @@
       "cost": 2,
       "is_collectible": true,
       "card_set_id": 10003,
-      "coverage": "missing_primitive",
-      "reason": "Missing primitives: ['连击']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['play'], Ops: ['damage_unit', 'draw']",
       "hit_keywords": [
+        "连击",
         "抽取",
         "造成.*伤害"
       ],
-      "missing_primitives": [
-        "连击"
-      ],
+      "missing_primitives": [],
       "ability_keywords": [
         "连击"
       ],
@@ -7471,12 +7446,12 @@
       "cost": 1,
       "is_collectible": true,
       "card_set_id": 10003,
-      "coverage": "missing_primitive",
-      "reason": "Missing primitives: ['连击']",
-      "hit_keywords": [],
-      "missing_primitives": [
+      "coverage": "supported_missing_rule",
+      "reason": "Covered keywords: ['连击']",
+      "hit_keywords": [
         "连击"
       ],
+      "missing_primitives": [],
       "ability_keywords": [
         "连击"
       ],
@@ -8088,14 +8063,13 @@
       "cost": 3,
       "is_collectible": true,
       "card_set_id": 10003,
-      "coverage": "missing_primitive",
-      "reason": "Missing primitives: ['觉醒']",
+      "coverage": "supported_missing_rule",
+      "reason": "Covered keywords: ['觉醒', '造成.*伤害']",
       "hit_keywords": [
+        "觉醒",
         "造成.*伤害"
       ],
-      "missing_primitives": [
-        "觉醒"
-      ],
+      "missing_primitives": [],
       "ability_keywords": [
         "觉醒"
       ],
@@ -8136,15 +8110,14 @@
       "cost": 3,
       "is_collectible": true,
       "card_set_id": 10003,
-      "coverage": "missing_primitive",
-      "reason": "Missing primitives: ['觉醒']",
+      "coverage": "supported_missing_rule",
+      "reason": "Covered keywords: ['入场曲', '觉醒', '召唤']",
       "hit_keywords": [
         "入场曲",
+        "觉醒",
         "召唤"
       ],
-      "missing_primitives": [
-        "觉醒"
-      ],
+      "missing_primitives": [],
       "ability_keywords": [
         "入场曲",
         "守护",
@@ -8213,15 +8186,14 @@
       "cost": 1,
       "is_collectible": true,
       "card_set_id": 10003,
-      "coverage": "missing_primitive",
-      "reason": "Missing primitives: ['觉醒']",
+      "coverage": "supported_missing_rule",
+      "reason": "Covered keywords: ['觉醒', '抽取', '造成.*伤害']",
       "hit_keywords": [
+        "觉醒",
         "抽取",
         "造成.*伤害"
       ],
-      "missing_primitives": [
-        "觉醒"
-      ],
+      "missing_primitives": [],
       "ability_keywords": [
         "觉醒"
       ],
@@ -9345,15 +9317,14 @@
       "cost": 1,
       "is_collectible": true,
       "card_set_id": 10004,
-      "coverage": "missing_primitive",
-      "reason": "Missing primitives: ['连击']",
+      "coverage": "supported_missing_rule",
+      "reason": "Covered keywords: ['连击', '造成.*伤害', '纹章']",
       "hit_keywords": [
+        "连击",
         "造成.*伤害",
         "纹章"
       ],
-      "missing_primitives": [
-        "连击"
-      ],
+      "missing_primitives": [],
       "ability_keywords": [
         "纹章",
         "连击"
@@ -11206,15 +11177,14 @@
       "cost": 2,
       "is_collectible": true,
       "card_set_id": 10005,
-      "coverage": "missing_primitive",
-      "reason": "Missing primitives: ['连击']",
+      "coverage": "supported_missing_rule",
+      "reason": "Covered keywords: ['入场曲', '连击', '召唤']",
       "hit_keywords": [
         "入场曲",
+        "连击",
         "召唤"
       ],
-      "missing_primitives": [
-        "连击"
-      ],
+      "missing_primitives": [],
       "ability_keywords": [
         "入场曲",
         "连击"
@@ -11257,14 +11227,13 @@
       "cost": 3,
       "is_collectible": true,
       "card_set_id": 10005,
-      "coverage": "missing_primitive",
-      "reason": "Missing primitives: ['连击']",
+      "coverage": "supported_missing_rule",
+      "reason": "Covered keywords: ['连击', '造成.*伤害']",
       "hit_keywords": [
+        "连击",
         "造成.*伤害"
       ],
-      "missing_primitives": [
-        "连击"
-      ],
+      "missing_primitives": [],
       "ability_keywords": [
         "连击"
       ],
@@ -11310,14 +11279,13 @@
       "cost": 3,
       "is_collectible": true,
       "card_set_id": 10005,
-      "coverage": "missing_primitive",
-      "reason": "Missing primitives: ['连击']",
+      "coverage": "supported_missing_rule",
+      "reason": "Covered keywords: ['连击', '抽取']",
       "hit_keywords": [
+        "连击",
         "抽取"
       ],
-      "missing_primitives": [
-        "连击"
-      ],
+      "missing_primitives": [],
       "ability_keywords": [
         "连击"
       ],
@@ -11334,16 +11302,15 @@
       "cost": 2,
       "is_collectible": true,
       "card_set_id": 10005,
-      "coverage": "missing_primitive",
-      "reason": "Missing primitives: ['连击']",
+      "coverage": "supported_missing_rule",
+      "reason": "Covered keywords: ['入场曲', '进化时', '连击', '舍弃']",
       "hit_keywords": [
         "入场曲",
         "进化时",
+        "连击",
         "舍弃"
       ],
-      "missing_primitives": [
-        "连击"
-      ],
+      "missing_primitives": [],
       "ability_keywords": [
         "入场曲",
         "进化时",
@@ -12048,14 +12015,13 @@
       "cost": 2,
       "is_collectible": true,
       "card_set_id": 10005,
-      "coverage": "missing_primitive",
-      "reason": "Missing primitives: ['觉醒']",
+      "coverage": "supported_missing_rule",
+      "reason": "Covered keywords: ['觉醒', '造成.*伤害']",
       "hit_keywords": [
+        "觉醒",
         "造成.*伤害"
       ],
-      "missing_primitives": [
-        "觉醒"
-      ],
+      "missing_primitives": [],
       "ability_keywords": [
         "觉醒"
       ],
@@ -13061,14 +13027,13 @@
       "cost": 3,
       "is_collectible": true,
       "card_set_id": 10006,
-      "coverage": "missing_primitive",
-      "reason": "Missing primitives: ['连击']",
+      "coverage": "supported_missing_rule",
+      "reason": "Covered keywords: ['入场曲', '连击']",
       "hit_keywords": [
-        "入场曲"
-      ],
-      "missing_primitives": [
+        "入场曲",
         "连击"
       ],
+      "missing_primitives": [],
       "ability_keywords": [
         "入场曲",
         "连击"
@@ -15035,14 +15000,13 @@
       "cost": 2,
       "is_collectible": true,
       "card_set_id": 10007,
-      "coverage": "missing_primitive",
-      "reason": "Missing primitives: ['连击']",
+      "coverage": "supported_missing_rule",
+      "reason": "Covered keywords: ['入场曲', '连击']",
       "hit_keywords": [
-        "入场曲"
-      ],
-      "missing_primitives": [
+        "入场曲",
         "连击"
       ],
+      "missing_primitives": [],
       "ability_keywords": [
         "入场曲",
         "疾驰",
@@ -15061,16 +15025,15 @@
       "cost": 5,
       "is_collectible": true,
       "card_set_id": 10007,
-      "coverage": "missing_primitive",
-      "reason": "Missing primitives: ['连击']",
+      "coverage": "supported_missing_rule",
+      "reason": "Covered keywords: ['入场曲', '进化时', '连击', '造成.*伤害']",
       "hit_keywords": [
         "入场曲",
         "进化时",
+        "连击",
         "造成.*伤害"
       ],
-      "missing_primitives": [
-        "连击"
-      ],
+      "missing_primitives": [],
       "ability_keywords": [
         "入场曲",
         "进化时",
@@ -15089,15 +15052,14 @@
       "cost": 1,
       "is_collectible": true,
       "card_set_id": 10007,
-      "coverage": "missing_primitive",
-      "reason": "Missing primitives: ['连击']",
+      "coverage": "supported_missing_rule",
+      "reason": "Covered keywords: ['连击', '回复', '纹章']",
       "hit_keywords": [
+        "连击",
         "回复",
         "纹章"
       ],
-      "missing_primitives": [
-        "连击"
-      ],
+      "missing_primitives": [],
       "ability_keywords": [
         "纹章",
         "连击"
@@ -15115,17 +15077,16 @@
       "cost": 3,
       "is_collectible": true,
       "card_set_id": 10007,
-      "coverage": "missing_primitive",
-      "reason": "Missing primitives: ['连击']",
+      "coverage": "covered_partial",
+      "reason": "Partial rule. Triggers: ['fanfare'], Ops: ['damage_unit']; unsupported: 自己的回合结束时，【连击_3】抽取1张卡牌。",
       "hit_keywords": [
         "入场曲",
+        "连击",
         "回合结束",
         "抽取",
         "造成.*伤害"
       ],
-      "missing_primitives": [
-        "连击"
-      ],
+      "missing_primitives": [],
       "ability_keywords": [
         "入场曲",
         "连击"
@@ -15133,7 +15094,12 @@
       "skill_texts": [
         "【<color=Keyword>入场曲</color>】选择对手的战场上的1个随从，对其造成X点伤害。X为本随从的攻击力。\n<hr>自己的回合结束时，【<color=Keyword>连击</color>_3】抽取1张卡牌。"
       ],
-      "support_level": "unsupported"
+      "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "partial",
+        "implemented_text": "【入场曲】选择对手的战场上的1个随从，对其造成X点伤害。X为本随从的攻击力。",
+        "unsupported_text": "自己的回合结束时，【连击_3】抽取1张卡牌。"
+      }
     },
     "10713310": {
       "card_id": 10713310,
@@ -15143,15 +15109,14 @@
       "cost": 1,
       "is_collectible": true,
       "card_set_id": 10007,
-      "coverage": "missing_primitive",
-      "reason": "Missing primitives: ['连击']",
+      "coverage": "supported_missing_rule",
+      "reason": "Covered keywords: ['连击', '造成.*伤害', '纹章']",
       "hit_keywords": [
+        "连击",
         "造成.*伤害",
         "纹章"
       ],
-      "missing_primitives": [
-        "连击"
-      ],
+      "missing_primitives": [],
       "ability_keywords": [
         "纹章",
         "连击"
@@ -15169,16 +15134,15 @@
       "cost": 4,
       "is_collectible": true,
       "card_set_id": 10007,
-      "coverage": "missing_primitive",
-      "reason": "Missing primitives: ['连击']",
+      "coverage": "supported_missing_rule",
+      "reason": "Covered keywords: ['入场曲', '进化时', '连击', '纹章']",
       "hit_keywords": [
         "入场曲",
         "进化时",
+        "连击",
         "纹章"
       ],
-      "missing_primitives": [
-        "连击"
-      ],
+      "missing_primitives": [],
       "ability_keywords": [
         "入场曲",
         "纹章",
@@ -15877,15 +15841,14 @@
       "cost": 3,
       "is_collectible": true,
       "card_set_id": 10007,
-      "coverage": "missing_primitive",
-      "reason": "Missing primitives: ['觉醒']",
+      "coverage": "supported_missing_rule",
+      "reason": "Covered keywords: ['觉醒', '抽取', '回复']",
       "hit_keywords": [
+        "觉醒",
         "抽取",
         "回复"
       ],
-      "missing_primitives": [
-        "觉醒"
-      ],
+      "missing_primitives": [],
       "ability_keywords": [
         "觉醒"
       ],
@@ -16749,6 +16712,1959 @@
       ],
       "support_level": "unsupported"
     },
+    "10801110": {
+      "card_id": 10801110,
+      "name": "自律的圣鸟·汉萨",
+      "class_name": "中立",
+      "card_type": "随从",
+      "cost": 2,
+      "is_collectible": true,
+      "card_set_id": 10008,
+      "coverage": "supported_missing_rule",
+      "reason": "Covered keywords: ['进化时']",
+      "hit_keywords": [
+        "进化时"
+      ],
+      "missing_primitives": [],
+      "ability_keywords": [
+        "进化时"
+      ],
+      "skill_texts": [
+        "<ev>【<color=Keyword>进化时</color>】本随从+5/+5。</ev>"
+      ],
+      "support_level": "unsupported"
+    },
+    "10801120": {
+      "card_id": 10801120,
+      "name": "无尽旅途·蕾娜",
+      "class_name": "中立",
+      "card_type": "随从",
+      "cost": 5,
+      "is_collectible": true,
+      "card_set_id": 10008,
+      "coverage": "supported_missing_rule",
+      "reason": "Covered keywords: ['入场曲', '回复']",
+      "hit_keywords": [
+        "入场曲",
+        "回复"
+      ],
+      "missing_primitives": [],
+      "ability_keywords": [
+        "入场曲"
+      ],
+      "skill_texts": [
+        "【<color=Keyword>入场曲</color>】回复自己1点进化点。"
+      ],
+      "support_level": "unsupported"
+    },
+    "10802110": {
+      "card_id": 10802110,
+      "name": "激动的欢喜·阿尔菲德",
+      "class_name": "中立",
+      "card_type": "随从",
+      "cost": 4,
+      "is_collectible": true,
+      "card_set_id": 10008,
+      "coverage": "supported_missing_rule",
+      "reason": "Covered keywords: ['入场曲', '进化时', '造成.*伤害']",
+      "hit_keywords": [
+        "入场曲",
+        "进化时",
+        "造成.*伤害"
+      ],
+      "missing_primitives": [],
+      "ability_keywords": [
+        "入场曲",
+        "疾驰",
+        "进化时"
+      ],
+      "skill_texts": [
+        "【<color=Keyword>入场曲</color>】选择对手的战场上的1个随从，对其造成4点伤害。\n<hr><ev>【<color=Keyword>进化时</color>】本随从获得【<color=Keyword>疾驰</color>】。</ev>"
+      ],
+      "support_level": "unsupported"
+    },
+    "10802310": {
+      "card_id": 10802310,
+      "name": "救世的英姿",
+      "class_name": "中立",
+      "card_type": "法术",
+      "cost": 3,
+      "is_collectible": true,
+      "card_set_id": 10008,
+      "coverage": "supported_missing_rule",
+      "reason": "Covered keywords: ['抽取']",
+      "hit_keywords": [
+        "抽取"
+      ],
+      "missing_primitives": [],
+      "ability_keywords": [],
+      "skill_texts": [
+        "将对手的手牌中的随机1张卡牌的复制卡牌以非公开形式加入自己的手牌，使其费用-1。抽取1张卡牌。"
+      ],
+      "support_level": "unsupported"
+    },
+    "10803110": {
+      "card_id": 10803110,
+      "name": "遗忘的纯真·爱卡",
+      "class_name": "中立",
+      "card_type": "随从",
+      "cost": 2,
+      "is_collectible": true,
+      "card_set_id": 10008,
+      "coverage": "supported_missing_rule",
+      "reason": "Covered keywords: ['入场曲', '进化时', '将.*加入手牌', '破坏']",
+      "hit_keywords": [
+        "入场曲",
+        "进化时",
+        "将.*加入手牌",
+        "破坏"
+      ],
+      "missing_primitives": [],
+      "ability_keywords": [
+        "入场曲",
+        "进化时"
+      ],
+      "skill_texts": [
+        "【<color=Keyword>入场曲</color>】将随机1张与本次对战中被破坏的自己的随从同名的卡牌以非公开形式加入手牌。\n<hr><ev>【<color=Keyword>进化时</color>】发动与【<color=Keyword>入场曲</color>】相同的能力。</ev>"
+      ],
+      "support_level": "unsupported"
+    },
+    "10803310": {
+      "card_id": 10803310,
+      "name": "传承的意志",
+      "class_name": "中立",
+      "card_type": "法术",
+      "cost": 2,
+      "is_collectible": true,
+      "card_set_id": 10008,
+      "coverage": "supported_missing_rule",
+      "reason": "Covered keywords: ['造成.*伤害', '亡者召还', '选择一项|模式']",
+      "hit_keywords": [
+        "造成.*伤害",
+        "亡者召还",
+        "选择一项|模式"
+      ],
+      "missing_primitives": [],
+      "ability_keywords": [
+        "亡者召还",
+        "模式"
+      ],
+      "skill_texts": [
+        "【<color=Keyword>模式</color>】选择1个能力发动。\n<ridx=0>（1）对对手的战场上的随机1个随从造成3点伤害。</ridx>\n<ridx=1>（2）发动【<color=Keyword>亡者召还</color>_2】。</ridx>\n<ridx=2>（3）使自己的战场上的所有随从+1/+0。</ridx>"
+      ],
+      "support_level": "unsupported"
+    },
+    "10804110": {
+      "card_id": 10804110,
+      "name": "阿尔比昂巴哈姆特",
+      "class_name": "中立",
+      "card_type": "随从",
+      "cost": 9,
+      "is_collectible": true,
+      "card_set_id": 10008,
+      "coverage": "supported_missing_rule",
+      "reason": "Covered keywords: ['入场曲', '消失', '纹章', '选择一项|模式']",
+      "hit_keywords": [
+        "入场曲",
+        "消失",
+        "纹章",
+        "选择一项|模式"
+      ],
+      "missing_primitives": [],
+      "ability_keywords": [
+        "入场曲",
+        "模式"
+      ],
+      "skill_texts": [
+        "【<color=Keyword>入场曲</color>】【<color=Keyword>模式</color>】选择1个能力发动。\n<ridx=0>（1）使战场上的其他所有随从消失。</ridx>\n<ridx=1>（2）使战场上的所有护符消失。</ridx>\n<ridx=2>（3）使所有纹章消失。</ridx>"
+      ],
+      "support_level": "unsupported"
+    },
+    "10804120": {
+      "card_id": 10804120,
+      "name": "高洁的黑翼·奥莉薇",
+      "class_name": "中立",
+      "card_type": "随从",
+      "cost": 9,
+      "is_collectible": true,
+      "card_set_id": 10008,
+      "coverage": "supported_missing_rule",
+      "reason": "Covered keywords: ['入场曲', '超进化', '回复']",
+      "hit_keywords": [
+        "入场曲",
+        "超进化",
+        "回复"
+      ],
+      "missing_primitives": [],
+      "ability_keywords": [
+        "入场曲",
+        "守护"
+      ],
+      "skill_texts": [
+        "【<color=Keyword>入场曲</color>】回复自己2点超进化点。\n<hr>【<color=Keyword>守护</color>】"
+      ],
+      "support_level": "unsupported"
+    },
+    "10811110": {
+      "card_id": 10811110,
+      "name": "昔日的天秤·马龙",
+      "class_name": "精灵",
+      "card_type": "随从",
+      "cost": 7,
+      "is_collectible": true,
+      "card_set_id": 10008,
+      "coverage": "supported_missing_rule",
+      "reason": "Covered keywords: ['入场曲', '破坏']",
+      "hit_keywords": [
+        "入场曲",
+        "破坏"
+      ],
+      "missing_primitives": [],
+      "ability_keywords": [
+        "入场曲"
+      ],
+      "skill_texts": [
+        "【<color=Keyword>入场曲</color>】破坏对手的战场上的随机X个随从。X为「对手的战场上的随从数减去自己的战场上的随从数」。"
+      ],
+      "support_level": "unsupported"
+    },
+    "10811120": {
+      "card_id": 10811120,
+      "name": "异端隐士·西特拉斯",
+      "class_name": "精灵",
+      "card_type": "随从",
+      "cost": 3,
+      "is_collectible": true,
+      "card_set_id": 10008,
+      "coverage": "supported_missing_rule",
+      "reason": "Covered keywords: ['入场曲', '进化时', '召唤']",
+      "hit_keywords": [
+        "入场曲",
+        "进化时",
+        "召唤"
+      ],
+      "missing_primitives": [],
+      "ability_keywords": [
+        "入场曲",
+        "进化时"
+      ],
+      "skill_texts": [
+        "【<color=Keyword>入场曲</color>】召唤2个『<color=Keyword>妖精</color>』。\n<hr><ev>【<color=Keyword>进化时</color>】发动与【<color=Keyword>入场曲</color>】相同的能力。</ev>"
+      ],
+      "support_level": "unsupported"
+    },
+    "10811130": {
+      "card_id": 10811130,
+      "name": "忧郁少女·莫埃尔",
+      "class_name": "精灵",
+      "card_type": "随从",
+      "cost": 1,
+      "is_collectible": true,
+      "card_set_id": 10008,
+      "coverage": "supported_missing_rule",
+      "reason": "Covered keywords: ['入场曲', '抽取', '返回牌']",
+      "hit_keywords": [
+        "入场曲",
+        "抽取",
+        "返回牌"
+      ],
+      "missing_primitives": [],
+      "ability_keywords": [
+        "入场曲",
+        "守护"
+      ],
+      "skill_texts": [
+        "【<color=Keyword>入场曲</color>】选择自己的1张手牌，使其返回牌组。抽取1张卡牌。\n<hr>【<color=Keyword>守护</color>】"
+      ],
+      "support_level": "unsupported"
+    },
+    "10812110": {
+      "card_id": 10812110,
+      "name": "太古的妖精·露芙蕾",
+      "class_name": "精灵",
+      "card_type": "随从",
+      "cost": 2,
+      "is_collectible": true,
+      "card_set_id": 10008,
+      "coverage": "supported_missing_rule",
+      "reason": "Covered keywords: ['谢幕曲', '将.*加入手牌', '召唤']",
+      "hit_keywords": [
+        "谢幕曲",
+        "将.*加入手牌",
+        "召唤"
+      ],
+      "missing_primitives": [],
+      "ability_keywords": [
+        "谢幕曲"
+      ],
+      "skill_texts": [
+        "本随从在战场上获得攻击力或生命值增加时，自己的每回合中可触发1次，召唤1个『<color=Keyword>妖精</color>』。\n【<color=Keyword>谢幕曲</color>】将1张『<color=Keyword>妖精</color>』加入手牌。"
+      ],
+      "support_level": "unsupported"
+    },
+    "10812120": {
+      "card_id": 10812120,
+      "name": "情念的毒荆·莉柯瑞丝",
+      "class_name": "精灵",
+      "card_type": "随从",
+      "cost": 4,
+      "is_collectible": true,
+      "card_set_id": 10008,
+      "coverage": "supported_missing_rule",
+      "reason": "Covered keywords: ['入场曲', '召唤', '必杀']",
+      "hit_keywords": [
+        "入场曲",
+        "召唤",
+        "必杀"
+      ],
+      "missing_primitives": [],
+      "ability_keywords": [
+        "入场曲",
+        "必杀",
+        "突进"
+      ],
+      "skill_texts": [
+        "【<color=Keyword>入场曲</color>】召唤1个『<color=Keyword>温柔读心者·米榭儿</color>』。\n<hr>【<color=Keyword>突进</color>】\n【<color=Keyword>毁灭</color>】"
+      ],
+      "support_level": "unsupported"
+    },
+    "10812310": {
+      "card_id": 10812310,
+      "name": "宁静的孤独",
+      "class_name": "精灵",
+      "card_type": "法术",
+      "cost": 4,
+      "is_collectible": true,
+      "card_set_id": 10008,
+      "coverage": "supported_missing_rule",
+      "reason": "Covered keywords: ['回复', '破坏']",
+      "hit_keywords": [
+        "回复",
+        "破坏"
+      ],
+      "missing_primitives": [],
+      "ability_keywords": [],
+      "skill_texts": [
+        "选择对手的战场上的1个随从，破坏该随从。回复自己的主战者2点生命值。"
+      ],
+      "support_level": "unsupported"
+    },
+    "10813110": {
+      "card_id": 10813110,
+      "name": "温柔读心者·米榭儿",
+      "class_name": "精灵",
+      "card_type": "随从",
+      "cost": 6,
+      "is_collectible": true,
+      "card_set_id": 10008,
+      "coverage": "supported_missing_rule",
+      "reason": "Covered keywords: ['入场曲', '召唤', '屏障']",
+      "hit_keywords": [
+        "入场曲",
+        "召唤",
+        "屏障"
+      ],
+      "missing_primitives": [],
+      "ability_keywords": [
+        "入场曲",
+        "守护",
+        "屏障"
+      ],
+      "skill_texts": [
+        "【<color=Keyword>入场曲</color>】召唤1个『<color=Keyword>情念的毒荆·莉柯瑞丝</color>』。使自己的战场上的所有随从获得【<color=Keyword>屏障</color>】。\n<hr>【<color=Keyword>守护</color>】"
+      ],
+      "support_level": "unsupported"
+    },
+    "10813310": {
+      "card_id": 10813310,
+      "name": "水镜的信赖",
+      "class_name": "精灵",
+      "card_type": "法术",
+      "cost": 5,
+      "is_collectible": true,
+      "card_set_id": 10008,
+      "coverage": "supported_missing_rule",
+      "reason": "Covered keywords: ['召唤']",
+      "hit_keywords": [
+        "召唤"
+      ],
+      "missing_primitives": [],
+      "ability_keywords": [],
+      "skill_texts": [
+        "召唤随机2种自己的牌组中费用为2或以下的随从。使自己的战场上的所有随从+1/+1。"
+      ],
+      "support_level": "unsupported"
+    },
+    "10814110": {
+      "card_id": 10814110,
+      "name": "离合有终·赛德斯&梅希亚",
+      "class_name": "精灵",
+      "card_type": "随从",
+      "cost": 7,
+      "is_collectible": true,
+      "card_set_id": 10008,
+      "coverage": "supported_missing_rule",
+      "reason": "Covered keywords: ['入场曲', '破坏']",
+      "hit_keywords": [
+        "入场曲",
+        "破坏"
+      ],
+      "missing_primitives": [],
+      "ability_keywords": [
+        "入场曲",
+        "守护",
+        "疾驰"
+      ],
+      "skill_texts": [
+        "【<color=Keyword>入场曲</color>】选择对手的战场上的1个随从，破坏该随从。使自己的战场上的其他所有随从+1/+1。\n<hr>【<color=Keyword>疾驰</color>】\n【<color=Keyword>守护</color>】"
+      ],
+      "support_level": "unsupported"
+    },
+    "10814120": {
+      "card_id": 10814120,
+      "name": "永恒冰晶·蒂亚",
+      "class_name": "精灵",
+      "card_type": "随从",
+      "cost": 2,
+      "is_collectible": true,
+      "card_set_id": 10008,
+      "coverage": "supported_missing_rule",
+      "reason": "Covered keywords: ['将.*加入手牌', '爆能强化']",
+      "hit_keywords": [
+        "将.*加入手牌",
+        "爆能强化"
+      ],
+      "missing_primitives": [],
+      "ability_keywords": [
+        "爆能强化",
+        "突进"
+      ],
+      "skill_texts": [
+        "【<color=Keyword>爆能强化</color>_4】使自己的战场上的所有随从+1/+1。\n<hr>【<color=Keyword>突进</color>】\n本随从在战场上获得攻击力或生命值增加时，自己的每回合中可触发1次，将1张『<color=Keyword>冰晶剑士·伊芙</color>』加入手牌。"
+      ],
+      "support_level": "unsupported"
+    },
+    "10821110": {
+      "card_id": 10821110,
+      "name": "武力与治安·娜哈特·娜哈特&宾森特",
+      "class_name": "皇家护卫",
+      "card_type": "随从",
+      "cost": 7,
+      "is_collectible": true,
+      "card_set_id": 10008,
+      "coverage": "supported_missing_rule",
+      "reason": "Covered keywords: ['入场曲', '进化时', '超进化', '造成.*伤害', '召唤']",
+      "hit_keywords": [
+        "入场曲",
+        "进化时",
+        "超进化",
+        "造成.*伤害",
+        "召唤"
+      ],
+      "missing_primitives": [],
+      "ability_keywords": [
+        "入场曲",
+        "超进化时"
+      ],
+      "skill_texts": [
+        "【<color=Keyword>入场曲</color>】召唤1个『<color=Keyword>娜哈特的私兵</color>』。对对手的战场上的所有随从造成3点伤害。\n<hr><sev>【<color=Keyword>超进化时</color>】发动与【<color=Keyword>入场曲</color>】相同的能力。</sev>"
+      ],
+      "support_level": "unsupported"
+    },
+    "10821120": {
+      "card_id": 10821120,
+      "name": "寡言的刺客·夏伊莉",
+      "class_name": "皇家护卫",
+      "card_type": "随从",
+      "cost": 2,
+      "is_collectible": true,
+      "card_set_id": 10008,
+      "coverage": "supported_missing_rule",
+      "reason": "Covered keywords: ['进化时', '回合结束', '不能攻击|无法攻击']",
+      "hit_keywords": [
+        "进化时",
+        "回合结束",
+        "不能攻击|无法攻击"
+      ],
+      "missing_primitives": [],
+      "ability_keywords": [
+        "潜行",
+        "进化时"
+      ],
+      "skill_texts": [
+        "【<color=Keyword>潜行</color>】\n<hr><ev>【<color=Keyword>进化时</color>】选择对手的战场上的1个随从，对手的回合结束前，使其获得「无法攻击随从或主战者」。</ev>"
+      ],
+      "support_level": "unsupported"
+    },
+    "10821130": {
+      "card_id": 10821130,
+      "name": "悠久的骑士·莎夏",
+      "class_name": "皇家护卫",
+      "card_type": "随从",
+      "cost": 4,
+      "is_collectible": true,
+      "card_set_id": 10008,
+      "coverage": "supported_missing_rule",
+      "reason": "Covered keywords: ['入场曲', '进化时', '召唤']",
+      "hit_keywords": [
+        "入场曲",
+        "进化时",
+        "召唤"
+      ],
+      "missing_primitives": [],
+      "ability_keywords": [
+        "入场曲",
+        "守护",
+        "突进",
+        "进化时"
+      ],
+      "skill_texts": [
+        "【<color=Keyword>入场曲</color>】召唤1个『<color=Keyword>铁甲骑士</color>』，使其获得【<color=Keyword>突进</color>】。\n<hr><ev>【<color=Keyword>进化时</color>】召唤1个『<color=Keyword>铁甲骑士</color>』，使其获得【<color=Keyword>守护</color>】。</ev>"
+      ],
+      "support_level": "unsupported"
+    },
+    "10822110": {
+      "card_id": 10822110,
+      "name": "越狱者·卡婕",
+      "class_name": "皇家护卫",
+      "card_type": "随从",
+      "cost": 3,
+      "is_collectible": true,
+      "card_set_id": 10008,
+      "coverage": "supported_missing_rule",
+      "reason": "Covered keywords: ['进化时', '将.*加入手牌', '造成.*伤害']",
+      "hit_keywords": [
+        "进化时",
+        "将.*加入手牌",
+        "造成.*伤害"
+      ],
+      "missing_primitives": [],
+      "ability_keywords": [
+        "进化时"
+      ],
+      "skill_texts": [
+        "自己使用法术时，自己的每回合中可触发1次，对对手的战场上的随机1个随从造成2点伤害。\n<hr><ev>【<color=Keyword>进化时</color>】将1张『<color=Keyword>闪耀的金币</color>』加入手牌。</ev>"
+      ],
+      "support_level": "unsupported"
+    },
+    "10822120": {
+      "card_id": 10822120,
+      "name": "织田信长",
+      "class_name": "皇家护卫",
+      "card_type": "随从",
+      "cost": 10,
+      "is_collectible": true,
+      "card_set_id": 10008,
+      "coverage": "missing_primitive",
+      "reason": "Missing primitives: ['威慑']",
+      "hit_keywords": [
+        "入场曲",
+        "造成.*伤害"
+      ],
+      "missing_primitives": [
+        "威慑"
+      ],
+      "ability_keywords": [
+        "入场曲",
+        "威慑"
+      ],
+      "skill_texts": [
+        "【<color=Keyword>入场曲</color>】对对手的战场上的所有随从造成6点伤害。\n<hr>【<color=Keyword>威慑</color>】"
+      ],
+      "support_level": "unsupported"
+    },
+    "10822310": {
+      "card_id": 10822310,
+      "name": "重历新生",
+      "class_name": "皇家护卫",
+      "card_type": "法术",
+      "cost": 4,
+      "is_collectible": true,
+      "card_set_id": 10008,
+      "coverage": "supported_missing_rule",
+      "reason": "Covered keywords: ['召唤', '爆能强化']",
+      "hit_keywords": [
+        "召唤",
+        "爆能强化"
+      ],
+      "missing_primitives": [],
+      "ability_keywords": [
+        "爆能强化"
+      ],
+      "skill_texts": [
+        "使对手的战场上的随机1个攻击力最大的随从-10/-10。\n【<color=Keyword>爆能强化</color>_6】召唤3个『<color=Keyword>异形</color>』。"
+      ],
+      "support_level": "unsupported"
+    },
+    "10823110": {
+      "card_id": 10823110,
+      "name": "冲田总司",
+      "class_name": "皇家护卫",
+      "card_type": "随从",
+      "cost": 3,
+      "is_collectible": true,
+      "card_set_id": 10008,
+      "coverage": "supported_missing_rule",
+      "reason": "Covered keywords: ['入场曲', '超进化', '攻击时', '造成.*伤害']",
+      "hit_keywords": [
+        "入场曲",
+        "超进化",
+        "攻击时",
+        "造成.*伤害"
+      ],
+      "missing_primitives": [],
+      "ability_keywords": [
+        "入场曲",
+        "攻击时",
+        "突进"
+      ],
+      "skill_texts": [
+        "【<color=Keyword>入场曲</color>】若为超进化已解禁的回合，则本随从进化。\n<hr>【<color=Keyword>突进</color>】\n【<color=Keyword>攻击时</color>】若攻击随从，则发动1次「对交战对手造成3点伤害」。若本随从为进化后，则改为发动3次。"
+      ],
+      "support_level": "unsupported"
+    },
+    "10823310": {
+      "card_id": 10823310,
+      "name": "相伴相随的日常",
+      "class_name": "皇家护卫",
+      "card_type": "法术",
+      "cost": 2,
+      "is_collectible": true,
+      "card_set_id": 10008,
+      "coverage": "supported_missing_rule",
+      "reason": "Covered keywords: ['回复', '造成.*伤害', '选择一项|模式']",
+      "hit_keywords": [
+        "回复",
+        "造成.*伤害",
+        "选择一项|模式"
+      ],
+      "missing_primitives": [],
+      "ability_keywords": [
+        "模式"
+      ],
+      "skill_texts": [
+        "【<color=Keyword>模式</color>】选择1个能力发动。若自己的战场上的卡牌的张数为2张或以上，则改为发动所有能力。\n<ridx=0>（1）对对手的战场上的随机1个随从造成4点伤害。</ridx>\n<ridx=1>（2）回复自己的主战者2点生命值。</ridx>"
+      ],
+      "support_level": "unsupported"
+    },
+    "10824110": {
+      "card_id": 10824110,
+      "name": "天命的子弹·巴妮&巴隆",
+      "class_name": "皇家护卫",
+      "card_type": "随从",
+      "cost": 5,
+      "is_collectible": true,
+      "card_set_id": 10008,
+      "coverage": "supported_missing_rule",
+      "reason": "Covered keywords: ['入场曲', '进化时', '将.*加入手牌', '造成.*伤害', '召唤', '协作']",
+      "hit_keywords": [
+        "入场曲",
+        "进化时",
+        "将.*加入手牌",
+        "造成.*伤害",
+        "召唤",
+        "协作"
+      ],
+      "missing_primitives": [],
+      "ability_keywords": [
+        "入场曲",
+        "协作",
+        "突进",
+        "进化时"
+      ],
+      "skill_texts": [
+        "【<color=Keyword>入场曲</color>】召唤1个『<color=Keyword>天命的子弹·巴妮&巴隆</color>』。【<color=Keyword>协作</color>_20】对对手的主战者造成4点伤害。\n<hr>【<color=Keyword>突进</color>】\n<hr><ev>【<color=Keyword>进化时</color>】将1张『<color=Keyword>亡命者的枪击</color>』加入手牌。</ev>"
+      ],
+      "support_level": "unsupported"
+    },
+    "10824120": {
+      "card_id": 10824120,
+      "name": "焦灼炎将·玛尔斯",
+      "class_name": "皇家护卫",
+      "card_type": "随从",
+      "cost": 8,
+      "is_collectible": true,
+      "card_set_id": 10008,
+      "coverage": "supported_missing_rule",
+      "reason": "Covered keywords: ['入场曲', '进化时', '超进化', '召唤', '必杀']",
+      "hit_keywords": [
+        "入场曲",
+        "进化时",
+        "超进化",
+        "召唤",
+        "必杀"
+      ],
+      "missing_primitives": [],
+      "ability_keywords": [
+        "入场曲",
+        "必杀",
+        "疾驰",
+        "突进",
+        "超进化时"
+      ],
+      "skill_texts": [
+        "【<color=Keyword>入场曲</color>】召唤3个『<color=Keyword>骑士</color>』。\n<hr>【<color=Keyword>疾驰</color>】\n【<color=Keyword>毁灭</color>】\n自己的士兵·随从进入战场时，使其+2/+0且获得【<color=Keyword>突进</color>】。本随从+1/+0。\n<hr><sev>【<color=Keyword>超进化时</color>】召唤1个『<color=Keyword>骑士</color>』。</sev>"
+      ],
+      "support_level": "unsupported"
+    },
+    "10831110": {
+      "card_id": 10831110,
+      "name": "森绿的恩惠·喵鲁&圆滚滚2号&吉娜",
+      "class_name": "巫师",
+      "card_type": "随从",
+      "cost": 2,
+      "is_collectible": true,
+      "card_set_id": 10008,
+      "coverage": "supported_missing_rule",
+      "reason": "Covered keywords: ['入场曲', '进化时', '造成.*伤害', '魔力增幅']",
+      "hit_keywords": [
+        "入场曲",
+        "进化时",
+        "造成.*伤害",
+        "魔力增幅"
+      ],
+      "missing_primitives": [],
+      "ability_keywords": [
+        "入场曲",
+        "进化时"
+      ],
+      "skill_texts": [
+        "【<color=Keyword>入场曲</color>】选择对手的战场上的1个随从，对其造成1点伤害。使自己的所有手牌发动1次魔力增幅。\n<hr><ev>【<color=Keyword>进化时</color>】发动与【<color=Keyword>入场曲</color>】相同的能力。</ev>"
+      ],
+      "support_level": "unsupported"
+    },
+    "10831120": {
+      "card_id": 10831120,
+      "name": "玛纳利亚书记官·波比",
+      "class_name": "巫师",
+      "card_type": "随从",
+      "cost": 2,
+      "is_collectible": true,
+      "card_set_id": 10008,
+      "coverage": "supported_missing_rule",
+      "reason": "Covered keywords: ['入场曲', '将.*加入手牌']",
+      "hit_keywords": [
+        "入场曲",
+        "将.*加入手牌"
+      ],
+      "missing_primitives": [],
+      "ability_keywords": [
+        "入场曲"
+      ],
+      "skill_texts": [
+        "【<color=Keyword>入场曲</color>】将1张『<color=Keyword>玛纳利亚魔弹</color>』加入手牌。"
+      ],
+      "support_level": "unsupported"
+    },
+    "10831310": {
+      "card_id": 10831310,
+      "name": "暴风破",
+      "class_name": "巫师",
+      "card_type": "法术",
+      "cost": 1,
+      "is_collectible": true,
+      "card_set_id": 10008,
+      "coverage": "supported_missing_rule",
+      "reason": "Covered keywords: ['造成.*伤害', '魔力增幅']",
+      "hit_keywords": [
+        "造成.*伤害",
+        "魔力增幅"
+      ],
+      "missing_primitives": [],
+      "ability_keywords": [
+        "魔力增幅"
+      ],
+      "skill_texts": [
+        "X起始为2。\n【<color=Keyword>魔力增幅时</color>】使本卡牌的X+1。\n<hr>选择对手的战场上的1个随从，对其造成X点伤害。"
+      ],
+      "support_level": "unsupported"
+    },
+    "10832110": {
+      "card_id": 10832110,
+      "name": "快乐绽花·萨米&玛莉",
+      "class_name": "巫师",
+      "card_type": "随从",
+      "cost": 5,
+      "is_collectible": true,
+      "card_set_id": 10008,
+      "coverage": "supported_missing_rule",
+      "reason": "Covered keywords: ['入场曲', '抽取', '魔力增幅']",
+      "hit_keywords": [
+        "入场曲",
+        "抽取",
+        "魔力增幅"
+      ],
+      "missing_primitives": [],
+      "ability_keywords": [
+        "入场曲",
+        "魔力增幅"
+      ],
+      "skill_texts": [
+        "【<color=Keyword>魔力增幅时</color>】使本卡牌的费用-1。\n<hr>【<color=Keyword>入场曲</color>】抽取2张卡牌。对手抽取1张卡牌。"
+      ],
+      "support_level": "unsupported"
+    },
+    "10832310": {
+      "card_id": 10832310,
+      "name": "其乐融融的团聚",
+      "class_name": "巫师",
+      "card_type": "法术",
+      "cost": 2,
+      "is_collectible": true,
+      "card_set_id": 10008,
+      "coverage": "supported_missing_rule",
+      "reason": "Covered keywords: ['回复', '魔力增幅']",
+      "hit_keywords": [
+        "回复",
+        "魔力增幅"
+      ],
+      "missing_primitives": [],
+      "ability_keywords": [],
+      "skill_texts": [
+        "回复自己的主战者2点生命值。使自己的所有手牌发动1次魔力增幅。"
+      ],
+      "support_level": "unsupported"
+    },
+    "10832320": {
+      "card_id": 10832320,
+      "name": "伏地雷击",
+      "class_name": "巫师",
+      "card_type": "法术",
+      "cost": 5,
+      "is_collectible": true,
+      "card_set_id": 10008,
+      "coverage": "missing_primitive",
+      "reason": "Missing primitives: ['土之秘术|土之印']",
+      "hit_keywords": [
+        "将.*加入手牌",
+        "造成.*伤害"
+      ],
+      "missing_primitives": [
+        "土之秘术|土之印"
+      ],
+      "ability_keywords": [
+        "土之秘术"
+      ],
+      "skill_texts": [
+        "对对手的战场上的随机1个攻击力最大的随从造成8点伤害。对对手的主战者造成2点伤害。【<color=Keyword>土之秘术</color>_2】将1张『<color=Keyword>伏地雷击</color>』加入手牌。"
+      ],
+      "support_level": "unsupported"
+    },
+    "10833110": {
+      "card_id": 10833110,
+      "name": "玛纳利亚文书官·琪可",
+      "class_name": "巫师",
+      "card_type": "随从",
+      "cost": 3,
+      "is_collectible": true,
+      "card_set_id": 10008,
+      "coverage": "supported_missing_rule",
+      "reason": "Covered keywords: ['入场曲', '进化时', '超进化', '将.*加入手牌', '纹章']",
+      "hit_keywords": [
+        "入场曲",
+        "进化时",
+        "超进化",
+        "将.*加入手牌",
+        "纹章"
+      ],
+      "missing_primitives": [],
+      "ability_keywords": [
+        "入场曲",
+        "纹章",
+        "超进化时",
+        "进化时"
+      ],
+      "skill_texts": [
+        "【<color=Keyword>入场曲</color>】将2张『<color=Keyword>玛纳利亚魔弹</color>』加入手牌。\n<hr><ev>【<color=Keyword>进化时</color>】使自己的手牌中的所有玛纳利亚·法术的费用-1。</ev>\n<sev>【<color=Keyword>超进化时</color>】使自己获得『纹章：玛纳利亚文书官·琪可』。</sev>"
+      ],
+      "support_level": "unsupported"
+    },
+    "10833310": {
+      "card_id": 10833310,
+      "name": "钢铁的小憩",
+      "class_name": "巫师",
+      "card_type": "法术",
+      "cost": 3,
+      "is_collectible": true,
+      "card_set_id": 10008,
+      "coverage": "supported_missing_rule",
+      "reason": "Covered keywords: ['抽取', '回复', '魔力增幅']",
+      "hit_keywords": [
+        "抽取",
+        "回复",
+        "魔力增幅"
+      ],
+      "missing_primitives": [],
+      "ability_keywords": [
+        "魔力增幅"
+      ],
+      "skill_texts": [
+        "X起始为0。\n【<color=Keyword>魔力增幅时</color>】使本卡牌的X+1。\n<hr>抽取2张卡牌。若X为5或以上，则回复自己的主战者2点生命值。回复自己2点能量点。"
+      ],
+      "support_level": "unsupported"
+    },
+    "10834110": {
+      "card_id": 10834110,
+      "name": "恩爱的大地·坦忒拉&拉缇卡",
+      "class_name": "巫师",
+      "card_type": "随从",
+      "cost": 6,
+      "is_collectible": true,
+      "card_set_id": 10008,
+      "coverage": "supported_missing_rule",
+      "reason": "Covered keywords: ['入场曲', '将.*加入手牌', '魔力增幅']",
+      "hit_keywords": [
+        "入场曲",
+        "将.*加入手牌",
+        "魔力增幅"
+      ],
+      "missing_primitives": [],
+      "ability_keywords": [
+        "入场曲",
+        "疾驰",
+        "魔力增幅"
+      ],
+      "skill_texts": [
+        "X起始为0。\n【<color=Keyword>魔力增幅时</color>】使本卡牌的X+1。\n<hr>【<color=Keyword>入场曲</color>】若X为10或以上，则将1张『<color=Keyword>苍奏之四</color>』加入手牌。若为20或以上，则将1张『<color=Keyword>宏大的回归</color>』加入手牌。\n<hr>【<color=Keyword>疾驰</color>】"
+      ],
+      "support_level": "unsupported"
+    },
+    "10834120": {
+      "card_id": 10834120,
+      "name": "灾难言灵·洋荷",
+      "class_name": "巫师",
+      "card_type": "随从",
+      "cost": 7,
+      "is_collectible": true,
+      "card_set_id": 10008,
+      "coverage": "supported_missing_rule",
+      "reason": "Covered keywords: ['入场曲', '进化时', '召唤', '魔力增幅']",
+      "hit_keywords": [
+        "入场曲",
+        "进化时",
+        "召唤",
+        "魔力增幅"
+      ],
+      "missing_primitives": [],
+      "ability_keywords": [
+        "入场曲",
+        "突进",
+        "进化时"
+      ],
+      "skill_texts": [
+        "【<color=Keyword>入场曲</color>】召唤2个『<color=Keyword>守护者巨像</color>』。\n<hr>自己的其他随从进入战场时，使其获得【<color=Keyword>突进</color>】。使自己的所有手牌发动1次魔力增幅。\n<hr><ev>【<color=Keyword>进化时</color>】召唤1个『<color=Keyword>守护者巨像</color>』。</ev>"
+      ],
+      "support_level": "unsupported"
+    },
+    "10841110": {
+      "card_id": 10841110,
+      "name": "狼人族首领·契特",
+      "class_name": "龙族",
+      "card_type": "随从",
+      "cost": 4,
+      "is_collectible": true,
+      "card_set_id": 10008,
+      "coverage": "supported_missing_rule",
+      "reason": "Covered keywords: ['入场曲', '必杀']",
+      "hit_keywords": [
+        "入场曲",
+        "必杀"
+      ],
+      "missing_primitives": [],
+      "ability_keywords": [
+        "入场曲",
+        "守护",
+        "必杀"
+      ],
+      "skill_texts": [
+        "【<color=Keyword>入场曲</color>】若自己的主战者的生命值为10或以下，则本随从进化。\n<hr>【<color=Keyword>毁灭</color>】\n【<color=Keyword>守护</color>】"
+      ],
+      "support_level": "unsupported"
+    },
+    "10841120": {
+      "card_id": 10841120,
+      "name": "沙尘守宝龙",
+      "class_name": "龙族",
+      "card_type": "随从",
+      "cost": 7,
+      "is_collectible": true,
+      "card_set_id": 10008,
+      "coverage": "supported_missing_rule",
+      "reason": "Covered keywords: ['谢幕曲', '抽取']",
+      "hit_keywords": [
+        "谢幕曲",
+        "抽取"
+      ],
+      "missing_primitives": [],
+      "ability_keywords": [
+        "守护",
+        "谢幕曲"
+      ],
+      "skill_texts": [
+        "【<color=Keyword>守护</color>】\n【<color=Keyword>谢幕曲</color>】抽取3张卡牌。"
+      ],
+      "support_level": "unsupported"
+    },
+    "10841130": {
+      "card_id": 10841130,
+      "name": "沧海之精",
+      "class_name": "龙族",
+      "card_type": "随从",
+      "cost": 2,
+      "is_collectible": true,
+      "card_set_id": 10008,
+      "coverage": "supported_missing_rule",
+      "reason": "Covered keywords: ['入场曲', '进化时', '将.*加入手牌', '纹章']",
+      "hit_keywords": [
+        "入场曲",
+        "进化时",
+        "将.*加入手牌",
+        "纹章"
+      ],
+      "missing_primitives": [],
+      "ability_keywords": [
+        "入场曲",
+        "纹章",
+        "进化时"
+      ],
+      "skill_texts": [
+        "【<color=Keyword>入场曲</color>】将1张『<color=Keyword>大海虎鲸</color>』加入手牌。\n<hr><ev>【<color=Keyword>进化时</color>】使自己获得『纹章：沧海之精』。</ev>"
+      ],
+      "support_level": "unsupported"
+    },
+    "10842110": {
+      "card_id": 10842110,
+      "name": "闪耀旋律·莉芙&萝萝",
+      "class_name": "龙族",
+      "card_type": "随从",
+      "cost": 5,
+      "is_collectible": true,
+      "card_set_id": 10008,
+      "coverage": "supported_missing_rule",
+      "reason": "Covered keywords: ['入场曲', '回合结束', '将.*加入手牌', '召唤']",
+      "hit_keywords": [
+        "入场曲",
+        "回合结束",
+        "将.*加入手牌",
+        "召唤"
+      ],
+      "missing_primitives": [],
+      "ability_keywords": [
+        "入场曲",
+        "突进"
+      ],
+      "skill_texts": [
+        "【<color=Keyword>入场曲</color>】召唤1个『<color=Keyword>闪耀旋律·莉芙&萝萝</color>』。\n<hr>【<color=Keyword>突进</color>】\n自己的回合结束时，将1张『<color=Keyword>大海虎鲸</color>』加入手牌。"
+      ],
+      "support_level": "unsupported"
+    },
+    "10842120": {
+      "card_id": 10842120,
+      "name": "满面笑容的烹饪·琪米卡",
+      "class_name": "龙族",
+      "card_type": "随从",
+      "cost": 2,
+      "is_collectible": true,
+      "card_set_id": 10008,
+      "coverage": "supported_missing_rule",
+      "reason": "Covered keywords: ['入场曲', '进化时', '抽取', '回复', '舍弃']",
+      "hit_keywords": [
+        "入场曲",
+        "进化时",
+        "抽取",
+        "回复",
+        "舍弃"
+      ],
+      "missing_primitives": [],
+      "ability_keywords": [
+        "入场曲",
+        "进化时"
+      ],
+      "skill_texts": [
+        "【<color=Keyword>入场曲</color>】选择自己的1张手牌，舍弃该手牌。抽取1张卡牌。回复自己的主战者1点生命值。\n<hr><ev>【<color=Keyword>进化时</color>】发动与【<color=Keyword>入场曲</color>】相同的能力。</ev>"
+      ],
+      "support_level": "unsupported"
+    },
+    "10842310": {
+      "card_id": 10842310,
+      "name": "末世死化妆",
+      "class_name": "龙族",
+      "card_type": "法术",
+      "cost": 6,
+      "is_collectible": true,
+      "card_set_id": 10008,
+      "coverage": "supported_missing_rule",
+      "reason": "Covered keywords: ['造成.*伤害']",
+      "hit_keywords": [
+        "造成.*伤害"
+      ],
+      "missing_primitives": [],
+      "ability_keywords": [],
+      "skill_texts": [
+        "对对手的战场上的随机1个随从造成4点伤害。对对手的主战者造成4点伤害。"
+      ],
+      "support_level": "unsupported"
+    },
+    "10843110": {
+      "card_id": 10843110,
+      "name": "穹顶的战火·杰亚达",
+      "class_name": "龙族",
+      "card_type": "随从",
+      "cost": 6,
+      "is_collectible": true,
+      "card_set_id": 10008,
+      "coverage": "missing_primitive",
+      "reason": "Missing primitives: ['威慑']",
+      "hit_keywords": [
+        "攻击时",
+        "回合结束",
+        "屏障"
+      ],
+      "missing_primitives": [
+        "威慑"
+      ],
+      "ability_keywords": [
+        "威慑",
+        "屏障",
+        "攻击时",
+        "突进"
+      ],
+      "skill_texts": [
+        "【<color=Keyword>突进</color>】\n【<color=Keyword>威慑</color>】\n【<color=Keyword>攻击时</color>】本随从获得【<color=Keyword>屏障</color>】。若攻击随从，则回合结束前，本随从获得「1回合可以攻击2次」。"
+      ],
+      "support_level": "unsupported"
+    },
+    "10843310": {
+      "card_id": 10843310,
+      "name": "狐火蜃景",
+      "class_name": "龙族",
+      "card_type": "法术",
+      "cost": 1,
+      "is_collectible": true,
+      "card_set_id": 10008,
+      "coverage": "supported_missing_rule",
+      "reason": "Covered keywords: ['觉醒', '抽取', '造成.*伤害']",
+      "hit_keywords": [
+        "觉醒",
+        "抽取",
+        "造成.*伤害"
+      ],
+      "missing_primitives": [],
+      "ability_keywords": [
+        "觉醒"
+      ],
+      "skill_texts": [
+        "选择对手的战场上的1个随从或对手的主战者，对其造成1点伤害。将1张『<color=Keyword>狐火蜃景</color>』加入牌组。若为【<color=Keyword>觉醒</color>】，则抽取1张卡牌。"
+      ],
+      "support_level": "unsupported"
+    },
+    "10844110": {
+      "card_id": 10844110,
+      "name": "反照的赤红·德莱克&亚瑞札特",
+      "class_name": "龙族",
+      "card_type": "随从",
+      "cost": 4,
+      "is_collectible": true,
+      "card_set_id": 10008,
+      "coverage": "supported_missing_rule",
+      "reason": "Covered keywords: ['入场曲', '谢幕曲', '纹章']",
+      "hit_keywords": [
+        "入场曲",
+        "谢幕曲",
+        "纹章"
+      ],
+      "missing_primitives": [],
+      "ability_keywords": [
+        "入场曲",
+        "守护",
+        "纹章",
+        "谢幕曲"
+      ],
+      "skill_texts": [
+        "【<color=Keyword>入场曲</color>】本随从+X/+X。若X为2或以上，则本随从进化。X为本次对战中进入战场的自己的其他『<color=Keyword>反照的赤红·德莱克&亚瑞札特</color>』的张数。\n<hr>【<color=Keyword>守护</color>】\n【<color=Keyword>谢幕曲</color>】使自己获得『纹章：反照的赤红·德莱克&亚瑞札特』。"
+      ],
+      "support_level": "unsupported"
+    },
+    "10844120": {
+      "card_id": 10844120,
+      "name": "金银绚烂·璐米欧儿&雅尔贞特",
+      "class_name": "龙族",
+      "card_type": "随从",
+      "cost": 8,
+      "is_collectible": true,
+      "card_set_id": 10008,
+      "coverage": "supported_missing_rule",
+      "reason": "Covered keywords: ['入场曲', '进化时', '超进化', '抽取', '造成.*伤害', '舍弃']",
+      "hit_keywords": [
+        "入场曲",
+        "进化时",
+        "超进化",
+        "抽取",
+        "造成.*伤害",
+        "舍弃"
+      ],
+      "missing_primitives": [],
+      "ability_keywords": [
+        "入场曲",
+        "超进化时"
+      ],
+      "skill_texts": [
+        "【<color=Keyword>入场曲</color>】选择自己的2张手牌，舍弃这些手牌。对对手的战场上的所有随从和对手的主战者造成4点伤害。\n<hr><sev>【<color=Keyword>超进化时</color>】抽取3张卡牌。</sev>"
+      ],
+      "support_level": "unsupported"
+    },
+    "10851110": {
+      "card_id": 10851110,
+      "name": "通透的信念·安瑟珠",
+      "class_name": "梦魇",
+      "card_type": "随从",
+      "cost": 4,
+      "is_collectible": true,
+      "card_set_id": 10008,
+      "coverage": "text_unclear",
+      "reason": "No ability keywords in database",
+      "hit_keywords": [],
+      "missing_primitives": [],
+      "ability_keywords": [
+        "守护",
+        "疾驰"
+      ],
+      "skill_texts": [
+        "【<color=Keyword>疾驰</color>】\n可以无视【<color=Keyword>守护</color>】进行攻击。"
+      ],
+      "support_level": "unsupported"
+    },
+    "10851120": {
+      "card_id": 10851120,
+      "name": "可爱恶魔·莉莉姆",
+      "class_name": "梦魇",
+      "card_type": "随从",
+      "cost": 1,
+      "is_collectible": true,
+      "card_set_id": 10008,
+      "coverage": "supported_missing_rule",
+      "reason": "Covered keywords: ['谢幕曲', '攻击时', '将.*加入手牌', '造成.*伤害']",
+      "hit_keywords": [
+        "谢幕曲",
+        "攻击时",
+        "将.*加入手牌",
+        "造成.*伤害"
+      ],
+      "missing_primitives": [],
+      "ability_keywords": [
+        "攻击时",
+        "谢幕曲"
+      ],
+      "skill_texts": [
+        "【<color=Keyword>攻击时</color>】对所有主战者造成1点伤害。\n【<color=Keyword>谢幕曲</color>】将1张『<color=Keyword>蝙蝠</color>』加入手牌。"
+      ],
+      "support_level": "unsupported"
+    },
+    "10851130": {
+      "card_id": 10851130,
+      "name": "兔耳恶魔·莉蜜儿",
+      "class_name": "梦魇",
+      "card_type": "随从",
+      "cost": 2,
+      "is_collectible": true,
+      "card_set_id": 10008,
+      "coverage": "supported_missing_rule",
+      "reason": "Covered keywords: ['入场曲', '进化时', '召唤']",
+      "hit_keywords": [
+        "入场曲",
+        "进化时",
+        "召唤"
+      ],
+      "missing_primitives": [],
+      "ability_keywords": [
+        "入场曲",
+        "进化时"
+      ],
+      "skill_texts": [
+        "【<color=Keyword>入场曲</color>】若自己的主战者的生命值大于对手的主战者的生命值，则召唤2个『<color=Keyword>蝙蝠</color>』。\n<hr><ev>【<color=Keyword>进化时</color>】发动与【<color=Keyword>入场曲</color>】相同的能力。</ev>"
+      ],
+      "support_level": "unsupported"
+    },
+    "10852110": {
+      "card_id": 10852110,
+      "name": "母爱恶魔·菲欧蕾",
+      "class_name": "梦魇",
+      "card_type": "随从",
+      "cost": 6,
+      "is_collectible": true,
+      "card_set_id": 10008,
+      "coverage": "supported_missing_rule",
+      "reason": "Covered keywords: ['入场曲', '召唤']",
+      "hit_keywords": [
+        "入场曲",
+        "召唤"
+      ],
+      "missing_primitives": [],
+      "ability_keywords": [
+        "入场曲",
+        "突进"
+      ],
+      "skill_texts": [
+        "【<color=Keyword>入场曲</color>】召唤3个『<color=Keyword>蝙蝠</color>』。\n<hr>自己的『<color=Keyword>蝙蝠</color>』进入战场时，使其获得【<color=Keyword>突进</color>】。"
+      ],
+      "support_level": "unsupported"
+    },
+    "10852120": {
+      "card_id": 10852120,
+      "name": "黑暗骑士·玛莎",
+      "class_name": "梦魇",
+      "card_type": "随从",
+      "cost": 5,
+      "is_collectible": true,
+      "card_set_id": 10008,
+      "coverage": "supported_missing_rule",
+      "reason": "Covered keywords: ['入场曲', '进化时', '造成.*伤害']",
+      "hit_keywords": [
+        "入场曲",
+        "进化时",
+        "造成.*伤害"
+      ],
+      "missing_primitives": [],
+      "ability_keywords": [
+        "入场曲",
+        "进化时"
+      ],
+      "skill_texts": [
+        "【<color=Keyword>入场曲</color>】对对手的战场上的所有随从和所有主战者造成1点伤害。\n<hr><ev>【<color=Keyword>进化时</color>】发动与【<color=Keyword>入场曲</color>】相同的能力。</ev>"
+      ],
+      "support_level": "unsupported"
+    },
+    "10852310": {
+      "card_id": 10852310,
+      "name": "启程的退场",
+      "class_name": "梦魇",
+      "card_type": "法术",
+      "cost": 3,
+      "is_collectible": true,
+      "card_set_id": 10008,
+      "coverage": "supported_missing_rule",
+      "reason": "Covered keywords: ['回复', '造成.*伤害', '选择一项|模式']",
+      "hit_keywords": [
+        "回复",
+        "造成.*伤害",
+        "选择一项|模式"
+      ],
+      "missing_primitives": [],
+      "ability_keywords": [
+        "模式"
+      ],
+      "skill_texts": [
+        "【<color=Keyword>模式</color>】选择2个能力发动。\n<ridx=0>（1）对对手的主战者造成1点伤害。</ridx>\n<ridx=1>（2）回复自己的主战者2点生命值。</ridx>\n<ridx=2>（3）对对手的战场上的随机1个随从造成3点伤害。</ridx>\n<ridx=3>（4）使自己的墓场+4。</ridx>"
+      ],
+      "support_level": "unsupported"
+    },
+    "10853110": {
+      "card_id": 10853110,
+      "name": "诚实的诅咒师·丝姬",
+      "class_name": "梦魇",
+      "card_type": "随从",
+      "cost": 4,
+      "is_collectible": true,
+      "card_set_id": 10008,
+      "coverage": "supported_missing_rule",
+      "reason": "Covered keywords: ['入场曲', '进化时']",
+      "hit_keywords": [
+        "入场曲",
+        "进化时"
+      ],
+      "missing_primitives": [],
+      "ability_keywords": [
+        "入场曲",
+        "进化时"
+      ],
+      "skill_texts": [
+        "【<color=Keyword>入场曲</color>】选择对手的战场上的1个随从，使其-0/-3。\n<hr><ev>【<color=Keyword>进化时</color>】选择自己的手牌中的1张随从，使其+3/+0。</ev>"
+      ],
+      "support_level": "unsupported"
+    },
+    "10853310": {
+      "card_id": 10853310,
+      "name": "改变的流向",
+      "class_name": "梦魇",
+      "card_type": "法术",
+      "cost": 2,
+      "is_collectible": true,
+      "card_set_id": 10008,
+      "coverage": "supported_missing_rule",
+      "reason": "Covered keywords: ['超进化', '抽取', '返回牌']",
+      "hit_keywords": [
+        "超进化",
+        "抽取",
+        "返回牌"
+      ],
+      "missing_primitives": [],
+      "ability_keywords": [],
+      "skill_texts": [
+        "选择自己的1张手牌，使其返回牌组。抽取2张卡牌。若为超进化已解禁的回合，则使其费用-1。"
+      ],
+      "support_level": "unsupported"
+    },
+    "10854110": {
+      "card_id": 10854110,
+      "name": "出发的憧憬·苇剑&武津御",
+      "class_name": "梦魇",
+      "card_type": "随从",
+      "cost": 8,
+      "is_collectible": true,
+      "card_set_id": 10008,
+      "coverage": "supported_missing_rule",
+      "reason": "Covered keywords: ['入场曲', '进化时', '抽取', '回复', '造成.*伤害', '选择一项|模式']",
+      "hit_keywords": [
+        "入场曲",
+        "进化时",
+        "抽取",
+        "回复",
+        "造成.*伤害",
+        "选择一项|模式"
+      ],
+      "missing_primitives": [],
+      "ability_keywords": [
+        "入场曲",
+        "模式",
+        "进化时"
+      ],
+      "skill_texts": [
+        "【<color=Keyword>入场曲</color>】【<color=Keyword>模式</color>】选择1个能力发动。\n<ridx=0>（1）对对手的主战者造成4点伤害。回复自己的主战者4点生命值。</ridx>\n<ridx=1>（2）对对手的战场上的所有随从造成5点伤害。回复自己1点进化点。</ridx>\n<hr><ev>【<color=Keyword>进化时</color>】【<color=Keyword>模式</color>】选择1个能力发动。\n<ridx=0>（1）抽取2张卡牌。</ridx>\n<ridx=1>（2）回复自己2点能量点。</ridx></ev>"
+      ],
+      "support_level": "unsupported"
+    },
+    "10854120": {
+      "card_id": 10854120,
+      "name": "日月的蔷薇·赛蕾丝",
+      "class_name": "梦魇",
+      "card_type": "随从",
+      "cost": 5,
+      "is_collectible": true,
+      "card_set_id": 10008,
+      "coverage": "supported_missing_rule",
+      "reason": "Covered keywords: ['入场曲', '交战时', '回合结束', '回复', '造成.*伤害', '死灵术|唤灵']",
+      "hit_keywords": [
+        "入场曲",
+        "交战时",
+        "回合结束",
+        "回复",
+        "造成.*伤害",
+        "死灵术|唤灵"
+      ],
+      "missing_primitives": [],
+      "ability_keywords": [
+        "交战时",
+        "入场曲",
+        "死灵术"
+      ],
+      "skill_texts": [
+        "【<color=Keyword>入场曲</color>】【<color=Keyword>唤灵</color>_20】使自己的手牌中的所有梦魇·卡牌的费用-2。\n<hr>【<color=Keyword>交战时</color>】对交战对手造成4点伤害。\n自己的回合结束时，回复自己的主战者4点生命值。"
+      ],
+      "support_level": "unsupported"
+    },
+    "10861110": {
+      "card_id": 10861110,
+      "name": "图书室的魔女·莉莉尤姆",
+      "class_name": "主教",
+      "card_type": "随从",
+      "cost": 2,
+      "is_collectible": true,
+      "card_set_id": 10008,
+      "coverage": "supported_missing_rule",
+      "reason": "Covered keywords: ['谢幕曲', '进化时', '抽取', '造成.*伤害']",
+      "hit_keywords": [
+        "谢幕曲",
+        "进化时",
+        "抽取",
+        "造成.*伤害"
+      ],
+      "missing_primitives": [],
+      "ability_keywords": [
+        "谢幕曲",
+        "进化时"
+      ],
+      "skill_texts": [
+        "【<color=Keyword>谢幕曲</color>】抽取1张卡牌。\n<hr><ev>【<color=Keyword>进化时</color>】选择对手的战场上的1个随从，使其失去所有能力，对其造成2点伤害。</ev>"
+      ],
+      "support_level": "unsupported"
+    },
+    "10861120": {
+      "card_id": 10861120,
+      "name": "勤劳的女祭司·泰瑞莎",
+      "class_name": "主教",
+      "card_type": "随从",
+      "cost": 7,
+      "is_collectible": true,
+      "card_set_id": 10008,
+      "coverage": "supported_missing_rule",
+      "reason": "Covered keywords: ['入场曲', '召唤']",
+      "hit_keywords": [
+        "入场曲",
+        "召唤"
+      ],
+      "missing_primitives": [],
+      "ability_keywords": [
+        "入场曲",
+        "疾驰"
+      ],
+      "skill_texts": [
+        "【<color=Keyword>入场曲</color>】召唤1个『<color=Keyword>治愈的修女</color>』，使其+2/-2且获得【<color=Keyword>疾驰</color>】。"
+      ],
+      "support_level": "unsupported"
+    },
+    "10861130": {
+      "card_id": 10861130,
+      "name": "亡灵猎人·格兰特",
+      "class_name": "主教",
+      "card_type": "随从",
+      "cost": 5,
+      "is_collectible": true,
+      "card_set_id": 10008,
+      "coverage": "supported_missing_rule",
+      "reason": "Covered keywords: ['入场曲', '进化时', '破坏']",
+      "hit_keywords": [
+        "入场曲",
+        "进化时",
+        "破坏"
+      ],
+      "missing_primitives": [],
+      "ability_keywords": [
+        "入场曲",
+        "进化时"
+      ],
+      "skill_texts": [
+        "【<color=Keyword>入场曲</color>】选择对手的战场上的1个随从，破坏该随从。\n<hr><ev>【<color=Keyword>进化时</color>】发动与【<color=Keyword>入场曲</color>】相同的能力。</ev>"
+      ],
+      "support_level": "unsupported"
+    },
+    "10862110": {
+      "card_id": 10862110,
+      "name": "天阳的使徒·艾迪特",
+      "class_name": "主教",
+      "card_type": "随从",
+      "cost": 8,
+      "is_collectible": true,
+      "card_set_id": 10008,
+      "coverage": "missing_primitive",
+      "reason": "Missing primitives: ['灵气']",
+      "hit_keywords": [
+        "谢幕曲",
+        "进化时",
+        "超进化",
+        "破坏",
+        "召唤"
+      ],
+      "missing_primitives": [
+        "灵气"
+      ],
+      "ability_keywords": [
+        "守护",
+        "灵气",
+        "谢幕曲",
+        "超进化时"
+      ],
+      "skill_texts": [
+        "【<color=Keyword>守护</color>】\n【<color=Keyword>灵气</color>】\n【<color=Keyword>谢幕曲</color>】召唤1个『<color=Keyword>天阳的使徒·艾迪特</color>』，使其失去【<color=Keyword>谢幕曲</color>】。\n<hr><sev>【<color=Keyword>超进化时</color>】选择对手的战场上的1个随从，破坏该随从。</sev>"
+      ],
+      "support_level": "unsupported"
+    },
+    "10862120": {
+      "card_id": 10862120,
+      "name": "深渊探究者·维切",
+      "class_name": "主教",
+      "card_type": "随从",
+      "cost": 6,
+      "is_collectible": true,
+      "card_set_id": 10008,
+      "coverage": "supported_missing_rule",
+      "reason": "Covered keywords: ['进化时', '超进化', '必杀']",
+      "hit_keywords": [
+        "进化时",
+        "超进化",
+        "必杀"
+      ],
+      "missing_primitives": [],
+      "ability_keywords": [
+        "必杀",
+        "突进"
+      ],
+      "skill_texts": [
+        "在手牌中发动。自己的随从超进化时，使本卡牌的费用-3。\n<hr>【<color=Keyword>突进</color>】\n【<color=Keyword>毁灭</color>】"
+      ],
+      "support_level": "unsupported"
+    },
+    "10862310": {
+      "card_id": 10862310,
+      "name": "威胁的残渣",
+      "class_name": "主教",
+      "card_type": "法术",
+      "cost": 2,
+      "is_collectible": true,
+      "card_set_id": 10008,
+      "coverage": "supported_missing_rule",
+      "reason": "Covered keywords: ['消失', '爆能强化']",
+      "hit_keywords": [
+        "消失",
+        "爆能强化"
+      ],
+      "missing_primitives": [],
+      "ability_keywords": [
+        "爆能强化"
+      ],
+      "skill_texts": [
+        "选择对手的战场上的1个生命值为3或以下的随从，使其消失。\n【<color=Keyword>爆能强化</color>_5】改为使对手的战场上的所有生命值为3或以下的随从消失。"
+      ],
+      "support_level": "unsupported"
+    },
+    "10863110": {
+      "card_id": 10863110,
+      "name": "圣洁驱魔人·珂蕾特",
+      "class_name": "主教",
+      "card_type": "随从",
+      "cost": 3,
+      "is_collectible": true,
+      "card_set_id": 10008,
+      "coverage": "supported_missing_rule",
+      "reason": "Covered keywords: ['入场曲', '进化时', '造成.*伤害']",
+      "hit_keywords": [
+        "入场曲",
+        "进化时",
+        "造成.*伤害"
+      ],
+      "missing_primitives": [],
+      "ability_keywords": [
+        "入场曲",
+        "守护"
+      ],
+      "skill_texts": [
+        "【<color=Keyword>入场曲</color>】若自己的战场上有进化后的随从，则本随从进化。\n<hr>【<color=Keyword>守护</color>】\n<hr><ev>本随从进化时，发动2次「对对手的战场上的随机1个随从造成1点伤害」。</ev>"
+      ],
+      "support_level": "unsupported"
+    },
+    "10863210": {
+      "card_id": 10863210,
+      "name": "同窗好友",
+      "class_name": "主教",
+      "card_type": "护符",
+      "cost": 2,
+      "is_collectible": true,
+      "card_set_id": 10008,
+      "coverage": "supported_missing_rule",
+      "reason": "Covered keywords: ['超进化', '回合结束', '倒数', '抽取', '回复']",
+      "hit_keywords": [
+        "超进化",
+        "回合结束",
+        "倒数",
+        "抽取",
+        "回复"
+      ],
+      "missing_primitives": [],
+      "ability_keywords": [
+        "倒数"
+      ],
+      "skill_texts": [
+        "【<color=Keyword>吟唱</color>_2】\n自己的回合结束时，抽取1张卡牌。若自己的战场上有进化后的随从，则回复自己的主战者1点生命值。若自己的战场上有超进化后的随从，则改为回复2点。"
+      ],
+      "support_level": "unsupported"
+    },
+    "10864110": {
+      "card_id": 10864110,
+      "name": "飞跃的姐妹·贝尔迪俪亚&卡诗黛儿",
+      "class_name": "主教",
+      "card_type": "随从",
+      "cost": 7,
+      "is_collectible": true,
+      "card_set_id": 10008,
+      "coverage": "supported_missing_rule",
+      "reason": "Covered keywords: ['入场曲', '进化时', '超进化', '召唤', '纹章']",
+      "hit_keywords": [
+        "入场曲",
+        "进化时",
+        "超进化",
+        "召唤",
+        "纹章"
+      ],
+      "missing_primitives": [],
+      "ability_keywords": [
+        "入场曲",
+        "纹章",
+        "超进化时"
+      ],
+      "skill_texts": [
+        "【<color=Keyword>入场曲</color>】召唤随机1个自己的牌组中费用为2或以下的随从，使其超进化。\n<hr><sev>【<color=Keyword>超进化时</color>】使自己获得『纹章：飞跃的姐妹·贝尔迪俪亚&卡诗黛儿』。</sev>"
+      ],
+      "support_level": "unsupported"
+    },
+    "10864120": {
+      "card_id": 10864120,
+      "name": "希望的光彩·莉迪耶尔",
+      "class_name": "主教",
+      "card_type": "随从",
+      "cost": 5,
+      "is_collectible": true,
+      "card_set_id": 10008,
+      "coverage": "supported_missing_rule",
+      "reason": "Covered keywords: ['入场曲', '进化时', '回复', '造成.*伤害', '纹章', '选择一项|模式']",
+      "hit_keywords": [
+        "入场曲",
+        "进化时",
+        "回复",
+        "造成.*伤害",
+        "纹章",
+        "选择一项|模式"
+      ],
+      "missing_primitives": [],
+      "ability_keywords": [
+        "入场曲",
+        "模式",
+        "纹章",
+        "进化时"
+      ],
+      "skill_texts": [
+        "【<color=Keyword>入场曲</color>】【<color=Keyword>模式</color>】选择1个能力发动。对本随从造成3点伤害。\n<ridx=0>（1）对对手的战场上的所有随从造成3点伤害。</ridx>\n<ridx=1>（2）对对手的主战者造成3点伤害。</ridx>\n<ridx=2>（3）回复自己的主战者3点生命值。</ridx>\n<hr><ev>【<color=Keyword>进化时</color>】使自己获得『纹章：希望的光彩·莉迪耶尔』。</ev>"
+      ],
+      "support_level": "unsupported"
+    },
+    "10871110": {
+      "card_id": 10871110,
+      "name": "满溢的幸福·库伦特司",
+      "class_name": "超越者",
+      "card_type": "随从",
+      "cost": 7,
+      "is_collectible": true,
+      "card_set_id": 10008,
+      "coverage": "supported_missing_rule",
+      "reason": "Covered keywords: ['谢幕曲', '召唤']",
+      "hit_keywords": [
+        "谢幕曲",
+        "召唤"
+      ],
+      "missing_primitives": [],
+      "ability_keywords": [
+        "守护",
+        "谢幕曲"
+      ],
+      "skill_texts": [
+        "【<color=Keyword>守护</color>】\n【<color=Keyword>谢幕曲</color>】召唤1个『<color=Keyword>满溢的幸福·库伦特司</color>』，使其失去【<color=Keyword>谢幕曲</color>】。"
+      ],
+      "support_level": "unsupported"
+    },
+    "10871120": {
+      "card_id": 10871120,
+      "name": "过度守护者·莉欧娜",
+      "class_name": "超越者",
+      "card_type": "随从",
+      "cost": 2,
+      "is_collectible": true,
+      "card_set_id": 10008,
+      "coverage": "supported_missing_rule",
+      "reason": "Covered keywords: ['进化时', '超进化']",
+      "hit_keywords": [
+        "进化时",
+        "超进化"
+      ],
+      "missing_primitives": [],
+      "ability_keywords": [
+        "守护",
+        "潜行",
+        "超进化时"
+      ],
+      "skill_texts": [
+        "【<color=Keyword>守护</color>】\n<hr><sev>【<color=Keyword>超进化时</color>】选择自己的战场上的1个其他随从，使其获得【<color=Keyword>潜行</color>】。</sev>"
+      ],
+      "support_level": "unsupported"
+    },
+    "10871130": {
+      "card_id": 10871130,
+      "name": "器械操纵者·吉尔克",
+      "class_name": "超越者",
+      "card_type": "随从",
+      "cost": 1,
+      "is_collectible": true,
+      "card_set_id": 10008,
+      "coverage": "supported_missing_rule",
+      "reason": "Covered keywords: ['入场曲', '将.*加入手牌', '破坏']",
+      "hit_keywords": [
+        "入场曲",
+        "将.*加入手牌",
+        "破坏"
+      ],
+      "missing_primitives": [],
+      "ability_keywords": [
+        "入场曲"
+      ],
+      "skill_texts": [
+        "【<color=Keyword>入场曲</color>】将随机1张与本次对战中被破坏的自己的创造物·随从同名的卡牌以非公开形式加入手牌。"
+      ],
+      "support_level": "unsupported"
+    },
+    "10872110": {
+      "card_id": 10872110,
+      "name": "人造的馈赠·蕾拉",
+      "class_name": "超越者",
+      "card_type": "随从",
+      "cost": 4,
+      "is_collectible": true,
+      "card_set_id": 10008,
+      "coverage": "supported_missing_rule",
+      "reason": "Covered keywords: ['谢幕曲', '将.*加入手牌']",
+      "hit_keywords": [
+        "谢幕曲",
+        "将.*加入手牌"
+      ],
+      "missing_primitives": [],
+      "ability_keywords": [
+        "突进",
+        "谢幕曲"
+      ],
+      "skill_texts": [
+        "【<color=Keyword>突进</color>】\n【<color=Keyword>谢幕曲</color>】将1张『<color=Keyword>古老的创造物</color>』加入手牌。"
+      ],
+      "support_level": "unsupported"
+    },
+    "10872120": {
+      "card_id": 10872120,
+      "name": "门扉接续者·拉姿莉",
+      "class_name": "超越者",
+      "card_type": "随从",
+      "cost": 3,
+      "is_collectible": true,
+      "card_set_id": 10008,
+      "coverage": "supported_missing_rule",
+      "reason": "Covered keywords: ['入场曲', '将.*加入手牌']",
+      "hit_keywords": [
+        "入场曲",
+        "将.*加入手牌"
+      ],
+      "missing_primitives": [],
+      "ability_keywords": [
+        "入场曲"
+      ],
+      "skill_texts": [
+        "【<color=Keyword>入场曲</color>】将1张『<color=Keyword>绚烂的创造物</color>』加入手牌。"
+      ],
+      "support_level": "unsupported"
+    },
+    "10872310": {
+      "card_id": 10872310,
+      "name": "纯净无垢的日常",
+      "class_name": "超越者",
+      "card_type": "法术",
+      "cost": 3,
+      "is_collectible": true,
+      "card_set_id": 10008,
+      "coverage": "supported_missing_rule",
+      "reason": "Covered keywords: ['超进化', '抽取', '回复']",
+      "hit_keywords": [
+        "超进化",
+        "抽取",
+        "回复"
+      ],
+      "missing_primitives": [],
+      "ability_keywords": [],
+      "skill_texts": [
+        "抽取2张卡牌。若为超进化已解禁的回合，则回复自己的主战者2点生命值。"
+      ],
+      "support_level": "unsupported"
+    },
+    "10873110": {
+      "card_id": 10873110,
+      "name": "知恩图报·米莉亚姆",
+      "class_name": "超越者",
+      "card_type": "随从",
+      "cost": 7,
+      "is_collectible": true,
+      "card_set_id": 10008,
+      "coverage": "supported_missing_rule",
+      "reason": "Covered keywords: ['入场曲', '破坏', '召唤']",
+      "hit_keywords": [
+        "入场曲",
+        "破坏",
+        "召唤"
+      ],
+      "missing_primitives": [],
+      "ability_keywords": [
+        "入场曲"
+      ],
+      "skill_texts": [
+        "【<color=Keyword>入场曲</color>】选择对手的战场上的1个随从，破坏该随从。召唤1个『<color=Keyword>绚烂的创造物</color>』。"
+      ],
+      "support_level": "unsupported"
+    },
+    "10873310": {
+      "card_id": 10873310,
+      "name": "开辟未来",
+      "class_name": "超越者",
+      "card_type": "法术",
+      "cost": 3,
+      "is_collectible": true,
+      "card_set_id": 10008,
+      "coverage": "supported_missing_rule",
+      "reason": "Covered keywords: ['回复', '造成.*伤害']",
+      "hit_keywords": [
+        "回复",
+        "造成.*伤害"
+      ],
+      "missing_primitives": [],
+      "ability_keywords": [],
+      "skill_texts": [
+        "选择对手的战场上的1个随从，对其造成6点伤害。若本次对战中进入战场的自己的创造物·随从的种类为3种或以上，则回复自己1点进化点。"
+      ],
+      "support_level": "unsupported"
+    },
+    "10874110": {
+      "card_id": 10874110,
+      "name": "决断的交错·亚修雷&莉缇雅",
+      "class_name": "超越者",
+      "card_type": "随从",
+      "cost": 5,
+      "is_collectible": true,
+      "card_set_id": 10008,
+      "coverage": "supported_missing_rule",
+      "reason": "Covered keywords: ['入场曲', '进化时', '破坏', '爆能强化']",
+      "hit_keywords": [
+        "入场曲",
+        "进化时",
+        "破坏",
+        "爆能强化"
+      ],
+      "missing_primitives": [],
+      "ability_keywords": [
+        "入场曲",
+        "守护",
+        "爆能强化",
+        "疾驰"
+      ],
+      "skill_texts": [
+        "【<color=Keyword>入场曲</color>】选择对手的战场上的1个随从，使其获得【<color=Keyword>守护</color>】。\n【<color=Keyword>爆能强化</color>_9】本随从进化。本随从获得【<color=Keyword>疾驰</color>】。\n<hr><ev>本随从进化时，破坏对手的战场上的随机2个拥有【<color=Keyword>守护</color>】的随从。</ev>"
+      ],
+      "support_level": "unsupported"
+    },
+    "10874120": {
+      "card_id": 10874120,
+      "name": "你的前辈·欧丝",
+      "class_name": "超越者",
+      "card_type": "随从",
+      "cost": 2,
+      "is_collectible": true,
+      "card_set_id": 10008,
+      "coverage": "supported_missing_rule",
+      "reason": "Covered keywords: ['入场曲', '进化时', '将.*加入手牌']",
+      "hit_keywords": [
+        "入场曲",
+        "进化时",
+        "将.*加入手牌"
+      ],
+      "missing_primitives": [],
+      "ability_keywords": [
+        "入场曲",
+        "进化时"
+      ],
+      "skill_texts": [
+        "【<color=Keyword>入场曲</color>】将1张『<color=Keyword>解析的创造物</color>』加入手牌。\n<hr><ev>【<color=Keyword>进化时</color>】选择自己的战场上的1个进化前的其他随从，使其进化。</ev>"
+      ],
+      "support_level": "unsupported"
+    },
     "90001110": {
       "card_id": 90001110,
       "name": "哥布林",
@@ -16859,6 +18775,17 @@
       "coverage": "token_or_non_collectible",
       "reason": "card_set_id=90000, is_collectible=False"
     },
+    "90014110": {
+      "card_id": 90014110,
+      "name": "冰晶剑士·伊芙",
+      "class_name": "精灵",
+      "card_type": "随从",
+      "cost": 3,
+      "is_collectible": false,
+      "card_set_id": 90000,
+      "coverage": "token_or_non_collectible",
+      "reason": "card_set_id=90000, is_collectible=False"
+    },
     "90014310": {
       "card_id": 90014310,
       "name": "蔷薇之闪击",
@@ -16909,6 +18836,17 @@
       "class_name": "皇家护卫",
       "card_type": "随从",
       "cost": 1,
+      "is_collectible": false,
+      "card_set_id": 90000,
+      "coverage": "token_or_non_collectible",
+      "reason": "card_set_id=90000, is_collectible=False"
+    },
+    "90021130": {
+      "card_id": 90021130,
+      "name": "娜哈特的私兵",
+      "class_name": "皇家护卫",
+      "card_type": "随从",
+      "cost": 3,
       "is_collectible": false,
       "card_set_id": 90000,
       "coverage": "token_or_non_collectible",
@@ -16969,6 +18907,17 @@
       "coverage": "token_or_non_collectible",
       "reason": "card_set_id=90000, is_collectible=False"
     },
+    "90022110": {
+      "card_id": 90022110,
+      "name": "异形",
+      "class_name": "皇家护卫",
+      "card_type": "随从",
+      "cost": 2,
+      "is_collectible": false,
+      "card_set_id": 90000,
+      "coverage": "token_or_non_collectible",
+      "reason": "card_set_id=90000, is_collectible=False"
+    },
     "90023110": {
       "card_id": 90023110,
       "name": "安静的女仆·诺嘉",
@@ -16997,6 +18946,17 @@
       "class_name": "皇家护卫",
       "card_type": "法术",
       "cost": 0,
+      "is_collectible": false,
+      "card_set_id": 90000,
+      "coverage": "token_or_non_collectible",
+      "reason": "card_set_id=90000, is_collectible=False"
+    },
+    "90024330": {
+      "card_id": 90024330,
+      "name": "亡命者的枪击",
+      "class_name": "皇家护卫",
+      "card_type": "法术",
+      "cost": 1,
       "is_collectible": false,
       "card_set_id": 90000,
       "coverage": "token_or_non_collectible",
@@ -17051,6 +19011,17 @@
       "name": "大地之魔片",
       "class_name": "巫师",
       "card_type": "护符",
+      "cost": 1,
+      "is_collectible": false,
+      "card_set_id": 90000,
+      "coverage": "token_or_non_collectible",
+      "reason": "card_set_id=90000, is_collectible=False"
+    },
+    "90031310": {
+      "card_id": 90031310,
+      "name": "玛纳利亚魔弹",
+      "class_name": "巫师",
+      "card_type": "法术",
       "cost": 1,
       "is_collectible": false,
       "card_set_id": 90000,
@@ -17140,6 +19111,28 @@
       "class_name": "巫师",
       "card_type": "法术",
       "cost": 6,
+      "is_collectible": false,
+      "card_set_id": 90000,
+      "coverage": "token_or_non_collectible",
+      "reason": "card_set_id=90000, is_collectible=False"
+    },
+    "90034340": {
+      "card_id": 90034340,
+      "name": "苍奏之四",
+      "class_name": "巫师",
+      "card_type": "法术",
+      "cost": 1,
+      "is_collectible": false,
+      "card_set_id": 90000,
+      "coverage": "token_or_non_collectible",
+      "reason": "card_set_id=90000, is_collectible=False"
+    },
+    "90034350": {
+      "card_id": 90034350,
+      "name": "宏大的回归",
+      "class_name": "巫师",
+      "card_type": "法术",
+      "cost": 1,
       "is_collectible": false,
       "card_set_id": 90000,
       "coverage": "token_or_non_collectible",
@@ -17478,6 +19471,17 @@
     "90071150": {
       "card_id": 90071150,
       "name": "神秘的创造物",
+      "class_name": "超越者",
+      "card_type": "随从",
+      "cost": 3,
+      "is_collectible": false,
+      "card_set_id": 90000,
+      "coverage": "token_or_non_collectible",
+      "reason": "card_set_id=90000, is_collectible=False"
+    },
+    "90071160": {
+      "card_id": 90071160,
+      "name": "绚烂的创造物",
       "class_name": "超越者",
       "card_type": "随从",
       "cost": 3,
@@ -17847,6 +19851,46 @@
       "suggested_rule_file": "batch_超越者.json"
     },
     {
+      "card_id": 10832310,
+      "name": "其乐融融的团聚",
+      "class_name": "巫师",
+      "card_type": "法术",
+      "cost": 2,
+      "ability_keywords": [],
+      "hit_keywords": [
+        "回复",
+        "魔力增幅"
+      ],
+      "confidence": "high",
+      "why_recommended": "Covered keywords: 回复, 魔力增幅",
+      "required_primitives": [
+        "回复",
+        "魔力增幅"
+      ],
+      "suggested_rule_file": "batch_巫师.json"
+    },
+    {
+      "card_id": 10853310,
+      "name": "改变的流向",
+      "class_name": "梦魇",
+      "card_type": "法术",
+      "cost": 2,
+      "ability_keywords": [],
+      "hit_keywords": [
+        "超进化",
+        "抽取",
+        "返回牌"
+      ],
+      "confidence": "high",
+      "why_recommended": "Covered keywords: 超进化, 抽取, 返回牌",
+      "required_primitives": [
+        "超进化",
+        "抽取",
+        "返回牌"
+      ],
+      "suggested_rule_file": "batch_梦魇.json"
+    },
+    {
       "card_id": 10042310,
       "name": "龙之启示",
       "class_name": "龙族",
@@ -17974,59 +20018,21 @@
       "suggested_rule_file": "batch_超越者.json"
     },
     {
-      "card_id": 10071310,
-      "name": "来自异次元的枪击",
-      "class_name": "超越者",
-      "card_type": "法术",
-      "cost": 4,
-      "ability_keywords": [],
-      "hit_keywords": [
-        "将.*加入手牌",
-        "破坏"
-      ],
-      "confidence": "high",
-      "why_recommended": "Covered keywords: 将.*加入手牌, 破坏",
-      "required_primitives": [
-        "将.*加入手牌",
-        "破坏"
-      ],
-      "suggested_rule_file": "batch_超越者.json"
-    },
-    {
-      "card_id": 10103310,
-      "name": "神之雷霆",
+      "card_id": 10802310,
+      "name": "救世的英姿",
       "class_name": "中立",
       "card_type": "法术",
-      "cost": 4,
+      "cost": 3,
       "ability_keywords": [],
       "hit_keywords": [
-        "造成.*伤害",
-        "破坏"
+        "抽取"
       ],
       "confidence": "high",
-      "why_recommended": "Covered keywords: 造成.*伤害, 破坏",
+      "why_recommended": "Covered keywords: 抽取",
       "required_primitives": [
-        "造成.*伤害",
-        "破坏"
+        "抽取"
       ],
       "suggested_rule_file": "batch_中立.json"
-    },
-    {
-      "card_id": 10332310,
-      "name": "双重创造",
-      "class_name": "巫师",
-      "card_type": "法术",
-      "cost": 4,
-      "ability_keywords": [],
-      "hit_keywords": [
-        "召唤"
-      ],
-      "confidence": "high",
-      "why_recommended": "Covered keywords: 召唤",
-      "required_primitives": [
-        "召唤"
-      ],
-      "suggested_rule_file": "batch_巫师.json"
     }
   ]
 }

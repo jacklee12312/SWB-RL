@@ -19,7 +19,9 @@ _MANUAL_PRIMITIVE_STATUS = {
 }
 
 _PRIMITIVE_PATTERN_BY_KEYWORD = {
+    AbilityKeyword.COMBO: "连击",
     AbilityKeyword.COOPERATION: "协作",
+    AbilityKeyword.OVERFLOW: "觉醒",
     AbilityKeyword.SPELLBOOST: "魔力增幅",
     AbilityKeyword.EARTH_RITE: "土之秘术|土之印",
     AbilityKeyword.EARTH_SIGIL: "土之秘术|土之印",

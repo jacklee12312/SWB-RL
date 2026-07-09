@@ -7,20 +7,20 @@
 
 | Metric | Count |
 |---|---|
-| Total cards in DB | 740 |
-| Cards with rules | 87 |
+| Total cards in DB | 826 |
+| Cards with rules | 91 |
 | Test/synthetic IDs with rules | 26 |
 
 ### Coverage Categories
 
 | Category | Count |
 |---|---|
-| covered_exact | 53 |
-| supported_missing_rule | 434 |
-| text_unclear | 18 |
-| missing_primitive | 146 |
-| covered_partial | 6 |
-| token_or_non_collectible | 83 |
+| covered_exact | 58 |
+| supported_missing_rule | 539 |
+| text_unclear | 19 |
+| missing_primitive | 114 |
+| covered_partial | 5 |
+| token_or_non_collectible | 91 |
 
 ## Rule Consistency Issues
 
@@ -61,8 +61,8 @@
 | 超进化 | SUPER_EVOLVE trigger | True |
 | 攻击时 | ATTACK trigger | True |
 | 交战时 | CLASH trigger | True |
-| 连击 | COMBO (placeholder) | False |
-| 觉醒 | OVERFLOW (placeholder) | False |
+| 连击 | COMBO condition / expression / add_combo | True |
+| 觉醒 | OVERFLOW condition / expression | True |
 | 策动 | ACTIVATE (placeholder) | False |
 | 威慑 | INTIMIDATE (placeholder) | False |
 | 灵气 | AURA (placeholder) | False |
@@ -115,13 +115,13 @@
 | 8 | 10551310 | 奥夜花的开战 | 梦魇 | 2 | 法术 | high | Covered keywords: 造成.*伤害 |
 | 9 | 10552310 | 残虐的炸裂 | 梦魇 | 2 | 法术 | high | Covered keywords: 造成.*伤害 |
 | 10 | 10772310 | 闪光一瞬 | 超越者 | 2 | 法术 | high | Covered keywords: 超进化 |
-| 11 | 10042310 | 龙之启示 | 龙族 | 3 | 法术 | high | Covered keywords: 抽取 |
-| 12 | 10102310 | 炽天使的福音 | 中立 | 3 | 法术 | high | Covered keywords: 抽取 |
-| 13 | 10112310 | 薰交的思慕 | 精灵 | 3 | 法术 | high | Covered keywords: 抽取, 将.*加入手牌 |
-| 14 | 10541310 | 波摇花的裁决 | 龙族 | 3 | 法术 | high | Covered keywords: 抽取, 造成.*伤害 |
-| 15 | 10561310 | 雾卷花的激愤 | 主教 | 3 | 法术 | high | Covered keywords: 抽取, 返回牌 |
-| 16 | 10673310 | 恶劣的天斧 | 超越者 | 3 | 法术 | high | Covered keywords: 回合结束, 造成.*伤害 |
-| 17 | 10773310 | 瞬移斩击 | 超越者 | 3 | 法术 | high | Covered keywords: 造成.*伤害 |
-| 18 | 10071310 | 来自异次元的枪击 | 超越者 | 4 | 法术 | high | Covered keywords: 将.*加入手牌, 破坏 |
-| 19 | 10103310 | 神之雷霆 | 中立 | 4 | 法术 | high | Covered keywords: 造成.*伤害, 破坏 |
-| 20 | 10332310 | 双重创造 | 巫师 | 4 | 法术 | high | Covered keywords: 召唤 |
+| 11 | 10832310 | 其乐融融的团聚 | 巫师 | 2 | 法术 | high | Covered keywords: 回复, 魔力增幅 |
+| 12 | 10853310 | 改变的流向 | 梦魇 | 2 | 法术 | high | Covered keywords: 超进化, 抽取, 返回牌 |
+| 13 | 10042310 | 龙之启示 | 龙族 | 3 | 法术 | high | Covered keywords: 抽取 |
+| 14 | 10102310 | 炽天使的福音 | 中立 | 3 | 法术 | high | Covered keywords: 抽取 |
+| 15 | 10112310 | 薰交的思慕 | 精灵 | 3 | 法术 | high | Covered keywords: 抽取, 将.*加入手牌 |
+| 16 | 10541310 | 波摇花的裁决 | 龙族 | 3 | 法术 | high | Covered keywords: 抽取, 造成.*伤害 |
+| 17 | 10561310 | 雾卷花的激愤 | 主教 | 3 | 法术 | high | Covered keywords: 抽取, 返回牌 |
+| 18 | 10673310 | 恶劣的天斧 | 超越者 | 3 | 法术 | high | Covered keywords: 回合结束, 造成.*伤害 |
+| 19 | 10773310 | 瞬移斩击 | 超越者 | 3 | 法术 | high | Covered keywords: 造成.*伤害 |
+| 20 | 10802310 | 救世的英姿 | 中立 | 3 | 法术 | high | Covered keywords: 抽取 |
