@@ -17,6 +17,83 @@ ROOT = Path(__file__).resolve().parents[2]
 SCHEMA_PATH = Path(__file__).with_name("schema.sql")
 SUPPORTED_KEYWORDS = {"守护", "疾驰", "突进"}
 
+LOCALIZED_LOOKUPS = {
+    "class": {
+        0: {"chs": "中立", "cht": "中立", "eng": "Neutral", "jpn": "ニュートラル", "kor": "중립"},
+        1: {"chs": "精灵", "cht": "精靈", "eng": "Forestcraft", "jpn": "エルフ", "kor": "엘프"},
+        2: {"chs": "皇家护卫", "cht": "皇家護衛", "eng": "Swordcraft", "jpn": "ロイヤル", "kor": "로얄"},
+        3: {"chs": "巫师", "cht": "巫師", "eng": "Runecraft", "jpn": "ウィッチ", "kor": "위치"},
+        4: {"chs": "龙族", "cht": "龍族", "eng": "Dragoncraft", "jpn": "ドラゴン", "kor": "드래곤"},
+        5: {"chs": "梦魇", "cht": "夢魘", "eng": "Abysscraft", "jpn": "ナイトメア", "kor": "나이트메어"},
+        6: {"chs": "主教", "cht": "主教", "eng": "Havencraft", "jpn": "ビショップ", "kor": "비숍"},
+        7: {"chs": "超越者", "cht": "超越者", "eng": "Portalcraft", "jpn": "ネメシス", "kor": "네메시스"},
+    },
+    "rarity": {
+        1: {"chs": "铜", "cht": "銅", "eng": "Bronze", "jpn": "ブロンズ", "kor": "브론즈"},
+        2: {"chs": "银", "cht": "銀", "eng": "Silver", "jpn": "シルバー", "kor": "실버"},
+        3: {"chs": "金", "cht": "金", "eng": "Gold", "jpn": "ゴールド", "kor": "골드"},
+        4: {"chs": "虹", "cht": "虹", "eng": "Legendary", "jpn": "レジェンド", "kor": "레전드"},
+    },
+    "type": {
+        1: {"chs": "随从", "cht": "隨從", "eng": "Follower", "jpn": "フォロワー", "kor": "추종자"},
+        2: {"chs": "护符", "cht": "護符", "eng": "Amulet", "jpn": "アミュレット", "kor": "부적"},
+        3: {"chs": "法术", "cht": "法術", "eng": "Spell", "jpn": "スペル", "kor": "마법"},
+    },
+}
+
+
+def _localized_lookup(card: dict[str, Any], prefix: str, suffix: str) -> str:
+    value = card.get(f"{prefix}_name_{suffix}")
+    if value:
+        return value
+    if suffix == "chs":
+        value = card.get(f"{prefix}_name")
+        if value:
+            return value
+    item_id = card[prefix]
+    return LOCALIZED_LOOKUPS.get(prefix, {}).get(item_id, {}).get(suffix, "")
+
+
+def _localized_primary(card: dict[str, Any], prefix: str) -> str:
+    return _localized_lookup(card, prefix, "chs")
+
+
+def _flavor_texts(card: dict[str, Any]) -> list[dict[str, str]]:
+    existing = card.get("flavor_texts")
+    if isinstance(existing, list):
+        return existing
+    keys = {
+        "text_chs": card.get("flavor_chs", ""),
+        "text_cht": card.get("flavor_cht", ""),
+        "text_eng": card.get("flavor_eng", ""),
+        "text_jpn": card.get("flavor_jpn", ""),
+        "text_kor": card.get("flavor_kor", ""),
+    }
+    if not any(keys.values()):
+        return []
+    return [{"key": f"FT_{card['card_id']}_01", **keys}]
+
+
+def _voice_data(card: dict[str, Any]) -> dict[str, Any]:
+    voices = card.get("voices")
+    if isinstance(voices, dict):
+        return voices
+    keys = {
+        suffix: card.get(field, "")
+        for suffix, field in (
+            ("chs", "cv_chs"),
+            ("cht", "cv_cht"),
+            ("eng", "cv_eng"),
+            ("jpn", "cv_jpn"),
+            ("kor", "cv_kor"),
+            ("pinyin", "cv_pinyin"),
+            ("romaji", "cv_romaji"),
+            ("engcv", "engcv"),
+        )
+        if card.get(field)
+    }
+    return keys
+
 
 def extract_raw_keywords(skill_texts: list[str]) -> list[str]:
     joined = "\n".join(skill_texts)
@@ -145,15 +222,15 @@ def import_cards(source: Path, database: Path) -> int:
                 )
                 connection.execute(
                     "INSERT OR IGNORE INTO classes(id, name) VALUES (?, ?)",
-                    (card["class"], card["class_name"]),
+                    (card["class"], _localized_primary(card, "class")),
                 )
                 connection.execute(
                     "INSERT OR IGNORE INTO rarities(id, name) VALUES (?, ?)",
-                    (card["rarity"], card["rarity_name"]),
+                    (card["rarity"], _localized_primary(card, "rarity")),
                 )
                 connection.execute(
                     "INSERT OR IGNORE INTO card_types(id, name) VALUES (?, ?)",
-                    (card["type"], card["type_name"]),
+                    (card["type"], _localized_primary(card, "type")),
                 )
                 connection.execute(
                     """
@@ -245,13 +322,13 @@ def import_cards(source: Path, database: Path) -> int:
                         (
                             card["card_id"],
                             language,
-                            card.get(f"class_name_{suffix}", card["class_name"]),
-                            card.get(f"rarity_name_{suffix}", card["rarity_name"]),
-                            card.get(f"type_name_{suffix}", card["type_name"]),
+                            _localized_lookup(card, "class", suffix),
+                            _localized_lookup(card, "rarity", suffix),
+                            _localized_lookup(card, "type", suffix),
                             card.get(f"tribe_name_{suffix}", card.get("tribe_name", "")),
                         ),
                     )
-                for position, text in enumerate(card.get("flavor_texts", [])):
+                for position, text in enumerate(_flavor_texts(card)):
                     connection.execute(
                         """
                         INSERT INTO flavor_texts(
@@ -313,9 +390,9 @@ def import_cards(source: Path, database: Path) -> int:
                     (
                         card["card_id"],
                         json.dumps(card.get("skin_names", {}), ensure_ascii=False),
-                        json.dumps(card.get("voices", {}), ensure_ascii=False),
+                        json.dumps(_voice_data(card), ensure_ascii=False),
                         json.dumps(
-                            card.get("voice_variants", {}), ensure_ascii=False
+                            card.get("voice_variants") or {}, ensure_ascii=False
                         ),
                     ),
                 )
