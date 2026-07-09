@@ -16,28 +16,24 @@ The long-term goals are:
 Accuracy is more important than claiming broad card coverage. Unsupported
 behavior must remain visible and must never silently behave as implemented.
 
-## Current Baseline
+## Source Of Truth
 
-Before starting a task, inspect the code instead of relying only on this
-summary. At the time this file was created:
+Before starting a task, inspect the code and tests instead of relying on a
+static project summary. This file is intentionally durable guidance rather than
+a precise feature snapshot.
 
-- The database contains 740 cards and 657 collectible cards.
-- Decks contain exactly 40 collectible cards from the selected class or neutral.
-- Followers, spells, amulets, attacks, normal evolution, target choices,
-  countdown amulets, and simple effects have basic support.
-- The RL adapter provides a fixed action space, action mask, observation, and
-  terminal reward.
-- `守护`, `疾驰`, and `突进` are implemented.
-- A minimal `SuperEvolve` command path exists, including the current
-  same-turn protection against effect damage and effect destruction. The full
-  SWB super-evolution resource model is still pending.
-- Most other ability keywords are placeholders or only partially implemented.
-- Explicit card rules live under `data/rules/`.
-- The test baseline is several hundred passing `unittest` tests; run the
-  suite rather than trusting this document for an exact count.
+Treat these as the current facts of record:
 
-The README may lag behind the implementation. Treat executable code and tests
-as the source of truth, then update documentation when behavior changes.
+- Executable code and tests define supported engine behavior.
+- `README.md` summarizes the user-facing current state.
+- `docs/roadmap.md` tracks implementation priorities and known remaining work.
+- `data/rules/` contains auditable card-specific rules.
+- The SQLite database and `shadowverse_cards.json` determine current card
+  counts; do not hard-code those counts in tests or documentation unless the
+  task is explicitly about a fixed fixture.
+
+If documentation and executable behavior disagree, trust the executable
+behavior, then update the documentation in the same change when practical.
 
 ## Architecture Boundaries
 
@@ -188,8 +184,8 @@ SQLite database for repository and end-to-end coverage tests.
 - Do not create a commit unless explicitly requested.
 - Before broad changes, recommend or create a feature branch only when asked.
 - Keep generated Python caches and `data/backups/` untracked.
-
-The initial local snapshot is commit `1ee3fbc` on branch `main`.
+- Do not assume the current branch or initial local snapshot from old
+  documentation; inspect `git status --short --branch`.
 
 ## Scope Control
 
@@ -206,40 +202,14 @@ Do not attempt to implement every card or every keyword in one change. If the
 requested scope is too broad, complete the highest-priority coherent slice and
 report the remaining work precisely.
 
-## Current Priority Order
+## Priority And Roadmap
 
-Unless the user gives a different priority:
+Unless the user gives a different priority, choose the next coherent slice from
+`docs/roadmap.md`. Keep that roadmap current when a task changes implementation
+status, test coverage, database assumptions, or known unsupported behavior.
 
-1. Runtime invariant checks and illegal-command no-mutation tests.
-2. RL public/debug information boundaries, especially hidden-information
-   redaction from default `Env.info()`.
-3. Complete super-evolution resource rules and edge semantics.
-4. Core class/mechanic conditions such as `觉醒` and `连击`, one vertical
-   slice at a time.
-5. Targeting and effect edge cases: multi-targets, no-target branches,
-   source/target leaving play, and zone-changing corner cases.
-6. Trigger ordering, simultaneous deaths, recursive trigger limits, and last
-   words.
-7. Remaining class resources and class mechanics.
-8. Card-rule coverage tooling and gradual card expansion.
-
-## Implementation Roadmap
-
-Prefer this sequence for long-running engine completion work:
-
-1. Harden the core: invariant checker, illegal no-mutation tests, public RL
-   information boundaries, deterministic replay checks.
-2. Finish super evolution: real resource availability, turn/side rules,
-   action legality, observation features, and protection edge cases.
-3. Implement one keyword/mechanic per slice: `觉醒`, `连击`, then decision
-   mechanics such as `策动`.
-4. Expand reusable primitives: conditions, value expressions, multi-target
-   choices, transform/banish/return/discard edge cases.
-5. Stabilize trigger semantics: ordering, simultaneous deaths, last words,
-   pending choices during triggers, and loop diagnostics.
-6. Expand real-card coverage only after the needed primitive is implemented
-   and tested; every real-card rule must stay auditable and must not hide
-   unsupported text behind `covered_exact`.
+Do not treat the roadmap as permission for broad rewrites. Work in vertical
+slices and keep each slice independently reviewable.
 
 ## Completion Report
 

@@ -4,16 +4,20 @@ This repository turns `shadowverse_cards.json` into a normalized SQLite card
 database and provides a small two-player environment suitable for early
 reinforcement-learning experiments.
 
-## Current scope
+## Current Scope
 
-The database preserves all 740 cards, localized names, skill metadata, printed
-skill text, texture references, and the original JSON record. Rule support is
-tracked separately so that database completeness is not confused with engine
-completeness.
+The database currently preserves 826 cards from `shadowverse_cards.json`,
+including 735 collectible cards and 91 non-collectible/generated cards from set
+`90000`. The normalized SQLite database stores localized names, skill metadata,
+printed skill text, flavor text, alternate modes, card references, texture
+references, extra asset metadata, source import records, and the original JSON
+record. Rule support is tracked separately so database completeness is not
+confused with engine completeness.
 
 Cards from set `90000` are marked non-collectible. They remain available for
 future generated-card effects, but are excluded from training/deck-building
-pools and rejected if passed directly in an initial deck.
+pools and rejected if passed directly in an initial deck. Deck validation
+requires exactly 40 collectible cards from the selected class and/or neutral.
 
 Abilities are normalized in two relational tables:
 
@@ -24,29 +28,88 @@ Abilities are normalized in two relational tables:
 the engine use the normalized tables, so aliases such as `毁灭 -> 必杀` do not
 need special handling at runtime.
 
-The first engine version supports:
+## Implemented Engine Surface
 
-- four-card opening hands; the first player then gains one mana and draws
-- 20 health, mana growth, draw, hand and board limits
-- playing followers
-- follower combat and simultaneous damage
-- summoning sickness
-- `守护`, `疾驰`, and `突进`
-- follower evolution: +2/+2 and rush, once per turn, with configurable unlock
-  timing/points
-- basic super-evolution commands and same-turn protection from damage/effect
-  destruction; the full resource model is still pending
-- simple unconditional fanfares: draw, leader damage/heal, self buff, mana restore
-- machine-authored spells, including effects that pause for a target choice
-- amulets sharing the five board slots with followers
-- amulet play effects, countdown reduction, destruction, and explicit last words
-- deck exhaustion damage
-- fixed-size observations and discrete action masks
-- deterministic reset and shuffle by seed
+The deterministic rules core supports:
 
-Generated cards, complete super-evolution resource rules, broad conditional
-fanfares, and most triggered abilities are preserved in the database but are not
-executed yet.
+- seeded reset, shuffle, draw, turn progression, deck exhaustion damage,
+  reproducible command sequences, and deterministic full-state fingerprints for
+  replay diagnostics;
+- player health, mana growth, hand limits, board limits, graveyards, banished
+  cards, stable entity IDs, and origin metadata;
+- follower, spell, and amulet play through `GameEngine.apply(command)`;
+- follower combat, leader attacks, guard targeting, summoning sickness,
+  simultaneous combat damage, and state-based deaths;
+- implemented combat keywords including `守护`, `疾驰`, `突进`, `必杀`, `潜行`,
+  `吸血`, and `屏障`;
+- normal evolution and manual super-evolution, including independent
+  super-evolution resources, unlock timing, once-per-turn limits, and same-turn
+  protection from effect damage/destruction only on the turn the follower
+  super-evolved, but not combat damage, even when an opponent-controlled
+  trigger resolves during that turn;
+- structured effects for damage, healing, draw, summon, destroy, banish, return,
+  discard, transform, stat changes, keyword changes, cost modifiers, and attack
+  or targeting restrictions;
+- selected, random, all, implicit, leader, board, all-board, hand, and
+  graveyard target flows, including pending choices, target-leaves-play safety,
+  and target revalidation when a pending target changes controller or no longer
+  matches the original target filter; ordinary play choices cover selected
+  board targets moving to the graveyard or changing controller, selected hand
+  cards leaving hand, and selected graveyard cards moving to hand before
+  resolution resumes; `previous_target` chains also revalidate against the
+  original bound target filter before later operations resolve;
+- structured `target_exists` no-target branches that reuse normal target
+  candidate generation before queuing a then/else effect branch, including
+  unit-or-leader fallback targets when no target-dependent condition is present;
+- countdown amulets, explicit last words, fanfare/play rules, attack/clash,
+  evolve/super-evolve, turn-start/turn-end triggers, and trigger continuations
+  that can pause for choices;
+- death-batch event diagnostics that expose the active-player-first,
+  left-to-right order used by destroyed, left-play, and Last Words lifecycle
+  events, including follower/amulet composition for mixed death batches;
+- `death_batch_end` emblem triggers that fire after a death batch's Last Words
+  complete, with any new deaths collected into a later death batch;
+- recursive resolution-loop diagnostics for events, effects, death batches,
+  active emblem batches, recent emblem triggers, and suspended continuations;
+- partial higher-level mechanics and primitives for cooperation, `觉醒`, `连击`,
+  necromancy, reanimate, spellboost-style hand cost changes, emblems, optional
+  decisions, choose-one decisions, play modes, and runtime modifiers.
+
+The RL adapter provides a fixed 111-action space, 223-feature public
+observation, action mask, terminal reward, graveyard choice paging, special
+play-mode actions, and super-evolve actions. `info()` is public by default and
+redacts debug transcripts/events unless `debug_info=True` or
+`info(debug=True)` is used, including pending-choice and graveyard-page returns.
+Public observations and default info are regression-tested not to depend on
+opponent hand identity or deck identity/order while a real-card pending choice
+is awaiting resolution. The public observation includes explicit
+controller/opponent `觉醒` flags derived from maximum mana and public
+controller/opponent `连击` counts for the current turn.
+
+## Unsupported Or Partial
+
+The engine still does not model the full SWB ruleset. Unsupported behavior must
+remain visible instead of silently behaving as implemented.
+
+Known broad gaps include:
+
+- exact semantics for many real cards and most generated-card workflows;
+- full `策动`, `融合`, `土之秘术`, `瞬念召唤`, `信仰`, and `奥义`
+  semantics, plus broader real-card coverage for `觉醒` and `连击` beyond the
+  currently authored conditional examples;
+- non-manual super-evolution edge semantics;
+- remaining trigger-ordering edge cases beyond the current death-batch
+  ordering diagnostics and `death_batch_end` boundary triggers, including
+  unsupported `death_batch_start` emblem triggers, plus broad real-card
+  coverage audits;
+- true multi-target player choices and duplicate-target policy; JSON fields
+  that would imply multi-target selection, including emblem trigger/on-expire
+  operations, are rejected until the command and RL surfaces support them
+  explicitly;
+- keyword registry status is intentionally conservative: handlers and generic
+  primitives may exist before a keyword is marked fully implemented.
+
+See `docs/roadmap.md` for the current implementation roadmap.
 
 ## Build the database
 
@@ -79,7 +142,8 @@ extra asset metadata tables. The complete source record is also retained in
 ## Run tests
 
 ```powershell
-python -m unittest discover -v
+python -m unittest discover -s tests -v
+python -m compileall -q swb scripts tests
 ```
 
 ## Random self-play smoke test
@@ -93,6 +157,11 @@ Enable runtime state-invariant checks during a smoke run with:
 ```powershell
 python -m scripts.random_self_play --games 100 --validate-invariants
 ```
+
+Runtime invariants cover zone/entity consistency, pending-choice shape including
+target/leader choice identity, and effect-stack frame structure so corrupted
+suspended effects fail explicitly. Illegal-command no-mutation tests compare
+full engine fingerprints, including hidden zones and suspended effects.
 
 To print one deterministic match:
 
@@ -145,7 +214,9 @@ The environment has 111 actions:
 Always apply `info["action_mask"]` before sampling or selecting an action.
 By default, `info()` is public and redacts debug transcripts/events. Use
 `ShadowverseEnv(..., debug_info=True)` or `env.info(debug=True)` only for
-diagnostics.
+diagnostics. Public `info()` is intentionally a small whitelist and does not
+include pending-choice option labels, entity IDs, player objects, deck lists, or
+event/log transcripts.
 
 The currently authored spell/amulet examples are in
 `data/rules/spells_and_amulets.json`. They cover:
@@ -165,12 +236,7 @@ python -m scripts.rl_mixed_match --output data/rl_mixed_match.log
 The mixed-card smoke match also accepts `--validate-invariants` for debugging
 state consistency regressions.
 
-## Suggested next milestones
+## Roadmap
 
-1. Add explicit, machine-authored effect definitions instead of parsing Chinese
-   skill text at runtime.
-2. Add evolution and target-selection continuation states.
-3. Wrap the environment for PettingZoo or Gymnasium after the multi-agent reward
-   convention is finalized.
-4. Add deck validation and format/card-set constraints.
-5. Establish heuristic and search-based baselines before training PPO/DQN.
+See `docs/roadmap.md` for the current priority order, known gaps, and suggested
+vertical slices. Keep that file current when implementation status changes.
