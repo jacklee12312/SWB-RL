@@ -6,6 +6,7 @@ from typing import Callable, Sequence
 
 from swb.db.repository import CardDefinition
 from swb.engine.commands import Attack, ChoiceKind, Choose, EndTurn, Evolve, GameCommand, PlayCard, SuperEvolve
+from swb.engine.conditions import OVERFLOW_MAX_MANA_THRESHOLD
 from swb.engine.card_rules import RuleBook
 from swb.engine.play_modes import MAX_SPECIAL_MODES_PER_CARD
 from swb.engine.resolution import GameConfig, GameEngine
@@ -31,6 +32,9 @@ class ShadowverseEnv:
     STARTING_HAND = 4
     STARTING_EVOLUTION_POINTS = 2
     EVOLUTION_UNLOCK_TURN = 4
+    STARTING_SUPER_EVOLUTION_POINTS = 2
+    FIRST_PLAYER_SUPER_EVOLUTION_UNLOCK_TURN = 7
+    SECOND_PLAYER_SUPER_EVOLUTION_UNLOCK_TURN = 6
     CLASS_COUNT = 7
 
     END_TURN = 0
@@ -88,6 +92,13 @@ class ShadowverseEnv:
                 starting_hand=self.STARTING_HAND,
                 starting_evolution_points=self.STARTING_EVOLUTION_POINTS,
                 evolution_unlock_turn=self.EVOLUTION_UNLOCK_TURN,
+                starting_super_evolution_points=self.STARTING_SUPER_EVOLUTION_POINTS,
+                first_player_super_evolution_unlock_turn=(
+                    self.FIRST_PLAYER_SUPER_EVOLUTION_UNLOCK_TURN
+                ),
+                second_player_super_evolution_unlock_turn=(
+                    self.SECOND_PLAYER_SUPER_EVOLUTION_UNLOCK_TURN
+                ),
                 validate_invariants=validate_invariants,
             ),
         )
@@ -142,9 +153,14 @@ class ShadowverseEnv:
         return self.observation(), self.info()
 
     def step(self, action: int) -> StepResult:
-        self._sync_choice_page()
+        page_before = self._graveyard_page
+        choice_key_before = self._last_choice_request_key
+        if action < 0 or action >= self.ACTION_SIZE:
+            raise ValueError(f"Illegal action: {action}")
         mask = self.action_mask()
-        if action < 0 or action >= self.ACTION_SIZE or not mask[action]:
+        if not mask[action]:
+            self._graveyard_page = page_before
+            self._last_choice_request_key = choice_key_before
             raise ValueError(f"Illegal action: {action}")
         acting_player = self.decision_player
         try:
@@ -157,6 +173,10 @@ class ShadowverseEnv:
                 truncated=False,
                 info=self.info(),
             )
+        except ValueError:
+            self._graveyard_page = page_before
+            self._last_choice_request_key = choice_key_before
+            raise
         result = self.core.apply(command)
         reward = 0.0 if result.winner is None else (
             1.0 if result.winner == acting_player else -1.0
@@ -191,6 +211,8 @@ class ShadowverseEnv:
             float(self.core.state.pending_choice is not None),
             me.shadows / 20, opponent.shadows / 20,
             me.cooperation / 10, opponent.cooperation / 10,
+            me.cards_played_this_turn / 10,
+            opponent.cards_played_this_turn / 10,
         ]
         total_pages = self._graveyard_total_pages()
         values.extend([
@@ -221,6 +243,16 @@ class ShadowverseEnv:
         ])
         values.extend(float(me.class_id == cid) for cid in range(1, self.CLASS_COUNT + 1))
         values.extend(float(opponent.class_id == cid) for cid in range(1, self.CLASS_COUNT + 1))
+        values.extend([
+            me.super_evolution_points / self.STARTING_SUPER_EVOLUTION_POINTS,
+            opponent.super_evolution_points / self.STARTING_SUPER_EVOLUTION_POINTS,
+            float(me.super_evolved_this_turn),
+            float(opponent.super_evolved_this_turn),
+        ])
+        values.extend([
+            float(me.max_mana >= OVERFLOW_MAX_MANA_THRESHOLD),
+            float(opponent.max_mana >= OVERFLOW_MAX_MANA_THRESHOLD),
+        ])
         for index in range(self.MAX_HAND):
             card = me.hand[index] if index < len(me.hand) else None
             values.extend(self._card_features(card))
@@ -241,6 +273,10 @@ class ShadowverseEnv:
             "winner": self.winner,
             "player_classes": self.core.player_classes,
             "action_mask": self.action_mask(),
+            "super_evolution_points": (
+                self.players[0].super_evolution_points,
+                self.players[1].super_evolution_points,
+            ),
             "placeholder_ability_count": len(self.placeholder_ability_events),
             "graveyard_page": self._graveyard_page,
             "graveyard_total_pages": total_pages,
