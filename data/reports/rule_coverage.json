@@ -5,11 +5,11 @@
   },
   "summary": {
     "total_cards": 826,
-    "total_with_rules": 91,
+    "total_with_rules": 92,
     "test_or_synthetic_ids_with_rules": 26,
     "coverage_counts": {
-      "covered_exact": 58,
-      "supported_missing_rule": 539,
+      "covered_exact": 59,
+      "supported_missing_rule": 538,
       "text_unclear": 19,
       "missing_primitive": 114,
       "covered_partial": 5,
@@ -8295,8 +8295,8 @@
       "cost": 8,
       "is_collectible": true,
       "card_set_id": 10003,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '造成.*伤害', '破坏']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['fanfare'], Ops: ['destroy', 'damage_leader']",
       "hit_keywords": [
         "入场曲",
         "造成.*伤害",

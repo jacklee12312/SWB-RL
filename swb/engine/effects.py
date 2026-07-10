@@ -269,6 +269,9 @@ class EffectOperation:
     optional_operations: tuple["EffectOperation", ...] = ()
     emblem_remove_mode: str = "first"
     requires_target: bool = False
+    target_count: int = 1
+    target_count_expr: ValueExpression | None = None
+    allow_duplicate_targets: bool = False
 
 
 @dataclass
@@ -282,6 +285,7 @@ class EffectFrame:
     label: str = "效果"
     next_index: int = 0
     pending_target_id: int | None = None
+    pending_target_ids: list[int] = field(default_factory=list)
     move_source_to_graveyard: bool = False
     _all_target_ids: list[int] = field(default_factory=list)
     _all_target_index: int = 0

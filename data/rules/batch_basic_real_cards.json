@@ -474,6 +474,22 @@
             ]
         },
         {
+            "card_id": 10351120,
+            "trigger": "fanfare",
+            "operations": [
+                {
+                    "kind": "destroy",
+                    "target": "enemy_unit",
+                    "target_count": 2
+                },
+                {
+                    "kind": "damage_leader",
+                    "target": "own_leader",
+                    "amount": 4
+                }
+            ]
+        },
+        {
             "card_id": 10301310,
             "trigger": "play",
             "operations": [

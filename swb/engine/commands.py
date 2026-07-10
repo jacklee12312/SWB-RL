@@ -84,3 +84,6 @@ class ChoiceRequest:
     continuation_id: str
     choice_kind: ChoiceKind = ChoiceKind.GENERIC
     request_id: int = 0
+    target_count: int = 1
+    allow_duplicate_targets: bool = False
+    selected_options: tuple[ChoiceOption, ...] = ()

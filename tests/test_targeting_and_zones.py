@@ -421,17 +421,21 @@ class TargetingTests(unittest.TestCase):
         )
         self.assertEqual(after, before)
 
-    def test_multi_target_schema_fields_are_explicitly_unsupported(self):
+    def test_multi_target_schema_fields_are_supported(self):
         from swb.engine.card_rules import _parse_operation
 
         cases = (
-            {"target_count": 2},
-            {"target_count_expr": {"type": "constant", "value": 2}},
-            {"allow_duplicate_targets": False},
-            {"allow_duplicates": True},
-            {"targets": ["enemy_unit", "enemy_unit"]},
+            ({"target_count": 2}, 2, None, False),
+            (
+                {"target_count_expr": {"type": "constant", "value": 2}},
+                1,
+                ExprType.CONSTANT,
+                False,
+            ),
+            ({"allow_duplicate_targets": False}, 1, None, False),
+            ({"allow_duplicates": True}, 1, None, True),
         )
-        for extra in cases:
+        for extra, count, expr_type, allow_duplicates in cases:
             with self.subTest(extra=extra):
                 raw = {
                     "kind": "damage_unit",
@@ -439,10 +443,33 @@ class TargetingTests(unittest.TestCase):
                     "amount": 1,
                     **extra,
                 }
-                with self.assertRaisesRegex(ValueError, "multi-target choices are unsupported"):
-                    _parse_operation(raw, "test.json/operations[0]", 1)
+                operation = _parse_operation(raw, "test.json/operations[0]", 1)
+                self.assertEqual(operation.target_count, count)
+                self.assertEqual(
+                    None if operation.target_count_expr is None else operation.target_count_expr.type,
+                    expr_type,
+                )
+                self.assertEqual(
+                    operation.allow_duplicate_targets,
+                    allow_duplicates,
+                )
 
-    def test_nested_multi_target_schema_fields_are_explicitly_unsupported(self):
+    def test_preselected_multi_target_payload_fields_remain_unsupported(self):
+        from swb.engine.card_rules import _parse_operation
+
+        with self.assertRaisesRegex(ValueError, "preselected multi-target payloads"):
+            _parse_operation(
+                {
+                    "kind": "damage_unit",
+                    "target": "enemy_unit",
+                    "amount": 1,
+                    "targets": ["enemy_unit", "enemy_unit"],
+                },
+                "test.json/operations[0]",
+                1,
+            )
+
+    def test_nested_multi_target_schema_fields_are_supported(self):
         from swb.engine.card_rules import _parse_operation
 
         raw = {
@@ -462,8 +489,232 @@ class TargetingTests(unittest.TestCase):
                 },
             ],
         }
-        with self.assertRaisesRegex(ValueError, "multi-target choices are unsupported"):
-            _parse_operation(raw, "test.json/operations[0]", 1)
+        operation = _parse_operation(raw, "test.json/operations[0]", 1)
+        nested = operation.choose_one_options[0].operations[0]
+        self.assertEqual(nested.target_count, 2)
+
+    def test_multi_target_schema_rejects_ambiguous_combinations(self):
+        from swb.engine.card_rules import _parse_operation
+
+        cases = (
+            (
+                {
+                    "target_count": 2,
+                    "target_count_expr": {"type": "constant", "value": 2},
+                },
+                "mutually exclusive",
+            ),
+            (
+                {
+                    "allow_duplicate_targets": True,
+                    "allow_duplicates": False,
+                },
+                "conflict",
+            ),
+            ({"target_count": 0}, "must be positive"),
+        )
+        for extra, message in cases:
+            with self.subTest(extra=extra):
+                with self.assertRaisesRegex(ValueError, message):
+                    _parse_operation(
+                        {
+                            "kind": "damage_unit",
+                            "target": "enemy_unit",
+                            "amount": 1,
+                            **extra,
+                        },
+                        "test.json/operations[0]",
+                        1,
+                    )
+
+    def test_multi_target_schema_rejects_target_key_binding(self):
+        from swb.engine.card_rules import _parse_operation, _validate_target_keys
+
+        operation = _parse_operation(
+            {
+                "kind": "damage_unit",
+                "target": "enemy_unit",
+                "amount": 1,
+                "target_count": 2,
+                "target_key": "picked",
+            },
+            "test.json/operations[0]",
+            1,
+        )
+        with self.assertRaisesRegex(ValueError, "multi-target selection"):
+            _validate_target_keys((operation,), "test.json")
+
+    def _multi_target_engine(
+        self,
+        operation: EffectOperation,
+        *,
+        target_count: int,
+    ):
+        rulebook = RuleBook((
+            CardRule(card_id=1, trigger=Trigger.PLAY, operations=(operation,)),
+        ))
+        engine = GameEngine(
+            [card(i) for i in range(100, 140)],
+            [card(i) for i in range(200, 240)],
+            class_a=1,
+            class_b=1,
+            seed=17,
+            rulebook=rulebook,
+        )
+        engine.reset(seed=17)
+        targets = [
+            Unit.summon(
+                card(900 + index, attack=1, life=5),
+                entity_id=engine.state.allocate_entity_id(),
+            )
+            for index in range(target_count)
+        ]
+        engine.players[1].board = list(targets)
+        engine.players[0].hand[0] = card(
+            1,
+            card_type="法术",
+            attack=None,
+            life=None,
+        )
+        engine.players[0].max_mana = 10
+        engine.players[0].mana = 10
+        engine.apply(PlayCard(0, 0))
+        return engine, targets
+
+    def test_multi_target_choice_resolves_distinct_targets(self):
+        engine, targets = self._multi_target_engine(
+            EffectOperation(
+                EffectKind.DAMAGE_UNIT,
+                TargetKind.ENEMY_UNIT,
+                amount=2,
+                target_count=2,
+            ),
+            target_count=2,
+        )
+        request = engine.state.pending_choice
+        self.assertEqual(request.target_count, 2)
+
+        engine.apply(Choose(0, f"entity:{targets[0].entity_id}"))
+
+        request = engine.state.pending_choice
+        self.assertEqual(len(request.selected_options), 1)
+        self.assertNotIn(
+            f"entity:{targets[0].entity_id}",
+            {command.option_id for command in engine.legal_commands()},
+        )
+        engine.assert_invariants()
+        engine.apply(Choose(0, f"entity:{targets[1].entity_id}"))
+        self.assertIsNone(engine.state.pending_choice)
+        self.assertEqual([target.health for target in targets], [3, 3])
+
+    def test_multi_target_choice_uses_available_count_when_targets_are_short(self):
+        engine, targets = self._multi_target_engine(
+            EffectOperation(
+                EffectKind.DAMAGE_UNIT,
+                TargetKind.ENEMY_UNIT,
+                amount=2,
+                target_count=2,
+            ),
+            target_count=1,
+        )
+        self.assertEqual(engine.state.pending_choice.target_count, 1)
+        engine.apply(Choose(0, f"entity:{targets[0].entity_id}"))
+        self.assertEqual(targets[0].health, 3)
+
+    def test_multi_target_forbidden_duplicate_is_illegal_without_mutation(self):
+        engine, targets = self._multi_target_engine(
+            EffectOperation(
+                EffectKind.DAMAGE_UNIT,
+                TargetKind.ENEMY_UNIT,
+                amount=1,
+                target_count=2,
+            ),
+            target_count=2,
+        )
+        duplicate = Choose(0, f"entity:{targets[0].entity_id}")
+        engine.apply(duplicate)
+        before = engine.deterministic_fingerprint()
+
+        with self.assertRaisesRegex(IllegalCommand, "Choice option is invalid"):
+            engine.apply(duplicate)
+
+        self.assertEqual(engine.deterministic_fingerprint(), before)
+
+    def test_multi_target_allowed_duplicate_applies_repeatedly(self):
+        engine, targets = self._multi_target_engine(
+            EffectOperation(
+                EffectKind.DAMAGE_UNIT,
+                TargetKind.ENEMY_UNIT,
+                amount=1,
+                target_count=2,
+                allow_duplicate_targets=True,
+            ),
+            target_count=1,
+        )
+        choice = Choose(0, f"entity:{targets[0].entity_id}")
+        engine.apply(choice)
+        self.assertIn(choice, engine.legal_commands())
+        engine.apply(choice)
+        self.assertEqual(targets[0].health, 3)
+
+    def test_multi_target_revalidates_selected_target_that_left_play(self):
+        engine, targets = self._multi_target_engine(
+            EffectOperation(
+                EffectKind.DAMAGE_UNIT,
+                TargetKind.ENEMY_UNIT,
+                amount=1,
+                target_count=2,
+            ),
+            target_count=2,
+        )
+        engine.apply(Choose(0, f"entity:{targets[0].entity_id}"))
+        engine.players[1].board.remove(targets[0])
+        engine._send_to_graveyard(
+            1,
+            targets[0].definition,
+            "test_multi_target_left_play",
+            source_entity_id=targets[0].entity_id,
+        )
+
+        engine.apply(Choose(0, f"entity:{targets[1].entity_id}"))
+
+        self.assertEqual(targets[0].health, 5)
+        self.assertEqual(targets[1].health, 4)
+        self.assertIsNone(engine.state.pending_choice)
+
+    def test_multi_target_revalidates_controller_and_filter_changes(self):
+        operation = EffectOperation(
+            EffectKind.DAMAGE_UNIT,
+            TargetKind.ENEMY_UNIT,
+            amount=1,
+            target_count=3,
+            board_filter=BoardFilter(evolved=False),
+        )
+        engine, targets = self._multi_target_engine(operation, target_count=3)
+        engine.apply(Choose(0, f"entity:{targets[0].entity_id}"))
+        engine.apply(Choose(0, f"entity:{targets[1].entity_id}"))
+        engine.players[1].board.remove(targets[0])
+        engine.players[0].board.append(targets[0])
+        targets[1].evolved = True
+
+        engine.apply(Choose(0, f"entity:{targets[2].entity_id}"))
+
+        self.assertEqual([target.health for target in targets], [5, 5, 4])
+
+    def test_target_count_expr_resolves_when_choice_starts(self):
+        engine, targets = self._multi_target_engine(
+            EffectOperation(
+                EffectKind.DAMAGE_UNIT,
+                TargetKind.ENEMY_UNIT,
+                amount=1,
+                target_count_expr=ValueExpression.constant(2),
+            ),
+            target_count=2,
+        )
+        self.assertEqual(engine.state.pending_choice.target_count, 2)
+        for target in targets:
+            engine.apply(Choose(0, f"entity:{target.entity_id}"))
+        self.assertEqual([target.health for target in targets], [4, 4])
 
     def test_target_exists_schema_loads_then_else_branches(self):
         from swb.engine.card_rules import _parse_operation

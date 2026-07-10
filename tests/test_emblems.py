@@ -562,7 +562,7 @@ class EventEmblemTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "death_batch_start"):
                 RuleBook.from_directory(tmp)
 
-    def test_emblem_trigger_multi_target_fields_are_explicitly_unsupported(self):
+    def test_emblem_trigger_multi_target_fields_are_supported(self):
         payload = {
             "emblems": [
                 {
@@ -590,13 +590,14 @@ class EventEmblemTests(unittest.TestCase):
                 json.dumps(payload),
                 encoding="utf-8",
             )
-            with self.assertRaisesRegex(
-                ValueError,
-                "multi-target choices are unsupported",
-            ):
-                RuleBook.from_directory(tmp)
+            rulebook = RuleBook.from_directory(tmp)
+            operation = rulebook.emblem_trigger_ops_for(
+                "bad_multi_trigger",
+                "card_played",
+            )[0]
+            self.assertEqual(operation.target_count, 2)
 
-    def test_emblem_on_expire_multi_target_fields_are_explicitly_unsupported(self):
+    def test_emblem_on_expire_multi_target_fields_are_supported(self):
         payload = {
             "emblems": [
                 {
@@ -620,11 +621,13 @@ class EventEmblemTests(unittest.TestCase):
                 json.dumps(payload),
                 encoding="utf-8",
             )
-            with self.assertRaisesRegex(
-                ValueError,
-                "multi-target choices are unsupported",
-            ):
-                RuleBook.from_directory(tmp)
+            definition = RuleBook.from_directory(tmp).emblem_def(
+                "bad_multi_expire"
+            )
+            self.assertEqual(len(definition.on_expire), 1)
+            self.assertFalse(
+                definition.on_expire[0].allow_duplicate_targets
+            )
 
     def test_card_played_emblem_fires(self):
         engine = _engine()
@@ -881,7 +884,7 @@ class ObservationTests(unittest.TestCase):
             class_a=1, class_b=1, seed=42,
         )
         obs, _ = env.reset(seed=42)
-        self.assertEqual(len(obs), 223)
+        self.assertEqual(len(obs), 225)
 
     def test_observation_exposes_public_emblem_state(self):
         env = ShadowverseEnv(

@@ -135,6 +135,14 @@ class DatabaseVerificationTests(unittest.TestCase):
         self.assertIn("觉醒", text)
         self.assertIn("改为4点伤害", text)
 
+    def test_10351120_exists(self):
+        card = self.repo.get(10351120)
+        self.assertEqual(card.name, "泡沫鬼姬")
+        self.assertEqual(card.cost, 8)
+        text = "\n".join(self._skill_texts(10351120))
+        self.assertIn("选择对手的战场上的2个随从", text)
+        self.assertIn("对自己的主战者造成4点伤害", text)
+
     def test_10051310_exists(self):
         card = self.repo.get(10051310)
         self.assertEqual(card.name, "\u6df7\u6c8c\u8bc5\u5492")
@@ -2012,6 +2020,7 @@ class RulesLoadTests(unittest.TestCase):
             10661310, 10231120, 10632310, 10411310, 10671310,
             10251310, 10531310, 10521310, 10631310, 10171310, 10472310,
             10153310, 10121310, 10301310, 10713110, 10051310,
+            10351120,
         ):
             ops_play = self.rb.operations_for(cid, Trigger.PLAY)
             ops_fanfare = self.rb.operations_for(cid, Trigger.FANFARE)
@@ -2028,6 +2037,13 @@ class RulesLoadTests(unittest.TestCase):
         info = report["classifications"]["10041310"]
         self.assertEqual(info["coverage"], "covered_exact")
         self.assertNotIn("rule_metadata", info)
+
+    def test_multi_target_real_rule_is_reported_as_exact(self):
+        from scripts.report_rule_coverage import _build_coverage_report
+
+        report = _build_coverage_report("data/cards.sqlite3", "data/rules")
+        info = report["classifications"]["10351120"]
+        self.assertEqual(info["coverage"], "covered_exact")
 
     def test_generated_unplayable_token_rule_is_reported_as_partial(self):
         from scripts.report_rule_coverage import _build_coverage_report
@@ -2074,6 +2090,38 @@ class BehaviorTests(unittest.TestCase):
         self.assertTrue(len(choose_cmds) > 0)
         engine.apply(choose_cmds[0])
         self.assertEqual(target.health, 1)
+
+    def test_10351120_selects_and_destroys_two_enemy_followers(self):
+        engine = _make_engine(self.rb)
+        engine.reset(seed=42)
+        targets = [
+            Unit.summon(_card(990 + index, life=5), entity_id=990 + index)
+            for index in range(2)
+        ]
+        engine.players[1].board = targets
+        _insert_card(
+            engine,
+            _card(
+                10351120,
+                name="泡沫鬼姬",
+                cost=8,
+                attack=4,
+                life=6,
+                keywords=frozenset({"疾驰"}),
+            ),
+        )
+        engine.players[0].mana = 10
+
+        engine.apply(PlayCard(0, 0))
+
+        self.assertEqual(engine.state.pending_choice.target_count, 2)
+        for target in targets:
+            engine.apply(Choose(0, f"entity:{target.entity_id}"))
+        self.assertEqual(engine.players[1].board, [])
+        self.assertEqual(engine.players[0].health, 16)
+        self.assertTrue(
+            any(unit.definition.card_id == 10351120 for unit in engine.players[0].board)
+        )
 
     def test_10041310_target_changed_controller_before_choice_skips_damage(self):
         engine = _make_engine(self.rb)

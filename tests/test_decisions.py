@@ -553,14 +553,14 @@ class SchemaValidationTests(unittest.TestCase):
 
 
 class ObservationTests(unittest.TestCase):
-    def test_observation_223(self):
+    def test_observation_225(self):
         env = ShadowverseEnv(
             deck_a=[_card(100 + i) for i in range(40)],
             deck_b=[_card(200 + i) for i in range(40)],
             class_a=1, class_b=1, seed=42,
         )
         obs, _ = env.reset(seed=42)
-        self.assertEqual(len(obs), 223)
+        self.assertEqual(len(obs), 225)
 
     def test_action_size(self):
         self.assertGreater(ShadowverseEnv.ACTION_SIZE, 100)

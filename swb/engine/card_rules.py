@@ -56,29 +56,32 @@ _TARGET_DEPENDENT_CONDITIONS = frozenset({
     ConditionType.TARGET_HAS_KEYWORD,
 })
 
-_UNSUPPORTED_MULTI_TARGET_FIELDS = frozenset({
-    "target_count",
-    "target_count_expr",
+_UNSUPPORTED_PRESELECTED_TARGET_FIELDS = frozenset({
     "targets",
     "target_ids",
-    "allow_duplicate_targets",
-    "allow_duplicates",
     "duplicate_targets",
 })
 
 
-def _reject_unsupported_multi_target_fields(
+def _reject_unsupported_preselected_target_fields(
     raw: dict,
     source_file: str,
     card_id: int,
 ) -> None:
-    fields = sorted(set(raw) & _UNSUPPORTED_MULTI_TARGET_FIELDS)
+    fields = sorted(set(raw) & _UNSUPPORTED_PRESELECTED_TARGET_FIELDS)
     if fields:
         raise ValueError(
-            f"{source_file} card {card_id}: multi-target choices are unsupported; "
-            f"fields {fields} require explicit command and duplicate-target "
-            f"semantics before they can be used"
+            f"{source_file} card {card_id}: preselected multi-target payloads "
+            f"are unsupported; fields {fields} cannot replace command-level "
+            f"target selection"
         )
+
+
+def _expression_depends_on_target(expression: ValueExpression) -> bool:
+    return (
+        expression.type in {ExprType.TARGET_ATTACK, ExprType.TARGET_HEALTH}
+        or any(_expression_depends_on_target(value) for value in expression.values)
+    )
 
 
 def _check_target_conditions(conditions: tuple[Condition, ...], source: str) -> set[str]:
@@ -709,6 +712,23 @@ _TARGET_EXISTS_TARGETS = _REQUIRES_TARGET_TARGETS | frozenset({
     TargetKind.ANY_UNIT_OR_LEADER,
 })
 
+_MULTI_TARGET_TARGETS = frozenset({
+    TargetKind.OWN_UNIT,
+    TargetKind.ENEMY_UNIT,
+    TargetKind.ANY_UNIT,
+    TargetKind.OWN_UNIT_OR_LEADER,
+    TargetKind.ENEMY_UNIT_OR_LEADER,
+    TargetKind.ANY_UNIT_OR_LEADER,
+    TargetKind.OWN_AMULET,
+    TargetKind.ENEMY_AMULET,
+    TargetKind.ANY_AMULET,
+    TargetKind.OWN_BOARD,
+    TargetKind.ENEMY_BOARD,
+    TargetKind.ANY_BOARD,
+    TargetKind.OWN_HAND,
+    TargetKind.OWN_GRAVEYARD_CARD,
+})
+
 
 def _validate_target_keys(operations: tuple[EffectOperation, ...], source: str) -> None:
     defined: set[str] = set()
@@ -729,6 +749,12 @@ def _validate_target_keys(operations: tuple[EffectOperation, ...], source: str) 
                     f"{source}/operations[{i}]: target {op.target.value!r} "
                     f"cannot define target_key {op.target_key!r}; "
                     f"target_key requires a single board-entity target"
+                )
+            if op.target_count != 1 or op.target_count_expr is not None:
+                raise ValueError(
+                    f"{source}/operations[{i}]: target_key cannot be combined "
+                    "with multi-target selection until multi-target bindings "
+                    "are explicitly supported"
                 )
             if op.target_key in defined:
                 raise ValueError(
@@ -772,7 +798,7 @@ def _parse_operation(raw: dict, source_file: str, card_id: int, _depth: int = 0)
             f"{error_prefix}: operation must be an object, "
             f"got {type(raw).__name__}"
         )
-    _reject_unsupported_multi_target_fields(raw, source_file, card_id)
+    _reject_unsupported_preselected_target_fields(raw, source_file, card_id)
     try:
         kind = EffectKind(raw["kind"])
         raw_target = raw.get("target", "own_leader" if kind in (EffectKind.NECROMANCY, EffectKind.REANIMATE, EffectKind.CONDITIONAL, EffectKind.CHOOSE_ONE, EffectKind.OPTIONAL) else None)
@@ -808,6 +834,70 @@ def _parse_operation(raw: dict, source_file: str, card_id: int, _depth: int = 0)
         raw_secondary = raw.get("health")
     if isinstance(raw_secondary, dict):
         secondary_expr = _parse_expression(raw_secondary, f"{source_file}/secondary_amount", card_id)
+
+    raw_target_count = raw.get("target_count")
+    raw_target_count_expr = raw.get("target_count_expr")
+    if raw_target_count is not None and raw_target_count_expr is not None:
+        raise ValueError(
+            f"{error_prefix}: target_count and target_count_expr are mutually exclusive"
+        )
+    if raw_target_count is None:
+        target_count = 1
+    else:
+        target_count = _parse_non_negative_int(
+            raw_target_count,
+            f"{source_file}/target_count",
+            card_id,
+        )
+        if target_count < 1:
+            raise ValueError(
+                f"{source_file}/target_count card {card_id}: must be positive"
+            )
+    target_count_expr = None
+    if raw_target_count_expr is not None:
+        if not isinstance(raw_target_count_expr, dict):
+            raise ValueError(
+                f"{source_file}/target_count_expr card {card_id}: must be an expression object"
+            )
+        target_count_expr = _parse_expression(
+            raw_target_count_expr,
+            f"{source_file}/target_count_expr",
+            card_id,
+        )
+        if _expression_depends_on_target(target_count_expr):
+            raise ValueError(
+                f"{source_file}/target_count_expr card {card_id}: "
+                "cannot depend on a target selected by the same operation"
+            )
+
+    duplicate_fields = [
+        field
+        for field in ("allow_duplicate_targets", "allow_duplicates")
+        if field in raw
+    ]
+    duplicate_values: list[bool] = []
+    for field in duplicate_fields:
+        value = raw[field]
+        if not isinstance(value, bool):
+            raise ValueError(
+                f"{source_file}/{field} card {card_id}: must be boolean"
+            )
+        duplicate_values.append(value)
+    if len(set(duplicate_values)) > 1:
+        raise ValueError(
+            f"{error_prefix}: allow_duplicate_targets and allow_duplicates conflict"
+        )
+    allow_duplicate_targets = duplicate_values[0] if duplicate_values else False
+    has_multi_target_fields = (
+        raw_target_count is not None
+        or raw_target_count_expr is not None
+        or bool(duplicate_fields)
+    )
+    if has_multi_target_fields and target not in _MULTI_TARGET_TARGETS:
+        raise ValueError(
+            f"{error_prefix}: multi-target fields require a selected target, "
+            f"got {target.value!r}"
+        )
 
     if kind is EffectKind.SET_STATS:
         if raw_amount is None and raw_secondary is None:
@@ -1410,6 +1500,9 @@ def _parse_operation(raw: dict, source_file: str, card_id: int, _depth: int = 0)
         optional_prompt=optional_prompt,
         optional_operations=optional_ops,
         requires_target=requires_target,
+        target_count=target_count,
+        target_count_expr=target_count_expr,
+        allow_duplicate_targets=allow_duplicate_targets,
     )
 
 

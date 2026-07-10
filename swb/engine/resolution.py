@@ -1164,6 +1164,8 @@ class GameEngine:
             "amount": operation.amount,
             "secondary_amount": operation.secondary_amount,
             "requires_target": operation.requires_target,
+            "target_count": operation.target_count,
+            "allow_duplicate_targets": operation.allow_duplicate_targets,
         }
         if operation.card_id is not None:
             summary["card_id"] = operation.card_id
@@ -1177,6 +1179,8 @@ class GameEngine:
             summary["amount_expr"] = operation.amount_expr.type.value
         if operation.secondary_expr is not None:
             summary["secondary_expr"] = operation.secondary_expr.type.value
+        if operation.target_count_expr is not None:
+            summary["target_count_expr"] = operation.target_count_expr.type.value
         nested_counts = {
             "necromancy": len(operation.necromancy_operations),
             "then": len(operation.then_operations),
@@ -1199,6 +1203,7 @@ class GameEngine:
             "next_index": frame.next_index,
             "operation_count": len(frame.operations),
             "pending_target_id": frame.pending_target_id,
+            "pending_target_ids": tuple(frame.pending_target_ids),
             "upcoming_operations": [
                 self._operation_debug_summary(operation)
                 for operation in upcoming
@@ -1304,6 +1309,11 @@ class GameEngine:
                 "choice_kind": self.state.pending_choice.choice_kind.value,
                 "request_id": self.state.pending_choice.request_id,
                 "option_count": len(self.state.pending_choice.options),
+                "target_count": self.state.pending_choice.target_count,
+                "selected_count": len(self.state.pending_choice.selected_options),
+                "allow_duplicate_targets": (
+                    self.state.pending_choice.allow_duplicate_targets
+                ),
                 "options": [
                     {
                         "option_id": option.option_id,
@@ -1686,6 +1696,17 @@ class GameEngine:
             "continuation_id": request.continuation_id,
             "choice_kind": request.choice_kind.value,
             "request_id": request.request_id,
+            "target_count": request.target_count,
+            "allow_duplicate_targets": request.allow_duplicate_targets,
+            "selected_options": tuple(
+                (
+                    option.option_id,
+                    option.label,
+                    option.entity_id,
+                    option.leader_player_index,
+                )
+                for option in request.selected_options
+            ),
             "options": tuple(
                 (
                     option.option_id,
@@ -1714,6 +1735,7 @@ class GameEngine:
             "label": frame.label,
             "next_index": frame.next_index,
             "pending_target_id": frame.pending_target_id,
+            "pending_target_ids": tuple(frame.pending_target_ids),
             "move_source_to_graveyard": frame.move_source_to_graveyard,
             "all_target_ids": tuple(frame._all_target_ids),
             "all_target_index": frame._all_target_index,
@@ -1806,6 +1828,9 @@ class GameEngine:
             ),
             operation.emblem_remove_mode,
             operation.requires_target,
+            operation.target_count,
+            self._expression_fingerprint(operation.target_count_expr),
+            operation.allow_duplicate_targets,
         )
 
     def _condition_fingerprint(
@@ -2515,31 +2540,28 @@ class GameEngine:
                 self._stabilize()
                 continue
 
-            if is_graveyard_target(operation.target) and is_choice_target(operation.target) and frame.pending_target_id is None:
+            if (
+                is_graveyard_target(operation.target)
+                and is_choice_target(operation.target)
+                and frame.pending_target_id is None
+                and not frame.pending_target_ids
+            ):
                 candidates = graveyard_candidates(operation, frame.controller, self.players)
                 options = build_graveyard_choice_options(candidates)
                 if not options:
                     frame.next_index += 1
                     continue
-                if frame.auto_resolve_choices:
-                    chosen = self.random.choice(options)
-                    self._log(frame.controller, f"自动选择目标：{chosen.label}")
-                    frame.pending_target_id = chosen.entity_id
-                else:
-                    self.state.pending_choice = ChoiceRequest(
-                        player_index=frame.controller,
-                        prompt=f"为 {frame.source_name} 从墓地选择目标",
-                        options=tuple(options),
-                        continuation_id=f"{frame.source_card_id}:{frame.next_index}",
-                        choice_kind=ChoiceKind.GRAVEYARD,
-                        request_id=self._allocate_choice_request_id(),
-                    )
-                    self.state.phase = Phase.AWAITING_CHOICE
-                    self._log(
-                        frame.controller,
-                        f"{frame.source_name} 等待从墓地选择目标："
-                        + "、".join(option.label for option in options),
-                    )
+                choice_started = self._request_target_choice(
+                    operation,
+                    frame,
+                    options,
+                    choice_kind=ChoiceKind.GRAVEYARD,
+                    prompt=f"为 {frame.source_name} 从墓地选择目标",
+                )
+                if not choice_started:
+                    frame.next_index += 1
+                    continue
+                if self.state.pending_choice is not None:
                     return
 
             if is_graveyard_target(operation.target) and is_all_target(operation.target) and not frame.defer_stabilize:
@@ -2566,41 +2588,60 @@ class GameEngine:
                     continue
                 target_id = chosen_gc.entity_id
 
-            if is_choice_target(operation.target) and not is_graveyard_target(operation.target) and frame.pending_target_id is None:
+            if (
+                is_choice_target(operation.target)
+                and not is_graveyard_target(operation.target)
+                and frame.pending_target_id is None
+                and not frame.pending_target_ids
+            ):
                 options = self._target_choice_options(operation, frame)
 
                 if not options:
                     frame.next_index += 1
                     continue
-                if frame.auto_resolve_choices:
-                    chosen = self.random.choice(options)
-                    self._log(frame.controller, f"自动选择目标：{chosen.label}")
-                    frame.pending_target_id = (
-                        _leader_target_id(chosen.leader_player_index)
-                        if chosen.leader_player_index is not None
-                        else chosen.entity_id
-                    )
-                else:
-                    choice_kind = ChoiceKind.GENERIC
-                    if operation.target in (TargetKind.OWN_HAND,):
-                        choice_kind = ChoiceKind.HAND
-                    elif operation.target not in (TargetKind.OWN_GRAVEYARD_CARD,):
-                        choice_kind = ChoiceKind.BOARD
-                    self.state.pending_choice = ChoiceRequest(
-                        player_index=frame.controller,
-                        prompt=f"为 {frame.source_name} 选择目标",
-                        options=tuple(options),
-                        continuation_id=f"{frame.source_card_id}:{frame.next_index}",
-                        choice_kind=choice_kind,
-                        request_id=self._allocate_choice_request_id(),
-                    )
-                    self.state.phase = Phase.AWAITING_CHOICE
-                    self._log(
-                        frame.controller,
-                        f"{frame.source_name} 等待选择目标："
-                        + "、".join(option.label for option in options),
-                    )
+                choice_kind = ChoiceKind.GENERIC
+                if operation.target in (TargetKind.OWN_HAND,):
+                    choice_kind = ChoiceKind.HAND
+                elif operation.target not in (TargetKind.OWN_GRAVEYARD_CARD,):
+                    choice_kind = ChoiceKind.BOARD
+                choice_started = self._request_target_choice(
+                    operation,
+                    frame,
+                    options,
+                    choice_kind=choice_kind,
+                    prompt=f"为 {frame.source_name} 选择目标",
+                )
+                if not choice_started:
+                    frame.next_index += 1
+                    continue
+                if self.state.pending_choice is not None:
                     return
+
+            if frame.pending_target_ids:
+                target_ids = tuple(frame.pending_target_ids)
+                frame.pending_target_ids.clear()
+                frame.defer_stabilize = True
+                for selected_target_id in target_ids:
+                    if not self._target_id_still_legal(
+                        operation,
+                        frame,
+                        selected_target_id,
+                    ):
+                        self._log(
+                            frame.controller,
+                            f"已选目标 {selected_target_id} 已不再合法，跳过",
+                        )
+                        continue
+                    self._checked_execute(
+                        operation,
+                        frame,
+                        selected_target_id,
+                    )
+                frame.defer_stabilize = False
+                frame.next_index += 1
+                self._resolve_event_queue()
+                self._stabilize()
+                continue
 
             if is_all_target(operation.target) and not frame.defer_stabilize:
                 if operation.target is TargetKind.ALL_OWN_HAND:
@@ -2788,6 +2829,15 @@ class GameEngine:
         *,
         source_entity_id: int | None = None,
     ) -> bool:
+        if (
+            is_choice_target(operation.target)
+            and self._requested_target_count_for(
+                operation,
+                controller,
+                source_entity_id=source_entity_id,
+            ) <= 0
+        ):
+            return False
         if operation.target == TargetKind.OWN_HAND:
             return len(self.players[controller].hand) > 1
         if operation.target == TargetKind.RANDOM_OWN_HAND:
@@ -2832,6 +2882,27 @@ class GameEngine:
         return bool(candidates) or (
             has_leader_choice(operation.target)
             and condition_state is not PartialConditionResult.DEPENDS_ON_TARGET
+        )
+
+    def _requested_target_count_for(
+        self,
+        operation: EffectOperation,
+        controller: int,
+        *,
+        source_entity_id: int | None = None,
+    ) -> int:
+        if operation.target_count_expr is None:
+            return operation.target_count
+        return max(
+            0,
+            evaluate_expression(
+                operation.target_count_expr,
+                EvalContext(
+                    controller=controller,
+                    players=self.players,
+                    source_entity_id=source_entity_id,
+                ),
+            ),
         )
 
     @staticmethod
@@ -2958,6 +3029,120 @@ class GameEngine:
                     leader_choice_options(operation.target, frame.controller)
                 )
         return options
+
+    def _resolved_target_count(
+        self,
+        operation: EffectOperation,
+        frame: EffectFrame,
+    ) -> int:
+        return self._requested_target_count_for(
+            operation,
+            frame.controller,
+            source_entity_id=frame.source_entity_id,
+        )
+
+    def _effective_target_count(
+        self,
+        operation: EffectOperation,
+        frame: EffectFrame,
+        options: list[ChoiceOption],
+    ) -> int:
+        requested = self._resolved_target_count(operation, frame)
+        if requested <= 0 or not options:
+            return 0
+        if operation.allow_duplicate_targets:
+            return requested
+        return min(requested, len(options))
+
+    @staticmethod
+    def _choice_option_target_id(option: ChoiceOption) -> int | None:
+        if option.leader_player_index is not None:
+            return _leader_target_id(option.leader_player_index)
+        return option.entity_id
+
+    def _target_id_still_legal(
+        self,
+        operation: EffectOperation,
+        frame: EffectFrame,
+        target_id: int,
+    ) -> bool:
+        return target_id in {
+            self._choice_option_target_id(option)
+            for option in self._target_choice_options(operation, frame)
+        }
+
+    def _set_auto_selected_targets(
+        self,
+        operation: EffectOperation,
+        frame: EffectFrame,
+        options: list[ChoiceOption],
+        target_count: int,
+    ) -> None:
+        if target_count == 1:
+            selected = (self.random.choice(options),)
+        elif operation.allow_duplicate_targets:
+            selected = tuple(
+                self.random.choice(options)
+                for _ in range(target_count)
+            )
+        else:
+            selected = tuple(self.random.sample(options, target_count))
+        self._log(
+            frame.controller,
+            "自动选择目标：" + "、".join(option.label for option in selected),
+        )
+        target_ids = [
+            self._choice_option_target_id(option)
+            for option in selected
+        ]
+        if any(target_id is None for target_id in target_ids):
+            raise IllegalCommand("Selected target option has no target identity")
+        if target_count == 1:
+            frame.pending_target_id = target_ids[0]
+        else:
+            frame.pending_target_ids = list(target_ids)
+
+    def _request_target_choice(
+        self,
+        operation: EffectOperation,
+        frame: EffectFrame,
+        options: list[ChoiceOption],
+        *,
+        choice_kind: ChoiceKind,
+        prompt: str,
+    ) -> bool:
+        target_count = self._effective_target_count(operation, frame, options)
+        if target_count <= 0:
+            return False
+        if target_count > 1 and operation.target_key:
+            raise IllegalCommand(
+                "Multi-target selection cannot bind a single target_key"
+            )
+        if frame.auto_resolve_choices:
+            self._set_auto_selected_targets(
+                operation,
+                frame,
+                options,
+                target_count,
+            )
+            return True
+        self.state.pending_choice = ChoiceRequest(
+            player_index=frame.controller,
+            prompt=prompt,
+            options=tuple(options),
+            continuation_id=f"{frame.source_card_id}:{frame.next_index}",
+            choice_kind=choice_kind,
+            request_id=self._allocate_choice_request_id(),
+            target_count=target_count,
+            allow_duplicate_targets=operation.allow_duplicate_targets,
+        )
+        self.state.phase = Phase.AWAITING_CHOICE
+        self._log(
+            frame.controller,
+            f"{frame.source_name} 等待选择 {target_count} 个目标："
+            + "、".join(option.label for option in options),
+        )
+        return True
 
     def _choice_option_still_legal(
         self,
@@ -3495,6 +3680,45 @@ class GameEngine:
                 self._continue_effects()
                 self._try_spellboost_hand()
                 return
+            if request.target_count > 1 or request.selected_options:
+                selected_options = (*request.selected_options, option)
+                if len(selected_options) < request.target_count:
+                    remaining_options = request.options
+                    if not request.allow_duplicate_targets:
+                        remaining_options = tuple(
+                            candidate
+                            for candidate in request.options
+                            if candidate.option_id != option.option_id
+                        )
+                    if not remaining_options:
+                        raise IllegalCommand(
+                            "Multi-target choice has no remaining legal options"
+                        )
+                    self.state.pending_choice = replace(
+                        request,
+                        options=remaining_options,
+                        request_id=self._allocate_choice_request_id(),
+                        selected_options=selected_options,
+                    )
+                    self._log(
+                        command.player_index,
+                        f"已选择 {len(selected_options)}/{request.target_count} 个目标",
+                    )
+                    return
+                target_ids = [
+                    self._choice_option_target_id(selected)
+                    for selected in selected_options
+                ]
+                if any(target_id is None for target_id in target_ids):
+                    raise IllegalCommand(
+                        "Multi-target choice option has no target identity"
+                    )
+                frame.pending_target_ids = list(target_ids)
+                self.state.pending_choice = None
+                self.state.phase = Phase.MAIN
+                self._continue_effects()
+                self._try_spellboost_hand()
+                return
             if not self._choice_option_still_legal(frame, request, option):
                 self._log(
                     command.player_index,
@@ -3827,6 +4051,7 @@ class GameEngine:
             )
             or _expression_depends_on_source(operation.amount_expr)
             or _expression_depends_on_source(operation.secondary_expr)
+            or _expression_depends_on_source(operation.target_count_expr)
             or any(
                 _condition_depends_on_source(condition)
                 for condition in operation.conditions
@@ -5977,6 +6202,114 @@ class GameEngine:
                 raise IllegalCommand(
                     f"Invariant failed: invalid choice_kind {request.choice_kind!r}"
                 )
+            if (
+                not isinstance(request.target_count, int)
+                or isinstance(request.target_count, bool)
+                or request.target_count <= 0
+            ):
+                raise IllegalCommand(
+                    "Invariant failed: pending choice target_count must be positive"
+                )
+            if not isinstance(request.allow_duplicate_targets, bool):
+                raise IllegalCommand(
+                    "Invariant failed: pending choice duplicate-target policy must be boolean"
+                )
+            if not isinstance(request.selected_options, tuple):
+                raise IllegalCommand(
+                    "Invariant failed: pending choice selected_options must be a tuple"
+                )
+            if len(request.selected_options) >= request.target_count:
+                raise IllegalCommand(
+                    "Invariant failed: completed multi-target choice is still pending"
+                )
+            if any(
+                not isinstance(selected, ChoiceOption)
+                for selected in request.selected_options
+            ):
+                raise IllegalCommand(
+                    "Invariant failed: pending choice selected_options contains invalid value"
+                )
+            selected_option_ids = [
+                selected.option_id for selected in request.selected_options
+            ]
+            if (
+                not request.allow_duplicate_targets
+                and len(selected_option_ids) != len(set(selected_option_ids))
+            ):
+                raise IllegalCommand(
+                    "Invariant failed: pending choice contains duplicate selected targets"
+                )
+            if (
+                not request.allow_duplicate_targets
+                and set(selected_option_ids)
+                & {candidate.option_id for candidate in request.options}
+            ):
+                raise IllegalCommand(
+                    "Invariant failed: selected target remains available when duplicates are forbidden"
+                )
+            if (
+                not request.allow_duplicate_targets
+                and len(request.selected_options) + len(request.options)
+                < request.target_count
+            ):
+                raise IllegalCommand(
+                    "Invariant failed: pending choice cannot reach target_count"
+                )
+            for selected_index, selected in enumerate(request.selected_options):
+                zone = f"pending_choice selected_options[{selected_index}]"
+                if not isinstance(selected, ChoiceOption):
+                    raise IllegalCommand(
+                        f"Invariant failed: {zone} is not ChoiceOption"
+                    )
+                if not isinstance(selected.option_id, str) or not selected.option_id:
+                    raise IllegalCommand(
+                        f"Invariant failed: {zone} has empty option_id"
+                    )
+                if selected.entity_id is not None and selected.entity_id <= 0:
+                    raise IllegalCommand(
+                        f"Invariant failed: {zone} has non-positive entity_id"
+                    )
+                if selected.entity_id is not None:
+                    matching_prefix = next(
+                        (
+                            prefix
+                            for prefix in ("entity:", "hand:")
+                            if selected.option_id.startswith(prefix)
+                        ),
+                        None,
+                    )
+                    if matching_prefix is not None:
+                        raw_target_id = selected.option_id[len(matching_prefix):]
+                        try:
+                            selected_target_id = int(raw_target_id)
+                        except ValueError as exc:
+                            raise IllegalCommand(
+                                f"Invariant failed: {zone} has malformed entity id"
+                            ) from exc
+                        if selected_target_id != selected.entity_id:
+                            raise IllegalCommand(
+                                f"Invariant failed: {zone} option_id mismatch"
+                            )
+                if (
+                    selected.leader_player_index is not None
+                    and selected.leader_player_index not in (0, 1)
+                ):
+                    raise IllegalCommand(
+                        f"Invariant failed: {zone} leader_player_index out of range"
+                    )
+                if (
+                    selected.entity_id is not None
+                    and selected.leader_player_index is not None
+                ):
+                    raise IllegalCommand(
+                        f"Invariant failed: {zone} cannot target both entity and leader"
+                    )
+                if selected.leader_player_index is not None:
+                    expected_option_id = f"leader:{selected.leader_player_index}"
+                    if selected.option_id != expected_option_id:
+                        raise IllegalCommand(
+                            f"Invariant failed: {zone} leader option_id mismatch"
+                        )
             seen_option_ids: set[str] = set()
             for option_index, option in enumerate(request.options):
                 zone = f"pending_choice option[{option_index}]"
@@ -6245,6 +6578,19 @@ class GameEngine:
                     )
 
             check_effect_target_id(frame.pending_target_id, "pending_target_id")
+            if not isinstance(frame.pending_target_ids, list):
+                raise IllegalCommand(
+                    f"Invariant failed: {zone} pending_target_ids must be a list"
+                )
+            if frame.pending_target_id is not None and frame.pending_target_ids:
+                raise IllegalCommand(
+                    f"Invariant failed: {zone} has both single and multi pending targets"
+                )
+            for target_index, target_id in enumerate(frame.pending_target_ids):
+                check_effect_target_id(
+                    target_id,
+                    f"pending_target_ids[{target_index}]",
+                )
             if not isinstance(frame._all_target_ids, list):
                 raise IllegalCommand(
                     f"Invariant failed: {zone} _all_target_ids must be a list"
@@ -6300,6 +6646,18 @@ class GameEngine:
                 if not isinstance(operation.target, TargetKind):
                     raise IllegalCommand(
                         f"Invariant failed: {operation_zone} target is invalid"
+                    )
+                if (
+                    not isinstance(operation.target_count, int)
+                    or isinstance(operation.target_count, bool)
+                    or operation.target_count <= 0
+                ):
+                    raise IllegalCommand(
+                        f"Invariant failed: {operation_zone} target_count must be positive"
+                    )
+                if not isinstance(operation.allow_duplicate_targets, bool):
+                    raise IllegalCommand(
+                        f"Invariant failed: {operation_zone} duplicate-target policy is invalid"
                     )
 
             def check_positive_int(value: int | None, field: str) -> None:

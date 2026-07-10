@@ -58,6 +58,11 @@ The deterministic rules core supports:
   cards leaving hand, and selected graveyard cards moving to hand before
   resolution resumes; `previous_target` chains also revalidate against the
   original bound target filter before later operations resolve;
+- true multi-target pending choices through `target_count` or
+  `target_count_expr`, with explicit `allow_duplicate_targets` /
+  `allow_duplicates` policy, candidate-shortage handling, command-level
+  selection progress, and per-target revalidation before resolution; real card
+  `10351120` demonstrates selecting and destroying two enemy followers;
 - structured `target_exists` no-target branches that reuse normal target
   candidate generation before queuing a then/else effect branch, including
   unit-or-leader fallback targets when no target-dependent condition is present;
@@ -75,7 +80,7 @@ The deterministic rules core supports:
   necromancy, reanimate, spellboost-style hand cost changes, emblems, optional
   decisions, choose-one decisions, play modes, and runtime modifiers.
 
-The RL adapter provides a fixed 111-action space, 223-feature public
+The RL adapter provides a fixed 111-action space, 225-feature public
 observation, action mask, terminal reward, graveyard choice paging, special
 play-mode actions, and super-evolve actions. `info()` is public by default and
 redacts debug transcripts/events unless `debug_info=True` or
@@ -84,7 +89,8 @@ Public observations and default info are regression-tested not to depend on
 opponent hand identity or deck identity/order while a real-card pending choice
 is awaiting resolution. The public observation includes explicit
 controller/opponent `觉醒` flags derived from maximum mana and public
-controller/opponent `连击` counts for the current turn.
+controller/opponent `连击` counts for the current turn, plus pending multi-target
+choice size and progress.
 
 ## Unsupported Or Partial
 
@@ -102,10 +108,9 @@ Known broad gaps include:
   ordering diagnostics and `death_batch_end` boundary triggers, including
   unsupported `death_batch_start` emblem triggers, plus broad real-card
   coverage audits;
-- true multi-target player choices and duplicate-target policy; JSON fields
-  that would imply multi-target selection, including emblem trigger/on-expire
-  operations, are rejected until the command and RL surfaces support them
-  explicitly;
+- multi-target `target_key` bindings and list-valued `previous_target` chains;
+  structured rules reject this ambiguous combination until chained operations
+  define explicit list semantics;
 - keyword registry status is intentionally conservative: handlers and generic
   primitives may exist before a keyword is marked fully implemented.
 

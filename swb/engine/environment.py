@@ -260,6 +260,20 @@ class ShadowverseEnv:
             for index in range(self.MAX_BOARD):
                 unit = board[index] if index < len(board) else None
                 values.extend(self._board_features(unit))
+        pending = self.core.state.pending_choice
+        pending_target_count = 0 if pending is None else pending.target_count
+        pending_selected_count = (
+            0 if pending is None else len(pending.selected_options)
+        )
+        values.extend([
+            min(pending_target_count, self.MAX_CHOICE_OPTIONS)
+            / self.MAX_CHOICE_OPTIONS,
+            (
+                pending_selected_count / pending_target_count
+                if pending_target_count > 0
+                else 0.0
+            ),
+        ])
         return values
 
     def info(self, *, debug: bool | None = None) -> dict[str, object]:
