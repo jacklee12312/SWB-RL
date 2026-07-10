@@ -3,6 +3,14 @@
     {
       "card_id": 10031210,
       "cost": 1
+    },
+    {
+      "card_id": 10161210,
+      "cost": 1
+    },
+    {
+      "card_id": 10563210,
+      "cost": 0
     }
   ],
   "rules": [
@@ -69,6 +77,19 @@
       ]
     },
     {
+      "card_id": 10161210,
+      "trigger": "activate",
+      "coverage": "exact",
+      "implemented_text": "【倒数_3】【谢幕曲】抽取2张卡牌。费用1【策动】本护符的倒数-1。",
+      "operations": [
+        {
+          "kind": "reduce_countdown",
+          "target": "self",
+          "amount": 1
+        }
+      ]
+    },
+    {
       "card_id": 10563210,
       "trigger": "play",
       "operations": [
@@ -76,6 +97,31 @@
           "kind": "damage_unit",
           "target": "enemy_unit",
           "amount": 5
+        }
+      ]
+    },
+    {
+      "card_id": 10563210,
+      "trigger": "activate",
+      "coverage": "exact",
+      "implemented_text": "【入场曲】选择1个敌方随从，对其造成5点伤害。【策动】破坏本卡牌。使自己的随机2张手牌返回牌组。抽取2张卡牌。",
+      "operations": [
+        {
+          "kind": "destroy",
+          "target": "self"
+        },
+        {
+          "kind": "return_to_deck",
+          "target": "random_own_hand"
+        },
+        {
+          "kind": "return_to_deck",
+          "target": "random_own_hand"
+        },
+        {
+          "kind": "draw",
+          "target": "own_leader",
+          "amount": 2
         }
       ]
     }

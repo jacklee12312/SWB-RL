@@ -172,6 +172,7 @@ _SOURCE_REQUIRED_SELF_TARGET_EFFECTS = frozenset({
     EffectKind.BANISH,
     EffectKind.RETURN_TO_HAND,
     EffectKind.RETURN_TO_DECK,
+    EffectKind.REDUCE_COUNTDOWN,
     EffectKind.ADD_KEYWORD,
     EffectKind.REMOVE_KEYWORD,
     EffectKind.TRANSFORM,
@@ -5413,6 +5414,8 @@ class GameEngine:
             self._execute_return_to_hand(target_id, frame)
         elif effect.kind is EffectKind.RETURN_TO_DECK:
             self._execute_return_to_deck(target_id, frame)
+        elif effect.kind is EffectKind.REDUCE_COUNTDOWN:
+            self._execute_reduce_countdown(effect, frame, target_id)
         elif effect.kind is EffectKind.DISCARD:
             self._execute_discard(target_id, frame)
         elif effect.kind is EffectKind.ADD_KEYWORD:
@@ -7552,6 +7555,26 @@ class GameEngine:
                 },
             )
         )
+
+    def _execute_reduce_countdown(
+        self,
+        effect: EffectOperation,
+        frame: EffectFrame,
+        target_id: int | None,
+    ) -> None:
+        if target_id is None:
+            return
+        target = self._find_board_entity(target_id)
+        if not isinstance(target, Amulet) or target.countdown is None:
+            return
+        previous = target.countdown
+        target.countdown = max(0, previous - effect.amount)
+        self._log(
+            frame.controller,
+            f"{target.definition.name} 倒数由 {previous} 减为 {target.countdown}",
+        )
+        if target.countdown == 0:
+            target.pending_destroy = True
 
     def _execute_discard(self, target_id: int | None, frame: EffectFrame) -> None:
         player = self.players[frame.controller]

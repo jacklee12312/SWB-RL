@@ -119,6 +119,7 @@ class EffectKind(str, Enum):
     REMOVE_EMBLEM = "remove_emblem"
     RETURN_TO_HAND = "return_to_hand"
     RETURN_TO_DECK = "return_to_deck"
+    REDUCE_COUNTDOWN = "reduce_countdown"
     DISCARD = "discard"
     SET_STATS = "set_stats"
     SUPER_EVOLVE_UNIT = "super_evolve_unit"

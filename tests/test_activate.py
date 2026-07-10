@@ -12,6 +12,7 @@ from swb.engine.card_rules import (
     RuleBook,
     Trigger,
     _parse_activation_definition,
+    _parse_operation,
 )
 from swb.engine.commands import ActivateAmulet, Choose, EndTurn, PlayCard
 from swb.engine.effects import EffectKind, EffectOperation, TargetKind
@@ -113,6 +114,25 @@ def _place_unit(
 
 
 class ActivateCommandTests(unittest.TestCase):
+    def test_reduce_countdown_clamps_at_zero_and_expires_source(self):
+        engine = _engine((
+            EffectOperation(
+                EffectKind.REDUCE_COUNTDOWN,
+                TargetKind.SELF,
+                amount=2,
+            ),
+        ), cost=0)
+        amulet = _place_amulet(engine)
+        amulet.countdown = 1
+
+        engine.apply(ActivateAmulet(0, amulet.entity_id))
+
+        self.assertNotIn(amulet, engine.players[0].board)
+        self.assertTrue(any(
+            card.definition.card_id == amulet.definition.card_id
+            for card in engine.players[0].graveyard
+        ))
+
     def test_activation_pays_cost_once_and_emits_auditable_event(self):
         engine = _engine(
             (EffectOperation(EffectKind.HEAL_LEADER, TargetKind.OWN_LEADER, 2),),
@@ -337,6 +357,23 @@ class ActivateCommandTests(unittest.TestCase):
 
 
 class ActivateRuleSchemaTests(unittest.TestCase):
+    def test_reduce_countdown_requires_positive_amount_and_amulet_target(self):
+        operation = _parse_operation(
+            {"kind": "reduce_countdown", "target": "self", "amount": 1},
+            "test",
+            123,
+        )
+        self.assertEqual(operation.kind, EffectKind.REDUCE_COUNTDOWN)
+        self.assertEqual(operation.amount, 1)
+
+        for raw in (
+            {"kind": "reduce_countdown", "target": "self", "amount": 0},
+            {"kind": "reduce_countdown", "target": "self", "amount": True},
+            {"kind": "reduce_countdown", "target": "own_leader", "amount": 1},
+        ):
+            with self.subTest(raw=raw), self.assertRaises(ValueError):
+                _parse_operation(raw, "test", 123)
+
     def test_activation_definition_defaults_to_zero_cost(self):
         definition = _parse_activation_definition({"card_id": 123}, "test")
         self.assertEqual(definition, ActivationDefinition(123, 0))
@@ -418,6 +455,133 @@ class RealActivateCardTests(unittest.TestCase):
     def setUpClass(cls) -> None:
         cls.repo = CardRepository("data/cards.sqlite3")
         cls.rulebook = RuleBook.from_directory("data/rules")
+
+    def _bishop_engine(self) -> GameEngine:
+        filler = [
+            _card(
+                8000 + index,
+                class_id=6,
+                class_name="主教",
+            )
+            for index in range(40)
+        ]
+        engine = GameEngine(
+            filler,
+            filler,
+            class_a=6,
+            class_b=6,
+            seed=42,
+            rulebook=self.rulebook,
+            card_resolver=self.repo.get,
+            config=GameConfig(validate_invariants=True),
+        )
+        engine.reset(seed=42)
+        engine.players[0].hand.clear()
+        engine.players[0].hand_entity_ids.clear()
+        engine.players[0].max_mana = 10
+        engine.players[0].mana = 10
+        return engine
+
+    @staticmethod
+    def _insert_hand(engine: GameEngine, definition: CardDefinition) -> None:
+        hand_card = HandCard(
+            definition=definition,
+            entity_id=engine.state.allocate_entity_id(),
+            origin=CardOrigin.DECK,
+        )
+        engine.players[0].hand.append(hand_card)
+        engine.players[0].hand_entity_ids.append(hand_card.entity_id)
+
+    def test_serene_sanctuary_engage_reduces_countdown_and_runs_last_words(self):
+        engine = self._bishop_engine()
+        self._insert_hand(engine, self.repo.get(10161210))
+        engine.apply(PlayCard(0, 0))
+        sanctuary = next(
+            entity
+            for entity in engine.players[0].board
+            if isinstance(entity, Amulet)
+            and entity.definition.card_id == 10161210
+        )
+        sanctuary.countdown = 1
+        mana_before = engine.players[0].mana
+
+        transition = engine.apply(ActivateAmulet(0, sanctuary.entity_id))
+
+        self.assertEqual(engine.players[0].mana, mana_before - 1)
+        self.assertNotIn(sanctuary, engine.players[0].board)
+        self.assertEqual(len(engine.players[0].hand), 2)
+        self.assertEqual(
+            sum(event.type is EventType.CARD_DRAWN for event in transition.events),
+            2,
+        )
+
+    def _resolve_mistbloom_engage(self):
+        engine = self._bishop_engine()
+        enemy = Unit.summon(
+            _card(9900, life=6),
+            entity_id=engine.state.allocate_entity_id(),
+        )
+        engine.players[1].board.append(enemy)
+        self._insert_hand(engine, self.repo.get(10563210))
+        engine.apply(PlayCard(0, 0))
+        engine.apply(next(
+            command
+            for command in engine.legal_commands()
+            if isinstance(command, Choose)
+        ))
+        mistbloom = next(
+            entity
+            for entity in engine.players[0].board
+            if isinstance(entity, Amulet)
+            and entity.definition.card_id == 10563210
+        )
+        engine.players[0].hand.clear()
+        engine.players[0].hand_entity_ids.clear()
+        engine.players[0].deck = [
+            _card(9200 + index, class_id=6, class_name="主教")
+            for index in range(10)
+        ]
+        for index in range(3):
+            self._insert_hand(
+                engine,
+                _card(9100 + index, class_id=6, class_name="主教"),
+            )
+
+        transition = engine.apply(ActivateAmulet(0, mistbloom.entity_id))
+        returned_ids = tuple(
+            event.metadata["source"].card_id
+            for event in transition.events
+            if event.type is EventType.CARD_RETURNED_TO_DECK
+        )
+        return engine, mistbloom, transition, returned_ids
+
+    def test_mistbloom_engage_destroys_self_cycles_two_and_is_deterministic(self):
+        first = self._resolve_mistbloom_engage()
+        second = self._resolve_mistbloom_engage()
+        engine, mistbloom, transition, returned_ids = first
+
+        self.assertNotIn(mistbloom, engine.players[0].board)
+        self.assertEqual(len(returned_ids), 2)
+        self.assertEqual(len(set(returned_ids)), 2)
+        self.assertEqual(len(engine.players[0].hand), 3)
+        self.assertEqual(len(engine.players[0].deck), 10)
+        self.assertEqual(
+            sum(event.type is EventType.CARD_DRAWN for event in transition.events),
+            2,
+        )
+        self.assertEqual(returned_ids, second[3])
+        self.assertEqual(
+            engine.deterministic_fingerprint(),
+            second[0].deterministic_fingerprint(),
+        )
+
+    def test_real_bishop_engage_cards_are_covered_exact(self):
+        report = _build_coverage_report("data/cards.sqlite3", "data/rules")
+        for card_id in (10161210, 10563210):
+            with self.subTest(card_id=card_id):
+                classification = report["classifications"][str(card_id)]
+                self.assertEqual(classification["coverage"], "covered_exact")
+                self.assertNotIn("策动", classification["missing_primitives"])
 
     def test_witchs_new_brew_activates_for_one_pp_and_is_exact(self):
         filler = [

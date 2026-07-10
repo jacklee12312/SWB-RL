@@ -10,13 +10,13 @@ code and tests as the source of truth when this file drifts.
 - Database: 826 cards, 735 collectible cards, 91 non-collectible/generated
   cards from set `90000`.
 - Latest SVA source: `https://sva.hypd.asia/data/cards.json`.
-- Tests: `python -m unittest discover -s tests -v` currently runs 1067 tests.
+- Tests: `python -m unittest discover -s tests -v` currently runs 1072 tests.
 - RL adapter: fixed 111-action space and 290-feature observation.
 - Ability registry status: 18 implemented, 5 partial, 11 placeholder.
 - Explicit card and demo rules live in `data/rules/`; the current coverage
   report classifies 112 card IDs with explicit rules, passives, fusion,
   invocation, activation, Faith, Union Burst, or listener definitions. Current
-  collectible coverage is 78 exact, 6 partial, 633 supported-but-missing-rule,
+  collectible coverage is 80 exact, 4 partial, 633 supported-but-missing-rule,
   0 missing-primitive, and 18 text-unclear cards.
 
 ## Stable Priorities
@@ -181,8 +181,12 @@ slice in this order:
   emblem triggers. Deterministic fingerprints and invariants include the
   amulet's activation-turn stamp. RL reuses the same board position's evolve
   slot for amulets and an existing public amulet feature for current-turn use,
-  retaining the fixed 111 actions and current observation width. Exact real rule `10031210`
-  spends 1 PP to add one Earth Sigil, matching the official Activate glossary.
+  retaining the fixed 111 actions and current observation width. Generic
+  `reduce_countdown` clamps at zero and sends expired amulets through ordinary
+  death batches and Last Words. Exact real rules now cover `10031210` spending
+  1 PP to add one Earth Sigil, `10161210` spending 1 PP to reduce its countdown,
+  and `10563210` destroying itself before two seeded-random hand-to-deck moves
+  and two draws.
 - `BeginFusion` exposes Fusion before RL action encoding. A structured
   `fusions` definition filters eligible hand materials and sets optional
   minimum/maximum counts. The pending choice supports variable-count selection

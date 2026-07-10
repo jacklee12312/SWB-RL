@@ -1603,6 +1603,17 @@ _SUPER_EVOLVE_TARGETS = frozenset({
     TargetKind.PREVIOUS_TARGET,
 })
 
+_REDUCE_COUNTDOWN_TARGETS = frozenset({
+    TargetKind.SELF,
+    TargetKind.EVENT_SOURCE,
+    TargetKind.OWN_AMULET,
+    TargetKind.ENEMY_AMULET,
+    TargetKind.ANY_AMULET,
+    TargetKind.ALL_OWN_AMULETS,
+    TargetKind.ALL_ENEMY_AMULETS,
+    TargetKind.PREVIOUS_TARGET,
+})
+
 _EVENT_SOURCE_TARGET_EFFECTS = frozenset({
     EffectKind.DAMAGE_UNIT,
     EffectKind.HEAL_UNIT,
@@ -1611,6 +1622,7 @@ _EVENT_SOURCE_TARGET_EFFECTS = frozenset({
     EffectKind.BANISH,
     EffectKind.RETURN_TO_HAND,
     EffectKind.RETURN_TO_DECK,
+    EffectKind.REDUCE_COUNTDOWN,
     EffectKind.ADD_KEYWORD,
     EffectKind.REMOVE_KEYWORD,
     EffectKind.TRANSFORM,
@@ -2003,6 +2015,22 @@ def _parse_operation(
             f"{source_file}/target card {card_id}: super_evolve_unit requires "
             f"a follower target, got {target.value!r}"
         )
+    if kind is EffectKind.REDUCE_COUNTDOWN:
+        if target not in _REDUCE_COUNTDOWN_TARGETS:
+            raise ValueError(
+                f"{source_file}/target card {card_id}: reduce_countdown requires "
+                f"an amulet target, got {target.value!r}"
+            )
+        if (
+            raw_amount is None
+            or isinstance(raw_amount, bool)
+            or not isinstance(raw_amount, int)
+            or raw_amount <= 0
+        ):
+            raise ValueError(
+                f"{source_file}/amount card {card_id}: reduce_countdown "
+                f"requires a positive integer amount, got {raw_amount!r}"
+            )
 
     earth_rite_ops: tuple = ()
     if kind is EffectKind.EARTH_RITE:

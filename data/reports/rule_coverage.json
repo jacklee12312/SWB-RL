@@ -8,10 +8,10 @@
     "total_with_rules": 112,
     "test_or_synthetic_ids_with_rules": 26,
     "coverage_counts": {
-      "covered_exact": 78,
+      "covered_exact": 80,
       "supported_missing_rule": 633,
       "text_unclear": 18,
-      "covered_partial": 6,
+      "covered_partial": 4,
       "token_or_non_collectible": 91
     }
   },
@@ -4379,8 +4379,8 @@
       "cost": 1,
       "is_collectible": true,
       "card_set_id": 10001,
-      "coverage": "covered_partial",
-      "reason": "Triggers: ['play', 'countdown_expired'], Ops: ['draw']; missing structured rules: ['策动']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['play', 'countdown_expired', 'activate', 'activation'], Ops: ['draw', 'reduce_countdown', 'activation']",
       "hit_keywords": [
         "谢幕曲",
         "策动",
@@ -4388,9 +4388,6 @@
         "抽取"
       ],
       "missing_primitives": [],
-      "missing_rule_mechanics": [
-        "策动"
-      ],
       "ability_keywords": [
         "倒数",
         "策动",
@@ -4399,7 +4396,11 @@
       "skill_texts": [
         "【<color=Keyword>吟唱</color>_3】\n【<color=Keyword>谢幕曲</color>】抽取2张卡牌。\n<hr>费用1【<color=Keyword>启动</color>】本护符的倒计数-1。"
       ],
-      "support_level": "unsupported"
+      "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【倒数_3】【谢幕曲】抽取2张卡牌。费用1【策动】本护符的倒数-1。"
+      }
     },
     "10161310": {
       "card_id": 10161310,
@@ -12721,8 +12722,8 @@
       "cost": 3,
       "is_collectible": true,
       "card_set_id": 10005,
-      "coverage": "covered_partial",
-      "reason": "Triggers: ['play'], Ops: ['damage_unit']; missing structured rules: ['策动']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['play', 'activate', 'activation'], Ops: ['damage_unit', 'destroy', 'return_to_deck', 'return_to_deck', 'draw', 'activation']",
       "hit_keywords": [
         "入场曲",
         "策动",
@@ -12732,9 +12733,6 @@
         "返回牌"
       ],
       "missing_primitives": [],
-      "missing_rule_mechanics": [
-        "策动"
-      ],
       "ability_keywords": [
         "入场曲",
         "策动"
@@ -12742,7 +12740,11 @@
       "skill_texts": [
         "【<color=Keyword>入场曲</color>】选择对手的战场上的1个随从，对其造成5点伤害。\n<hr>【<color=Keyword>启动</color>】破坏本卡牌。使自己的随机2张手牌返回牌组。抽取2张卡牌。"
       ],
-      "support_level": "unsupported"
+      "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【入场曲】选择1个敌方随从，对其造成5点伤害。【策动】破坏本卡牌。使自己的随机2张手牌返回牌组。抽取2张卡牌。"
+      }
     },
     "10564110": {
       "card_id": 10564110,

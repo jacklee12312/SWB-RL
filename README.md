@@ -121,8 +121,11 @@ The deterministic rules core supports:
 - command-level `策动` for field amulets, with structured activation costs,
   once-per-amulet-per-turn state, required-target prevalidation, pending-choice
   revalidation, source-leaves-play safety, and explicit `amulet_activated`
-  events that structured emblems can observe; real card `10031210` spends 1 PP
-  to add one Earth Sigil and is now an exact rule;
+  events that structured emblems can observe. Generic `reduce_countdown` clamps
+  at zero and expires an amulet through the normal death/Last Words pipeline.
+  Exact real rules cover `10031210` adding an Earth Sigil, `10161210` paying 1
+  PP to advance its countdown, and `10563210` destroying itself before cycling
+  two seeded-random hand cards and drawing two;
 - structured `信仰` leader-area state created from the initial deck without
   removing physical card copies, with same-name deduplication, stable identity,
   deterministic fingerprints, and public value-change events; the first
