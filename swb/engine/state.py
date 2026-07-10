@@ -54,6 +54,18 @@ class GraveyardCard:
         )
 
 
+@dataclass(frozen=True)
+class FusionMaterial:
+    definition: CardDefinition
+    entity_id: int
+    owner: int
+    consumed_sequence: int
+    fused_into_entity_id: int
+    origin: CardOrigin = CardOrigin.UNKNOWN
+    source_origin: CardOrigin | None = None
+    inherited_material_ids: tuple[int, ...] = ()
+
+
 class DeathCause(str, Enum):
     COMBAT = "combat"
     ZERO_HEALTH = "zero_health"
@@ -130,6 +142,7 @@ class BoardEntity:
     entity_id: int = 0
     origin: CardOrigin = CardOrigin.DECK
     source_origin: CardOrigin | None = None
+    fused_material_ids: list[int] = field(default_factory=list)
 
 
 @dataclass(frozen=True)
@@ -200,6 +213,8 @@ class HandCard:
     cannot_be_played: bool = False
     origin: CardOrigin = CardOrigin.DECK
     source_origin: CardOrigin | None = None
+    fused_material_ids: list[int] = field(default_factory=list)
+    fusion_used_turn: int | None = None
 
     @property
     def current_cost(self) -> int:
@@ -643,6 +658,7 @@ class PlayerState:
     graveyard: list[GraveyardCard] = field(default_factory=list)
     banished: list[CardDefinition] = field(default_factory=list)
     emblems: list[EmblemInstance] = field(default_factory=list)
+    fusion_materials: list[FusionMaterial] = field(default_factory=list)
     health: int = 20
     max_mana: int = 0
     mana: int = 0
@@ -659,6 +675,7 @@ class PlayerState:
     faith: int = 0
     _next_graveyard_sequence: int = 1
     _next_emblem_sequence: int = 1
+    _next_fusion_sequence: int = 1
 
     def add_shadows(self, amount: int) -> None:
         if amount < 0:

@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING, Any, Union
 
 if TYPE_CHECKING:
     from swb.db.repository import CardDefinition
+    from swb.engine.state import FusionMaterial
 
 
 class ConditionType(str, Enum):
@@ -40,6 +41,7 @@ class ConditionType(str, Enum):
     OPPONENT_COMBO_AT_LEAST = "opponent_combo_at_least"
     CONTROLLER_EARTH_SIGILS_AT_LEAST = "controller_earth_sigils_at_least"
     OPPONENT_EARTH_SIGILS_AT_LEAST = "opponent_earth_sigils_at_least"
+    SOURCE_FUSION_COUNT_AT_LEAST = "source_fusion_count_at_least"
 
 
 class ExprType(str, Enum):
@@ -290,6 +292,7 @@ class EffectFrame:
     source_entity_id: int | None
     source_card: CardDefinition
     operations: tuple[EffectOperation, ...]
+    fusion_materials: tuple["FusionMaterial", ...] = ()
     label: str = "效果"
     next_index: int = 0
     pending_target_id: int | None = None

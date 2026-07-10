@@ -5,7 +5,7 @@ from pathlib import Path
 from typing import Callable, Sequence
 
 from swb.db.repository import CardDefinition
-from swb.engine.commands import Attack, ChoiceKind, Choose, EndTurn, Evolve, GameCommand, PlayCard, SuperEvolve
+from swb.engine.commands import Attack, BeginFusion, ChoiceKind, Choose, EndTurn, Evolve, GameCommand, PlayCard, SuperEvolve
 from swb.engine.conditions import OVERFLOW_MAX_MANA_THRESHOLD
 from swb.engine.card_rules import RuleBook
 from swb.engine.play_modes import MAX_SPECIAL_MODES_PER_CARD
@@ -355,18 +355,29 @@ class ShadowverseEnv:
             target_id = self.players[1 - self.current_player].board[target_slot - 1].entity_id
         return Attack(self.current_player, attacker.entity_id, target_id)
 
-    def _decode_mode_play(self, action: int) -> PlayCard:
+    def _special_hand_commands(self, hand_index: int) -> list[GameCommand]:
+        player = self.players[self.current_player]
+        card = player.hand[hand_index]
+        commands: list[GameCommand] = []
+        if self.core._can_begin_fusion(card, player):
+            commands.append(BeginFusion(self.current_player, card.entity_id))
+        commands.extend(
+            PlayCard(self.current_player, hand_index, mode.mode_id)
+            for mode in self.core.rulebook.modes_for(card.card_id)
+            if self.core._is_mode_playable(card, player, mode)
+        )
+        return commands
+
+    def _decode_mode_play(self, action: int) -> GameCommand:
         relative = action - self.MODE_PLAY_OFFSET
         hand_index = relative // MAX_SPECIAL_MODES_PER_CARD
         mode_slot = relative % MAX_SPECIAL_MODES_PER_CARD
         if hand_index >= len(self.players[self.current_player].hand):
             raise ValueError(f"Hand index {hand_index} out of range")
-        card = self.players[self.current_player].hand[hand_index]
-        modes = [m for m in self.core.rulebook.modes_for(card.card_id)
-                 if self.core._is_mode_playable(card, self.players[self.current_player], m)]
-        if mode_slot >= len(modes):
-            raise ValueError(f"Mode slot {mode_slot} out of range for hand index {hand_index}")
-        return PlayCard(self.current_player, hand_index, modes[mode_slot].mode_id)
+        commands = self._special_hand_commands(hand_index)
+        if mode_slot >= len(commands):
+            raise ValueError(f"Special slot {mode_slot} out of range for hand index {hand_index}")
+        return commands[mode_slot]
 
     def _encode_command(self, command: GameCommand) -> int | None:
         if isinstance(command, EndTurn):
@@ -392,12 +403,24 @@ class ShadowverseEnv:
         if isinstance(command, PlayCard):
             if command.mode_id == "normal":
                 return self.PLAY_OFFSET + command.hand_index
-            card = self.players[self.current_player].hand[command.hand_index]
-            modes = [m for m in self.core.rulebook.modes_for(card.card_id)
-                     if self.core._is_mode_playable(card, self.players[self.current_player], m)]
-            for idx, m in enumerate(modes):
-                if m.mode_id == command.mode_id and idx < MAX_SPECIAL_MODES_PER_CARD:
+            for idx, special in enumerate(self._special_hand_commands(command.hand_index)):
+                if special == command and idx < MAX_SPECIAL_MODES_PER_CARD:
                     return self.MODE_PLAY_OFFSET + command.hand_index * MAX_SPECIAL_MODES_PER_CARD + idx
+            return None
+        if isinstance(command, BeginFusion):
+            hand_index = next(
+                (
+                    index
+                    for index, card in enumerate(self.players[self.current_player].hand)
+                    if card.entity_id == command.fusion_entity_id
+                ),
+                None,
+            )
+            if hand_index is None:
+                return None
+            for idx, special in enumerate(self._special_hand_commands(hand_index)):
+                if special == command and idx < MAX_SPECIAL_MODES_PER_CARD:
+                    return self.MODE_PLAY_OFFSET + hand_index * MAX_SPECIAL_MODES_PER_CARD + idx
             return None
         if isinstance(command, Evolve):
             index = self._unit_index(self.players[self.current_player].board, command.unit_id)
@@ -487,24 +510,29 @@ class ShadowverseEnv:
                 return index
         raise ValueError(f"Unit {entity_id} is not on the board")
 
-    @staticmethod
-    def _card_features(card: CardDefinition | HandCard | None) -> list[float]:
+    def _card_features(self, card: CardDefinition | HandCard | None) -> list[float]:
         if card is None:
-            return [0.0] * 7
+            return [0.0] * 9
+        fused_count = len(card.fused_material_ids) if isinstance(card, HandCard) else 0
+        fusion_used = (
+            isinstance(card, HandCard) and card.fusion_used_turn == self.turn
+        )
         return [
             1.0, card.cost / ShadowverseEnv.MAX_MANA,
             (card.attack or 0) / 20, (card.life or 0) / 20,
             float(card.card_type == "随从"),
             float(card.card_type == "护符"),
             float(card.card_type == "法术"),
+            fused_count / ShadowverseEnv.MAX_HAND,
+            float(fusion_used),
         ]
 
     @staticmethod
     def _board_features(entity: BoardCard | None) -> list[float]:
         if entity is None:
-            return [0.0] * 11
+            return [0.0] * 12
         if isinstance(entity, Amulet):
-            return [1.0, 0.0, (entity.countdown or 0) / 10, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0]
+            return [1.0, 0.0, (entity.countdown or 0) / 10, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, len(entity.fused_material_ids) / ShadowverseEnv.MAX_HAND]
         unit = entity
         return [
             1.0, unit.attack / 20, unit.health / 20,
@@ -512,6 +540,7 @@ class ShadowverseEnv:
             float(unit.has_keyword("疾驰")),
             float(unit.evolved), float(unit.rush_only), float(unit.super_evolved),
             float(unit.barrier_charges > 0), float(unit.ambush_active),
+            len(unit.fused_material_ids) / ShadowverseEnv.MAX_HAND,
         ]
 
 

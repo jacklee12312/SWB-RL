@@ -10,11 +10,12 @@ code and tests as the source of truth when this file drifts.
 - Database: 826 cards, 735 collectible cards, 91 non-collectible/generated
   cards from set `90000`.
 - Latest SVA source: `https://sva.hypd.asia/data/cards.json`.
-- Tests: `python -m unittest discover -s tests -v` currently runs 901 tests.
-- RL adapter: fixed 111-action space and 227-feature observation.
-- Ability registry status: 13 implemented, 3 partial, 18 placeholder.
+- Tests: `python -m unittest discover -s tests -v` currently runs 921 tests.
+- RL adapter: fixed 111-action space and 255-feature observation.
+- Ability registry status: 13 implemented, 4 partial, 17 placeholder.
 - Explicit card and demo rules live in `data/rules/`; the current coverage
-  report classifies 95 card IDs with explicit rules or passives.
+  report classifies 96 card IDs with explicit rules, passives, or fusion
+  definitions.
 
 ## Stable Priorities
 
@@ -95,6 +96,26 @@ slice in this order:
   invariant checks, deterministic fingerprints, and public RL totals are
   covered. Exact real rules `10032310` and `10732120` demonstrate consume/gain;
   `10031210` remains partial solely because `策动` is not implemented.
+- `BeginFusion` exposes Fusion before RL action encoding. A structured
+  `fusions` definition filters eligible hand materials and sets optional
+  minimum/maximum counts. The pending choice supports variable-count selection
+  and explicit confirmation, revalidates the source card and every selected
+  material before one atomic transition, and preserves illegal-command
+  fingerprints when a card leaves hand. Each Fusion card can fuse once per
+  turn; multiple Fusion cards may each do so.
+- Consumed Fusion materials are retained in a distinct identity-bearing zone,
+  do not enter the graveyard or increase shadows, and keep nested material
+  relations if a previously fused card is consumed. Hand and board cards carry
+  their material IDs through play and return-to-hand transitions. Structured
+  source fusion-count conditions are available to normal and nested effects,
+  and `CARD_FUSED` makes the transition auditable. The fixed 111-action layout
+  reuses existing special-hand and choice slots; the 255-feature observation
+  exposes own-hand and public-board Fusion state without revealing the
+  opponent's hidden hand.
+- Exact real rule `10213310` (`花园的指引`) accepts Elf-class Fusion materials
+  and draws two cards if it was fused, otherwise one. These core semantics
+  follow the official Fusion glossary; hand transformation and other-card
+  Fusion-event triggers remain explicit unsupported edges.
 - `target_exists` provides structured no-target branch semantics for explicit
   candidate-set targets and unit-or-leader fallback targets, including board
   target-dependent filters, then/else effect branches, and existing RL
@@ -173,9 +194,13 @@ slice in this order:
 - `连击` has natural per-turn counting, condition/expression support,
   `add_combo`, public observation counts, and real-card demos; broader real-card
   coverage remains partial.
-- `策动`, `融合`, `瞬念召唤`, `信仰`, and `奥义` remain placeholder or
-  incomplete. `土之秘术` / `土之印` core semantics are implemented, while
-  broader real-card coverage remains intentionally incremental.
+- `策动`, `瞬念召唤`, `信仰`, and `奥义` remain placeholder or incomplete.
+  `土之秘术` / `土之印` core semantics are implemented, while broader
+  real-card coverage remains intentionally incremental.
+- `融合` has the command-level material transition, state, event, structured
+  filters/counts, source fused-count conditions, RL exposure, and one exact
+  real-card demo. It remains partial because Fusion-driven hand transformations
+  and triggers owned by other hand/board cards are not yet modeled.
 - The ability registry is conservative; a generic primitive can exist before a
   keyword is marked fully implemented.
 - Many real cards are intentionally uncovered or only partly covered by
@@ -214,33 +239,39 @@ slice in this order:
 
 ## Next Coherent Slices
 
-### 1. Fusion
+### 1. Invocation
 
-- Define command-level material selection and hand-zone revalidation before RL
-  action encoding.
-- Add one exact real-card rule only after the generic fusion state transition,
-  event ordering, and illegal-command fingerprint tests are green.
+- Define the exact deck-to-play transition and timing window for `瞬念召唤`
+  before adding automatic scans to turn/event stabilization.
+- Add deterministic candidate ordering, duplicate-card handling, board-full
+  behavior, invariant/fingerprint coverage, and one exact real-card rule before
+  RL observation changes, if any, are introduced.
 
-### 2. Targeting Edge Cases
+### 2. Activate / Faith / Union Burst
+
+- Implement `策动`, `信仰`, and `奥义` as separate command/state/rule slices in
+  that order, each tied to verified real text and one exact real-card demo.
+
+### 3. Targeting Edge Cases
 
 - Extend no-target branch coverage only when real cards need graveyard/hand
   target-dependent filters or additional fallback target semantics.
 - Audit real rules that combine selected hand/graveyard sets with later
   operations before expanding `target_key` beyond board-entity tuples.
 
-### 3. Trigger Loop Diagnostics
+### 4. Trigger Loop Diagnostics
 
 - Add broader trigger ordering tests around any future `death_batch_start`
   boundary semantics and real-card recursive trigger combinations as coverage
   expands.
 
-### 4. Super-Evolution Edge Semantics
+### 5. Super-Evolution Edge Semantics
 
 - Keep non-manual super-evolution unsupported until official text or a real
   structured rule needs it; add it as a separate vertical slice with command,
   event, protection, and RL coverage.
 
-### 5. Coverage Reporting
+### 6. Coverage Reporting
 
 - Refresh rule coverage reports after database updates.
 - Make reports surface newly added cards and newly unsupported keyword text.

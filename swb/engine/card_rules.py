@@ -197,6 +197,14 @@ class CardPassive:
     amount: int
 
 
+@dataclass(frozen=True)
+class FusionDefinition:
+    card_id: int
+    material_filter: DeckFilter
+    min_materials: int = 1
+    max_materials: int | None = None
+
+
 class RuleBook:
     def __init__(
         self,
@@ -204,6 +212,7 @@ class RuleBook:
         passives: tuple[CardPassive, ...] = (),
         play_modes: dict[int, tuple[PlayModeDefinition, ...]] | None = None,
         emblem_defs: dict[str, EmblemDefinition] | None = None,
+        fusion_defs: dict[int, FusionDefinition] | None = None,
     ):
         self._rules: dict[tuple[int, Trigger], tuple[EffectOperation, ...]] = {}
         for rule in rules:
@@ -240,6 +249,13 @@ class RuleBook:
                     )
                 seen.add(m.mode_id)
         self._emblem_defs: dict[str, EmblemDefinition] = emblem_defs or {}
+        self._fusion_defs: dict[int, FusionDefinition] = fusion_defs or {}
+        for card_id in self._fusion_defs:
+            if len(self._play_modes.get(card_id, ())) + 1 > MAX_SPECIAL_MODES_PER_CARD:
+                raise ValueError(
+                    f"card {card_id}: fusion plus play modes exceeds "
+                    f"{MAX_SPECIAL_MODES_PER_CARD} special actions"
+                )
 
     def operations_for(
         self, card_id: int, trigger: Trigger
@@ -254,6 +270,9 @@ class RuleBook:
 
     def emblem_def(self, emblem_id: str) -> EmblemDefinition | None:
         return self._emblem_defs.get(emblem_id)
+
+    def fusion_for(self, card_id: int) -> FusionDefinition | None:
+        return self._fusion_defs.get(card_id)
 
     def emblem_trigger_ops_for(self, emblem_id: str, trigger: str) -> tuple[EffectOperation, ...]:
         from swb.engine.emblem import EmblemTriggerRule
@@ -287,14 +306,19 @@ class RuleBook:
         passives: list[tuple[CardPassive, str]] = []
         all_play_modes: dict[int, list[PlayModeDefinition]] = {}
         all_emblem_defs: dict[str, EmblemDefinition] = {}
+        all_fusion_defs: dict[int, FusionDefinition] = {}
         for file_path in sorted(path.glob("*.json")):
             payload = json.loads(file_path.read_text(encoding="utf-8"))
             if isinstance(payload, list):
                 entries = payload
                 raw_passives = []
+                raw_fusions = []
             else:
                 entries = payload.get("rules", [])
                 raw_passives = payload.get("passives", [])
+                raw_fusions = payload.get("fusions", [])
+                if not isinstance(raw_fusions, list):
+                    raise ValueError(f"{file_path.name}: 'fusions' must be a list")
                 raw_emblems = payload.get("emblems")
                 if raw_emblems is not None:
                     if not isinstance(raw_emblems, list):
@@ -387,16 +411,26 @@ class RuleBook:
                 passives.append(
                     (_parse_passive(raw_passive, source_path), source_path)
                 )
+            for index, raw_fusion in enumerate(raw_fusions):
+                source_path = f"{file_path.name}/fusions[{index}]"
+                fusion = _parse_fusion_definition(raw_fusion, source_path)
+                if fusion.card_id in all_fusion_defs:
+                    raise ValueError(
+                        f"{source_path}: duplicate fusion definition for card "
+                        f"{fusion.card_id}"
+                    )
+                all_fusion_defs[fusion.card_id] = fusion
         _validate_passives(passives)
         frozen_modes = {
             cid: tuple(modes) for cid, modes in all_play_modes.items()
         }
         _validate_emblem_references(rules, frozen_modes, all_emblem_defs)
         return cls(
-            tuple(rules),
-            tuple(passive for passive, _ in passives),
-            frozen_modes,
-            all_emblem_defs,
+            rules=tuple(rules),
+            passives=tuple(passive for passive, _ in passives),
+            play_modes=frozen_modes,
+            emblem_defs=all_emblem_defs,
+            fusion_defs=all_fusion_defs,
         )
 
 
@@ -616,6 +650,103 @@ def _validate_passives(passives: list[tuple[CardPassive, str]]) -> None:
                 f"{p.card_id}; first defined at {seen[key]}"
             )
         seen[key] = source_path
+
+
+def _parse_fusion_definition(raw: dict, source_path: str) -> FusionDefinition:
+    if not isinstance(raw, dict):
+        raise ValueError(f"{source_path}: fusion definition must be an object")
+    unknown = set(raw) - {
+        "card_id", "material_filter", "min_materials", "max_materials",
+    }
+    if unknown:
+        raise ValueError(f"{source_path}: unknown fields {sorted(unknown)}")
+    card_id = raw.get("card_id")
+    if isinstance(card_id, bool) or not isinstance(card_id, int) or card_id <= 0:
+        raise ValueError(f"{source_path}/card_id: must be a positive integer")
+
+    raw_filter = raw.get("material_filter")
+    if not isinstance(raw_filter, dict):
+        raise ValueError(f"{source_path}/material_filter: must be an object")
+    filter_unknown = set(raw_filter) - {
+        "card_type", "class_id", "class_name", "cost_min", "cost_max",
+        "card_id", "card_name",
+    }
+    if filter_unknown:
+        raise ValueError(
+            f"{source_path}/material_filter: unknown fields "
+            f"{sorted(filter_unknown)}"
+        )
+    card_type = raw_filter.get("card_type")
+    if card_type is not None and card_type not in _VALID_CARD_TYPES:
+        raise ValueError(
+            f"{source_path}/material_filter/card_type: must be one of "
+            f"{sorted(_VALID_CARD_TYPES)}"
+        )
+    class_id = raw_filter.get("class_id")
+    if class_id is not None:
+        class_id = _parse_non_negative_int(
+            class_id, f"{source_path}/material_filter/class_id", card_id
+        )
+    class_name = raw_filter.get("class_name")
+    if class_name is not None and (not isinstance(class_name, str) or not class_name):
+        raise ValueError(
+            f"{source_path}/material_filter/class_name: must be a non-empty string"
+        )
+    cost_min = raw_filter.get("cost_min")
+    if cost_min is not None:
+        cost_min = _parse_non_negative_int(
+            cost_min, f"{source_path}/material_filter/cost_min", card_id
+        )
+    cost_max = raw_filter.get("cost_max")
+    if cost_max is not None:
+        cost_max = _parse_non_negative_int(
+            cost_max, f"{source_path}/material_filter/cost_max", card_id
+        )
+    if cost_min is not None and cost_max is not None and cost_min > cost_max:
+        raise ValueError(
+            f"{source_path}/material_filter: cost_min must not exceed cost_max"
+        )
+    filter_card_id = raw_filter.get("card_id")
+    if filter_card_id is not None:
+        filter_card_id = _parse_non_negative_int(
+            filter_card_id, f"{source_path}/material_filter/card_id", card_id
+        )
+    card_name = raw_filter.get("card_name")
+    if card_name is not None and (not isinstance(card_name, str) or not card_name):
+        raise ValueError(
+            f"{source_path}/material_filter/card_name: must be a non-empty string"
+        )
+
+    min_materials = raw.get("min_materials", 1)
+    min_materials = _parse_non_negative_int(
+        min_materials, f"{source_path}/min_materials", card_id
+    )
+    if min_materials < 1:
+        raise ValueError(f"{source_path}/min_materials: must be positive")
+    max_materials = raw.get("max_materials")
+    if max_materials is not None:
+        max_materials = _parse_non_negative_int(
+            max_materials, f"{source_path}/max_materials", card_id
+        )
+        if max_materials < min_materials:
+            raise ValueError(
+                f"{source_path}/max_materials: must be at least min_materials"
+            )
+
+    return FusionDefinition(
+        card_id=card_id,
+        material_filter=DeckFilter(
+            card_type=card_type,
+            class_id=class_id,
+            class_name=class_name,
+            cost_min=cost_min,
+            cost_max=cost_max,
+            card_id=filter_card_id,
+            card_name=card_name,
+        ),
+        min_materials=min_materials,
+        max_materials=max_materials,
+    )
 
 
 def _parse_passive(raw: dict, source_file: str) -> CardPassive:
@@ -1597,6 +1728,7 @@ def _parse_condition(raw: dict, source_path: str, card_id: int) -> Condition:
         ConditionType.OPPONENT_COMBO_AT_LEAST,
         ConditionType.CONTROLLER_EARTH_SIGILS_AT_LEAST,
         ConditionType.OPPONENT_EARTH_SIGILS_AT_LEAST,
+        ConditionType.SOURCE_FUSION_COUNT_AT_LEAST,
     )
     if t in cooperation_threshold_types:
         if "value" not in raw:

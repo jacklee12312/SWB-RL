@@ -70,6 +70,12 @@ The deterministic rules core supports:
   Sigil entry/merge/depletion, effect-destroy protection, opposing manual-target
   protection, generated `大地之魔片`, nested post-payment operations, and
   controller/opponent count conditions and expressions;
+- command-level `融合` from hand, including structured material filters and
+  count limits, variable-count selection with explicit confirmation, once-per-
+  card-per-turn tracking, atomic hand-zone revalidation, a distinct consumed
+  material zone, inherited material identity, and `card_fused` events; real
+  card `10213310` demonstrates an exact Elf-material fusion rule and a play
+  effect that draws two cards after fusion instead of one;
 - structured `target_exists` no-target branches that reuse normal target
   candidate generation before queuing a then/else effect branch, including
   unit-or-leader fallback targets when no target-dependent condition is present;
@@ -87,9 +93,9 @@ The deterministic rules core supports:
   necromancy, reanimate, spellboost-style hand cost changes, emblems, optional
   decisions, choose-one decisions, play modes, and runtime modifiers.
 
-The RL adapter provides a fixed 111-action space, 227-feature public
+The RL adapter provides a fixed 111-action space, 255-feature public
 observation, action mask, terminal reward, graveyard choice paging, special
-play-mode actions, and super-evolve actions. `info()` is public by default and
+hand actions for fusion/play modes, and super-evolve actions. `info()` is public by default and
 redacts debug transcripts/events unless `debug_info=True` or
 `info(debug=True)` is used, including pending-choice and graveyard-page returns.
 Public observations and default info are regression-tested not to depend on
@@ -103,6 +109,12 @@ totals. Sigils are board amulets rather than player-side counters: entering
 Sigils merge into the newest amulet, merged Sigils are banished, and a depleted
 Sigil is destroyed. This follows the
 [official Worlds Beyond mechanic description](https://beginner.shadowverse-wb.com/ja/deck_shindan/result04/).
+Fusion adds own-hand fused-material counts and current-turn availability plus
+public board fused-material counts without exposing opponent hand identities.
+The material transition follows the
+[official Fusion glossary](https://shadowverse-wb.com/chs/deck/cardslist/card/?card_id=10021110):
+Fusion is usable from hand once per turn, an unspecified count permits multiple
+materials at once, and consumed materials do not enter the graveyard.
 
 ## Unsupported Or Partial
 
@@ -112,9 +124,12 @@ remain visible instead of silently behaving as implemented.
 Known broad gaps include:
 
 - exact semantics for many real cards and most generated-card workflows;
-- full `策动`, `融合`, `瞬念召唤`, `信仰`, and `奥义` semantics, plus broader
+- full `策动`, `瞬念召唤`, `信仰`, and `奥义` semantics, plus broader
   real-card coverage for `土之秘术`, `觉醒`, and `连击` beyond the currently
   authored examples;
+- Fusion cards that transform in hand when fused and abilities on other cards
+  that trigger from a fusion event remain unsupported; the command-level
+  material transition and source-card fused-count conditions are covered;
 - non-manual super-evolution edge semantics;
 - remaining trigger-ordering edge cases beyond the current death-batch
   ordering diagnostics and `death_batch_end` boundary triggers, including
@@ -204,7 +219,7 @@ events in `info["placeholder_ability_events"]` without changing game state.
 The rules core is command based and independent of RL action numbers:
 
 - `state.py`: mutable match, player, unit, zone, and pending-choice state
-- `commands.py`: play, attack, evolve, end-turn, and choice commands
+- `commands.py`: play, fusion, attack, evolve, end-turn, and choice commands
 - `events.py`: ordered lifecycle events emitted by rule execution
 - `effects.py`: reusable primitive effect operations and target kinds
 - `card_rules.py`: JSON rule loading keyed by card ID and trigger
@@ -228,7 +243,7 @@ The environment has 111 actions:
 - `40..44`: evolve a board slot
 - `45..60`: resolve one of up to 16 pending choice options
 - `61..78`: graveyard choice paging and slots
-- `79..105`: special play modes for hand slots
+- `79..105`: fusion or special play-mode actions for hand slots
 - `106..110`: super-evolve a board slot
 
 Always apply `info["action_mask"]` before sampling or selecting an action.

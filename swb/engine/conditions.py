@@ -21,6 +21,7 @@ class EvalContext:
     source_entity_id: int | None = None
     target_entity_id: int | None = None
     source_card_id: int | None = None
+    source_fusion_count: int = 0
 
     @property
     def controller_player(self) -> PlayerState:
@@ -125,12 +126,14 @@ def evaluate_target_conditions(
     controller: int,
     players,
     source_entity_id: int | None = None,
+    source_fusion_count: int = 0,
 ) -> bool:
     ctx = EvalContext(
         controller=controller,
         players=players,
         target_entity_id=entity.entity_id,
         source_entity_id=source_entity_id,
+        source_fusion_count=source_fusion_count,
     )
     for cond in conds:
         if not evaluate_condition(cond, ctx):
@@ -201,6 +204,8 @@ def evaluate_condition(cond: Condition | None, ctx: EvalContext | None) -> bool:
         return player.earth_sigils >= cond.value
     elif t == ConditionType.OPPONENT_EARTH_SIGILS_AT_LEAST:
         return opponent.earth_sigils >= cond.value
+    elif t == ConditionType.SOURCE_FUSION_COUNT_AT_LEAST:
+        return ctx.source_fusion_count >= cond.value
     elif t == ConditionType.TARGET_ATTACK_AT_MOST:
         return isinstance(target, Unit) and target.attack <= cond.value
     elif t == ConditionType.TARGET_ATTACK_AT_LEAST:

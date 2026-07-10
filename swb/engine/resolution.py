@@ -16,6 +16,7 @@ from swb.engine.abilities import (
 from swb.engine.card_rules import RuleBook, Trigger
 from swb.engine.commands import (
     Attack,
+    BeginFusion,
     ChoiceKind,
     ChoiceOption,
     ChoiceRequest,
@@ -59,6 +60,7 @@ from swb.engine.state import (
     DeathCause,
     DeathRecord,
     DestroyedFollowerRecord,
+    FusionMaterial,
     GameState,
     GraveyardCard,
     HandCard,
@@ -315,6 +317,8 @@ class GameEngine:
         )
         if card is None:
             return False
+        if ability is AbilityKeyword.FUSION:
+            return self.rulebook.fusion_for(card.card_id) is not None
         if ability in (AbilityKeyword.OVERFLOW, AbilityKeyword.COMBO):
             if ability is AbilityKeyword.OVERFLOW:
                 condition_types = (
@@ -526,6 +530,8 @@ class GameEngine:
             self._evolve(command)
         elif isinstance(command, SuperEvolve):
             self._super_evolve(command)
+        elif isinstance(command, BeginFusion):
+            self._begin_fusion(command)
         elif isinstance(command, Choose):
             self._choose(command)
         else:
@@ -590,6 +596,8 @@ class GameEngine:
         board_full = len(player.board) >= self.config.max_board
         for index, card in enumerate(player.hand[: self.config.max_hand]):
             modes = self.rulebook.modes_for(card.card_id)
+            if self._can_begin_fusion(card, player):
+                commands.append(BeginFusion(self.current_player, card.entity_id))
             normal_playable = self._is_mode_playable(card, player, None)
             if normal_playable:
                 commands.append(PlayCard(self.current_player, index, "normal"))
@@ -767,6 +775,7 @@ class GameEngine:
         entity_id: int | None = None,
         origin: CardOrigin = CardOrigin.DECK,
         source_origin: CardOrigin | None = None,
+        fused_material_ids: tuple[int, ...] = (),
     ) -> Unit | None:
         player = self.players[player_index]
         if len(player.board) >= self.config.max_board:
@@ -782,6 +791,7 @@ class GameEngine:
             source_origin=source_origin,
         )
         player.board.append(unit)
+        unit.fused_material_ids.extend(fused_material_ids)
         self._record_cooperation(
             player_index,
             1,
@@ -790,6 +800,259 @@ class GameEngine:
             summon_cause=summon_cause,
         )
         return unit
+
+    def _fusion_material_candidates(
+        self,
+        fusion_card: HandCard,
+        player: PlayerState,
+    ) -> list[HandCard]:
+        definition = self.rulebook.fusion_for(fusion_card.card_id)
+        if definition is None:
+            return []
+        return [
+            candidate
+            for candidate in player.hand
+            if isinstance(candidate, HandCard)
+            and candidate.entity_id != fusion_card.entity_id
+            and definition.material_filter.matches(candidate.definition)
+        ]
+
+    @staticmethod
+    def _fusion_material_records(
+        player: PlayerState,
+        material_ids: tuple[int, ...] | list[int],
+    ) -> tuple[FusionMaterial, ...]:
+        by_id = {record.entity_id: record for record in player.fusion_materials}
+        try:
+            return tuple(by_id[material_id] for material_id in material_ids)
+        except KeyError as exc:
+            raise IllegalCommand(
+                f"Fusion material record {exc.args[0]} is missing"
+            ) from exc
+
+    def _can_begin_fusion(
+        self,
+        fusion_card: HandCard,
+        player: PlayerState,
+    ) -> bool:
+        definition = self.rulebook.fusion_for(fusion_card.card_id)
+        if definition is None or fusion_card.fusion_used_turn == self.turn:
+            return False
+        return len(self._fusion_material_candidates(fusion_card, player)) >= definition.min_materials
+
+    @staticmethod
+    def _fusion_material_option(card: HandCard) -> ChoiceOption:
+        return ChoiceOption(
+            option_id=f"hand:{card.entity_id}",
+            label=card.name,
+            entity_id=card.entity_id,
+        )
+
+    def _begin_fusion(self, command: BeginFusion) -> None:
+        player = self.players[self.current_player]
+        try:
+            fusion_card = next(
+                card
+                for card in player.hand
+                if isinstance(card, HandCard)
+                and card.entity_id == command.fusion_entity_id
+            )
+        except StopIteration as exc:
+            raise IllegalCommand("Fusion card is not in hand") from exc
+        definition = self.rulebook.fusion_for(fusion_card.card_id)
+        if definition is None:
+            raise IllegalCommand("Card has no structured fusion definition")
+        if fusion_card.fusion_used_turn == self.turn:
+            raise IllegalCommand("This card has already fused this turn")
+        candidates = self._fusion_material_candidates(fusion_card, player)
+        if len(candidates) < definition.min_materials:
+            raise IllegalCommand("Not enough legal fusion materials")
+        maximum = min(
+            len(candidates),
+            definition.max_materials
+            if definition.max_materials is not None
+            else len(candidates),
+        )
+        options = tuple(
+            [self._fusion_material_option(card) for card in candidates]
+            + [ChoiceOption("fusion:cancel", "取消融合")]
+        )
+        self.state.pending_choice = ChoiceRequest(
+            player_index=self.current_player,
+            prompt=f"为 {fusion_card.name} 选择融合材料",
+            options=options,
+            continuation_id=f"fusion:{fusion_card.entity_id}",
+            choice_kind=ChoiceKind.FUSION,
+            request_id=self._allocate_choice_request_id(),
+            target_count=maximum,
+        )
+        self.state.phase = Phase.AWAITING_CHOICE
+        self._log(self.current_player, f"{fusion_card.name} 开始选择融合材料")
+
+    def _fusion_choice_target(self, request: ChoiceRequest) -> HandCard:
+        try:
+            target_id = int(request.continuation_id.split(":", 1)[1])
+        except (IndexError, ValueError) as exc:
+            raise IllegalCommand("Fusion continuation is malformed") from exc
+        try:
+            return next(
+                card
+                for card in self.players[request.player_index].hand
+                if isinstance(card, HandCard) and card.entity_id == target_id
+            )
+        except StopIteration as exc:
+            raise IllegalCommand("Fusion card left hand") from exc
+
+    def _resolve_fusion_choice(
+        self,
+        command: Choose,
+        request: ChoiceRequest,
+    ) -> None:
+        player = self.players[request.player_index]
+        fusion_card = self._fusion_choice_target(request)
+        definition = self.rulebook.fusion_for(fusion_card.card_id)
+        if definition is None:
+            raise IllegalCommand("Fusion definition is no longer available")
+        if fusion_card.fusion_used_turn == self.turn:
+            raise IllegalCommand("This card has already fused this turn")
+
+        if command.option_id == "fusion:cancel":
+            self.state.pending_choice = None
+            self.state.phase = Phase.MAIN
+            self._log(command.player_index, f"取消 {fusion_card.name} 的融合")
+            return
+
+        if command.option_id == "fusion:confirm":
+            selected_ids = tuple(
+                option.entity_id
+                for option in request.selected_options
+                if option.entity_id is not None
+            )
+            if len(selected_ids) < definition.min_materials:
+                raise IllegalCommand("Fusion requires more selected materials")
+            if (
+                definition.max_materials is not None
+                and len(selected_ids) > definition.max_materials
+            ):
+                raise IllegalCommand("Fusion selected too many materials")
+            by_id = {
+                card.entity_id: card
+                for card in player.hand
+                if isinstance(card, HandCard)
+            }
+            materials: list[HandCard] = []
+            for material_id in selected_ids:
+                material = by_id.get(material_id)
+                if (
+                    material is None
+                    or material.entity_id == fusion_card.entity_id
+                    or not definition.material_filter.matches(material.definition)
+                ):
+                    raise IllegalCommand("Selected fusion material is no longer legal")
+                materials.append(material)
+
+            for material in materials:
+                index = next(
+                    idx
+                    for idx, card in enumerate(player.hand)
+                    if isinstance(card, HandCard)
+                    and card.entity_id == material.entity_id
+                )
+                player.hand.pop(index)
+                player.hand_entity_ids.pop(index)
+                record = FusionMaterial(
+                    definition=material.definition,
+                    entity_id=material.entity_id,
+                    owner=request.player_index,
+                    consumed_sequence=player._next_fusion_sequence,
+                    fused_into_entity_id=fusion_card.entity_id,
+                    origin=material.origin,
+                    source_origin=material.source_origin,
+                    inherited_material_ids=tuple(material.fused_material_ids),
+                )
+                player._next_fusion_sequence += 1
+                player.fusion_materials.append(record)
+                fusion_card.fused_material_ids.append(record.entity_id)
+
+            fusion_card.fusion_used_turn = self.turn
+            self.state.pending_choice = None
+            self.state.phase = Phase.MAIN
+            self._emit(
+                GameEvent(
+                    EventType.CARD_FUSED,
+                    request.player_index,
+                    source_id=fusion_card.entity_id,
+                    amount=len(materials),
+                    metadata={
+                        "source": fusion_card.definition,
+                        "fusion_card_id": fusion_card.card_id,
+                        "material_entity_ids": selected_ids,
+                        "material_card_ids": tuple(
+                            material.card_id for material in materials
+                        ),
+                        "fusion_count": len(fusion_card.fused_material_ids),
+                    },
+                )
+            )
+            self._log(
+                request.player_index,
+                f"{fusion_card.name} 融合 {len(materials)} 张卡牌",
+            )
+            return
+
+        if command.option_id.startswith("hand:"):
+            material_id = int(command.option_id.split(":", 1)[1])
+            material = next(
+                (
+                    card
+                    for card in player.hand
+                    if isinstance(card, HandCard)
+                    and card.entity_id == material_id
+                ),
+                None,
+            )
+            if (
+                material is None
+                or material.entity_id == fusion_card.entity_id
+                or not definition.material_filter.matches(material.definition)
+            ):
+                raise IllegalCommand("Fusion material is no longer legal")
+            selected_ids = {
+                option.entity_id for option in request.selected_options
+            }
+            if material.entity_id in selected_ids:
+                raise IllegalCommand("Fusion material was already selected")
+            selected = (*request.selected_options, self._fusion_material_option(material))
+            maximum = request.target_count
+            remaining = [
+                candidate
+                for candidate in self._fusion_material_candidates(fusion_card, player)
+                if candidate.entity_id not in {
+                    option.entity_id for option in selected
+                }
+            ]
+            if len(selected) >= maximum:
+                remaining = []
+            options: list[ChoiceOption] = [
+                self._fusion_material_option(candidate)
+                for candidate in remaining
+            ]
+            if len(selected) >= definition.min_materials:
+                options.append(ChoiceOption("fusion:confirm", "确认融合"))
+            options.append(ChoiceOption("fusion:cancel", "取消融合"))
+            self.state.pending_choice = replace(
+                request,
+                options=tuple(options),
+                request_id=self._allocate_choice_request_id(),
+                selected_options=selected,
+            )
+            self._log(
+                request.player_index,
+                f"已为 {fusion_card.name} 选择 {len(selected)} 张融合材料",
+            )
+            return
+
+        raise IllegalCommand("Unknown fusion choice")
 
     def _play_card(self, command: PlayCard) -> None:
         player = self.players[self.current_player]
@@ -830,6 +1093,11 @@ class GameEngine:
         hand_entity_id = hand_card.entity_id
         hand_origin = hand_card.origin
         hand_source_origin = hand_card.source_origin
+        fused_material_ids = tuple(hand_card.fused_material_ids)
+        fusion_materials = self._fusion_material_records(
+            player,
+            fused_material_ids,
+        )
 
         self._dispatch_card_ability(AbilityEvent.CHECK_PLAY, card)
         player.hand.pop(command.hand_index)
@@ -844,16 +1112,29 @@ class GameEngine:
         )
 
         if mode_def is not None and mode_def.is_accelerate:
-            self._play_accelerate(card, play_cost, hand_entity_id, hand_origin, hand_source_origin, mode_def)
+            self._play_accelerate(
+                card, play_cost, hand_entity_id, hand_origin,
+                hand_source_origin, mode_def, fusion_materials,
+            )
             return
         if mode_def is not None and mode_def.is_crystallize:
-            self._play_crystallize(card, play_cost, hand_entity_id, hand_origin, hand_source_origin, mode_def)
+            self._play_crystallize(
+                card, play_cost, hand_entity_id, hand_origin,
+                hand_source_origin, mode_def, fused_material_ids,
+            )
             return
         if card.card_type == "法术" and mode_id == "normal":
-            self._play_spell(card, play_cost, hand_entity_id, origin=hand_origin, source_origin=hand_source_origin)
+            self._play_spell(
+                card, play_cost, hand_entity_id, origin=hand_origin,
+                source_origin=hand_source_origin,
+                fusion_materials=fusion_materials,
+            )
             return
         if card.card_type == "护符" and mode_id == "normal":
-            self._play_amulet(card, play_cost, origin=hand_origin)
+            self._play_amulet(
+                card, play_cost, origin=hand_origin,
+                fused_material_ids=fused_material_ids,
+            )
             return
 
         unit = self._summon_follower_to_board(
@@ -862,6 +1143,7 @@ class GameEngine:
             summon_cause="play",
             origin=hand_origin,
             source_origin=hand_source_origin,
+            fused_material_ids=fused_material_ids,
         )
         if unit is None:
             raise IllegalCommand("Board is full")
@@ -943,6 +1225,7 @@ class GameEngine:
         *,
         origin: CardOrigin,
         source_origin: CardOrigin | None,
+        fusion_materials: tuple[FusionMaterial, ...] = (),
     ) -> None:
         self._log(self.current_player, f"使用法术 {card.name}（{play_cost}费）")
         self._dispatch_card_ability(AbilityEvent.CARD_PLAYED, card)
@@ -961,6 +1244,7 @@ class GameEngine:
             operations,
             move_source_to_graveyard=True,
             label="法术",
+            fusion_materials=fusion_materials,
         )
         frame._hand_source_entity_id = source_entity_id
         frame._hand_source_origin = origin
@@ -972,13 +1256,21 @@ class GameEngine:
         self._pending_spellboost_source_entity_id = source_entity_id
         self._try_spellboost_hand()
 
-    def _play_amulet(self, card: CardDefinition, play_cost: int, *, origin: CardOrigin = CardOrigin.DECK) -> None:
+    def _play_amulet(
+        self,
+        card: CardDefinition,
+        play_cost: int,
+        *,
+        origin: CardOrigin = CardOrigin.DECK,
+        fused_material_ids: tuple[int, ...] = (),
+    ) -> None:
         amulet = Amulet(
             definition=card,
             entity_id=self.state.allocate_entity_id(),
             countdown=self.rulebook.countdown_for(card.card_id),
             entered_turn=self.turn,
             origin=origin,
+            fused_material_ids=list(fused_material_ids),
         )
         self.players[self.current_player].board.append(amulet)
         countdown = (
@@ -1017,6 +1309,7 @@ class GameEngine:
         origin: CardOrigin,
         source_origin: CardOrigin | None,
         mode_def,
+        fusion_materials: tuple[FusionMaterial, ...] = (),
     ) -> None:
         self._log(self.current_player, f"激奏 {card.name}（{play_cost}费）")
         self._dispatch_card_ability(AbilityEvent.CARD_PLAYED, card)
@@ -1035,6 +1328,7 @@ class GameEngine:
             ops,
             move_source_to_graveyard=True,
             label="激奏",
+            fusion_materials=fusion_materials,
         )
         frame._hand_source_entity_id = source_entity_id
         frame._hand_source_origin = origin
@@ -1054,6 +1348,7 @@ class GameEngine:
         origin: CardOrigin,
         source_origin: CardOrigin | None,
         mode_def,
+        fused_material_ids: tuple[int, ...] = (),
     ) -> None:
         countdown = mode_def.countdown if mode_def else None
         amulet = Amulet(
@@ -1063,6 +1358,7 @@ class GameEngine:
             entered_turn=self.turn,
             origin=origin,
             source_origin=source_origin,
+            fused_material_ids=list(fused_material_ids),
         )
         self.players[self.current_player].board.append(amulet)
         cd_str = f"，倒数 {amulet.countdown}" if amulet.countdown is not None else ""
@@ -1120,14 +1416,30 @@ class GameEngine:
         controller: int | None = None,
         move_source_to_graveyard: bool = False,
         label: str = "效果",
+        fusion_materials: tuple[FusionMaterial, ...] | None = None,
     ) -> EffectFrame:
+        resolved_controller = self.current_player if controller is None else controller
+        if fusion_materials is None:
+            fusion_materials = ()
+            if source_entity_id is not None:
+                try:
+                    source = self._find_board_entity(source_entity_id)
+                except IllegalCommand:
+                    source = None
+                if source is not None and source.fused_material_ids:
+                    owner = self._entity_owner(source.entity_id)
+                    fusion_materials = self._fusion_material_records(
+                        self.players[owner],
+                        source.fused_material_ids,
+                    )
         frame = EffectFrame(
-            controller=self.current_player if controller is None else controller,
+            controller=resolved_controller,
             source_card_id=card.card_id,
             source_name=card.name,
             source_entity_id=source_entity_id,
             source_card=card,
             operations=operations,
+            fusion_materials=fusion_materials,
             label=label,
             move_source_to_graveyard=move_source_to_graveyard,
         )
@@ -1145,7 +1457,7 @@ class GameEngine:
                 "name": value.name,
                 "card_type": value.card_type,
             }
-        if isinstance(value, (Unit, Amulet, HandCard, GraveyardCard)):
+        if isinstance(value, (Unit, Amulet, HandCard, GraveyardCard, FusionMaterial)):
             definition = getattr(value, "definition", None)
             return {
                 "entity_id": getattr(value, "entity_id", None),
@@ -1223,6 +1535,7 @@ class GameEngine:
             "operation_count": len(frame.operations),
             "pending_target_id": frame.pending_target_id,
             "pending_target_ids": tuple(frame.pending_target_ids),
+            "fusion_material_count": len(frame.fusion_materials),
             "upcoming_operations": [
                 self._operation_debug_summary(operation)
                 for operation in upcoming
@@ -1520,6 +1833,7 @@ class GameEngine:
             "faith": player.faith,
             "next_graveyard_sequence": player._next_graveyard_sequence,
             "next_emblem_sequence": player._next_emblem_sequence,
+            "next_fusion_sequence": player._next_fusion_sequence,
             "deck": tuple(
                 self._card_fingerprint(card)
                 for card in player.deck
@@ -1529,6 +1843,10 @@ class GameEngine:
                 for card in player.hand
             ),
             "hand_entity_ids": tuple(player.hand_entity_ids),
+            "fusion_materials": tuple(
+                self._fusion_material_fingerprint(material)
+                for material in player.fusion_materials
+            ),
             "board": tuple(
                 self._board_entity_fingerprint(entity)
                 for entity in player.board
@@ -1600,6 +1918,8 @@ class GameEngine:
                 self._cost_modifier_fingerprint(modifier)
                 for modifier in card.cost_modifiers
             ),
+            "fused_material_ids": tuple(card.fused_material_ids),
+            "fusion_used_turn": card.fusion_used_turn,
         }
 
     def _board_entity_fingerprint(
@@ -1614,6 +1934,7 @@ class GameEngine:
             "source_origin": (
                 None if entity.source_origin is None else entity.source_origin.value
             ),
+            "fused_material_ids": tuple(entity.fused_material_ids),
         }
         if isinstance(entity, Unit):
             base.update({
@@ -1662,6 +1983,21 @@ class GameEngine:
                 "pending_destroy": entity.pending_destroy,
             })
         return base
+
+    def _fusion_material_fingerprint(
+        self,
+        material: FusionMaterial,
+    ) -> tuple[object, ...]:
+        return (
+            self._card_fingerprint(material.definition),
+            material.entity_id,
+            material.owner,
+            material.consumed_sequence,
+            material.fused_into_entity_id,
+            material.origin.value,
+            None if material.source_origin is None else material.source_origin.value,
+            material.inherited_material_ids,
+        )
 
     def _graveyard_card_fingerprint(
         self,
@@ -1751,6 +2087,10 @@ class GameEngine:
             "operations": tuple(
                 self._operation_fingerprint(operation)
                 for operation in frame.operations
+            ),
+            "fusion_materials": tuple(
+                self._fusion_material_fingerprint(material)
+                for material in frame.fusion_materials
             ),
             "label": frame.label,
             "next_index": frame.next_index,
@@ -2705,6 +3045,7 @@ class GameEngine:
                             frame.controller,
                             self.players,
                             source_entity_id=frame.source_entity_id,
+                            source_fusion_count=len(frame.fusion_materials),
                         )
                     ]
                 if not candidates:
@@ -2749,6 +3090,7 @@ class GameEngine:
                             frame.controller,
                             self.players,
                             source_entity_id=frame.source_entity_id,
+                            source_fusion_count=len(frame.fusion_materials),
                         )
                     ]
                 chosen = pick_random(candidates, self.random) if candidates else None
@@ -2860,6 +3202,7 @@ class GameEngine:
         controller: int,
         *,
         source_entity_id: int | None = None,
+        source_fusion_count: int = 0,
     ) -> bool:
         if (
             is_choice_target(operation.target)
@@ -2885,6 +3228,7 @@ class GameEngine:
                 controller=controller,
                 players=self.players,
                 source_entity_id=source_entity_id,
+                source_fusion_count=source_fusion_count,
             ),
         )
         if condition_state is PartialConditionResult.FALSE:
@@ -2909,6 +3253,7 @@ class GameEngine:
                     controller,
                     self.players,
                     source_entity_id=source_entity_id,
+                    source_fusion_count=source_fusion_count,
                 )
             ]
         return bool(candidates) or (
@@ -2962,6 +3307,7 @@ class GameEngine:
         controller: int,
         *,
         source_entity_id: int | None = None,
+        source_fusion_count: int = 0,
     ) -> bool:
         condition_state = evaluate_conditions_without_target(
             operation.conditions,
@@ -2969,6 +3315,7 @@ class GameEngine:
                 controller=controller,
                 players=self.players,
                 source_entity_id=source_entity_id,
+                source_fusion_count=source_fusion_count,
             ),
         )
         if condition_state is PartialConditionResult.FALSE:
@@ -3001,6 +3348,7 @@ class GameEngine:
                     controller,
                     self.players,
                     source_entity_id=source_entity_id,
+                    source_fusion_count=source_fusion_count,
                 )
             ]
         return bool(candidates) or (
@@ -3049,6 +3397,7 @@ class GameEngine:
                     frame.controller,
                     self.players,
                     source_entity_id=frame.source_entity_id,
+                    source_fusion_count=len(frame.fusion_materials),
                 )
             ]
             options = build_choice_options(candidates)
@@ -3676,6 +4025,9 @@ class GameEngine:
         option = next(
             option for option in request.options if option.option_id == command.option_id
         )
+        if request.choice_kind is ChoiceKind.FUSION:
+            self._resolve_fusion_choice(command, request)
+            return
         self._log(
             command.player_index,
             f"选择目标：{option.label}",
@@ -3699,6 +4051,7 @@ class GameEngine:
                         frame.source_card, frame.source_entity_id,
                         optional_ops, controller=frame.controller,
                         label=f"{frame.label}/optional",
+                        fusion_materials=frame.fusion_materials,
                     )
                 else:
                     frame._decision_meta["optional_declined"] = all(
@@ -4047,6 +4400,7 @@ class GameEngine:
             source_entity_id=frame.source_entity_id,
             target_entity_id=target_id,
             source_card_id=frame.source_card_id,
+            source_fusion_count=len(frame.fusion_materials),
         )
 
     def _resolve_amount(self, operation: EffectOperation, ctx: EvalContext) -> int:
@@ -4634,6 +4988,7 @@ class GameEngine:
             effect.necromancy_operations,
             controller=frame.controller,
             label="死灵术",
+            fusion_materials=frame.fusion_materials,
         )
 
     def _execute_reanimate(
@@ -5187,6 +5542,7 @@ class GameEngine:
                     frame.source_card, frame.source_entity_id,
                     opt.operations, controller=frame.controller,
                     label=f"{frame.label}/choose_one/{opt.label}",
+                    fusion_materials=frame.fusion_materials,
                 )
                 return
 
@@ -5195,6 +5551,7 @@ class GameEngine:
             controller=frame.controller,
             players=self.players,
             source_entity_id=frame.source_entity_id,
+            source_fusion_count=len(frame.fusion_materials),
         )
         result = evaluate_conditions_without_target(effect.conditions, ctx)
         branch_ops = effect.then_operations if result is PartialConditionResult.TRUE else effect.else_operations
@@ -5203,6 +5560,7 @@ class GameEngine:
                 frame.source_card, frame.source_entity_id,
                 branch_ops, controller=frame.controller,
                 label=f"{frame.label}/conditional",
+                fusion_materials=frame.fusion_materials,
             )
 
     def _execute_target_exists(self, effect, frame) -> None:
@@ -5212,6 +5570,7 @@ class GameEngine:
                 effect,
                 frame.controller,
                 source_entity_id=frame.source_entity_id,
+                source_fusion_count=len(frame.fusion_materials),
             )
             else effect.else_operations
         )
@@ -5222,6 +5581,7 @@ class GameEngine:
                 branch_ops,
                 controller=frame.controller,
                 label=f"{frame.label}/target_exists",
+                fusion_materials=frame.fusion_materials,
             )
 
     def _execute_choose_one(self, effect, frame) -> None:
@@ -5232,6 +5592,7 @@ class GameEngine:
                     controller=frame.controller,
                     players=self.players,
                     source_entity_id=frame.source_entity_id,
+                    source_fusion_count=len(frame.fusion_materials),
                 )
                 result = evaluate_conditions_without_target(opt.conditions, ctx)
                 if result is not PartialConditionResult.TRUE:
@@ -5243,6 +5604,7 @@ class GameEngine:
                         op,
                         frame.controller,
                         source_entity_id=frame.source_entity_id,
+                        source_fusion_count=len(frame.fusion_materials),
                     )
                     for op in opt.operations
                 ):
@@ -5256,6 +5618,7 @@ class GameEngine:
                         op,
                         frame.controller,
                         source_entity_id=frame.source_entity_id,
+                        source_fusion_count=len(frame.fusion_materials),
                     )
                     for op in opt.operations
                 ):
@@ -5271,6 +5634,7 @@ class GameEngine:
                 frame.source_card, frame.source_entity_id,
                 chosen.operations, controller=frame.controller,
                 label=f"{frame.label}/choose_one/{chosen.label}",
+                fusion_materials=frame.fusion_materials,
             )
             return
 
@@ -5299,6 +5663,7 @@ class GameEngine:
                 op,
                 frame.controller,
                 source_entity_id=frame.source_entity_id,
+                source_fusion_count=len(frame.fusion_materials),
             )
             for op in ops
         ):
@@ -5312,6 +5677,7 @@ class GameEngine:
                 op,
                 frame.controller,
                 source_entity_id=frame.source_entity_id,
+                source_fusion_count=len(frame.fusion_materials),
             )
             for op in ops
         ):
@@ -5322,6 +5688,7 @@ class GameEngine:
                 frame.source_card, frame.source_entity_id,
                 ops, controller=frame.controller,
                 label=f"{frame.label}/optional",
+                fusion_materials=frame.fusion_materials,
             )
             return
 
@@ -5772,6 +6139,7 @@ class GameEngine:
             effect.earth_rite_operations,
             controller=frame.controller,
             label="土之秘术",
+            fusion_materials=frame.fusion_materials,
         )
 
     def _execute_banish(self, target_id: int | None, frame: EffectFrame) -> None:
@@ -5856,6 +6224,7 @@ class GameEngine:
                 card_def,
                 origin=board_origin,
                 source_origin=board_source_origin,
+                fused_material_ids=tuple(entity.fused_material_ids),
             )
             self._log(
                 owner_index,
@@ -6505,7 +6874,10 @@ class GameEngine:
                 raise IllegalCommand(
                     "Invariant failed: pending choice selected_options must be a tuple"
                 )
-            if len(request.selected_options) >= request.target_count:
+            if (
+                request.choice_kind is not ChoiceKind.FUSION
+                and len(request.selected_options) >= request.target_count
+            ):
                 raise IllegalCommand(
                     "Invariant failed: completed multi-target choice is still pending"
                 )
@@ -6671,6 +7043,47 @@ class GameEngine:
 
         for player_index, player in enumerate(state.players):
             prefix = f"player {player_index + 1}"
+            fusion_material_ids = [
+                material.entity_id for material in player.fusion_materials
+            ]
+            if len(fusion_material_ids) != len(set(fusion_material_ids)):
+                raise IllegalCommand(
+                    f"Invariant failed: {prefix} has duplicate fusion material ids"
+                )
+            fusion_sequences = [
+                material.consumed_sequence for material in player.fusion_materials
+            ]
+            if len(fusion_sequences) != len(set(fusion_sequences)):
+                raise IllegalCommand(
+                    f"Invariant failed: {prefix} has duplicate fusion sequences"
+                )
+            if player._next_fusion_sequence <= max(fusion_sequences, default=0):
+                raise IllegalCommand(
+                    f"Invariant failed: {prefix} next fusion sequence is not ahead"
+                )
+            fusion_material_id_set = set(fusion_material_ids)
+            for material_index, material in enumerate(player.fusion_materials):
+                zone = f"{prefix} fusion_materials[{material_index}]"
+                if material.owner != player_index:
+                    raise IllegalCommand(
+                        f"Invariant failed: {zone} owner mismatch"
+                    )
+                if material.consumed_sequence <= 0:
+                    raise IllegalCommand(
+                        f"Invariant failed: {zone} consumed_sequence must be positive"
+                    )
+                if material.fused_into_entity_id <= 0:
+                    raise IllegalCommand(
+                        f"Invariant failed: {zone} fused target id must be positive"
+                    )
+                if any(
+                    inherited not in fusion_material_id_set
+                    for inherited in material.inherited_material_ids
+                ):
+                    raise IllegalCommand(
+                        f"Invariant failed: {zone} inherited material is missing"
+                    )
+                remember(material.entity_id, zone)
             if len(player.hand) != len(player.hand_entity_ids):
                 raise IllegalCommand(
                     f"Invariant failed: {prefix} hand/entity_id length mismatch"
@@ -6723,12 +7136,44 @@ class GameEngine:
                         f"entity_id {hand_card.entity_id} != hand_entity_ids {expected}"
                     )
                 remember(hand_card.entity_id, f"{prefix} hand[{hand_index}]")
+                if len(hand_card.fused_material_ids) != len(set(hand_card.fused_material_ids)):
+                    raise IllegalCommand(
+                        f"Invariant failed: {prefix} hand[{hand_index}] has duplicate fused materials"
+                    )
+                if any(
+                    material_id not in fusion_material_id_set
+                    for material_id in hand_card.fused_material_ids
+                ):
+                    raise IllegalCommand(
+                        f"Invariant failed: {prefix} hand[{hand_index}] references missing fusion material"
+                    )
+                if (
+                    hand_card.fusion_used_turn is not None
+                    and (
+                        hand_card.fusion_used_turn <= 0
+                        or hand_card.fusion_used_turn > state.turn
+                    )
+                ):
+                    raise IllegalCommand(
+                        f"Invariant failed: {prefix} hand[{hand_index}] has invalid fusion turn"
+                    )
 
             for board_index, entity in enumerate(player.board):
                 zone = f"{prefix} board[{board_index}]"
                 if not isinstance(entity, (Unit, Amulet)):
                     raise IllegalCommand(f"Invariant failed: {zone} is not a board entity")
                 remember(entity.entity_id, zone)
+                if len(entity.fused_material_ids) != len(set(entity.fused_material_ids)):
+                    raise IllegalCommand(
+                        f"Invariant failed: {zone} has duplicate fused materials"
+                    )
+                if any(
+                    material_id not in fusion_material_id_set
+                    for material_id in entity.fused_material_ids
+                ):
+                    raise IllegalCommand(
+                        f"Invariant failed: {zone} references missing fusion material"
+                    )
                 if isinstance(entity, Unit):
                     if entity.attack < 0:
                         raise IllegalCommand(
@@ -6847,6 +7292,13 @@ class GameEngine:
             if not isinstance(frame.operations, tuple):
                 raise IllegalCommand(
                     f"Invariant failed: {zone} operations must be a tuple"
+                )
+            if not isinstance(frame.fusion_materials, tuple) or any(
+                not isinstance(material, FusionMaterial)
+                for material in frame.fusion_materials
+            ):
+                raise IllegalCommand(
+                    f"Invariant failed: {zone} fusion_materials must be a tuple of records"
                 )
             if (
                 not isinstance(frame.next_index, int)
@@ -7123,6 +7575,14 @@ class GameEngine:
     def _ensure_entity_ids(self) -> None:
         seen: set[int] = set()
         for player in self.players:
+            for material in player.fusion_materials:
+                if material.entity_id <= 0:
+                    raise IllegalCommand("Fusion material entity_id must be positive")
+                if material.entity_id in seen:
+                    raise IllegalCommand(
+                        f"Fusion material {material.entity_id} exists in multiple zones"
+                    )
+                seen.add(material.entity_id)
             normalized_hand: list[HandCard] = []
             normalized_ids: list[int] = []
             for index, card in enumerate(player.hand):
@@ -7173,12 +7633,14 @@ class GameEngine:
         self, player: PlayerState, definition: CardDefinition, *,
         origin: CardOrigin = CardOrigin.DECK,
         source_origin: CardOrigin | None = None,
+        fused_material_ids: tuple[int, ...] = (),
     ) -> HandCard:
         hand_card = self._make_hand_card(
             definition,
             self.state.allocate_entity_id(),
             origin=origin,
             source_origin=source_origin,
+            fused_material_ids=fused_material_ids,
         )
         player.hand.append(hand_card)
         player.hand_entity_ids.append(hand_card.entity_id)
@@ -7191,6 +7653,7 @@ class GameEngine:
         *,
         origin: CardOrigin = CardOrigin.DECK,
         source_origin: CardOrigin | None = None,
+        fused_material_ids: tuple[int, ...] = (),
     ) -> HandCard:
         return HandCard(
             definition=definition,
@@ -7201,6 +7664,7 @@ class GameEngine:
             cannot_be_played=self.rulebook.cannot_be_played(definition.card_id),
             origin=origin,
             source_origin=source_origin,
+            fused_material_ids=list(fused_material_ids),
         )
 
     def _hand_cards(self, player_index: int) -> list[HandCard]:

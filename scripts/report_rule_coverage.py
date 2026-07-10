@@ -65,7 +65,13 @@ PRIMITIVE_KEYWORD_MAP = OrderedDict([
             "covered": True,
         },
     ),
-    ("融合", {"primitive": "FUSION (placeholder)", "covered": False}),
+    (
+        "融合",
+        {
+            "primitive": "BeginFusion command / Fusion material state",
+            "covered": True,
+        },
+    ),
     ("信仰", {"primitive": "FAITH (placeholder)", "covered": False}),
     ("必杀", {"primitive": "BANE keyword", "covered": True}),
     ("吸血", {"primitive": "DRAIN keyword", "covered": True}),
@@ -210,6 +216,11 @@ def _build_coverage_report(db_path: str, rules_dir: str) -> dict:
         for mode in rulebook._play_modes[cid]:
             for op in _iter_nested_operations(mode.operations):
                 ruled_ops[cid]["effect_kinds"].append(op.kind.value)
+    for cid in rulebook._fusion_defs:
+        ruled_cards.add(cid)
+        ruled_ops.setdefault(cid, {"triggers": [], "effect_kinds": []})
+        ruled_ops[cid]["triggers"].append("fusion")
+        ruled_ops[cid]["effect_kinds"].append("fusion")
     for cid, passives in rulebook._passives.items():
         ruled_cards.add(cid)
         ruled_ops.setdefault(cid, {"triggers": [], "effect_kinds": []})

@@ -11,6 +11,7 @@ class CommandType(str, Enum):
     EVOLVE = "evolve"
     SUPER_EVOLVE = "super_evolve"
     CHOOSE = "choose"
+    BEGIN_FUSION = "begin_fusion"
 
 
 class ChoiceKind(str, Enum):
@@ -20,6 +21,7 @@ class ChoiceKind(str, Enum):
     MODE = "mode"
     CONFIRM = "confirm"
     GENERIC = "generic"
+    FUSION = "fusion"
 
 
 @dataclass(frozen=True)
@@ -65,7 +67,14 @@ class Choose:
     type: CommandType = CommandType.CHOOSE
 
 
-GameCommand = EndTurn | PlayCard | Attack | Evolve | SuperEvolve | Choose
+@dataclass(frozen=True)
+class BeginFusion:
+    player_index: int
+    fusion_entity_id: int
+    type: CommandType = CommandType.BEGIN_FUSION
+
+
+GameCommand = EndTurn | PlayCard | Attack | Evolve | SuperEvolve | Choose | BeginFusion
 
 
 @dataclass(frozen=True)

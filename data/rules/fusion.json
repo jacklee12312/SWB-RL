@@ -1,0 +1,45 @@
+{
+  "fusions": [
+    {
+      "card_id": 10213310,
+      "material_filter": {
+        "class_id": 1
+      }
+    }
+  ],
+  "rules": [
+    {
+      "card_id": 10213310,
+      "trigger": "play",
+      "operations": [
+        {
+          "kind": "draw",
+          "target": "own_leader",
+          "amount": 2,
+          "conditions": [
+            {
+              "type": "source_fusion_count_at_least",
+              "value": 1
+            }
+          ]
+        },
+        {
+          "kind": "draw",
+          "target": "own_leader",
+          "amount": 1,
+          "conditions": [
+            {
+              "type": "not",
+              "conditions": [
+                {
+                  "type": "source_fusion_count_at_least",
+                  "value": 1
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

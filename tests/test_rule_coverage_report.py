@@ -229,7 +229,7 @@ class CoverageReportTests(unittest.TestCase):
         self.assertIn("Handler", result.stdout)
         self.assertIn("Primitive", result.stdout)
         self.assertRegex(result.stdout, r"爆能强化\s+placeholder\s+covered")
-        self.assertRegex(result.stdout, r"融合\s+placeholder\s+missing")
+        self.assertRegex(result.stdout, r"融合\s+partial\s+covered")
 
     def test_json_output_writes_file(self):
         """JSON output file is created."""

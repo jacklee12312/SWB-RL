@@ -242,7 +242,12 @@ ABILITY_DEFINITIONS = (
         AbilityKeyword.CRYSTALLIZE, (AbilityEvent.CHECK_PLAY,), "handle_crystallize"
     ),
     _definition(AbilityKeyword.CHOOSE, (AbilityEvent.CHECK_PLAY,), "handle_choose"),
-    _definition(AbilityKeyword.FUSION, (AbilityEvent.CHECK_PLAY,), "handle_fusion"),
+    _definition(
+        AbilityKeyword.FUSION,
+        (AbilityEvent.CHECK_PLAY,),
+        "handle_fusion",
+        status=AbilityStatus.PARTIAL,
+    ),
     _definition(
         AbilityKeyword.ACTIVATE,
         (AbilityEvent.CARD_PLAYED,),
@@ -453,7 +458,9 @@ class AbilityHandlers:
         self._placeholder(context, AbilityKeyword.CHOOSE)
 
     def handle_fusion(self, context: AbilityContext) -> None:
-        self._placeholder(context, AbilityKeyword.FUSION)
+        covered = getattr(self.environment, "_is_ability_covered", None)
+        if covered is None or not covered(context, AbilityKeyword.FUSION):
+            self._placeholder(context, AbilityKeyword.FUSION)
 
     def handle_activate(self, context: AbilityContext) -> None:
         self._placeholder(context, AbilityKeyword.ACTIVATE)
