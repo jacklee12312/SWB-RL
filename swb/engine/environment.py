@@ -557,9 +557,9 @@ class ShadowverseEnv:
 
     def _board_features(self, entity: BoardCard | None) -> list[float]:
         if entity is None:
-            return [0.0] * 12
+            return [0.0] * 13
         if isinstance(entity, Amulet):
-            return [1.0, 0.0, (entity.countdown or 0) / 10, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, float(entity.activated_turn == self.turn), len(entity.fused_material_ids) / ShadowverseEnv.MAX_HAND]
+            return [1.0, 0.0, (entity.countdown or 0) / 10, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, float(entity.activated_turn == self.turn), len(entity.fused_material_ids) / ShadowverseEnv.MAX_HAND, 0.0]
         unit = entity
         return [
             1.0, unit.attack / 20, unit.health / 20,
@@ -568,6 +568,7 @@ class ShadowverseEnv:
             float(unit.evolved), float(unit.rush_only), float(unit.super_evolved),
             float(unit.barrier_charges > 0), float(unit.ambush_active),
             len(unit.fused_material_ids) / ShadowverseEnv.MAX_HAND,
+            float(unit.has_intimidate),
         ]
 
 

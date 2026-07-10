@@ -184,7 +184,10 @@ ABILITY_DEFINITIONS = (
         aliases=("吟唱",),
     ),
     _definition(
-        AbilityKeyword.INTIMIDATE, (AbilityEvent.BEFORE_ATTACK,), "handle_intimidate"
+        AbilityKeyword.INTIMIDATE,
+        (),
+        "handle_intimidate",
+        status=AbilityStatus.IMPLEMENTED,
     ),
     _definition(
         AbilityKeyword.AURA,
@@ -288,6 +291,7 @@ RUNTIME_UNIT_KEYWORDS = frozenset(
         AbilityKeyword.AMBUSH.value,
         AbilityKeyword.DRAIN.value,
         AbilityKeyword.BARRIER.value,
+        AbilityKeyword.INTIMIDATE.value,
     }
 )
 
@@ -408,7 +412,7 @@ class AbilityHandlers:
         self._placeholder(context, AbilityKeyword.COUNTDOWN)
 
     def handle_intimidate(self, context: AbilityContext) -> None:
-        self._placeholder(context, AbilityKeyword.INTIMIDATE)
+        pass
 
     def handle_aura(self, context: AbilityContext) -> None:
         self._placeholder(context, AbilityKeyword.AURA)

@@ -541,6 +541,10 @@ class Unit(BoardEntity):
         return self.has_keyword("守护")
 
     @property
+    def has_intimidate(self) -> bool:
+        return self.has_keyword("威慑")
+
+    @property
     def can_attack_leader(self) -> bool:
         if any(r.restriction == AttackRestriction.CANNOT_ATTACK for r in self.attack_restrictions):
             return False

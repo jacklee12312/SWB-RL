@@ -1,0 +1,63 @@
+{
+  "passives": [
+    {
+      "card_id": 10142120,
+      "kind": "non_intrinsic_keyword",
+      "keyword": "威慑",
+      "notes": "威慑仅在觉醒入场曲满足后获得，不是初始关键词。"
+    },
+    {
+      "card_id": 10544110,
+      "kind": "non_intrinsic_keyword",
+      "keyword": "威慑",
+      "notes": "威慑仅在进化时获得；进化前只有守护。"
+    },
+    {
+      "card_id": 10603110,
+      "kind": "non_intrinsic_keyword",
+      "keyword": "疾驰",
+      "notes": "该卡从六种能力中随机获得三种，不能把全文关键词当作初始能力。"
+    },
+    {
+      "card_id": 10603110,
+      "kind": "non_intrinsic_keyword",
+      "keyword": "必杀"
+    },
+    {
+      "card_id": 10603110,
+      "kind": "non_intrinsic_keyword",
+      "keyword": "威慑"
+    },
+    {
+      "card_id": 10603110,
+      "kind": "non_intrinsic_keyword",
+      "keyword": "吸血"
+    },
+    {
+      "card_id": 10603110,
+      "kind": "non_intrinsic_keyword",
+      "keyword": "屏障"
+    }
+  ],
+  "rules": [
+    {
+      "card_id": 10451120,
+      "trigger": "last_words",
+      "coverage": "exact",
+      "implemented_text": "【威慑】【谢幕曲】召唤1个『不屈利刃·巴萨拉卡』。对自己的主战者造成2点伤害。",
+      "notes": "威慑由通用攻击目标合法性处理；谢幕曲按卡面顺序先召唤再自伤。",
+      "operations": [
+        {
+          "kind": "summon",
+          "target": "own_leader",
+          "card_id": 10451120
+        },
+        {
+          "kind": "damage_leader",
+          "target": "own_leader",
+          "amount": 2
+        }
+      ]
+    }
+  ]
+}

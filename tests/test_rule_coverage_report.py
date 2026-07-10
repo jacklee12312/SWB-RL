@@ -160,7 +160,7 @@ class CoverageReportTests(unittest.TestCase):
             card_set_id=10000,
             class_id=1,
             class_name="精灵",
-            name="测试威慑",
+            name="测试灵气",
             cost=2,
             card_type="随从",
             attack=2,
@@ -174,12 +174,12 @@ class CoverageReportTests(unittest.TestCase):
             ruled_cards={123457},
             ruled_ops={123457: {"triggers": ["attack"], "effect_kinds": ["heal_leader"]}},
             rule_metadata={},
-            ability_map={123457: ["威慑"]},
+            ability_map={123457: ["灵气"]},
             skill_text_map={},
             support_map={},
         )
         self.assertEqual(result["coverage"], "covered_partial")
-        self.assertIn("威慑", result["missing_primitives"])
+        self.assertIn("灵气", result["missing_primitives"])
 
     def test_activate_primitive_still_requires_a_per_card_definition(self):
         """Generic Activate support must not make unrelated partial rules exact."""

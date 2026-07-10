@@ -5,13 +5,13 @@
   },
   "summary": {
     "total_cards": 826,
-    "total_with_rules": 99,
+    "total_with_rules": 100,
     "test_or_synthetic_ids_with_rules": 26,
     "coverage_counts": {
-      "covered_exact": 65,
-      "supported_missing_rule": 624,
+      "covered_exact": 66,
+      "supported_missing_rule": 631,
       "text_unclear": 19,
-      "missing_primitive": 21,
+      "missing_primitive": 13,
       "covered_partial": 6,
       "token_or_non_collectible": 91
     }
@@ -186,8 +186,8 @@
       "covered": true
     },
     "威慑": {
-      "primitive": "INTIMIDATE (placeholder)",
-      "covered": false
+      "primitive": "INTIMIDATE attack-target legality",
+      "covered": true
     },
     "灵气": {
       "primitive": "AURA (placeholder)",
@@ -3475,15 +3475,14 @@
       "cost": 3,
       "is_collectible": true,
       "card_set_id": 10001,
-      "coverage": "missing_primitive",
-      "reason": "Missing primitives: ['威慑']",
+      "coverage": "supported_missing_rule",
+      "reason": "Covered keywords: ['入场曲', '觉醒', '威慑']",
       "hit_keywords": [
         "入场曲",
-        "觉醒"
-      ],
-      "missing_primitives": [
+        "觉醒",
         "威慑"
       ],
+      "missing_primitives": [],
       "ability_keywords": [
         "入场曲",
         "威慑",
@@ -3726,12 +3725,12 @@
       "cost": 6,
       "is_collectible": true,
       "card_set_id": 10001,
-      "coverage": "missing_primitive",
-      "reason": "Missing primitives: ['威慑']",
-      "hit_keywords": [],
-      "missing_primitives": [
+      "coverage": "supported_missing_rule",
+      "reason": "Covered keywords: ['威慑']",
+      "hit_keywords": [
         "威慑"
       ],
+      "missing_primitives": [],
       "ability_keywords": [
         "威慑",
         "疾驰"
@@ -9622,15 +9621,14 @@
       "cost": 6,
       "is_collectible": true,
       "card_set_id": 10004,
-      "coverage": "missing_primitive",
-      "reason": "Missing primitives: ['威慑']",
+      "coverage": "supported_missing_rule",
+      "reason": "Covered keywords: ['入场曲', '威慑', '造成.*伤害']",
       "hit_keywords": [
         "入场曲",
+        "威慑",
         "造成.*伤害"
       ],
-      "missing_primitives": [
-        "威慑"
-      ],
+      "missing_primitives": [],
       "ability_keywords": [
         "入场曲",
         "威慑"
@@ -10206,7 +10204,7 @@
       "is_collectible": true,
       "card_set_id": 10004,
       "coverage": "covered_exact",
-      "reason": "Triggers: ['union_burst', 'listener:board:follower_summoned', 'passive'], Ops: ['super_evolve_unit', 'add_keyword', 'non_intrinsic_keyword']",
+      "reason": "Triggers: ['union_burst', 'listener:board:follower_summoned'], Ops: ['super_evolve_unit', 'add_keyword']",
       "hit_keywords": [
         "入场曲",
         "超进化",
@@ -10256,16 +10254,15 @@
       "cost": 7,
       "is_collectible": true,
       "card_set_id": 10004,
-      "coverage": "missing_primitive",
-      "reason": "Missing primitives: ['威慑']",
+      "coverage": "supported_missing_rule",
+      "reason": "Covered keywords: ['入场曲', '进化时', '威慑', '造成.*伤害']",
       "hit_keywords": [
         "入场曲",
         "进化时",
+        "威慑",
         "造成.*伤害"
       ],
-      "missing_primitives": [
-        "威慑"
-      ],
+      "missing_primitives": [],
       "ability_keywords": [
         "入场曲",
         "威慑",
@@ -10333,16 +10330,15 @@
       "cost": 6,
       "is_collectible": true,
       "card_set_id": 10004,
-      "coverage": "missing_primitive",
-      "reason": "Missing primitives: ['威慑']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['last_words'], Ops: ['summon', 'damage_leader']",
       "hit_keywords": [
         "谢幕曲",
+        "威慑",
         "造成.*伤害",
         "召唤"
       ],
-      "missing_primitives": [
-        "威慑"
-      ],
+      "missing_primitives": [],
       "ability_keywords": [
         "威慑",
         "谢幕曲"
@@ -10350,7 +10346,12 @@
       "skill_texts": [
         "【<color=Keyword>威慑</color>】\n【<color=Keyword>谢幕曲</color>】召唤1个『<color=Keyword>不屈利刃·巴萨拉卡</color>』。对自己的主战者造成2点伤害。"
       ],
-      "support_level": "unsupported"
+      "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【威慑】【谢幕曲】召唤1个『不屈利刃·巴萨拉卡』。对自己的主战者造成2点伤害。",
+        "notes": "威慑由通用攻击目标合法性处理；谢幕曲按卡面顺序先召唤再自伤。"
+      }
     },
     "10451310": {
       "card_id": 10451310,
@@ -12192,17 +12193,16 @@
       "cost": 10,
       "is_collectible": true,
       "card_set_id": 10005,
-      "coverage": "missing_primitive",
-      "reason": "Missing primitives: ['威慑']",
+      "coverage": "supported_missing_rule",
+      "reason": "Covered keywords: ['进化时', '威慑', '回合结束', '回复', '造成.*伤害']",
       "hit_keywords": [
         "进化时",
+        "威慑",
         "回合结束",
         "回复",
         "造成.*伤害"
       ],
-      "missing_primitives": [
-        "威慑"
-      ],
+      "missing_primitives": [],
       "ability_keywords": [
         "威慑",
         "守护",
@@ -13084,15 +13084,15 @@
       "is_collectible": true,
       "card_set_id": 10006,
       "coverage": "missing_primitive",
-      "reason": "Missing primitives: ['威慑', '灵气']",
+      "reason": "Missing primitives: ['灵气']",
       "hit_keywords": [
         "入场曲",
+        "威慑",
         "必杀",
         "吸血",
         "屏障"
       ],
       "missing_primitives": [
-        "威慑",
         "灵气"
       ],
       "ability_keywords": [
@@ -17473,15 +17473,14 @@
       "cost": 10,
       "is_collectible": true,
       "card_set_id": 10008,
-      "coverage": "missing_primitive",
-      "reason": "Missing primitives: ['威慑']",
+      "coverage": "supported_missing_rule",
+      "reason": "Covered keywords: ['入场曲', '威慑', '造成.*伤害']",
       "hit_keywords": [
         "入场曲",
+        "威慑",
         "造成.*伤害"
       ],
-      "missing_primitives": [
-        "威慑"
-      ],
+      "missing_primitives": [],
       "ability_keywords": [
         "入场曲",
         "威慑"
@@ -18030,16 +18029,15 @@
       "cost": 6,
       "is_collectible": true,
       "card_set_id": 10008,
-      "coverage": "missing_primitive",
-      "reason": "Missing primitives: ['威慑']",
+      "coverage": "supported_missing_rule",
+      "reason": "Covered keywords: ['攻击时', '威慑', '回合结束', '屏障']",
       "hit_keywords": [
         "攻击时",
+        "威慑",
         "回合结束",
         "屏障"
       ],
-      "missing_primitives": [
-        "威慑"
-      ],
+      "missing_primitives": [],
       "ability_keywords": [
         "威慑",
         "屏障",

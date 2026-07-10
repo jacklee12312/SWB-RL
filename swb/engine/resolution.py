@@ -785,7 +785,11 @@ class GameEngine:
         guards = [
             unit
             for unit in opponent.board
-            if isinstance(unit, Unit) and unit.has_guard and not unit.ambush_active
+            if (
+                isinstance(unit, Unit)
+                and unit.has_guard
+                and self._is_follower_attack_target(unit)
+            )
         ]
         for unit in player.board:
             if not isinstance(unit, Unit):
@@ -796,13 +800,20 @@ class GameEngine:
                 commands.append(Attack(self.current_player, unit.entity_id, None))
             if unit.can_attack_units:
                 targets = guards or [
-                    target for target in opponent.board if isinstance(target, Unit) and not target.ambush_active
+                    target
+                    for target in opponent.board
+                    if isinstance(target, Unit)
+                    and self._is_follower_attack_target(target)
                 ]
                 commands.extend(
                     Attack(self.current_player, unit.entity_id, target.entity_id)
                     for target in targets
                 )
         return commands
+
+    @staticmethod
+    def _is_follower_attack_target(target: Unit) -> bool:
+        return not target.ambush_active and not target.has_intimidate
 
     def _can_activate_amulet(
         self,
@@ -4215,7 +4226,11 @@ class GameEngine:
         guards = [
             unit
             for unit in opponent.board
-            if isinstance(unit, Unit) and unit.has_guard and not unit.ambush_active
+            if (
+                isinstance(unit, Unit)
+                and unit.has_guard
+                and self._is_follower_attack_target(unit)
+            )
         ]
         if command.target_id is None:
             if guards or not attacker.can_attack_leader:
@@ -4227,6 +4242,8 @@ class GameEngine:
             target = self._find_unit(opponent.board, command.target_id)
             if target.ambush_active:
                 raise IllegalCommand("Cannot attack an ambush follower")
+            if target.has_intimidate:
+                raise IllegalCommand("Cannot attack an intimidate follower")
             if guards and target not in guards:
                 raise IllegalCommand("A guard follower must be attacked")
 

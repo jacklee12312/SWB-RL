@@ -113,7 +113,7 @@ class EnvironmentTests(unittest.TestCase):
 
     def test_observation_and_action_space_are_fixed(self) -> None:
         self.assertEqual(len(self.env.action_mask()), ShadowverseEnv.ACTION_SIZE)
-        self.assertEqual(len(self.env.observation()), 270)
+        self.assertEqual(len(self.env.observation()), 280)
         self.assertTrue(self.env.action_mask()[ShadowverseEnv.END_TURN])
         self.assertEqual(sum(self.env.observation()[30:37]), 1.0)
         self.assertEqual(sum(self.env.observation()[37:44]), 1.0)
@@ -386,23 +386,17 @@ class EnvironmentTests(unittest.TestCase):
             AbilityStatus.PARTIAL,
         )
 
-    def test_placeholder_ability_event_is_recorded_without_state_change(self) -> None:
+    def test_intimidate_is_not_reported_as_placeholder(self) -> None:
         attacker = Unit.summon(
             card(300, attack=2, life=2, keywords=frozenset({"威慑"}))
         )
         attacker.can_attack = True
         self.env.players[0].board = [attacker]
-        before_health = self.env.players[1].health
         self.env.step(ShadowverseEnv.ATTACK_OFFSET)
         events = self.env.info(debug=True)["placeholder_ability_events"]
-        self.assertTrue(
-            any(
-                event.ability is AbilityKeyword.INTIMIDATE
-                and event.event is AbilityEvent.BEFORE_ATTACK
-                for event in events
-            )
+        self.assertFalse(
+            any(event.ability is AbilityKeyword.INTIMIDATE for event in events)
         )
-        self.assertEqual(self.env.players[1].health, before_health - 2)
 
     def test_public_info_redacts_debug_transcript(self) -> None:
         info = self.env.info()

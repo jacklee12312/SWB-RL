@@ -8,17 +8,17 @@
 | Metric | Count |
 |---|---|
 | Total cards in DB | 826 |
-| Cards with rules | 99 |
+| Cards with rules | 100 |
 | Test/synthetic IDs with rules | 26 |
 
 ### Coverage Categories
 
 | Category | Count |
 |---|---|
-| covered_exact | 65 |
-| supported_missing_rule | 624 |
+| covered_exact | 66 |
+| supported_missing_rule | 631 |
 | text_unclear | 19 |
-| missing_primitive | 21 |
+| missing_primitive | 13 |
 | covered_partial | 6 |
 | token_or_non_collectible | 91 |
 
@@ -64,7 +64,7 @@
 | 连击 | COMBO condition / expression / add_combo | True |
 | 觉醒 | OVERFLOW condition / expression | True |
 | 策动 | ActivateAmulet command / ACTIVATE trigger | True |
-| 威慑 | INTIMIDATE (placeholder) | False |
+| 威慑 | INTIMIDATE attack-target legality | True |
 | 灵气 | AURA (placeholder) | False |
 | 瞬念召唤 | Invocation deck scan / INVOKE trigger | True |
 | 奥义 | Union Burst hand gauge / threshold operations | True |

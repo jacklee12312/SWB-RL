@@ -10,14 +10,14 @@ code and tests as the source of truth when this file drifts.
 - Database: 826 cards, 735 collectible cards, 91 non-collectible/generated
   cards from set `90000`.
 - Latest SVA source: `https://sva.hypd.asia/data/cards.json`.
-- Tests: `python -m unittest discover -s tests -v` currently runs 1024 tests.
-- RL adapter: fixed 111-action space and 270-feature observation.
-- Ability registry status: 16 implemented, 5 partial, 13 placeholder.
+- Tests: `python -m unittest discover -s tests -v` currently runs 1037 tests.
+- RL adapter: fixed 111-action space and 280-feature observation.
+- Ability registry status: 17 implemented, 5 partial, 12 placeholder.
 - Explicit card and demo rules live in `data/rules/`; the current coverage
-  report classifies 99 card IDs with explicit rules, passives, fusion,
+  report classifies 100 card IDs with explicit rules, passives, fusion,
   invocation, activation, Faith, Union Burst, or listener definitions. Current
-  collectible coverage is 65 exact, 6 partial, 624 supported-but-missing-rule,
-  21 missing-primitive, and 19 text-unclear cards.
+  collectible coverage is 66 exact, 6 partial, 631 supported-but-missing-rule,
+  13 missing-primitive, and 19 text-unclear cards.
 
 ## Stable Priorities
 
@@ -76,7 +76,19 @@ slice in this order:
   fire `进化时` or `超进化时` keyword abilities. Real `10443110` demonstrates
   `奥义` self-super-evolution plus an exact structured cost-2-follower Ward
   listener. RL reuses existing public board flags and manual action slots.
-- Core combat keywords: `守护`, `疾驰`, `突进`, `必杀`, `潜行`, `吸血`, `屏障`.
+- Core combat keywords: `守护`, `疾驰`, `突进`, `必杀`, `潜行`, `威慑`, `吸血`,
+  `屏障`.
+- `威慑` removes that follower from opposing follower attack targets without
+  affecting ability targets. It takes precedence over Ward on the same
+  follower, while other visible Wards remain mandatory. Legal commands, direct
+  command validation, and RL masks share one target predicate; add/remove,
+  temporary removal, evolution, super evolution, and transform reuse normal
+  runtime-keyword lifecycle. A public Intimidate bit per board slot migrates
+  observation width from 270 to 280 while preserving all 111 action IDs.
+  Structured `non_intrinsic_keyword` annotations prevent conditional/random
+  card-text mentions from becoming initial keywords. Real `10451120` exactly
+  covers static Intimidate and its summon/self-damage Last Words, based on the
+  official help glossary and card page.
 - Target candidate generation for board, leader, hand, and graveyard choices.
 - `all_board` target support for effects that need one simultaneous candidate
   set across both players' followers and amulets.
@@ -358,38 +370,31 @@ slice in this order:
 
 ## Next Coherent Slices
 
-### 1. Intimidate (`威慑`)
-
-- Verify official rules/Q&A, then implement attack legality independently of
-  ability damage, including Guard, Ambush, Rush/Storm, evolution, source
-  departure, transform/ability removal, commands, and RL masks.
-- Add one exact real card only after the generic primitive and edge tests pass.
-
-### 2. Continuous Aura (`灵气`)
+### 1. Continuous Aura (`灵气`)
 
 - Add source-backed derived modifiers with deterministic stacking and automatic
   recomputation for entry, leave-play, transform, return, banish, and control
   changes before authoring real Aura cards.
 
-### 3. Targeting Edge Cases
+### 2. Targeting Edge Cases
 
 - Extend no-target branch coverage only when real cards need graveyard/hand
   target-dependent filters or additional fallback target semantics.
 - Audit real rules that combine selected hand/graveyard sets with later
   operations before expanding `target_key` beyond board-entity tuples.
 
-### 4. Trigger Loop Diagnostics
+### 3. Trigger Loop Diagnostics
 
 - Add broader trigger ordering tests around any future `death_batch_start`
   boundary semantics and real-card recursive trigger combinations as coverage
   expands.
 
-### 5. Incremental Real-Card Coverage
+### 4. Incremental Real-Card Coverage
 
 - Add further Faith progression/payoff and Union Burst cards only when their
   complete generic operations can be represented without card-ID branches.
 
-### 6. Coverage Reporting
+### 5. Coverage Reporting
 
 - Refresh rule coverage reports after database updates.
 - Make reports surface newly added cards and newly unsupported keyword text.

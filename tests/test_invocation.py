@@ -423,7 +423,7 @@ class EvolutionCounterAndHealingTests(unittest.TestCase):
 
         observation = env.observation()
 
-        self.assertEqual(len(observation), 270)
+        self.assertEqual(len(observation), 280)
         self.assertEqual(observation[-10:-8], [0.3, 0.5])
 
     def test_negative_evolution_counter_fails_invariant(self):

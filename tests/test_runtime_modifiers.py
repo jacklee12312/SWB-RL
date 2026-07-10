@@ -102,7 +102,16 @@ def play_spell(
 class RuntimeKeywordTests(unittest.TestCase):
     def test_add_and_remove_all_implemented_combat_keywords(self):
         unit = Unit.summon(card(1))
-        for keyword in ("守护", "疾驰", "突进", "必杀", "吸血", "屏障", "潜行"):
+        for keyword in (
+            "守护",
+            "疾驰",
+            "突进",
+            "必杀",
+            "吸血",
+            "屏障",
+            "潜行",
+            "威慑",
+        ):
             with self.subTest(keyword=keyword):
                 unit.add_keyword(keyword)
                 self.assertTrue(unit.has_keyword(keyword))

@@ -41,7 +41,13 @@ PRIMITIVE_KEYWORD_MAP = OrderedDict([
             "covered": True,
         },
     ),
-    ("威慑", {"primitive": "INTIMIDATE (placeholder)", "covered": False}),
+    (
+        "威慑",
+        {
+            "primitive": "INTIMIDATE attack-target legality",
+            "covered": True,
+        },
+    ),
     ("灵气", {"primitive": "AURA (placeholder)", "covered": False}),
     (
         "瞬念召唤",
@@ -308,10 +314,13 @@ def _build_coverage_report(db_path: str, rules_dir: str) -> dict:
             for op in _iter_nested_operations(definition.operations):
                 ruled_ops[cid]["effect_kinds"].append(op.kind.value)
     for cid, passives in rulebook._passives.items():
-        ruled_cards.add(cid)
-        ruled_ops.setdefault(cid, {"triggers": [], "effect_kinds": []})
-        ruled_ops[cid]["triggers"].append("passive")
         for passive in passives:
+            if passive.kind == "non_intrinsic_keyword":
+                continue
+            ruled_cards.add(cid)
+            ruled_ops.setdefault(cid, {"triggers": [], "effect_kinds": []})
+            if "passive" not in ruled_ops[cid]["triggers"]:
+                ruled_ops[cid]["triggers"].append("passive")
             ruled_ops[cid]["effect_kinds"].append(passive.kind)
     for emblem_id, ed in rulebook._emblem_defs.items():
         ruled_cards.add(ed.source_card_id)
