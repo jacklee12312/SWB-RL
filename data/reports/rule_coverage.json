@@ -5,11 +5,11 @@
   },
   "summary": {
     "total_cards": 826,
-    "total_with_rules": 105,
+    "total_with_rules": 109,
     "test_or_synthetic_ids_with_rules": 26,
     "coverage_counts": {
-      "covered_exact": 71,
-      "supported_missing_rule": 640,
+      "covered_exact": 75,
+      "supported_missing_rule": 636,
       "text_unclear": 18,
       "covered_partial": 6,
       "token_or_non_collectible": 91
@@ -2496,8 +2496,8 @@
       "cost": 1,
       "is_collectible": true,
       "card_set_id": 10001,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['进化时', '回合结束', '召唤']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['evolve', 'listener:board:follower_summoned'], Ops: ['summon', 'buff_unit']",
       "hit_keywords": [
         "进化时",
         "回合结束",
@@ -2510,7 +2510,12 @@
       "skill_texts": [
         "自己的士兵·随从进入战场时，回合结束前，本随从+1/+0。\n<hr><ev>【<color=Keyword>进化时</color>】召唤1个『<color=Keyword>骑士</color>』。</ev>"
       ],
-      "support_level": "unsupported"
+      "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "自己的士兵·随从进入战场时，回合结束前，本随从+1/+0。【进化时】召唤1个『骑士』。",
+        "notes": "until_end_of_turn 绑定事件发生时的行动方；官方 Q&A 明确对手回合触发时持续到对手回合结束。"
+      }
     },
     "10122120": {
       "card_id": 10122120,
@@ -2520,8 +2525,8 @@
       "cost": 5,
       "is_collectible": true,
       "card_set_id": 10001,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '召唤']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['fanfare', 'listener:board:follower_summoned'], Ops: ['summon', 'summon', 'summon', 'add_keyword']",
       "hit_keywords": [
         "入场曲",
         "召唤"
@@ -2534,7 +2539,11 @@
       "skill_texts": [
         "【<color=Keyword>入场曲</color>】召唤3个『<color=Keyword>铁甲骑士</color>』。\n<hr>自己的士兵·随从进入战场时，使其获得【<color=Keyword>守护</color>】。"
       ],
-      "support_level": "unsupported"
+      "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【入场曲】召唤3个『铁甲骑士』。自己的士兵·随从进入战场时，使其获得【守护】。"
+      }
     },
     "10122130": {
       "card_id": 10122130,
@@ -2544,8 +2553,8 @@
       "cost": 2,
       "is_collectible": true,
       "card_set_id": 10001,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '召唤']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['fanfare', 'listener:board:follower_summoned'], Ops: ['summon', 'add_keyword']",
       "hit_keywords": [
         "入场曲",
         "召唤"
@@ -2558,7 +2567,11 @@
       "skill_texts": [
         "【<color=Keyword>入场曲</color>】召唤1个『<color=Keyword>骑士</color>』。\n<hr>自己的士兵·随从进入战场时，使其获得【<color=Keyword>突进</color>】。"
       ],
-      "support_level": "unsupported"
+      "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【入场曲】召唤1个『骑士』。自己的士兵·随从进入战场时，使其获得【突进】。"
+      }
     },
     "10122140": {
       "card_id": 10122140,
@@ -2690,8 +2703,8 @@
       "cost": 8,
       "is_collectible": true,
       "card_set_id": 10001,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '召唤']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['fanfare', 'listener:board:follower_summoned'], Ops: ['summon', 'summon', 'summon', 'summon', 'buff_unit', 'add_keyword', 'add_keyword']",
       "hit_keywords": [
         "入场曲",
         "召唤"
@@ -2705,7 +2718,11 @@
       "skill_texts": [
         "【<color=Keyword>入场曲</color>】召唤4个『<color=Keyword>铁甲骑士</color>』。\n<hr>自己的其他随从进入战场时，使其+1/+0且获得【<color=Keyword>突进</color>】和【<color=Keyword>守护</color>】。"
       ],
-      "support_level": "unsupported"
+      "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【入场曲】召唤4个『铁甲骑士』。自己的其他随从进入战场时，使其+1/+0且获得【突进】和【守护】。"
+      }
     },
     "10123310": {
       "card_id": 10123310,

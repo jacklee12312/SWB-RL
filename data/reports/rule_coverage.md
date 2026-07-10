@@ -8,15 +8,15 @@
 | Metric | Count |
 |---|---|
 | Total cards in DB | 826 |
-| Cards with rules | 105 |
+| Cards with rules | 109 |
 | Test/synthetic IDs with rules | 26 |
 
 ### Coverage Categories
 
 | Category | Count |
 |---|---|
-| covered_exact | 71 |
-| supported_missing_rule | 640 |
+| covered_exact | 75 |
+| supported_missing_rule | 636 |
 | text_unclear | 18 |
 | covered_partial | 6 |
 | token_or_non_collectible | 91 |

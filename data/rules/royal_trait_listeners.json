@@ -1,0 +1,196 @@
+{
+  "passives": [
+    {
+      "card_id": 10122120,
+      "kind": "non_intrinsic_keyword",
+      "keyword": "守护",
+      "notes": "守护授予进入战场的士兵，并非本体初始关键词。"
+    },
+    {
+      "card_id": 10122130,
+      "kind": "non_intrinsic_keyword",
+      "keyword": "突进",
+      "notes": "突进授予进入战场的士兵，并非本体初始关键词。"
+    },
+    {
+      "card_id": 10123140,
+      "kind": "non_intrinsic_keyword",
+      "keyword": "突进"
+    },
+    {
+      "card_id": 10123140,
+      "kind": "non_intrinsic_keyword",
+      "keyword": "守护",
+      "notes": "突进与守护均授予其他进入战场的随从。"
+    }
+  ],
+  "rules": [
+    {
+      "card_id": 10122110,
+      "trigger": "evolve",
+      "operations": [
+        {
+          "kind": "summon",
+          "target": "own_leader",
+          "card_id": 90021110
+        }
+      ]
+    },
+    {
+      "card_id": 10122120,
+      "trigger": "fanfare",
+      "operations": [
+        {
+          "kind": "summon",
+          "target": "own_leader",
+          "card_id": 90021120
+        },
+        {
+          "kind": "summon",
+          "target": "own_leader",
+          "card_id": 90021120
+        },
+        {
+          "kind": "summon",
+          "target": "own_leader",
+          "card_id": 90021120
+        }
+      ]
+    },
+    {
+      "card_id": 10122130,
+      "trigger": "fanfare",
+      "operations": [
+        {
+          "kind": "summon",
+          "target": "own_leader",
+          "card_id": 90021110
+        }
+      ]
+    },
+    {
+      "card_id": 10123140,
+      "trigger": "fanfare",
+      "operations": [
+        {
+          "kind": "summon",
+          "target": "own_leader",
+          "card_id": 90021120
+        },
+        {
+          "kind": "summon",
+          "target": "own_leader",
+          "card_id": 90021120
+        },
+        {
+          "kind": "summon",
+          "target": "own_leader",
+          "card_id": 90021120
+        },
+        {
+          "kind": "summon",
+          "target": "own_leader",
+          "card_id": 90021120
+        }
+      ]
+    }
+  ],
+  "listeners": [
+    {
+      "card_id": 10122110,
+      "zone": "board",
+      "event": "follower_summoned",
+      "event_scope": "owner_event",
+      "source_relation": "other",
+      "event_filter": {
+        "card_type": "随从",
+        "tribe_id": 2,
+        "tribe_name": "士兵"
+      },
+      "coverage": "exact",
+      "implemented_text": "自己的士兵·随从进入战场时，回合结束前，本随从+1/+0。【进化时】召唤1个『骑士』。",
+      "notes": "until_end_of_turn 绑定事件发生时的行动方；官方 Q&A 明确对手回合触发时持续到对手回合结束。",
+      "operations": [
+        {
+          "kind": "buff_unit",
+          "target": "self",
+          "amount": 1,
+          "secondary_amount": 0,
+          "duration": "until_end_of_turn"
+        }
+      ]
+    },
+    {
+      "card_id": 10122120,
+      "zone": "board",
+      "event": "follower_summoned",
+      "event_scope": "owner_event",
+      "source_relation": "other",
+      "event_filter": {
+        "card_type": "随从",
+        "tribe_id": 2,
+        "tribe_name": "士兵"
+      },
+      "coverage": "exact",
+      "implemented_text": "【入场曲】召唤3个『铁甲骑士』。自己的士兵·随从进入战场时，使其获得【守护】。",
+      "operations": [
+        {
+          "kind": "add_keyword",
+          "target": "event_source",
+          "keyword": "守护"
+        }
+      ]
+    },
+    {
+      "card_id": 10122130,
+      "zone": "board",
+      "event": "follower_summoned",
+      "event_scope": "owner_event",
+      "source_relation": "other",
+      "event_filter": {
+        "card_type": "随从",
+        "tribe_id": 2,
+        "tribe_name": "士兵"
+      },
+      "coverage": "exact",
+      "implemented_text": "【入场曲】召唤1个『骑士』。自己的士兵·随从进入战场时，使其获得【突进】。",
+      "operations": [
+        {
+          "kind": "add_keyword",
+          "target": "event_source",
+          "keyword": "突进"
+        }
+      ]
+    },
+    {
+      "card_id": 10123140,
+      "zone": "board",
+      "event": "follower_summoned",
+      "event_scope": "owner_event",
+      "source_relation": "other",
+      "event_filter": {
+        "card_type": "随从"
+      },
+      "coverage": "exact",
+      "implemented_text": "【入场曲】召唤4个『铁甲骑士』。自己的其他随从进入战场时，使其+1/+0且获得【突进】和【守护】。",
+      "operations": [
+        {
+          "kind": "buff_unit",
+          "target": "event_source",
+          "amount": 1,
+          "secondary_amount": 0
+        },
+        {
+          "kind": "add_keyword",
+          "target": "event_source",
+          "keyword": "突进"
+        },
+        {
+          "kind": "add_keyword",
+          "target": "event_source",
+          "keyword": "守护"
+        }
+      ]
+    }
+  ]
+}

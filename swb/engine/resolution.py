@@ -225,10 +225,16 @@ def _expire_duration_values(duration: ModifierDuration) -> tuple[str, ...]:
     return _DURATION_EXPANSION.get(duration, (duration.value,))
 
 
-def _expires_for_player(duration: ModifierDuration, controller: int) -> int | None:
+def _expires_for_player(
+    duration: ModifierDuration,
+    controller: int,
+    active_player: int | None = None,
+) -> int | None:
     if duration == ModifierDuration.PERMANENT:
         return None
-    if duration in (ModifierDuration.UNTIL_END_OF_TURN, ModifierDuration.UNTIL_START_OF_NEXT_TURN):
+    if duration == ModifierDuration.UNTIL_END_OF_TURN:
+        return controller if active_player is None else active_player
+    if duration == ModifierDuration.UNTIL_START_OF_NEXT_TURN:
         return controller
     if duration in (ModifierDuration.UNTIL_END_OF_CONTROLLER_TURN, ModifierDuration.UNTIL_START_OF_CONTROLLER_NEXT_TURN):
         return controller
@@ -5358,7 +5364,11 @@ class GameEngine:
                 attack_delta=effect.amount,
                 health_delta=effect.secondary_amount,
                 duration=effect.duration.value,
-                expires_for_player=_expires_for_player(effect.duration, frame.controller),
+                expires_for_player=_expires_for_player(
+                    effect.duration,
+                    frame.controller,
+                    self.state.active_player,
+                ),
             )
             target.add_stat_modifier(modifier)
             self._log(
@@ -5536,14 +5546,22 @@ class GameEngine:
             target.add_keyword(
                 effect.keyword,
                 duration=effect.duration.value,
-                expires_for_player=_expires_for_player(effect.duration, frame.controller),
+                expires_for_player=_expires_for_player(
+                    effect.duration,
+                    frame.controller,
+                    self.state.active_player,
+                ),
             )
             verb = "获得"
         else:
             target.remove_keyword(
                 effect.keyword,
                 duration=effect.duration.value,
-                expires_for_player=_expires_for_player(effect.duration, frame.controller),
+                expires_for_player=_expires_for_player(
+                    effect.duration,
+                    frame.controller,
+                    self.state.active_player,
+                ),
             )
             verb = "失去"
         self._log(
@@ -5567,7 +5585,11 @@ class GameEngine:
                 mode=effect.mode.value,
                 amount=effect.amount,
                 duration=effect.duration.value,
-                expires_for_player=_expires_for_player(effect.duration, frame.controller),
+                expires_for_player=_expires_for_player(
+                    effect.duration,
+                    frame.controller,
+                    self.state.active_player,
+                ),
             )
         )
         self._log(
@@ -5698,7 +5720,11 @@ class GameEngine:
             target.add_attack_restriction(
                 restriction,
                 duration=effect.duration.value,
-                expires_for_player=_expires_for_player(effect.duration, frame.controller),
+                expires_for_player=_expires_for_player(
+                    effect.duration,
+                    frame.controller,
+                    self.state.active_player,
+                ),
             )
         else:
             target.remove_attack_restriction(restriction)
@@ -5717,7 +5743,11 @@ class GameEngine:
             target.add_targeting_restriction(
                 restriction,
                 duration=effect.duration.value,
-                expires_for_player=_expires_for_player(effect.duration, frame.controller),
+                expires_for_player=_expires_for_player(
+                    effect.duration,
+                    frame.controller,
+                    self.state.active_player,
+                ),
             )
         else:
             target.remove_targeting_restriction(restriction)

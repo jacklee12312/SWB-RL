@@ -106,7 +106,12 @@ The deterministic rules core supports:
   fingerprints include it. Trait-aware real rules exactly cover `10311120` and
   `10511120` reacting to any Fairy-trait follower rather than only a card named
   Fairy; exact `10402110` uses the ending player's event snapshot for own-turn
-  healing, and `10632110` heals once for each named follower actually summoned;
+  healing, and `10632110` heals once for each named follower actually summoned.
+  A second exact batch (`10122110`, `10122120`, `10122130`, `10123140`) covers
+  Soldier-Trait listeners and multi-operation `event_source` buffs. Temporary
+  `until_end_of_turn` modifiers now expire for the actual active player at the
+  triggering boundary, matching the official `10122110` Q&A for soldiers that
+  enter during the opponent's turn;
 - field-backed `土之印` stacks and structured `土之秘术` payment, including
   Sigil entry/merge/depletion, effect-destroy protection, opposing manual-target
   protection, generated `大地之魔片`, nested post-payment operations, and
