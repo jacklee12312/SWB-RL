@@ -10,13 +10,13 @@ code and tests as the source of truth when this file drifts.
 - Database: 826 cards, 735 collectible cards, 91 non-collectible/generated
   cards from set `90000`.
 - Latest SVA source: `https://sva.hypd.asia/data/cards.json`.
-- Tests: `python -m unittest discover -s tests -v` currently runs 1063 tests.
+- Tests: `python -m unittest discover -s tests -v` currently runs 1067 tests.
 - RL adapter: fixed 111-action space and 290-feature observation.
 - Ability registry status: 18 implemented, 5 partial, 11 placeholder.
 - Explicit card and demo rules live in `data/rules/`; the current coverage
-  report classifies 109 card IDs with explicit rules, passives, fusion,
+  report classifies 112 card IDs with explicit rules, passives, fusion,
   invocation, activation, Faith, Union Burst, or listener definitions. Current
-  collectible coverage is 75 exact, 6 partial, 636 supported-but-missing-rule,
+  collectible coverage is 78 exact, 6 partial, 633 supported-but-missing-rule,
   0 missing-primitive, and 18 text-unclear cards.
 
 ## Stable Priorities
@@ -145,7 +145,9 @@ slice in this order:
   `event_source` operations. `until_end_of_turn` modifier expiry uses the
   active player at effect resolution rather than assuming the effect
   controller is active, matching the official opponent-turn Q&A for
-  `10122110`.
+  `10122110`. Exact cross-class cards `10151110`, `10541120`, and `10771110`
+  cover named-card event filters, Ocean-Trait healing, Artifact-Trait healing,
+  listener-granted Storm, and evolve-triggered generated-card summon.
 - `select_targets` can bind an ordered selected board-entity tuple to one
   `target_key`; later `previous_target` operations reuse that set in selection
   order and revalidate every member against the original target specification.

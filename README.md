@@ -111,7 +111,9 @@ The deterministic rules core supports:
   Soldier-Trait listeners and multi-operation `event_source` buffs. Temporary
   `until_end_of_turn` modifiers now expire for the actual active player at the
   triggering boundary, matching the official `10122110` Q&A for soldiers that
-  enter during the opponent's turn;
+  enter during the opponent's turn. A cross-class exact batch adds named-Bat
+  Storm/self-damage for `10151110`, Ocean-Trait leader healing for `10541120`,
+  and Artifact-Trait healing plus evolve summon for `10771110`;
 - field-backed `土之印` stacks and structured `土之秘术` payment, including
   Sigil entry/merge/depletion, effect-destroy protection, opposing manual-target
   protection, generated `大地之魔片`, nested post-payment operations, and
