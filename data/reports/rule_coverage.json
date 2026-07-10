@@ -5,12 +5,12 @@
   },
   "summary": {
     "total_cards": 826,
-    "total_with_rules": 101,
+    "total_with_rules": 105,
     "test_or_synthetic_ids_with_rules": 26,
     "coverage_counts": {
-      "covered_exact": 67,
-      "supported_missing_rule": 643,
-      "text_unclear": 19,
+      "covered_exact": 71,
+      "supported_missing_rule": 640,
+      "text_unclear": 18,
       "covered_partial": 6,
       "token_or_non_collectible": 91
     }
@@ -7347,15 +7347,20 @@
       "cost": 2,
       "is_collectible": true,
       "card_set_id": 10003,
-      "coverage": "text_unclear",
-      "reason": "No ability keywords in database",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['listener:board:follower_summoned'], Ops: ['buff_unit']",
       "hit_keywords": [],
       "missing_primitives": [],
       "ability_keywords": [],
       "skill_texts": [
         "自己的妖精·随从进入战场时，本随从+1/+0。"
       ],
-      "support_level": "unsupported"
+      "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "自己的妖精·随从进入战场时，本随从+1/+0。",
+        "notes": "Trait 过滤同时校验数据库 tribe_id 与 tribe_name；同名但不具妖精 Trait 的卡不会触发。"
+      }
     },
     "10311310": {
       "card_id": 10311310,
@@ -9170,8 +9175,8 @@
       "cost": 3,
       "is_collectible": true,
       "card_set_id": 10004,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['灵气', '回合结束', '回复']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['listener:board:turn_ended'], Ops: ['heal_unit', 'heal_leader']",
       "hit_keywords": [
         "灵气",
         "回合结束",
@@ -9184,7 +9189,12 @@
       "skill_texts": [
         "【<color=Keyword>灵气</color>】\n自己的回合结束时，回复自己的战场上的所有随从和自己的主战者1点生命值。"
       ],
-      "support_level": "unsupported"
+      "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【灵气】自己的回合结束时，回复自己的战场上的所有随从和自己的主战者1点生命值。",
+        "notes": "灵气由通用目标保护处理；回合结束监听只在来源控制者的回合触发。"
+      }
     },
     "10403110": {
       "card_id": 10403110,
@@ -11279,8 +11289,8 @@
       "cost": 5,
       "is_collectible": true,
       "card_set_id": 10005,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '进化时', '造成.*伤害', '召唤']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['fanfare', 'evolve', 'listener:board:follower_summoned'], Ops: ['summon', 'summon', 'damage_leader']",
       "hit_keywords": [
         "入场曲",
         "进化时",
@@ -11295,7 +11305,12 @@
       "skill_texts": [
         "【<color=Keyword>入场曲</color>】召唤1个『<color=Keyword>妖精</color>』。\n<hr>自己的妖精·随从进入战场时，对对手的主战者造成1点伤害。\n<hr><ev>【<color=Keyword>进化时</color>】发动与【<color=Keyword>入场曲</color>】相同的能力。</ev>"
       ],
-      "support_level": "unsupported"
+      "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【入场曲】召唤1个『妖精』。自己的妖精·随从进入战场时，对对手的主战者造成1点伤害。【进化时】发动与【入场曲】相同的能力。",
+        "notes": "入场曲和进化时召唤均经过 FOLLOWER_SUMMONED，因而复用同一个 Trait 监听。"
+      }
     },
     "10511310": {
       "card_id": 10511310,
@@ -13740,8 +13755,8 @@
       "cost": 5,
       "is_collectible": true,
       "card_set_id": 10006,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '回复', '召唤']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['fanfare', 'listener:board:follower_summoned'], Ops: ['summon', 'summon', 'heal_leader']",
       "hit_keywords": [
         "入场曲",
         "回复",
@@ -13754,7 +13769,12 @@
       "skill_texts": [
         "【<color=Keyword>入场曲</color>】召唤2个『<color=Keyword>天晶魔手</color>』。\n<hr>自己的『<color=Keyword>天晶魔手</color>』进入战场时，回复自己的主战者1点生命值。"
       ],
-      "support_level": "unsupported"
+      "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【入场曲】召唤2个『天晶魔手』。自己的『天晶魔手』进入战场时，回复自己的主战者1点生命值。",
+        "notes": "两次召唤分别发出事件并各回复1；场地不足时只为实际进入战场的实体触发。"
+      }
     },
     "10632120": {
       "card_id": 10632120,

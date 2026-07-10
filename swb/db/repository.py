@@ -29,6 +29,8 @@ class CardDefinition:
     is_collectible: bool
     fanfare_effects: tuple[EffectDefinition, ...] = ()
     ability_keywords: frozenset[AbilityKeyword] = frozenset()
+    tribe_id: int = 0
+    tribe_name: str = ""
 
     @property
     def abilities(self) -> frozenset[AbilityKeyword]:
@@ -50,7 +52,8 @@ class CardRepository:
                 SELECT c.card_id, c.card_set_id, c.class_id, cl.name,
                        n.name, c.cost, t.name, c.attack, c.life,
                        r.keywords, r.support_level, cs.is_collectible,
-                       GROUP_CONCAT(st.text, char(30))
+                       GROUP_CONCAT(st.text, char(30)),
+                       c.tribe_id, c.tribe_name
                 FROM cards c
                 JOIN card_sets cs ON cs.id = c.card_set_id
                 JOIN classes cl ON cl.id = c.class_id
@@ -95,6 +98,8 @@ class CardRepository:
             ability_keywords=frozenset(
                 AbilityKeyword(ability_row[0]) for ability_row in ability_rows
             ),
+            tribe_id=row[13],
+            tribe_name=row[14],
         )
 
     def cards_with_ability(

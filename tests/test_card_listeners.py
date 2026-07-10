@@ -155,6 +155,8 @@ class ListenerSchemaTests(unittest.TestCase):
                         "card_type": "随从",
                         "class_id": 1,
                         "class_name": "精灵",
+                        "tribe_id": 5,
+                        "tribe_name": "妖精",
                         "cost_min": 2,
                         "cost_max": 4,
                         "card_id": 999200,
@@ -185,6 +187,8 @@ class ListenerSchemaTests(unittest.TestCase):
         self.assertEqual(first.max_activations, 2)
         second = rulebook.listeners_for(999102)[0]
         self.assertEqual(second.event_filter.card_name, "filtered")
+        self.assertEqual(second.event_filter.tribe_id, 5)
+        self.assertEqual(second.event_filter.tribe_name, "妖精")
         self.assertIs(
             second.operations[0].target,
             TargetKind.EVENT_SOURCE,
@@ -205,6 +209,8 @@ class ListenerSchemaTests(unittest.TestCase):
             {**base, "once_per_turn": 1},
             {**base, "max_activations": 0},
             {**base, "event_filter": {"unknown": 1}},
+            {**base, "event_filter": {"tribe_id": True}},
+            {**base, "event_filter": {"tribe_name": ""}},
             {
                 **base,
                 "event": "turn_started",
@@ -292,6 +298,8 @@ class ListenerEventTests(unittest.TestCase):
             name="filtered",
             cost=2,
             keywords=frozenset(),
+            tribe_id=5,
+            tribe_name="妖精",
         )
         definition = _listener(
             listener_card.card_id,
@@ -306,6 +314,8 @@ class ListenerEventTests(unittest.TestCase):
                 card_type="随从",
                 class_id=1,
                 class_name="精灵",
+                tribe_id=5,
+                tribe_name="妖精",
                 cost_min=2,
                 cost_max=2,
                 card_id=400,

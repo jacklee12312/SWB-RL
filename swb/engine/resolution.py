@@ -2295,6 +2295,8 @@ class GameEngine:
             card.card_set_id,
             card.class_id,
             card.class_name,
+            card.tribe_id,
+            card.tribe_name,
             card.name,
             card.cost,
             card.card_type,
@@ -6304,6 +6306,11 @@ class GameEngine:
         event: GameEvent,
     ) -> list[dict[str, object]]:
         event_source, event_definition = self._event_source_card(event)
+        event_active_player = (
+            event.player_index
+            if event.type in {EventType.TURN_STARTED, EventType.TURN_ENDED}
+            else self.state.active_player
+        )
         records: list[dict[str, object]] = []
         for owner in (0, 1):
             player = self.players[owner]
@@ -6354,7 +6361,7 @@ class GameEngine:
                         owner,
                         definition,
                         event,
-                        self.state.active_player,
+                        event_active_player,
                         entity_id,
                     ):
                         continue
@@ -6381,7 +6388,7 @@ class GameEngine:
                         "source_card_id": source_card.card_id,
                         "definition_index": definition_index,
                         "order": (
-                            0 if owner == self.state.active_player else 1,
+                            0 if owner == event_active_player else 1,
                             zone_order,
                             source_order,
                             subtype,

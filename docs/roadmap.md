@@ -10,14 +10,14 @@ code and tests as the source of truth when this file drifts.
 - Database: 826 cards, 735 collectible cards, 91 non-collectible/generated
   cards from set `90000`.
 - Latest SVA source: `https://sva.hypd.asia/data/cards.json`.
-- Tests: `python -m unittest discover -s tests -v` currently runs 1050 tests.
+- Tests: `python -m unittest discover -s tests -v` currently runs 1057 tests.
 - RL adapter: fixed 111-action space and 290-feature observation.
 - Ability registry status: 18 implemented, 5 partial, 11 placeholder.
 - Explicit card and demo rules live in `data/rules/`; the current coverage
-  report classifies 101 card IDs with explicit rules, passives, fusion,
+  report classifies 105 card IDs with explicit rules, passives, fusion,
   invocation, activation, Faith, Union Burst, or listener definitions. Current
-  collectible coverage is 67 exact, 6 partial, 643 supported-but-missing-rule,
-  0 missing-primitive, and 19 text-unclear cards.
+  collectible coverage is 71 exact, 6 partial, 640 supported-but-missing-rule,
+  0 missing-primitive, and 18 text-unclear cards.
 
 ## Stable Priorities
 
@@ -124,8 +124,9 @@ slice in this order:
 - `CardListenerDefinition` provides ordinary board, hand, and leader-area event
   listeners for amulet activation, Fusion, follower summon/evolution/
   destruction, amulet destruction, entity leave-play, card play, and turn
-  boundaries. Event-card filters cover original cost, type, class, ID, name,
-  and runtime keyword; event/turn scopes and self/other relation are explicit;
+  boundaries. Event-card filters cover original cost, card type, class, Trait
+  ID/name, card ID/name, and runtime keyword; event/turn scopes and self/other
+  relation are explicit;
   `once_per_turn` and `max_activations` are fingerprinted and invariant-checked.
   Listener snapshots use active-player-first then board/hand/leader-area stable
   ordering, revalidate later sources, preserve nested `event_source` identity,
@@ -133,6 +134,12 @@ slice in this order:
   active batches and recent accepted listener triggers. Real `10443110` is now
   `covered_exact`; a structured `non_intrinsic_keyword` passive distinguishes
   its conditionally granted Ward from the database's full-text keyword audit.
+  `CardDefinition` now retains normalized database Trait identity and includes
+  it in deterministic fingerprints. Exact real cards `10311120` and `10511120`
+  demonstrate Fairy-Trait listeners, while `10632110` demonstrates a named-card
+  listener. Turn-start/end listener scope and ordering use the event player's
+  timing snapshot rather than the already-switched active player; exact
+  `10402110` covers own-turn-end all-follower/leader healing.
 - `select_targets` can bind an ordered selected board-entity tuple to one
   `target_key`; later `previous_target` operations reuse that set in selection
   order and revalidate every member against the original target specification.

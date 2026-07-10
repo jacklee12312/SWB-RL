@@ -817,6 +817,8 @@ def _parse_event_card_filter(
         "card_type",
         "class_id",
         "class_name",
+        "tribe_id",
+        "tribe_name",
         "cost_min",
         "cost_max",
         "card_id",
@@ -844,6 +846,20 @@ def _parse_event_card_filter(
     if class_name is not None and not isinstance(class_name, str):
         raise ValueError(
             f"{source_path}/event_filter/class_name: must be a string"
+        )
+    tribe_id = raw.get("tribe_id")
+    if tribe_id is not None:
+        tribe_id = _parse_non_negative_int(
+            tribe_id,
+            f"{source_path}/event_filter/tribe_id",
+            card_id,
+        )
+    tribe_name = raw.get("tribe_name")
+    if tribe_name is not None and (
+        not isinstance(tribe_name, str) or not tribe_name
+    ):
+        raise ValueError(
+            f"{source_path}/event_filter/tribe_name: must be a non-empty string"
         )
     cost_min = raw.get("cost_min")
     if cost_min is not None:
@@ -884,6 +900,8 @@ def _parse_event_card_filter(
         card_type=card_type,
         class_id=class_id,
         class_name=class_name,
+        tribe_id=tribe_id,
+        tribe_name=tribe_name,
         cost_min=cost_min,
         cost_max=cost_max,
         card_id=filter_card_id,

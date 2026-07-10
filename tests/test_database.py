@@ -88,6 +88,8 @@ class DatabaseTests(unittest.TestCase):
             token = repository.get(90044110)
             self.assertEqual(token.name, "霸道之金龙")
             self.assertFalse(token.is_collectible)
+            fairy = repository.get(90011110)
+            self.assertEqual((fairy.tribe_id, fairy.tribe_name), (5, "妖精"))
             pool = repository.training_pool()
             self.assertGreater(len(pool), 0)
             self.assertTrue(all(item.card_set_id != 90000 for item in pool))

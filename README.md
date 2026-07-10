@@ -93,14 +93,20 @@ The deterministic rules core supports:
   shared leader area. Rules can observe `amulet_activated`, `card_fused`,
   follower summon/evolution/destruction, amulet destruction, entity leave-play,
   card play, and turn boundaries; filter the event card by type, original cost,
-  class, ID, name, or runtime keyword; scope to owner/opponent/any events and
+  class, Trait ID/name, card ID/name, or runtime keyword; scope to
+  owner/opponent/any events and
   turns; target the exact `event_source`; and enforce per-turn or lifetime
   activation limits. Simultaneous listeners snapshot in active-player-first,
   board/hand/leader-area order, revalidate their source before activation, and
   preserve pending-choice continuations. Real `10443110` now exactly gains
   `守护` when another allied original-cost-2 follower enters play. Its structured
   `non_intrinsic_keyword` annotation also prevents the database's full-text
-  keyword audit field from granting that Ward before the listener fires;
+  keyword audit field from granting that Ward before the listener fires.
+  Repository `CardDefinition` values now retain normalized Trait metadata and
+  fingerprints include it. Trait-aware real rules exactly cover `10311120` and
+  `10511120` reacting to any Fairy-trait follower rather than only a card named
+  Fairy; exact `10402110` uses the ending player's event snapshot for own-turn
+  healing, and `10632110` heals once for each named follower actually summoned;
 - field-backed `土之印` stacks and structured `土之秘术` payment, including
   Sigil entry/merge/depletion, effect-destroy protection, opposing manual-target
   protection, generated `大地之魔片`, nested post-payment operations, and

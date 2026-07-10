@@ -45,6 +45,8 @@ class EventCardFilter:
     card_type: str | None = None
     class_id: int | None = None
     class_name: str | None = None
+    tribe_id: int | None = None
+    tribe_name: str | None = None
     cost_min: int | None = None
     cost_max: int | None = None
     card_id: int | None = None
@@ -63,6 +65,11 @@ class EventCardFilter:
             (self.card_type is None or definition.card_type == self.card_type)
             and (self.class_id is None or definition.class_id == self.class_id)
             and (self.class_name is None or definition.class_name == self.class_name)
+            and (self.tribe_id is None or definition.tribe_id == self.tribe_id)
+            and (
+                self.tribe_name is None
+                or definition.tribe_name == self.tribe_name
+            )
             and (self.cost_min is None or definition.cost >= self.cost_min)
             and (self.cost_max is None or definition.cost <= self.cost_max)
             and (self.card_id is None or definition.card_id == self.card_id)
