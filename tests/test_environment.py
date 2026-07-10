@@ -205,7 +205,7 @@ class EnvironmentTests(unittest.TestCase):
         self.env.step(action)
         self.assertTrue(unit.evolved)
         self.assertTrue(unit.super_evolved)
-        self.assertEqual((unit.attack, unit.health), (4, 5))
+        self.assertEqual((unit.attack, unit.health), (5, 6))
         self.assertEqual(self.env.players[0].evolution_points, 2)
         self.assertEqual(self.env.players[0].super_evolution_points, 1)
         self.assertTrue(self.env.players[0].super_evolved_this_turn)

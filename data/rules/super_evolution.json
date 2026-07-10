@@ -1,0 +1,17 @@
+{
+  "union_bursts": [
+    {
+      "card_id": 10443110,
+      "kind": "union_burst",
+      "coverage": "partial",
+      "implemented_text": "【入场曲】【奥义】本随从超进化。",
+      "unsupported_text": "自己的原始费用为2的随从进入战场时，本随从获得【守护】。",
+      "operations": [
+        {
+          "kind": "super_evolve_unit",
+          "target": "self"
+        }
+      ]
+    }
+  ]
+}

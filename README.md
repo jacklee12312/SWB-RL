@@ -42,11 +42,15 @@ The deterministic rules core supports:
   simultaneous combat damage, and state-based deaths;
 - implemented combat keywords including `守护`, `疾驰`, `突进`, `必杀`, `潜行`,
   `吸血`, and `屏障`;
-- normal evolution and manual super-evolution, including independent
-  super-evolution resources, unlock timing, once-per-turn limits, and same-turn
-  protection from effect damage/destruction only on the turn the follower
-  super-evolved, but not combat damage, even when an opponent-controlled
-  trigger resolves during that turn;
+- normal evolution and manual super-evolution, including correct `+2/+2` and
+  `+3/+3` stat changes, independent resources, unlock timing, once-per-turn
+  limits, all-damage/effect-destroy protection during every turn owned by that
+  follower's controller, and the 1-damage leader bonus when its attack destroys
+  the attacked follower (including destruction by an attack-time ability);
+- structured `super_evolve_unit` effects that grant the complete super-
+  evolution state without spending SEP or consuming the manual once-per-turn
+  action; effect-caused super evolution counts as an evolution but, unlike an
+  SEP action, does not fire `进化时` or `超进化时` keyword abilities;
 - structured effects for damage, healing, draw, summon, destroy, banish, return,
   discard, transform, explicit target-set binding, stat changes, keyword
   changes, cost modifiers, and attack or targeting restrictions;
@@ -161,6 +165,13 @@ that card has a structured Union Burst definition. The gauge is the current
 player turn number plus evolutions completed while that specific card remained
 in hand; entering hand resets its evolution contribution. This adds nine
 features without changing the 111-action layout.
+Automatic super evolution adds no RL action: its public board state reuses the
+existing evolved/super-evolved features, while the unaffected follower slots
+retain their normal manual super-evolution actions. Manual SEP evolution now
+resolves `进化时` before `超进化时`, preserving pending choices and intervening
+`follower_evolved` emblem listeners. These rules follow the
+[official super-evolution overview](https://shadowverse-wb.com/chs/system/cardbattle/battle/)
+and the [official Olivia Q&A](https://shadowverse-wb.com/ja/deck/cardslist/card/?card_id=10104110).
 
 ## Unsupported Or Partial
 
@@ -185,7 +196,10 @@ Known broad gaps include:
 - additional `奥义` cards still require explicit structured definitions; the
   generic gauge, thresholds, activation event, and repeated random target flow
   are implemented, while unsupported card-specific clauses remain visible;
-- non-manual super-evolution edge semantics;
+- additional cards that cause normal evolution, restore SEP, or super-evolve
+  multiple/selected followers still need their own structured rules; real
+  `10443110` covers its `奥义` self-super-evolution but remains partial for its
+  separate cost-2-follower Ward listener;
 - remaining trigger-ordering edge cases beyond the current death-batch
   ordering diagnostics and `death_batch_end` boundary triggers, including
   unsupported `death_batch_start` emblem triggers, plus broad real-card

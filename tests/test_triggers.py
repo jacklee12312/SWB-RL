@@ -118,8 +118,8 @@ class EvolveTriggerTests(unittest.TestCase):
         self.assertTrue(u.evolved)
         self.assertTrue(u.super_evolved)
         self.assertEqual(eng.players[1].health, hp_before - 3)
-        self.assertEqual(u.attack, 4)
-        self.assertEqual(u.health, 5)
+        self.assertEqual(u.attack, 5)
+        self.assertEqual(u.health, 6)
         self.assertTrue(any(e.type is EventType.FOLLOWER_SUPER_EVOLVED for e in eng.event_history))
 
 

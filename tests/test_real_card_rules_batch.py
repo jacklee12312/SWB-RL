@@ -433,7 +433,7 @@ class BehaviorBatch2Tests(unittest.TestCase):
         self.assertNotIn(target, engine.players[1].board)
         self.assertTrue(any(h.card_id == 801 for h in engine.players[1].hand))
 
-    def test_10012120_super_evolve_does_not_prevent_combat_damage(self):
+    def test_10012120_super_evolve_prevents_combat_damage(self):
         engine = self._make_engine()
         engine.reset(seed=42)
         source = Unit.summon(
@@ -472,15 +472,15 @@ class BehaviorBatch2Tests(unittest.TestCase):
 
         engine.apply(Attack(0, source.entity_id, defender.entity_id))
 
-        self.assertEqual(source.health, source.max_health - defender.attack)
+        self.assertEqual(source.health, source.max_health)
         self.assertTrue(any(
-            event.type is EventType.DAMAGE_APPLIED
+            event.type is EventType.DAMAGE_PREVENTED
             and event.target_id == source.entity_id
             and event.metadata.get("damage_type") == "combat"
             for event in engine.event_history
         ))
 
-    def test_10012120_super_evolve_protection_expires_after_turn(self):
+    def test_10012120_super_evolve_protection_persists_on_later_own_turn(self):
         rulebook = RuleBook((
             CardRule(
                 card_id=10012120,
@@ -548,8 +548,13 @@ class BehaviorBatch2Tests(unittest.TestCase):
         )
         engine.apply(damage_choice)
 
-        self.assertEqual(source.health, source.max_health - 3)
+        self.assertEqual(source.health, source.max_health)
         self.assertTrue(any(
+            event.type is EventType.DAMAGE_PREVENTED
+            and event.target_id == source.entity_id
+            for event in engine.event_history
+        ))
+        self.assertFalse(any(
             event.type is EventType.DAMAGE_APPLIED
             and event.target_id == source.entity_id
             and event.metadata.get("damage_type") == "effect"

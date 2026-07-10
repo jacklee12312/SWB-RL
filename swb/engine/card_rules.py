@@ -1247,6 +1247,27 @@ _MULTI_TARGET_TARGETS = frozenset({
     TargetKind.OWN_GRAVEYARD_CARD,
 })
 
+_SUPER_EVOLVE_TARGETS = frozenset({
+    TargetKind.SELF,
+    TargetKind.OWN_UNIT,
+    TargetKind.ENEMY_UNIT,
+    TargetKind.ANY_UNIT,
+    TargetKind.OWN_BOARD,
+    TargetKind.ENEMY_BOARD,
+    TargetKind.ANY_BOARD,
+    TargetKind.RANDOM_OWN_UNIT,
+    TargetKind.RANDOM_ENEMY_UNIT,
+    TargetKind.RANDOM_OWN_BOARD,
+    TargetKind.RANDOM_ENEMY_BOARD,
+    TargetKind.ALL_OWN_UNITS,
+    TargetKind.ALL_ENEMY_UNITS,
+    TargetKind.ALL_UNITS,
+    TargetKind.ALL_OWN_BOARD,
+    TargetKind.ALL_ENEMY_BOARD,
+    TargetKind.ALL_BOARD,
+    TargetKind.PREVIOUS_TARGET,
+})
+
 
 def _validate_target_keys(operations: tuple[EffectOperation, ...], source: str) -> None:
     defined: set[str] = set()
@@ -1602,6 +1623,14 @@ def _parse_operation(raw: dict, source_file: str, card_id: int, _depth: int = 0)
                 f"{source_file}/target card {card_id}: target_exists requires "
                 f"a target with explicit candidate sets, got {target.value!r}"
             )
+    if (
+        kind is EffectKind.SUPER_EVOLVE_UNIT
+        and target not in _SUPER_EVOLVE_TARGETS
+    ):
+        raise ValueError(
+            f"{source_file}/target card {card_id}: super_evolve_unit requires "
+            f"a follower target, got {target.value!r}"
+        )
 
     earth_rite_ops: tuple = ()
     if kind is EffectKind.EARTH_RITE:

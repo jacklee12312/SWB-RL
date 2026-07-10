@@ -10,12 +10,12 @@ code and tests as the source of truth when this file drifts.
 - Database: 826 cards, 735 collectible cards, 91 non-collectible/generated
   cards from set `90000`.
 - Latest SVA source: `https://sva.hypd.asia/data/cards.json`.
-- Tests: `python -m unittest discover -s tests -v` currently runs 992 tests.
+- Tests: `python -m unittest discover -s tests -v` currently runs 1010 tests.
 - RL adapter: fixed 111-action space and 270-feature observation.
 - Ability registry status: 16 implemented, 5 partial, 13 placeholder.
 - Explicit card and demo rules live in `data/rules/`; the current coverage
-  report classifies 98 card IDs with explicit rules, passives, fusion,
-  invocation, activation, or Faith definitions.
+  report classifies 99 card IDs with explicit rules, passives, fusion,
+  invocation, activation, Faith, or Union Burst definitions.
 
 ## Stable Priorities
 
@@ -28,15 +28,18 @@ slice in this order:
 2. Protect RL public information boundaries: default `Env.info()` and
    observations must not leak hidden hand identity, deck order, transcripts, or
    debug-only events.
-3. Implement core class/mechanic conditions one slice at a time. The `觉醒`
-   and `连击` primitive slices are in place; targeting edge cases are next.
-4. Expand targeting and effect edge cases: multi-target choices, no-target
-   branches, duplicate-target policy, source/target leaving play, and zone
-   changes during suspended effects.
-5. Stabilize trigger semantics: ordering, simultaneous deaths, last words,
-   pending choices during triggers, and recursive trigger loop diagnostics.
-6. Finish remaining super-evolution edge semantics, class resources, and class
-   mechanics as official text or real-card rules require them.
+3. Extend targeting only when a verified real rule needs a new hand,
+   graveyard, fallback, or chained-target boundary; true multi-target choices,
+   duplicate policy, and suspended-choice revalidation are in place.
+4. Add new trigger/death boundaries only when a verified real rule requires
+   them; simultaneous deaths, pending trigger choices, and bounded recursive
+   trigger diagnostics are covered.
+5. Extend Earth Rite, Fusion, Invocation, Activate, Faith, and Union Burst one
+   real-card slice at a time without weakening their explicit unsupported
+   clauses.
+6. Extend super-evolution effects only for verified real-card variants; manual
+   and single/all-follower effect semantics, protection, event ordering, and
+   attack-destruction bonus behavior are covered.
 7. Expand real-card coverage only after the necessary generic primitive exists
    and has focused tests.
 
@@ -45,15 +48,32 @@ slice in this order:
 - Deck validation for 40 collectible class/neutral cards.
 - Deterministic reset, shuffle, draw, turns, mana, hand/board limits, and deck
   exhaustion damage.
-- Followers, spells, amulets, combat, evolution, manual super-evolution, and
-  shared board slots.
-- Manual super-evolution protection uses the actual turn player rather than
-  effect controller, so opponent-controlled triggers during the owner's turn
-  cannot bypass same-turn effect damage/destruction prevention. Combat damage
-  is not prevented, and protection is stamped to the exact turn the follower
-  super-evolved so later own turns do not retain it. Real `10012120`
-  super-evolve flows cover both combat damage after its structured trigger
-  resolves and effect damage on a later own turn.
+- Followers, spells, amulets, combat, evolution, manual and effect-caused
+  super-evolution, and shared board slots.
+- Manual super evolution spends SEP, adds `+3/+3`, grants follower-only attack
+  access, and emits `FOLLOWER_EVOLVED` before `FOLLOWER_SUPER_EVOLVED` so
+  `进化时` completes before `超进化时`. A choice in the first trigger suspends
+  the second event, while `follower_evolved` emblem listeners finish between
+  them. Normal evolution remains `+2/+2`.
+- Super-evolution protection uses the actual turn player rather than effect
+  controller. Every own turn of a super-evolved follower prevents all damage,
+  including combat damage, and effect destruction; opponent turns remain
+  unprotected. `super_evolved_turn` is retained as an audit timestamp rather
+  than an expiry condition. Real `10012120` covers combat protection and later
+  own-turn effect protection.
+- A super-evolved follower that attacks and destroys the attacked follower
+  deals 1 damage to the enemy leader. The attack context survives pending
+  trigger choices and recognizes both combat destruction and destruction by an
+  attack-time ability, while return/banish/nonlethal paths do not fabricate the
+  bonus. Context state is invariant-checked, fingerprinted, and included in
+  loop diagnostics.
+- `super_evolve_unit` is a structured, follower-only effect. It applies the
+  complete super-evolution stats/protection/attack state, increments match and
+  hand-gauge evolution counts, and leaves SEP/manual-turn availability intact.
+  Official Q&A semantics are explicit: effect-caused super evolution does not
+  fire `进化时` or `超进化时` keyword abilities. Real `10443110` demonstrates
+  `奥义` self-super-evolution and stays partial only for its separate Ward
+  listener. RL reuses existing public board flags and manual action slots.
 - Core combat keywords: `守护`, `疾驰`, `突进`, `必杀`, `潜行`, `吸血`, `屏障`.
 - Target candidate generation for board, leader, hand, and graveyard choices.
 - `all_board` target support for effects that need one simultaneous candidate
@@ -286,7 +306,10 @@ slice in this order:
   keyword is marked fully implemented.
 - Many real cards are intentionally uncovered or only partly covered by
   structured rules.
-- Non-manual super-evolution edge semantics remain pending.
+- Additional effect-driven normal-evolution cards, SEP restoration, and cards
+  that super-evolve selected/deck-summoned groups remain incremental real-card
+  coverage work; the generic single/all follower super-evolution operation is
+  available without card-ID branches.
 - Trigger ordering and simultaneous-death edge cases beyond the current
   death-batch ordering and mixed-composition diagnostics need broader coverage.
 - Emblem event trigger coverage is intentionally limited to explicit trigger
@@ -333,18 +356,12 @@ slice in this order:
   boundary semantics and real-card recursive trigger combinations as coverage
   expands.
 
-### 3. Super-Evolution Edge Semantics
-
-- Keep non-manual super-evolution unsupported until official text or a real
-  structured rule needs it; add it as a separate vertical slice with command,
-  event, protection, and RL coverage.
-
-### 4. Incremental Real-Card Coverage
+### 3. Incremental Real-Card Coverage
 
 - Add further Faith progression/payoff and Union Burst cards only when their
   complete generic operations can be represented without card-ID branches.
 
-### 5. Coverage Reporting
+### 4. Coverage Reporting
 
 - Refresh rule coverage reports after database updates.
 - Make reports surface newly added cards and newly unsupported keyword text.

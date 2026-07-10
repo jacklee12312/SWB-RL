@@ -125,6 +125,7 @@ _EFFECT_UNIT_ONLY = frozenset({
     EffectKind.REMOVE_KEYWORD,
     EffectKind.TRANSFORM,
     EffectKind.SET_STATS,
+    EffectKind.SUPER_EVOLVE_UNIT,
     EffectKind.ADD_ATTACK_RESTRICTION,
     EffectKind.REMOVE_ATTACK_RESTRICTION,
     EffectKind.ADD_TARGETING_RESTRICTION,
@@ -136,7 +137,11 @@ _EFFECT_AMULET_ONLY = frozenset()
 
 def _effect_compatible(entity: BoardCard, kind: EffectKind) -> bool:
     if kind in _EFFECT_UNIT_ONLY:
-        return isinstance(entity, Unit)
+        if not isinstance(entity, Unit):
+            return False
+        if kind is EffectKind.SUPER_EVOLVE_UNIT:
+            return not entity.evolved
+        return True
     if kind in _EFFECT_AMULET_ONLY:
         return isinstance(entity, Amulet)
     return True

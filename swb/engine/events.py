@@ -14,6 +14,7 @@ class EventType(str, Enum):
     SPELL_RESOLVED = "spell_resolved"
     FOLLOWER_EVOLVED = "follower_evolved"
     FOLLOWER_SUPER_EVOLVED = "follower_super_evolved"
+    SUPER_EVOLUTION_ATTACK_BONUS = "super_evolution_attack_bonus"
     ATTACK_DECLARED = "attack_declared"
     COMBAT_STARTED = "combat_started"
     DAMAGE_DEALT = "damage_dealt"

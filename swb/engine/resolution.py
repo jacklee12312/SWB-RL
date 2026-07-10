@@ -117,6 +117,16 @@ class DamageResult:
     lethal: bool = False
 
 
+@dataclass
+class SuperEvolutionAttackContext:
+    controller: int
+    attacker_id: int
+    target_id: int
+    attacker_card_id: int
+    attacker_name: str
+    bonus_resolved: bool = False
+
+
 class IllegalCommand(ValueError):
     pass
 
@@ -286,6 +296,9 @@ class GameEngine:
         self._suspended_action: str | None = None
         self._suspended_action_state: dict | None = None
         self._suspended_event_state: dict | None = None
+        self._active_super_evolution_attack: (
+            SuperEvolutionAttackContext | None
+        ) = None
         self._spellboost_pending: int | None = None
         self._pending_spellboost_player: int = 0
         self._pending_spellboost_source_card_id: int = 0
@@ -510,6 +523,7 @@ class GameEngine:
         self._suspended_action = None
         self._suspended_action_state = None
         self._suspended_event_state = None
+        self._active_super_evolution_attack = None
         self._spellboost_pending = None
         self._pending_spellboost_player = 0
         self._pending_spellboost_source_card_id = 0
@@ -606,8 +620,12 @@ class GameEngine:
                             "faith_value_after": instance.value,
                             "trigger": trigger.value,
                             "trigger_source_id": event.source_id,
-                            "super_evolution": (
-                                event.type is EventType.FOLLOWER_SUPER_EVOLVED
+                            "super_evolution": bool(
+                                event.metadata.get(
+                                    "super_evolution",
+                                    event.type
+                                    is EventType.FOLLOWER_SUPER_EVOLVED,
+                                )
                             ),
                         },
                     )
@@ -657,6 +675,8 @@ class GameEngine:
         self._resolve_event_queue()
         self._stabilize()
         self._resume_suspended_action()
+        if self._suspended_action != "attack":
+            self._active_super_evolution_attack = None
         if self.config.validate_invariants:
             self.assert_invariants()
         return CoreTransition(
@@ -1971,6 +1991,21 @@ class GameEngine:
                 "has_death_batch": self._suspended_batch is not None,
                 "has_death_record": self._suspended_record is not None,
             },
+            "active_super_evolution_attack": (
+                None
+                if self._active_super_evolution_attack is None
+                else {
+                    "controller": self._active_super_evolution_attack.controller,
+                    "attacker_id": self._active_super_evolution_attack.attacker_id,
+                    "target_id": self._active_super_evolution_attack.target_id,
+                    "attacker_card_id": (
+                        self._active_super_evolution_attack.attacker_card_id
+                    ),
+                    "bonus_resolved": (
+                        self._active_super_evolution_attack.bonus_resolved
+                    ),
+                }
+            ),
             "logs_tail": self.logs[-10:],
         }
 
@@ -2077,6 +2112,18 @@ class GameEngine:
                 "stabilizing": self._stabilizing,
                 "next_modifier_id": self._next_modifier_id,
                 "next_choice_request_id": self._next_choice_request_id,
+                "active_super_evolution_attack": (
+                    None
+                    if self._active_super_evolution_attack is None
+                    else (
+                        self._active_super_evolution_attack.controller,
+                        self._active_super_evolution_attack.attacker_id,
+                        self._active_super_evolution_attack.target_id,
+                        self._active_super_evolution_attack.attacker_card_id,
+                        self._active_super_evolution_attack.attacker_name,
+                        self._active_super_evolution_attack.bonus_resolved,
+                    )
+                ),
             },
         }
 
@@ -2830,10 +2877,7 @@ class GameEngine:
         target: Unit,
         damage_type: DamageType,
     ) -> bool:
-        return (
-            damage_type is DamageType.EFFECT
-            and self._super_evolution_protection_active(target)
-        )
+        return self._super_evolution_protection_active(target)
 
     def _super_evolution_prevents_effect_destroy(self, target: Unit) -> bool:
         return self._super_evolution_protection_active(target)
@@ -2841,7 +2885,6 @@ class GameEngine:
     def _super_evolution_protection_active(self, target: Unit) -> bool:
         return (
             target.super_evolved
-            and target.super_evolved_turn == self.turn
             and self._unit_is_on_owners_turn(target)
         )
 
@@ -3963,27 +4006,19 @@ class GameEngine:
             if player.turns_started < self.config.evolution_unlock_turn:
                 raise IllegalCommand("Evolution is not unlocked")
 
-        could_attack_leader = unit.can_attack_leader
-        unit.evolved = True
-        unit.super_evolved = super_evolve
-        unit.super_evolved_turn = self.turn if super_evolve else None
-        unit.base_attack += 2
-        unit.base_health += 2
-        unit._recompute_attack()
-        unit.health += 2
-        unit._recompute_max()
         if super_evolve:
             player.super_evolution_points -= 1
             player.super_evolved_this_turn = True
         else:
             player.evolution_points -= 1
         player.evolved_this_turn = True
-        player.followers_evolved_this_match += 1
-        for hand_card in self._hand_cards(self.current_player):
-            hand_card.evolutions_while_in_hand += 1
-        if unit.attacks_remaining > 0:
-            unit.can_attack = True
-            unit.rush_only = not could_attack_leader
+        self._apply_evolution_state(
+            unit,
+            self.current_player,
+            super_evolve=super_evolve,
+            cause="sep" if super_evolve else "ep",
+            trigger_abilities=True,
+        )
         action_name = "超进化" if super_evolve else "进化"
         resource_text = (
             f"剩余超进化次数 {player.super_evolution_points}"
@@ -3995,22 +4030,80 @@ class GameEngine:
             f"{action_name} {unit.definition.name}，变为 {unit.attack}/{unit.health}，"
             f"{resource_text}",
         )
-        self._emit(
-            GameEvent(
-                EventType.FOLLOWER_SUPER_EVOLVED if super_evolve else EventType.FOLLOWER_EVOLVED,
-                self.current_player,
-                source_id=unit.entity_id,
-                metadata={
-                    "source": unit,
-                    "evolutions_this_match": player.followers_evolved_this_match,
-                },
-            )
-        )
         self._resolve_event_queue()
         if self.state.pending_choice is not None:
             self._suspended_action = "super_evolve" if super_evolve else "evolve"
             self._suspended_action_state = {"unit_id": unit.entity_id}
             return
+
+    def _apply_evolution_state(
+        self,
+        unit: Unit,
+        owner: int,
+        *,
+        super_evolve: bool,
+        cause: str,
+        trigger_abilities: bool,
+    ) -> bool:
+        if unit.evolved:
+            return False
+        could_attack_leader = unit.can_attack_leader
+        stat_bonus = 3 if super_evolve else 2
+        unit.evolved = True
+        unit.super_evolved = super_evolve
+        unit.super_evolved_turn = self.turn if super_evolve else None
+        unit.base_attack += stat_bonus
+        unit.base_health += stat_bonus
+        unit._recompute_attack()
+        unit.health += stat_bonus
+        unit._recompute_max()
+        if unit.attacks_remaining > 0:
+            unit.can_attack = True
+            unit.rush_only = not could_attack_leader
+
+        player = self.players[owner]
+        player.followers_evolved_this_match += 1
+        for hand_card in self._hand_cards(owner):
+            hand_card.evolutions_while_in_hand += 1
+
+        metadata = {
+            "source": unit,
+            "cause": cause,
+            "trigger_abilities": trigger_abilities,
+            "evolutions_this_match": player.followers_evolved_this_match,
+            "super_evolution": super_evolve,
+        }
+        if super_evolve and trigger_abilities:
+            self._emit(
+                GameEvent(
+                    EventType.FOLLOWER_EVOLVED,
+                    owner,
+                    source_id=unit.entity_id,
+                    metadata={**metadata, "counts_as_evolution": True},
+                )
+            )
+            self._emit(
+                GameEvent(
+                    EventType.FOLLOWER_SUPER_EVOLVED,
+                    owner,
+                    source_id=unit.entity_id,
+                    metadata={**metadata, "counts_as_evolution": False},
+                )
+            )
+        else:
+            self._emit(
+                GameEvent(
+                    (
+                        EventType.FOLLOWER_SUPER_EVOLVED
+                        if super_evolve
+                        else EventType.FOLLOWER_EVOLVED
+                    ),
+                    owner,
+                    source_id=unit.entity_id,
+                    metadata={**metadata, "counts_as_evolution": True},
+                )
+            )
+        return True
 
     def _attack(self, command: Attack) -> None:
         if self._suspended_action_state is not None and self._suspended_action == "attack":
@@ -4038,6 +4131,18 @@ class GameEngine:
                 raise IllegalCommand("Cannot attack an ambush follower")
             if guards and target not in guards:
                 raise IllegalCommand("A guard follower must be attacked")
+
+        self._active_super_evolution_attack = (
+            SuperEvolutionAttackContext(
+                controller=self.current_player,
+                attacker_id=attacker.entity_id,
+                target_id=target.entity_id,
+                attacker_card_id=attacker.definition.card_id,
+                attacker_name=attacker.definition.name,
+            )
+            if target is not None and attacker.super_evolved
+            else None
+        )
 
         self._emit(
             GameEvent(
@@ -5174,6 +5279,8 @@ class GameEngine:
             self._execute_transform(effect, frame, target_id)
         elif effect.kind is EffectKind.SET_STATS:
             self._execute_set_stats(effect, frame, target_id)
+        elif effect.kind is EffectKind.SUPER_EVOLVE_UNIT:
+            self._execute_super_evolve_unit(frame, target_id)
         elif effect.kind is EffectKind.ADD_ATTACK_RESTRICTION:
             self._execute_attack_restriction(effect, frame, target_id, add=True)
         elif effect.kind is EffectKind.REMOVE_ATTACK_RESTRICTION:
@@ -5217,6 +5324,33 @@ class GameEngine:
                 frame.controller,
                 f"[未实现效果] {name} {frame.label}: {effect.kind.value}",
             )
+
+    def _execute_super_evolve_unit(
+        self,
+        frame: EffectFrame,
+        target_id: int | None,
+    ) -> None:
+        try:
+            target = self._find_board_entity(target_id)
+        except IllegalCommand:
+            return
+        if not isinstance(target, Unit) or target.evolved:
+            return
+        owner = self._entity_owner(target.entity_id)
+        if not self._apply_evolution_state(
+            target,
+            owner,
+            super_evolve=True,
+            cause="effect",
+            trigger_abilities=False,
+        ):
+            return
+        self._log(
+            frame.controller,
+            f"{frame.source_name} {frame.label}使 "
+            f"{target.definition.name} 超进化，变为 "
+            f"{target.attack}/{target.health}",
+        )
 
     def _execute_add_combo(
         self,
@@ -6872,6 +7006,34 @@ class GameEngine:
                 )
                 return
 
+    @staticmethod
+    def _event_counts_as_evolution(event: GameEvent) -> bool:
+        return (
+            event.type is EventType.FOLLOWER_EVOLVED
+            or (
+                event.type is EventType.FOLLOWER_SUPER_EVOLVED
+                and bool(event.metadata.get("counts_as_evolution", True))
+            )
+        )
+
+    def _emblem_trigger_for_event(self, event: GameEvent) -> str | None:
+        trigger = {
+            EventType.CARD_PLAYED: "card_played",
+            EventType.FOLLOWER_SUMMONED: "follower_summoned",
+            EventType.FOLLOWER_EVOLVED: "follower_evolved",
+            EventType.FOLLOWER_DESTROYED: "follower_destroyed",
+            EventType.AMULET_DESTROYED: "amulet_destroyed",
+            EventType.DEATH_BATCH_END: "death_batch_end",
+            EventType.LEADER_HEALED: "leader_healed",
+            EventType.AMULET_ACTIVATED: "amulet_activated",
+        }.get(event.type)
+        if (
+            event.type is EventType.FOLLOWER_SUPER_EVOLVED
+            and self._event_counts_as_evolution(event)
+        ):
+            return "follower_evolved"
+        return trigger
+
     def _resolve_event_queue(self) -> None:
         if self._suspended_event_state is not None and self.state.pending_choice is None:
             if self._event_emblem_batch_active():
@@ -6889,30 +7051,22 @@ class GameEngine:
             EventType.DAMAGE_DEALT: AbilityEvent.AFTER_DAMAGE,
             EventType.FOLLOWER_DESTROYED: AbilityEvent.FOLLOWER_DESTROYED,
         }
-        event_to_emblem_trigger = {
-            EventType.CARD_PLAYED: "card_played",
-            EventType.FOLLOWER_SUMMONED: "follower_summoned",
-            EventType.FOLLOWER_EVOLVED: "follower_evolved",
-            EventType.FOLLOWER_DESTROYED: "follower_destroyed",
-            EventType.AMULET_DESTROYED: "amulet_destroyed",
-            EventType.DEATH_BATCH_END: "death_batch_end",
-            EventType.LEADER_HEALED: "leader_healed",
-            EventType.AMULET_ACTIVATED: "amulet_activated",
-        }
         while self.state.event_queue:
             self._step()
             event = self.state.event_queue.popleft()
             self.event_history.append(event)
-            if event.type in {
-                EventType.FOLLOWER_EVOLVED,
-                EventType.FOLLOWER_SUPER_EVOLVED,
-            }:
+            if event.type is EventType.FOLLOWER_DESTROYED:
+                self._resolve_super_evolution_attack_bonus(event)
+            counts_as_evolution = self._event_counts_as_evolution(event)
+            if counts_as_evolution:
                 self._advance_faiths_for_event(
                     event.player_index,
                     FaithTrigger.FOLLOWER_EVOLVED,
                     event,
                 )
             ability_event = event_to_ability.get(event.type)
+            if event.metadata.get("trigger_abilities") is False:
+                ability_event = None
             if (
                 event.type is EventType.FOLLOWER_SUMMONED
                 and event.metadata.get("via") != "play"
@@ -6939,6 +7093,7 @@ class GameEngine:
                 if self.state.pending_choice is not None:
                     self._save_event_continuation(event, source, target, ability_event, phase="source_done")
                     return
+
                 if event.type is EventType.COMBAT_STARTED and isinstance(target, Unit):
                     self._dispatch_ability(
                         ability_event,
@@ -6949,7 +7104,7 @@ class GameEngine:
                     if self.state.pending_choice is not None:
                         self._save_event_continuation(event, source, target, ability_event, phase="target_done")
                         return
-            emblem_trigger = event_to_emblem_trigger.get(event.type)
+            emblem_trigger = self._emblem_trigger_for_event(event)
             if emblem_trigger is not None:
                 self._dispatch_emblem_triggers(
                     event.player_index,
@@ -6967,6 +7122,46 @@ class GameEngine:
                         phase="emblems_done",
                     )
                     return
+
+    def _resolve_super_evolution_attack_bonus(
+        self,
+        event: GameEvent,
+    ) -> None:
+        context = self._active_super_evolution_attack
+        if (
+            context is None
+            or context.bonus_resolved
+            or event.source_id != context.target_id
+        ):
+            return
+        context.bonus_resolved = True
+        target_player = 1 - context.controller
+        self._emit(
+            GameEvent(
+                EventType.SUPER_EVOLUTION_ATTACK_BONUS,
+                context.controller,
+                source_id=context.attacker_id,
+                target_id=_leader_target_id(target_player),
+                amount=1,
+                metadata={
+                    "attacker_card_id": context.attacker_card_id,
+                    "destroyed_follower_id": context.target_id,
+                },
+            )
+        )
+        self.apply_damage(
+            None,
+            None,
+            1,
+            DamageType.EFFECT,
+            context.controller,
+            target_player_index=target_player,
+        )
+        self._log(
+            context.controller,
+            f"{context.attacker_name} 的超进化攻击规则对对方主战者造成 1 点伤害"
+            f"（生命 {self.players[target_player].health}）",
+        )
 
     def _save_event_continuation(self, event, source, target, ability_event, phase):
         remaining = []
@@ -7001,6 +7196,21 @@ class GameEngine:
                 state["phase"] = "target_done"
                 self._suspended_event_state = state
                 return
+
+        if phase in {"source_done", "target_done"}:
+            emblem_trigger = self._emblem_trigger_for_event(event)
+            if emblem_trigger is not None:
+                self._dispatch_emblem_triggers(
+                    event.player_index,
+                    emblem_trigger,
+                    event_player=event.player_index,
+                    source_id=event.source_id,
+                    event_metadata=event.metadata,
+                )
+                if self.state.pending_choice is not None:
+                    state["phase"] = "emblems_done"
+                    self._suspended_event_state = state
+                    return
 
         remaining = state["remaining_events"]
         for e in remaining:
@@ -7383,6 +7593,31 @@ class GameEngine:
                 raise IllegalCommand("Invariant failed: terminated state must be FINISHED")
         elif state.phase is Phase.FINISHED:
             raise IllegalCommand("Invariant failed: FINISHED phase without termination")
+
+        attack_context = self._active_super_evolution_attack
+        if attack_context is not None:
+            if attack_context.controller not in (0, 1):
+                raise IllegalCommand(
+                    "Invariant failed: super-evolution attack controller out of range"
+                )
+            for field_name, value in (
+                ("attacker_id", attack_context.attacker_id),
+                ("target_id", attack_context.target_id),
+                ("attacker_card_id", attack_context.attacker_card_id),
+            ):
+                if (
+                    not isinstance(value, int)
+                    or isinstance(value, bool)
+                    or value <= 0
+                ):
+                    raise IllegalCommand(
+                        "Invariant failed: super-evolution attack "
+                        f"{field_name} must be positive"
+                    )
+            if not isinstance(attack_context.bonus_resolved, bool):
+                raise IllegalCommand(
+                    "Invariant failed: super-evolution attack bonus flag invalid"
+                )
 
         if state.pending_choice is not None:
             request = state.pending_choice

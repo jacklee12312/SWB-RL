@@ -121,6 +121,7 @@ class EffectKind(str, Enum):
     RETURN_TO_DECK = "return_to_deck"
     DISCARD = "discard"
     SET_STATS = "set_stats"
+    SUPER_EVOLVE_UNIT = "super_evolve_unit"
     ADD_ATTACK_RESTRICTION = "add_attack_restriction"
     REMOVE_ATTACK_RESTRICTION = "remove_attack_restriction"
     ADD_TARGETING_RESTRICTION = "add_targeting_restriction"

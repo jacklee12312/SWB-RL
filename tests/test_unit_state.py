@@ -164,7 +164,7 @@ class SuperEvolveProtectionTests(unittest.TestCase):
         self.assertEqual(result.prevented_amount, 3)
         self.assertEqual(result.actual_amount, 0)
 
-    def test_super_evolved_follower_takes_effect_damage_on_later_own_turn(self):
+    def test_super_evolved_follower_prevents_effect_damage_on_later_own_turn(self):
         eng = mkengine()
         unit = mkunit(eng, 1, attack=1, life=5)
         self._mark_super_evolved_this_turn(eng, unit)
@@ -174,8 +174,9 @@ class SuperEvolveProtectionTests(unittest.TestCase):
 
         result = eng.apply_damage(None, unit, 3, DamageType.EFFECT, 0)
 
-        self.assertEqual(unit.health, 2)
-        self.assertEqual(result.actual_amount, 3)
+        self.assertEqual(unit.health, 5)
+        self.assertEqual(result.prevented_amount, 3)
+        self.assertEqual(result.actual_amount, 0)
 
     def test_super_evolved_follower_can_take_damage_on_opponents_turn(self):
         eng = mkengine()
@@ -187,7 +188,7 @@ class SuperEvolveProtectionTests(unittest.TestCase):
         self.assertEqual(unit.health, 2)
         self.assertEqual(result.actual_amount, 3)
 
-    def test_super_evolved_follower_takes_combat_damage_on_own_turn(self):
+    def test_super_evolved_follower_prevents_combat_damage_on_own_turn(self):
         eng = mkengine()
         attacker = mkunit(eng, 1, attack=2, life=5)
         self._mark_super_evolved_this_turn(eng, attacker)
@@ -198,9 +199,9 @@ class SuperEvolveProtectionTests(unittest.TestCase):
 
         eng.apply(Attack(0, attacker.entity_id, defender.entity_id))
 
-        self.assertEqual(attacker.health, 2)
+        self.assertEqual(attacker.health, 5)
         self.assertTrue(any(
-            event.type is EventType.DAMAGE_APPLIED
+            event.type is EventType.DAMAGE_PREVENTED
             and event.target_id == attacker.entity_id
             and event.metadata.get("damage_type") == DamageType.COMBAT.value
             for event in eng.event_history
@@ -222,7 +223,7 @@ class SuperEvolveProtectionTests(unittest.TestCase):
         self.assertIn(unit, eng.players[0].board)
         self.assertEqual(unit.health, 5)
 
-    def test_super_evolved_follower_can_be_effect_destroyed_on_later_own_turn(self):
+    def test_super_evolved_follower_prevents_effect_destroy_on_later_own_turn(self):
         rulebook = RuleBook((CardRule(
             card_id=100,
             trigger=Trigger.PLAY,
@@ -239,7 +240,7 @@ class SuperEvolveProtectionTests(unittest.TestCase):
 
         self._play_spell_and_choose_entity(eng, 0, unit.entity_id)
 
-        self.assertNotIn(unit, eng.players[0].board)
+        self.assertIn(unit, eng.players[0].board)
 
     def test_super_evolved_follower_can_be_effect_destroyed_on_opponents_turn(self):
         rulebook = RuleBook((CardRule(
