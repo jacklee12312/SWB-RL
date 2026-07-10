@@ -5,14 +5,14 @@
   },
   "summary": {
     "total_cards": 826,
-    "total_with_rules": 97,
+    "total_with_rules": 98,
     "test_or_synthetic_ids_with_rules": 26,
     "coverage_counts": {
       "covered_exact": 63,
-      "supported_missing_rule": 605,
+      "supported_missing_rule": 608,
       "text_unclear": 19,
-      "missing_primitive": 42,
-      "covered_partial": 6,
+      "missing_primitive": 38,
+      "covered_partial": 7,
       "token_or_non_collectible": 91
     }
   },
@@ -286,8 +286,8 @@
       "covered": true
     },
     "信仰": {
-      "primitive": "FAITH (placeholder)",
-      "covered": false
+      "primitive": "Faith leader-area state / evolution trigger",
+      "covered": true
     },
     "必杀": {
       "primitive": "BANE keyword",
@@ -2289,6 +2289,7 @@
       "missing_primitives": [],
       "ability_keywords": [
         "入场曲",
+        "疾驰",
         "纹章",
         "进化时"
       ],
@@ -2790,15 +2791,17 @@
       "is_collectible": true,
       "card_set_id": 10001,
       "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['谢幕曲', '进化时', '超进化', '纹章']",
+      "reason": "Covered keywords: ['谢幕曲', '进化时', '超进化', '倒数', '纹章']",
       "hit_keywords": [
         "谢幕曲",
         "进化时",
         "超进化",
+        "倒数",
         "纹章"
       ],
       "missing_primitives": [],
       "ability_keywords": [
+        "倒数",
         "疾驰",
         "纹章",
         "谢幕曲",
@@ -3095,17 +3098,20 @@
       "is_collectible": true,
       "card_set_id": 10001,
       "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '进化时', '造成.*伤害', '纹章', '土之秘术|土之印']",
+      "reason": "Covered keywords: ['入场曲', '进化时', '倒数', '造成.*伤害', '纹章', '土之秘术|土之印']",
       "hit_keywords": [
         "入场曲",
         "进化时",
+        "倒数",
         "造成.*伤害",
         "纹章",
         "土之秘术|土之印"
       ],
       "missing_primitives": [],
       "ability_keywords": [
+        "倒数",
         "入场曲",
+        "土之秘术",
         "纹章",
         "进化时"
       ],
@@ -4131,10 +4137,12 @@
       "reason": "Triggers: ['fanfare', 'emblem_source'], Ops: ['gain_emblem', 'damage_leader', 'damage_leader']",
       "hit_keywords": [
         "入场曲",
+        "倒数",
         "纹章"
       ],
       "missing_primitives": [],
       "ability_keywords": [
+        "倒数",
         "入场曲",
         "纹章"
       ],
@@ -4582,13 +4590,16 @@
       "is_collectible": true,
       "card_set_id": 10001,
       "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['谢幕曲', '纹章']",
+      "reason": "Covered keywords: ['谢幕曲', '倒数', '纹章']",
       "hit_keywords": [
         "谢幕曲",
+        "倒数",
         "纹章"
       ],
       "missing_primitives": [],
       "ability_keywords": [
+        "倒数",
+        "疾驰",
         "纹章",
         "谢幕曲"
       ],
@@ -5138,15 +5149,17 @@
       "is_collectible": true,
       "card_set_id": 10001,
       "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '进化时', '抽取', '纹章']",
+      "reason": "Covered keywords: ['入场曲', '进化时', '倒数', '抽取', '纹章']",
       "hit_keywords": [
         "入场曲",
         "进化时",
+        "倒数",
         "抽取",
         "纹章"
       ],
       "missing_primitives": [],
       "ability_keywords": [
+        "倒数",
         "入场曲",
         "纹章",
         "进化时"
@@ -6042,13 +6055,16 @@
       "is_collectible": true,
       "card_set_id": 10002,
       "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['纹章', '土之秘术|土之印']",
+      "reason": "Covered keywords: ['倒数', '纹章', '土之秘术|土之印']",
       "hit_keywords": [
+        "倒数",
         "纹章",
         "土之秘术|土之印"
       ],
       "missing_primitives": [],
       "ability_keywords": [
+        "倒数",
+        "土之秘术",
         "纹章"
       ],
       "skill_texts": [
@@ -6598,17 +6614,19 @@
       "is_collectible": true,
       "card_set_id": 10002,
       "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '进化时', '超进化', '亡者召还', '纹章']",
+      "reason": "Covered keywords: ['入场曲', '进化时', '超进化', '倒数', '亡者召还', '纹章']",
       "hit_keywords": [
         "入场曲",
         "进化时",
         "超进化",
+        "倒数",
         "亡者召还",
         "纹章"
       ],
       "missing_primitives": [],
       "ability_keywords": [
         "亡者召还",
+        "倒数",
         "入场曲",
         "守护",
         "纹章",
@@ -6796,14 +6814,18 @@
       "is_collectible": true,
       "card_set_id": 10002,
       "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['回复', '纹章']",
+      "reason": "Covered keywords: ['谢幕曲', '倒数', '回复', '纹章']",
       "hit_keywords": [
+        "谢幕曲",
+        "倒数",
         "回复",
         "纹章"
       ],
       "missing_primitives": [],
       "ability_keywords": [
-        "纹章"
+        "倒数",
+        "纹章",
+        "谢幕曲"
       ],
       "skill_texts": [
         "回复自己的主战者10点生命值。使自己获得『纹章：疯狂的恩宠』。"
@@ -7494,16 +7516,18 @@
       "is_collectible": true,
       "card_set_id": 10003,
       "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '进化时', '超进化', '回复', '纹章']",
+      "reason": "Covered keywords: ['入场曲', '进化时', '超进化', '倒数', '回复', '纹章']",
       "hit_keywords": [
         "入场曲",
         "进化时",
         "超进化",
+        "倒数",
         "回复",
         "纹章"
       ],
       "missing_primitives": [],
       "ability_keywords": [
+        "倒数",
         "入场曲",
         "潜行",
         "纹章",
@@ -7779,17 +7803,23 @@
       "is_collectible": true,
       "card_set_id": 10003,
       "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '进化时', '将.*加入手牌', '纹章']",
+      "reason": "Covered keywords: ['入场曲', '谢幕曲', '进化时', '倒数', '将.*加入手牌', '纹章', '融合']",
       "hit_keywords": [
         "入场曲",
+        "谢幕曲",
         "进化时",
+        "倒数",
         "将.*加入手牌",
-        "纹章"
+        "纹章",
+        "融合"
       ],
       "missing_primitives": [],
       "ability_keywords": [
+        "倒数",
         "入场曲",
         "纹章",
+        "融合",
+        "谢幕曲",
         "进化时"
       ],
       "skill_texts": [
@@ -7854,13 +7884,17 @@
       "is_collectible": true,
       "card_set_id": 10003,
       "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['纹章']",
+      "reason": "Covered keywords: ['谢幕曲', '倒数', '纹章']",
       "hit_keywords": [
+        "谢幕曲",
+        "倒数",
         "纹章"
       ],
       "missing_primitives": [],
       "ability_keywords": [
-        "纹章"
+        "倒数",
+        "纹章",
+        "谢幕曲"
       ],
       "skill_texts": [
         "使自己获得『纹章：水晶的指引』。"
@@ -8506,16 +8540,18 @@
       "cost": 2,
       "is_collectible": true,
       "card_set_id": 10003,
-      "coverage": "missing_primitive",
-      "reason": "Missing primitives: ['信仰']",
+      "coverage": "supported_missing_rule",
+      "reason": "Covered keywords: ['入场曲', '进化时', '超进化', '破坏', '信仰', '选择一项|模式']",
       "hit_keywords": [
         "入场曲",
         "进化时",
         "超进化",
         "破坏",
+        "信仰",
         "选择一项|模式"
       ],
-      "missing_primitives": [
+      "missing_primitives": [],
+      "missing_rule_mechanics": [
         "信仰"
       ],
       "ability_keywords": [
@@ -8563,14 +8599,17 @@
       "is_collectible": true,
       "card_set_id": 10003,
       "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '纹章']",
+      "reason": "Covered keywords: ['入场曲', '倒数', '纹章']",
       "hit_keywords": [
         "入场曲",
+        "倒数",
         "纹章"
       ],
       "missing_primitives": [],
       "ability_keywords": [
+        "倒数",
         "入场曲",
+        "守护",
         "纹章"
       ],
       "skill_texts": [
@@ -8634,13 +8673,15 @@
       "is_collectible": true,
       "card_set_id": 10003,
       "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '纹章']",
+      "reason": "Covered keywords: ['入场曲', '倒数', '纹章']",
       "hit_keywords": [
         "入场曲",
+        "倒数",
         "纹章"
       ],
       "missing_primitives": [],
       "ability_keywords": [
+        "倒数",
         "入场曲",
         "守护",
         "纹章"
@@ -8722,15 +8763,17 @@
       "is_collectible": true,
       "card_set_id": 10003,
       "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '进化时', '破坏', '纹章']",
+      "reason": "Covered keywords: ['入场曲', '进化时', '倒数', '破坏', '纹章']",
       "hit_keywords": [
         "入场曲",
         "进化时",
+        "倒数",
         "破坏",
         "纹章"
       ],
       "missing_primitives": [],
       "ability_keywords": [
+        "倒数",
         "入场曲",
         "纹章",
         "进化时"
@@ -8780,15 +8823,17 @@
       "is_collectible": true,
       "card_set_id": 10003,
       "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '进化时', '超进化', '纹章']",
+      "reason": "Covered keywords: ['入场曲', '进化时', '超进化', '倒数', '纹章']",
       "hit_keywords": [
         "入场曲",
         "进化时",
         "超进化",
+        "倒数",
         "纹章"
       ],
       "missing_primitives": [],
       "ability_keywords": [
+        "倒数",
         "入场曲",
         "纹章",
         "超进化时"
@@ -9212,6 +9257,7 @@
         "入场曲",
         "瞬念召唤",
         "回合开始",
+        "倒数",
         "造成.*伤害",
         "召唤",
         "返回手牌",
@@ -9221,6 +9267,7 @@
         "奥义"
       ],
       "ability_keywords": [
+        "倒数",
         "入场曲",
         "奥义",
         "瞬念召唤",
@@ -9359,15 +9406,19 @@
       "is_collectible": true,
       "card_set_id": 10004,
       "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['连击', '造成.*伤害', '纹章']",
+      "reason": "Covered keywords: ['谢幕曲', '连击', '倒数', '造成.*伤害', '纹章']",
       "hit_keywords": [
+        "谢幕曲",
         "连击",
+        "倒数",
         "造成.*伤害",
         "纹章"
       ],
       "missing_primitives": [],
       "ability_keywords": [
+        "倒数",
         "纹章",
+        "谢幕曲",
         "连击"
       ],
       "skill_texts": [
@@ -9467,16 +9518,18 @@
       "is_collectible": true,
       "card_set_id": 10004,
       "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '进化时', '超进化', '造成.*伤害', '纹章']",
+      "reason": "Covered keywords: ['入场曲', '进化时', '超进化', '倒数', '造成.*伤害', '纹章']",
       "hit_keywords": [
         "入场曲",
         "进化时",
         "超进化",
+        "倒数",
         "造成.*伤害",
         "纹章"
       ],
       "missing_primitives": [],
       "ability_keywords": [
+        "倒数",
         "入场曲",
         "纹章",
         "超进化时"
@@ -9978,6 +10031,7 @@
       ],
       "ability_keywords": [
         "入场曲",
+        "土之秘术",
         "奥义",
         "纹章"
       ],
@@ -10040,12 +10094,14 @@
       "is_collectible": true,
       "card_set_id": 10004,
       "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['纹章']",
+      "reason": "Covered keywords: ['倒数', '纹章']",
       "hit_keywords": [
+        "倒数",
         "纹章"
       ],
       "missing_primitives": [],
       "ability_keywords": [
+        "倒数",
         "纹章"
       ],
       "skill_texts": [
@@ -10289,13 +10345,15 @@
       "is_collectible": true,
       "card_set_id": 10004,
       "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['造成.*伤害', '纹章']",
+      "reason": "Covered keywords: ['倒数', '造成.*伤害', '纹章']",
       "hit_keywords": [
+        "倒数",
         "造成.*伤害",
         "纹章"
       ],
       "missing_primitives": [],
       "ability_keywords": [
+        "倒数",
         "纹章"
       ],
       "skill_texts": [
@@ -10412,6 +10470,7 @@
       "coverage": "missing_primitive",
       "reason": "Missing primitives: ['奥义']",
       "hit_keywords": [
+        "倒数",
         "破坏",
         "纹章"
       ],
@@ -10419,6 +10478,7 @@
         "奥义"
       ],
       "ability_keywords": [
+        "倒数",
         "奥义",
         "纹章"
       ],
@@ -10466,8 +10526,10 @@
       "reason": "Missing primitives: ['奥义']",
       "hit_keywords": [
         "入场曲",
+        "谢幕曲",
         "进化时",
         "超进化",
+        "倒数",
         "造成.*伤害",
         "纹章"
       ],
@@ -10475,9 +10537,11 @@
         "奥义"
       ],
       "ability_keywords": [
+        "倒数",
         "入场曲",
         "奥义",
         "纹章",
+        "谢幕曲",
         "超进化时"
       ],
       "skill_texts": [
@@ -10964,6 +11028,7 @@
       "reason": "Missing primitives: ['奥义']",
       "hit_keywords": [
         "入场曲",
+        "倒数",
         "造成.*伤害",
         "纹章"
       ],
@@ -10971,8 +11036,10 @@
         "奥义"
       ],
       "ability_keywords": [
+        "倒数",
         "入场曲",
         "奥义",
+        "疾驰",
         "纹章"
       ],
       "skill_texts": [
@@ -11627,16 +11694,18 @@
       "is_collectible": true,
       "card_set_id": 10005,
       "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '进化时', '超进化', '消失', '纹章']",
+      "reason": "Covered keywords: ['入场曲', '进化时', '超进化', '倒数', '消失', '纹章']",
       "hit_keywords": [
         "入场曲",
         "进化时",
         "超进化",
+        "倒数",
         "消失",
         "纹章"
       ],
       "missing_primitives": [],
       "ability_keywords": [
+        "倒数",
         "入场曲",
         "纹章",
         "超进化时"
@@ -11727,17 +11796,21 @@
       "is_collectible": true,
       "card_set_id": 10005,
       "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '进化时', '破坏', '纹章']",
+      "reason": "Covered keywords: ['入场曲', '谢幕曲', '进化时', '倒数', '破坏', '纹章']",
       "hit_keywords": [
         "入场曲",
+        "谢幕曲",
         "进化时",
+        "倒数",
         "破坏",
         "纹章"
       ],
       "missing_primitives": [],
       "ability_keywords": [
+        "倒数",
         "入场曲",
         "纹章",
+        "谢幕曲",
         "进化时"
       ],
       "skill_texts": [
@@ -12319,12 +12392,15 @@
       "is_collectible": true,
       "card_set_id": 10005,
       "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['纹章']",
+      "reason": "Covered keywords: ['倒数', '纹章']",
       "hit_keywords": [
+        "倒数",
         "纹章"
       ],
       "missing_primitives": [],
       "ability_keywords": [
+        "倒数",
+        "守护",
         "纹章"
       ],
       "skill_texts": [
@@ -12341,19 +12417,21 @@
       "is_collectible": true,
       "card_set_id": 10005,
       "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '进化时', '超进化', '破坏', '亡者召还', '纹章']",
+      "reason": "Covered keywords: ['入场曲', '进化时', '超进化', '破坏', '亡者召还', '纹章', '爆能强化']",
       "hit_keywords": [
         "入场曲",
         "进化时",
         "超进化",
         "破坏",
         "亡者召还",
-        "纹章"
+        "纹章",
+        "爆能强化"
       ],
       "missing_primitives": [],
       "ability_keywords": [
         "亡者召还",
         "入场曲",
+        "爆能强化",
         "纹章"
       ],
       "skill_texts": [
@@ -12846,16 +12924,18 @@
       "is_collectible": true,
       "card_set_id": 10005,
       "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['回合开始', '回合结束', '回复', '消失', '纹章']",
+      "reason": "Covered keywords: ['回合开始', '回合结束', '倒数', '回复', '消失', '纹章']",
       "hit_keywords": [
         "回合开始",
         "回合结束",
+        "倒数",
         "回复",
         "消失",
         "纹章"
       ],
       "missing_primitives": [],
       "ability_keywords": [
+        "倒数",
         "潜行",
         "纹章"
       ],
@@ -13270,18 +13350,17 @@
       "cost": 1,
       "is_collectible": true,
       "card_set_id": 10006,
-      "coverage": "missing_primitive",
-      "reason": "Missing primitives: ['信仰']",
+      "coverage": "covered_partial",
+      "reason": "Partial rule. Triggers: ['faith'], Ops: ['faith_value']; unsupported: 入场曲：信仰值-10，将天枪深渊加入手牌，并使信仰获得进化时伤害能力。",
       "hit_keywords": [
         "入场曲",
         "进化时",
         "将.*加入手牌",
         "造成.*伤害",
+        "信仰",
         "吸血"
       ],
-      "missing_primitives": [
-        "信仰"
-      ],
+      "missing_primitives": [],
       "ability_keywords": [
         "信仰",
         "入场曲",
@@ -13290,7 +13369,12 @@
       "skill_texts": [
         "【<color=Keyword>入场曲</color>】信仰值-10，将1张『<color=Keyword>天枪深渊</color>』加入手牌。使自己的信仰获得「自己的随从进化时，对对手的主战者造成1点伤害」。\n<hr>【<color=Keyword>虹吸</color>】"
       ],
-      "support_level": "unsupported"
+      "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "partial",
+        "implemented_text": "信仰值起始为0。自己的随从进化时，信仰值+1。",
+        "unsupported_text": "入场曲：信仰值-10，将天枪深渊加入手牌，并使信仰获得进化时伤害能力。"
+      }
     },
     "10621110": {
       "card_id": 10621110,
@@ -13421,13 +13505,15 @@
       "is_collectible": true,
       "card_set_id": 10006,
       "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['纹章', '爆能强化']",
+      "reason": "Covered keywords: ['倒数', '纹章', '爆能强化']",
       "hit_keywords": [
+        "倒数",
         "纹章",
         "爆能强化"
       ],
       "missing_primitives": [],
       "ability_keywords": [
+        "倒数",
         "爆能强化",
         "纹章"
       ],
@@ -13530,15 +13616,17 @@
       "cost": 2,
       "is_collectible": true,
       "card_set_id": 10006,
-      "coverage": "missing_primitive",
-      "reason": "Missing primitives: ['信仰']",
+      "coverage": "supported_missing_rule",
+      "reason": "Covered keywords: ['入场曲', '进化时', '将.*加入手牌', '信仰', '爆能强化']",
       "hit_keywords": [
         "入场曲",
         "进化时",
         "将.*加入手牌",
+        "信仰",
         "爆能强化"
       ],
-      "missing_primitives": [
+      "missing_primitives": [],
+      "missing_rule_mechanics": [
         "信仰"
       ],
       "ability_keywords": [
@@ -13781,15 +13869,20 @@
       "is_collectible": true,
       "card_set_id": 10006,
       "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '进化时', '将.*加入手牌', '召唤']",
+      "reason": "Covered keywords: ['入场曲', '进化时', '将.*加入手牌', '召唤', '信仰']",
       "hit_keywords": [
         "入场曲",
         "进化时",
         "将.*加入手牌",
-        "召唤"
+        "召唤",
+        "信仰"
       ],
       "missing_primitives": [],
+      "missing_rule_mechanics": [
+        "信仰"
+      ],
       "ability_keywords": [
+        "信仰",
         "入场曲",
         "疾驰",
         "进化时"
@@ -14308,15 +14401,19 @@
       "is_collectible": true,
       "card_set_id": 10006,
       "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['回复', '必杀']",
+      "reason": "Covered keywords: ['谢幕曲', '倒数', '回复', '必杀']",
       "hit_keywords": [
+        "谢幕曲",
+        "倒数",
         "回复",
         "必杀"
       ],
       "missing_primitives": [],
       "ability_keywords": [
+        "倒数",
         "守护",
-        "必杀"
+        "必杀",
+        "谢幕曲"
       ],
       "skill_texts": [
         "本随从进入战场时，回复自己的主战者2点生命值。\n<hr>【<color=Keyword>毁灭</color>】\n【<color=Keyword>守护</color>】"
@@ -14383,14 +14480,18 @@
       "is_collectible": true,
       "card_set_id": 10006,
       "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['必杀']",
+      "reason": "Covered keywords: ['谢幕曲', '倒数', '必杀']",
       "hit_keywords": [
+        "谢幕曲",
+        "倒数",
         "必杀"
       ],
       "missing_primitives": [],
       "ability_keywords": [
+        "倒数",
         "必杀",
-        "突进"
+        "突进",
+        "谢幕曲"
       ],
       "skill_texts": [
         "【<color=Keyword>突进</color>】\n【<color=Keyword>毁灭</color>】"
@@ -14461,7 +14562,9 @@
       "reason": "Missing primitives: ['灵气']",
       "hit_keywords": [
         "入场曲",
+        "谢幕曲",
         "进化时",
+        "倒数",
         "破坏",
         "召唤",
         "必杀"
@@ -14470,9 +14573,11 @@
         "灵气"
       ],
       "ability_keywords": [
+        "倒数",
         "入场曲",
         "必杀",
         "灵气",
+        "谢幕曲",
         "进化时"
       ],
       "skill_texts": [
@@ -14547,15 +14652,17 @@
       "cost": 9,
       "is_collectible": true,
       "card_set_id": 10006,
-      "coverage": "missing_primitive",
-      "reason": "Missing primitives: ['信仰']",
+      "coverage": "supported_missing_rule",
+      "reason": "Covered keywords: ['入场曲', '回合结束', '将.*加入手牌', '破坏', '信仰']",
       "hit_keywords": [
         "入场曲",
         "回合结束",
         "将.*加入手牌",
-        "破坏"
+        "破坏",
+        "信仰"
       ],
-      "missing_primitives": [
+      "missing_primitives": [],
+      "missing_rule_mechanics": [
         "信仰"
       ],
       "ability_keywords": [
@@ -14590,7 +14697,7 @@
       "skill_texts": [
         "【<color=Keyword>入场曲</color>】抽取3张卡牌。\n<hr>【<color=Keyword>守护</color>】"
       ],
-      "support_level": "keyword"
+      "support_level": "unsupported"
     },
     "10671120": {
       "card_id": 10671120,
@@ -14939,11 +15046,12 @@
       "is_collectible": true,
       "card_set_id": 10007,
       "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['谢幕曲', '攻击时', '回合结束', '消失', '纹章', '屏障', '不能攻击|无法攻击']",
+      "reason": "Covered keywords: ['谢幕曲', '攻击时', '回合结束', '倒数', '消失', '纹章', '屏障', '不能攻击|无法攻击']",
       "hit_keywords": [
         "谢幕曲",
         "攻击时",
         "回合结束",
+        "倒数",
         "消失",
         "纹章",
         "屏障",
@@ -14951,6 +15059,7 @@
       ],
       "missing_primitives": [],
       "ability_keywords": [
+        "倒数",
         "屏障",
         "攻击时",
         "纹章",
@@ -15115,15 +15224,19 @@
       "is_collectible": true,
       "card_set_id": 10007,
       "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['连击', '回复', '纹章']",
+      "reason": "Covered keywords: ['谢幕曲', '连击', '倒数', '回复', '纹章']",
       "hit_keywords": [
+        "谢幕曲",
         "连击",
+        "倒数",
         "回复",
         "纹章"
       ],
       "missing_primitives": [],
       "ability_keywords": [
+        "倒数",
         "纹章",
+        "谢幕曲",
         "连击"
       ],
       "skill_texts": [
@@ -15172,15 +15285,19 @@
       "is_collectible": true,
       "card_set_id": 10007,
       "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['连击', '造成.*伤害', '纹章']",
+      "reason": "Covered keywords: ['谢幕曲', '连击', '倒数', '造成.*伤害', '纹章']",
       "hit_keywords": [
+        "谢幕曲",
         "连击",
+        "倒数",
         "造成.*伤害",
         "纹章"
       ],
       "missing_primitives": [],
       "ability_keywords": [
+        "倒数",
         "纹章",
+        "谢幕曲",
         "连击"
       ],
       "skill_texts": [
@@ -15197,15 +15314,17 @@
       "is_collectible": true,
       "card_set_id": 10007,
       "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '进化时', '连击', '纹章']",
+      "reason": "Covered keywords: ['入场曲', '进化时', '连击', '倒数', '纹章']",
       "hit_keywords": [
         "入场曲",
         "进化时",
         "连击",
+        "倒数",
         "纹章"
       ],
       "missing_primitives": [],
       "ability_keywords": [
+        "倒数",
         "入场曲",
         "纹章",
         "进化时",
@@ -15225,20 +15344,24 @@
       "is_collectible": true,
       "card_set_id": 10007,
       "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '进化时', '超进化', '回合结束', '将.*加入手牌', '纹章']",
+      "reason": "Covered keywords: ['入场曲', '进化时', '超进化', '连击', '回合结束', '倒数', '将.*加入手牌', '纹章']",
       "hit_keywords": [
         "入场曲",
         "进化时",
         "超进化",
+        "连击",
         "回合结束",
+        "倒数",
         "将.*加入手牌",
         "纹章"
       ],
       "missing_primitives": [],
       "ability_keywords": [
+        "倒数",
         "入场曲",
         "纹章",
-        "超进化时"
+        "超进化时",
+        "连击"
       ],
       "skill_texts": [
         "【<color=Keyword>入场曲</color>】将2张『<color=Keyword>森林的奥秘</color>』加入手牌。\n<hr>自己的回合结束时，对对手的战场上的所有随从分配X点伤害。X为本随从的攻击力。\n<hr><sev>【<color=Keyword>超进化时</color>】使自己获得『纹章：冰界鹿王』。</sev>"
@@ -15455,16 +15578,18 @@
       "is_collectible": true,
       "card_set_id": 10007,
       "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '进化时', '召唤', '协作', '纹章']",
+      "reason": "Covered keywords: ['入场曲', '进化时', '倒数', '召唤', '协作', '纹章']",
       "hit_keywords": [
         "入场曲",
         "进化时",
+        "倒数",
         "召唤",
         "协作",
         "纹章"
       ],
       "missing_primitives": [],
       "ability_keywords": [
+        "倒数",
         "入场曲",
         "协作",
         "突进",
@@ -15721,6 +15846,7 @@
       "hit_keywords": [
         "入场曲",
         "进化时",
+        "倒数",
         "破坏",
         "纹章",
         "土之秘术|土之印"
@@ -15729,6 +15855,7 @@
         "灵气"
       ],
       "ability_keywords": [
+        "倒数",
         "入场曲",
         "土之秘术",
         "灵气",
@@ -15993,16 +16120,18 @@
       "is_collectible": true,
       "card_set_id": 10007,
       "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '进化时', '超进化', '召唤', '纹章']",
+      "reason": "Covered keywords: ['入场曲', '进化时', '超进化', '倒数', '召唤', '纹章']",
       "hit_keywords": [
         "入场曲",
         "进化时",
         "超进化",
+        "倒数",
         "召唤",
         "纹章"
       ],
       "missing_primitives": [],
       "ability_keywords": [
+        "倒数",
         "入场曲",
         "守护",
         "纹章",
@@ -17925,14 +18054,16 @@
       "is_collectible": true,
       "card_set_id": 10008,
       "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '谢幕曲', '纹章']",
+      "reason": "Covered keywords: ['入场曲', '谢幕曲', '倒数', '纹章']",
       "hit_keywords": [
         "入场曲",
         "谢幕曲",
+        "倒数",
         "纹章"
       ],
       "missing_primitives": [],
       "ability_keywords": [
+        "倒数",
         "入场曲",
         "守护",
         "纹章",
@@ -18462,10 +18593,12 @@
       "is_collectible": true,
       "card_set_id": 10008,
       "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '进化时', '回复', '造成.*伤害', '纹章', '选择一项|模式']",
+      "reason": "Covered keywords: ['入场曲', '谢幕曲', '进化时', '倒数', '回复', '造成.*伤害', '纹章', '选择一项|模式']",
       "hit_keywords": [
         "入场曲",
+        "谢幕曲",
         "进化时",
+        "倒数",
         "回复",
         "造成.*伤害",
         "纹章",
@@ -18473,9 +18606,11 @@
       ],
       "missing_primitives": [],
       "ability_keywords": [
+        "倒数",
         "入场曲",
         "模式",
         "纹章",
+        "谢幕曲",
         "进化时"
       ],
       "skill_texts": [

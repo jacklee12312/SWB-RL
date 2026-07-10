@@ -27,6 +27,7 @@ from swb.engine.emblem import (
     EventScope,
     TurnScope,
 )
+from swb.engine.faith import FaithDefinition, FaithTrigger, FaithTriggerRule
 from swb.engine.play_modes import (
     MAX_SPECIAL_MODES_PER_CARD,
     PlayModeDefinition,
@@ -245,6 +246,7 @@ class RuleBook:
         fusion_defs: dict[int, FusionDefinition] | None = None,
         invocation_defs: dict[int, InvocationDefinition] | None = None,
         activation_defs: dict[int, ActivationDefinition] | None = None,
+        faith_defs: dict[int, FaithDefinition] | None = None,
     ):
         self._rules: dict[tuple[int, Trigger], tuple[EffectOperation, ...]] = {}
         for rule in rules:
@@ -284,6 +286,7 @@ class RuleBook:
         self._fusion_defs: dict[int, FusionDefinition] = fusion_defs or {}
         self._invocation_defs: dict[int, InvocationDefinition] = invocation_defs or {}
         self._activation_defs: dict[int, ActivationDefinition] = activation_defs or {}
+        self._faith_defs: dict[int, FaithDefinition] = faith_defs or {}
         for card_id in self._fusion_defs:
             if len(self._play_modes.get(card_id, ())) + 1 > MAX_SPECIAL_MODES_PER_CARD:
                 raise ValueError(
@@ -326,6 +329,9 @@ class RuleBook:
     def activation_for(self, card_id: int) -> ActivationDefinition | None:
         return self._activation_defs.get(card_id)
 
+    def faith_for(self, card_id: int) -> FaithDefinition | None:
+        return self._faith_defs.get(card_id)
+
     def emblem_trigger_ops_for(self, emblem_id: str, trigger: str) -> tuple[EffectOperation, ...]:
         from swb.engine.emblem import EmblemTriggerRule
         ed = self._emblem_defs.get(emblem_id)
@@ -361,6 +367,7 @@ class RuleBook:
         all_fusion_defs: dict[int, FusionDefinition] = {}
         all_invocation_defs: dict[int, InvocationDefinition] = {}
         all_activation_defs: dict[int, ActivationDefinition] = {}
+        all_faith_defs: dict[int, FaithDefinition] = {}
         for file_path in sorted(path.glob("*.json")):
             payload = json.loads(file_path.read_text(encoding="utf-8"))
             if isinstance(payload, list):
@@ -369,12 +376,14 @@ class RuleBook:
                 raw_fusions = []
                 raw_invocations = []
                 raw_activations = []
+                raw_faiths = []
             else:
                 entries = payload.get("rules", [])
                 raw_passives = payload.get("passives", [])
                 raw_fusions = payload.get("fusions", [])
                 raw_invocations = payload.get("invocations", [])
                 raw_activations = payload.get("activations", [])
+                raw_faiths = payload.get("faiths", [])
                 if not isinstance(raw_fusions, list):
                     raise ValueError(f"{file_path.name}: 'fusions' must be a list")
                 if not isinstance(raw_invocations, list):
@@ -385,6 +394,8 @@ class RuleBook:
                     raise ValueError(
                         f"{file_path.name}: 'activations' must be a list"
                     )
+                if not isinstance(raw_faiths, list):
+                    raise ValueError(f"{file_path.name}: 'faiths' must be a list")
                 raw_emblems = payload.get("emblems")
                 if raw_emblems is not None:
                     if not isinstance(raw_emblems, list):
@@ -510,6 +521,15 @@ class RuleBook:
                         f"card {activation.card_id}"
                     )
                 all_activation_defs[activation.card_id] = activation
+            for index, raw_faith in enumerate(raw_faiths):
+                source_path = f"{file_path.name}/faiths[{index}]"
+                faith = _parse_faith_definition(raw_faith, source_path)
+                if faith.source_card_id in all_faith_defs:
+                    raise ValueError(
+                        f"{source_path}: duplicate faith definition for card "
+                        f"{faith.source_card_id}"
+                    )
+                all_faith_defs[faith.source_card_id] = faith
         _validate_passives(passives)
         frozen_modes = {
             cid: tuple(modes) for cid, modes in all_play_modes.items()
@@ -523,6 +543,7 @@ class RuleBook:
             fusion_defs=all_fusion_defs,
             invocation_defs=all_invocation_defs,
             activation_defs=all_activation_defs,
+            faith_defs=all_faith_defs,
         )
 
 
@@ -913,6 +934,86 @@ def _parse_activation_definition(
         card_id,
     )
     return ActivationDefinition(card_id=card_id, cost=cost)
+
+
+def _parse_faith_definition(
+    raw: dict,
+    source_path: str,
+) -> FaithDefinition:
+    if not isinstance(raw, dict):
+        raise ValueError(f"{source_path}: faith definition must be an object")
+    unknown = set(raw) - {
+        "id",
+        "source_card_id",
+        "initial_value",
+        "triggers",
+        "coverage",
+        "implemented_text",
+        "unsupported_text",
+        "notes",
+    }
+    if unknown:
+        raise ValueError(f"{source_path}: unknown fields {sorted(unknown)}")
+
+    faith_id = raw.get("id")
+    if not isinstance(faith_id, str) or not faith_id:
+        raise ValueError(f"{source_path}/id: must be a non-empty string")
+    source_card_id = raw.get("source_card_id")
+    if (
+        isinstance(source_card_id, bool)
+        or not isinstance(source_card_id, int)
+        or source_card_id <= 0
+    ):
+        raise ValueError(
+            f"{source_path}/source_card_id: must be a positive integer"
+        )
+    initial_value = _parse_non_negative_int(
+        raw.get("initial_value", 0),
+        f"{source_path}/initial_value",
+        source_card_id,
+    )
+
+    raw_triggers = raw.get("triggers")
+    if not isinstance(raw_triggers, list) or not raw_triggers:
+        raise ValueError(f"{source_path}/triggers: must be a non-empty list")
+    triggers: list[FaithTriggerRule] = []
+    seen_triggers: set[FaithTrigger] = set()
+    for index, raw_trigger in enumerate(raw_triggers):
+        trigger_path = f"{source_path}/triggers[{index}]"
+        if not isinstance(raw_trigger, dict):
+            raise ValueError(f"{trigger_path}: must be an object")
+        trigger_unknown = set(raw_trigger) - {"trigger", "amount"}
+        if trigger_unknown:
+            raise ValueError(
+                f"{trigger_path}: unknown fields {sorted(trigger_unknown)}"
+            )
+        try:
+            trigger = FaithTrigger(raw_trigger.get("trigger"))
+        except (TypeError, ValueError) as exc:
+            raise ValueError(
+                f"{trigger_path}/trigger: invalid faith trigger "
+                f"{raw_trigger.get('trigger')!r}"
+            ) from exc
+        if trigger in seen_triggers:
+            raise ValueError(
+                f"{trigger_path}/trigger: duplicate trigger {trigger.value!r}"
+            )
+        seen_triggers.add(trigger)
+        amount = _parse_non_negative_int(
+            raw_trigger.get("amount", 1),
+            f"{trigger_path}/amount",
+            source_card_id,
+        )
+        if amount <= 0:
+            raise ValueError(f"{trigger_path}/amount: must be positive")
+        triggers.append(FaithTriggerRule(trigger=trigger, amount=amount))
+
+    return FaithDefinition(
+        faith_id=faith_id,
+        source_card_id=source_card_id,
+        initial_value=initial_value,
+        triggers=tuple(triggers),
+    )
 
 
 def _parse_passive(raw: dict, source_file: str) -> CardPassive:

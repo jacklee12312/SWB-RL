@@ -111,7 +111,11 @@ def classify_support(card: dict[str, Any]) -> tuple[str, list[str], str]:
         for entry in card.get("skill_texts", [])
     ]
     joined = "\n".join(texts)
-    keywords = extract_raw_keywords(texts)
+    alternate_texts = [
+        mode.get("text_chs", mode.get("text", ""))
+        for mode in card.get("alt_modes", [])
+    ]
+    keywords = extract_raw_keywords([*texts, *alternate_texts])
     clean = clean_printed_text(joined)
     fanfare_effects, fanfare_supported = parse_fanfare(texts)
 

@@ -84,7 +84,13 @@ PRIMITIVE_KEYWORD_MAP = OrderedDict([
             "covered": True,
         },
     ),
-    ("信仰", {"primitive": "FAITH (placeholder)", "covered": False}),
+    (
+        "信仰",
+        {
+            "primitive": "Faith leader-area state / evolution trigger",
+            "covered": True,
+        },
+    ),
     ("必杀", {"primitive": "BANE keyword", "covered": True}),
     ("吸血", {"primitive": "DRAIN keyword", "covered": True}),
     ("屏障", {"primitive": "BARRIER keyword", "covered": True}),
@@ -107,6 +113,7 @@ def _classify_card(
     skill_text_map: dict[int, list[str]],
     support_map: dict[int, str],
     activation_cards: set[int] | None = None,
+    faith_cards: set[int] | None = None,
 ) -> dict:
     """Classify a single card's coverage status."""
     card_id = card.card_id
@@ -156,6 +163,11 @@ def _classify_card(
         and card_id not in (activation_cards or set())
     ):
         missing_rule_mechanics.append("策动")
+    if (
+        re.search("信仰", search_text) is not None
+        and card_id not in (faith_cards or set())
+    ):
+        missing_rule_mechanics.append("信仰")
 
     has_rule = card_id in ruled_cards
     metadata = rule_metadata.get(card_id, {})
@@ -262,6 +274,11 @@ def _build_coverage_report(db_path: str, rules_dir: str) -> dict:
         ruled_ops.setdefault(cid, {"triggers": [], "effect_kinds": []})
         ruled_ops[cid]["triggers"].append("activation")
         ruled_ops[cid]["effect_kinds"].append("activation")
+    for cid in rulebook._faith_defs:
+        ruled_cards.add(cid)
+        ruled_ops.setdefault(cid, {"triggers": [], "effect_kinds": []})
+        ruled_ops[cid]["triggers"].append("faith")
+        ruled_ops[cid]["effect_kinds"].append("faith_value")
     for cid, passives in rulebook._passives.items():
         ruled_cards.add(cid)
         ruled_ops.setdefault(cid, {"triggers": [], "effect_kinds": []})
@@ -314,6 +331,7 @@ def _build_coverage_report(db_path: str, rules_dir: str) -> dict:
             skill_text_map,
             support_map,
             activation_cards=set(rulebook._activation_defs),
+            faith_cards=set(rulebook._faith_defs),
         )
 
     total = len(classifications)
@@ -363,11 +381,27 @@ def _load_rule_metadata(rules_dir: str) -> dict[int, dict]:
         return metadata
     for file_path in sorted(path.glob("*.json")):
         payload = json.loads(file_path.read_text(encoding="utf-8"))
-        entries = payload if isinstance(payload, list) else payload.get("rules", [])
+        if isinstance(payload, list):
+            entries = payload
+        else:
+            entries = []
+            for key in (
+                "rules",
+                "activations",
+                "fusions",
+                "invocations",
+                "faiths",
+            ):
+                raw_entries = payload.get(key, [])
+                if isinstance(raw_entries, list):
+                    entries.extend(raw_entries)
         for entry in entries:
-            if not isinstance(entry, dict) or "card_id" not in entry:
+            if not isinstance(entry, dict):
                 continue
-            cid = int(entry["card_id"])
+            raw_card_id = entry.get("card_id", entry.get("source_card_id"))
+            if raw_card_id is None:
+                continue
+            cid = int(raw_card_id)
             item = {
                 key: entry[key]
                 for key in ("coverage", "implemented_text", "unsupported_text", "notes")

@@ -10,12 +10,12 @@ code and tests as the source of truth when this file drifts.
 - Database: 826 cards, 735 collectible cards, 91 non-collectible/generated
   cards from set `90000`.
 - Latest SVA source: `https://sva.hypd.asia/data/cards.json`.
-- Tests: `python -m unittest discover -s tests -v` currently runs 954 tests.
-- RL adapter: fixed 111-action space and 257-feature observation.
-- Ability registry status: 15 implemented, 4 partial, 15 placeholder.
+- Tests: `python -m unittest discover -s tests -v` currently runs 972 tests.
+- RL adapter: fixed 111-action space and 261-feature observation.
+- Ability registry status: 15 implemented, 5 partial, 14 placeholder.
 - Explicit card and demo rules live in `data/rules/`; the current coverage
-  report classifies 97 card IDs with explicit rules, passives, fusion, or
-  invocation definitions.
+  report classifies 98 card IDs with explicit rules, passives, fusion,
+  invocation, activation, or Faith definitions.
 
 ## Stable Priorities
 
@@ -108,7 +108,7 @@ slice in this order:
   emblem triggers. Deterministic fingerprints and invariants include the
   amulet's activation-turn stamp. RL reuses the same board position's evolve
   slot for amulets and an existing public amulet feature for current-turn use,
-  retaining the fixed 111 actions and 257 features. Exact real rule `10031210`
+  retaining the fixed 111 actions and current observation width. Exact real rule `10031210`
   spends 1 PP to add one Earth Sigil, matching the official Activate glossary.
 - `BeginFusion` exposes Fusion before RL action encoding. A structured
   `fusions` definition filters eligible hand materials and sets optional
@@ -123,7 +123,7 @@ slice in this order:
   their material IDs through play and return-to-hand transitions. Structured
   source fusion-count conditions are available to normal and nested effects,
   and `CARD_FUSED` makes the transition auditable. The fixed 111-action layout
-  reuses existing special-hand and choice slots; the 257-feature observation
+  reuses existing special-hand and choice slots; the public observation
   exposes own-hand and public-board Fusion state without revealing the
   opponent's hidden hand.
 - Exact real rule `10213310` (`花园的指引`) accepts Elf-class Fusion materials
@@ -144,7 +144,23 @@ slice in this order:
   definitions remain visible through Invocation placeholder reporting instead
   of silently executing. Match evolution counts include normal and super
   evolution, are fingerprinted/invariant-checked, and are public in the
-  257-feature observation without changing the 111 actions.
+  public observation without changing the 111 actions.
+- `FaithDefinition` creates persistent leader-area `FaithInstance` state from
+  the initial deck before opening draws. Physical deck copies remain in the
+  deck, repeated copies and same-ID Faith definitions deduplicate by stable
+  `faith_id`, and generated cards do not retroactively create Faith. Instances
+  carry stable entity/sequence identity, non-negative public values, reset
+  deterministically, and emit `FAITH_PLACED` / `FAITH_VALUE_CHANGED` events.
+- The first accepted Faith trigger is `follower_evolved`; both normal and super
+  evolution increment only the evolving player's matching Faith before later
+  event listeners resolve. Real `10614120` (`古旧天枪·萨莎妮德`) starts at 0
+  and increments by 1. Its Fanfare value spend, generated card, and gained
+  evolution-damage ability stay annotated `covered_partial`.
+- Faith count and aggregate value for both players add four public observation
+  features, migrating the fixed observation from 257 to 261 while leaving the
+  111-action layout unchanged. The database importer now includes alternate-mode
+  text in keyword extraction, so Faith-only alternate modes remain visible in
+  normalized `card_abilities` and coverage reports.
 - Real `10404110` (`天司长的继承者·圣德芬`) is the current unique official
   Invocation card. Its six-evolution condition, deck summon, countdown-2 crest,
   return to hand, and crest turn-end healing of all allied followers and leader
@@ -229,9 +245,15 @@ slice in this order:
 - `连击` has natural per-turn counting, condition/expression support,
   `add_combo`, public observation counts, and real-card demos; broader real-card
   coverage remains partial.
-- `信仰` and `奥义` remain placeholder or incomplete. `策动` and
-  `土之秘术` / `土之印` core semantics are implemented, while broader
-  real-card coverage remains intentionally incremental.
+- `奥义` remains a placeholder. Faith leader-area initialization and evolution
+  progression are implemented, while mode-selection, Enhance, named-follower,
+  and amulet-destruction progression triggers plus value spending/gained Faith
+  abilities remain explicit partial semantics. `策动` and `土之秘术` /
+  `土之印` core semantics are implemented, while broader real-card coverage
+  remains intentionally incremental.
+- Faith and emblems are both represented in the leader area, but the official
+  shared five-slot capacity is not enforced until a real conflict case requires
+  its ordering semantics.
 - `AMULET_ACTIVATED` currently reaches structured emblem triggers; ordinary
   board or hand cards that react to another card's activation remain explicit
   unsupported listener semantics.
@@ -281,11 +303,12 @@ slice in this order:
 
 ## Next Coherent Slices
 
-### 1. Faith / Union Burst
+### 1. Union Burst
 
-- Implement `信仰` and `奥义` as separate command/state/rule slices in that
-  order, each tied to verified real text and one real-card demo. Completing
-  Union Burst should promote the remaining Sandalphon Fanfare clause.
+- Implement `奥义` / `解放奥义` hand-state gauge and conditional play effects.
+  Completing Union Burst should promote the remaining Sandalphon Fanfare clause.
+  Expand additional Faith trigger families only as their real-card payoff slice
+  becomes expressible end to end.
 
 ### 2. Targeting Edge Cases
 

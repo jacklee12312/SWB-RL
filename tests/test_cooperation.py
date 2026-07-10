@@ -334,7 +334,7 @@ class CooperationObservationTests(unittest.TestCase):
         env = ShadowverseEnv([_card(i) for i in range(1000, 1040)], [_card(i) for i in range(1100, 1140)], class_a=1, class_b=1, seed=42, rulebook=RuleBook())
         env.reset(seed=42); env.core.players[0].cooperation=7; env.core.players[1].cooperation=3
         obs = env.observation()
-        self.assertEqual(len(obs), 257)
+        self.assertEqual(len(obs), 261)
         self.assertEqual(obs[18], 0.7); self.assertEqual(obs[19], 0.3)
 
 class CooperationDeterminismTests(unittest.TestCase):

@@ -160,7 +160,7 @@ class CoverageReportTests(unittest.TestCase):
             card_set_id=10000,
             class_id=1,
             class_name="精灵",
-            name="测试信仰",
+            name="测试威慑",
             cost=2,
             card_type="随从",
             attack=2,
@@ -174,12 +174,12 @@ class CoverageReportTests(unittest.TestCase):
             ruled_cards={123457},
             ruled_ops={123457: {"triggers": ["attack"], "effect_kinds": ["heal_leader"]}},
             rule_metadata={},
-            ability_map={123457: ["信仰"]},
+            ability_map={123457: ["威慑"]},
             skill_text_map={},
             support_map={},
         )
         self.assertEqual(result["coverage"], "covered_partial")
-        self.assertIn("信仰", result["missing_primitives"])
+        self.assertIn("威慑", result["missing_primitives"])
 
     def test_activate_primitive_still_requires_a_per_card_definition(self):
         """Generic Activate support must not make unrelated partial rules exact."""
@@ -219,6 +219,46 @@ class CoverageReportTests(unittest.TestCase):
         self.assertEqual(partial["coverage"], "covered_partial")
         self.assertEqual(partial["missing_rule_mechanics"], ["策动"])
         self.assertNotIn("策动", partial["missing_primitives"])
+        self.assertEqual(exact["coverage"], "covered_exact")
+
+    def test_faith_primitive_still_requires_a_per_card_definition(self):
+        """Faith state support must not hide a missing card-specific Faith."""
+        from scripts.report_rule_coverage import _classify_card
+        card = CardDefinition(
+            card_id=123459,
+            card_set_id=10000,
+            class_id=1,
+            class_name="精灵",
+            name="测试信仰",
+            cost=2,
+            card_type="随从",
+            attack=2,
+            life=2,
+            keywords=frozenset(),
+            support_level="unsupported",
+            is_collectible=True,
+        )
+        kwargs = {
+            "card": card,
+            "ruled_cards": {123459},
+            "ruled_ops": {
+                123459: {
+                    "triggers": ["play"],
+                    "effect_kinds": ["draw"],
+                }
+            },
+            "rule_metadata": {},
+            "ability_map": {123459: ["信仰"]},
+            "skill_text_map": {},
+            "support_map": {},
+        }
+
+        partial = _classify_card(**kwargs, faith_cards=set())
+        exact = _classify_card(**kwargs, faith_cards={123459})
+
+        self.assertEqual(partial["coverage"], "covered_partial")
+        self.assertEqual(partial["missing_rule_mechanics"], ["信仰"])
+        self.assertNotIn("信仰", partial["missing_primitives"])
         self.assertEqual(exact["coverage"], "covered_exact")
 
     def test_top_20_recommendations_fields(self):

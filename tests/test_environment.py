@@ -113,13 +113,14 @@ class EnvironmentTests(unittest.TestCase):
 
     def test_observation_and_action_space_are_fixed(self) -> None:
         self.assertEqual(len(self.env.action_mask()), ShadowverseEnv.ACTION_SIZE)
-        self.assertEqual(len(self.env.observation()), 257)
+        self.assertEqual(len(self.env.observation()), 261)
         self.assertTrue(self.env.action_mask()[ShadowverseEnv.END_TURN])
         self.assertEqual(sum(self.env.observation()[30:37]), 1.0)
         self.assertEqual(sum(self.env.observation()[37:44]), 1.0)
         self.assertEqual(self.env.observation()[44:48], [1.0, 1.0, 0.0, 0.0])
         self.assertEqual(self.env.observation()[48:50], [0.0, 0.0])
-        self.assertEqual(self.env.observation()[-2:], [0.0, 0.0])
+        self.assertEqual(self.env.observation()[-6:-4], [0.0, 0.0])
+        self.assertEqual(self.env.observation()[-4:], [0.0, 0.0, 0.0, 0.0])
 
     def test_observation_exposes_public_combo_counts(self) -> None:
         self.env.players[0].cards_played_this_turn = 3
@@ -719,7 +720,7 @@ class EnvironmentTests(unittest.TestCase):
             if first_mask[action]
         ]
         self.assertEqual(len(first_actions), 2)
-        self.assertEqual(env.observation()[-4:-2], [2 / 16, 0.0])
+        self.assertEqual(env.observation()[-8:-6], [2 / 16, 0.0])
         first_option_id = env.core.state.pending_choice.options[0].option_id
         env.step(first_actions[0])
 
@@ -739,7 +740,7 @@ class EnvironmentTests(unittest.TestCase):
             if second_mask[action]
         ]
         self.assertEqual(len(second_actions), 1)
-        self.assertEqual(env.observation()[-4:-2], [2 / 16, 0.5])
+        self.assertEqual(env.observation()[-8:-6], [2 / 16, 0.5])
         env.step(second_actions[0])
 
         self.assertIsNone(env.core.state.pending_choice)

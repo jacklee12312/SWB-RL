@@ -282,6 +282,12 @@ class ShadowverseEnv:
             me.earth_sigils / 20,
             opponent.earth_sigils / 20,
         ])
+        values.extend([
+            len(me.faiths) / 5,
+            len(opponent.faiths) / 5,
+            sum(faith.value for faith in me.faiths) / 50,
+            sum(faith.value for faith in opponent.faiths) / 50,
+        ])
         return values
 
     def info(self, *, debug: bool | None = None) -> dict[str, object]:

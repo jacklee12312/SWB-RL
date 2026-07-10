@@ -8,6 +8,7 @@ from typing import TYPE_CHECKING, Any
 from swb.db.repository import CardDefinition
 from swb.engine.abilities import RUNTIME_UNIT_KEYWORDS, normalize_keyword_name
 from swb.engine.emblem import EmblemDefinition
+from swb.engine.faith import FaithInstance
 from swb.engine.origin import CardOrigin, is_derived, is_token
 
 if TYPE_CHECKING:
@@ -659,6 +660,7 @@ class PlayerState:
     graveyard: list[GraveyardCard] = field(default_factory=list)
     banished: list[CardDefinition] = field(default_factory=list)
     emblems: list[EmblemInstance] = field(default_factory=list)
+    faiths: list[FaithInstance] = field(default_factory=list)
     fusion_materials: list[FusionMaterial] = field(default_factory=list)
     health: int = 20
     max_mana: int = 0
@@ -674,9 +676,9 @@ class PlayerState:
     followers_destroyed_this_turn: int = 0
     cooperation: int = 0
     shadows: int = 0
-    faith: int = 0
     _next_graveyard_sequence: int = 1
     _next_emblem_sequence: int = 1
+    _next_faith_sequence: int = 1
     _next_fusion_sequence: int = 1
 
     def add_shadows(self, amount: int) -> None:

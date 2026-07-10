@@ -107,6 +107,8 @@ class DatabaseTests(unittest.TestCase):
             self.assertIn(AbilityKeyword.EMBLEM, emblem.abilities)
             faith = repository.get(10354110)
             self.assertIn(AbilityKeyword.FAITH, faith.abilities)
+            alt_mode_only_faith = repository.get(10634120)
+            self.assertIn(AbilityKeyword.FAITH, alt_mode_only_faith.abilities)
 
     def test_import_accepts_compact_sva_records(self) -> None:
         card = {

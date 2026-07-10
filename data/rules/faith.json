@@ -1,0 +1,18 @@
+{
+  "faiths": [
+    {
+      "id": "ancient_heavenspear",
+      "source_card_id": 10614120,
+      "initial_value": 0,
+      "triggers": [
+        {
+          "trigger": "follower_evolved",
+          "amount": 1
+        }
+      ],
+      "coverage": "partial",
+      "implemented_text": "信仰值起始为0。自己的随从进化时，信仰值+1。",
+      "unsupported_text": "入场曲：信仰值-10，将天枪深渊加入手牌，并使信仰获得进化时伤害能力。"
+    }
+  ]
+}

@@ -257,7 +257,12 @@ ABILITY_DEFINITIONS = (
         status=AbilityStatus.IMPLEMENTED,
     ),
     _definition(AbilityKeyword.EMBLEM, (AbilityEvent.CARD_PLAYED,), "handle_emblem"),
-    _definition(AbilityKeyword.FAITH, (AbilityEvent.CARD_PLAYED,), "handle_faith"),
+    _definition(
+        AbilityKeyword.FAITH,
+        (AbilityEvent.CARD_PLAYED,),
+        "handle_faith",
+        status=AbilityStatus.PARTIAL,
+    ),
     _definition(
         AbilityKeyword.UNION_BURST,
         (AbilityEvent.CHECK_PLAY,),
@@ -475,7 +480,9 @@ class AbilityHandlers:
         self._placeholder(context, AbilityKeyword.EMBLEM)
 
     def handle_faith(self, context: AbilityContext) -> None:
-        self._placeholder(context, AbilityKeyword.FAITH)
+        covered = getattr(self.environment, "_is_ability_covered", None)
+        if covered is None or not covered(context, AbilityKeyword.FAITH):
+            self._placeholder(context, AbilityKeyword.FAITH)
 
     def handle_union_burst(self, context: AbilityContext) -> None:
         self._placeholder(context, AbilityKeyword.UNION_BURST)

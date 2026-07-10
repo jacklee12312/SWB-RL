@@ -75,6 +75,11 @@ The deterministic rules core supports:
   revalidation, source-leaves-play safety, and explicit `amulet_activated`
   events that structured emblems can observe; real card `10031210` spends 1 PP
   to add one Earth Sigil and is now an exact rule;
+- structured `信仰` leader-area state created from the initial deck without
+  removing physical card copies, with same-name deduplication, stable identity,
+  deterministic fingerprints, and public value-change events; the first
+  verified trigger counts both normal and super evolution for real card
+  `10614120`, whose separate Fanfare payoff remains explicitly partial;
 - command-level `融合` from hand, including structured material filters and
   count limits, variable-count selection with explicit confirmation, once-per-
   card-per-turn tracking, atomic hand-zone revalidation, a distinct consumed
@@ -105,7 +110,7 @@ The deterministic rules core supports:
   necromancy, reanimate, spellboost-style hand cost changes, emblems, optional
   decisions, choose-one decisions, play modes, and runtime modifiers.
 
-The RL adapter provides a fixed 111-action space, 257-feature public
+The RL adapter provides a fixed 111-action space, 261-feature public
 observation, action mask, terminal reward, graveyard choice paging, special
 hand actions for fusion/play modes, and super-evolve actions. `info()` is public by default and
 redacts debug transcripts/events unless `debug_info=True` or
@@ -130,7 +135,7 @@ materials at once, and consumed materials do not enter the graveyard.
 Activate reuses the evolution action slot for an amulet in the same board
 position, because followers and amulets are mutually exclusive there. Its
 current-turn usage flag occupies an existing public amulet board feature, so
-the fixed 111 actions and 257 features do not change. This follows the
+it does not expand the action space or amulet feature width. This follows the
 [official Activate glossary](https://shadowverse-wb.com/ja/deck/cardslist/card/?card_id=10114110):
 a field amulet can activate once per turn, and a specified cost is paid only
 when enough PP remains.
@@ -142,6 +147,11 @@ and [official card glossary](https://shadowverse-wb.com/ja/deck/cardslist/card/?
 Sandalphon is the unique Invoke card; Invoke enters from the deck when its
 condition is met, orders simultaneous candidates randomly, and limits duplicate
 copies to one while letting their copy count affect selection probability.
+The final four observation features expose both players' public Faith counts
+and total Faith values. This follows the
+[official Faith glossary](https://shadowverse-wb.com/ja/deck/cardslist/card/?card_id=10723110):
+an initial-deck Faith is placed in the leader area at battle start, same-name
+Faiths do not duplicate, and each Faith has its own visible value.
 
 ## Unsupported Or Partial
 
@@ -151,11 +161,15 @@ remain visible instead of silently behaving as implemented.
 Known broad gaps include:
 
 - exact semantics for many real cards and most generated-card workflows;
-- `信仰` and `奥义` semantics, plus broader real-card coverage for `策动`,
+- remaining `信仰` progression/payoff semantics and `奥义`, plus broader real-card coverage for `策动`,
   `土之秘术`, `觉醒`, and `连击` beyond the currently authored examples;
 - `amulet_activated` is available to structured emblem triggers, but ordinary
   board or hand cards that react to another card's activation still need a
   generic field/hand trigger listener slice;
+- Faith currently supports the verified `follower_evolved` progression trigger
+  for normal and super evolution. Mode selection, Enhance play, named-follower
+  entry, amulet-destruction progression, value spending, gained Faith abilities,
+  and the shared five-slot leader-area limit remain explicit unsupported edges;
 - Fusion cards that transform in hand when fused and abilities on other cards
   that trigger from a fusion event remain unsupported; the command-level
   material transition and source-card fused-count conditions are covered;

@@ -43,6 +43,7 @@ from swb.engine.effects import (
     ValueExpression,
 )
 from swb.engine.events import EventType, GameEvent
+from swb.engine.faith import FaithInstance, FaithTrigger
 from swb.engine.origin import (
     CardOrigin,
     is_derived,
@@ -331,6 +332,8 @@ class GameEngine:
                 card.card_type == "护符"
                 and self.rulebook.activation_for(card.card_id) is not None
             )
+        if ability is AbilityKeyword.FAITH:
+            return self.rulebook.faith_for(card.card_id) is not None
         if ability in (AbilityKeyword.OVERFLOW, AbilityKeyword.COMBO):
             if ability is AbilityKeyword.OVERFLOW:
                 condition_types = (
@@ -506,6 +509,7 @@ class GameEngine:
         self._stabilizing = False
         self.state.destroyed_followers.clear()
         self.state._next_death_sequence = 1
+        self._initialize_faiths()
         for player_index in range(2):
             for _ in range(self.config.starting_hand):
                 self._draw(player_index, reason="起手")
@@ -514,6 +518,93 @@ class GameEngine:
         if self.config.validate_invariants:
             self.assert_invariants()
         return self.state
+
+    def _initialize_faiths(self) -> None:
+        for player_index, initial_deck in enumerate(self.deck_lists):
+            player = self.players[player_index]
+            candidates = {
+                definition.source_card_id: definition
+                for card in initial_deck
+                if (definition := self.rulebook.faith_for(card.card_id))
+                is not None
+            }
+            seen_faith_ids: set[str] = set()
+            for definition in sorted(
+                candidates.values(),
+                key=lambda item: (item.faith_id, item.source_card_id),
+            ):
+                if definition.faith_id in seen_faith_ids:
+                    continue
+                seen_faith_ids.add(definition.faith_id)
+                sequence = player._next_faith_sequence
+                player._next_faith_sequence += 1
+                instance = FaithInstance(
+                    definition=definition,
+                    entity_id=self.state.allocate_entity_id(),
+                    controller=player_index,
+                    created_sequence=sequence,
+                    value=definition.initial_value,
+                )
+                player.faiths.append(instance)
+                self._emit(
+                    GameEvent(
+                        EventType.FAITH_PLACED,
+                        player_index,
+                        source_id=instance.entity_id,
+                        amount=instance.value,
+                        metadata={
+                            "faith_id": instance.faith_id,
+                            "source_card_id": instance.source_card_id,
+                            "initial_value": instance.value,
+                        },
+                    )
+                )
+                self._log(
+                    player_index,
+                    f"信仰 {instance.faith_id} 置入主战者区域"
+                    f"（信仰值 {instance.value}）",
+                )
+
+    def _advance_faiths_for_event(
+        self,
+        player_index: int,
+        trigger: FaithTrigger,
+        event: GameEvent,
+    ) -> None:
+        player = self.players[player_index]
+        for instance in sorted(
+            player.faiths,
+            key=lambda item: item.created_sequence,
+        ):
+            for rule in instance.definition.triggers:
+                if rule.trigger is not trigger:
+                    continue
+                before = instance.value
+                instance.value += rule.amount
+                self._emit(
+                    GameEvent(
+                        EventType.FAITH_VALUE_CHANGED,
+                        player_index,
+                        source_id=instance.entity_id,
+                        amount=rule.amount,
+                        metadata={
+                            "faith_id": instance.faith_id,
+                            "source_card_id": instance.source_card_id,
+                            "faith_value_before": before,
+                            "faith_value_after": instance.value,
+                            "trigger": trigger.value,
+                            "trigger_source_id": event.source_id,
+                            "super_evolution": (
+                                event.type is EventType.FOLLOWER_SUPER_EVOLVED
+                            ),
+                        },
+                    )
+                )
+                self._log(
+                    player_index,
+                    f"信仰 {instance.faith_id} 信仰值 "
+                    f"{before} → {instance.value}",
+                )
 
     def apply(self, command: GameCommand) -> CoreTransition:
         self._ensure_entity_ids()
@@ -1949,9 +2040,9 @@ class GameEngine:
             ),
             "cooperation": player.cooperation,
             "shadows": player.shadows,
-            "faith": player.faith,
             "next_graveyard_sequence": player._next_graveyard_sequence,
             "next_emblem_sequence": player._next_emblem_sequence,
+            "next_faith_sequence": player._next_faith_sequence,
             "next_fusion_sequence": player._next_fusion_sequence,
             "deck": tuple(
                 self._card_fingerprint(card)
@@ -1981,6 +2072,10 @@ class GameEngine:
             "emblems": tuple(
                 self._emblem_instance_fingerprint(emblem)
                 for emblem in player.emblems
+            ),
+            "faiths": tuple(
+                self._faith_instance_fingerprint(faith)
+                for faith in player.faiths
             ),
         }
 
@@ -2431,6 +2526,24 @@ class GameEngine:
             ),
             "once_per_turn_used": tuple(sorted(emblem._once_per_turn_used)),
         }
+
+    @staticmethod
+    def _faith_instance_fingerprint(
+        faith: FaithInstance,
+    ) -> tuple[object, ...]:
+        return (
+            faith.faith_id,
+            faith.source_card_id,
+            faith.entity_id,
+            faith.controller,
+            faith.created_sequence,
+            faith.value,
+            faith.definition.initial_value,
+            tuple(
+                (trigger.trigger.value, trigger.amount)
+                for trigger in faith.definition.triggers
+            ),
+        )
 
     def _emblem_definition_fingerprint(
         self,
@@ -6720,6 +6833,15 @@ class GameEngine:
             self._step()
             event = self.state.event_queue.popleft()
             self.event_history.append(event)
+            if event.type in {
+                EventType.FOLLOWER_EVOLVED,
+                EventType.FOLLOWER_SUPER_EVOLVED,
+            }:
+                self._advance_faiths_for_event(
+                    event.player_index,
+                    FaithTrigger.FOLLOWER_EVOLVED,
+                    event,
+                )
             ability_event = event_to_ability.get(event.type)
             if (
                 event.type is EventType.FOLLOWER_SUMMONED
@@ -7472,7 +7594,6 @@ class GameEngine:
                 ("followers_destroyed_this_turn", player.followers_destroyed_this_turn),
                 ("cooperation", player.cooperation),
                 ("shadows", player.shadows),
-                ("faith", player.faith),
             ):
                 if value < 0:
                     raise IllegalCommand(
@@ -7642,6 +7763,33 @@ class GameEngine:
                         f"Invariant failed: {zone} countdown is negative"
                     )
                 remember(emblem.entity_id, zone)
+
+            faith_ids: set[str] = set()
+            for faith_index, faith in enumerate(player.faiths):
+                zone = f"{prefix} faiths[{faith_index}]"
+                if faith.controller != player_index:
+                    raise IllegalCommand(
+                        f"Invariant failed: {zone} controller mismatch"
+                    )
+                if faith.created_sequence <= 0:
+                    raise IllegalCommand(
+                        f"Invariant failed: {zone} created_sequence must be positive"
+                    )
+                if (
+                    not isinstance(faith.value, int)
+                    or isinstance(faith.value, bool)
+                    or faith.value < 0
+                ):
+                    raise IllegalCommand(
+                        f"Invariant failed: {zone} value is invalid"
+                    )
+                if faith.faith_id in faith_ids:
+                    raise IllegalCommand(
+                        f"Invariant failed: {prefix} has duplicate faith "
+                        f"{faith.faith_id!r}"
+                    )
+                faith_ids.add(faith.faith_id)
+                remember(faith.entity_id, zone)
 
         for frame_index, frame in enumerate(state.effect_stack):
             zone = f"effect_stack[{frame_index}]"
@@ -7984,6 +8132,10 @@ class GameEngine:
                 if emblem.entity_id <= 0 or emblem.entity_id in seen:
                     emblem.entity_id = self.state.allocate_entity_id()
                 seen.add(emblem.entity_id)
+            for faith in player.faiths:
+                if faith.entity_id <= 0 or faith.entity_id in seen:
+                    faith.entity_id = self.state.allocate_entity_id()
+                seen.add(faith.entity_id)
             for graveyard_card in player.graveyard:
                 if graveyard_card.entity_id <= 0:
                     raise IllegalCommand("Graveyard entity_id must be positive")
