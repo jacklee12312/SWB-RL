@@ -48,7 +48,13 @@ PRIMITIVE_KEYWORD_MAP = OrderedDict([
             "covered": True,
         },
     ),
-    ("灵气", {"primitive": "AURA (placeholder)", "covered": False}),
+    (
+        "灵气",
+        {
+            "primitive": "AURA manual enemy-effect target legality",
+            "covered": True,
+        },
+    ),
     (
         "瞬念召唤",
         {
@@ -367,7 +373,17 @@ def _build_coverage_report(db_path: str, rules_dir: str) -> dict:
             ability_map,
             skill_text_map,
             support_map,
-            activation_cards=set(rulebook._activation_defs),
+            activation_cards=(
+                set(rulebook._activation_defs)
+                | {
+                    card_id
+                    for card_id, definitions in rulebook._listener_defs.items()
+                    if any(
+                        definition.event.value == "amulet_activated"
+                        for definition in definitions
+                    )
+                }
+            ),
             faith_cards=set(rulebook._faith_defs),
             union_burst_cards=set(rulebook._union_burst_defs),
         )

@@ -111,6 +111,7 @@ class RuntimeKeywordTests(unittest.TestCase):
             "屏障",
             "潜行",
             "威慑",
+            "灵气",
         ):
             with self.subTest(keyword=keyword):
                 unit.add_keyword(keyword)

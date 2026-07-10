@@ -5,13 +5,12 @@
   },
   "summary": {
     "total_cards": 826,
-    "total_with_rules": 100,
+    "total_with_rules": 101,
     "test_or_synthetic_ids_with_rules": 26,
     "coverage_counts": {
-      "covered_exact": 66,
-      "supported_missing_rule": 631,
+      "covered_exact": 67,
+      "supported_missing_rule": 643,
       "text_unclear": 19,
-      "missing_primitive": 13,
       "covered_partial": 6,
       "token_or_non_collectible": 91
     }
@@ -190,8 +189,8 @@
       "covered": true
     },
     "灵气": {
-      "primitive": "AURA (placeholder)",
-      "covered": false
+      "primitive": "AURA manual enemy-effect target legality",
+      "covered": true
     },
     "瞬念召唤": {
       "primitive": "Invocation deck scan / INVOKE trigger",
@@ -4329,18 +4328,14 @@
       "cost": 2,
       "is_collectible": true,
       "card_set_id": 10001,
-      "coverage": "missing_primitive",
-      "reason": "Missing primitives: ['灵气']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['listener:board:amulet_activated'], Ops: ['buff_unit']",
       "hit_keywords": [
         "策动",
+        "灵气",
         "回合结束"
       ],
-      "missing_primitives": [
-        "灵气"
-      ],
-      "missing_rule_mechanics": [
-        "策动"
-      ],
+      "missing_primitives": [],
       "ability_keywords": [
         "灵气",
         "策动"
@@ -4348,7 +4343,12 @@
       "skill_texts": [
         "【<color=Keyword>灵气</color>】\n自己【<color=Keyword>启动</color>】护符时，回合结束前，本随从+1/+0。"
       ],
-      "support_level": "unsupported"
+      "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【灵气】自己策动护符时，回合结束前，本随从+1/+0。",
+        "notes": "灵气由通用手动目标合法性处理；每次己方护符策动事件均独立叠加临时攻击力。"
+      }
     },
     "10161210": {
       "card_id": 10161210,
@@ -6079,19 +6079,18 @@
       "cost": 8,
       "is_collectible": true,
       "card_set_id": 10002,
-      "coverage": "missing_primitive",
-      "reason": "Missing primitives: ['灵气']",
+      "coverage": "supported_missing_rule",
+      "reason": "Covered keywords: ['谢幕曲', '进化时', '超进化', '灵气', '破坏', '召唤', '土之秘术|土之印']",
       "hit_keywords": [
         "谢幕曲",
         "进化时",
         "超进化",
+        "灵气",
         "破坏",
         "召唤",
         "土之秘术|土之印"
       ],
-      "missing_primitives": [
-        "灵气"
-      ],
+      "missing_primitives": [],
       "ability_keywords": [
         "土之秘术",
         "灵气",
@@ -6839,17 +6838,16 @@
       "cost": 7,
       "is_collectible": true,
       "card_set_id": 10002,
-      "coverage": "missing_primitive",
-      "reason": "Missing primitives: ['灵气']",
+      "coverage": "supported_missing_rule",
+      "reason": "Covered keywords: ['入场曲', '进化时', '超进化', '灵气', '召唤']",
       "hit_keywords": [
         "入场曲",
         "进化时",
         "超进化",
+        "灵气",
         "召唤"
       ],
-      "missing_primitives": [
-        "灵气"
-      ],
+      "missing_primitives": [],
       "ability_keywords": [
         "入场曲",
         "守护",
@@ -9172,15 +9170,14 @@
       "cost": 3,
       "is_collectible": true,
       "card_set_id": 10004,
-      "coverage": "missing_primitive",
-      "reason": "Missing primitives: ['灵气']",
+      "coverage": "supported_missing_rule",
+      "reason": "Covered keywords: ['灵气', '回合结束', '回复']",
       "hit_keywords": [
+        "灵气",
         "回合结束",
         "回复"
       ],
-      "missing_primitives": [
-        "灵气"
-      ],
+      "missing_primitives": [],
       "ability_keywords": [
         "灵气"
       ],
@@ -10056,12 +10053,12 @@
       "cost": 3,
       "is_collectible": true,
       "card_set_id": 10004,
-      "coverage": "missing_primitive",
-      "reason": "Missing primitives: ['灵气']",
-      "hit_keywords": [],
-      "missing_primitives": [
+      "coverage": "supported_missing_rule",
+      "reason": "Covered keywords: ['灵气']",
+      "hit_keywords": [
         "灵气"
       ],
+      "missing_primitives": [],
       "ability_keywords": [
         "守护",
         "灵气"
@@ -10409,14 +10406,13 @@
       "cost": 3,
       "is_collectible": true,
       "card_set_id": 10004,
-      "coverage": "missing_primitive",
-      "reason": "Missing primitives: ['灵气']",
+      "coverage": "supported_missing_rule",
+      "reason": "Covered keywords: ['入场曲', '灵气']",
       "hit_keywords": [
-        "入场曲"
-      ],
-      "missing_primitives": [
+        "入场曲",
         "灵气"
       ],
+      "missing_primitives": [],
       "ability_keywords": [
         "入场曲",
         "灵气"
@@ -13083,18 +13079,17 @@
       "cost": 6,
       "is_collectible": true,
       "card_set_id": 10006,
-      "coverage": "missing_primitive",
-      "reason": "Missing primitives: ['灵气']",
+      "coverage": "supported_missing_rule",
+      "reason": "Covered keywords: ['入场曲', '威慑', '灵气', '必杀', '吸血', '屏障']",
       "hit_keywords": [
         "入场曲",
         "威慑",
+        "灵气",
         "必杀",
         "吸血",
         "屏障"
       ],
-      "missing_primitives": [
-        "灵气"
-      ],
+      "missing_primitives": [],
       "ability_keywords": [
         "入场曲",
         "吸血",
@@ -14123,17 +14118,16 @@
       "cost": 7,
       "is_collectible": true,
       "card_set_id": 10006,
-      "coverage": "missing_primitive",
-      "reason": "Missing primitives: ['灵气']",
+      "coverage": "supported_missing_rule",
+      "reason": "Covered keywords: ['入场曲', '灵气', '将.*加入手牌', '舍弃', '必杀']",
       "hit_keywords": [
         "入场曲",
+        "灵气",
         "将.*加入手牌",
         "舍弃",
         "必杀"
       ],
-      "missing_primitives": [
-        "灵气"
-      ],
+      "missing_primitives": [],
       "ability_keywords": [
         "入场曲",
         "必杀",
@@ -14375,17 +14369,16 @@
       "cost": 9,
       "is_collectible": true,
       "card_set_id": 10006,
-      "coverage": "missing_primitive",
-      "reason": "Missing primitives: ['灵气']",
+      "coverage": "supported_missing_rule",
+      "reason": "Covered keywords: ['进化时', '超进化', '交战时', '灵气', '破坏']",
       "hit_keywords": [
         "进化时",
         "超进化",
         "交战时",
+        "灵气",
         "破坏"
       ],
-      "missing_primitives": [
-        "灵气"
-      ],
+      "missing_primitives": [],
       "ability_keywords": [
         "交战时",
         "灵气",
@@ -14588,20 +14581,19 @@
       "cost": 6,
       "is_collectible": true,
       "card_set_id": 10006,
-      "coverage": "missing_primitive",
-      "reason": "Missing primitives: ['灵气']",
+      "coverage": "supported_missing_rule",
+      "reason": "Covered keywords: ['入场曲', '谢幕曲', '进化时', '灵气', '倒数', '破坏', '召唤', '必杀']",
       "hit_keywords": [
         "入场曲",
         "谢幕曲",
         "进化时",
+        "灵气",
         "倒数",
         "破坏",
         "召唤",
         "必杀"
       ],
-      "missing_primitives": [
-        "灵气"
-      ],
+      "missing_primitives": [],
       "ability_keywords": [
         "倒数",
         "入场曲",
@@ -15871,19 +15863,18 @@
       "cost": 7,
       "is_collectible": true,
       "card_set_id": 10007,
-      "coverage": "missing_primitive",
-      "reason": "Missing primitives: ['灵气']",
+      "coverage": "supported_missing_rule",
+      "reason": "Covered keywords: ['入场曲', '进化时', '灵气', '倒数', '破坏', '纹章', '土之秘术|土之印']",
       "hit_keywords": [
         "入场曲",
         "进化时",
+        "灵气",
         "倒数",
         "破坏",
         "纹章",
         "土之秘术|土之印"
       ],
-      "missing_primitives": [
-        "灵气"
-      ],
+      "missing_primitives": [],
       "ability_keywords": [
         "倒数",
         "入场曲",
@@ -16669,18 +16660,17 @@
       "cost": 7,
       "is_collectible": true,
       "card_set_id": 10007,
-      "coverage": "missing_primitive",
-      "reason": "Missing primitives: ['灵气']",
+      "coverage": "supported_missing_rule",
+      "reason": "Covered keywords: ['入场曲', '进化时', '超进化', '灵气', '回复', '消失']",
       "hit_keywords": [
         "入场曲",
         "进化时",
         "超进化",
+        "灵气",
         "回复",
         "消失"
       ],
-      "missing_primitives": [
-        "灵气"
-      ],
+      "missing_primitives": [],
       "ability_keywords": [
         "入场曲",
         "守护",
@@ -18462,18 +18452,17 @@
       "cost": 8,
       "is_collectible": true,
       "card_set_id": 10008,
-      "coverage": "missing_primitive",
-      "reason": "Missing primitives: ['灵气']",
+      "coverage": "supported_missing_rule",
+      "reason": "Covered keywords: ['谢幕曲', '进化时', '超进化', '灵气', '破坏', '召唤']",
       "hit_keywords": [
         "谢幕曲",
         "进化时",
         "超进化",
+        "灵气",
         "破坏",
         "召唤"
       ],
-      "missing_primitives": [
-        "灵气"
-      ],
+      "missing_primitives": [],
       "ability_keywords": [
         "守护",
         "灵气",

@@ -293,7 +293,10 @@ def _is_unselectable_by_enemy_effects(
         isinstance(entity, Unit) and entity.cannot_be_enemy_targeted
     ) or (
         isinstance(entity, Amulet)
-        and AbilityKeyword.EARTH_SIGIL in entity.definition.abilities
+        and (
+            AbilityKeyword.EARTH_SIGIL in entity.definition.abilities
+            or AbilityKeyword.AURA in entity.definition.abilities
+        )
     )
     if not protected:
         return False

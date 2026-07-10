@@ -191,9 +191,10 @@ ABILITY_DEFINITIONS = (
     ),
     _definition(
         AbilityKeyword.AURA,
-        (AbilityEvent.BEFORE_ATTACK,),
+        (),
         "handle_aura",
         aliases=("无敌", "光纹", "光紋"),
+        status=AbilityStatus.IMPLEMENTED,
     ),
     _definition(
         AbilityKeyword.BARRIER,
@@ -292,6 +293,7 @@ RUNTIME_UNIT_KEYWORDS = frozenset(
         AbilityKeyword.DRAIN.value,
         AbilityKeyword.BARRIER.value,
         AbilityKeyword.INTIMIDATE.value,
+        AbilityKeyword.AURA.value,
     }
 )
 
@@ -415,7 +417,7 @@ class AbilityHandlers:
         pass
 
     def handle_aura(self, context: AbilityContext) -> None:
-        self._placeholder(context, AbilityKeyword.AURA)
+        pass
 
     def handle_barrier(self, context: AbilityContext) -> None:
         pass

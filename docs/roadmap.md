@@ -10,14 +10,14 @@ code and tests as the source of truth when this file drifts.
 - Database: 826 cards, 735 collectible cards, 91 non-collectible/generated
   cards from set `90000`.
 - Latest SVA source: `https://sva.hypd.asia/data/cards.json`.
-- Tests: `python -m unittest discover -s tests -v` currently runs 1037 tests.
-- RL adapter: fixed 111-action space and 280-feature observation.
-- Ability registry status: 17 implemented, 5 partial, 12 placeholder.
+- Tests: `python -m unittest discover -s tests -v` currently runs 1050 tests.
+- RL adapter: fixed 111-action space and 290-feature observation.
+- Ability registry status: 18 implemented, 5 partial, 11 placeholder.
 - Explicit card and demo rules live in `data/rules/`; the current coverage
-  report classifies 100 card IDs with explicit rules, passives, fusion,
+  report classifies 101 card IDs with explicit rules, passives, fusion,
   invocation, activation, Faith, Union Burst, or listener definitions. Current
-  collectible coverage is 66 exact, 6 partial, 631 supported-but-missing-rule,
-  13 missing-primitive, and 19 text-unclear cards.
+  collectible coverage is 67 exact, 6 partial, 643 supported-but-missing-rule,
+  0 missing-primitive, and 19 text-unclear cards.
 
 ## Stable Priorities
 
@@ -76,8 +76,8 @@ slice in this order:
   fire `进化时` or `超进化时` keyword abilities. Real `10443110` demonstrates
   `奥义` self-super-evolution plus an exact structured cost-2-follower Ward
   listener. RL reuses existing public board flags and manual action slots.
-- Core combat keywords: `守护`, `疾驰`, `突进`, `必杀`, `潜行`, `威慑`, `吸血`,
-  `屏障`.
+- Core combat keywords: `守护`, `疾驰`, `突进`, `必杀`, `潜行`, `威慑`, `灵气`,
+  `吸血`, `屏障`.
 - `威慑` removes that follower from opposing follower attack targets without
   affecting ability targets. It takes precedence over Ward on the same
   follower, while other visible Wards remain mandatory. Legal commands, direct
@@ -89,6 +89,18 @@ slice in this order:
   card-text mentions from becoming initial keywords. Real `10451120` exactly
   covers static Intimidate and its summon/self-damage Last Words, based on the
   official help glossary and card page.
+- `灵气` removes followers and amulets from opposing manually selected ability
+  targets, while controller-owned selections, random effects, all-target
+  effects, and attacks remain unaffected. The normal target-candidate path
+  drives play legality, pending-choice revalidation, and RL masks. Dynamic
+  add/remove, temporary removal, and transform reuse runtime keyword state;
+  intrinsic Aura amulets use their normalized ability definition. A public
+  Aura bit per board slot migrates observation width from 280 to 290 without
+  changing any of the 111 action IDs. `non_intrinsic_keyword` annotations
+  prevent effect-granted/random full-text mentions from becoming initial Aura.
+  Real `10161140` is exact through static Aura plus an `amulet_activated`
+  listener that stacks `+1/+0` until turn end. These semantics follow the
+  official help glossary.
 - Target candidate generation for board, leader, hand, and graveyard choices.
 - `all_board` target support for effects that need one simultaneous candidate
   set across both players' followers and amulets.
@@ -370,11 +382,12 @@ slice in this order:
 
 ## Next Coherent Slices
 
-### 1. Continuous Aura (`灵气`)
+### 1. Source-Backed Continuous Modifiers
 
 - Add source-backed derived modifiers with deterministic stacking and automatic
   recomputation for entry, leave-play, transform, return, banish, and control
-  changes before authoring real Aura cards.
+  changes when a verified real card requires them. This is not the official
+  `灵气` keyword, whose manual-target protection is implemented.
 
 ### 2. Targeting Edge Cases
 

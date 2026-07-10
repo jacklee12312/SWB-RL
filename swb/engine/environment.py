@@ -5,6 +5,7 @@ from pathlib import Path
 from typing import Callable, Sequence
 
 from swb.db.repository import CardDefinition
+from swb.engine.abilities import AbilityKeyword
 from swb.engine.commands import ActivateAmulet, Attack, BeginFusion, ChoiceKind, Choose, EndTurn, Evolve, GameCommand, PlayCard, SuperEvolve
 from swb.engine.conditions import OVERFLOW_MAX_MANA_THRESHOLD
 from swb.engine.card_rules import RuleBook
@@ -557,9 +558,9 @@ class ShadowverseEnv:
 
     def _board_features(self, entity: BoardCard | None) -> list[float]:
         if entity is None:
-            return [0.0] * 13
+            return [0.0] * 14
         if isinstance(entity, Amulet):
-            return [1.0, 0.0, (entity.countdown or 0) / 10, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, float(entity.activated_turn == self.turn), len(entity.fused_material_ids) / ShadowverseEnv.MAX_HAND, 0.0]
+            return [1.0, 0.0, (entity.countdown or 0) / 10, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, float(entity.activated_turn == self.turn), len(entity.fused_material_ids) / ShadowverseEnv.MAX_HAND, 0.0, float(AbilityKeyword.AURA in entity.definition.abilities)]
         unit = entity
         return [
             1.0, unit.attack / 20, unit.health / 20,
@@ -569,6 +570,7 @@ class ShadowverseEnv:
             float(unit.barrier_charges > 0), float(unit.ambush_active),
             len(unit.fused_material_ids) / ShadowverseEnv.MAX_HAND,
             float(unit.has_intimidate),
+            float(unit.has_aura),
         ]
 
 

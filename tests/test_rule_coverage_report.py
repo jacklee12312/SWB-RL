@@ -152,9 +152,14 @@ class CoverageReportTests(unittest.TestCase):
         self.assertEqual(result["coverage"], "supported_missing_rule")
         self.assertIn("死灵术|唤灵", result["hit_keywords"])
 
-    def test_placeholder_keyword_with_rule_is_not_covered_exact(self):
+    def test_synthetic_missing_primitive_with_rule_is_not_covered_exact(self):
         """A real rule does not hide a still-missing primitive."""
-        from scripts.report_rule_coverage import _classify_card
+        from unittest.mock import patch
+
+        from scripts.report_rule_coverage import (
+            PRIMITIVE_KEYWORD_MAP,
+            _classify_card,
+        )
         card = CardDefinition(
             card_id=123457,
             card_set_id=10000,
@@ -169,15 +174,27 @@ class CoverageReportTests(unittest.TestCase):
             support_level="unsupported",
             is_collectible=True,
         )
-        result = _classify_card(
-            card,
-            ruled_cards={123457},
-            ruled_ops={123457: {"triggers": ["attack"], "effect_kinds": ["heal_leader"]}},
-            rule_metadata={},
-            ability_map={123457: ["灵气"]},
-            skill_text_map={},
-            support_map={},
-        )
+        with patch.dict(
+            PRIMITIVE_KEYWORD_MAP,
+            {
+                "灵气": {
+                    "primitive": "synthetic unavailable primitive",
+                    "covered": False,
+                }
+            },
+        ):
+            result = _classify_card(
+                card,
+                ruled_cards={123457},
+                ruled_ops={123457: {
+                    "triggers": ["attack"],
+                    "effect_kinds": ["heal_leader"],
+                }},
+                rule_metadata={},
+                ability_map={123457: ["灵气"]},
+                skill_text_map={},
+                support_map={},
+            )
         self.assertEqual(result["coverage"], "covered_partial")
         self.assertIn("灵气", result["missing_primitives"])
 

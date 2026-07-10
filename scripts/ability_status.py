@@ -17,6 +17,7 @@ _MANUAL_PRIMITIVE_STATUS = {
     AbilityKeyword.WARD: "covered",
     AbilityKeyword.AMBUSH: "covered",
     AbilityKeyword.INTIMIDATE: "covered",
+    AbilityKeyword.AURA: "covered",
 }
 
 _PRIMITIVE_PATTERN_BY_KEYWORD = {

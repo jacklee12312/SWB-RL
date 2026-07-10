@@ -545,6 +545,10 @@ class Unit(BoardEntity):
         return self.has_keyword("威慑")
 
     @property
+    def has_aura(self) -> bool:
+        return self.has_keyword("灵气")
+
+    @property
     def can_attack_leader(self) -> bool:
         if any(r.restriction == AttackRestriction.CANNOT_ATTACK for r in self.attack_restrictions):
             return False
@@ -564,7 +568,7 @@ class Unit(BoardEntity):
 
     @property
     def cannot_be_enemy_targeted(self) -> bool:
-        return any(
+        return self.has_aura or any(
             r.restriction == TargetingRestriction.CANNOT_BE_TARGETED_BY_ENEMY_EFFECTS
             for r in self.targeting_restrictions
         )

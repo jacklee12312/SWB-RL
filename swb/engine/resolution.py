@@ -356,6 +356,9 @@ class GameEngine:
             return (
                 card.card_type == "护符"
                 and self.rulebook.activation_for(card.card_id) is not None
+            ) or any(
+                definition.event is EventType.AMULET_ACTIVATED
+                for definition in self.rulebook.listeners_for(card.card_id)
             )
         if ability is AbilityKeyword.FAITH:
             return self.rulebook.faith_for(card.card_id) is not None

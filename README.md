@@ -41,7 +41,7 @@ The deterministic rules core supports:
 - follower combat, leader attacks, guard targeting, summoning sickness,
   simultaneous combat damage, and state-based deaths;
 - implemented combat keywords including `守护`, `疾驰`, `突进`, `必杀`, `潜行`,
-  `威慑`, `吸血`, and `屏障`;
+  `威慑`, `灵气`, `吸血`, and `屏障`;
 - official `威慑` attack legality: an opposing follower cannot attack an
   Intimidate follower, but abilities can still select and damage it. A follower
   with both Ward and Intimidate does not enforce Ward because Intimidate makes
@@ -51,6 +51,16 @@ The deterministic rules core supports:
   `10451120` exactly demonstrates static Intimidate plus its summon-and-self-
   damage Last Words. This follows the [official help glossary](https://shadowverse-wb.com/ja/help?tab=tab0)
   and [official Bazarraga card page](https://shadowverse-wb.com/ja/deck/cardslist/card/?card_id=10451120);
+- official `灵气` / Aura targeting legality: opposing manually selected
+  abilities cannot choose an Aura follower or amulet, while its controller's
+  abilities, random effects, all-target effects, and follower attacks remain
+  legal. Runtime add/remove, temporary removal, transform, pending-choice
+  revalidation, and RL choice masks share centralized target candidates.
+  Structured `non_intrinsic_keyword` annotations stop conditional or random
+  Aura mentions from becoming initial keywords. Real `10161140` exactly
+  combines intrinsic Aura with a board listener that grants itself `+1/+0`
+  until turn end whenever its controller activates an amulet. This follows the
+  [official Aura glossary](https://shadowverse-wb.com/ja/help?tab=tab0);
 - normal evolution and manual super-evolution, including correct `+2/+2` and
   `+3/+3` stat changes, independent resources, unlock timing, once-per-turn
   limits, all-damage/effect-destroy protection during every turn owned by that
@@ -140,7 +150,7 @@ The deterministic rules core supports:
   necromancy, reanimate, spellboost-style hand cost changes, emblems, optional
   decisions, choose-one decisions, play modes, and runtime modifiers.
 
-The RL adapter provides a fixed 111-action space, 280-feature public
+The RL adapter provides a fixed 111-action space, 290-feature public
 observation, action mask, terminal reward, graveyard choice paging, special
 hand actions for fusion/play modes, and super-evolve actions. `info()` is public by default and
 redacts debug transcripts/events unless `debug_info=True` or
@@ -151,9 +161,10 @@ is awaiting resolution. The public observation includes explicit
 controller/opponent `觉醒` flags derived from maximum mana and public
 controller/opponent `连击` counts for the current turn, plus pending multi-target
 choice size and progress.
-Each public board slot appends an Intimidate flag, migrating the observation
-from 270 to 280 features without changing action IDs; attack mask entries come
-from the same command legality as `GameEngine`.
+Each public board slot appends Intimidate and Aura flags, migrating the
+observation from 270 to 280 and then 290 features without changing action IDs;
+attack and selected-effect mask entries come from the same command legality as
+`GameEngine`.
 The final two features expose the controller and opponent's public Earth Sigil
 totals. Sigils are board amulets rather than player-side counters: entering
 Sigils merge into the newest amulet, merged Sigils are banished, and a depleted
@@ -225,7 +236,9 @@ Known broad gaps include:
   multiple/selected followers still need their own structured rules; real
   `10443110` now exactly covers both its `奥义` self-super-evolution and its
   cost-2-follower Ward listener;
-- continuous `灵气` remains the next missing generic combat/modifier primitive;
+- source-backed continuous modifiers that derive stats or keywords from
+  another permanent remain unsupported; this is separate from the implemented
+  official `灵气` targeting-protection keyword;
 - remaining trigger-ordering edge cases beyond the current death-batch
   ordering diagnostics and `death_batch_end` boundary triggers, including
   unsupported `death_batch_start` emblem triggers, plus broad real-card

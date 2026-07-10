@@ -1,0 +1,37 @@
+{
+  "passives": [
+    {
+      "card_id": 10264110,
+      "kind": "non_intrinsic_keyword",
+      "keyword": "灵气",
+      "notes": "灵气只由超进化时效果授予其他己方随从，不是本体初始关键词。"
+    },
+    {
+      "card_id": 10603110,
+      "kind": "non_intrinsic_keyword",
+      "keyword": "灵气",
+      "notes": "该卡从六种能力中随机获得三种，不能把全文中的灵气当作初始能力。"
+    }
+  ],
+  "listeners": [
+    {
+      "card_id": 10161140,
+      "zone": "board",
+      "event": "amulet_activated",
+      "event_scope": "owner_event",
+      "source_relation": "other",
+      "coverage": "exact",
+      "implemented_text": "【灵气】自己策动护符时，回合结束前，本随从+1/+0。",
+      "notes": "灵气由通用手动目标合法性处理；每次己方护符策动事件均独立叠加临时攻击力。",
+      "operations": [
+        {
+          "kind": "buff_unit",
+          "target": "self",
+          "amount": 1,
+          "secondary_amount": 0,
+          "duration": "until_end_of_turn"
+        }
+      ]
+    }
+  ]
+}
