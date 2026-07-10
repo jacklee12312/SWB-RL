@@ -197,6 +197,10 @@ def evaluate_condition(cond: Condition | None, ctx: EvalContext | None) -> bool:
         return player.cards_played_this_turn >= cond.value
     elif t == ConditionType.OPPONENT_COMBO_AT_LEAST:
         return opponent.cards_played_this_turn >= cond.value
+    elif t == ConditionType.CONTROLLER_EARTH_SIGILS_AT_LEAST:
+        return player.earth_sigils >= cond.value
+    elif t == ConditionType.OPPONENT_EARTH_SIGILS_AT_LEAST:
+        return opponent.earth_sigils >= cond.value
     elif t == ConditionType.TARGET_ATTACK_AT_MOST:
         return isinstance(target, Unit) and target.attack <= cond.value
     elif t == ConditionType.TARGET_ATTACK_AT_LEAST:
@@ -292,5 +296,9 @@ def evaluate_expression(expr: ValueExpression | None, ctx: EvalContext | None) -
         return player.cards_played_this_turn if player else 0
     elif t == ExprType.OPPONENT_COMBO:
         return opponent.cards_played_this_turn if opponent else 0
+    elif t == ExprType.CONTROLLER_EARTH_SIGILS:
+        return player.earth_sigils if player else 0
+    elif t == ExprType.OPPONENT_EARTH_SIGILS:
+        return opponent.earth_sigils if opponent else 0
 
     raise ValueError(f"Unknown expression type: {t}")

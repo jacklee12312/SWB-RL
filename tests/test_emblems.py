@@ -884,7 +884,7 @@ class ObservationTests(unittest.TestCase):
             class_a=1, class_b=1, seed=42,
         )
         obs, _ = env.reset(seed=42)
-        self.assertEqual(len(obs), 225)
+        self.assertEqual(len(obs), 227)
 
     def test_observation_exposes_public_emblem_state(self):
         env = ShadowverseEnv(

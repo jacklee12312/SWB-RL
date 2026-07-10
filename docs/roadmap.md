@@ -10,11 +10,11 @@ code and tests as the source of truth when this file drifts.
 - Database: 826 cards, 735 collectible cards, 91 non-collectible/generated
   cards from set `90000`.
 - Latest SVA source: `https://sva.hypd.asia/data/cards.json`.
-- Tests: `python -m unittest discover -s tests -v` currently runs 882 tests.
-- RL adapter: fixed 111-action space and 225-feature observation.
-- Ability registry status: 11 implemented, 3 partial, 20 placeholder.
+- Tests: `python -m unittest discover -s tests -v` currently runs 901 tests.
+- RL adapter: fixed 111-action space and 227-feature observation.
+- Ability registry status: 13 implemented, 3 partial, 18 placeholder.
 - Explicit card and demo rules live in `data/rules/`; the current coverage
-  report classifies 93 card IDs with explicit rules or passives.
+  report classifies 95 card IDs with explicit rules or passives.
 
 ## Stable Priorities
 
@@ -81,6 +81,20 @@ slice in this order:
   real rule `10474120` demonstrates selecting two enemy followers and applying
   later damage to the same set without claiming support for its ability-loss or
   leader-damage-amplification clauses.
+- `土之印` is modeled on `Amulet.earth_sigil_count`, not as a player-side
+  integer. A Sigil enters at 1, banishes and merges all other friendly Sigils
+  into the newest entity, cannot be destroyed by abilities, cannot be manually
+  selected by opposing abilities, and is destroyed through the normal
+  death-batch pipeline when its count reaches 0. Nonselecting banish remains
+  legal. `add_earth_sigils` increments the existing stack or creates token
+  `90031210`; a full board with no existing stack explicitly skips creation.
+- `earth_rite` pays a positive structured cost only when the full amount is
+  available, emits public resource/activation events, and queues nested effects
+  after payment and any depletion death batch. It supports pending choices
+  without repeat payment. Controller/opponent Sigil conditions, expressions,
+  invariant checks, deterministic fingerprints, and public RL totals are
+  covered. Exact real rules `10032310` and `10732120` demonstrate consume/gain;
+  `10031210` remains partial solely because `策动` is not implemented.
 - `target_exists` provides structured no-target branch semantics for explicit
   candidate-set targets and unit-or-leader fallback targets, including board
   target-dependent filters, then/else effect branches, and existing RL
@@ -159,8 +173,9 @@ slice in this order:
 - `连击` has natural per-turn counting, condition/expression support,
   `add_combo`, public observation counts, and real-card demos; broader real-card
   coverage remains partial.
-- `策动`, `融合`, `土之秘术`, `土之印`, `瞬念召唤`, `信仰`, and `奥义` remain
-  placeholder or incomplete.
+- `策动`, `融合`, `瞬念召唤`, `信仰`, and `奥义` remain placeholder or
+  incomplete. `土之秘术` / `土之印` core semantics are implemented, while
+  broader real-card coverage remains intentionally incremental.
 - The ability registry is conservative; a generic primitive can exist before a
   keyword is marked fully implemented.
 - Many real cards are intentionally uncovered or only partly covered by
@@ -199,26 +214,33 @@ slice in this order:
 
 ## Next Coherent Slices
 
-### 1. Targeting Edge Cases
+### 1. Fusion
+
+- Define command-level material selection and hand-zone revalidation before RL
+  action encoding.
+- Add one exact real-card rule only after the generic fusion state transition,
+  event ordering, and illegal-command fingerprint tests are green.
+
+### 2. Targeting Edge Cases
 
 - Extend no-target branch coverage only when real cards need graveyard/hand
   target-dependent filters or additional fallback target semantics.
 - Audit real rules that combine selected hand/graveyard sets with later
   operations before expanding `target_key` beyond board-entity tuples.
 
-### 2. Trigger Loop Diagnostics
+### 3. Trigger Loop Diagnostics
 
 - Add broader trigger ordering tests around any future `death_batch_start`
   boundary semantics and real-card recursive trigger combinations as coverage
   expands.
 
-### 3. Super-Evolution Edge Semantics
+### 4. Super-Evolution Edge Semantics
 
 - Keep non-manual super-evolution unsupported until official text or a real
   structured rule needs it; add it as a separate vertical slice with command,
   event, protection, and RL coverage.
 
-### 4. Coverage Reporting
+### 5. Coverage Reporting
 
 - Refresh rule coverage reports after database updates.
 - Make reports surface newly added cards and newly unsupported keyword text.

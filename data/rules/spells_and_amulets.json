@@ -12,6 +12,29 @@
       ]
     },
     {
+      "card_id": 10032310,
+      "trigger": "play",
+      "operations": [
+        {
+          "kind": "damage_unit",
+          "target": "all_units",
+          "amount": 2
+        },
+        {
+          "kind": "earth_rite",
+          "target": "own_leader",
+          "amount": 1,
+          "operations": [
+            {
+              "kind": "draw",
+              "target": "own_leader",
+              "amount": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
       "card_id": 10161210,
       "trigger": "play",
       "countdown": 3,

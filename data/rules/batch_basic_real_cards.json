@@ -524,6 +524,17 @@
                     ]
                 }
             ]
+        },
+        {
+            "card_id": 10732120,
+            "trigger": "fanfare",
+            "operations": [
+                {
+                    "kind": "add_earth_sigils",
+                    "target": "own_leader",
+                    "amount": 2
+                }
+            ]
         }
     ]
 }

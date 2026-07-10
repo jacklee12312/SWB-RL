@@ -8,17 +8,17 @@
 | Metric | Count |
 |---|---|
 | Total cards in DB | 826 |
-| Cards with rules | 93 |
+| Cards with rules | 95 |
 | Test/synthetic IDs with rules | 26 |
 
 ### Coverage Categories
 
 | Category | Count |
 |---|---|
-| covered_exact | 59 |
-| supported_missing_rule | 537 |
+| covered_exact | 61 |
+| supported_missing_rule | 564 |
 | text_unclear | 19 |
-| missing_primitive | 114 |
+| missing_primitive | 85 |
 | covered_partial | 6 |
 | token_or_non_collectible | 91 |
 
@@ -87,7 +87,7 @@
 | 无法使用 | cannot_be_played passive | True |
 | 协作 | COOPERATION value / conditions | True |
 | 纹章 | GAIN_EMBLEM / EMBLEM system | True |
-| 土之秘术|土之印 | EARTH_RITE (placeholder) | False |
+| 土之秘术|土之印 | EARTH_RITE / ADD_EARTH_SIGILS / Earth Sigil board state | True |
 | 融合 | FUSION (placeholder) | False |
 | 信仰 | FAITH (placeholder) | False |
 | 必杀 | BANE keyword | True |

@@ -3,6 +3,7 @@ from __future__ import annotations
 import random
 from typing import TYPE_CHECKING
 
+from swb.engine.abilities import AbilityKeyword
 from swb.engine.effects import EffectKind, EffectOperation, TargetKind
 from swb.engine.origin import is_graveyard_return_eligible
 from swb.engine.state import Amulet, BoardCard, BoardEntity, GraveyardCard, Unit
@@ -279,9 +280,13 @@ def target_candidates(
 def _is_unselectable_by_enemy_effects(
     entity: BoardCard, controller: int, players: list
 ) -> bool:
-    if not isinstance(entity, Unit):
-        return False
-    if not entity.cannot_be_enemy_targeted:
+    protected = (
+        isinstance(entity, Unit) and entity.cannot_be_enemy_targeted
+    ) or (
+        isinstance(entity, Amulet)
+        and AbilityKeyword.EARTH_SIGIL in entity.definition.abilities
+    )
+    if not protected:
         return False
     for idx, player in enumerate(players):
         if entity in player.board:

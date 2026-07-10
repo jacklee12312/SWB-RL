@@ -113,7 +113,7 @@ class EnvironmentTests(unittest.TestCase):
 
     def test_observation_and_action_space_are_fixed(self) -> None:
         self.assertEqual(len(self.env.action_mask()), ShadowverseEnv.ACTION_SIZE)
-        self.assertEqual(len(self.env.observation()), 225)
+        self.assertEqual(len(self.env.observation()), 227)
         self.assertTrue(self.env.action_mask()[ShadowverseEnv.END_TURN])
         self.assertEqual(sum(self.env.observation()[30:37]), 1.0)
         self.assertEqual(sum(self.env.observation()[37:44]), 1.0)
@@ -719,7 +719,7 @@ class EnvironmentTests(unittest.TestCase):
             if first_mask[action]
         ]
         self.assertEqual(len(first_actions), 2)
-        self.assertEqual(env.observation()[-2:], [2 / 16, 0.0])
+        self.assertEqual(env.observation()[-4:-2], [2 / 16, 0.0])
         first_option_id = env.core.state.pending_choice.options[0].option_id
         env.step(first_actions[0])
 
@@ -739,7 +739,7 @@ class EnvironmentTests(unittest.TestCase):
             if second_mask[action]
         ]
         self.assertEqual(len(second_actions), 1)
-        self.assertEqual(env.observation()[-2:], [2 / 16, 0.5])
+        self.assertEqual(env.observation()[-4:-2], [2 / 16, 0.5])
         env.step(second_actions[0])
 
         self.assertIsNone(env.core.state.pending_choice)

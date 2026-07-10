@@ -502,14 +502,14 @@ class DeterminismTests(unittest.TestCase):
 # ---------------------------------------------------------------------------
 
 class RLObservationTests(unittest.TestCase):
-    def test_observation_dimension_is_225(self):
+    def test_observation_dimension_is_227(self):
         env = ShadowverseEnv(
             deck_a=[_card(100 + i) for i in range(40)],
             deck_b=[_card(200 + i) for i in range(40)],
             class_a=1, class_b=1, seed=42,
         )
         obs, _ = env.reset(seed=42)
-        self.assertEqual(len(obs), 225)
+        self.assertEqual(len(obs), 227)
 
     def test_action_size_is_111(self):
         self.assertEqual(ShadowverseEnv.ACTION_SIZE, 111)

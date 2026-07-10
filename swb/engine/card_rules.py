@@ -560,6 +560,8 @@ def _iter_nested_operations(
         yield operation
         if operation.necromancy_operations:
             yield from _iter_nested_operations(operation.necromancy_operations)
+        if operation.earth_rite_operations:
+            yield from _iter_nested_operations(operation.earth_rite_operations)
         if operation.then_operations:
             yield from _iter_nested_operations(operation.then_operations)
         if operation.else_operations:
@@ -761,6 +763,11 @@ def _validate_target_keys(operations: tuple[EffectOperation, ...], source: str) 
                 op.necromancy_operations,
                 f"{source}/operations[{i}]/necromancy",
             )
+        if op.earth_rite_operations:
+            _validate_target_keys(
+                op.earth_rite_operations,
+                f"{source}/operations[{i}]/earth_rite",
+            )
         if op.then_operations:
             _validate_target_keys(
                 op.then_operations,
@@ -795,7 +802,15 @@ def _parse_operation(raw: dict, source_file: str, card_id: int, _depth: int = 0)
     _reject_unsupported_preselected_target_fields(raw, source_file, card_id)
     try:
         kind = EffectKind(raw["kind"])
-        raw_target = raw.get("target", "own_leader" if kind in (EffectKind.NECROMANCY, EffectKind.REANIMATE, EffectKind.CONDITIONAL, EffectKind.CHOOSE_ONE, EffectKind.OPTIONAL) else None)
+        raw_target = raw.get("target", "own_leader" if kind in (
+            EffectKind.ADD_EARTH_SIGILS,
+            EffectKind.EARTH_RITE,
+            EffectKind.NECROMANCY,
+            EffectKind.REANIMATE,
+            EffectKind.CONDITIONAL,
+            EffectKind.CHOOSE_ONE,
+            EffectKind.OPTIONAL,
+        ) else None)
         if raw_target is None:
             raise KeyError("target")
         target = TargetKind(raw_target)
@@ -1051,6 +1066,40 @@ def _parse_operation(raw: dict, source_file: str, card_id: int, _depth: int = 0)
             raise ValueError(
                 f"{source_file}/target card {card_id}: target_exists requires "
                 f"a target with explicit candidate sets, got {target.value!r}"
+            )
+
+    earth_rite_ops: tuple = ()
+    if kind is EffectKind.EARTH_RITE:
+        raw_inner = raw.get("operations")
+        if not isinstance(raw_inner, list) or len(raw_inner) == 0:
+            raise ValueError(
+                f"{source_file} card {card_id}: "
+                "EARTH_RITE requires non-empty 'operations' list"
+            )
+        earth_rite_ops = tuple(
+            _parse_operation(op, f"{source_file}/operations[{i}]", card_id)
+            for i, op in enumerate(raw_inner)
+        )
+        _validate_target_keys(
+            earth_rite_ops,
+            f"{source_file} card {card_id} (earth_rite)",
+        )
+
+    if kind in (EffectKind.ADD_EARTH_SIGILS, EffectKind.EARTH_RITE):
+        if (
+            raw_amount is None
+            or isinstance(raw_amount, bool)
+            or not isinstance(raw_amount, int)
+            or raw_amount <= 0
+        ):
+            raise ValueError(
+                f"{source_file}/amount card {card_id}: {kind.value} "
+                f"requires a positive integer amount, got {raw_amount!r}"
+            )
+        if target is not TargetKind.OWN_LEADER:
+            raise ValueError(
+                f"{source_file}/target card {card_id}: {kind.value} "
+                "requires target 'own_leader'"
             )
 
     necromancy_ops: tuple = ()
@@ -1492,6 +1541,7 @@ def _parse_operation(raw: dict, source_file: str, card_id: int, _depth: int = 0)
             and (raw.get("secondary_amount") is not None or raw.get("health") is not None or secondary_expr is not None)
         ),
         target_key=target_key,
+        earth_rite_operations=earth_rite_ops,
         necromancy_operations=necromancy_ops,
         graveyard_cost_max=graveyard_cost_max,
         graveyard_cost_min=graveyard_cost_min,
@@ -1545,6 +1595,8 @@ def _parse_condition(raw: dict, source_path: str, card_id: int) -> Condition:
         ConditionType.OPPONENT_COOPERATION_AT_LEAST,
         ConditionType.CONTROLLER_COMBO_AT_LEAST,
         ConditionType.OPPONENT_COMBO_AT_LEAST,
+        ConditionType.CONTROLLER_EARTH_SIGILS_AT_LEAST,
+        ConditionType.OPPONENT_EARTH_SIGILS_AT_LEAST,
     )
     if t in cooperation_threshold_types:
         if "value" not in raw:
@@ -1625,7 +1677,8 @@ def _parse_expression(raw: dict, source_path: str, card_id: int) -> ValueExpress
                ExprType.CONTROLLER_SHADOWS, ExprType.OPPONENT_SHADOWS,
                ExprType.CONTROLLER_COOPERATION, ExprType.OPPONENT_COOPERATION,
                ExprType.CONTROLLER_OVERFLOW, ExprType.OPPONENT_OVERFLOW,
-               ExprType.CONTROLLER_COMBO, ExprType.OPPONENT_COMBO):
+               ExprType.CONTROLLER_COMBO, ExprType.OPPONENT_COMBO,
+               ExprType.CONTROLLER_EARTH_SIGILS, ExprType.OPPONENT_EARTH_SIGILS):
         if sub:
             raise ValueError(
                 f"{error_prefix}: '{t.value}' must not have 'values'"

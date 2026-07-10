@@ -5,13 +5,13 @@
   },
   "summary": {
     "total_cards": 826,
-    "total_with_rules": 93,
+    "total_with_rules": 95,
     "test_or_synthetic_ids_with_rules": 26,
     "coverage_counts": {
-      "covered_exact": 59,
-      "supported_missing_rule": 537,
+      "covered_exact": 61,
+      "supported_missing_rule": 564,
       "text_unclear": 19,
-      "missing_primitive": 114,
+      "missing_primitive": 85,
       "covered_partial": 6,
       "token_or_non_collectible": 91
     }
@@ -278,8 +278,8 @@
       "covered": true
     },
     "土之秘术|土之印": {
-      "primitive": "EARTH_RITE (placeholder)",
-      "covered": false
+      "primitive": "EARTH_RITE / ADD_EARTH_SIGILS / Earth Sigil board state",
+      "covered": true
     },
     "融合": {
       "primitive": "FUSION (placeholder)",
@@ -827,16 +827,15 @@
       "cost": 3,
       "is_collectible": true,
       "card_set_id": 10000,
-      "coverage": "missing_primitive",
-      "reason": "Missing primitives: ['土之秘术|土之印']",
+      "coverage": "supported_missing_rule",
+      "reason": "Covered keywords: ['入场曲', '魔力增幅', '土之秘术|土之印', '选择一项|模式']",
       "hit_keywords": [
         "入场曲",
         "魔力增幅",
+        "土之秘术|土之印",
         "选择一项|模式"
       ],
-      "missing_primitives": [
-        "土之秘术|土之印"
-      ],
+      "missing_primitives": [],
       "ability_keywords": [
         "入场曲",
         "土之秘术",
@@ -860,11 +859,11 @@
       "reason": "Triggers: ['play'], Ops: ['draw']",
       "hit_keywords": [
         "入场曲",
-        "抽取"
+        "抽取",
+        "土之秘术|土之印"
       ],
       "missing_primitives": [
-        "策动",
-        "土之秘术|土之印"
+        "策动"
       ],
       "ability_keywords": [
         "入场曲",
@@ -924,17 +923,16 @@
       "cost": 4,
       "is_collectible": true,
       "card_set_id": 10000,
-      "coverage": "missing_primitive",
-      "reason": "Missing primitives: ['土之秘术|土之印']",
+      "coverage": "supported_missing_rule",
+      "reason": "Covered keywords: ['入场曲', '进化时', '超进化', '召唤', '土之秘术|土之印']",
       "hit_keywords": [
         "入场曲",
         "进化时",
         "超进化",
-        "召唤"
-      ],
-      "missing_primitives": [
+        "召唤",
         "土之秘术|土之印"
       ],
+      "missing_primitives": [],
       "ability_keywords": [
         "入场曲",
         "土之秘术",
@@ -975,15 +973,14 @@
       "cost": 4,
       "is_collectible": true,
       "card_set_id": 10000,
-      "coverage": "missing_primitive",
-      "reason": "Missing primitives: ['土之秘术|土之印']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['play'], Ops: ['damage_unit', 'earth_rite', 'draw']",
       "hit_keywords": [
         "抽取",
-        "造成.*伤害"
-      ],
-      "missing_primitives": [
+        "造成.*伤害",
         "土之秘术|土之印"
       ],
+      "missing_primitives": [],
       "ability_keywords": [
         "土之秘术"
       ],
@@ -2831,16 +2828,15 @@
       "cost": 2,
       "is_collectible": true,
       "card_set_id": 10001,
-      "coverage": "missing_primitive",
-      "reason": "Missing primitives: ['土之秘术|土之印']",
+      "coverage": "supported_missing_rule",
+      "reason": "Covered keywords: ['入场曲', '抽取', '返回牌', '土之秘术|土之印']",
       "hit_keywords": [
         "入场曲",
         "抽取",
-        "返回牌"
-      ],
-      "missing_primitives": [
+        "返回牌",
         "土之秘术|土之印"
       ],
+      "missing_primitives": [],
       "ability_keywords": [
         "入场曲"
       ],
@@ -2857,16 +2853,15 @@
       "cost": 3,
       "is_collectible": true,
       "card_set_id": 10001,
-      "coverage": "missing_primitive",
-      "reason": "Missing primitives: ['土之秘术|土之印']",
+      "coverage": "supported_missing_rule",
+      "reason": "Covered keywords: ['入场曲', '进化时', '造成.*伤害', '土之秘术|土之印']",
       "hit_keywords": [
         "入场曲",
         "进化时",
-        "造成.*伤害"
-      ],
-      "missing_primitives": [
+        "造成.*伤害",
         "土之秘术|土之印"
       ],
+      "missing_primitives": [],
       "ability_keywords": [
         "入场曲",
         "进化时"
@@ -3035,16 +3030,15 @@
       "cost": 3,
       "is_collectible": true,
       "card_set_id": 10001,
-      "coverage": "missing_primitive",
-      "reason": "Missing primitives: ['土之秘术|土之印']",
+      "coverage": "supported_missing_rule",
+      "reason": "Covered keywords: ['回复', '造成.*伤害', '土之秘术|土之印', '选择一项|模式']",
       "hit_keywords": [
         "回复",
         "造成.*伤害",
+        "土之秘术|土之印",
         "选择一项|模式"
       ],
-      "missing_primitives": [
-        "土之秘术|土之印"
-      ],
+      "missing_primitives": [],
       "ability_keywords": [
         "土之秘术",
         "模式"
@@ -3086,17 +3080,16 @@
       "cost": 5,
       "is_collectible": true,
       "card_set_id": 10001,
-      "coverage": "missing_primitive",
-      "reason": "Missing primitives: ['土之秘术|土之印']",
+      "coverage": "supported_missing_rule",
+      "reason": "Covered keywords: ['入场曲', '进化时', '造成.*伤害', '纹章', '土之秘术|土之印']",
       "hit_keywords": [
         "入场曲",
         "进化时",
         "造成.*伤害",
-        "纹章"
-      ],
-      "missing_primitives": [
+        "纹章",
         "土之秘术|土之印"
       ],
+      "missing_primitives": [],
       "ability_keywords": [
         "入场曲",
         "纹章",
@@ -3115,18 +3108,17 @@
       "cost": 2,
       "is_collectible": true,
       "card_set_id": 10001,
-      "coverage": "missing_primitive",
-      "reason": "Missing primitives: ['土之秘术|土之印']",
+      "coverage": "supported_missing_rule",
+      "reason": "Covered keywords: ['入场曲', '进化时', '超进化', '抽取', '回复', '土之秘术|土之印']",
       "hit_keywords": [
         "入场曲",
         "进化时",
         "超进化",
         "抽取",
-        "回复"
-      ],
-      "missing_primitives": [
+        "回复",
         "土之秘术|土之印"
       ],
+      "missing_primitives": [],
       "ability_keywords": [
         "入场曲",
         "超进化时"
@@ -3144,17 +3136,16 @@
       "cost": 4,
       "is_collectible": true,
       "card_set_id": 10001,
-      "coverage": "missing_primitive",
-      "reason": "Missing primitives: ['土之秘术|土之印']",
+      "coverage": "supported_missing_rule",
+      "reason": "Covered keywords: ['入场曲', '进化时', '回复', '造成.*伤害', '土之秘术|土之印']",
       "hit_keywords": [
         "入场曲",
         "进化时",
         "回复",
-        "造成.*伤害"
-      ],
-      "missing_primitives": [
+        "造成.*伤害",
         "土之秘术|土之印"
       ],
+      "missing_primitives": [],
       "ability_keywords": [
         "入场曲",
         "土之秘术"
@@ -5846,16 +5837,15 @@
       "cost": 2,
       "is_collectible": true,
       "card_set_id": 10002,
-      "coverage": "missing_primitive",
-      "reason": "Missing primitives: ['土之秘术|土之印']",
+      "coverage": "supported_missing_rule",
+      "reason": "Covered keywords: ['入场曲', '超进化', '将.*加入手牌', '土之秘术|土之印']",
       "hit_keywords": [
         "入场曲",
         "超进化",
-        "将.*加入手牌"
-      ],
-      "missing_primitives": [
+        "将.*加入手牌",
         "土之秘术|土之印"
       ],
+      "missing_primitives": [],
       "ability_keywords": [
         "入场曲"
       ],
@@ -5896,15 +5886,14 @@
       "cost": 4,
       "is_collectible": true,
       "card_set_id": 10002,
-      "coverage": "missing_primitive",
-      "reason": "Missing primitives: ['土之秘术|土之印']",
+      "coverage": "supported_missing_rule",
+      "reason": "Covered keywords: ['造成.*伤害', '破坏', '土之秘术|土之印']",
       "hit_keywords": [
         "造成.*伤害",
-        "破坏"
-      ],
-      "missing_primitives": [
+        "破坏",
         "土之秘术|土之印"
       ],
+      "missing_primitives": [],
       "ability_keywords": [
         "土之秘术"
       ],
@@ -5948,16 +5937,15 @@
       "cost": 4,
       "is_collectible": true,
       "card_set_id": 10002,
-      "coverage": "missing_primitive",
-      "reason": "Missing primitives: ['土之秘术|土之印']",
+      "coverage": "supported_missing_rule",
+      "reason": "Covered keywords: ['入场曲', '进化时', '造成.*伤害', '土之秘术|土之印']",
       "hit_keywords": [
         "入场曲",
         "进化时",
-        "造成.*伤害"
-      ],
-      "missing_primitives": [
+        "造成.*伤害",
         "土之秘术|土之印"
       ],
+      "missing_primitives": [],
       "ability_keywords": [
         "入场曲",
         "进化时"
@@ -6024,14 +6012,13 @@
       "cost": 2,
       "is_collectible": true,
       "card_set_id": 10002,
-      "coverage": "missing_primitive",
-      "reason": "Missing primitives: ['土之秘术|土之印']",
+      "coverage": "supported_missing_rule",
+      "reason": "Covered keywords: ['纹章', '土之秘术|土之印']",
       "hit_keywords": [
-        "纹章"
-      ],
-      "missing_primitives": [
+        "纹章",
         "土之秘术|土之印"
       ],
+      "missing_primitives": [],
       "ability_keywords": [
         "纹章"
       ],
@@ -6049,17 +6036,17 @@
       "is_collectible": true,
       "card_set_id": 10002,
       "coverage": "missing_primitive",
-      "reason": "Missing primitives: ['灵气', '土之秘术|土之印']",
+      "reason": "Missing primitives: ['灵气']",
       "hit_keywords": [
         "谢幕曲",
         "进化时",
         "超进化",
         "破坏",
-        "召唤"
+        "召唤",
+        "土之秘术|土之印"
       ],
       "missing_primitives": [
-        "灵气",
-        "土之秘术|土之印"
+        "灵气"
       ],
       "ability_keywords": [
         "土之秘术",
@@ -6080,20 +6067,19 @@
       "cost": 6,
       "is_collectible": true,
       "card_set_id": 10002,
-      "coverage": "missing_primitive",
-      "reason": "Missing primitives: ['土之秘术|土之印']",
+      "coverage": "supported_missing_rule",
+      "reason": "Covered keywords: ['入场曲', '进化时', '抽取', '回复', '召唤', '土之秘术|土之印', '屏障', '选择一项|模式']",
       "hit_keywords": [
         "入场曲",
         "进化时",
         "抽取",
         "回复",
         "召唤",
+        "土之秘术|土之印",
         "屏障",
         "选择一项|模式"
       ],
-      "missing_primitives": [
-        "土之秘术|土之印"
-      ],
+      "missing_primitives": [],
       "ability_keywords": [
         "入场曲",
         "土之秘术",
@@ -9767,15 +9753,14 @@
       "cost": 6,
       "is_collectible": true,
       "card_set_id": 10004,
-      "coverage": "missing_primitive",
-      "reason": "Missing primitives: ['土之秘术|土之印']",
+      "coverage": "supported_missing_rule",
+      "reason": "Covered keywords: ['入场曲', '造成.*伤害', '土之秘术|土之印']",
       "hit_keywords": [
         "入场曲",
-        "造成.*伤害"
-      ],
-      "missing_primitives": [
+        "造成.*伤害",
         "土之秘术|土之印"
       ],
+      "missing_primitives": [],
       "ability_keywords": [
         "入场曲"
       ],
@@ -9792,15 +9777,14 @@
       "cost": 5,
       "is_collectible": true,
       "card_set_id": 10004,
-      "coverage": "missing_primitive",
-      "reason": "Missing primitives: ['土之秘术|土之印']",
+      "coverage": "supported_missing_rule",
+      "reason": "Covered keywords: ['入场曲', '召唤', '土之秘术|土之印']",
       "hit_keywords": [
         "入场曲",
-        "召唤"
-      ],
-      "missing_primitives": [
+        "召唤",
         "土之秘术|土之印"
       ],
+      "missing_primitives": [],
       "ability_keywords": [
         "入场曲",
         "土之秘术"
@@ -9871,13 +9855,13 @@
       "is_collectible": true,
       "card_set_id": 10004,
       "coverage": "missing_primitive",
-      "reason": "Missing primitives: ['奥义', '土之秘术|土之印']",
+      "reason": "Missing primitives: ['奥义']",
       "hit_keywords": [
-        "造成.*伤害"
+        "造成.*伤害",
+        "土之秘术|土之印"
       ],
       "missing_primitives": [
-        "奥义",
-        "土之秘术|土之印"
+        "奥义"
       ],
       "ability_keywords": [
         "奥义"
@@ -9927,15 +9911,15 @@
       "is_collectible": true,
       "card_set_id": 10004,
       "coverage": "missing_primitive",
-      "reason": "Missing primitives: ['奥义', '土之秘术|土之印']",
+      "reason": "Missing primitives: ['奥义']",
       "hit_keywords": [
         "入场曲",
         "将.*加入手牌",
-        "纹章"
+        "纹章",
+        "土之秘术|土之印"
       ],
       "missing_primitives": [
-        "奥义",
-        "土之秘术|土之印"
+        "奥义"
       ],
       "ability_keywords": [
         "入场曲",
@@ -11605,17 +11589,16 @@
       "cost": 3,
       "is_collectible": true,
       "card_set_id": 10005,
-      "coverage": "missing_primitive",
-      "reason": "Missing primitives: ['土之秘术|土之印']",
+      "coverage": "supported_missing_rule",
+      "reason": "Covered keywords: ['入场曲', '进化时', '超进化', '召唤', '土之秘术|土之印']",
       "hit_keywords": [
         "入场曲",
         "进化时",
         "超进化",
-        "召唤"
-      ],
-      "missing_primitives": [
+        "召唤",
         "土之秘术|土之印"
       ],
+      "missing_primitives": [],
       "ability_keywords": [
         "入场曲",
         "超进化时"
@@ -11732,15 +11715,14 @@
       "cost": 1,
       "is_collectible": true,
       "card_set_id": 10005,
-      "coverage": "missing_primitive",
-      "reason": "Missing primitives: ['土之秘术|土之印']",
+      "coverage": "supported_missing_rule",
+      "reason": "Covered keywords: ['回复', '召唤', '土之秘术|土之印']",
       "hit_keywords": [
         "回复",
-        "召唤"
-      ],
-      "missing_primitives": [
+        "召唤",
         "土之秘术|土之印"
       ],
+      "missing_primitives": [],
       "ability_keywords": [
         "土之秘术"
       ],
@@ -11757,15 +11739,14 @@
       "cost": 7,
       "is_collectible": true,
       "card_set_id": 10005,
-      "coverage": "missing_primitive",
-      "reason": "Missing primitives: ['土之秘术|土之印']",
+      "coverage": "supported_missing_rule",
+      "reason": "Covered keywords: ['入场曲', '召唤', '土之秘术|土之印']",
       "hit_keywords": [
         "入场曲",
-        "召唤"
-      ],
-      "missing_primitives": [
+        "召唤",
         "土之秘术|土之印"
       ],
+      "missing_primitives": [],
       "ability_keywords": [
         "入场曲",
         "土之秘术"
@@ -15454,14 +15435,13 @@
       "cost": 4,
       "is_collectible": true,
       "card_set_id": 10007,
-      "coverage": "missing_primitive",
-      "reason": "Missing primitives: ['土之秘术|土之印']",
+      "coverage": "supported_missing_rule",
+      "reason": "Covered keywords: ['入场曲', '土之秘术|土之印']",
       "hit_keywords": [
-        "入场曲"
-      ],
-      "missing_primitives": [
+        "入场曲",
         "土之秘术|土之印"
       ],
+      "missing_primitives": [],
       "ability_keywords": [
         "入场曲",
         "土之秘术",
@@ -15480,16 +15460,15 @@
       "cost": 2,
       "is_collectible": true,
       "card_set_id": 10007,
-      "coverage": "missing_primitive",
-      "reason": "Missing primitives: ['土之秘术|土之印']",
+      "coverage": "supported_missing_rule",
+      "reason": "Covered keywords: ['入场曲', '进化时', '造成.*伤害', '土之秘术|土之印']",
       "hit_keywords": [
         "入场曲",
         "进化时",
-        "造成.*伤害"
-      ],
-      "missing_primitives": [
+        "造成.*伤害",
         "土之秘术|土之印"
       ],
+      "missing_primitives": [],
       "ability_keywords": [
         "入场曲",
         "进化时"
@@ -15507,14 +15486,13 @@
       "cost": 4,
       "is_collectible": true,
       "card_set_id": 10007,
-      "coverage": "missing_primitive",
-      "reason": "Missing primitives: ['土之秘术|土之印']",
+      "coverage": "supported_missing_rule",
+      "reason": "Covered keywords: ['抽取', '土之秘术|土之印']",
       "hit_keywords": [
-        "抽取"
-      ],
-      "missing_primitives": [
+        "抽取",
         "土之秘术|土之印"
       ],
+      "missing_primitives": [],
       "ability_keywords": [
         "土之秘术"
       ],
@@ -15531,17 +15509,16 @@
       "cost": 3,
       "is_collectible": true,
       "card_set_id": 10007,
-      "coverage": "missing_primitive",
-      "reason": "Missing primitives: ['土之秘术|土之印']",
+      "coverage": "supported_missing_rule",
+      "reason": "Covered keywords: ['谢幕曲', '进化时', '超进化', '召唤', '土之秘术|土之印']",
       "hit_keywords": [
         "谢幕曲",
         "进化时",
         "超进化",
-        "召唤"
-      ],
-      "missing_primitives": [
+        "召唤",
         "土之秘术|土之印"
       ],
+      "missing_primitives": [],
       "ability_keywords": [
         "土之秘术",
         "突进",
@@ -15561,14 +15538,13 @@
       "cost": 2,
       "is_collectible": true,
       "card_set_id": 10007,
-      "coverage": "missing_primitive",
-      "reason": "Missing primitives: ['土之秘术|土之印']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['fanfare'], Ops: ['add_earth_sigils']",
       "hit_keywords": [
-        "入场曲"
-      ],
-      "missing_primitives": [
+        "入场曲",
         "土之秘术|土之印"
       ],
+      "missing_primitives": [],
       "ability_keywords": [
         "入场曲",
         "守护"
@@ -15586,15 +15562,14 @@
       "cost": 2,
       "is_collectible": true,
       "card_set_id": 10007,
-      "coverage": "missing_primitive",
-      "reason": "Missing primitives: ['土之秘术|土之印']",
+      "coverage": "supported_missing_rule",
+      "reason": "Covered keywords: ['造成.*伤害', '土之秘术|土之印', '选择一项|模式']",
       "hit_keywords": [
         "造成.*伤害",
+        "土之秘术|土之印",
         "选择一项|模式"
       ],
-      "missing_primitives": [
-        "土之秘术|土之印"
-      ],
+      "missing_primitives": [],
       "ability_keywords": [
         "土之秘术",
         "模式"
@@ -15612,18 +15587,17 @@
       "cost": 5,
       "is_collectible": true,
       "card_set_id": 10007,
-      "coverage": "missing_primitive",
-      "reason": "Missing primitives: ['土之秘术|土之印']",
+      "coverage": "supported_missing_rule",
+      "reason": "Covered keywords: ['入场曲', '进化时', '抽取', '造成.*伤害', '土之秘术|土之印', '选择一项|模式']",
       "hit_keywords": [
         "入场曲",
         "进化时",
         "抽取",
         "造成.*伤害",
+        "土之秘术|土之印",
         "选择一项|模式"
       ],
-      "missing_primitives": [
-        "土之秘术|土之印"
-      ],
+      "missing_primitives": [],
       "ability_keywords": [
         "入场曲",
         "土之秘术",
@@ -15643,14 +15617,13 @@
       "cost": 4,
       "is_collectible": true,
       "card_set_id": 10007,
-      "coverage": "missing_primitive",
-      "reason": "Missing primitives: ['土之秘术|土之印']",
+      "coverage": "supported_missing_rule",
+      "reason": "Covered keywords: ['破坏', '土之秘术|土之印']",
       "hit_keywords": [
-        "破坏"
-      ],
-      "missing_primitives": [
+        "破坏",
         "土之秘术|土之印"
       ],
+      "missing_primitives": [],
       "ability_keywords": [
         "土之秘术"
       ],
@@ -15668,16 +15641,16 @@
       "is_collectible": true,
       "card_set_id": 10007,
       "coverage": "missing_primitive",
-      "reason": "Missing primitives: ['灵气', '土之秘术|土之印']",
+      "reason": "Missing primitives: ['灵气']",
       "hit_keywords": [
         "入场曲",
         "进化时",
         "破坏",
-        "纹章"
+        "纹章",
+        "土之秘术|土之印"
       ],
       "missing_primitives": [
-        "灵气",
-        "土之秘术|土之印"
+        "灵气"
       ],
       "ability_keywords": [
         "入场曲",
@@ -15699,19 +15672,18 @@
       "cost": 8,
       "is_collectible": true,
       "card_set_id": 10007,
-      "coverage": "missing_primitive",
-      "reason": "Missing primitives: ['土之秘术|土之印']",
+      "coverage": "supported_missing_rule",
+      "reason": "Covered keywords: ['入场曲', '谢幕曲', '进化时', '超进化', '造成.*伤害', '召唤', '土之秘术|土之印']",
       "hit_keywords": [
         "入场曲",
         "谢幕曲",
         "进化时",
         "超进化",
         "造成.*伤害",
-        "召唤"
-      ],
-      "missing_primitives": [
+        "召唤",
         "土之秘术|土之印"
       ],
+      "missing_primitives": [],
       "ability_keywords": [
         "入场曲",
         "土之秘术",
@@ -17538,15 +17510,14 @@
       "cost": 5,
       "is_collectible": true,
       "card_set_id": 10008,
-      "coverage": "missing_primitive",
-      "reason": "Missing primitives: ['土之秘术|土之印']",
+      "coverage": "supported_missing_rule",
+      "reason": "Covered keywords: ['将.*加入手牌', '造成.*伤害', '土之秘术|土之印']",
       "hit_keywords": [
         "将.*加入手牌",
-        "造成.*伤害"
-      ],
-      "missing_primitives": [
+        "造成.*伤害",
         "土之秘术|土之印"
       ],
+      "missing_primitives": [],
       "ability_keywords": [
         "土之秘术"
       ],

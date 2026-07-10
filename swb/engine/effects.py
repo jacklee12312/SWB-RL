@@ -38,6 +38,8 @@ class ConditionType(str, Enum):
     OPPONENT_OVERFLOW = "opponent_overflow"
     CONTROLLER_COMBO_AT_LEAST = "controller_combo_at_least"
     OPPONENT_COMBO_AT_LEAST = "opponent_combo_at_least"
+    CONTROLLER_EARTH_SIGILS_AT_LEAST = "controller_earth_sigils_at_least"
+    OPPONENT_EARTH_SIGILS_AT_LEAST = "opponent_earth_sigils_at_least"
 
 
 class ExprType(str, Enum):
@@ -62,6 +64,8 @@ class ExprType(str, Enum):
     OPPONENT_OVERFLOW = "opponent_overflow"
     CONTROLLER_COMBO = "controller_combo"
     OPPONENT_COMBO = "opponent_combo"
+    CONTROLLER_EARTH_SIGILS = "controller_earth_sigils"
+    OPPONENT_EARTH_SIGILS = "opponent_earth_sigils"
 
 
 @dataclass
@@ -118,6 +122,8 @@ class EffectKind(str, Enum):
     REMOVE_TARGETING_RESTRICTION = "remove_targeting_restriction"
     SPELLBOOST_HAND = "spellboost_hand"
     ADD_COMBO = "add_combo"
+    ADD_EARTH_SIGILS = "add_earth_sigils"
+    EARTH_RITE = "earth_rite"
     NECROMANCY = "necromancy"
     REANIMATE = "reanimate"
     RETURN_FROM_GRAVEYARD_TO_HAND = "return_from_graveyard_to_hand"
@@ -256,6 +262,7 @@ class EffectOperation:
     set_attack: bool = False
     set_health: bool = False
     target_key: str | None = None
+    earth_rite_operations: tuple["EffectOperation", ...] = ()
     necromancy_operations: tuple["EffectOperation", ...] = ()
     graveyard_cost_max: int | None = None
     graveyard_cost_min: int | None = None

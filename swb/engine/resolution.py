@@ -118,6 +118,7 @@ class IllegalCommand(ValueError):
 
 
 MAX_RESOLUTION_STEPS = 20_000
+EARTH_SIGIL_TOKEN_CARD_ID = 90031210
 
 
 def _leader_target_id(player_index: int) -> int:
@@ -367,7 +368,8 @@ class GameEngine:
                     if expression_contains(operation.secondary_expr):
                         return True
                     nested = (
-                        operation.necromancy_operations
+                        operation.earth_rite_operations
+                        + operation.necromancy_operations
                         + operation.then_operations
                         + operation.else_operations
                         + operation.optional_operations
@@ -389,6 +391,7 @@ class GameEngine:
             )
 
         expected_kind = {
+            AbilityKeyword.EARTH_RITE: EffectKind.EARTH_RITE,
             AbilityKeyword.NECROMANCY: EffectKind.NECROMANCY,
             AbilityKeyword.REANIMATE: EffectKind.REANIMATE,
         }.get(ability)
@@ -396,11 +399,24 @@ class GameEngine:
             return False
 
         def contains_kind(operations: tuple[EffectOperation, ...]) -> bool:
-            return any(
-                operation.kind is expected_kind
-                or contains_kind(operation.necromancy_operations)
-                for operation in operations
-            )
+            for operation in operations:
+                if operation.kind is expected_kind:
+                    return True
+                nested = (
+                    operation.earth_rite_operations
+                    + operation.necromancy_operations
+                    + operation.then_operations
+                    + operation.else_operations
+                    + operation.optional_operations
+                )
+                if contains_kind(nested):
+                    return True
+                if any(
+                    contains_kind(option.operations)
+                    for option in operation.choose_one_options
+                ):
+                    return True
+            return False
 
         return any(
             contains_kind(self.rulebook.operations_for(card.card_id, trigger))
@@ -989,6 +1005,7 @@ class GameEngine:
                 metadata={"source": amulet},
             )
         )
+        self._initialize_earth_sigil(amulet, self.current_player)
         operations = self.rulebook.operations_for(card.card_id, Trigger.PLAY)
         self._start_effects(card, amulet.entity_id, operations, label="入场曲")
 
@@ -1070,6 +1087,7 @@ class GameEngine:
                 metadata={"source": amulet},
             )
         )
+        self._initialize_earth_sigil(amulet, self.current_player)
         ops = mode_def.operations if mode_def else ()
         self._start_effects(card, amulet.entity_id, ops, label="结晶")
 
@@ -1182,6 +1200,7 @@ class GameEngine:
         if operation.target_count_expr is not None:
             summary["target_count_expr"] = operation.target_count_expr.type.value
         nested_counts = {
+            "earth_rite": len(operation.earth_rite_operations),
             "necromancy": len(operation.necromancy_operations),
             "then": len(operation.then_operations),
             "else": len(operation.else_operations),
@@ -1638,6 +1657,7 @@ class GameEngine:
         elif isinstance(entity, Amulet):
             base.update({
                 "countdown": entity.countdown,
+                "earth_sigil_count": entity.earth_sigil_count,
                 "entered_turn": entity.entered_turn,
                 "pending_destroy": entity.pending_destroy,
             })
@@ -1788,6 +1808,10 @@ class GameEngine:
             operation.set_attack,
             operation.set_health,
             operation.target_key,
+            tuple(
+                self._operation_fingerprint(nested)
+                for nested in operation.earth_rite_operations
+            ),
             tuple(
                 self._operation_fingerprint(nested)
                 for nested in operation.necromancy_operations
@@ -4227,6 +4251,21 @@ class GameEngine:
                 self._death_causes[target.entity_id] = DeathCause.EFFECT_DESTROY
                 target.health = 0
             elif isinstance(target, Amulet):
+                if self._is_earth_sigil_amulet(target):
+                    self._emit(
+                        GameEvent(
+                            EventType.EARTH_SIGIL_DESTROY_PREVENTED,
+                            frame.controller,
+                            source_id=frame.source_entity_id,
+                            target_id=target.entity_id,
+                            metadata={"source_card_id": frame.source_card_id},
+                        )
+                    )
+                    self._log(
+                        frame.controller,
+                        f"{target.definition.name} 的土之印规则阻止了效果破坏",
+                    )
+                    return
                 target.pending_destroy = True
         elif effect.kind is EffectKind.SUMMON:
             self._execute_summon(effect, frame)
@@ -4262,6 +4301,10 @@ class GameEngine:
             self._execute_spellboost_hand(effect, frame, target_id)
         elif effect.kind is EffectKind.ADD_COMBO:
             self._execute_add_combo(effect, frame)
+        elif effect.kind is EffectKind.ADD_EARTH_SIGILS:
+            self._execute_add_earth_sigils(effect, frame)
+        elif effect.kind is EffectKind.EARTH_RITE:
+            self._execute_earth_rite(effect, frame)
         elif effect.kind is EffectKind.NECROMANCY:
             self._execute_necromancy(effect, frame, target_id)
         elif effect.kind is EffectKind.REANIMATE:
@@ -5490,11 +5533,246 @@ class GameEngine:
                     metadata={"source": amulet},
                 )
             )
+            self._initialize_earth_sigil(amulet, frame.controller)
         else:
             self._log(
                 frame.controller,
                 f"{frame.source_name} 召唤失败：{card_def.card_type} 类型不可召唤",
             )
+
+    @staticmethod
+    def _is_earth_sigil_amulet(entity: BoardCard) -> bool:
+        return (
+            isinstance(entity, Amulet)
+            and AbilityKeyword.EARTH_SIGIL in entity.definition.abilities
+        )
+
+    def _earth_sigil_amulets(self, player_index: int) -> list[Amulet]:
+        return [
+            entity
+            for entity in self.players[player_index].board
+            if self._is_earth_sigil_amulet(entity)
+        ]
+
+    def _initialize_earth_sigil(
+        self,
+        amulet: Amulet,
+        player_index: int,
+        *,
+        initial_count: int = 1,
+    ) -> None:
+        if not self._is_earth_sigil_amulet(amulet):
+            return
+        if initial_count <= 0:
+            raise IllegalCommand("Earth Sigil initial count must be positive")
+
+        player = self.players[player_index]
+        existing = [
+            entity
+            for entity in self._earth_sigil_amulets(player_index)
+            if entity.entity_id != amulet.entity_id
+        ]
+        before = sum(entity.earth_sigil_count for entity in existing)
+        merged_ids: list[int] = []
+        for entity in existing:
+            if entity not in player.board:
+                continue
+            player.board.remove(entity)
+            player.banished.append(entity.definition)
+            merged_ids.append(entity.entity_id)
+            self._emit(
+                GameEvent(
+                    EventType.CARD_BANISHED,
+                    player_index,
+                    source_id=entity.entity_id,
+                    metadata={"source": entity, "cause": "earth_sigil_merge"},
+                )
+            )
+            self._emit(
+                GameEvent(
+                    EventType.ENTITY_LEFT_PLAY,
+                    player_index,
+                    source_id=entity.entity_id,
+                    metadata={"source": entity, "cause": "earth_sigil_merge"},
+                )
+            )
+
+        amulet.earth_sigil_count = before + initial_count
+        if merged_ids:
+            self._emit(
+                GameEvent(
+                    EventType.EARTH_SIGILS_MERGED,
+                    player_index,
+                    source_id=amulet.entity_id,
+                    amount=amulet.earth_sigil_count,
+                    metadata={
+                        "merged_entity_ids": tuple(merged_ids),
+                        "earth_sigils_before": before,
+                        "earth_sigils_after": amulet.earth_sigil_count,
+                    },
+                )
+            )
+        self._emit_earth_sigils_changed(
+            player_index,
+            source_id=amulet.entity_id,
+            before=before,
+            after=amulet.earth_sigil_count,
+            change="enter",
+        )
+        self._log(
+            player_index,
+            f"土之印 {before} → {amulet.earth_sigil_count}",
+        )
+
+    def _emit_earth_sigils_changed(
+        self,
+        player_index: int,
+        *,
+        source_id: int | None,
+        before: int,
+        after: int,
+        change: str,
+        source_card_id: int | None = None,
+    ) -> None:
+        self._emit(
+            GameEvent(
+                EventType.EARTH_SIGILS_CHANGED,
+                player_index,
+                source_id=source_id,
+                amount=abs(after - before),
+                metadata={
+                    "change": change,
+                    "earth_sigils_before": before,
+                    "earth_sigils_after": after,
+                    "source_card_id": source_card_id,
+                },
+            )
+        )
+
+    def _execute_add_earth_sigils(
+        self,
+        effect: EffectOperation,
+        frame: EffectFrame,
+    ) -> None:
+        amount = effect.amount
+        if amount <= 0:
+            return
+        sigils = self._earth_sigil_amulets(frame.controller)
+        if sigils:
+            sigil = sigils[0]
+            before = sigil.earth_sigil_count
+            sigil.earth_sigil_count += amount
+            self._emit_earth_sigils_changed(
+                frame.controller,
+                source_id=sigil.entity_id,
+                before=before,
+                after=sigil.earth_sigil_count,
+                change="gain",
+                source_card_id=frame.source_card_id,
+            )
+            self._log(
+                frame.controller,
+                f"{frame.source_name} 使土之印 {before} → {sigil.earth_sigil_count}",
+            )
+            return
+
+        player = self.players[frame.controller]
+        if len(player.board) >= self.config.max_board:
+            self._log(frame.controller, f"{frame.source_name} 增加土之印失败：战场已满")
+            return
+        if self.card_resolver is None:
+            raise IllegalCommand("No card_resolver registered for Earth Sigil token")
+        try:
+            token = self.card_resolver(EARTH_SIGIL_TOKEN_CARD_ID)
+        except KeyError as exc:
+            raise IllegalCommand(
+                f"Card {EARTH_SIGIL_TOKEN_CARD_ID} not found for Earth Sigil token"
+            ) from exc
+        if token is None:
+            raise IllegalCommand(
+                f"Card {EARTH_SIGIL_TOKEN_CARD_ID} not found for Earth Sigil token"
+            )
+        if (
+            token.card_type != "护符"
+            or AbilityKeyword.EARTH_SIGIL not in token.abilities
+        ):
+            raise IllegalCommand("Earth Sigil token definition is invalid")
+
+        amulet = Amulet(
+            definition=token,
+            entity_id=self.state.allocate_entity_id(),
+            countdown=self.rulebook.countdown_for(token.card_id),
+            entered_turn=self.turn,
+            origin=CardOrigin.TOKEN,
+        )
+        player.board.append(amulet)
+        self._emit(
+            GameEvent(
+                EventType.AMULET_ENTERED,
+                frame.controller,
+                source_id=amulet.entity_id,
+                metadata={
+                    "source": amulet,
+                    "origin": CardOrigin.TOKEN.value,
+                    "token": True,
+                    "via": "earth_sigil_gain",
+                },
+            )
+        )
+        self._initialize_earth_sigil(
+            amulet,
+            frame.controller,
+            initial_count=amount,
+        )
+
+    def _execute_earth_rite(
+        self,
+        effect: EffectOperation,
+        frame: EffectFrame,
+    ) -> None:
+        sigils = self._earth_sigil_amulets(frame.controller)
+        if not sigils:
+            return
+        sigil = sigils[0]
+        cost = effect.amount
+        before = sigil.earth_sigil_count
+        if before < cost:
+            return
+
+        sigil.earth_sigil_count -= cost
+        after = sigil.earth_sigil_count
+        self._emit(
+            GameEvent(
+                EventType.EARTH_RITE_ACTIVATED,
+                frame.controller,
+                source_id=frame.source_entity_id,
+                amount=cost,
+                metadata={
+                    "earth_sigils_before": before,
+                    "earth_sigils_after": after,
+                    "earth_sigil_entity_id": sigil.entity_id,
+                    "source_card_id": frame.source_card_id,
+                },
+            )
+        )
+        self._emit_earth_sigils_changed(
+            frame.controller,
+            source_id=sigil.entity_id,
+            before=before,
+            after=after,
+            change="spend",
+            source_card_id=frame.source_card_id,
+        )
+        self._log(frame.controller, f"土之秘术 {cost}：土之印 {before} → {after}")
+        if after == 0:
+            sigil.pending_destroy = True
+        self._queue_effects(
+            frame.source_card,
+            frame.source_entity_id,
+            effect.earth_rite_operations,
+            controller=frame.controller,
+            label="土之秘术",
+        )
 
     def _execute_banish(self, target_id: int | None, frame: EffectFrame) -> None:
         entity = self._find_board_entity(target_id)
@@ -5984,7 +6262,10 @@ class GameEngine:
                     )
                     records.append(record)
                 elif isinstance(entity, Amulet) and entity.pending_destroy:
-                    cause = DeathCause.COUNTDOWN_EXPIRED if entity.countdown is not None and entity.countdown <= 0 else DeathCause.EFFECT_DESTROY
+                    if self._is_earth_sigil_amulet(entity) and entity.earth_sigil_count == 0:
+                        cause = DeathCause.EARTH_SIGIL_DEPLETED
+                    else:
+                        cause = DeathCause.COUNTDOWN_EXPIRED if entity.countdown is not None and entity.countdown <= 0 else DeathCause.EFFECT_DESTROY
                     record = DeathRecord(
                         owner=player_index,
                         entity_id=entity.entity_id,
@@ -6490,10 +6771,40 @@ class GameEngine:
                         raise IllegalCommand(
                             f"Invariant failed: {zone} barrier_charges is negative"
                         )
-                elif entity.countdown is not None and entity.countdown < 0:
-                    raise IllegalCommand(
-                        f"Invariant failed: {zone} countdown is negative"
-                    )
+                else:
+                    if entity.countdown is not None and entity.countdown < 0:
+                        raise IllegalCommand(
+                            f"Invariant failed: {zone} countdown is negative"
+                        )
+                    is_earth_sigil = self._is_earth_sigil_amulet(entity)
+                    if entity.earth_sigil_count < 0:
+                        raise IllegalCommand(
+                            f"Invariant failed: {zone} earth_sigil_count is negative"
+                        )
+                    if not is_earth_sigil and entity.earth_sigil_count != 0:
+                        raise IllegalCommand(
+                            f"Invariant failed: {zone} non-Earth-Sigil amulet "
+                            "has earth_sigil_count"
+                        )
+                    if (
+                        is_earth_sigil
+                        and entity.earth_sigil_count == 0
+                        and not entity.pending_destroy
+                    ):
+                        raise IllegalCommand(
+                            f"Invariant failed: {zone} Earth Sigil has zero count "
+                            "without pending destruction"
+                        )
+
+            earth_sigil_amulets = [
+                entity
+                for entity in player.board
+                if self._is_earth_sigil_amulet(entity)
+            ]
+            if len(earth_sigil_amulets) > 1:
+                raise IllegalCommand(
+                    f"Invariant failed: {prefix} has multiple Earth Sigil amulets"
+                )
 
             for grave_index, graveyard_card in enumerate(player.graveyard):
                 zone = f"{prefix} graveyard[{grave_index}]"

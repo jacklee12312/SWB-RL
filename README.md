@@ -66,6 +66,10 @@ The deterministic rules core supports:
   per-target revalidation before resolution; real card `10351120` demonstrates
   selecting and destroying two enemy followers, while partial real rule
   `10474120` demonstrates reusing the same selected set for later damage;
+- field-backed `土之印` stacks and structured `土之秘术` payment, including
+  Sigil entry/merge/depletion, effect-destroy protection, opposing manual-target
+  protection, generated `大地之魔片`, nested post-payment operations, and
+  controller/opponent count conditions and expressions;
 - structured `target_exists` no-target branches that reuse normal target
   candidate generation before queuing a then/else effect branch, including
   unit-or-leader fallback targets when no target-dependent condition is present;
@@ -83,7 +87,7 @@ The deterministic rules core supports:
   necromancy, reanimate, spellboost-style hand cost changes, emblems, optional
   decisions, choose-one decisions, play modes, and runtime modifiers.
 
-The RL adapter provides a fixed 111-action space, 225-feature public
+The RL adapter provides a fixed 111-action space, 227-feature public
 observation, action mask, terminal reward, graveyard choice paging, special
 play-mode actions, and super-evolve actions. `info()` is public by default and
 redacts debug transcripts/events unless `debug_info=True` or
@@ -94,6 +98,11 @@ is awaiting resolution. The public observation includes explicit
 controller/opponent `觉醒` flags derived from maximum mana and public
 controller/opponent `连击` counts for the current turn, plus pending multi-target
 choice size and progress.
+The final two features expose the controller and opponent's public Earth Sigil
+totals. Sigils are board amulets rather than player-side counters: entering
+Sigils merge into the newest amulet, merged Sigils are banished, and a depleted
+Sigil is destroyed. This follows the
+[official Worlds Beyond mechanic description](https://beginner.shadowverse-wb.com/ja/deck_shindan/result04/).
 
 ## Unsupported Or Partial
 
@@ -103,9 +112,9 @@ remain visible instead of silently behaving as implemented.
 Known broad gaps include:
 
 - exact semantics for many real cards and most generated-card workflows;
-- full `策动`, `融合`, `土之秘术`, `瞬念召唤`, `信仰`, and `奥义`
-  semantics, plus broader real-card coverage for `觉醒` and `连击` beyond the
-  currently authored conditional examples;
+- full `策动`, `融合`, `瞬念召唤`, `信仰`, and `奥义` semantics, plus broader
+  real-card coverage for `土之秘术`, `觉醒`, and `连击` beyond the currently
+  authored examples;
 - non-manual super-evolution edge semantics;
 - remaining trigger-ordering edge cases beyond the current death-batch
   ordering diagnostics and `death_batch_end` boundary triggers, including
@@ -114,6 +123,9 @@ Known broad gaps include:
 - `10474120` remains partial: its selected-set damage is covered, but making
   the selected followers lose all abilities and applying persistent
   leader-damage amplification remain unsupported primitives;
+- Earth Sigil `策动` remains unsupported as its own command-level slice; this
+  keeps `10031210` partial even though its draw and Earth Sigil board semantics
+  are covered. `10032310` and `10732120` are exact consume/gain demos;
 - keyword registry status is intentionally conservative: handlers and generic
   primitives may exist before a keyword is marked fully implemented.
 

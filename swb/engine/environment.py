@@ -274,6 +274,10 @@ class ShadowverseEnv:
                 else 0.0
             ),
         ])
+        values.extend([
+            me.earth_sigils / 20,
+            opponent.earth_sigils / 20,
+        ])
         return values
 
     def info(self, *, debug: bool | None = None) -> dict[str, object]:

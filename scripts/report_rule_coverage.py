@@ -58,7 +58,13 @@ PRIMITIVE_KEYWORD_MAP = OrderedDict([
     ("无法使用", {"primitive": "cannot_be_played passive", "covered": True}),
     ("协作", {"primitive": "COOPERATION value / conditions", "covered": True}),
     ("纹章", {"primitive": "GAIN_EMBLEM / EMBLEM system", "covered": True}),
-    ("土之秘术|土之印", {"primitive": "EARTH_RITE (placeholder)", "covered": False}),
+    (
+        "土之秘术|土之印",
+        {
+            "primitive": "EARTH_RITE / ADD_EARTH_SIGILS / Earth Sigil board state",
+            "covered": True,
+        },
+    ),
     ("融合", {"primitive": "FUSION (placeholder)", "covered": False}),
     ("信仰", {"primitive": "FAITH (placeholder)", "covered": False}),
     ("必杀", {"primitive": "BANE keyword", "covered": True}),

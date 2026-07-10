@@ -59,6 +59,7 @@ class DeathCause(str, Enum):
     ZERO_HEALTH = "zero_health"
     EFFECT_DESTROY = "effect_destroy"
     COUNTDOWN_EXPIRED = "countdown_expired"
+    EARTH_SIGIL_DEPLETED = "earth_sigil_depleted"
     BANISH = "banish"
     RETURN_TO_HAND = "return_to_hand"
     RETURN_TO_DECK = "return_to_deck"
@@ -583,6 +584,7 @@ class Unit(BoardEntity):
 @dataclass
 class Amulet(BoardEntity):
     countdown: int | None = None
+    earth_sigil_count: int = 0
     entered_turn: int = 0
     pending_destroy: bool = False
 
@@ -680,6 +682,14 @@ class PlayerState:
         if amount < 0:
             raise ValueError("combo increase must be non-negative")
         self.cards_played_this_turn += amount
+
+    @property
+    def earth_sigils(self) -> int:
+        return sum(
+            entity.earth_sigil_count
+            for entity in self.board
+            if isinstance(entity, Amulet)
+        )
 
 
 @dataclass

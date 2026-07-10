@@ -124,8 +124,18 @@ ABILITY_DEFINITIONS = (
         "handle_spellboost",
         aliases=("魔力增幅时",),
     ),
-    _definition(AbilityKeyword.EARTH_RITE, (AbilityEvent.CARD_PLAYED,), "handle_earth_rite"),
-    _definition(AbilityKeyword.EARTH_SIGIL, (), "handle_earth_sigil"),
+    _definition(
+        AbilityKeyword.EARTH_RITE,
+        (AbilityEvent.CARD_PLAYED,),
+        "handle_earth_rite",
+        status=AbilityStatus.IMPLEMENTED,
+    ),
+    _definition(
+        AbilityKeyword.EARTH_SIGIL,
+        (),
+        "handle_earth_sigil",
+        status=AbilityStatus.IMPLEMENTED,
+    ),
     _definition(AbilityKeyword.OVERFLOW, (AbilityEvent.CHECK_PLAY,), "handle_overflow"),
     _definition(
         AbilityKeyword.NECROMANCY,
@@ -341,10 +351,12 @@ class AbilityHandlers:
         self._placeholder(context, AbilityKeyword.SPELLBOOST)
 
     def handle_earth_rite(self, context: AbilityContext) -> None:
-        self._placeholder(context, AbilityKeyword.EARTH_RITE)
+        covered = getattr(self.environment, "_is_ability_covered", None)
+        if covered is None or not covered(context, AbilityKeyword.EARTH_RITE):
+            self._placeholder(context, AbilityKeyword.EARTH_RITE)
 
     def handle_earth_sigil(self, context: AbilityContext) -> None:
-        self._placeholder(context, AbilityKeyword.EARTH_SIGIL)
+        pass
 
     def handle_overflow(self, context: AbilityContext) -> None:
         covered = getattr(self.environment, "_is_ability_covered", None)
