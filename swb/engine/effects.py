@@ -89,6 +89,7 @@ class ValueExpression:
 
 
 class EffectKind(str, Enum):
+    SELECT_TARGETS = "select_targets"
     DRAW = "draw"
     DRAW_FILTERED = "draw_filtered"
     HEAL_LEADER = "heal_leader"
@@ -294,7 +295,7 @@ class EffectFrame:
     _hand_source_entity_id: int | None = None
     _hand_source_origin: Any = None
     _hand_source_origin_parent: Any = None
-    _target_bindings: dict[str, int] = field(default_factory=dict)
+    _target_bindings: dict[str, tuple[int, ...]] = field(default_factory=dict)
     _target_binding_operations: dict[str, EffectOperation] = field(default_factory=dict)
     _decision_meta: dict[str, Any] = field(default_factory=dict)
     emblem_batch_id: int | None = None

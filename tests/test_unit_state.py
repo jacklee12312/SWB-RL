@@ -4,7 +4,7 @@ import unittest
 
 from swb.db.repository import CardDefinition, CardRepository
 from swb.engine.card_rules import CardRule, CardPassive, RuleBook, Trigger
-from swb.engine.commands import Attack, Choose, EndTurn, Evolve, PlayCard
+from swb.engine.commands import Attack, ChoiceKind, Choose, EndTurn, Evolve, PlayCard
 from swb.engine.effects import EffectKind, EffectOperation, ModifierDuration, TargetKind
 from swb.engine.events import EventType
 from swb.engine.resolution import DamageType, GameEngine, IllegalCommand
@@ -844,7 +844,7 @@ class TargetBindingTests(unittest.TestCase):
         self.assertEqual(target.health, 5)
         self.assertEqual(eng.players[0].board, [target])
 
-    def test_schema_rejects_non_single_entity_target_bindings(self):
+    def test_schema_rejects_non_board_target_bindings(self):
         import json
         import tempfile
         from pathlib import Path
@@ -873,9 +873,146 @@ class TargetBindingTests(unittest.TestCase):
                 )
                 with self.assertRaisesRegex(
                     ValueError,
-                    r"bad\.json card 123/operations\[0\].*single board-entity",
+                    r"bad\.json card 123/operations\[0\].*selected board-entity",
                 ):
                     RuleBook.from_directory(tmp)
+
+    def test_multi_target_binding_reuses_selected_set(self):
+        rulebook = RuleBook((
+            CardRule(card_id=1, trigger=Trigger.PLAY, operations=(
+                EffectOperation(
+                    kind=EffectKind.SELECT_TARGETS,
+                    target=TargetKind.ENEMY_UNIT,
+                    target_count=2,
+                    target_key="selected",
+                ),
+                EffectOperation(
+                    kind=EffectKind.DAMAGE_UNIT,
+                    target=TargetKind.PREVIOUS_TARGET,
+                    target_key="selected",
+                    amount=2,
+                ),
+            ),),
+        ))
+        eng = mkengine(rulebook=rulebook)
+        targets = [
+            mkunit(eng, 10 + index, attack=1, life=5)
+            for index in range(2)
+        ]
+        eng.players[1].board = list(targets)
+        eng.players[0].mana = 10
+        eng.players[0].hand[0] = card(
+            1,
+            card_type="法术",
+            attack=None,
+            life=None,
+        )
+
+        eng.apply(PlayCard(0, 0))
+        for target in reversed(targets):
+            eng.apply(Choose(0, f"entity:{target.entity_id}"))
+
+        self.assertEqual([target.health for target in targets], [3, 3])
+
+    def test_multi_target_binding_revalidates_after_later_pause(self):
+        rulebook = RuleBook((
+            CardRule(card_id=1, trigger=Trigger.PLAY, operations=(
+                EffectOperation(
+                    kind=EffectKind.SELECT_TARGETS,
+                    target=TargetKind.ENEMY_UNIT,
+                    target_count=2,
+                    target_key="selected",
+                ),
+                EffectOperation(
+                    kind=EffectKind.OPTIONAL,
+                    target=TargetKind.OWN_LEADER,
+                    optional_operations=(
+                        EffectOperation(
+                            kind=EffectKind.DRAW,
+                            target=TargetKind.OWN_LEADER,
+                            amount=1,
+                        ),
+                    ),
+                ),
+                EffectOperation(
+                    kind=EffectKind.DAMAGE_UNIT,
+                    target=TargetKind.PREVIOUS_TARGET,
+                    target_key="selected",
+                    amount=2,
+                ),
+            ),),
+        ))
+        eng = mkengine(rulebook=rulebook)
+        targets = [
+            mkunit(eng, 20 + index, attack=1, life=5)
+            for index in range(2)
+        ]
+        eng.players[1].board = list(targets)
+        eng.players[0].mana = 10
+        eng.players[0].hand[0] = card(
+            1,
+            card_type="法术",
+            attack=None,
+            life=None,
+        )
+
+        eng.apply(PlayCard(0, 0))
+        for target in reversed(targets):
+            eng.apply(Choose(0, f"entity:{target.entity_id}"))
+        self.assertEqual(eng.state.pending_choice.choice_kind, ChoiceKind.CONFIRM)
+        self.assertEqual(
+            eng.state.effect_stack[-1]._target_bindings["selected"],
+            tuple(target.entity_id for target in reversed(targets)),
+        )
+        eng.players[1].board.remove(targets[0])
+        eng.players[0].board.append(targets[0])
+
+        eng.apply(Choose(0, "optional:no"))
+
+        self.assertEqual([target.health for target in targets], [5, 3])
+
+    def test_previous_target_skips_when_binding_operation_had_no_candidates(self):
+        rulebook = RuleBook((
+            CardRule(card_id=1, trigger=Trigger.PLAY, operations=(
+                EffectOperation(
+                    kind=EffectKind.SELECT_TARGETS,
+                    target=TargetKind.ENEMY_UNIT,
+                    target_count=2,
+                    target_key="selected",
+                ),
+                EffectOperation(
+                    kind=EffectKind.DAMAGE_UNIT,
+                    target=TargetKind.PREVIOUS_TARGET,
+                    target_key="selected",
+                    amount=2,
+                ),
+            ),),
+        ))
+        eng = mkengine(rulebook=rulebook)
+        eng.players[0].mana = 10
+        eng.players[0].hand[0] = card(
+            1,
+            card_type="法术",
+            attack=None,
+            life=None,
+        )
+
+        eng.apply(PlayCard(0, 0))
+
+        self.assertIsNone(eng.state.pending_choice)
+
+    def test_select_targets_schema_requires_binding_key(self):
+        from swb.engine.card_rules import _parse_operation
+
+        with self.assertRaisesRegex(ValueError, "select_targets requires"):
+            _parse_operation(
+                {
+                    "kind": "select_targets",
+                    "target": "enemy_unit",
+                },
+                "test.json/operations[0]",
+                1,
+            )
 
     def test_schema_target_key_errors_use_zero_based_paths(self):
         import json

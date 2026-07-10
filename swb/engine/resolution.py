@@ -2522,19 +2522,24 @@ class GameEngine:
                 continue
 
             if operation.target is TargetKind.PREVIOUS_TARGET:
-                if not operation.target_key or operation.target_key not in frame._target_bindings:
+                if not operation.target_key:
                     raise IllegalCommand(
                         f"PREVIOUS_TARGET requires a bound target_key"
                     )
-                target_id = frame._target_bindings[operation.target_key]
-                if not self._previous_target_still_legal(
-                    frame,
-                    operation.target_key,
-                    target_id,
-                ):
+                target_ids = frame._target_bindings.get(operation.target_key, ())
+                if not target_ids:
                     frame.next_index += 1
                     continue
-                self._checked_execute(operation, frame, target_id)
+                frame.defer_stabilize = True
+                for bound_target_id in target_ids:
+                    if not self._previous_target_still_legal(
+                        frame,
+                        operation.target_key,
+                        bound_target_id,
+                    ):
+                        continue
+                    self._checked_execute(operation, frame, bound_target_id)
+                frame.defer_stabilize = False
                 frame.next_index += 1
                 self._resolve_event_queue()
                 self._stabilize()
@@ -2620,6 +2625,9 @@ class GameEngine:
             if frame.pending_target_ids:
                 target_ids = tuple(frame.pending_target_ids)
                 frame.pending_target_ids.clear()
+                if operation.target_key:
+                    frame._target_bindings[operation.target_key] = target_ids
+                    frame._target_binding_operations[operation.target_key] = operation
                 frame.defer_stabilize = True
                 for selected_target_id in target_ids:
                     if not self._target_id_still_legal(
@@ -2728,7 +2736,6 @@ class GameEngine:
                 target_id = frame.pending_target_id
                 frame.pending_target_id = None
 
-            self._checked_execute(operation, frame, target_id)
             if operation.target_key:
                 if target_id is None:
                     raise IllegalCommand(
@@ -2740,8 +2747,9 @@ class GameEngine:
                     raise IllegalCommand(
                         "target_key requires a resolved board entity"
                     ) from exc
-                frame._target_bindings[operation.target_key] = target_id
+                frame._target_bindings[operation.target_key] = (target_id,)
                 frame._target_binding_operations[operation.target_key] = operation
+            self._checked_execute(operation, frame, target_id)
             frame.next_index += 1
             self._resolve_event_queue()
             self._stabilize()
@@ -3114,10 +3122,6 @@ class GameEngine:
         target_count = self._effective_target_count(operation, frame, options)
         if target_count <= 0:
             return False
-        if target_count > 1 and operation.target_key:
-            raise IllegalCommand(
-                "Multi-target selection cannot bind a single target_key"
-            )
         if frame.auto_resolve_choices:
             self._set_auto_selected_targets(
                 operation,
@@ -4104,6 +4108,8 @@ class GameEngine:
         player = self.players[frame.controller]
         opponent = self.players[1 - frame.controller]
         name = frame.source_name
+        if effect.kind is EffectKind.SELECT_TARGETS:
+            return
         if effect.kind is EffectKind.DRAW:
             draw_player = (
                 1 - frame.controller
@@ -6610,15 +6616,27 @@ class GameEngine:
                 raise IllegalCommand(
                     f"Invariant failed: {zone} _target_bindings must be a dict"
                 )
-            for key, target_id in frame._target_bindings.items():
+            for key, target_ids in frame._target_bindings.items():
                 if not isinstance(key, str) or not key:
                     raise IllegalCommand(
                         f"Invariant failed: {zone} has invalid target binding key"
                     )
-                check_effect_target_id(target_id, f"_target_bindings[{key!r}]")
+                if not isinstance(target_ids, tuple) or not target_ids:
+                    raise IllegalCommand(
+                        f"Invariant failed: {zone} target binding must be a non-empty tuple"
+                    )
+                for target_index, target_id in enumerate(target_ids):
+                    check_effect_target_id(
+                        target_id,
+                        f"_target_bindings[{key!r}][{target_index}]",
+                    )
             if not isinstance(frame._target_binding_operations, dict):
                 raise IllegalCommand(
                     f"Invariant failed: {zone} _target_binding_operations must be a dict"
+                )
+            if set(frame._target_binding_operations) != set(frame._target_bindings):
+                raise IllegalCommand(
+                    f"Invariant failed: {zone} target bindings and operations differ"
                 )
             for key, operation in frame._target_binding_operations.items():
                 if key not in frame._target_bindings:

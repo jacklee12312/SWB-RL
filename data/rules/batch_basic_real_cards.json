@@ -452,6 +452,27 @@
             ]
         },
         {
+            "card_id": 10474120,
+            "trigger": "fanfare",
+            "coverage": "partial",
+            "implemented_text": "【入场曲】选择对手的战场上的2个随从，对其造成9点伤害。",
+            "unsupported_text": "使所选随从失去所有能力；使对手的主战者获得「受到的伤害+1」。",
+            "operations": [
+                {
+                    "kind": "select_targets",
+                    "target": "enemy_unit",
+                    "target_count": 2,
+                    "target_key": "selected_followers"
+                },
+                {
+                    "kind": "damage_unit",
+                    "target": "previous_target",
+                    "target_key": "selected_followers",
+                    "amount": 9
+                }
+            ]
+        },
+        {
             "card_id": 10153310,
             "trigger": "play",
             "operations": [

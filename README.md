@@ -48,21 +48,24 @@ The deterministic rules core supports:
   super-evolved, but not combat damage, even when an opponent-controlled
   trigger resolves during that turn;
 - structured effects for damage, healing, draw, summon, destroy, banish, return,
-  discard, transform, stat changes, keyword changes, cost modifiers, and attack
-  or targeting restrictions;
+  discard, transform, explicit target-set binding, stat changes, keyword
+  changes, cost modifiers, and attack or targeting restrictions;
 - selected, random, all, implicit, leader, board, all-board, hand, and
   graveyard target flows, including pending choices, target-leaves-play safety,
   and target revalidation when a pending target changes controller or no longer
   matches the original target filter; ordinary play choices cover selected
   board targets moving to the graveyard or changing controller, selected hand
   cards leaving hand, and selected graveyard cards moving to hand before
-  resolution resumes; `previous_target` chains also revalidate against the
+  resolution resumes; `target_key` stores an ordered tuple of selected board
+  targets and `previous_target` chains revalidate each member against the
   original bound target filter before later operations resolve;
 - true multi-target pending choices through `target_count` or
   `target_count_expr`, with explicit `allow_duplicate_targets` /
   `allow_duplicates` policy, candidate-shortage handling, command-level
-  selection progress, and per-target revalidation before resolution; real card
-  `10351120` demonstrates selecting and destroying two enemy followers;
+  selection progress, ordered multi-target `target_key` bindings, and
+  per-target revalidation before resolution; real card `10351120` demonstrates
+  selecting and destroying two enemy followers, while partial real rule
+  `10474120` demonstrates reusing the same selected set for later damage;
 - structured `target_exists` no-target branches that reuse normal target
   candidate generation before queuing a then/else effect branch, including
   unit-or-leader fallback targets when no target-dependent condition is present;
@@ -108,9 +111,9 @@ Known broad gaps include:
   ordering diagnostics and `death_batch_end` boundary triggers, including
   unsupported `death_batch_start` emblem triggers, plus broad real-card
   coverage audits;
-- multi-target `target_key` bindings and list-valued `previous_target` chains;
-  structured rules reject this ambiguous combination until chained operations
-  define explicit list semantics;
+- `10474120` remains partial: its selected-set damage is covered, but making
+  the selected followers lose all abilities and applying persistent
+  leader-damage amplification remain unsupported primitives;
 - keyword registry status is intentionally conservative: handlers and generic
   primitives may exist before a keyword is marked fully implemented.
 

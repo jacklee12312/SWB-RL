@@ -5,14 +5,14 @@
   },
   "summary": {
     "total_cards": 826,
-    "total_with_rules": 92,
+    "total_with_rules": 93,
     "test_or_synthetic_ids_with_rules": 26,
     "coverage_counts": {
       "covered_exact": 59,
-      "supported_missing_rule": 538,
+      "supported_missing_rule": 537,
       "text_unclear": 19,
       "missing_primitive": 114,
-      "covered_partial": 5,
+      "covered_partial": 6,
       "token_or_non_collectible": 91
     }
   },
@@ -10939,8 +10939,8 @@
       "cost": 9,
       "is_collectible": true,
       "card_set_id": 10004,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '造成.*伤害']",
+      "coverage": "covered_partial",
+      "reason": "Partial rule. Triggers: ['fanfare'], Ops: ['select_targets', 'damage_unit']; unsupported: 使所选随从失去所有能力；使对手的主战者获得「受到的伤害+1」。",
       "hit_keywords": [
         "入场曲",
         "造成.*伤害"
@@ -10952,7 +10952,12 @@
       "skill_texts": [
         "【<color=Keyword>入场曲</color>】选择对手的战场上的2个随从，使其失去所有能力，对其造成9点伤害。使对手的主战者获得「受到的伤害+1」。"
       ],
-      "support_level": "unsupported"
+      "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "partial",
+        "implemented_text": "【入场曲】选择对手的战场上的2个随从，对其造成9点伤害。",
+        "unsupported_text": "使所选随从失去所有能力；使对手的主战者获得「受到的伤害+1」。"
+      }
     },
     "10501110": {
       "card_id": 10501110,

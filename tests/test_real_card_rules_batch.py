@@ -143,6 +143,14 @@ class DatabaseVerificationTests(unittest.TestCase):
         self.assertIn("选择对手的战场上的2个随从", text)
         self.assertIn("对自己的主战者造成4点伤害", text)
 
+    def test_10474120_exists(self):
+        card = self.repo.get(10474120)
+        self.assertEqual(card.name, "唯一王者·别西卜")
+        text = "\n".join(self._skill_texts(10474120))
+        self.assertIn("选择对手的战场上的2个随从", text)
+        self.assertIn("使其失去所有能力", text)
+        self.assertIn("对其造成9点伤害", text)
+
     def test_10051310_exists(self):
         card = self.repo.get(10051310)
         self.assertEqual(card.name, "\u6df7\u6c8c\u8bc5\u5492")
@@ -2021,6 +2029,7 @@ class RulesLoadTests(unittest.TestCase):
             10251310, 10531310, 10521310, 10631310, 10171310, 10472310,
             10153310, 10121310, 10301310, 10713110, 10051310,
             10351120,
+            10474120,
         ):
             ops_play = self.rb.operations_for(cid, Trigger.PLAY)
             ops_fanfare = self.rb.operations_for(cid, Trigger.FANFARE)
@@ -2044,6 +2053,15 @@ class RulesLoadTests(unittest.TestCase):
         report = _build_coverage_report("data/cards.sqlite3", "data/rules")
         info = report["classifications"]["10351120"]
         self.assertEqual(info["coverage"], "covered_exact")
+
+    def test_multi_target_binding_real_rule_is_reported_as_partial(self):
+        from scripts.report_rule_coverage import _build_coverage_report
+
+        report = _build_coverage_report("data/cards.sqlite3", "data/rules")
+        info = report["classifications"]["10474120"]
+        self.assertEqual(info["coverage"], "covered_partial")
+        self.assertIn("失去所有能力", info["rule_metadata"]["unsupported_text"])
+        self.assertIn("受到的伤害+1", info["rule_metadata"]["unsupported_text"])
 
     def test_generated_unplayable_token_rule_is_reported_as_partial(self):
         from scripts.report_rule_coverage import _build_coverage_report
@@ -2122,6 +2140,32 @@ class BehaviorTests(unittest.TestCase):
         self.assertTrue(
             any(unit.definition.card_id == 10351120 for unit in engine.players[0].board)
         )
+
+    def test_10474120_reuses_two_selected_targets_for_damage(self):
+        engine = _make_engine(self.rb)
+        engine.reset(seed=42)
+        targets = [
+            Unit.summon(_card(980 + index, life=12), entity_id=980 + index)
+            for index in range(2)
+        ]
+        engine.players[1].board = list(targets)
+        _insert_card(
+            engine,
+            _card(
+                10474120,
+                name="唯一王者·别西卜",
+                cost=9,
+                attack=9,
+                life=9,
+            ),
+        )
+        engine.players[0].mana = 10
+
+        engine.apply(PlayCard(0, 0))
+        for target in reversed(targets):
+            engine.apply(Choose(0, f"entity:{target.entity_id}"))
+
+        self.assertEqual([target.health for target in targets], [3, 3])
 
     def test_10041310_target_changed_controller_before_choice_skips_damage(self):
         engine = _make_engine(self.rb)

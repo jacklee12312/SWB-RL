@@ -10,11 +10,11 @@ code and tests as the source of truth when this file drifts.
 - Database: 826 cards, 735 collectible cards, 91 non-collectible/generated
   cards from set `90000`.
 - Latest SVA source: `https://sva.hypd.asia/data/cards.json`.
-- Tests: `python -m unittest discover -s tests -v` currently runs 875 tests.
+- Tests: `python -m unittest discover -s tests -v` currently runs 882 tests.
 - RL adapter: fixed 111-action space and 225-feature observation.
 - Ability registry status: 11 implemented, 3 partial, 20 placeholder.
 - Explicit card and demo rules live in `data/rules/`; the current coverage
-  report classifies 92 card IDs with explicit rules or passives.
+  report classifies 93 card IDs with explicit rules or passives.
 
 ## Stable Priorities
 
@@ -74,6 +74,13 @@ slice in this order:
   through the existing choice actions and adds public count/progress features.
   Real card `10351120` demonstrates selecting and destroying two enemy
   followers before its self-damage resolves.
+- `select_targets` can bind an ordered selected board-entity tuple to one
+  `target_key`; later `previous_target` operations reuse that set in selection
+  order and revalidate every member against the original target specification.
+  Missing runtime bindings caused by a no-candidate branch skip safely. Partial
+  real rule `10474120` demonstrates selecting two enemy followers and applying
+  later damage to the same set without claiming support for its ability-loss or
+  leader-damage-amplification clauses.
 - `target_exists` provides structured no-target branch semantics for explicit
   candidate-set targets and unit-or-leader fallback targets, including board
   target-dependent filters, then/else effect branches, and existing RL
@@ -166,9 +173,9 @@ slice in this order:
   semantics are specified by a real rule.
 - Source-leaves-play handling currently covers `target: self` board operations,
   `source_attack`/`source_health` expressions, source-specific conditions, and
-  source-dependent multi-target counts. A single `target_key` still cannot bind
-  a multi-target selection; list-valued `previous_target` chains remain
-  explicitly unsupported.
+  source-dependent multi-target counts. Multi-target bindings preserve their
+  selected identity when a source leaves, while source-dependent later
+  operations still skip through the normal source revalidation path.
 - `target_exists` intentionally rejects implicit and previous-target targets;
   target-dependent conditions are only supported for board candidates, so
   leader fallback targets do not satisfy target-specific predicates.
@@ -184,10 +191,9 @@ slice in this order:
   hand-target coverage for a selected card leaving hand, and graveyard-target
   coverage for a selected graveyard card moving to hand before resolution.
   `previous_target` target-key chains retain the original binding operation and
-  revalidate against that operation's current candidate set before later
-  operations resolve. Multi-target choices apply the same revalidation to every
-  selected target, including targets that left play, changed controller, or no
-  longer match the original board filter.
+  revalidate its ordered single- or multi-target tuple against that operation's
+  current candidate set before later operations resolve, including targets that
+  left play, changed controller, or no longer match the original board filter.
 - Coverage tooling should continue distinguishing covered text from
   unsupported text; never hide unsupported card text behind `covered_exact`.
 
@@ -195,11 +201,10 @@ slice in this order:
 
 ### 1. Targeting Edge Cases
 
-- Define list-valued bindings for multi-target `target_key` /
-  `previous_target` chains only when a real rule requires later operations to
-  reuse the same selected set.
 - Extend no-target branch coverage only when real cards need graveyard/hand
   target-dependent filters or additional fallback target semantics.
+- Audit real rules that combine selected hand/graveyard sets with later
+  operations before expanding `target_key` beyond board-entity tuples.
 
 ### 2. Trigger Loop Diagnostics
 

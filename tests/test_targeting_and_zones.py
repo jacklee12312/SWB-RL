@@ -527,7 +527,7 @@ class TargetingTests(unittest.TestCase):
                         1,
                     )
 
-    def test_multi_target_schema_rejects_target_key_binding(self):
+    def test_multi_target_schema_accepts_target_key_binding(self):
         from swb.engine.card_rules import _parse_operation, _validate_target_keys
 
         operation = _parse_operation(
@@ -541,8 +541,9 @@ class TargetingTests(unittest.TestCase):
             "test.json/operations[0]",
             1,
         )
-        with self.assertRaisesRegex(ValueError, "multi-target selection"):
-            _validate_target_keys((operation,), "test.json")
+        _validate_target_keys((operation,), "test.json")
+        self.assertEqual(operation.target_count, 2)
+        self.assertEqual(operation.target_key, "picked")
 
     def _multi_target_engine(
         self,

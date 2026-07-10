@@ -748,13 +748,7 @@ def _validate_target_keys(operations: tuple[EffectOperation, ...], source: str) 
                 raise ValueError(
                     f"{source}/operations[{i}]: target {op.target.value!r} "
                     f"cannot define target_key {op.target_key!r}; "
-                    f"target_key requires a single board-entity target"
-                )
-            if op.target_count != 1 or op.target_count_expr is not None:
-                raise ValueError(
-                    f"{source}/operations[{i}]: target_key cannot be combined "
-                    "with multi-target selection until multi-target bindings "
-                    "are explicitly supported"
+                    f"target_key requires selected board-entity targets"
                 )
             if op.target_key in defined:
                 raise ValueError(
@@ -1023,6 +1017,17 @@ def _parse_operation(raw: dict, source_file: str, card_id: int, _depth: int = 0)
             raise ValueError(
                 f"{source_file} card {card_id}: "
                 f"PREVIOUS_TARGET requires a non-empty target_key"
+            )
+    if kind is EffectKind.SELECT_TARGETS:
+        if not target_key:
+            raise ValueError(
+                f"{source_file}/target_key card {card_id}: "
+                "select_targets requires a non-empty target_key"
+            )
+        if target not in _BINDABLE_TARGETS:
+            raise ValueError(
+                f"{source_file}/target card {card_id}: select_targets requires "
+                "selected board-entity targets"
             )
 
     requires_target = raw.get("requires_target", False)
