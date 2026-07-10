@@ -54,6 +54,7 @@ class EventType(str, Enum):
     EARTH_SIGIL_DESTROY_PREVENTED = "earth_sigil_destroy_prevented"
     CARD_FUSED = "card_fused"
     CARD_INVOKED = "card_invoked"
+    AMULET_ACTIVATED = "amulet_activated"
     FOLLOWER_HEALED = "follower_healed"
     EMBLEM_GAINED = "emblem_gained"
     EMBLEM_REMOVED = "emblem_removed"

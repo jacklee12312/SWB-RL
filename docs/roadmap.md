@@ -10,9 +10,9 @@ code and tests as the source of truth when this file drifts.
 - Database: 826 cards, 735 collectible cards, 91 non-collectible/generated
   cards from set `90000`.
 - Latest SVA source: `https://sva.hypd.asia/data/cards.json`.
-- Tests: `python -m unittest discover -s tests -v` currently runs 937 tests.
+- Tests: `python -m unittest discover -s tests -v` currently runs 954 tests.
 - RL adapter: fixed 111-action space and 257-feature observation.
-- Ability registry status: 14 implemented, 4 partial, 16 placeholder.
+- Ability registry status: 15 implemented, 4 partial, 15 placeholder.
 - Explicit card and demo rules live in `data/rules/`; the current coverage
   report classifies 97 card IDs with explicit rules, passives, fusion, or
   invocation definitions.
@@ -95,7 +95,21 @@ slice in this order:
   without repeat payment. Controller/opponent Sigil conditions, expressions,
   invariant checks, deterministic fingerprints, and public RL totals are
   covered. Exact real rules `10032310` and `10732120` demonstrate consume/gain;
-  `10031210` remains partial solely because `策动` is not implemented.
+  exact real rule `10031210` combines Earth Sigil entry with command-level
+  `策动` to increment that field-backed stack.
+- `ActivateAmulet` exposes `策动` before RL encoding. Structured `activations`
+  definitions supply non-negative PP costs and require a paired non-empty
+  `activate` trigger rule. An eligible field amulet can activate once per turn;
+  legality checks controller, current entity, cost, and required targets before
+  any mutation. The paid continuation reuses normal effects and choices, so
+  targets that leave or change controller are revalidated without a second
+  payment, and source-independent effects can finish after the amulet leaves.
+- `AMULET_ACTIVATED` makes activation auditable and is available to structured
+  emblem triggers. Deterministic fingerprints and invariants include the
+  amulet's activation-turn stamp. RL reuses the same board position's evolve
+  slot for amulets and an existing public amulet feature for current-turn use,
+  retaining the fixed 111 actions and 257 features. Exact real rule `10031210`
+  spends 1 PP to add one Earth Sigil, matching the official Activate glossary.
 - `BeginFusion` exposes Fusion before RL action encoding. A structured
   `fusions` definition filters eligible hand materials and sets optional
   minimum/maximum counts. The pending choice supports variable-count selection
@@ -215,9 +229,12 @@ slice in this order:
 - `连击` has natural per-turn counting, condition/expression support,
   `add_combo`, public observation counts, and real-card demos; broader real-card
   coverage remains partial.
-- `策动`, `信仰`, and `奥义` remain placeholder or incomplete.
+- `信仰` and `奥义` remain placeholder or incomplete. `策动` and
   `土之秘术` / `土之印` core semantics are implemented, while broader
   real-card coverage remains intentionally incremental.
+- `AMULET_ACTIVATED` currently reaches structured emblem triggers; ordinary
+  board or hand cards that react to another card's activation remain explicit
+  unsupported listener semantics.
 - `融合` has the command-level material transition, state, event, structured
   filters/counts, source fused-count conditions, RL exposure, and one exact
   real-card demo. It remains partial because Fusion-driven hand transformations
@@ -264,38 +281,32 @@ slice in this order:
 
 ## Next Coherent Slices
 
-### 1. Activate
-
-- Model `策动` as its own command against an eligible amulet, including costs,
-  once-per-turn or countdown semantics only where verified by real text, stale
-  entity revalidation, action-mask agreement, and one real-card demo.
-
-### 2. Faith / Union Burst
+### 1. Faith / Union Burst
 
 - Implement `信仰` and `奥义` as separate command/state/rule slices in that
   order, each tied to verified real text and one real-card demo. Completing
   Union Burst should promote the remaining Sandalphon Fanfare clause.
 
-### 3. Targeting Edge Cases
+### 2. Targeting Edge Cases
 
 - Extend no-target branch coverage only when real cards need graveyard/hand
   target-dependent filters or additional fallback target semantics.
 - Audit real rules that combine selected hand/graveyard sets with later
   operations before expanding `target_key` beyond board-entity tuples.
 
-### 4. Trigger Loop Diagnostics
+### 3. Trigger Loop Diagnostics
 
 - Add broader trigger ordering tests around any future `death_batch_start`
   boundary semantics and real-card recursive trigger combinations as coverage
   expands.
 
-### 5. Super-Evolution Edge Semantics
+### 4. Super-Evolution Edge Semantics
 
 - Keep non-manual super-evolution unsupported until official text or a real
   structured rule needs it; add it as a separate vertical slice with command,
   event, protection, and RL coverage.
 
-### 6. Coverage Reporting
+### 5. Coverage Reporting
 
 - Refresh rule coverage reports after database updates.
 - Make reports surface newly added cards and newly unsupported keyword text.

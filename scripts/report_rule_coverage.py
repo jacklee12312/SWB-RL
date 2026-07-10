@@ -34,7 +34,13 @@ PRIMITIVE_KEYWORD_MAP = OrderedDict([
     ("交战时", {"primitive": "CLASH trigger", "covered": True}),
     ("连击", {"primitive": "COMBO condition / expression / add_combo", "covered": True}),
     ("觉醒", {"primitive": "OVERFLOW condition / expression", "covered": True}),
-    ("策动", {"primitive": "ACTIVATE (placeholder)", "covered": False}),
+    (
+        "策动",
+        {
+            "primitive": "ActivateAmulet command / ACTIVATE trigger",
+            "covered": True,
+        },
+    ),
     ("威慑", {"primitive": "INTIMIDATE (placeholder)", "covered": False}),
     ("灵气", {"primitive": "AURA (placeholder)", "covered": False}),
     (
@@ -100,6 +106,7 @@ def _classify_card(
     ability_map: dict[int, list[str]],
     skill_text_map: dict[int, list[str]],
     support_map: dict[int, str],
+    activation_cards: set[int] | None = None,
 ) -> dict:
     """Classify a single card's coverage status."""
     card_id = card.card_id
@@ -143,6 +150,13 @@ def _classify_card(
             else:
                 missing_keywords.append(pattern)
 
+    missing_rule_mechanics = []
+    if (
+        re.search("策动", search_text) is not None
+        and card_id not in (activation_cards or set())
+    ):
+        missing_rule_mechanics.append("策动")
+
     has_rule = card_id in ruled_cards
     metadata = rule_metadata.get(card_id, {})
     explicit_coverage = metadata.get("coverage")
@@ -159,8 +173,17 @@ def _classify_card(
                 + (f"; unsupported: {unsupported}" if unsupported else "")
             )
         else:
-            result["coverage"] = "covered_partial" if missing_keywords else "covered_exact"
+            result["coverage"] = (
+                "covered_partial"
+                if missing_keywords or missing_rule_mechanics
+                else "covered_exact"
+            )
             result["reason"] = f"Triggers: {triggers}, Ops: {ops}"
+            if missing_rule_mechanics:
+                result["reason"] += (
+                    "; missing structured rules: "
+                    f"{missing_rule_mechanics}"
+                )
     else:
         if missing_keywords:
             result["coverage"] = "missing_primitive"
@@ -177,6 +200,8 @@ def _classify_card(
 
     result["hit_keywords"] = hit_keywords
     result["missing_primitives"] = missing_keywords
+    if missing_rule_mechanics:
+        result["missing_rule_mechanics"] = missing_rule_mechanics
     result["ability_keywords"] = abilities
     result["skill_texts"] = skill_texts
     result["support_level"] = support
@@ -232,6 +257,11 @@ def _build_coverage_report(db_path: str, rules_dir: str) -> dict:
         ruled_ops.setdefault(cid, {"triggers": [], "effect_kinds": []})
         ruled_ops[cid]["triggers"].append("invocation")
         ruled_ops[cid]["effect_kinds"].append("invocation")
+    for cid in rulebook._activation_defs:
+        ruled_cards.add(cid)
+        ruled_ops.setdefault(cid, {"triggers": [], "effect_kinds": []})
+        ruled_ops[cid]["triggers"].append("activation")
+        ruled_ops[cid]["effect_kinds"].append("activation")
     for cid, passives in rulebook._passives.items():
         ruled_cards.add(cid)
         ruled_ops.setdefault(cid, {"triggers": [], "effect_kinds": []})
@@ -283,6 +313,7 @@ def _build_coverage_report(db_path: str, rules_dir: str) -> dict:
             ability_map,
             skill_text_map,
             support_map,
+            activation_cards=set(rulebook._activation_defs),
         )
 
     total = len(classifications)

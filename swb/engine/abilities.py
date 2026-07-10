@@ -254,6 +254,7 @@ ABILITY_DEFINITIONS = (
         (AbilityEvent.CARD_PLAYED,),
         "handle_activate",
         aliases=("启动",),
+        status=AbilityStatus.IMPLEMENTED,
     ),
     _definition(AbilityKeyword.EMBLEM, (AbilityEvent.CARD_PLAYED,), "handle_emblem"),
     _definition(AbilityKeyword.FAITH, (AbilityEvent.CARD_PLAYED,), "handle_faith"),
@@ -466,7 +467,9 @@ class AbilityHandlers:
             self._placeholder(context, AbilityKeyword.FUSION)
 
     def handle_activate(self, context: AbilityContext) -> None:
-        self._placeholder(context, AbilityKeyword.ACTIVATE)
+        covered = getattr(self.environment, "_is_ability_covered", None)
+        if covered is None or not covered(context, AbilityKeyword.ACTIVATE):
+            self._placeholder(context, AbilityKeyword.ACTIVATE)
 
     def handle_emblem(self, context: AbilityContext) -> None:
         self._placeholder(context, AbilityKeyword.EMBLEM)

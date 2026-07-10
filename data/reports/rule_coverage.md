@@ -15,11 +15,11 @@
 
 | Category | Count |
 |---|---|
-| covered_exact | 62 |
-| supported_missing_rule | 568 |
+| covered_exact | 63 |
+| supported_missing_rule | 605 |
 | text_unclear | 19 |
-| missing_primitive | 79 |
-| covered_partial | 7 |
+| missing_primitive | 42 |
+| covered_partial | 6 |
 | token_or_non_collectible | 91 |
 
 ## Rule Consistency Issues
@@ -63,7 +63,7 @@
 | 交战时 | CLASH trigger | True |
 | 连击 | COMBO condition / expression / add_combo | True |
 | 觉醒 | OVERFLOW condition / expression | True |
-| 策动 | ACTIVATE (placeholder) | False |
+| 策动 | ActivateAmulet command / ACTIVATE trigger | True |
 | 威慑 | INTIMIDATE (placeholder) | False |
 | 灵气 | AURA (placeholder) | False |
 | 瞬念召唤 | Invocation deck scan / INVOKE trigger | True |

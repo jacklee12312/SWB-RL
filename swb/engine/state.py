@@ -601,6 +601,7 @@ class Amulet(BoardEntity):
     countdown: int | None = None
     earth_sigil_count: int = 0
     entered_turn: int = 0
+    activated_turn: int | None = None
     pending_destroy: bool = False
 
 

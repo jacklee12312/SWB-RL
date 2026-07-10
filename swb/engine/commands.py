@@ -12,6 +12,7 @@ class CommandType(str, Enum):
     SUPER_EVOLVE = "super_evolve"
     CHOOSE = "choose"
     BEGIN_FUSION = "begin_fusion"
+    ACTIVATE_AMULET = "activate_amulet"
 
 
 class ChoiceKind(str, Enum):
@@ -74,7 +75,23 @@ class BeginFusion:
     type: CommandType = CommandType.BEGIN_FUSION
 
 
-GameCommand = EndTurn | PlayCard | Attack | Evolve | SuperEvolve | Choose | BeginFusion
+@dataclass(frozen=True)
+class ActivateAmulet:
+    player_index: int
+    amulet_id: int
+    type: CommandType = CommandType.ACTIVATE_AMULET
+
+
+GameCommand = (
+    EndTurn
+    | PlayCard
+    | Attack
+    | Evolve
+    | SuperEvolve
+    | Choose
+    | BeginFusion
+    | ActivateAmulet
+)
 
 
 @dataclass(frozen=True)

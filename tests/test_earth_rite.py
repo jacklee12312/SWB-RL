@@ -513,7 +513,7 @@ class RealEarthCardTests(unittest.TestCase):
             )
         )
 
-    def test_cauldron_earth_sigil_is_supported_while_activate_stays_visible(self):
+    def test_cauldron_earth_sigil_and_activate_are_both_supported(self):
         engine = self._real_engine()
         furnace = self.repo.get(10031210)
         _insert(engine, furnace)
@@ -527,22 +527,22 @@ class RealEarthCardTests(unittest.TestCase):
                 for event in engine.placeholder_ability_events
             )
         )
-        self.assertTrue(
+        self.assertFalse(
             any(
                 event.ability is AbilityKeyword.ACTIVATE
                 for event in engine.placeholder_ability_events
             )
         )
 
-    def test_coverage_distinguishes_exact_earth_rules_from_activate_partial(self):
+    def test_coverage_marks_completed_cauldron_rule_exact(self):
         from scripts.report_rule_coverage import _build_coverage_report
 
         report = _build_coverage_report("data/cards.sqlite3", "data/rules")
         classifications = report["classifications"]
         self.assertEqual(classifications["10032310"]["coverage"], "covered_exact")
         self.assertEqual(classifications["10732120"]["coverage"], "covered_exact")
-        self.assertEqual(classifications["10031210"]["coverage"], "covered_partial")
-        self.assertIn("策动", classifications["10031210"]["missing_primitives"])
+        self.assertEqual(classifications["10031210"]["coverage"], "covered_exact")
+        self.assertNotIn("策动", classifications["10031210"]["missing_primitives"])
 
 
 if __name__ == "__main__":

@@ -1,0 +1,480 @@
+from __future__ import annotations
+
+import os
+import unittest
+
+from scripts.report_rule_coverage import _build_coverage_report
+from swb.db.repository import CardDefinition, CardRepository
+from swb.engine.abilities import AbilityKeyword
+from swb.engine.card_rules import (
+    ActivationDefinition,
+    CardRule,
+    RuleBook,
+    Trigger,
+    _parse_activation_definition,
+)
+from swb.engine.commands import ActivateAmulet, Choose, EndTurn, PlayCard
+from swb.engine.effects import EffectKind, EffectOperation, TargetKind
+from swb.engine.emblem import EmblemDefinition, EmblemTriggerRule
+from swb.engine.environment import ShadowverseEnv
+from swb.engine.events import EventType
+from swb.engine.origin import CardOrigin
+from swb.engine.resolution import GameConfig, GameEngine, IllegalCommand
+from swb.engine.state import Amulet, HandCard, Unit
+
+
+def _card(card_id: int, **overrides) -> CardDefinition:
+    values = {
+        "card_id": card_id,
+        "card_set_id": 10000,
+        "class_id": 1,
+        "class_name": "精灵",
+        "name": f"card-{card_id}",
+        "cost": 1,
+        "card_type": "随从",
+        "attack": 1,
+        "life": 3,
+        "keywords": frozenset(),
+        "support_level": "basic",
+        "is_collectible": True,
+    }
+    values.update(overrides)
+    return CardDefinition(**values)
+
+
+def _activate_amulet(card_id: int = 100) -> CardDefinition:
+    return _card(
+        card_id,
+        name=f"Act-{card_id}",
+        card_type="护符",
+        attack=None,
+        life=None,
+        keywords=frozenset({"启动"}),
+    )
+
+
+def _engine(
+    operations: tuple[EffectOperation, ...],
+    *,
+    cost: int = 1,
+    amulet: CardDefinition | None = None,
+    emblem_defs: dict[str, EmblemDefinition] | None = None,
+) -> GameEngine:
+    definition = amulet or _activate_amulet()
+    engine = GameEngine(
+        [_card(1000 + index) for index in range(40)],
+        [_card(2000 + index) for index in range(40)],
+        class_a=1,
+        class_b=1,
+        seed=42,
+        rulebook=RuleBook(
+            rules=(CardRule(definition.card_id, Trigger.ACTIVATE, operations),),
+            activation_defs={
+                definition.card_id: ActivationDefinition(definition.card_id, cost)
+            },
+            emblem_defs=emblem_defs,
+        ),
+        config=GameConfig(validate_invariants=True),
+    )
+    engine.reset(seed=42)
+    engine.players[0].max_mana = 10
+    engine.players[0].mana = 10
+    return engine
+
+
+def _place_amulet(
+    engine: GameEngine,
+    definition: CardDefinition | None = None,
+    *,
+    player_index: int = 0,
+) -> Amulet:
+    amulet = Amulet(
+        definition=definition or _activate_amulet(),
+        entity_id=engine.state.allocate_entity_id(),
+        entered_turn=engine.turn,
+        origin=CardOrigin.DECK,
+    )
+    engine.players[player_index].board.append(amulet)
+    return amulet
+
+
+def _place_unit(
+    engine: GameEngine,
+    *,
+    player_index: int = 0,
+    card_id: int = 300,
+) -> Unit:
+    unit = Unit.summon(
+        _card(card_id),
+        entity_id=engine.state.allocate_entity_id(),
+    )
+    engine.players[player_index].board.append(unit)
+    return unit
+
+
+class ActivateCommandTests(unittest.TestCase):
+    def test_activation_pays_cost_once_and_emits_auditable_event(self):
+        engine = _engine(
+            (EffectOperation(EffectKind.HEAL_LEADER, TargetKind.OWN_LEADER, 2),),
+            cost=2,
+        )
+        amulet = _place_amulet(engine)
+        engine.players[0].health = 15
+        command = ActivateAmulet(0, amulet.entity_id)
+
+        self.assertIn(command, engine.legal_commands())
+        transition = engine.apply(command)
+
+        self.assertEqual(engine.players[0].mana, 8)
+        self.assertEqual(engine.players[0].health, 17)
+        self.assertEqual(amulet.activated_turn, engine.turn)
+        self.assertNotIn(command, engine.legal_commands())
+        event = next(
+            event for event in transition.events
+            if event.type is EventType.AMULET_ACTIVATED
+        )
+        self.assertEqual(event.source_id, amulet.entity_id)
+        self.assertEqual(event.metadata["cost"], 2)
+        self.assertEqual(event.metadata["card_id"], amulet.definition.card_id)
+
+    def test_activation_refreshes_on_the_controllers_next_turn(self):
+        engine = _engine(
+            (EffectOperation(EffectKind.HEAL_LEADER, TargetKind.OWN_LEADER, 1),)
+        )
+        amulet = _place_amulet(engine)
+        command = ActivateAmulet(0, amulet.entity_id)
+        engine.apply(command)
+        engine.apply(EndTurn(0))
+        engine.apply(EndTurn(1))
+
+        self.assertIn(command, engine.legal_commands())
+
+    def test_second_activation_same_turn_is_illegal_without_mutation(self):
+        engine = _engine(
+            (EffectOperation(EffectKind.HEAL_LEADER, TargetKind.OWN_LEADER, 1),)
+        )
+        amulet = _place_amulet(engine)
+        command = ActivateAmulet(0, amulet.entity_id)
+        engine.apply(command)
+        before = engine.deterministic_fingerprint()
+
+        with self.assertRaises(IllegalCommand):
+            engine.apply(command)
+        self.assertEqual(engine.deterministic_fingerprint(), before)
+
+    def test_insufficient_mana_is_illegal_without_mutation(self):
+        engine = _engine(
+            (EffectOperation(EffectKind.HEAL_LEADER, TargetKind.OWN_LEADER, 1),),
+            cost=3,
+        )
+        amulet = _place_amulet(engine)
+        engine.players[0].mana = 2
+        command = ActivateAmulet(0, amulet.entity_id)
+        before = engine.deterministic_fingerprint()
+
+        self.assertNotIn(command, engine.legal_commands())
+        with self.assertRaises(IllegalCommand):
+            engine.apply(command)
+        self.assertEqual(engine.deterministic_fingerprint(), before)
+
+    def test_changed_controller_rejects_stale_command_without_mutation(self):
+        engine = _engine(
+            (EffectOperation(EffectKind.HEAL_LEADER, TargetKind.OWN_LEADER, 1),)
+        )
+        amulet = _place_amulet(engine)
+        command = ActivateAmulet(0, amulet.entity_id)
+        engine.players[0].board.remove(amulet)
+        engine.players[1].board.append(amulet)
+        before = engine.deterministic_fingerprint()
+
+        with self.assertRaises(IllegalCommand):
+            engine.apply(command)
+        self.assertEqual(engine.deterministic_fingerprint(), before)
+
+    def test_required_target_absence_prohibits_activation_atomically(self):
+        engine = _engine(
+            (
+                EffectOperation(
+                    EffectKind.BUFF_UNIT,
+                    TargetKind.OWN_UNIT,
+                    1,
+                    1,
+                    requires_target=True,
+                ),
+            )
+        )
+        amulet = _place_amulet(engine)
+        command = ActivateAmulet(0, amulet.entity_id)
+        before = engine.deterministic_fingerprint()
+
+        self.assertNotIn(command, engine.legal_commands())
+        with self.assertRaises(IllegalCommand):
+            engine.apply(command)
+        self.assertEqual(engine.deterministic_fingerprint(), before)
+
+    def test_illegal_pending_choice_does_not_mutate_paid_activation(self):
+        engine = _engine(
+            (
+                EffectOperation(
+                    EffectKind.BUFF_UNIT,
+                    TargetKind.OWN_UNIT,
+                    1,
+                    1,
+                    requires_target=True,
+                ),
+            )
+        )
+        amulet = _place_amulet(engine)
+        _place_unit(engine)
+        engine.apply(ActivateAmulet(0, amulet.entity_id))
+        before = engine.deterministic_fingerprint()
+
+        with self.assertRaises(IllegalCommand):
+            engine.apply(Choose(0, "entity:999999"))
+        self.assertEqual(engine.deterministic_fingerprint(), before)
+
+    def test_target_leaving_play_is_revalidated_without_repaying(self):
+        engine = _engine(
+            (
+                EffectOperation(
+                    EffectKind.BUFF_UNIT,
+                    TargetKind.OWN_UNIT,
+                    2,
+                    2,
+                    requires_target=True,
+                ),
+            ),
+            cost=2,
+        )
+        amulet = _place_amulet(engine)
+        target = _place_unit(engine)
+        engine.apply(ActivateAmulet(0, amulet.entity_id))
+        mana_after_activation = engine.players[0].mana
+        engine.players[0].board.remove(target)
+
+        engine.apply(Choose(0, f"entity:{target.entity_id}"))
+
+        self.assertIsNone(engine.state.pending_choice)
+        self.assertEqual(engine.players[0].mana, mana_after_activation)
+        self.assertEqual((target.attack, target.health), (1, 3))
+
+    def test_target_changing_controller_is_revalidated(self):
+        engine = _engine(
+            (
+                EffectOperation(
+                    EffectKind.BUFF_UNIT,
+                    TargetKind.OWN_UNIT,
+                    2,
+                    2,
+                    requires_target=True,
+                ),
+            )
+        )
+        amulet = _place_amulet(engine)
+        target = _place_unit(engine)
+        engine.apply(ActivateAmulet(0, amulet.entity_id))
+        engine.players[0].board.remove(target)
+        engine.players[1].board.append(target)
+
+        engine.apply(Choose(0, f"entity:{target.entity_id}"))
+
+        self.assertIsNone(engine.state.pending_choice)
+        self.assertEqual((target.attack, target.health), (1, 3))
+
+    def test_source_can_destroy_itself_before_targeted_effect_resolves(self):
+        engine = _engine(
+            (
+                EffectOperation(EffectKind.DESTROY, TargetKind.SELF),
+                EffectOperation(
+                    EffectKind.BUFF_UNIT,
+                    TargetKind.OWN_UNIT,
+                    1,
+                    1,
+                    requires_target=True,
+                ),
+            )
+        )
+        amulet = _place_amulet(engine)
+        target = _place_unit(engine)
+
+        engine.apply(ActivateAmulet(0, amulet.entity_id))
+
+        self.assertFalse(
+            any(entity.entity_id == amulet.entity_id for entity in engine.players[0].board)
+        )
+        self.assertIsNotNone(engine.state.pending_choice)
+        engine.apply(Choose(0, f"entity:{target.entity_id}"))
+        self.assertEqual((target.attack, target.health), (2, 4))
+
+    def test_activation_event_can_trigger_structured_emblem(self):
+        emblem = EmblemDefinition(
+            emblem_id="act-listener",
+            source_card_id=900,
+            triggers=(
+                EmblemTriggerRule(
+                    trigger="amulet_activated",
+                    operations=(
+                        EffectOperation(
+                            EffectKind.HEAL_LEADER,
+                            TargetKind.OWN_LEADER,
+                            1,
+                        ),
+                    ),
+                ),
+            ),
+        )
+        engine = _engine(
+            (EffectOperation(EffectKind.HEAL_LEADER, TargetKind.OWN_LEADER, 1),),
+            emblem_defs={emblem.emblem_id: emblem},
+        )
+        engine._add_emblem_to_player(0, emblem, source_card_id=900)
+        amulet = _place_amulet(engine)
+        engine.players[0].health = 10
+
+        engine.apply(ActivateAmulet(0, amulet.entity_id))
+
+        self.assertEqual(engine.players[0].health, 12)
+
+
+class ActivateRuleSchemaTests(unittest.TestCase):
+    def test_activation_definition_defaults_to_zero_cost(self):
+        definition = _parse_activation_definition({"card_id": 123}, "test")
+        self.assertEqual(definition, ActivationDefinition(123, 0))
+
+    def test_activation_definition_rejects_bad_cost_and_unknown_fields(self):
+        for raw in (
+            {"card_id": 123, "cost": -1},
+            {"card_id": 123, "cost": True},
+            {"card_id": 123, "unknown": 1},
+        ):
+            with self.subTest(raw=raw), self.assertRaises(ValueError):
+                _parse_activation_definition(raw, "test")
+
+    def test_activation_definition_and_trigger_rule_require_each_other(self):
+        operation = EffectOperation(
+            EffectKind.HEAL_LEADER,
+            TargetKind.OWN_LEADER,
+            1,
+        )
+        with self.assertRaises(ValueError):
+            RuleBook(activation_defs={123: ActivationDefinition(123, 1)})
+        with self.assertRaises(ValueError):
+            RuleBook(rules=(CardRule(123, Trigger.ACTIVATE, (operation,)),))
+
+
+class ActivateEnvironmentTests(unittest.TestCase):
+    def test_rl_reuses_amulet_evolve_slot_and_exposes_turn_usage(self):
+        amulet_definition = _activate_amulet()
+        rules = RuleBook(
+            rules=(
+                CardRule(
+                    100,
+                    Trigger.ACTIVATE,
+                    (
+                        EffectOperation(
+                            EffectKind.HEAL_LEADER,
+                            TargetKind.OWN_LEADER,
+                            1,
+                        ),
+                    ),
+                ),
+            ),
+            activation_defs={100: ActivationDefinition(100, 1)},
+        )
+        deck = [_card(1000 + index) for index in range(40)]
+        env = ShadowverseEnv(
+            deck,
+            deck,
+            class_a=1,
+            class_b=1,
+            seed=42,
+            rulebook=rules,
+        )
+        env.reset(seed=42)
+        env.players[0].board.clear()
+        env.players[0].health = 10
+        env.players[0].mana = 2
+        amulet = _place_amulet(env.core, amulet_definition)
+        action = ShadowverseEnv.EVOLVE_OFFSET
+
+        self.assertEqual(env._board_features(amulet)[10], 0.0)
+        self.assertTrue(env.action_mask()[action])
+        self.assertEqual(
+            env._decode_action(action),
+            ActivateAmulet(0, amulet.entity_id),
+        )
+
+        result = env.step(action)
+
+        self.assertEqual(env.players[0].health, 11)
+        self.assertFalse(result.info["action_mask"][action])
+        self.assertEqual(env._board_features(amulet)[10], 1.0)
+        self.assertEqual(len(result.observation), 257)
+
+
+@unittest.skipUnless(os.path.exists("data/cards.sqlite3"), "card database unavailable")
+class RealActivateCardTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.repo = CardRepository("data/cards.sqlite3")
+        cls.rulebook = RuleBook.from_directory("data/rules")
+
+    def test_witchs_new_brew_activates_for_one_pp_and_is_exact(self):
+        filler = [
+            _card(
+                7000 + index,
+                class_id=3,
+                class_name="巫师",
+            )
+            for index in range(40)
+        ]
+        engine = GameEngine(
+            filler,
+            filler,
+            class_a=3,
+            class_b=3,
+            seed=42,
+            rulebook=self.rulebook,
+            card_resolver=self.repo.get,
+            config=GameConfig(validate_invariants=True),
+        )
+        engine.reset(seed=42)
+        engine.players[0].hand.clear()
+        engine.players[0].hand_entity_ids.clear()
+        engine.players[0].max_mana = 10
+        engine.players[0].mana = 10
+        definition = self.repo.get(10031210)
+        hand_card = HandCard(
+            definition=definition,
+            entity_id=engine.state.allocate_entity_id(),
+            origin=CardOrigin.DECK,
+        )
+        engine.players[0].hand.append(hand_card)
+        engine.players[0].hand_entity_ids.append(hand_card.entity_id)
+
+        engine.apply(PlayCard(0, 0))
+        amulet = next(
+            entity for entity in engine.players[0].board
+            if isinstance(entity, Amulet) and entity.definition.card_id == 10031210
+        )
+        mana_before = engine.players[0].mana
+        engine.apply(ActivateAmulet(0, amulet.entity_id))
+
+        self.assertEqual(engine.players[0].mana, mana_before - 1)
+        self.assertEqual(engine.players[0].earth_sigils, 2)
+        self.assertFalse(
+            any(
+                event.ability is AbilityKeyword.ACTIVATE
+                for event in engine.placeholder_ability_events
+            )
+        )
+        self.assertNotIn(ActivateAmulet(0, amulet.entity_id), engine.legal_commands())
+
+        report = _build_coverage_report("data/cards.sqlite3", "data/rules")
+        classification = report["classifications"]["10031210"]
+        self.assertEqual(classification["coverage"], "covered_exact")
+        self.assertNotIn("策动", classification["missing_primitives"])
+
+
+if __name__ == "__main__":
+    unittest.main()

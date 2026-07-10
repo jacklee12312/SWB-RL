@@ -5,7 +5,7 @@ from pathlib import Path
 from typing import Callable, Sequence
 
 from swb.db.repository import CardDefinition
-from swb.engine.commands import Attack, BeginFusion, ChoiceKind, Choose, EndTurn, Evolve, GameCommand, PlayCard, SuperEvolve
+from swb.engine.commands import ActivateAmulet, Attack, BeginFusion, ChoiceKind, Choose, EndTurn, Evolve, GameCommand, PlayCard, SuperEvolve
 from swb.engine.conditions import OVERFLOW_MAX_MANA_THRESHOLD
 from swb.engine.card_rules import RuleBook
 from swb.engine.play_modes import MAX_SPECIAL_MODES_PER_CARD
@@ -349,7 +349,10 @@ class ShadowverseEnv:
             return PlayCard(self.current_player, action - self.PLAY_OFFSET)
         if action >= self.EVOLVE_OFFSET:
             board_index = action - self.EVOLVE_OFFSET
-            return Evolve(self.current_player, self.players[self.current_player].board[board_index].entity_id)
+            entity = self.players[self.current_player].board[board_index]
+            if isinstance(entity, Amulet):
+                return ActivateAmulet(self.current_player, entity.entity_id)
+            return Evolve(self.current_player, entity.entity_id)
         relative = action - self.ATTACK_OFFSET
         attacker_index = relative // self.TARGETS_PER_ATTACKER
         target_slot = relative % self.TARGETS_PER_ATTACKER
@@ -426,6 +429,12 @@ class ShadowverseEnv:
                 if special == command and idx < MAX_SPECIAL_MODES_PER_CARD:
                     return self.MODE_PLAY_OFFSET + hand_index * MAX_SPECIAL_MODES_PER_CARD + idx
             return None
+        if isinstance(command, ActivateAmulet):
+            index = self._unit_index(
+                self.players[self.current_player].board,
+                command.amulet_id,
+            )
+            return self.EVOLVE_OFFSET + index
         if isinstance(command, Evolve):
             index = self._unit_index(self.players[self.current_player].board, command.unit_id)
             return self.EVOLVE_OFFSET + index
@@ -531,12 +540,11 @@ class ShadowverseEnv:
             float(fusion_used),
         ]
 
-    @staticmethod
-    def _board_features(entity: BoardCard | None) -> list[float]:
+    def _board_features(self, entity: BoardCard | None) -> list[float]:
         if entity is None:
             return [0.0] * 12
         if isinstance(entity, Amulet):
-            return [1.0, 0.0, (entity.countdown or 0) / 10, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, len(entity.fused_material_ids) / ShadowverseEnv.MAX_HAND]
+            return [1.0, 0.0, (entity.countdown or 0) / 10, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, float(entity.activated_turn == self.turn), len(entity.fused_material_ids) / ShadowverseEnv.MAX_HAND]
         unit = entity
         return [
             1.0, unit.attack / 20, unit.health / 20,

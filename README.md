@@ -70,6 +70,11 @@ The deterministic rules core supports:
   Sigil entry/merge/depletion, effect-destroy protection, opposing manual-target
   protection, generated `大地之魔片`, nested post-payment operations, and
   controller/opponent count conditions and expressions;
+- command-level `策动` for field amulets, with structured activation costs,
+  once-per-amulet-per-turn state, required-target prevalidation, pending-choice
+  revalidation, source-leaves-play safety, and explicit `amulet_activated`
+  events that structured emblems can observe; real card `10031210` spends 1 PP
+  to add one Earth Sigil and is now an exact rule;
 - command-level `融合` from hand, including structured material filters and
   count limits, variable-count selection with explicit confirmation, once-per-
   card-per-turn tracking, atomic hand-zone revalidation, a distinct consumed
@@ -122,6 +127,13 @@ The material transition follows the
 [official Fusion glossary](https://shadowverse-wb.com/chs/deck/cardslist/card/?card_id=10021110):
 Fusion is usable from hand once per turn, an unspecified count permits multiple
 materials at once, and consumed materials do not enter the graveyard.
+Activate reuses the evolution action slot for an amulet in the same board
+position, because followers and amulets are mutually exclusive there. Its
+current-turn usage flag occupies an existing public amulet board feature, so
+the fixed 111 actions and 257 features do not change. This follows the
+[official Activate glossary](https://shadowverse-wb.com/ja/deck/cardslist/card/?card_id=10114110):
+a field amulet can activate once per turn, and a specified cost is paid only
+when enough PP remains.
 The observation also exposes both players' public number of follower evolutions
 this match. Invocation itself is automatic and therefore adds no RL action.
 The current implementation follows the
@@ -139,9 +151,11 @@ remain visible instead of silently behaving as implemented.
 Known broad gaps include:
 
 - exact semantics for many real cards and most generated-card workflows;
-- full `策动`, `信仰`, and `奥义` semantics, plus broader
-  real-card coverage for `土之秘术`, `觉醒`, and `连击` beyond the currently
-  authored examples;
+- `信仰` and `奥义` semantics, plus broader real-card coverage for `策动`,
+  `土之秘术`, `觉醒`, and `连击` beyond the currently authored examples;
+- `amulet_activated` is available to structured emblem triggers, but ordinary
+  board or hand cards that react to another card's activation still need a
+  generic field/hand trigger listener slice;
 - Fusion cards that transform in hand when fused and abilities on other cards
   that trigger from a fusion event remain unsupported; the command-level
   material transition and source-card fused-count conditions are covered;
@@ -156,9 +170,6 @@ Known broad gaps include:
 - `10474120` remains partial: its selected-set damage is covered, but making
   the selected followers lose all abilities and applying persistent
   leader-damage amplification remain unsupported primitives;
-- Earth Sigil `策动` remains unsupported as its own command-level slice; this
-  keeps `10031210` partial even though its draw and Earth Sigil board semantics
-  are covered. `10032310` and `10732120` are exact consume/gain demos;
 - keyword registry status is intentionally conservative: handlers and generic
   primitives may exist before a keyword is marked fully implemented.
 

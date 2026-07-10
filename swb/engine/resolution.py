@@ -15,6 +15,7 @@ from swb.engine.abilities import (
 )
 from swb.engine.card_rules import RuleBook, Trigger
 from swb.engine.commands import (
+    ActivateAmulet,
     Attack,
     BeginFusion,
     ChoiceKind,
@@ -325,6 +326,11 @@ class GameEngine:
                 card.card_type == "随从"
                 and self.rulebook.invocation_for(card.card_id) is not None
             )
+        if ability is AbilityKeyword.ACTIVATE:
+            return (
+                card.card_type == "护符"
+                and self.rulebook.activation_for(card.card_id) is not None
+            )
         if ability in (AbilityKeyword.OVERFLOW, AbilityKeyword.COMBO):
             if ability is AbilityKeyword.OVERFLOW:
                 condition_types = (
@@ -538,6 +544,8 @@ class GameEngine:
             self._super_evolve(command)
         elif isinstance(command, BeginFusion):
             self._begin_fusion(command)
+        elif isinstance(command, ActivateAmulet):
+            self._activate_amulet(command)
         elif isinstance(command, Choose):
             self._choose(command)
         else:
@@ -610,6 +618,12 @@ class GameEngine:
             for mode_def in modes:
                 if self._is_mode_playable(card, player, mode_def):
                     commands.append(PlayCard(self.current_player, index, mode_def.mode_id))
+        commands.extend(
+            ActivateAmulet(self.current_player, entity.entity_id)
+            for entity in player.board
+            if isinstance(entity, Amulet)
+            and self._can_activate_amulet(entity, self.current_player)
+        )
         can_evolve = (
             player.evolution_points > 0
             and player.turns_started >= self.config.evolution_unlock_turn
@@ -649,6 +663,104 @@ class GameEngine:
                     for target in targets
                 )
         return commands
+
+    def _can_activate_amulet(
+        self,
+        amulet: Amulet,
+        player_index: int,
+    ) -> bool:
+        if player_index != self.current_player:
+            return False
+        if amulet not in self.players[player_index].board:
+            return False
+        definition = self.rulebook.activation_for(amulet.definition.card_id)
+        if definition is None:
+            return False
+        if amulet.activated_turn == self.turn:
+            return False
+        if self.players[player_index].mana < definition.cost:
+            return False
+        operations = self.rulebook.operations_for(
+            amulet.definition.card_id,
+            Trigger.ACTIVATE,
+        )
+        if not operations:
+            return False
+        if any(
+            operation.requires_target
+            and not self._has_candidates_for(
+                operation,
+                player_index,
+                source_entity_id=amulet.entity_id,
+                source_fusion_count=len(amulet.fused_material_ids),
+            )
+            for operation in operations
+        ):
+            return False
+        all_consume_targets = all(
+            self._operation_consumes_target(operation)
+            for operation in operations
+        )
+        if all_consume_targets and all(
+            not self._has_candidates_for(
+                operation,
+                player_index,
+                source_entity_id=amulet.entity_id,
+                source_fusion_count=len(amulet.fused_material_ids),
+            )
+            for operation in operations
+        ):
+            return False
+        return True
+
+    def _activate_amulet(self, command: ActivateAmulet) -> None:
+        player = self.players[self.current_player]
+        amulet = next(
+            (
+                entity
+                for entity in player.board
+                if isinstance(entity, Amulet)
+                and entity.entity_id == command.amulet_id
+            ),
+            None,
+        )
+        if amulet is None:
+            raise IllegalCommand("Amulet is not controlled by the active player")
+        if not self._can_activate_amulet(amulet, self.current_player):
+            raise IllegalCommand("Amulet activation is not currently available")
+
+        definition = self.rulebook.activation_for(amulet.definition.card_id)
+        if definition is None:
+            raise IllegalCommand("Amulet activation definition is unavailable")
+        operations = self.rulebook.operations_for(
+            amulet.definition.card_id,
+            Trigger.ACTIVATE,
+        )
+        player.mana -= definition.cost
+        amulet.activated_turn = self.turn
+        self._log(
+            self.current_player,
+            f"策动 {amulet.definition.name}（{definition.cost}费）",
+        )
+        self._emit(
+            GameEvent(
+                EventType.AMULET_ACTIVATED,
+                self.current_player,
+                source_id=amulet.entity_id,
+                metadata={
+                    "source": amulet,
+                    "card_id": amulet.definition.card_id,
+                    "cost": definition.cost,
+                },
+            )
+        )
+        self._start_effects(
+            amulet.definition,
+            amulet.entity_id,
+            operations,
+            controller=self.current_player,
+            label="策动",
+        )
 
     def _super_evolution_unlock_turn(self, player_index: int) -> int:
         if player_index == 0:
@@ -1987,6 +2099,7 @@ class GameEngine:
                 "countdown": entity.countdown,
                 "earth_sigil_count": entity.earth_sigil_count,
                 "entered_turn": entity.entered_turn,
+                "activated_turn": entity.activated_turn,
                 "pending_destroy": entity.pending_destroy,
             })
         return base
@@ -4805,14 +4918,16 @@ class GameEngine:
                 f"{name} {frame.label}回复 {restored} 点能量",
             )
         elif effect.kind is EffectKind.BUFF_UNIT:
-            source = (
-                self._find_board_entity(frame.source_entity_id)
-                if frame.source_entity_id is not None
-                else None
+            target = (
+                self._find_board_entity(target_id)
+                if target_id is not None
+                else (
+                    self._find_board_entity(frame.source_entity_id)
+                    if frame.source_entity_id is not None
+                    else None
+                )
             )
-            if target_id is not None:
-                source = self._find_board_entity(target_id)
-            if not isinstance(source, Unit):
+            if not isinstance(target, Unit):
                 raise IllegalCommand("Buff target must be a follower")
             modifier = StatModifier(
                 modifier_id=self._allocate_modifier_id(),
@@ -4821,7 +4936,7 @@ class GameEngine:
                 duration=effect.duration.value,
                 expires_for_player=_expires_for_player(effect.duration, frame.controller),
             )
-            source.add_stat_modifier(modifier)
+            target.add_stat_modifier(modifier)
             self._log(
                 frame.controller,
                 f"属性变化 {effect.amount}/{effect.secondary_amount}",
@@ -6599,6 +6714,7 @@ class GameEngine:
             EventType.AMULET_DESTROYED: "amulet_destroyed",
             EventType.DEATH_BATCH_END: "death_batch_end",
             EventType.LEADER_HEALED: "leader_healed",
+            EventType.AMULET_ACTIVATED: "amulet_activated",
         }
         while self.state.event_queue:
             self._step()
@@ -7459,6 +7575,15 @@ class GameEngine:
                     if entity.countdown is not None and entity.countdown < 0:
                         raise IllegalCommand(
                             f"Invariant failed: {zone} countdown is negative"
+                        )
+                    if entity.activated_turn is not None and (
+                        not isinstance(entity.activated_turn, int)
+                        or isinstance(entity.activated_turn, bool)
+                        or entity.activated_turn <= 0
+                        or entity.activated_turn > state.turn
+                    ):
+                        raise IllegalCommand(
+                            f"Invariant failed: {zone} activated_turn is invalid"
                         )
                     is_earth_sigil = self._is_earth_sigil_amulet(entity)
                     if entity.earth_sigil_count < 0:

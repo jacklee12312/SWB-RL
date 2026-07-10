@@ -196,6 +196,7 @@ class Trigger(str, Enum):
     TURN_END = "turn_end"
     COUNTDOWN_EXPIRED = "countdown_expired"
     INVOKE = "invoke"
+    ACTIVATE = "activate"
 
 
 @dataclass(frozen=True)
@@ -228,6 +229,12 @@ class InvocationDefinition:
     conditions: tuple[Condition, ...] = ()
 
 
+@dataclass(frozen=True)
+class ActivationDefinition:
+    card_id: int
+    cost: int = 0
+
+
 class RuleBook:
     def __init__(
         self,
@@ -237,6 +244,7 @@ class RuleBook:
         emblem_defs: dict[str, EmblemDefinition] | None = None,
         fusion_defs: dict[int, FusionDefinition] | None = None,
         invocation_defs: dict[int, InvocationDefinition] | None = None,
+        activation_defs: dict[int, ActivationDefinition] | None = None,
     ):
         self._rules: dict[tuple[int, Trigger], tuple[EffectOperation, ...]] = {}
         for rule in rules:
@@ -275,11 +283,24 @@ class RuleBook:
         self._emblem_defs: dict[str, EmblemDefinition] = emblem_defs or {}
         self._fusion_defs: dict[int, FusionDefinition] = fusion_defs or {}
         self._invocation_defs: dict[int, InvocationDefinition] = invocation_defs or {}
+        self._activation_defs: dict[int, ActivationDefinition] = activation_defs or {}
         for card_id in self._fusion_defs:
             if len(self._play_modes.get(card_id, ())) + 1 > MAX_SPECIAL_MODES_PER_CARD:
                 raise ValueError(
                     f"card {card_id}: fusion plus play modes exceeds "
                     f"{MAX_SPECIAL_MODES_PER_CARD} special actions"
+                )
+        for card_id in self._activation_defs:
+            if not self.operations_for(card_id, Trigger.ACTIVATE):
+                raise ValueError(
+                    f"card {card_id}: activation definition requires a non-empty "
+                    f"{Trigger.ACTIVATE.value!r} rule"
+                )
+        for card_id, trigger in self._rules:
+            if trigger is Trigger.ACTIVATE and card_id not in self._activation_defs:
+                raise ValueError(
+                    f"card {card_id}: {Trigger.ACTIVATE.value!r} rule requires an "
+                    "activation definition"
                 )
 
     def operations_for(
@@ -301,6 +322,9 @@ class RuleBook:
 
     def invocation_for(self, card_id: int) -> InvocationDefinition | None:
         return self._invocation_defs.get(card_id)
+
+    def activation_for(self, card_id: int) -> ActivationDefinition | None:
+        return self._activation_defs.get(card_id)
 
     def emblem_trigger_ops_for(self, emblem_id: str, trigger: str) -> tuple[EffectOperation, ...]:
         from swb.engine.emblem import EmblemTriggerRule
@@ -336,6 +360,7 @@ class RuleBook:
         all_emblem_defs: dict[str, EmblemDefinition] = {}
         all_fusion_defs: dict[int, FusionDefinition] = {}
         all_invocation_defs: dict[int, InvocationDefinition] = {}
+        all_activation_defs: dict[int, ActivationDefinition] = {}
         for file_path in sorted(path.glob("*.json")):
             payload = json.loads(file_path.read_text(encoding="utf-8"))
             if isinstance(payload, list):
@@ -343,16 +368,22 @@ class RuleBook:
                 raw_passives = []
                 raw_fusions = []
                 raw_invocations = []
+                raw_activations = []
             else:
                 entries = payload.get("rules", [])
                 raw_passives = payload.get("passives", [])
                 raw_fusions = payload.get("fusions", [])
                 raw_invocations = payload.get("invocations", [])
+                raw_activations = payload.get("activations", [])
                 if not isinstance(raw_fusions, list):
                     raise ValueError(f"{file_path.name}: 'fusions' must be a list")
                 if not isinstance(raw_invocations, list):
                     raise ValueError(
                         f"{file_path.name}: 'invocations' must be a list"
+                    )
+                if not isinstance(raw_activations, list):
+                    raise ValueError(
+                        f"{file_path.name}: 'activations' must be a list"
                     )
                 raw_emblems = payload.get("emblems")
                 if raw_emblems is not None:
@@ -467,6 +498,18 @@ class RuleBook:
                         f"card {invocation.card_id}"
                     )
                 all_invocation_defs[invocation.card_id] = invocation
+            for index, raw_activation in enumerate(raw_activations):
+                source_path = f"{file_path.name}/activations[{index}]"
+                activation = _parse_activation_definition(
+                    raw_activation,
+                    source_path,
+                )
+                if activation.card_id in all_activation_defs:
+                    raise ValueError(
+                        f"{source_path}: duplicate activation definition for "
+                        f"card {activation.card_id}"
+                    )
+                all_activation_defs[activation.card_id] = activation
         _validate_passives(passives)
         frozen_modes = {
             cid: tuple(modes) for cid, modes in all_play_modes.items()
@@ -479,6 +522,7 @@ class RuleBook:
             emblem_defs=all_emblem_defs,
             fusion_defs=all_fusion_defs,
             invocation_defs=all_invocation_defs,
+            activation_defs=all_activation_defs,
         )
 
 
@@ -526,6 +570,7 @@ def _parse_emblem_definition(raw: dict, source_file: str, ops_parser) -> EmblemD
         "turn_start", "turn_end", "follower_summoned",
         "follower_evolved", "follower_destroyed", "amulet_destroyed",
         "card_played", "leader_healed", "death_batch_end",
+        "amulet_activated",
     })
     for i, rt in enumerate(raw_triggers):
         t_source = f"{error_prefix}/triggers[{i}]"
@@ -847,6 +892,27 @@ def _parse_invocation_definition(
         trigger=trigger,
         conditions=conditions,
     )
+
+
+def _parse_activation_definition(
+    raw: dict,
+    source_path: str,
+) -> ActivationDefinition:
+    if not isinstance(raw, dict):
+        raise ValueError(f"{source_path}: activation definition must be an object")
+    unknown = set(raw) - {"card_id", "cost"}
+    if unknown:
+        raise ValueError(f"{source_path}: unknown fields {sorted(unknown)}")
+
+    card_id = raw.get("card_id")
+    if isinstance(card_id, bool) or not isinstance(card_id, int) or card_id <= 0:
+        raise ValueError(f"{source_path}/card_id: must be a positive integer")
+    cost = _parse_non_negative_int(
+        raw.get("cost", 0),
+        f"{source_path}/cost",
+        card_id,
+    )
+    return ActivationDefinition(card_id=card_id, cost=cost)
 
 
 def _parse_passive(raw: dict, source_file: str) -> CardPassive:

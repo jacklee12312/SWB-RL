@@ -1,4 +1,10 @@
 {
+  "activations": [
+    {
+      "card_id": 10031210,
+      "cost": 1
+    }
+  ],
   "rules": [
     {
       "card_id": 10031210,
@@ -6,6 +12,17 @@
       "operations": [
         {
           "kind": "draw",
+          "target": "own_leader",
+          "amount": 1
+        }
+      ]
+    },
+    {
+      "card_id": 10031210,
+      "trigger": "activate",
+      "operations": [
+        {
+          "kind": "add_earth_sigils",
           "target": "own_leader",
           "amount": 1
         }
