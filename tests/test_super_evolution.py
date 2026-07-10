@@ -722,11 +722,13 @@ class RealMegSuperEvolutionTests(unittest.TestCase):
             )
         )
 
-    def test_meg_rule_remains_partial_for_unimplemented_ward_listener(self):
+    def test_meg_rule_is_exact_with_structured_ward_listener(self):
         report = _build_coverage_report("data/cards.sqlite3", "data/rules")
         info = report["classifications"]["10443110"]
-        self.assertEqual(info["coverage"], "covered_partial")
-        self.assertIn("守护", info["rule_metadata"]["unsupported_text"])
+        self.assertEqual(info["coverage"], "covered_exact")
+        self.assertIn("守护", info["rule_metadata"]["implemented_text"])
+        self.assertNotIn("unsupported_text", info["rule_metadata"])
+        self.assertIn("listener:board:follower_summoned", info["reason"])
         self.assertIn("super_evolve_unit", info["reason"])
 
 

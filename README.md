@@ -70,6 +70,18 @@ The deterministic rules core supports:
   per-target revalidation before resolution; real card `10351120` demonstrates
   selecting and destroying two enemy followers, while partial real rule
   `10474120` demonstrates reusing the same selected set for later damage;
+- structured ordinary-card event listeners sourced from the board, hand, or
+  shared leader area. Rules can observe `amulet_activated`, `card_fused`,
+  follower summon/evolution/destruction, amulet destruction, entity leave-play,
+  card play, and turn boundaries; filter the event card by type, original cost,
+  class, ID, name, or runtime keyword; scope to owner/opponent/any events and
+  turns; target the exact `event_source`; and enforce per-turn or lifetime
+  activation limits. Simultaneous listeners snapshot in active-player-first,
+  board/hand/leader-area order, revalidate their source before activation, and
+  preserve pending-choice continuations. Real `10443110` now exactly gains
+  `守护` when another allied original-cost-2 follower enters play. Its structured
+  `non_intrinsic_keyword` annotation also prevents the database's full-text
+  keyword audit field from granting that Ward before the listener fires;
 - field-backed `土之印` stacks and structured `土之秘术` payment, including
   Sigil entry/merge/depletion, effect-destroy protection, opposing manual-target
   protection, generated `大地之魔片`, nested post-payment operations, and
@@ -113,7 +125,8 @@ The deterministic rules core supports:
 - `death_batch_end` emblem triggers that fire after a death batch's Last Words
   complete, with any new deaths collected into a later death batch;
 - recursive resolution-loop diagnostics for events, effects, death batches,
-  active emblem batches, recent emblem triggers, and suspended continuations;
+  active card-listener/emblem batches, recent listener triggers, and suspended
+  continuations;
 - partial higher-level mechanics and primitives for cooperation, `觉醒`, `连击`,
   necromancy, reanimate, spellboost-style hand cost changes, emblems, optional
   decisions, choose-one decisions, play modes, and runtime modifiers.
@@ -183,23 +196,25 @@ Known broad gaps include:
 - exact semantics for many real cards and most generated-card workflows;
 - remaining `信仰` progression/payoff semantics, plus broader real-card coverage for `策动`,
   `土之秘术`, `觉醒`, and `连击` beyond the currently authored examples;
-- `amulet_activated` is available to structured emblem triggers, but ordinary
-  board or hand cards that react to another card's activation still need a
-  generic field/hand trigger listener slice;
+- ordinary board, hand, and leader-area listeners now receive
+  `amulet_activated` and `card_fused`; remaining cards that use those events
+  still need individual structured rules and official-text verification;
 - Faith currently supports the verified `follower_evolved` progression trigger
   for normal and super evolution. Mode selection, Enhance play, named-follower
   entry, amulet-destruction progression, value spending, gained Faith abilities,
   and the shared five-slot leader-area limit remain explicit unsupported edges;
-- Fusion cards that transform in hand when fused and abilities on other cards
-  that trigger from a fusion event remain unsupported; the command-level
-  material transition and source-card fused-count conditions are covered;
+- Fusion cards that transform in hand when fused remain unsupported. Other
+  cards can now listen to `card_fused`, but their individual reactions still
+  require audited structured rules;
 - additional `奥义` cards still require explicit structured definitions; the
   generic gauge, thresholds, activation event, and repeated random target flow
   are implemented, while unsupported card-specific clauses remain visible;
 - additional cards that cause normal evolution, restore SEP, or super-evolve
   multiple/selected followers still need their own structured rules; real
-  `10443110` covers its `奥义` self-super-evolution but remains partial for its
-  separate cost-2-follower Ward listener;
+  `10443110` now exactly covers both its `奥义` self-super-evolution and its
+  cost-2-follower Ward listener;
+- `威慑` and continuous `灵气` remain missing generic primitives and are the
+  next broad combat/modifier slices before cards depending on them can be exact;
 - remaining trigger-ordering edge cases beyond the current death-batch
   ordering diagnostics and `death_batch_end` boundary triggers, including
   unsupported `death_batch_start` emblem triggers, plus broad real-card

@@ -8,11 +8,11 @@
     "total_with_rules": 99,
     "test_or_synthetic_ids_with_rules": 26,
     "coverage_counts": {
-      "covered_exact": 64,
+      "covered_exact": 65,
       "supported_missing_rule": 624,
       "text_unclear": 19,
       "missing_primitive": 21,
-      "covered_partial": 7,
+      "covered_partial": 6,
       "token_or_non_collectible": 91
     }
   },
@@ -10205,8 +10205,8 @@
       "cost": 3,
       "is_collectible": true,
       "card_set_id": 10004,
-      "coverage": "covered_partial",
-      "reason": "Partial rule. Triggers: ['union_burst'], Ops: ['super_evolve_unit']; unsupported: 自己的原始费用为2的随从进入战场时，本随从获得【守护】。",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['union_burst', 'listener:board:follower_summoned', 'passive'], Ops: ['super_evolve_unit', 'add_keyword', 'non_intrinsic_keyword']",
       "hit_keywords": [
         "入场曲",
         "超进化",
@@ -10223,9 +10223,9 @@
       ],
       "support_level": "unsupported",
       "rule_metadata": {
-        "coverage": "partial",
-        "implemented_text": "【入场曲】【奥义】本随从超进化。",
-        "unsupported_text": "自己的原始费用为2的随从进入战场时，本随从获得【守护】。"
+        "coverage": "exact",
+        "implemented_text": "【入场曲】【奥义】本随从超进化。自己的原始费用为2的随从进入战场时，本随从获得【守护】。",
+        "notes": "入场监听使用原始 CardDefinition.cost；监听来源必须仍在己方场上才能开始激活。"
       }
     },
     "10443310": {

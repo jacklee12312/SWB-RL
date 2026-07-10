@@ -44,6 +44,12 @@ from swb.engine.effects import (
 )
 from swb.engine.events import EventType, GameEvent
 from swb.engine.faith import FaithInstance, FaithTrigger
+from swb.engine.listeners import (
+    CardListenerDefinition,
+    ListenerZone,
+    SourceRelation,
+)
+from swb.engine.emblem import EventScope, TurnScope
 from swb.engine.origin import (
     CardOrigin,
     is_derived,
@@ -176,6 +182,10 @@ _SOURCE_REQUIRED_SELF_TARGET_EFFECTS = frozenset({
     EffectKind.REMOVE_TARGETING_RESTRICTION,
 })
 
+_EVENT_SOURCE_BOARD_EFFECTS = _SOURCE_REQUIRED_SELF_TARGET_EFFECTS | frozenset({
+    EffectKind.SUPER_EVOLVE_UNIT,
+})
+
 _SOURCE_CONDITION_TYPES = frozenset({
     ConditionType.SOURCE_EVOLVED,
     ConditionType.SOURCE_HAS_KEYWORD,
@@ -305,6 +315,8 @@ class GameEngine:
         self._pending_spellboost_source_entity_id: int | None = None
         self._emblem_batches: dict[int, dict[str, object]] = {}
         self._next_emblem_batch_id: int = 1
+        self._listener_batches: dict[int, dict[str, object]] = {}
+        self._next_listener_batch_id: int = 1
         self._emblem_expiration_batches: dict[int, dict[str, object]] = {}
         self._next_emblem_expiration_batch_id: int = 1
 
@@ -530,6 +542,8 @@ class GameEngine:
         self._pending_spellboost_source_entity_id = None
         self._emblem_batches: dict[int, dict[str, object]] = {}
         self._next_emblem_batch_id = 1
+        self._listener_batches: dict[int, dict[str, object]] = {}
+        self._next_listener_batch_id = 1
         self._emblem_expiration_batches: dict[int, dict[str, object]] = {}
         self._next_emblem_expiration_batch_id = 1
         self._stabilizing = False
@@ -1034,6 +1048,7 @@ class GameEngine:
             origin=origin,
             source_origin=source_origin,
         )
+        self._apply_initial_keyword_overrides(unit)
         player.board.append(unit)
         unit.fused_material_ids.extend(fused_material_ids)
         self._record_cooperation(
@@ -1044,6 +1059,15 @@ class GameEngine:
             summon_cause=summon_cause,
         )
         return unit
+
+    def _apply_initial_keyword_overrides(self, unit: Unit) -> None:
+        excluded = self.rulebook.non_intrinsic_keywords(
+            unit.definition.card_id
+        )
+        if not excluded:
+            return
+        unit.removed_keywords.update(excluded)
+        unit._synchronize_keyword_state()
 
     def _fusion_material_candidates(
         self,
@@ -1735,6 +1759,33 @@ class GameEngine:
         self.state.effect_stack.append(frame)
         return frame
 
+    def _queue_effects_from_frame(
+        self,
+        parent: EffectFrame,
+        operations: tuple[EffectOperation, ...],
+        *,
+        label: str,
+    ) -> EffectFrame:
+        child = self._queue_effects(
+            parent.source_card,
+            parent.source_entity_id,
+            operations,
+            controller=parent.controller,
+            label=label,
+            fusion_materials=parent.fusion_materials,
+        )
+        child.listener_activation_owner = parent.listener_activation_owner
+        child.listener_activation_zone = parent.listener_activation_zone
+        child.listener_activation_entity_id = (
+            parent.listener_activation_entity_id
+        )
+        child.listener_activation_card_id = parent.listener_activation_card_id
+        child.listener_activation_definition_index = (
+            parent.listener_activation_definition_index
+        )
+        child.event_source_entity_id = parent.event_source_entity_id
+        return child
+
     def _debug_value(self, value):
         if value is None or isinstance(value, (str, int, float, bool)):
             return value
@@ -1825,6 +1876,9 @@ class GameEngine:
             "pending_target_id": frame.pending_target_id,
             "pending_target_ids": tuple(frame.pending_target_ids),
             "fusion_material_count": len(frame.fusion_materials),
+            "listener_batch_id": frame.listener_batch_id,
+            "listener_zone": frame.listener_activation_zone,
+            "event_source_entity_id": frame.event_source_entity_id,
             "upcoming_operations": [
                 self._operation_debug_summary(operation)
                 for operation in upcoming
@@ -1982,6 +2036,22 @@ class GameEngine:
                 for event in self.event_history[-40:]
                 if event.type is EventType.EMBLEM_TRIGGERED
             ][-10:],
+            "listener_batches": [
+                {
+                    "batch_id": batch_id,
+                    "event_type": batch.get("event_type"),
+                    "event_player": batch.get("event_player"),
+                    "event_source_id": batch.get("event_source_id"),
+                    "record_count": len(batch.get("records", [])),
+                    "records": self._debug_value(batch.get("records", [])[:5]),
+                }
+                for batch_id, batch in sorted(self._listener_batches.items())[-5:]
+            ],
+            "recent_card_listener_triggers": [
+                self._event_debug_summary(event)
+                for event in self.event_history[-40:]
+                if event.type is EventType.CARD_LISTENER_TRIGGERED
+            ][-10:],
             "suspended_event": self._suspended_event_debug_summary(),
             "suspended_death_batch": self._suspended_death_batch_debug_summary(),
             "suspended": {
@@ -2048,6 +2118,12 @@ class GameEngine:
                     self._destroyed_follower_fingerprint(record)
                     for record in self.state.destroyed_followers
                 ),
+                "listener_activation_counts": tuple(
+                    sorted(self.state.listener_activation_counts.items())
+                ),
+                "listener_once_per_turn_used": tuple(
+                    sorted(self.state.listener_once_per_turn_used)
+                ),
             },
             "logs": tuple(self.logs),
             "event_history": tuple(
@@ -2097,6 +2173,14 @@ class GameEngine:
                     for batch_id, batch in sorted(self._emblem_batches.items())
                 ),
                 "next_emblem_batch_id": self._next_emblem_batch_id,
+                "listener_batches": tuple(
+                    (
+                        batch_id,
+                        self._fingerprint_value(batch),
+                    )
+                    for batch_id, batch in sorted(self._listener_batches.items())
+                ),
+                "next_listener_batch_id": self._next_listener_batch_id,
                 "emblem_expiration_batches": tuple(
                     (
                         batch_id,
@@ -2442,6 +2526,17 @@ class GameEngine:
             "emblem_activation_trigger_index": (
                 frame.emblem_activation_trigger_index
             ),
+            "listener_batch_id": frame.listener_batch_id,
+            "listener_activation_owner": frame.listener_activation_owner,
+            "listener_activation_zone": frame.listener_activation_zone,
+            "listener_activation_entity_id": (
+                frame.listener_activation_entity_id
+            ),
+            "listener_activation_card_id": frame.listener_activation_card_id,
+            "listener_activation_definition_index": (
+                frame.listener_activation_definition_index
+            ),
+            "event_source_entity_id": frame.event_source_entity_id,
             "emblem_expiration_batch_id": frame.emblem_expiration_batch_id,
             "expiring_emblem_owner": frame.expiring_emblem_owner,
             "expiring_emblem_entity_id": frame.expiring_emblem_entity_id,
@@ -2613,6 +2708,7 @@ class GameEngine:
             record.source_entity_id,
             record.board_position,
             record.allows_last_words,
+            tuple(sorted(record.effective_keywords)),
         )
 
     def _emblem_instance_fingerprint(
@@ -3191,6 +3287,8 @@ class GameEngine:
                 if frame.emblem_batch_id is not None:
                     self._record_emblem_frame_activation(frame)
                     self._queue_next_emblem_trigger(frame.emblem_batch_id)
+                if frame.listener_batch_id is not None:
+                    self._queue_next_card_listener(frame.listener_batch_id)
                 if frame.emblem_expiration_batch_id is not None:
                     self._complete_emblem_expiration(
                         frame.emblem_expiration_batch_id,
@@ -4459,11 +4557,10 @@ class GameEngine:
                 if option.option_id == "optional:yes":
                     frame._decision_meta["optional_accepted"] = True
                     optional_ops = frame._decision_meta.get("optional_operations", ())
-                    self._queue_effects(
-                        frame.source_card, frame.source_entity_id,
-                        optional_ops, controller=frame.controller,
+                    self._queue_effects_from_frame(
+                        frame,
+                        optional_ops,
                         label=f"{frame.label}/optional",
-                        fusion_materials=frame.fusion_materials,
                     )
                 else:
                     frame._decision_meta["optional_declined"] = all(
@@ -4554,6 +4651,7 @@ class GameEngine:
         for emblem_owner in self.players:
             for ei in emblem_owner.emblems:
                 ei.reset_turn_limits()
+        self.state.listener_once_per_turn_used.clear()
         player.turns_started += 1
         player.evolved_this_turn = False
         player.super_evolved_this_turn = False
@@ -5022,6 +5120,13 @@ class GameEngine:
         return operation.secondary_amount
 
     def _source_entity_in_play(self, frame: EffectFrame) -> bool:
+        if frame.listener_activation_zone is not None:
+            return self._listener_source_definition(
+                frame.listener_activation_owner,
+                frame.listener_activation_zone,
+                frame.listener_activation_entity_id,
+                frame.listener_activation_card_id,
+            ) is not None
         if frame.source_entity_id is None:
             return False
         return any(
@@ -5058,6 +5163,15 @@ class GameEngine:
             return
         if operation.target is TargetKind.SELF:
             target_id = frame.source_entity_id
+        elif operation.target is TargetKind.EVENT_SOURCE:
+            target_id = frame.event_source_entity_id
+            if target_id is None:
+                return
+            if operation.kind in _EVENT_SOURCE_BOARD_EFFECTS:
+                try:
+                    self._find_board_entity(target_id)
+                except IllegalCommand:
+                    return
         ctx = self._build_eval_context(frame, target_id)
         is_meta = operation.kind in (
             EffectKind.CONDITIONAL,
@@ -5503,6 +5617,7 @@ class GameEngine:
         target.stat_modifiers.clear()
         target.attack_restrictions.clear()
         target.targeting_restrictions.clear()
+        self._apply_initial_keyword_overrides(target)
         target._synchronize_keyword_state()
         self._death_causes.pop(target.entity_id, None)
         self._log(
@@ -5647,13 +5762,10 @@ class GameEngine:
                 },
             )
         )
-        self._queue_effects(
-            frame.source_card,
-            frame.source_entity_id,
+        self._queue_effects_from_frame(
+            frame,
             effect.necromancy_operations,
-            controller=frame.controller,
             label="死灵术",
-            fusion_materials=frame.fusion_materials,
         )
 
     def _execute_reanimate(
@@ -6001,6 +6113,378 @@ class GameEngine:
             return bool(candidates)
         return True
 
+    def _event_source_card(
+        self,
+        event: GameEvent,
+    ) -> tuple[object | None, CardDefinition | None]:
+        source = event.metadata.get("source")
+        if source is None:
+            source = event.metadata.get("definition")
+        if source is None:
+            source = event.metadata.get("card")
+        if isinstance(source, CardDefinition):
+            return source, source
+        definition = getattr(source, "definition", None)
+        if isinstance(definition, CardDefinition):
+            return source, definition
+        return source, None
+
+    @staticmethod
+    def _listener_scope_matches(
+        owner: int,
+        definition: CardListenerDefinition,
+        event: GameEvent,
+        active_player: int,
+        source_entity_id: int,
+    ) -> bool:
+        if (
+            definition.event_scope is EventScope.OWNER_EVENT
+            and event.player_index != owner
+        ):
+            return False
+        if (
+            definition.event_scope is EventScope.OPPONENT_EVENT
+            and event.player_index == owner
+        ):
+            return False
+        if (
+            definition.turn_scope is TurnScope.OWNER_TURN
+            and active_player != owner
+        ):
+            return False
+        if (
+            definition.turn_scope is TurnScope.OPPONENT_TURN
+            and active_player == owner
+        ):
+            return False
+        if definition.source_relation is SourceRelation.SELF:
+            return event.source_id == source_entity_id
+        if definition.source_relation is SourceRelation.OTHER:
+            return (
+                event.source_id is not None
+                and event.source_id != source_entity_id
+            )
+        return True
+
+    def _listener_activation_key(
+        self,
+        entity_id: int,
+        card_id: int,
+        definition_index: int,
+    ) -> tuple[int, int, int]:
+        return (entity_id, card_id, definition_index)
+
+    def _listener_can_activate(
+        self,
+        entity_id: int,
+        card_id: int,
+        definition_index: int,
+        definition: CardListenerDefinition,
+    ) -> bool:
+        key = self._listener_activation_key(
+            entity_id,
+            card_id,
+            definition_index,
+        )
+        if (
+            definition.once_per_turn
+            and key in self.state.listener_once_per_turn_used
+        ):
+            return False
+        return (
+            definition.max_activations is None
+            or self.state.listener_activation_counts.get(key, 0)
+            < definition.max_activations
+        )
+
+    def _record_listener_activation(
+        self,
+        entity_id: int,
+        card_id: int,
+        definition_index: int,
+        definition: CardListenerDefinition,
+    ) -> int:
+        key = self._listener_activation_key(
+            entity_id,
+            card_id,
+            definition_index,
+        )
+        count = self.state.listener_activation_counts.get(key, 0) + 1
+        self.state.listener_activation_counts[key] = count
+        if definition.once_per_turn:
+            self.state.listener_once_per_turn_used.add(key)
+        return count
+
+    def _leader_area_listener_sources(
+        self,
+        player_index: int,
+    ) -> list[tuple[int, int, int]]:
+        player = self.players[player_index]
+        sources = [
+            (instance.created_sequence, 0, instance.entity_id)
+            for instance in player.emblems
+        ]
+        sources.extend(
+            (instance.created_sequence, 1, instance.entity_id)
+            for instance in player.faiths
+        )
+        return sorted(sources)
+
+    def _listener_source_definition(
+        self,
+        owner: int | None,
+        zone: str | None,
+        entity_id: int | None,
+        card_id: int | None,
+    ) -> CardDefinition | None:
+        if (
+            owner not in (0, 1)
+            or zone is None
+            or entity_id is None
+            or card_id is None
+        ):
+            return None
+        player = self.players[owner]
+        if zone == ListenerZone.BOARD.value:
+            for entity in player.board:
+                if (
+                    entity.entity_id == entity_id
+                    and entity.definition.card_id == card_id
+                ):
+                    return entity.definition
+            return None
+        if zone == ListenerZone.HAND.value:
+            for card in self._hand_cards(owner):
+                if card.entity_id == entity_id and card.card_id == card_id:
+                    return card.definition
+            return None
+        if zone != ListenerZone.LEADER_AREA.value:
+            return None
+        present = any(
+            instance.entity_id == entity_id
+            and instance.source_card_id == card_id
+            for instance in (*player.emblems, *player.faiths)
+        )
+        if not present:
+            return None
+        if self.card_resolver is not None:
+            try:
+                resolved = self.card_resolver(card_id)
+            except KeyError:
+                resolved = None
+            if resolved is not None:
+                return resolved
+        for card in self.deck_lists[owner]:
+            if card.card_id == card_id:
+                return card
+        return None
+
+    def _listener_source_records(
+        self,
+        event: GameEvent,
+    ) -> list[dict[str, object]]:
+        event_source, event_definition = self._event_source_card(event)
+        records: list[dict[str, object]] = []
+        for owner in (0, 1):
+            player = self.players[owner]
+            zone_sources: list[tuple[int, int, int, int, CardDefinition]] = []
+            zone_sources.extend(
+                (0, index, 0, entity.entity_id, entity.definition)
+                for index, entity in enumerate(player.board)
+            )
+            zone_sources.extend(
+                (1, index, 0, card.entity_id, card.definition)
+                for index, card in enumerate(self._hand_cards(owner))
+            )
+            for sequence, subtype, entity_id in self._leader_area_listener_sources(
+                owner
+            ):
+                card_id = next(
+                    (
+                        instance.source_card_id
+                        for instance in (*player.emblems, *player.faiths)
+                        if instance.entity_id == entity_id
+                    ),
+                    None,
+                )
+                definition = self._listener_source_definition(
+                    owner,
+                    ListenerZone.LEADER_AREA.value,
+                    entity_id,
+                    card_id,
+                )
+                if definition is not None:
+                    zone_sources.append(
+                        (2, sequence, subtype, entity_id, definition)
+                    )
+            for zone_order, source_order, subtype, entity_id, source_card in zone_sources:
+                zone = (
+                    ListenerZone.BOARD
+                    if zone_order == 0
+                    else ListenerZone.HAND
+                    if zone_order == 1
+                    else ListenerZone.LEADER_AREA
+                )
+                for definition_index, definition in enumerate(
+                    self.rulebook.listeners_for(source_card.card_id)
+                ):
+                    if definition.zone is not zone or definition.event is not event.type:
+                        continue
+                    if not self._listener_scope_matches(
+                        owner,
+                        definition,
+                        event,
+                        self.state.active_player,
+                        entity_id,
+                    ):
+                        continue
+                    if (
+                        definition.event_filter is not None
+                        and not definition.event_filter.matches(
+                            event_definition,
+                            event_source,
+                            event.metadata.get("keywords"),
+                        )
+                    ):
+                        continue
+                    if not self._listener_can_activate(
+                        entity_id,
+                        source_card.card_id,
+                        definition_index,
+                        definition,
+                    ):
+                        continue
+                    records.append({
+                        "owner": owner,
+                        "zone": zone.value,
+                        "source_entity_id": entity_id,
+                        "source_card_id": source_card.card_id,
+                        "definition_index": definition_index,
+                        "order": (
+                            0 if owner == self.state.active_player else 1,
+                            zone_order,
+                            source_order,
+                            subtype,
+                            definition_index,
+                        ),
+                    })
+        records.sort(key=lambda record: record["order"])
+        return records
+
+    def _dispatch_card_listeners(self, event: GameEvent) -> None:
+        records = self._listener_source_records(event)
+        if not records:
+            return
+        batch_id = self._next_listener_batch_id
+        self._next_listener_batch_id += 1
+        self._listener_batches[batch_id] = {
+            "records": records,
+            "event_type": event.type.value,
+            "event_player": event.player_index,
+            "event_source_id": event.source_id,
+            "event_target_id": event.target_id,
+            "event_amount": event.amount,
+            "event_metadata": dict(event.metadata),
+        }
+        self._queue_next_card_listener(batch_id)
+        self._continue_effects()
+
+    def _queue_next_card_listener(self, batch_id: int) -> None:
+        batch = self._listener_batches.get(batch_id)
+        if batch is None:
+            return
+        if self.terminated:
+            self._listener_batches.pop(batch_id, None)
+            return
+        records = batch.get("records")
+        if not isinstance(records, list):
+            self._listener_batches.pop(batch_id, None)
+            return
+        while records:
+            self._step()
+            record = records.pop(0)
+            owner = record["owner"]
+            zone = record["zone"]
+            entity_id = record["source_entity_id"]
+            card_id = record["source_card_id"]
+            definition_index = record["definition_index"]
+            source_card = self._listener_source_definition(
+                owner,
+                zone,
+                entity_id,
+                card_id,
+            )
+            if source_card is None:
+                continue
+            definitions = self.rulebook.listeners_for(card_id)
+            if definition_index >= len(definitions):
+                continue
+            definition = definitions[definition_index]
+            if not self._listener_can_activate(
+                entity_id,
+                card_id,
+                definition_index,
+                definition,
+            ):
+                continue
+            if definition.conditions:
+                result = evaluate_conditions_without_target(
+                    definition.conditions,
+                    EvalContext(
+                        controller=owner,
+                        players=self.players,
+                        source_entity_id=entity_id,
+                    ),
+                )
+                if result is not PartialConditionResult.TRUE:
+                    continue
+            activation_count = self._record_listener_activation(
+                entity_id,
+                card_id,
+                definition_index,
+                definition,
+            )
+            self.event_history.append(GameEvent(
+                EventType.CARD_LISTENER_TRIGGERED,
+                owner,
+                source_id=entity_id,
+                target_id=batch.get("event_source_id"),
+                metadata={
+                    "listener_card_id": card_id,
+                    "listener_entity_id": entity_id,
+                    "listener_zone": zone,
+                    "definition_index": definition_index,
+                    "activation_count": activation_count,
+                    "trigger": batch.get("event_type"),
+                    "event_player": batch.get("event_player"),
+                    "event_source_id": batch.get("event_source_id"),
+                    "active_player": self.state.active_player,
+                    "listener_batch_id": batch_id,
+                },
+            ))
+            frame = self._queue_effects(
+                source_card,
+                entity_id,
+                definition.operations,
+                controller=owner,
+                label=f"监听 {batch.get('event_type')}",
+            )
+            frame.listener_batch_id = batch_id
+            frame.listener_activation_owner = owner
+            frame.listener_activation_zone = zone
+            frame.listener_activation_entity_id = entity_id
+            frame.listener_activation_card_id = card_id
+            frame.listener_activation_definition_index = definition_index
+            frame.event_source_entity_id = batch.get("event_source_id")
+            return
+        self._listener_batches.pop(batch_id, None)
+
+    def _card_listener_batch_active(self) -> bool:
+        return any(
+            frame.listener_batch_id is not None
+            for frame in self.state.effect_stack
+        )
+
     def _dispatch_emblem_triggers(
         self, player_index: int, event_type: str,
         event_player: int | None = None,
@@ -6203,11 +6687,10 @@ class GameEngine:
     def _resolve_choose_one_choice(self, frame, option_id: str) -> None:
         for opt in frame._decision_meta.get("choose_one_options", ()):
             if f"choose_one:{opt.option_id}" == option_id:
-                self._queue_effects(
-                    frame.source_card, frame.source_entity_id,
-                    opt.operations, controller=frame.controller,
+                self._queue_effects_from_frame(
+                    frame,
+                    opt.operations,
                     label=f"{frame.label}/choose_one/{opt.label}",
-                    fusion_materials=frame.fusion_materials,
                 )
                 return
 
@@ -6221,11 +6704,10 @@ class GameEngine:
         result = evaluate_conditions_without_target(effect.conditions, ctx)
         branch_ops = effect.then_operations if result is PartialConditionResult.TRUE else effect.else_operations
         if branch_ops:
-            self._queue_effects(
-                frame.source_card, frame.source_entity_id,
-                branch_ops, controller=frame.controller,
+            self._queue_effects_from_frame(
+                frame,
+                branch_ops,
                 label=f"{frame.label}/conditional",
-                fusion_materials=frame.fusion_materials,
             )
 
     def _execute_target_exists(self, effect, frame) -> None:
@@ -6240,13 +6722,10 @@ class GameEngine:
             else effect.else_operations
         )
         if branch_ops:
-            self._queue_effects(
-                frame.source_card,
-                frame.source_entity_id,
+            self._queue_effects_from_frame(
+                frame,
                 branch_ops,
-                controller=frame.controller,
                 label=f"{frame.label}/target_exists",
-                fusion_materials=frame.fusion_materials,
             )
 
     def _execute_choose_one(self, effect, frame) -> None:
@@ -6295,11 +6774,10 @@ class GameEngine:
         if frame.auto_resolve_choices:
             chosen = self.random.choice(legal_options)
             self._log(frame.controller, f"自动选择：{chosen.label}")
-            self._queue_effects(
-                frame.source_card, frame.source_entity_id,
-                chosen.operations, controller=frame.controller,
+            self._queue_effects_from_frame(
+                frame,
+                chosen.operations,
                 label=f"{frame.label}/choose_one/{chosen.label}",
-                fusion_materials=frame.fusion_materials,
             )
             return
 
@@ -6349,11 +6827,10 @@ class GameEngine:
             return
 
         if frame.auto_resolve_choices:
-            self._queue_effects(
-                frame.source_card, frame.source_entity_id,
-                ops, controller=frame.controller,
+            self._queue_effects_from_frame(
+                frame,
+                ops,
                 label=f"{frame.label}/optional",
-                fusion_materials=frame.fusion_materials,
             )
             return
 
@@ -6625,7 +7102,14 @@ class GameEngine:
                     EventType.ENTITY_LEFT_PLAY,
                     player_index,
                     source_id=entity.entity_id,
-                    metadata={"source": entity, "cause": "earth_sigil_merge"},
+                    metadata={
+                        "source": entity,
+                        "definition": entity.definition,
+                        "card_id": entity.definition.card_id,
+                        "card_type": entity.definition.card_type,
+                        "owner": player_index,
+                        "cause": "earth_sigil_merge",
+                    },
                 )
             )
 
@@ -6798,13 +7282,10 @@ class GameEngine:
         self._log(frame.controller, f"土之秘术 {cost}：土之印 {before} → {after}")
         if after == 0:
             sigil.pending_destroy = True
-        self._queue_effects(
-            frame.source_card,
-            frame.source_entity_id,
+        self._queue_effects_from_frame(
+            frame,
             effect.earth_rite_operations,
-            controller=frame.controller,
             label="土之秘术",
-            fusion_materials=frame.fusion_materials,
         )
 
     def _execute_banish(self, target_id: int | None, frame: EffectFrame) -> None:
@@ -6825,6 +7306,21 @@ class GameEngine:
                 owner,
                 source_id=entity.entity_id,
                 metadata={"source": entity},
+            )
+        )
+        self._emit(
+            GameEvent(
+                EventType.ENTITY_LEFT_PLAY,
+                owner,
+                source_id=entity.entity_id,
+                metadata={
+                    "source": entity,
+                    "definition": entity.definition,
+                    "card_id": entity.definition.card_id,
+                    "card_type": entity.definition.card_type,
+                    "owner": owner,
+                    "cause": DeathCause.BANISH.value,
+                },
             )
         )
 
@@ -6917,6 +7413,21 @@ class GameEngine:
                     metadata={"source": entity},
                 )
             )
+        self._emit(
+            GameEvent(
+                EventType.ENTITY_LEFT_PLAY,
+                owner_index,
+                source_id=entity.entity_id,
+                metadata={
+                    "source": entity,
+                    "definition": card_def,
+                    "card_id": card_def.card_id,
+                    "card_type": card_def.card_type,
+                    "owner": owner_index,
+                    "cause": DeathCause.RETURN_TO_HAND.value,
+                },
+            )
+        )
 
     def _execute_return_to_deck(
         self, target_id: int | None, frame: EffectFrame
@@ -6967,6 +7478,21 @@ class GameEngine:
                 owner_index,
                 source_id=entity.entity_id,
                 metadata={"source": entity},
+            )
+        )
+        self._emit(
+            GameEvent(
+                EventType.ENTITY_LEFT_PLAY,
+                owner_index,
+                source_id=entity.entity_id,
+                metadata={
+                    "source": entity,
+                    "definition": card_def,
+                    "card_id": card_def.card_id,
+                    "card_type": card_def.card_type,
+                    "owner": owner_index,
+                    "cause": DeathCause.RETURN_TO_DECK.value,
+                },
             )
         )
 
@@ -7035,8 +7561,10 @@ class GameEngine:
         return trigger
 
     def _resolve_event_queue(self) -> None:
+        if self._card_listener_batch_active():
+            return
         if self._suspended_event_state is not None and self.state.pending_choice is None:
-            if self._event_emblem_batch_active():
+            if self._event_trigger_batch_active():
                 return
             self._resume_event_queue()
             return
@@ -7104,6 +7632,17 @@ class GameEngine:
                     if self.state.pending_choice is not None:
                         self._save_event_continuation(event, source, target, ability_event, phase="target_done")
                         return
+            self._dispatch_card_listeners(event)
+            if self.state.pending_choice is not None:
+                self._save_event_continuation(
+                    event,
+                    source,
+                    target,
+                    ability_event,
+                    phase="listeners_done",
+                )
+                return
+
             emblem_trigger = self._emblem_trigger_for_event(event)
             if emblem_trigger is not None:
                 self._dispatch_emblem_triggers(
@@ -7198,6 +7737,13 @@ class GameEngine:
                 return
 
         if phase in {"source_done", "target_done"}:
+            self._dispatch_card_listeners(event)
+            if self.state.pending_choice is not None:
+                state["phase"] = "listeners_done"
+                self._suspended_event_state = state
+                return
+
+        if phase in {"source_done", "target_done", "listeners_done"}:
             emblem_trigger = self._emblem_trigger_for_event(event)
             if emblem_trigger is not None:
                 self._dispatch_emblem_triggers(
@@ -7217,11 +7763,12 @@ class GameEngine:
             self.state.event_queue.append(e)
         self._resolve_event_queue()
 
-    def _event_emblem_batch_active(self) -> bool:
+    def _event_trigger_batch_active(self) -> bool:
         if self._suspended_event_state is None:
             return False
         return any(
             frame.emblem_batch_id is not None
+            or frame.listener_batch_id is not None
             for frame in self.state.effect_stack
         )
 
@@ -7230,7 +7777,7 @@ class GameEngine:
             return
         if self.state.pending_choice is not None:
             return
-        if self._event_emblem_batch_active():
+        if self._event_trigger_batch_active():
             return
         self._stabilizing = True
         try:
@@ -7331,7 +7878,10 @@ class GameEngine:
                 self._emit(GameEvent(
                     EventType.ENTITY_LEFT_PLAY, record.owner,
                     source_id=record.entity_id,
-                    metadata=event_metadata,
+                    metadata={
+                        **event_metadata,
+                        "definition": record.definition,
+                    },
                 ))
 
             lw_records = [r for r in ordered_records if r.allows_last_words]
@@ -7365,6 +7915,7 @@ class GameEngine:
                         cause=cause,
                         board_position=pos,
                         allows_last_words=True,
+                        effective_keywords=entity.effective_keywords,
                     )
                     unit_origin = entity.origin
                     unit_source_origin = entity.source_origin
@@ -7401,6 +7952,7 @@ class GameEngine:
                         cause=cause,
                         board_position=pos,
                         allows_last_words=True,
+                        effective_keywords=frozenset(),
                     )
                     amulet_origin = entity.origin
                     amulet_source_origin = entity.source_origin
@@ -7489,6 +8041,7 @@ class GameEngine:
             "board_position": record.board_position,
             "cause": record.cause.value,
             "allows_last_words": record.allows_last_words,
+            "keywords": tuple(sorted(record.effective_keywords)),
         }
 
     def _death_event_metadata(
@@ -7510,6 +8063,7 @@ class GameEngine:
             "owner": record.owner,
             "card_type": record.card_type,
             "board_position": record.board_position,
+            "keywords": tuple(sorted(record.effective_keywords)),
         }
 
     def _last_words_event_metadata(
@@ -7806,6 +8360,57 @@ class GameEngine:
                         )
         elif state.phase is Phase.AWAITING_CHOICE:
             raise IllegalCommand("Invariant failed: AWAITING_CHOICE without pending_choice")
+
+        for key, count in state.listener_activation_counts.items():
+            if (
+                not isinstance(key, tuple)
+                or len(key) != 3
+                or any(
+                    not isinstance(value, int)
+                    or isinstance(value, bool)
+                    or value < (0 if index == 2 else 1)
+                    for index, value in enumerate(key)
+                )
+            ):
+                raise IllegalCommand(
+                    "Invariant failed: invalid card-listener activation key"
+                )
+            if (
+                not isinstance(count, int)
+                or isinstance(count, bool)
+                or count <= 0
+            ):
+                raise IllegalCommand(
+                    "Invariant failed: card-listener activation count must be positive"
+                )
+        if not state.listener_once_per_turn_used.issubset(
+            state.listener_activation_counts
+        ):
+            raise IllegalCommand(
+                "Invariant failed: card-listener turn limit lacks activation count"
+            )
+        for batch_id, batch in self._listener_batches.items():
+            if (
+                not isinstance(batch_id, int)
+                or isinstance(batch_id, bool)
+                or batch_id <= 0
+                or not isinstance(batch, dict)
+                or not isinstance(batch.get("records"), list)
+            ):
+                raise IllegalCommand(
+                    "Invariant failed: invalid card-listener batch"
+                )
+        if (
+            not isinstance(self._next_listener_batch_id, int)
+            or isinstance(self._next_listener_batch_id, bool)
+            or self._next_listener_batch_id <= max(
+                self._listener_batches,
+                default=0,
+            )
+        ):
+            raise IllegalCommand(
+                "Invariant failed: next card-listener batch id is not ahead"
+            )
 
         seen_entities: dict[int, str] = {}
 
@@ -8306,6 +8911,59 @@ class GameEngine:
                         f"Invariant failed: {zone} emblem_activation_trigger_index invalid"
                     )
 
+            check_positive_int(frame.listener_batch_id, "listener_batch_id")
+            listener_context_fields = (
+                frame.listener_activation_owner,
+                frame.listener_activation_zone,
+                frame.listener_activation_entity_id,
+                frame.listener_activation_card_id,
+                frame.listener_activation_definition_index,
+            )
+            has_listener_context = any(
+                value is not None for value in listener_context_fields
+            )
+            if frame.listener_batch_id is not None and not has_listener_context:
+                raise IllegalCommand(
+                    f"Invariant failed: {zone} listener batch requires context"
+                )
+            if has_listener_context:
+                if frame.listener_activation_owner not in (0, 1):
+                    raise IllegalCommand(
+                        f"Invariant failed: {zone} listener owner out of range"
+                    )
+                if frame.listener_activation_zone not in {
+                    item.value for item in ListenerZone
+                }:
+                    raise IllegalCommand(
+                        f"Invariant failed: {zone} listener zone is invalid"
+                    )
+                check_positive_int(
+                    frame.listener_activation_entity_id,
+                    "listener_activation_entity_id",
+                )
+                check_positive_int(
+                    frame.listener_activation_card_id,
+                    "listener_activation_card_id",
+                )
+                if (
+                    not isinstance(
+                        frame.listener_activation_definition_index,
+                        int,
+                    )
+                    or isinstance(
+                        frame.listener_activation_definition_index,
+                        bool,
+                    )
+                    or frame.listener_activation_definition_index < 0
+                ):
+                    raise IllegalCommand(
+                        f"Invariant failed: {zone} listener definition index invalid"
+                    )
+            check_positive_int(
+                frame.event_source_entity_id,
+                "event_source_entity_id",
+            )
+
             check_positive_int(
                 frame.emblem_expiration_batch_id,
                 "emblem_expiration_batch_id",
@@ -8348,6 +9006,16 @@ class GameEngine:
             for record in batch.records:
                 if record.owner not in (0, 1):
                     raise IllegalCommand("Invariant failed: death record owner out of range")
+                if (
+                    not isinstance(record.effective_keywords, frozenset)
+                    or any(
+                        not isinstance(keyword, str)
+                        for keyword in record.effective_keywords
+                    )
+                ):
+                    raise IllegalCommand(
+                        "Invariant failed: death record keywords are invalid"
+                    )
 
     def _emit(self, event: GameEvent) -> None:
         self.state.event_queue.append(event)

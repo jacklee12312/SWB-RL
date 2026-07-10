@@ -15,11 +15,11 @@
 
 | Category | Count |
 |---|---|
-| covered_exact | 64 |
+| covered_exact | 65 |
 | supported_missing_rule | 624 |
 | text_unclear | 19 |
 | missing_primitive | 21 |
-| covered_partial | 7 |
+| covered_partial | 6 |
 | token_or_non_collectible | 91 |
 
 ## Rule Consistency Issues

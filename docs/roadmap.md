@@ -10,12 +10,14 @@ code and tests as the source of truth when this file drifts.
 - Database: 826 cards, 735 collectible cards, 91 non-collectible/generated
   cards from set `90000`.
 - Latest SVA source: `https://sva.hypd.asia/data/cards.json`.
-- Tests: `python -m unittest discover -s tests -v` currently runs 1010 tests.
+- Tests: `python -m unittest discover -s tests -v` currently runs 1024 tests.
 - RL adapter: fixed 111-action space and 270-feature observation.
 - Ability registry status: 16 implemented, 5 partial, 13 placeholder.
 - Explicit card and demo rules live in `data/rules/`; the current coverage
   report classifies 99 card IDs with explicit rules, passives, fusion,
-  invocation, activation, Faith, or Union Burst definitions.
+  invocation, activation, Faith, Union Burst, or listener definitions. Current
+  collectible coverage is 65 exact, 6 partial, 624 supported-but-missing-rule,
+  21 missing-primitive, and 19 text-unclear cards.
 
 ## Stable Priorities
 
@@ -72,7 +74,7 @@ slice in this order:
   hand-gauge evolution counts, and leaves SEP/manual-turn availability intact.
   Official Q&A semantics are explicit: effect-caused super evolution does not
   fire `进化时` or `超进化时` keyword abilities. Real `10443110` demonstrates
-  `奥义` self-super-evolution and stays partial only for its separate Ward
+  `奥义` self-super-evolution plus an exact structured cost-2-follower Ward
   listener. RL reuses existing public board flags and manual action slots.
 - Core combat keywords: `守护`, `疾驰`, `突进`, `必杀`, `潜行`, `吸血`, `屏障`.
 - Target candidate generation for board, leader, hand, and graveyard choices.
@@ -95,6 +97,18 @@ slice in this order:
   through the existing choice actions and adds public count/progress features.
   Real card `10351120` demonstrates selecting and destroying two enemy
   followers before its self-damage resolves.
+- `CardListenerDefinition` provides ordinary board, hand, and leader-area event
+  listeners for amulet activation, Fusion, follower summon/evolution/
+  destruction, amulet destruction, entity leave-play, card play, and turn
+  boundaries. Event-card filters cover original cost, type, class, ID, name,
+  and runtime keyword; event/turn scopes and self/other relation are explicit;
+  `once_per_turn` and `max_activations` are fingerprinted and invariant-checked.
+  Listener snapshots use active-player-first then board/hand/leader-area stable
+  ordering, revalidate later sources, preserve nested `event_source` identity,
+  and resume remaining listeners/emblems after choices. Loop diagnostics expose
+  active batches and recent accepted listener triggers. Real `10443110` is now
+  `covered_exact`; a structured `non_intrinsic_keyword` passive distinguishes
+  its conditionally granted Ward from the database's full-text keyword audit.
 - `select_targets` can bind an ordered selected board-entity tuple to one
   `target_key`; later `previous_target` operations reuse that set in selection
   order and revalidate every member against the original target specification.
@@ -292,13 +306,14 @@ slice in this order:
 - Faith and emblems are both represented in the leader area, but the official
   shared five-slot capacity is not enforced until a real conflict case requires
   its ordering semantics.
-- `AMULET_ACTIVATED` currently reaches structured emblem triggers; ordinary
-  board or hand cards that react to another card's activation remain explicit
-  unsupported listener semantics.
+- `AMULET_ACTIVATED` and `CARD_FUSED` reach ordinary board, hand, and
+  leader-area listeners. Individual real-card reactions still require authored
+  rules and tests.
 - `融合` has the command-level material transition, state, event, structured
   filters/counts, source fused-count conditions, RL exposure, and one exact
-  real-card demo. It remains partial because Fusion-driven hand transformations
-  and triggers owned by other hand/board cards are not yet modeled.
+  real-card demo. Other hand/board cards can now listen to Fusion, but
+  Fusion-driven hand transformations and their real-card rule set are not yet
+  modeled.
 - `瞬念召唤` is implemented for its sole current official card and marked
   implemented in the ability registry. Sandalphon now combines exact
   Invocation, crest, return-to-hand, and `解放奥义` rules.
@@ -343,25 +358,38 @@ slice in this order:
 
 ## Next Coherent Slices
 
-### 1. Targeting Edge Cases
+### 1. Intimidate (`威慑`)
+
+- Verify official rules/Q&A, then implement attack legality independently of
+  ability damage, including Guard, Ambush, Rush/Storm, evolution, source
+  departure, transform/ability removal, commands, and RL masks.
+- Add one exact real card only after the generic primitive and edge tests pass.
+
+### 2. Continuous Aura (`灵气`)
+
+- Add source-backed derived modifiers with deterministic stacking and automatic
+  recomputation for entry, leave-play, transform, return, banish, and control
+  changes before authoring real Aura cards.
+
+### 3. Targeting Edge Cases
 
 - Extend no-target branch coverage only when real cards need graveyard/hand
   target-dependent filters or additional fallback target semantics.
 - Audit real rules that combine selected hand/graveyard sets with later
   operations before expanding `target_key` beyond board-entity tuples.
 
-### 2. Trigger Loop Diagnostics
+### 4. Trigger Loop Diagnostics
 
 - Add broader trigger ordering tests around any future `death_batch_start`
   boundary semantics and real-card recursive trigger combinations as coverage
   expands.
 
-### 3. Incremental Real-Card Coverage
+### 5. Incremental Real-Card Coverage
 
 - Add further Faith progression/payoff and Union Burst cards only when their
   complete generic operations can be represented without card-ID branches.
 
-### 4. Coverage Reporting
+### 6. Coverage Reporting
 
 - Refresh rule coverage reports after database updates.
 - Make reports surface newly added cards and newly unsupported keyword text.

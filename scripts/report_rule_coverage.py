@@ -298,6 +298,15 @@ def _build_coverage_report(db_path: str, rules_dir: str) -> dict:
             ruled_ops[cid]["triggers"].append(definition.kind.value)
             for op in _iter_nested_operations(definition.operations):
                 ruled_ops[cid]["effect_kinds"].append(op.kind.value)
+    for cid, definitions in rulebook._listener_defs.items():
+        ruled_cards.add(cid)
+        ruled_ops.setdefault(cid, {"triggers": [], "effect_kinds": []})
+        for definition in definitions:
+            ruled_ops[cid]["triggers"].append(
+                f"listener:{definition.zone.value}:{definition.event.value}"
+            )
+            for op in _iter_nested_operations(definition.operations):
+                ruled_ops[cid]["effect_kinds"].append(op.kind.value)
     for cid, passives in rulebook._passives.items():
         ruled_cards.add(cid)
         ruled_ops.setdefault(cid, {"triggers": [], "effect_kinds": []})
@@ -412,6 +421,7 @@ def _load_rule_metadata(rules_dir: str) -> dict[int, dict]:
                 "invocations",
                 "faiths",
                 "union_bursts",
+                "listeners",
             ):
                 raw_entries = payload.get(key, [])
                 if isinstance(raw_entries, list):

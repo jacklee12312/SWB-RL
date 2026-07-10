@@ -143,6 +143,7 @@ class EffectKind(str, Enum):
 
 class TargetKind(str, Enum):
     SELF = "self"
+    EVENT_SOURCE = "event_source"
     OWN_LEADER = "own_leader"
     ENEMY_LEADER = "enemy_leader"
     OWN_UNIT = "own_unit"
@@ -317,6 +318,13 @@ class EffectFrame:
     emblem_activation_owner: int | None = None
     emblem_activation_entity_id: int | None = None
     emblem_activation_trigger_index: int | None = None
+    listener_batch_id: int | None = None
+    listener_activation_owner: int | None = None
+    listener_activation_zone: str | None = None
+    listener_activation_entity_id: int | None = None
+    listener_activation_card_id: int | None = None
+    listener_activation_definition_index: int | None = None
+    event_source_entity_id: int | None = None
     emblem_expiration_batch_id: int | None = None
     expiring_emblem_owner: int | None = None
     expiring_emblem_entity_id: int | None = None

@@ -92,6 +92,7 @@ class DeathRecord:
     source_entity_id: int | None = None
     board_position: int = 0
     allows_last_words: bool = False
+    effective_keywords: frozenset[str] = frozenset()
 
 
 @dataclass(frozen=True)
@@ -731,6 +732,12 @@ class GameState:
     resolution_steps: int = 0
     next_entity_id: int = 1
     destroyed_followers: list[DestroyedFollowerRecord] = field(default_factory=list)
+    listener_activation_counts: dict[tuple[int, int, int], int] = field(
+        default_factory=dict
+    )
+    listener_once_per_turn_used: set[tuple[int, int, int]] = field(
+        default_factory=set
+    )
     _next_death_sequence: int = 1
 
     @property

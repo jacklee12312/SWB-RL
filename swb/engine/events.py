@@ -63,6 +63,7 @@ class EventType(str, Enum):
     EMBLEM_GAINED = "emblem_gained"
     EMBLEM_REMOVED = "emblem_removed"
     EMBLEM_TRIGGERED = "emblem_triggered"
+    CARD_LISTENER_TRIGGERED = "card_listener_triggered"
     EMBLEM_COUNTDOWN_CHANGED = "emblem_countdown_changed"
     EMBLEM_EXPIRED = "emblem_expired"
 

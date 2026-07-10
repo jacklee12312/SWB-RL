@@ -1,15 +1,44 @@
 {
+  "passives": [
+    {
+      "card_id": 10443110,
+      "kind": "non_intrinsic_keyword",
+      "keyword": "守护",
+      "notes": "数据库 keywords 来源于全文关键词提取；守护是监听后获得，不是本体初始关键词。"
+    }
+  ],
   "union_bursts": [
     {
       "card_id": 10443110,
       "kind": "union_burst",
-      "coverage": "partial",
-      "implemented_text": "【入场曲】【奥义】本随从超进化。",
-      "unsupported_text": "自己的原始费用为2的随从进入战场时，本随从获得【守护】。",
       "operations": [
         {
           "kind": "super_evolve_unit",
           "target": "self"
+        }
+      ]
+    }
+  ],
+  "listeners": [
+    {
+      "card_id": 10443110,
+      "zone": "board",
+      "event": "follower_summoned",
+      "event_scope": "owner_event",
+      "source_relation": "other",
+      "event_filter": {
+        "card_type": "随从",
+        "cost_min": 2,
+        "cost_max": 2
+      },
+      "coverage": "exact",
+      "implemented_text": "【入场曲】【奥义】本随从超进化。自己的原始费用为2的随从进入战场时，本随从获得【守护】。",
+      "notes": "入场监听使用原始 CardDefinition.cost；监听来源必须仍在己方场上才能开始激活。",
+      "operations": [
+        {
+          "kind": "add_keyword",
+          "target": "self",
+          "keyword": "守护"
         }
       ]
     }

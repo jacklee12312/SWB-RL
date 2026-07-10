@@ -28,6 +28,14 @@ from swb.engine.emblem import (
     TurnScope,
 )
 from swb.engine.faith import FaithDefinition, FaithTrigger, FaithTriggerRule
+from swb.engine.listeners import (
+    LISTENER_EVENT_TYPES,
+    CardListenerDefinition,
+    EventCardFilter,
+    ListenerZone,
+    SourceRelation,
+)
+from swb.engine.events import EventType
 from swb.engine.play_modes import (
     MAX_SPECIAL_MODES_PER_CARD,
     PlayModeDefinition,
@@ -214,6 +222,7 @@ class CardPassive:
     card_id: int
     kind: str
     amount: int
+    keyword: str | None = None
 
 
 @dataclass(frozen=True)
@@ -249,6 +258,7 @@ class RuleBook:
         activation_defs: dict[int, ActivationDefinition] | None = None,
         faith_defs: dict[int, FaithDefinition] | None = None,
         union_burst_defs: dict[int, tuple[UnionBurstDefinition, ...]] | None = None,
+        listener_defs: dict[int, tuple[CardListenerDefinition, ...]] | None = None,
     ):
         self._rules: dict[tuple[int, Trigger], tuple[EffectOperation, ...]] = {}
         for rule in rules:
@@ -289,6 +299,9 @@ class RuleBook:
         self._invocation_defs: dict[int, InvocationDefinition] = invocation_defs or {}
         self._activation_defs: dict[int, ActivationDefinition] = activation_defs or {}
         self._faith_defs: dict[int, FaithDefinition] = faith_defs or {}
+        self._listener_defs: dict[int, tuple[CardListenerDefinition, ...]] = (
+            listener_defs or {}
+        )
         self._union_burst_defs: dict[int, tuple[UnionBurstDefinition, ...]] = {}
         for card_id, definitions in (union_burst_defs or {}).items():
             if (
@@ -374,6 +387,12 @@ class RuleBook:
     ) -> tuple[UnionBurstDefinition, ...]:
         return self._union_burst_defs.get(card_id, ())
 
+    def listeners_for(
+        self,
+        card_id: int,
+    ) -> tuple[CardListenerDefinition, ...]:
+        return self._listener_defs.get(card_id, ())
+
     def emblem_trigger_ops_for(self, emblem_id: str, trigger: str) -> tuple[EffectOperation, ...]:
         from swb.engine.emblem import EmblemTriggerRule
         ed = self._emblem_defs.get(emblem_id)
@@ -396,6 +415,14 @@ class RuleBook:
             for p in self._passives.get(card_id, [])
         )
 
+    def non_intrinsic_keywords(self, card_id: int) -> frozenset[str]:
+        return frozenset(
+            passive.keyword
+            for passive in self._passives.get(card_id, ())
+            if passive.kind == "non_intrinsic_keyword"
+            and passive.keyword is not None
+        )
+
     @classmethod
     def from_directory(cls, directory: str | Path) -> "RuleBook":
         path = Path(directory)
@@ -411,6 +438,7 @@ class RuleBook:
         all_activation_defs: dict[int, ActivationDefinition] = {}
         all_faith_defs: dict[int, FaithDefinition] = {}
         all_union_burst_defs: dict[int, list[UnionBurstDefinition]] = {}
+        all_listener_defs: dict[int, list[CardListenerDefinition]] = {}
         for file_path in sorted(path.glob("*.json")):
             payload = json.loads(file_path.read_text(encoding="utf-8"))
             if isinstance(payload, list):
@@ -421,6 +449,7 @@ class RuleBook:
                 raw_activations = []
                 raw_faiths = []
                 raw_union_bursts = []
+                raw_listeners = []
             else:
                 entries = payload.get("rules", [])
                 raw_passives = payload.get("passives", [])
@@ -429,6 +458,7 @@ class RuleBook:
                 raw_activations = payload.get("activations", [])
                 raw_faiths = payload.get("faiths", [])
                 raw_union_bursts = payload.get("union_bursts", [])
+                raw_listeners = payload.get("listeners", [])
                 if not isinstance(raw_fusions, list):
                     raise ValueError(f"{file_path.name}: 'fusions' must be a list")
                 if not isinstance(raw_invocations, list):
@@ -444,6 +474,10 @@ class RuleBook:
                 if not isinstance(raw_union_bursts, list):
                     raise ValueError(
                         f"{file_path.name}: 'union_bursts' must be a list"
+                    )
+                if not isinstance(raw_listeners, list):
+                    raise ValueError(
+                        f"{file_path.name}: 'listeners' must be a list"
                     )
                 raw_emblems = payload.get("emblems")
                 if raw_emblems is not None:
@@ -595,6 +629,15 @@ class RuleBook:
                         f"definition for card {definition.card_id}"
                     )
                 definitions.append(definition)
+            for index, raw_listener in enumerate(raw_listeners):
+                source_path = f"{file_path.name}/listeners[{index}]"
+                listener = _parse_listener_definition(
+                    raw_listener,
+                    source_path,
+                )
+                all_listener_defs.setdefault(listener.card_id, []).append(
+                    listener
+                )
         _validate_passives(passives)
         frozen_modes = {
             cid: tuple(modes) for cid, modes in all_play_modes.items()
@@ -615,7 +658,238 @@ class RuleBook:
                 )
                 for card_id, definitions in all_union_burst_defs.items()
             },
+            listener_defs={
+                card_id: tuple(definitions)
+                for card_id, definitions in all_listener_defs.items()
+            },
         )
+
+
+def _parse_listener_definition(
+    raw: dict,
+    source_path: str,
+) -> CardListenerDefinition:
+    if not isinstance(raw, dict):
+        raise ValueError(f"{source_path}: listener definition must be an object")
+    allowed_keys = {
+        "card_id",
+        "zone",
+        "event",
+        "event_filter",
+        "event_scope",
+        "turn_scope",
+        "source_relation",
+        "conditions",
+        "once_per_turn",
+        "max_activations",
+        "operations",
+        "coverage",
+        "implemented_text",
+        "unsupported_text",
+        "notes",
+    }
+    unknown = sorted(set(raw) - allowed_keys)
+    if unknown:
+        raise ValueError(f"{source_path}: unknown listener fields {unknown}")
+
+    card_id = raw.get("card_id")
+    if isinstance(card_id, bool) or not isinstance(card_id, int) or card_id <= 0:
+        raise ValueError(f"{source_path}/card_id: must be a positive integer")
+    try:
+        zone = ListenerZone(raw["zone"])
+    except (KeyError, ValueError) as exc:
+        raise ValueError(f"{source_path}/zone: invalid listener zone") from exc
+
+    raw_event = raw.get("event")
+    event_aliases = {
+        "turn_start": EventType.TURN_STARTED,
+        "turn_end": EventType.TURN_ENDED,
+    }
+    try:
+        event = (
+            event_aliases[raw_event]
+            if raw_event in event_aliases
+            else EventType(raw_event)
+        )
+    except (TypeError, ValueError) as exc:
+        raise ValueError(f"{source_path}/event: invalid event {raw_event!r}") from exc
+    if event not in LISTENER_EVENT_TYPES:
+        raise ValueError(
+            f"{source_path}/event: event {event.value!r} is not supported by card listeners"
+        )
+
+    try:
+        event_scope = EventScope(
+            raw.get("event_scope", EventScope.ANY_EVENT.value)
+        )
+        turn_scope = TurnScope(
+            raw.get("turn_scope", TurnScope.ANY_TURN.value)
+        )
+        source_relation = SourceRelation(
+            raw.get("source_relation", SourceRelation.ANY.value)
+        )
+    except ValueError as exc:
+        raise ValueError(f"{source_path}: invalid scope or source_relation") from exc
+
+    once_per_turn = raw.get("once_per_turn", False)
+    if not isinstance(once_per_turn, bool):
+        raise ValueError(f"{source_path}/once_per_turn: must be boolean")
+    max_activations = raw.get("max_activations")
+    if max_activations is not None:
+        if (
+            isinstance(max_activations, bool)
+            or not isinstance(max_activations, int)
+            or max_activations <= 0
+        ):
+            raise ValueError(
+                f"{source_path}/max_activations: must be a positive integer"
+            )
+
+    raw_conditions = raw.get("conditions", [])
+    if not isinstance(raw_conditions, list):
+        raise ValueError(f"{source_path}/conditions: must be a list")
+    conditions = tuple(
+        _parse_condition(
+            condition,
+            f"{source_path}/conditions[{index}]",
+            card_id,
+        )
+        for index, condition in enumerate(raw_conditions)
+    )
+    invalid_target_conditions = _check_target_conditions(conditions, source_path)
+    if invalid_target_conditions:
+        raise ValueError(
+            f"{source_path}/conditions: listener-level conditions cannot depend "
+            f"on an operation target: {sorted(invalid_target_conditions)}"
+        )
+
+    raw_operations = raw.get("operations")
+    if not isinstance(raw_operations, list) or not raw_operations:
+        raise ValueError(f"{source_path}/operations: must be a non-empty list")
+    operations = tuple(
+        _parse_operation(
+            operation,
+            f"{source_path}/operations[{index}]",
+            card_id,
+            _allow_event_source=True,
+        )
+        for index, operation in enumerate(raw_operations)
+    )
+    _validate_target_keys(operations, source_path)
+
+    event_filter = _parse_event_card_filter(
+        raw.get("event_filter"),
+        source_path,
+        card_id,
+    )
+    if event_filter is not None and event in {
+        EventType.TURN_STARTED,
+        EventType.TURN_ENDED,
+    }:
+        raise ValueError(
+            f"{source_path}/event_filter: turn events have no card source"
+        )
+    return CardListenerDefinition(
+        card_id=card_id,
+        zone=zone,
+        event=event,
+        operations=operations,
+        conditions=conditions,
+        event_filter=event_filter,
+        event_scope=event_scope,
+        turn_scope=turn_scope,
+        source_relation=source_relation,
+        once_per_turn=once_per_turn,
+        max_activations=max_activations,
+    )
+
+
+def _parse_event_card_filter(
+    raw: dict | None,
+    source_path: str,
+    card_id: int,
+) -> EventCardFilter | None:
+    if raw is None:
+        return None
+    if not isinstance(raw, dict):
+        raise ValueError(f"{source_path}/event_filter: must be an object")
+    allowed = {
+        "card_type",
+        "class_id",
+        "class_name",
+        "cost_min",
+        "cost_max",
+        "card_id",
+        "card_name",
+        "keyword",
+    }
+    unknown = sorted(set(raw) - allowed)
+    if unknown:
+        raise ValueError(
+            f"{source_path}/event_filter: unknown fields {unknown}"
+        )
+    card_type = raw.get("card_type")
+    if card_type is not None and card_type not in _VALID_CARD_TYPES:
+        raise ValueError(
+            f"{source_path}/event_filter/card_type: invalid card type {card_type!r}"
+        )
+    class_id = raw.get("class_id")
+    if class_id is not None:
+        class_id = _parse_non_negative_int(
+            class_id,
+            f"{source_path}/event_filter/class_id",
+            card_id,
+        )
+    class_name = raw.get("class_name")
+    if class_name is not None and not isinstance(class_name, str):
+        raise ValueError(
+            f"{source_path}/event_filter/class_name: must be a string"
+        )
+    cost_min = raw.get("cost_min")
+    if cost_min is not None:
+        cost_min = _parse_non_negative_int(
+            cost_min,
+            f"{source_path}/event_filter/cost_min",
+            card_id,
+        )
+    cost_max = raw.get("cost_max")
+    if cost_max is not None:
+        cost_max = _parse_non_negative_int(
+            cost_max,
+            f"{source_path}/event_filter/cost_max",
+            card_id,
+        )
+    if cost_min is not None and cost_max is not None and cost_min > cost_max:
+        raise ValueError(
+            f"{source_path}/event_filter: cost_min must not exceed cost_max"
+        )
+    filter_card_id = raw.get("card_id")
+    if filter_card_id is not None:
+        filter_card_id = _parse_non_negative_int(
+            filter_card_id,
+            f"{source_path}/event_filter/card_id",
+            card_id,
+        )
+    card_name = raw.get("card_name")
+    if card_name is not None and not isinstance(card_name, str):
+        raise ValueError(
+            f"{source_path}/event_filter/card_name: must be a string"
+        )
+    keyword = raw.get("keyword")
+    if keyword is not None and (not isinstance(keyword, str) or not keyword):
+        raise ValueError(
+            f"{source_path}/event_filter/keyword: must be a non-empty string"
+        )
+    return EventCardFilter(
+        card_type=card_type,
+        class_id=class_id,
+        class_name=class_name,
+        cost_min=cost_min,
+        cost_max=cost_max,
+        card_id=filter_card_id,
+        card_name=card_name,
+        keyword=keyword,
+    )
 
 
 def _parse_emblem_definition(raw: dict, source_file: str, ops_parser) -> EmblemDefinition:
@@ -825,10 +1099,14 @@ def _validate_emblem_references(
 
 
 def _validate_passives(passives: list[tuple[CardPassive, str]]) -> None:
-    seen: dict[tuple[int, str], str] = {}
+    seen: dict[tuple[int, str, str | None], str] = {}
     for passive, source_path in passives:
         p = passive
-        key = (p.card_id, p.kind)
+        key = (
+            p.card_id,
+            p.kind,
+            p.keyword if p.kind == "non_intrinsic_keyword" else None,
+        )
         if key in seen:
             raise ValueError(
                 f"{source_path}: duplicate passive {p.kind!r} for card "
@@ -1145,8 +1423,46 @@ def _parse_passive(raw: dict, source_file: str) -> CardPassive:
             f"{source_file}/card_id: must be a positive integer, got {card_id!r}"
         )
     kind = raw.get("kind")
-    if kind not in ("spellboost_cost_reduction", "cannot_be_played"):
+    if kind not in (
+        "spellboost_cost_reduction",
+        "cannot_be_played",
+        "non_intrinsic_keyword",
+    ):
         raise ValueError(f"{source_file} card {card_id}: unknown passive kind {kind!r}")
+    keyword = raw.get("keyword")
+    if kind == "non_intrinsic_keyword":
+        if not isinstance(keyword, str) or not keyword:
+            raise ValueError(
+                f"{source_file} card {card_id}/keyword: required for {kind!r}"
+            )
+        try:
+            keyword = normalize_keyword_name(keyword, strict=True)
+        except ValueError as exc:
+            raise ValueError(
+                f"{source_file} card {card_id}/keyword: {exc}"
+            ) from exc
+        if keyword not in RUNTIME_UNIT_KEYWORDS:
+            raise ValueError(
+                f"{source_file} card {card_id}/keyword: {keyword!r} is not a "
+                "runtime follower keyword"
+            )
+        amount = raw.get("amount", 0)
+        if isinstance(amount, bool) or not isinstance(amount, int) or amount != 0:
+            raise ValueError(
+                f"{source_file} card {card_id}/amount: must be 0 or omitted "
+                f"for {kind!r}"
+            )
+        return CardPassive(
+            card_id=int(card_id),
+            kind=kind,
+            amount=0,
+            keyword=keyword,
+        )
+    if keyword is not None:
+        raise ValueError(
+            f"{source_file} card {card_id}/keyword: only valid for "
+            "'non_intrinsic_keyword'"
+        )
     if kind == "cannot_be_played":
         amount = raw.get("amount")
         if amount is None:
@@ -1249,6 +1565,7 @@ _MULTI_TARGET_TARGETS = frozenset({
 
 _SUPER_EVOLVE_TARGETS = frozenset({
     TargetKind.SELF,
+    TargetKind.EVENT_SOURCE,
     TargetKind.OWN_UNIT,
     TargetKind.ENEMY_UNIT,
     TargetKind.ANY_UNIT,
@@ -1266,6 +1583,25 @@ _SUPER_EVOLVE_TARGETS = frozenset({
     TargetKind.ALL_ENEMY_BOARD,
     TargetKind.ALL_BOARD,
     TargetKind.PREVIOUS_TARGET,
+})
+
+_EVENT_SOURCE_TARGET_EFFECTS = frozenset({
+    EffectKind.DAMAGE_UNIT,
+    EffectKind.HEAL_UNIT,
+    EffectKind.BUFF_UNIT,
+    EffectKind.DESTROY,
+    EffectKind.BANISH,
+    EffectKind.RETURN_TO_HAND,
+    EffectKind.RETURN_TO_DECK,
+    EffectKind.ADD_KEYWORD,
+    EffectKind.REMOVE_KEYWORD,
+    EffectKind.TRANSFORM,
+    EffectKind.SET_STATS,
+    EffectKind.SUPER_EVOLVE_UNIT,
+    EffectKind.ADD_ATTACK_RESTRICTION,
+    EffectKind.REMOVE_ATTACK_RESTRICTION,
+    EffectKind.ADD_TARGETING_RESTRICTION,
+    EffectKind.REMOVE_TARGETING_RESTRICTION,
 })
 
 
@@ -1327,7 +1663,14 @@ def _validate_target_keys(operations: tuple[EffectOperation, ...], source: str) 
             )
 
 
-def _parse_operation(raw: dict, source_file: str, card_id: int, _depth: int = 0) -> EffectOperation:
+def _parse_operation(
+    raw: dict,
+    source_file: str,
+    card_id: int,
+    _depth: int = 0,
+    *,
+    _allow_event_source: bool = False,
+) -> EffectOperation:
     if _depth > 16:
         raise ValueError(f"{source_file} card {card_id}: nested effect depth exceeds maximum of 16")
     error_prefix = f"{source_file} card {card_id}"
@@ -1353,6 +1696,17 @@ def _parse_operation(raw: dict, source_file: str, card_id: int, _depth: int = 0)
         target = TargetKind(raw_target)
     except (KeyError, ValueError) as e:
         raise ValueError(f"{error_prefix}: invalid kind/target: {e}") from e
+    if target is TargetKind.EVENT_SOURCE:
+        if not _allow_event_source:
+            raise ValueError(
+                f"{source_file}/target card {card_id}: event_source is only "
+                "valid inside a card listener"
+            )
+        if kind not in _EVENT_SOURCE_TARGET_EFFECTS:
+            raise ValueError(
+                f"{source_file}/target card {card_id}: {kind.value!r} cannot "
+                "target event_source"
+            )
     if (
         target is TargetKind.RANDOM_ENEMY_UNIT_OR_LEADER
         and kind is not EffectKind.DAMAGE_UNIT
@@ -1641,7 +1995,13 @@ def _parse_operation(raw: dict, source_file: str, card_id: int, _depth: int = 0)
                 "EARTH_RITE requires non-empty 'operations' list"
             )
         earth_rite_ops = tuple(
-            _parse_operation(op, f"{source_file}/operations[{i}]", card_id)
+            _parse_operation(
+                op,
+                f"{source_file}/operations[{i}]",
+                card_id,
+                _depth + 1,
+                _allow_event_source=_allow_event_source,
+            )
             for i, op in enumerate(raw_inner)
         )
         _validate_target_keys(
@@ -1675,7 +2035,13 @@ def _parse_operation(raw: dict, source_file: str, card_id: int, _depth: int = 0)
                 f"NECROMANCY requires non-empty 'operations' list"
             )
         necromancy_ops = tuple(
-            _parse_operation(op, f"{source_file}/operations[{i}]", card_id)
+            _parse_operation(
+                op,
+                f"{source_file}/operations[{i}]",
+                card_id,
+                _depth + 1,
+                _allow_event_source=_allow_event_source,
+            )
             for i, op in enumerate(raw_inner)
         )
         # validate nested target bindings
@@ -1926,7 +2292,13 @@ def _parse_operation(raw: dict, source_file: str, card_id: int, _depth: int = 0)
         if not isinstance(raw_then, list):
             raise ValueError(f"{error_prefix}/then: must be a list")
         then_ops = tuple(
-            _parse_operation(op, f"{source_file}/then[{idx}]", card_id, _depth + 1)
+            _parse_operation(
+                op,
+                f"{source_file}/then[{idx}]",
+                card_id,
+                _depth + 1,
+                _allow_event_source=_allow_event_source,
+            )
             for idx, op in enumerate(raw_then)
         )
         _validate_target_keys(then_ops, f"{source_file}/then (card {card_id})")
@@ -1935,7 +2307,13 @@ def _parse_operation(raw: dict, source_file: str, card_id: int, _depth: int = 0)
             if not isinstance(raw_else, list):
                 raise ValueError(f"{error_prefix}/else: must be a list")
             else_ops = tuple(
-                _parse_operation(op, f"{source_file}/else[{idx}]", card_id, _depth + 1)
+                _parse_operation(
+                    op,
+                    f"{source_file}/else[{idx}]",
+                    card_id,
+                    _depth + 1,
+                    _allow_event_source=_allow_event_source,
+                )
                 for idx, op in enumerate(raw_else)
             )
             _validate_target_keys(else_ops, f"{source_file}/else (card {card_id})")
@@ -1975,7 +2353,13 @@ def _parse_operation(raw: dict, source_file: str, card_id: int, _depth: int = 0)
         if not isinstance(raw_then, list):
             raise ValueError(f"{error_prefix}/then: must be a list")
         then_ops = tuple(
-            _parse_operation(op, f"{source_file}/then[{idx}]", card_id, _depth + 1)
+            _parse_operation(
+                op,
+                f"{source_file}/then[{idx}]",
+                card_id,
+                _depth + 1,
+                _allow_event_source=_allow_event_source,
+            )
             for idx, op in enumerate(raw_then)
         )
         _validate_target_keys(then_ops, f"{source_file}/then (card {card_id})")
@@ -1983,7 +2367,13 @@ def _parse_operation(raw: dict, source_file: str, card_id: int, _depth: int = 0)
         if not isinstance(raw_else, list):
             raise ValueError(f"{error_prefix}/else: must be a list")
         else_ops = tuple(
-            _parse_operation(op, f"{source_file}/else[{idx}]", card_id, _depth + 1)
+            _parse_operation(
+                op,
+                f"{source_file}/else[{idx}]",
+                card_id,
+                _depth + 1,
+                _allow_event_source=_allow_event_source,
+            )
             for idx, op in enumerate(raw_else)
         )
         _validate_target_keys(else_ops, f"{source_file}/else (card {card_id})")
@@ -2045,7 +2435,13 @@ def _parse_operation(raw: dict, source_file: str, card_id: int, _depth: int = 0)
             if not isinstance(raw_opt_ops, list):
                 raise ValueError(f"{opt_source}/operations: must be a list")
             opt_operations = tuple(
-                _parse_operation(op, f"{opt_source}/operations[{j}]", card_id, _depth + 1)
+                _parse_operation(
+                    op,
+                    f"{opt_source}/operations[{j}]",
+                    card_id,
+                    _depth + 1,
+                    _allow_event_source=_allow_event_source,
+                )
                 for j, op in enumerate(raw_opt_ops)
             )
             _validate_target_keys(opt_operations, opt_source)
@@ -2072,7 +2468,13 @@ def _parse_operation(raw: dict, source_file: str, card_id: int, _depth: int = 0)
         if not isinstance(raw_ops, list):
             raise ValueError(f"{error_prefix}/operations: must be a list")
         optional_ops = tuple(
-            _parse_operation(op, f"{source_file}/operations[{idx}]", card_id, _depth + 1)
+            _parse_operation(
+                op,
+                f"{source_file}/operations[{idx}]",
+                card_id,
+                _depth + 1,
+                _allow_event_source=_allow_event_source,
+            )
             for idx, op in enumerate(raw_ops)
         )
         _validate_target_keys(optional_ops, f"{source_file}/operations (card {card_id})")
