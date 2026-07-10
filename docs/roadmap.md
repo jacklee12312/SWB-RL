@@ -10,9 +10,9 @@ code and tests as the source of truth when this file drifts.
 - Database: 826 cards, 735 collectible cards, 91 non-collectible/generated
   cards from set `90000`.
 - Latest SVA source: `https://sva.hypd.asia/data/cards.json`.
-- Tests: `python -m unittest discover -s tests -v` currently runs 972 tests.
-- RL adapter: fixed 111-action space and 261-feature observation.
-- Ability registry status: 15 implemented, 5 partial, 14 placeholder.
+- Tests: `python -m unittest discover -s tests -v` currently runs 992 tests.
+- RL adapter: fixed 111-action space and 270-feature observation.
+- Ability registry status: 16 implemented, 5 partial, 13 placeholder.
 - Explicit card and demo rules live in `data/rules/`; the current coverage
   report classifies 98 card IDs with explicit rules, passives, fusion,
   invocation, activation, or Faith definitions.
@@ -161,12 +161,29 @@ slice in this order:
   111-action layout unchanged. The database importer now includes alternate-mode
   text in keyword extraction, so Faith-only alternate modes remain visible in
   normalized `card_abilities` and coverage reports.
+- `UnionBurstDefinition` provides structured `奥义` and `解放奥义` operations
+  at fixed gauges 10 and 15. Every hand card independently records evolutions
+  completed while it remains in hand; both normal and super evolution count,
+  and a card entering hand starts with no retained evolution bonus. Invalid
+  evolution commands preserve that state and the full engine fingerprint.
+- On normal follower play, all satisfied definitions activate in threshold
+  order after the summon event and before their effects resolve. The generic
+  `random_enemy_unit_or_leader` damage target includes the enemy leader even on
+  an empty board and recalculates the follower pool between repeated hits, so
+  dead or otherwise removed followers cannot be selected again. Activation is
+  auditable through `UNION_BURST_ACTIVATED` and all randomness remains on the
+  engine-owned seeded RNG.
+- Own-hand Union Burst gauges add one feature per visible hand slot, migrating
+  the fixed observation from 261 to 270 without changing the 111 actions.
+  Cards without a structured definition expose zero, and hidden opponent hand
+  identity remains absent.
 - Real `10404110` (`天司长的继承者·圣德芬`) is the current unique official
   Invocation card. Its six-evolution condition, deck summon, countdown-2 crest,
   return to hand, and crest turn-end healing of all allied followers and leader
   are structured and tested. The new `heal_unit` primitive emits actual-heal
-  events and clamps to maximum health. The card remains `covered_partial` only
-  because its Fanfare `解放奥义` damage sequence awaits the Union Burst slice.
+  events and clamps to maximum health. Its `解放奥义` now performs five
+  independently seeded 2-damage hits against random enemy followers or the
+  enemy leader, promoting the complete card rule to `covered_exact`.
 - `target_exists` provides structured no-target branch semantics for explicit
   candidate-set targets and unit-or-leader fallback targets, including board
   target-dependent filters, then/else effect branches, and existing RL
@@ -245,8 +262,9 @@ slice in this order:
 - `连击` has natural per-turn counting, condition/expression support,
   `add_combo`, public observation counts, and real-card demos; broader real-card
   coverage remains partial.
-- `奥义` remains a placeholder. Faith leader-area initialization and evolution
-  progression are implemented, while mode-selection, Enhance, named-follower,
+- Union Burst core gauge and threshold semantics are implemented, but every
+  additional real card still needs an explicit structured definition. Faith
+  leader-area initialization and evolution progression are implemented, while mode-selection, Enhance, named-follower,
   and amulet-destruction progression triggers plus value spending/gained Faith
   abilities remain explicit partial semantics. `策动` and `土之秘术` /
   `土之印` core semantics are implemented, while broader real-card coverage
@@ -262,9 +280,8 @@ slice in this order:
   real-card demo. It remains partial because Fusion-driven hand transformations
   and triggers owned by other hand/board cards are not yet modeled.
 - `瞬念召唤` is implemented for its sole current official card and marked
-  implemented in the ability registry. Sandalphon as a whole stays partial
-  until `解放奥义` is implemented; this does not downgrade the Invocation
-  transition itself.
+  implemented in the ability registry. Sandalphon now combines exact
+  Invocation, crest, return-to-hand, and `解放奥义` rules.
 - The ability registry is conservative; a generic primitive can exist before a
   keyword is marked fully implemented.
 - Many real cards are intentionally uncovered or only partly covered by
@@ -303,31 +320,29 @@ slice in this order:
 
 ## Next Coherent Slices
 
-### 1. Union Burst
-
-- Implement `奥义` / `解放奥义` hand-state gauge and conditional play effects.
-  Completing Union Burst should promote the remaining Sandalphon Fanfare clause.
-  Expand additional Faith trigger families only as their real-card payoff slice
-  becomes expressible end to end.
-
-### 2. Targeting Edge Cases
+### 1. Targeting Edge Cases
 
 - Extend no-target branch coverage only when real cards need graveyard/hand
   target-dependent filters or additional fallback target semantics.
 - Audit real rules that combine selected hand/graveyard sets with later
   operations before expanding `target_key` beyond board-entity tuples.
 
-### 3. Trigger Loop Diagnostics
+### 2. Trigger Loop Diagnostics
 
 - Add broader trigger ordering tests around any future `death_batch_start`
   boundary semantics and real-card recursive trigger combinations as coverage
   expands.
 
-### 4. Super-Evolution Edge Semantics
+### 3. Super-Evolution Edge Semantics
 
 - Keep non-manual super-evolution unsupported until official text or a real
   structured rule needs it; add it as a separate vertical slice with command,
   event, protection, and RL coverage.
+
+### 4. Incremental Real-Card Coverage
+
+- Add further Faith progression/payoff and Union Burst cards only when their
+  complete generic operations can be represented without card-ID branches.
 
 ### 5. Coverage Reporting
 

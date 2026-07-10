@@ -531,17 +531,26 @@ class ShadowverseEnv:
 
     def _card_features(self, card: CardDefinition | HandCard | None) -> list[float]:
         if card is None:
-            return [0.0] * 9
+            return [0.0] * 10
         fused_count = len(card.fused_material_ids) if isinstance(card, HandCard) else 0
         fusion_used = (
             isinstance(card, HandCard) and card.fusion_used_turn == self.turn
         )
+        union_burst_gauge = 0
+        if (
+            isinstance(card, HandCard)
+            and self.core.rulebook.union_bursts_for(card.card_id)
+        ):
+            union_burst_gauge = card.union_burst_gauge(
+                self.players[self.decision_player].turns_started
+            )
         return [
             1.0, card.cost / ShadowverseEnv.MAX_MANA,
             (card.attack or 0) / 20, (card.life or 0) / 20,
             float(card.card_type == "随从"),
             float(card.card_type == "护符"),
             float(card.card_type == "法术"),
+            min(union_burst_gauge, 15) / 15,
             fused_count / ShadowverseEnv.MAX_HAND,
             float(fusion_used),
         ]

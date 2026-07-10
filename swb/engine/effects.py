@@ -158,6 +158,7 @@ class TargetKind(str, Enum):
     ANY_BOARD = "any_board"
     RANDOM_OWN_UNIT = "random_own_unit"
     RANDOM_ENEMY_UNIT = "random_enemy_unit"
+    RANDOM_ENEMY_UNIT_OR_LEADER = "random_enemy_unit_or_leader"
     RANDOM_OWN_BOARD = "random_own_board"
     RANDOM_ENEMY_BOARD = "random_enemy_board"
     ALL_OWN_UNITS = "all_own_units"

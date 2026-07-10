@@ -91,6 +91,10 @@ The deterministic rules core supports:
   one copy per card definition per timing, board-full handling, summon-event and pending-choice
   continuations, and explicit `card_invoked` events; real card `10404110`
   invokes after six evolutions, gains its countdown crest, and returns to hand;
+- structured `奥义` / `解放奥义` definitions with fixed 10/15 thresholds,
+  per-hand-card evolution acceleration, deterministic activation events, and
+  seeded random enemy-follower-or-leader targeting that revalidates between
+  repeated hits; real `10404110` now resolves all five 2-damage hits exactly;
 - follower healing for selected, random, and all-unit target flows, used by the
   invoked Sandalphon crest to heal all allied followers alongside the leader;
 - structured `target_exists` no-target branches that reuse normal target
@@ -110,7 +114,7 @@ The deterministic rules core supports:
   necromancy, reanimate, spellboost-style hand cost changes, emblems, optional
   decisions, choose-one decisions, play modes, and runtime modifiers.
 
-The RL adapter provides a fixed 111-action space, 261-feature public
+The RL adapter provides a fixed 111-action space, 270-feature public
 observation, action mask, terminal reward, graveyard choice paging, special
 hand actions for fusion/play modes, and super-evolve actions. `info()` is public by default and
 redacts debug transcripts/events unless `debug_info=True` or
@@ -152,6 +156,11 @@ and total Faith values. This follows the
 [official Faith glossary](https://shadowverse-wb.com/ja/deck/cardslist/card/?card_id=10723110):
 an initial-deck Faith is placed in the leader area at battle start, same-name
 Faiths do not duplicate, and each Faith has its own visible value.
+Each visible own-hand slot also exposes a normalized `奥义` gauge only when
+that card has a structured Union Burst definition. The gauge is the current
+player turn number plus evolutions completed while that specific card remained
+in hand; entering hand resets its evolution contribution. This adds nine
+features without changing the 111-action layout.
 
 ## Unsupported Or Partial
 
@@ -161,7 +170,7 @@ remain visible instead of silently behaving as implemented.
 Known broad gaps include:
 
 - exact semantics for many real cards and most generated-card workflows;
-- remaining `信仰` progression/payoff semantics and `奥义`, plus broader real-card coverage for `策动`,
+- remaining `信仰` progression/payoff semantics, plus broader real-card coverage for `策动`,
   `土之秘术`, `觉醒`, and `连击` beyond the currently authored examples;
 - `amulet_activated` is available to structured emblem triggers, but ordinary
   board or hand cards that react to another card's activation still need a
@@ -173,9 +182,9 @@ Known broad gaps include:
 - Fusion cards that transform in hand when fused and abilities on other cards
   that trigger from a fusion event remain unsupported; the command-level
   material transition and source-card fused-count conditions are covered;
-- `10404110` remains partial only because its Fanfare `解放奥义` damage sequence
-  is deferred to the Union Burst slice; its Invocation and crest clauses are
-  structured and tested;
+- additional `奥义` cards still require explicit structured definitions; the
+  generic gauge, thresholds, activation event, and repeated random target flow
+  are implemented, while unsupported card-specific clauses remain visible;
 - non-manual super-evolution edge semantics;
 - remaining trigger-ordering edge cases beyond the current death-batch
   ordering diagnostics and `death_batch_end` boundary triggers, including

@@ -34,6 +34,7 @@ from swb.engine.play_modes import (
     validate_play_mode_definition,
     validate_runtime_play_mode,
 )
+from swb.engine.union_burst import UnionBurstDefinition, UnionBurstKind
 
 _VALID_CARD_TYPES = frozenset({"随从", "法术", "护符"})
 
@@ -247,6 +248,7 @@ class RuleBook:
         invocation_defs: dict[int, InvocationDefinition] | None = None,
         activation_defs: dict[int, ActivationDefinition] | None = None,
         faith_defs: dict[int, FaithDefinition] | None = None,
+        union_burst_defs: dict[int, tuple[UnionBurstDefinition, ...]] | None = None,
     ):
         self._rules: dict[tuple[int, Trigger], tuple[EffectOperation, ...]] = {}
         for rule in rules:
@@ -287,6 +289,40 @@ class RuleBook:
         self._invocation_defs: dict[int, InvocationDefinition] = invocation_defs or {}
         self._activation_defs: dict[int, ActivationDefinition] = activation_defs or {}
         self._faith_defs: dict[int, FaithDefinition] = faith_defs or {}
+        self._union_burst_defs: dict[int, tuple[UnionBurstDefinition, ...]] = {}
+        for card_id, definitions in (union_burst_defs or {}).items():
+            if (
+                isinstance(card_id, bool)
+                or not isinstance(card_id, int)
+                or card_id <= 0
+            ):
+                raise ValueError(
+                    "union burst card_id must be a positive integer"
+                )
+            if not definitions:
+                raise ValueError(
+                    f"card {card_id}: union burst definitions must not be empty"
+                )
+            seen_kinds: set[UnionBurstKind] = set()
+            for definition in definitions:
+                if definition.card_id != card_id:
+                    raise ValueError(
+                        f"card {card_id}: union burst definition card_id mismatch "
+                        f"({definition.card_id})"
+                    )
+                if definition.kind in seen_kinds:
+                    raise ValueError(
+                        f"card {card_id}: duplicate union burst kind "
+                        f"{definition.kind.value!r}"
+                    )
+                if not definition.operations:
+                    raise ValueError(
+                        f"card {card_id}: union burst operations must not be empty"
+                    )
+                seen_kinds.add(definition.kind)
+            self._union_burst_defs[card_id] = tuple(
+                sorted(definitions, key=lambda item: item.threshold)
+            )
         for card_id in self._fusion_defs:
             if len(self._play_modes.get(card_id, ())) + 1 > MAX_SPECIAL_MODES_PER_CARD:
                 raise ValueError(
@@ -332,6 +368,12 @@ class RuleBook:
     def faith_for(self, card_id: int) -> FaithDefinition | None:
         return self._faith_defs.get(card_id)
 
+    def union_bursts_for(
+        self,
+        card_id: int,
+    ) -> tuple[UnionBurstDefinition, ...]:
+        return self._union_burst_defs.get(card_id, ())
+
     def emblem_trigger_ops_for(self, emblem_id: str, trigger: str) -> tuple[EffectOperation, ...]:
         from swb.engine.emblem import EmblemTriggerRule
         ed = self._emblem_defs.get(emblem_id)
@@ -368,6 +410,7 @@ class RuleBook:
         all_invocation_defs: dict[int, InvocationDefinition] = {}
         all_activation_defs: dict[int, ActivationDefinition] = {}
         all_faith_defs: dict[int, FaithDefinition] = {}
+        all_union_burst_defs: dict[int, list[UnionBurstDefinition]] = {}
         for file_path in sorted(path.glob("*.json")):
             payload = json.loads(file_path.read_text(encoding="utf-8"))
             if isinstance(payload, list):
@@ -377,6 +420,7 @@ class RuleBook:
                 raw_invocations = []
                 raw_activations = []
                 raw_faiths = []
+                raw_union_bursts = []
             else:
                 entries = payload.get("rules", [])
                 raw_passives = payload.get("passives", [])
@@ -384,6 +428,7 @@ class RuleBook:
                 raw_invocations = payload.get("invocations", [])
                 raw_activations = payload.get("activations", [])
                 raw_faiths = payload.get("faiths", [])
+                raw_union_bursts = payload.get("union_bursts", [])
                 if not isinstance(raw_fusions, list):
                     raise ValueError(f"{file_path.name}: 'fusions' must be a list")
                 if not isinstance(raw_invocations, list):
@@ -396,6 +441,10 @@ class RuleBook:
                     )
                 if not isinstance(raw_faiths, list):
                     raise ValueError(f"{file_path.name}: 'faiths' must be a list")
+                if not isinstance(raw_union_bursts, list):
+                    raise ValueError(
+                        f"{file_path.name}: 'union_bursts' must be a list"
+                    )
                 raw_emblems = payload.get("emblems")
                 if raw_emblems is not None:
                     if not isinstance(raw_emblems, list):
@@ -530,6 +579,22 @@ class RuleBook:
                         f"{faith.source_card_id}"
                     )
                 all_faith_defs[faith.source_card_id] = faith
+            for index, raw_union_burst in enumerate(raw_union_bursts):
+                source_path = f"{file_path.name}/union_bursts[{index}]"
+                definition = _parse_union_burst_definition(
+                    raw_union_burst,
+                    source_path,
+                )
+                definitions = all_union_burst_defs.setdefault(
+                    definition.card_id,
+                    [],
+                )
+                if any(item.kind is definition.kind for item in definitions):
+                    raise ValueError(
+                        f"{source_path}: duplicate {definition.kind.value!r} "
+                        f"definition for card {definition.card_id}"
+                    )
+                definitions.append(definition)
         _validate_passives(passives)
         frozen_modes = {
             cid: tuple(modes) for cid, modes in all_play_modes.items()
@@ -544,6 +609,12 @@ class RuleBook:
             invocation_defs=all_invocation_defs,
             activation_defs=all_activation_defs,
             faith_defs=all_faith_defs,
+            union_burst_defs={
+                card_id: tuple(
+                    sorted(definitions, key=lambda item: item.threshold)
+                )
+                for card_id, definitions in all_union_burst_defs.items()
+            },
         )
 
 
@@ -1016,6 +1087,53 @@ def _parse_faith_definition(
     )
 
 
+def _parse_union_burst_definition(
+    raw: dict,
+    source_path: str,
+) -> UnionBurstDefinition:
+    if not isinstance(raw, dict):
+        raise ValueError(
+            f"{source_path}: union burst definition must be an object"
+        )
+    unknown = set(raw) - {
+        "card_id",
+        "kind",
+        "operations",
+        "coverage",
+        "implemented_text",
+        "unsupported_text",
+        "notes",
+    }
+    if unknown:
+        raise ValueError(f"{source_path}: unknown fields {sorted(unknown)}")
+    card_id = raw.get("card_id")
+    if isinstance(card_id, bool) or not isinstance(card_id, int) or card_id <= 0:
+        raise ValueError(f"{source_path}/card_id: must be a positive integer")
+    try:
+        kind = UnionBurstKind(raw.get("kind"))
+    except (TypeError, ValueError) as exc:
+        raise ValueError(
+            f"{source_path}/kind: invalid union burst kind {raw.get('kind')!r}"
+        ) from exc
+    raw_operations = raw.get("operations")
+    if not isinstance(raw_operations, list) or not raw_operations:
+        raise ValueError(f"{source_path}/operations: must be a non-empty list")
+    operations = tuple(
+        _parse_operation(
+            operation,
+            f"{source_path}/operations[{index}]",
+            card_id,
+        )
+        for index, operation in enumerate(raw_operations)
+    )
+    _validate_target_keys(operations, source_path)
+    return UnionBurstDefinition(
+        card_id=card_id,
+        kind=kind,
+        operations=operations,
+    )
+
+
 def _parse_passive(raw: dict, source_file: str) -> CardPassive:
     if not isinstance(raw, dict):
         raise ValueError(f"{source_file}: passive must be an object")
@@ -1214,6 +1332,14 @@ def _parse_operation(raw: dict, source_file: str, card_id: int, _depth: int = 0)
         target = TargetKind(raw_target)
     except (KeyError, ValueError) as e:
         raise ValueError(f"{error_prefix}: invalid kind/target: {e}") from e
+    if (
+        target is TargetKind.RANDOM_ENEMY_UNIT_OR_LEADER
+        and kind is not EffectKind.DAMAGE_UNIT
+    ):
+        raise ValueError(
+            f"{source_file}/target card {card_id}: "
+            "random_enemy_unit_or_leader currently requires damage_unit"
+        )
 
     conditions = ()
     raw_conds = raw.get("conditions")
@@ -1227,6 +1353,17 @@ def _parse_operation(raw: dict, source_file: str, card_id: int, _depth: int = 0)
             _parse_condition(c, f"{source_file}/conditions[{i}]", card_id)
             for i, c in enumerate(raw_conds)
         )
+    if target is TargetKind.RANDOM_ENEMY_UNIT_OR_LEADER:
+        invalid_target_conditions = _check_target_conditions(
+            conditions,
+            f"{source_file} card {card_id}",
+        )
+        if invalid_target_conditions:
+            raise ValueError(
+                f"{error_prefix}/conditions: random enemy unit-or-leader "
+                "damage does not support target-dependent conditions: "
+                f"{sorted(invalid_target_conditions)}"
+            )
 
     amount_expr = None
     raw_amount = raw.get("amount")

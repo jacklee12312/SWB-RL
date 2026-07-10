@@ -15,11 +15,11 @@
 
 | Category | Count |
 |---|---|
-| covered_exact | 63 |
-| supported_missing_rule | 608 |
+| covered_exact | 64 |
+| supported_missing_rule | 625 |
 | text_unclear | 19 |
-| missing_primitive | 38 |
-| covered_partial | 7 |
+| missing_primitive | 21 |
+| covered_partial | 6 |
 | token_or_non_collectible | 91 |
 
 ## Rule Consistency Issues
@@ -67,7 +67,7 @@
 | 威慑 | INTIMIDATE (placeholder) | False |
 | 灵气 | AURA (placeholder) | False |
 | 瞬念召唤 | Invocation deck scan / INVOKE trigger | True |
-| 奥义 | UNION_BURST (placeholder) | False |
+| 奥义 | Union Burst hand gauge / threshold operations | True |
 | 回合开始 | TURN_START trigger / Emblem | True |
 | 回合结束 | TURN_END trigger / Emblem | True |
 | 倒数 | COUNTDOWN / countdown | True |

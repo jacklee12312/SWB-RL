@@ -423,7 +423,7 @@ class EvolutionCounterAndHealingTests(unittest.TestCase):
 
         observation = env.observation()
 
-        self.assertEqual(len(observation), 261)
+        self.assertEqual(len(observation), 270)
         self.assertEqual(observation[-10:-8], [0.3, 0.5])
 
     def test_negative_evolution_counter_fails_invariant(self):
@@ -527,12 +527,12 @@ class RealSandalphonInvocationTests(unittest.TestCase):
         self.assertEqual(player.health, 16)
         self.assertEqual(ally.health, 3)
 
-    def test_sandalphon_rule_is_partial_only_for_unimplemented_fanfare_union_burst(self):
+    def test_sandalphon_rule_is_exact_after_union_burst_slice(self):
         report = _build_coverage_report("data/cards.sqlite3", "data/rules")
         info = report["classifications"]["10404110"]
 
-        self.assertEqual(info["coverage"], "covered_partial")
-        self.assertIn("解放奥义", info["rule_metadata"]["unsupported_text"])
+        self.assertEqual(info["coverage"], "covered_exact")
+        self.assertIn("super_skybound_art", info["reason"])
         self.assertNotIn("INVOCATION", " ".join(info["missing_primitives"]))
 
 

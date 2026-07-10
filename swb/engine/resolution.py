@@ -334,6 +334,18 @@ class GameEngine:
             )
         if ability is AbilityKeyword.FAITH:
             return self.rulebook.faith_for(card.card_id) is not None
+        if ability is AbilityKeyword.UNION_BURST:
+            return bool(self.rulebook.union_bursts_for(card.card_id))
+        if ability is AbilityKeyword.FANFARE:
+            return bool(
+                self.rulebook.operations_for(card.card_id, Trigger.FANFARE)
+                or self.rulebook.union_bursts_for(card.card_id)
+            )
+        if ability is AbilityKeyword.EMBLEM:
+            return any(
+                definition.source_card_id == card.card_id
+                for definition in self.rulebook._emblem_defs.values()
+            )
         if ability in (AbilityKeyword.OVERFLOW, AbilityKeyword.COMBO):
             if ability is AbilityKeyword.OVERFLOW:
                 condition_types = (
@@ -677,6 +689,9 @@ class GameEngine:
                 self._finish_follower_play(
                     state["unit_id"],
                     state["mode_operations"],
+                    state["burst_operations"],
+                    state["burst_metadata"],
+                    state["burst_gauge"],
                 )
             else:
                 self._suspended_action = None
@@ -1307,6 +1322,21 @@ class GameEngine:
             player,
             fused_material_ids,
         )
+        burst_gauge = hand_card.union_burst_gauge(player.turns_started)
+        active_bursts = tuple(
+            definition
+            for definition in self.rulebook.union_bursts_for(card.card_id)
+            if burst_gauge >= definition.threshold
+        )
+        burst_operations = tuple(
+            operation
+            for definition in active_bursts
+            for operation in definition.operations
+        )
+        burst_metadata = tuple(
+            (definition.kind.value, definition.threshold)
+            for definition in active_bursts
+        )
 
         self._dispatch_card_ability(AbilityEvent.CHECK_PLAY, card)
         player.hand.pop(command.hand_index)
@@ -1396,14 +1426,26 @@ class GameEngine:
             self._suspended_action_state = {
                 "unit_id": unit.entity_id,
                 "mode_operations": mode_operations,
+                "burst_operations": burst_operations,
+                "burst_metadata": burst_metadata,
+                "burst_gauge": burst_gauge,
             }
             return
-        self._finish_follower_play(unit.entity_id, mode_operations)
+        self._finish_follower_play(
+            unit.entity_id,
+            mode_operations,
+            burst_operations,
+            burst_metadata,
+            burst_gauge,
+        )
 
     def _finish_follower_play(
         self,
         unit_id: int,
         mode_operations: tuple[EffectOperation, ...],
+        burst_operations: tuple[EffectOperation, ...] = (),
+        burst_metadata: tuple[tuple[str, int], ...] = (),
+        burst_gauge: int = 0,
     ) -> None:
         try:
             unit = self._find_board_entity(unit_id)
@@ -1412,10 +1454,28 @@ class GameEngine:
         if not isinstance(unit, Unit):
             return
         fanfare_operations = self._fanfare_operations(unit)
-        operations = fanfare_operations + mode_operations
+        for kind, threshold in burst_metadata:
+            self._emit(
+                GameEvent(
+                    EventType.UNION_BURST_ACTIVATED,
+                    self.current_player,
+                    source_id=unit.entity_id,
+                    amount=burst_gauge,
+                    metadata={
+                        "source": unit,
+                        "card_id": unit.definition.card_id,
+                        "kind": kind,
+                        "threshold": threshold,
+                        "gauge": burst_gauge,
+                    },
+                )
+            )
+        operations = fanfare_operations + burst_operations + mode_operations
         if operations:
             label = "入场曲"
-            if fanfare_operations and mode_operations:
+            if burst_operations:
+                label = "入场曲/奥义"
+            if mode_operations and (fanfare_operations or burst_operations):
                 label = "入场曲/强化"
             elif mode_operations:
                 label = "强化"
@@ -2134,6 +2194,7 @@ class GameEngine:
             ),
             "fused_material_ids": tuple(card.fused_material_ids),
             "fusion_used_turn": card.fusion_used_turn,
+            "evolutions_while_in_hand": card.evolutions_while_in_hand,
         }
 
     def _board_entity_fingerprint(
@@ -3326,11 +3387,16 @@ class GameEngine:
                             source_fusion_count=len(frame.fusion_materials),
                         )
                     ]
-                chosen = pick_random(candidates, self.random) if candidates else None
-                if chosen is None:
-                    frame.next_index += 1
-                    continue
-                target_id = chosen.entity_id
+                if operation.target is TargetKind.RANDOM_ENEMY_UNIT_OR_LEADER:
+                    target_ids = [entity.entity_id for entity in candidates]
+                    target_ids.append(_leader_target_id(1 - frame.controller))
+                    target_id = self.random.choice(target_ids)
+                else:
+                    chosen = pick_random(candidates, self.random) if candidates else None
+                    if chosen is None:
+                        frame.next_index += 1
+                        continue
+                    target_id = chosen.entity_id
             else:
                 target_id = frame.pending_target_id
                 frame.pending_target_id = None
@@ -3451,6 +3517,8 @@ class GameEngine:
         if operation.target == TargetKind.RANDOM_OWN_HAND:
             return len(self.players[controller].hand) > 1
         if operation.target == TargetKind.ALL_OWN_HAND:
+            return True
+        if operation.target == TargetKind.RANDOM_ENEMY_UNIT_OR_LEADER:
             return True
         if is_graveyard_target(operation.target):
             candidates = graveyard_candidates(operation, controller, self.players)
@@ -3911,6 +3979,8 @@ class GameEngine:
             player.evolution_points -= 1
         player.evolved_this_turn = True
         player.followers_evolved_this_match += 1
+        for hand_card in self._hand_cards(self.current_player):
+            hand_card.evolutions_while_in_hand += 1
         if unit.attacks_remaining > 0:
             unit.can_attack = True
             unit.rush_only = not could_attack_leader
@@ -7615,6 +7685,15 @@ class GameEngine:
                 if len(hand_card.fused_material_ids) != len(set(hand_card.fused_material_ids)):
                     raise IllegalCommand(
                         f"Invariant failed: {prefix} hand[{hand_index}] has duplicate fused materials"
+                    )
+                if (
+                    not isinstance(hand_card.evolutions_while_in_hand, int)
+                    or isinstance(hand_card.evolutions_while_in_hand, bool)
+                    or hand_card.evolutions_while_in_hand < 0
+                ):
+                    raise IllegalCommand(
+                        f"Invariant failed: {prefix} hand[{hand_index}] has invalid "
+                        "evolutions_while_in_hand"
                     )
                 if any(
                     material_id not in fusion_material_id_set

@@ -8,11 +8,11 @@
     "total_with_rules": 98,
     "test_or_synthetic_ids_with_rules": 26,
     "coverage_counts": {
-      "covered_exact": 63,
-      "supported_missing_rule": 608,
+      "covered_exact": 64,
+      "supported_missing_rule": 625,
       "text_unclear": 19,
-      "missing_primitive": 38,
-      "covered_partial": 7,
+      "missing_primitive": 21,
+      "covered_partial": 6,
       "token_or_non_collectible": 91
     }
   },
@@ -198,8 +198,8 @@
       "covered": true
     },
     "奥义": {
-      "primitive": "UNION_BURST (placeholder)",
-      "covered": false
+      "primitive": "Union Burst hand gauge / threshold operations",
+      "covered": true
     },
     "回合开始": {
       "primitive": "TURN_START trigger / Emblem",
@@ -9121,13 +9121,15 @@
       "cost": 5,
       "is_collectible": true,
       "card_set_id": 10004,
-      "coverage": "missing_primitive",
-      "reason": "Missing primitives: ['奥义']",
+      "coverage": "supported_missing_rule",
+      "reason": "Covered keywords: ['入场曲', '奥义', '造成.*伤害']",
       "hit_keywords": [
         "入场曲",
+        "奥义",
         "造成.*伤害"
       ],
-      "missing_primitives": [
+      "missing_primitives": [],
+      "missing_rule_mechanics": [
         "奥义"
       ],
       "ability_keywords": [
@@ -9196,15 +9198,17 @@
       "cost": 4,
       "is_collectible": true,
       "card_set_id": 10004,
-      "coverage": "missing_primitive",
-      "reason": "Missing primitives: ['奥义']",
+      "coverage": "supported_missing_rule",
+      "reason": "Covered keywords: ['入场曲', '奥义', '抽取', '造成.*伤害', '选择一项|模式']",
       "hit_keywords": [
         "入场曲",
+        "奥义",
         "抽取",
         "造成.*伤害",
         "选择一项|模式"
       ],
-      "missing_primitives": [
+      "missing_primitives": [],
+      "missing_rule_mechanics": [
         "奥义"
       ],
       "ability_keywords": [
@@ -9251,11 +9255,12 @@
       "cost": 6,
       "is_collectible": true,
       "card_set_id": 10004,
-      "coverage": "covered_partial",
-      "reason": "Partial rule. Triggers: ['invoke', 'invocation', 'emblem_source'], Ops: ['gain_emblem', 'return_to_hand', 'invocation', 'heal_unit', 'heal_leader']; unsupported: 【入场曲】【解放奥义】随机对敌方随从或敌方主战者造成2点伤害，发动5次。",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['invoke', 'invocation', 'super_skybound_art', 'emblem_source'], Ops: ['gain_emblem', 'return_to_hand', 'invocation', 'damage_unit', 'damage_unit', 'damage_unit', 'damage_unit', 'damage_unit', 'heal_unit', 'heal_leader']",
       "hit_keywords": [
         "入场曲",
         "瞬念召唤",
+        "奥义",
         "回合开始",
         "倒数",
         "造成.*伤害",
@@ -9263,9 +9268,7 @@
         "返回手牌",
         "纹章"
       ],
-      "missing_primitives": [
-        "奥义"
-      ],
+      "missing_primitives": [],
       "ability_keywords": [
         "倒数",
         "入场曲",
@@ -9276,12 +9279,7 @@
       "skill_texts": [
         "在牌组中发动。自己的回合开始时，若本次对战中自己的随从的进化次数为6次或以上，则【<color=Keyword>瞬念召唤</color>】本卡牌。\n<hr>本卡牌被【<color=Keyword>瞬念召唤</color>】时，使自己获得『纹章：天司长的继承者·圣德芬』。本卡牌返回手牌。\n【<color=Keyword>入场曲</color>】【<color=Keyword>解放奥义</color>】发动5次「随机对对手的战场上的1个随从或对手的主战者造成2点伤害」。"
       ],
-      "support_level": "unsupported",
-      "rule_metadata": {
-        "coverage": "partial",
-        "implemented_text": "在牌组中发动。自己的回合开始时，若本次对战中自己的随从的进化次数为6次或以上，则瞬念召唤本卡牌。被瞬念召唤时，获得倒数2、回合结束回复己方全体1点生命的纹章，并使本卡牌返回手牌。",
-        "unsupported_text": "【入场曲】【解放奥义】随机对敌方随从或敌方主战者造成2点伤害，发动5次。"
-      }
+      "support_level": "unsupported"
     },
     "10411110": {
       "card_id": 10411110,
@@ -9434,14 +9432,16 @@
       "cost": 4,
       "is_collectible": true,
       "card_set_id": 10004,
-      "coverage": "missing_primitive",
-      "reason": "Missing primitives: ['奥义']",
+      "coverage": "supported_missing_rule",
+      "reason": "Covered keywords: ['入场曲', '进化时', '奥义', '造成.*伤害']",
       "hit_keywords": [
         "入场曲",
         "进化时",
+        "奥义",
         "造成.*伤害"
       ],
-      "missing_primitives": [
+      "missing_primitives": [],
+      "missing_rule_mechanics": [
         "奥义"
       ],
       "ability_keywords": [
@@ -9461,14 +9461,16 @@
       "cost": 2,
       "is_collectible": true,
       "card_set_id": 10004,
-      "coverage": "missing_primitive",
-      "reason": "Missing primitives: ['奥义']",
+      "coverage": "supported_missing_rule",
+      "reason": "Covered keywords: ['奥义', '抽取', '回复', '选择一项|模式']",
       "hit_keywords": [
+        "奥义",
         "抽取",
         "回复",
         "选择一项|模式"
       ],
-      "missing_primitives": [
+      "missing_primitives": [],
+      "missing_rule_mechanics": [
         "奥义"
       ],
       "ability_keywords": [
@@ -9490,13 +9492,15 @@
       "cost": 2,
       "is_collectible": true,
       "card_set_id": 10004,
-      "coverage": "missing_primitive",
-      "reason": "Missing primitives: ['奥义']",
+      "coverage": "supported_missing_rule",
+      "reason": "Covered keywords: ['入场曲', '奥义', '回复']",
       "hit_keywords": [
         "入场曲",
+        "奥义",
         "回复"
       ],
-      "missing_primitives": [
+      "missing_primitives": [],
+      "missing_rule_mechanics": [
         "奥义"
       ],
       "ability_keywords": [
@@ -9766,13 +9770,15 @@
       "cost": 4,
       "is_collectible": true,
       "card_set_id": 10004,
-      "coverage": "missing_primitive",
-      "reason": "Missing primitives: ['奥义']",
+      "coverage": "supported_missing_rule",
+      "reason": "Covered keywords: ['入场曲', '超进化', '奥义']",
       "hit_keywords": [
         "入场曲",
-        "超进化"
+        "超进化",
+        "奥义"
       ],
-      "missing_primitives": [
+      "missing_primitives": [],
+      "missing_rule_mechanics": [
         "奥义"
       ],
       "ability_keywords": [
@@ -9962,13 +9968,15 @@
       "cost": 2,
       "is_collectible": true,
       "card_set_id": 10004,
-      "coverage": "missing_primitive",
-      "reason": "Missing primitives: ['奥义']",
+      "coverage": "supported_missing_rule",
+      "reason": "Covered keywords: ['奥义', '造成.*伤害', '土之秘术|土之印']",
       "hit_keywords": [
+        "奥义",
         "造成.*伤害",
         "土之秘术|土之印"
       ],
-      "missing_primitives": [
+      "missing_primitives": [],
+      "missing_rule_mechanics": [
         "奥义"
       ],
       "ability_keywords": [
@@ -10018,15 +10026,17 @@
       "cost": 4,
       "is_collectible": true,
       "card_set_id": 10004,
-      "coverage": "missing_primitive",
-      "reason": "Missing primitives: ['奥义']",
+      "coverage": "supported_missing_rule",
+      "reason": "Covered keywords: ['入场曲', '奥义', '将.*加入手牌', '纹章', '土之秘术|土之印']",
       "hit_keywords": [
         "入场曲",
+        "奥义",
         "将.*加入手牌",
         "纹章",
         "土之秘术|土之印"
       ],
-      "missing_primitives": [
+      "missing_primitives": [],
+      "missing_rule_mechanics": [
         "奥义"
       ],
       "ability_keywords": [
@@ -10141,15 +10151,17 @@
       "cost": 8,
       "is_collectible": true,
       "card_set_id": 10004,
-      "coverage": "missing_primitive",
-      "reason": "Missing primitives: ['奥义']",
+      "coverage": "supported_missing_rule",
+      "reason": "Covered keywords: ['入场曲', '进化时', '超进化', '奥义', '破坏']",
       "hit_keywords": [
         "入场曲",
         "进化时",
         "超进化",
+        "奥义",
         "破坏"
       ],
-      "missing_primitives": [
+      "missing_primitives": [],
+      "missing_rule_mechanics": [
         "奥义"
       ],
       "ability_keywords": [
@@ -10193,13 +10205,15 @@
       "cost": 3,
       "is_collectible": true,
       "card_set_id": 10004,
-      "coverage": "missing_primitive",
-      "reason": "Missing primitives: ['奥义']",
+      "coverage": "supported_missing_rule",
+      "reason": "Covered keywords: ['入场曲', '超进化', '奥义']",
       "hit_keywords": [
         "入场曲",
-        "超进化"
+        "超进化",
+        "奥义"
       ],
-      "missing_primitives": [
+      "missing_primitives": [],
+      "missing_rule_mechanics": [
         "奥义"
       ],
       "ability_keywords": [
@@ -10467,14 +10481,16 @@
       "cost": 5,
       "is_collectible": true,
       "card_set_id": 10004,
-      "coverage": "missing_primitive",
-      "reason": "Missing primitives: ['奥义']",
+      "coverage": "supported_missing_rule",
+      "reason": "Covered keywords: ['奥义', '倒数', '破坏', '纹章']",
       "hit_keywords": [
+        "奥义",
         "倒数",
         "破坏",
         "纹章"
       ],
-      "missing_primitives": [
+      "missing_primitives": [],
+      "missing_rule_mechanics": [
         "奥义"
       ],
       "ability_keywords": [
@@ -10522,18 +10538,20 @@
       "cost": 7,
       "is_collectible": true,
       "card_set_id": 10004,
-      "coverage": "missing_primitive",
-      "reason": "Missing primitives: ['奥义']",
+      "coverage": "supported_missing_rule",
+      "reason": "Covered keywords: ['入场曲', '谢幕曲', '进化时', '超进化', '奥义', '倒数', '造成.*伤害', '纹章']",
       "hit_keywords": [
         "入场曲",
         "谢幕曲",
         "进化时",
         "超进化",
+        "奥义",
         "倒数",
         "造成.*伤害",
         "纹章"
       ],
-      "missing_primitives": [
+      "missing_primitives": [],
+      "missing_rule_mechanics": [
         "奥义"
       ],
       "ability_keywords": [
@@ -10799,14 +10817,16 @@
       "cost": 8,
       "is_collectible": true,
       "card_set_id": 10004,
-      "coverage": "missing_primitive",
-      "reason": "Missing primitives: ['奥义']",
+      "coverage": "supported_missing_rule",
+      "reason": "Covered keywords: ['入场曲', '超进化', '奥义', '消失']",
       "hit_keywords": [
         "入场曲",
         "超进化",
+        "奥义",
         "消失"
       ],
-      "missing_primitives": [
+      "missing_primitives": [],
+      "missing_rule_mechanics": [
         "奥义"
       ],
       "ability_keywords": [
@@ -10853,12 +10873,14 @@
       "cost": 2,
       "is_collectible": true,
       "card_set_id": 10004,
-      "coverage": "missing_primitive",
-      "reason": "Missing primitives: ['奥义']",
+      "coverage": "supported_missing_rule",
+      "reason": "Covered keywords: ['入场曲', '奥义']",
       "hit_keywords": [
-        "入场曲"
+        "入场曲",
+        "奥义"
       ],
-      "missing_primitives": [
+      "missing_primitives": [],
+      "missing_rule_mechanics": [
         "奥义"
       ],
       "ability_keywords": [
@@ -10901,14 +10923,16 @@
       "cost": 5,
       "is_collectible": true,
       "card_set_id": 10004,
-      "coverage": "missing_primitive",
-      "reason": "Missing primitives: ['奥义']",
+      "coverage": "supported_missing_rule",
+      "reason": "Covered keywords: ['入场曲', '交战时', '奥义', '造成.*伤害']",
       "hit_keywords": [
         "入场曲",
         "交战时",
+        "奥义",
         "造成.*伤害"
       ],
-      "missing_primitives": [
+      "missing_primitives": [],
+      "missing_rule_mechanics": [
         "奥义"
       ],
       "ability_keywords": [
@@ -11000,12 +11024,14 @@
       "cost": 6,
       "is_collectible": true,
       "card_set_id": 10004,
-      "coverage": "missing_primitive",
-      "reason": "Missing primitives: ['奥义']",
+      "coverage": "supported_missing_rule",
+      "reason": "Covered keywords: ['奥义', '造成.*伤害']",
       "hit_keywords": [
+        "奥义",
         "造成.*伤害"
       ],
-      "missing_primitives": [
+      "missing_primitives": [],
+      "missing_rule_mechanics": [
         "奥义"
       ],
       "ability_keywords": [
@@ -11024,15 +11050,17 @@
       "cost": 5,
       "is_collectible": true,
       "card_set_id": 10004,
-      "coverage": "missing_primitive",
-      "reason": "Missing primitives: ['奥义']",
+      "coverage": "supported_missing_rule",
+      "reason": "Covered keywords: ['入场曲', '奥义', '倒数', '造成.*伤害', '纹章']",
       "hit_keywords": [
         "入场曲",
+        "奥义",
         "倒数",
         "造成.*伤害",
         "纹章"
       ],
-      "missing_primitives": [
+      "missing_primitives": [],
+      "missing_rule_mechanics": [
         "奥义"
       ],
       "ability_keywords": [

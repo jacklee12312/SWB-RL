@@ -50,7 +50,13 @@ PRIMITIVE_KEYWORD_MAP = OrderedDict([
             "covered": True,
         },
     ),
-    ("奥义", {"primitive": "UNION_BURST (placeholder)", "covered": False}),
+    (
+        "奥义",
+        {
+            "primitive": "Union Burst hand gauge / threshold operations",
+            "covered": True,
+        },
+    ),
     ("回合开始", {"primitive": "TURN_START trigger / Emblem", "covered": True}),
     ("回合结束", {"primitive": "TURN_END trigger / Emblem", "covered": True}),
     ("倒数", {"primitive": "COUNTDOWN / countdown", "covered": True}),
@@ -114,6 +120,7 @@ def _classify_card(
     support_map: dict[int, str],
     activation_cards: set[int] | None = None,
     faith_cards: set[int] | None = None,
+    union_burst_cards: set[int] | None = None,
 ) -> dict:
     """Classify a single card's coverage status."""
     card_id = card.card_id
@@ -168,6 +175,11 @@ def _classify_card(
         and card_id not in (faith_cards or set())
     ):
         missing_rule_mechanics.append("信仰")
+    if (
+        re.search("奥义", search_text) is not None
+        and card_id not in (union_burst_cards or set())
+    ):
+        missing_rule_mechanics.append("奥义")
 
     has_rule = card_id in ruled_cards
     metadata = rule_metadata.get(card_id, {})
@@ -279,6 +291,13 @@ def _build_coverage_report(db_path: str, rules_dir: str) -> dict:
         ruled_ops.setdefault(cid, {"triggers": [], "effect_kinds": []})
         ruled_ops[cid]["triggers"].append("faith")
         ruled_ops[cid]["effect_kinds"].append("faith_value")
+    for cid, definitions in rulebook._union_burst_defs.items():
+        ruled_cards.add(cid)
+        ruled_ops.setdefault(cid, {"triggers": [], "effect_kinds": []})
+        for definition in definitions:
+            ruled_ops[cid]["triggers"].append(definition.kind.value)
+            for op in _iter_nested_operations(definition.operations):
+                ruled_ops[cid]["effect_kinds"].append(op.kind.value)
     for cid, passives in rulebook._passives.items():
         ruled_cards.add(cid)
         ruled_ops.setdefault(cid, {"triggers": [], "effect_kinds": []})
@@ -332,6 +351,7 @@ def _build_coverage_report(db_path: str, rules_dir: str) -> dict:
             support_map,
             activation_cards=set(rulebook._activation_defs),
             faith_cards=set(rulebook._faith_defs),
+            union_burst_cards=set(rulebook._union_burst_defs),
         )
 
     total = len(classifications)
@@ -391,6 +411,7 @@ def _load_rule_metadata(rules_dir: str) -> dict[int, dict]:
                 "fusions",
                 "invocations",
                 "faiths",
+                "union_bursts",
             ):
                 raw_entries = payload.get(key, [])
                 if isinstance(raw_entries, list):

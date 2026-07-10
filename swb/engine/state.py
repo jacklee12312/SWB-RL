@@ -216,6 +216,7 @@ class HandCard:
     source_origin: CardOrigin | None = None
     fused_material_ids: list[int] = field(default_factory=list)
     fusion_used_turn: int | None = None
+    evolutions_while_in_hand: int = 0
 
     @property
     def current_cost(self) -> int:
@@ -234,6 +235,9 @@ class HandCard:
         if amount < 0:
             raise ValueError(f"spellboost amount must be non-negative, got {amount}")
         self.spellboost_count += amount
+
+    def union_burst_gauge(self, turns_started: int) -> int:
+        return turns_started + self.evolutions_while_in_hand
 
     @property
     def cost(self) -> int:

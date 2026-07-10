@@ -412,7 +412,7 @@ class FaithEnvironmentTests(unittest.TestCase):
         )
         env.reset(seed=42)
 
-        self.assertEqual(len(env.observation()), 261)
+        self.assertEqual(len(env.observation()), 270)
         self.assertEqual(env.observation()[-4:], [0.2, 0.2, 0.0, 0.0])
 
         unit = _place_unit(env.core, 0, card_id=303)

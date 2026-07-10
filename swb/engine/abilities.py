@@ -268,6 +268,7 @@ ABILITY_DEFINITIONS = (
         (AbilityEvent.CHECK_PLAY,),
         "handle_union_burst",
         aliases=("解放奥义",),
+        status=AbilityStatus.IMPLEMENTED,
     ),
 )
 
@@ -427,7 +428,12 @@ class AbilityHandlers:
             if source is not None and hasattr(source, "definition")
             else source
         )
-        if card is not None and not card.fanfare_effects:
+        covered = getattr(self.environment, "_is_ability_covered", None)
+        if (
+            card is not None
+            and not card.fanfare_effects
+            and (covered is None or not covered(context, AbilityKeyword.FANFARE))
+        ):
             self._placeholder(context, AbilityKeyword.FANFARE)
 
     def handle_last_words(self, context: AbilityContext) -> None:
@@ -477,7 +483,9 @@ class AbilityHandlers:
             self._placeholder(context, AbilityKeyword.ACTIVATE)
 
     def handle_emblem(self, context: AbilityContext) -> None:
-        self._placeholder(context, AbilityKeyword.EMBLEM)
+        covered = getattr(self.environment, "_is_ability_covered", None)
+        if covered is None or not covered(context, AbilityKeyword.EMBLEM):
+            self._placeholder(context, AbilityKeyword.EMBLEM)
 
     def handle_faith(self, context: AbilityContext) -> None:
         covered = getattr(self.environment, "_is_ability_covered", None)
@@ -485,4 +493,6 @@ class AbilityHandlers:
             self._placeholder(context, AbilityKeyword.FAITH)
 
     def handle_union_burst(self, context: AbilityContext) -> None:
-        self._placeholder(context, AbilityKeyword.UNION_BURST)
+        covered = getattr(self.environment, "_is_ability_covered", None)
+        if covered is None or not covered(context, AbilityKeyword.UNION_BURST):
+            self._placeholder(context, AbilityKeyword.UNION_BURST)
