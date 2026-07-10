@@ -117,9 +117,10 @@ slice in this order:
   follow the official Fusion glossary; hand transformation and other-card
   Fusion-event triggers remain explicit unsupported edges.
 - `InvocationDefinition` provides deck-active `turn_start` conditions and the
-  `invoke` trigger. At the timing boundary, candidates are snapshotted in
-  top-of-deck order, duplicate copies of one card ID are limited to one attempt,
-  conditions and board space are revalidated, and eligible followers enter from
+  `invoke` trigger. At the timing boundary, candidate instances are snapshotted,
+  seeded RNG selects their order with duplicate copies contributing their proper
+  probability weight, and one copy per card ID can enter. Conditions and board
+  space are revalidated, and eligible followers enter from
   deck before the normal draw without spending mana, counting as played, or
   firing Fanfare. `CARD_INVOKED` and `FOLLOWER_SUMMONED` (`via=invocation`) make
   the transition auditable.

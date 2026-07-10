@@ -77,8 +77,8 @@ The deterministic rules core supports:
   card `10213310` demonstrates an exact Elf-material fusion rule and a play
   effect that draws two cards after fusion instead of one;
 - structured `瞬念召唤` at turn start before the normal draw, with persistent
-  match evolution counts, deterministic topmost candidate ordering, one copy
-  per card definition per timing, board-full handling, summon-event and pending-choice
+  match evolution counts, seeded random candidate ordering weighted by copies,
+  one copy per card definition per timing, board-full handling, summon-event and pending-choice
   continuations, and explicit `card_invoked` events; real card `10404110`
   invokes after six evolutions, gains its countdown crest, and returns to hand;
 - follower healing for selected, random, and all-unit target flows, used by the
@@ -125,9 +125,11 @@ materials at once, and consumed materials do not enter the graveyard.
 The observation also exposes both players' public number of follower evolutions
 this match. Invocation itself is automatic and therefore adds no RL action.
 The current implementation follows the
-[official Skybound Dragons mechanic overview](https://shadowverse-wb.com/chs/cards/pack/skybound-dragons/),
-which identifies Sandalphon as the unique Invoke card and describes Invoke as
-entering the battlefield directly from the deck when its condition is met.
+[official Skybound Dragons mechanic overview](https://shadowverse-wb.com/chs/cards/pack/skybound-dragons/)
+and [official card glossary](https://shadowverse-wb.com/ja/deck/cardslist/card/?card_id=10404110):
+Sandalphon is the unique Invoke card; Invoke enters from the deck when its
+condition is met, orders simultaneous candidates randomly, and limits duplicate
+copies to one while letting their copy count affect selection probability.
 
 ## Unsupported Or Partial
 

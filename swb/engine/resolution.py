@@ -4230,21 +4230,19 @@ class GameEngine:
             )
         self._continue_turn_start_invocations(
             player_index,
-            self._turn_start_invocation_card_ids(player_index),
+            self._turn_start_invocation_candidates(player_index),
         )
 
-    def _turn_start_invocation_card_ids(self, player_index: int) -> list[int]:
+    def _turn_start_invocation_candidates(self, player_index: int) -> list[int]:
         card_ids: list[int] = []
-        seen: set[int] = set()
-        for card in reversed(self.players[player_index].deck):
+        for card in self.players[player_index].deck:
             definition = self.rulebook.invocation_for(card.card_id)
             if (
                 definition is None
                 or definition.trigger is not Trigger.TURN_START
-                or card.card_id in seen
+                or card.card_type != "随从"
             ):
                 continue
-            seen.add(card.card_id)
             card_ids.append(card.card_id)
         return card_ids
 
@@ -4302,13 +4300,31 @@ class GameEngine:
     ) -> None:
         player = self.players[player_index]
         while remaining_card_ids:
-            card_id = remaining_card_ids.pop(0)
+            if len(player.board) >= self.config.max_board:
+                break
+            eligible_card_ids = [
+                card_id
+                for card_id in remaining_card_ids
+                if self._invocation_conditions_met(player_index, card_id)
+                and any(card.card_id == card_id for card in player.deck)
+            ]
+            if not eligible_card_ids:
+                break
+            distinct_card_ids = set(eligible_card_ids)
+            card_id = (
+                eligible_card_ids[0]
+                if len(distinct_card_ids) == 1
+                else self.random.choice(eligible_card_ids)
+            )
+            remaining_card_ids = [
+                remaining_id
+                for remaining_id in remaining_card_ids
+                if remaining_id != card_id
+            ]
             definition = self.rulebook.invocation_for(card_id)
             if (
                 definition is None
                 or definition.trigger is not Trigger.TURN_START
-                or not self._invocation_conditions_met(player_index, card_id)
-                or len(player.board) >= self.config.max_board
             ):
                 continue
             deck_index = next(

@@ -223,7 +223,7 @@ class InvocationResolutionTests(unittest.TestCase):
             any(event.type is EventType.CARD_INVOKED for event in engine.event_history)
         )
 
-    def test_duplicate_copies_invoke_only_topmost_once_per_timing(self):
+    def test_duplicate_copies_invoke_only_one_copy_per_timing(self):
         invoked = _invocation_card()
         engine = _engine()
         engine.players[0].followers_evolved_this_match = 1
@@ -244,7 +244,7 @@ class InvocationResolutionTests(unittest.TestCase):
             1,
         )
 
-    def test_topmost_distinct_candidate_wins_last_board_slot(self):
+    def test_seeded_weighted_candidate_order_uses_duplicate_instances(self):
         lower = _invocation_card(100)
         upper = _invocation_card(101)
         engine = _engine(
@@ -256,7 +256,8 @@ class InvocationResolutionTests(unittest.TestCase):
         engine.players[0].followers_evolved_this_match = 1
         for index in range(engine.config.max_board - 1):
             _summon(engine, 0, _card(400 + index))
-        _put_in_deck_for_next_turn(engine, lower, upper)
+        _put_in_deck_for_next_turn(engine, upper, upper, upper, lower)
+        engine.random.seed(1)
 
         _advance_to_next_own_turn(engine)
 
