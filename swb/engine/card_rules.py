@@ -56,6 +56,12 @@ _TARGET_DEPENDENT_CONDITIONS = frozenset({
     ConditionType.TARGET_HAS_KEYWORD,
 })
 
+_SOURCE_DEPENDENT_CONDITIONS = frozenset({
+    ConditionType.SOURCE_EVOLVED,
+    ConditionType.SOURCE_HAS_KEYWORD,
+    ConditionType.SOURCE_FUSION_COUNT_AT_LEAST,
+})
+
 _UNSUPPORTED_PRESELECTED_TARGET_FIELDS = frozenset({
     "targets",
     "target_ids",
@@ -90,6 +96,15 @@ def _check_target_conditions(conditions: tuple[Condition, ...], source: str) -> 
         if cond.type in _TARGET_DEPENDENT_CONDITIONS:
             invalid.add(cond.type.value)
         invalid.update(_check_target_conditions(cond.conditions, source))
+    return invalid
+
+
+def _check_source_conditions(conditions: tuple[Condition, ...]) -> set[str]:
+    invalid: set[str] = set()
+    for condition in conditions:
+        if condition.type in _SOURCE_DEPENDENT_CONDITIONS:
+            invalid.add(condition.type.value)
+        invalid.update(_check_source_conditions(tuple(condition.conditions)))
     return invalid
 
 
@@ -180,6 +195,7 @@ class Trigger(str, Enum):
     TURN_START = "turn_start"
     TURN_END = "turn_end"
     COUNTDOWN_EXPIRED = "countdown_expired"
+    INVOKE = "invoke"
 
 
 @dataclass(frozen=True)
@@ -205,6 +221,13 @@ class FusionDefinition:
     max_materials: int | None = None
 
 
+@dataclass(frozen=True)
+class InvocationDefinition:
+    card_id: int
+    trigger: Trigger
+    conditions: tuple[Condition, ...] = ()
+
+
 class RuleBook:
     def __init__(
         self,
@@ -213,6 +236,7 @@ class RuleBook:
         play_modes: dict[int, tuple[PlayModeDefinition, ...]] | None = None,
         emblem_defs: dict[str, EmblemDefinition] | None = None,
         fusion_defs: dict[int, FusionDefinition] | None = None,
+        invocation_defs: dict[int, InvocationDefinition] | None = None,
     ):
         self._rules: dict[tuple[int, Trigger], tuple[EffectOperation, ...]] = {}
         for rule in rules:
@@ -250,6 +274,7 @@ class RuleBook:
                 seen.add(m.mode_id)
         self._emblem_defs: dict[str, EmblemDefinition] = emblem_defs or {}
         self._fusion_defs: dict[int, FusionDefinition] = fusion_defs or {}
+        self._invocation_defs: dict[int, InvocationDefinition] = invocation_defs or {}
         for card_id in self._fusion_defs:
             if len(self._play_modes.get(card_id, ())) + 1 > MAX_SPECIAL_MODES_PER_CARD:
                 raise ValueError(
@@ -273,6 +298,9 @@ class RuleBook:
 
     def fusion_for(self, card_id: int) -> FusionDefinition | None:
         return self._fusion_defs.get(card_id)
+
+    def invocation_for(self, card_id: int) -> InvocationDefinition | None:
+        return self._invocation_defs.get(card_id)
 
     def emblem_trigger_ops_for(self, emblem_id: str, trigger: str) -> tuple[EffectOperation, ...]:
         from swb.engine.emblem import EmblemTriggerRule
@@ -307,18 +335,25 @@ class RuleBook:
         all_play_modes: dict[int, list[PlayModeDefinition]] = {}
         all_emblem_defs: dict[str, EmblemDefinition] = {}
         all_fusion_defs: dict[int, FusionDefinition] = {}
+        all_invocation_defs: dict[int, InvocationDefinition] = {}
         for file_path in sorted(path.glob("*.json")):
             payload = json.loads(file_path.read_text(encoding="utf-8"))
             if isinstance(payload, list):
                 entries = payload
                 raw_passives = []
                 raw_fusions = []
+                raw_invocations = []
             else:
                 entries = payload.get("rules", [])
                 raw_passives = payload.get("passives", [])
                 raw_fusions = payload.get("fusions", [])
+                raw_invocations = payload.get("invocations", [])
                 if not isinstance(raw_fusions, list):
                     raise ValueError(f"{file_path.name}: 'fusions' must be a list")
+                if not isinstance(raw_invocations, list):
+                    raise ValueError(
+                        f"{file_path.name}: 'invocations' must be a list"
+                    )
                 raw_emblems = payload.get("emblems")
                 if raw_emblems is not None:
                     if not isinstance(raw_emblems, list):
@@ -420,6 +455,18 @@ class RuleBook:
                         f"{fusion.card_id}"
                     )
                 all_fusion_defs[fusion.card_id] = fusion
+            for index, raw_invocation in enumerate(raw_invocations):
+                source_path = f"{file_path.name}/invocations[{index}]"
+                invocation = _parse_invocation_definition(
+                    raw_invocation,
+                    source_path,
+                )
+                if invocation.card_id in all_invocation_defs:
+                    raise ValueError(
+                        f"{source_path}: duplicate invocation definition for "
+                        f"card {invocation.card_id}"
+                    )
+                all_invocation_defs[invocation.card_id] = invocation
         _validate_passives(passives)
         frozen_modes = {
             cid: tuple(modes) for cid, modes in all_play_modes.items()
@@ -431,6 +478,7 @@ class RuleBook:
             play_modes=frozen_modes,
             emblem_defs=all_emblem_defs,
             fusion_defs=all_fusion_defs,
+            invocation_defs=all_invocation_defs,
         )
 
 
@@ -746,6 +794,58 @@ def _parse_fusion_definition(raw: dict, source_path: str) -> FusionDefinition:
         ),
         min_materials=min_materials,
         max_materials=max_materials,
+    )
+
+
+def _parse_invocation_definition(
+    raw: dict,
+    source_path: str,
+) -> InvocationDefinition:
+    if not isinstance(raw, dict):
+        raise ValueError(f"{source_path}: invocation definition must be an object")
+    unknown = set(raw) - {"card_id", "trigger", "conditions"}
+    if unknown:
+        raise ValueError(f"{source_path}: unknown fields {sorted(unknown)}")
+
+    card_id = raw.get("card_id")
+    if isinstance(card_id, bool) or not isinstance(card_id, int) or card_id <= 0:
+        raise ValueError(f"{source_path}/card_id: must be a positive integer")
+
+    trigger_raw = raw.get("trigger", Trigger.TURN_START.value)
+    try:
+        trigger = Trigger(trigger_raw)
+    except (TypeError, ValueError) as exc:
+        raise ValueError(
+            f"{source_path}/trigger: invalid trigger {trigger_raw!r}"
+        ) from exc
+    if trigger is not Trigger.TURN_START:
+        raise ValueError(
+            f"{source_path}/trigger: invocation currently requires "
+            f"{Trigger.TURN_START.value!r}"
+        )
+
+    raw_conditions = raw.get("conditions", [])
+    if not isinstance(raw_conditions, list):
+        raise ValueError(f"{source_path}/conditions: must be a list")
+    conditions = tuple(
+        _parse_condition(
+            condition,
+            f"{source_path}/conditions[{index}]",
+            card_id,
+        )
+        for index, condition in enumerate(raw_conditions)
+    )
+    invalid = _check_target_conditions(conditions, source_path)
+    invalid.update(_check_source_conditions(conditions))
+    if invalid:
+        raise ValueError(
+            f"{source_path}/conditions: deck invocation conditions cannot "
+            f"depend on a source or selected target: {sorted(invalid)}"
+        )
+    return InvocationDefinition(
+        card_id=card_id,
+        trigger=trigger,
+        conditions=conditions,
     )
 
 
@@ -1728,6 +1828,8 @@ def _parse_condition(raw: dict, source_path: str, card_id: int) -> Condition:
         ConditionType.OPPONENT_COMBO_AT_LEAST,
         ConditionType.CONTROLLER_EARTH_SIGILS_AT_LEAST,
         ConditionType.OPPONENT_EARTH_SIGILS_AT_LEAST,
+        ConditionType.CONTROLLER_EVOLUTIONS_THIS_MATCH_AT_LEAST,
+        ConditionType.OPPONENT_EVOLUTIONS_THIS_MATCH_AT_LEAST,
         ConditionType.SOURCE_FUSION_COUNT_AT_LEAST,
     )
     if t in cooperation_threshold_types:

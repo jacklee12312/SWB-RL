@@ -8,7 +8,7 @@
 | Metric | Count |
 |---|---|
 | Total cards in DB | 826 |
-| Cards with rules | 96 |
+| Cards with rules | 97 |
 | Test/synthetic IDs with rules | 26 |
 
 ### Coverage Categories
@@ -18,8 +18,8 @@
 | covered_exact | 62 |
 | supported_missing_rule | 568 |
 | text_unclear | 19 |
-| missing_primitive | 80 |
-| covered_partial | 6 |
+| missing_primitive | 79 |
+| covered_partial | 7 |
 | token_or_non_collectible | 91 |
 
 ## Rule Consistency Issues
@@ -66,14 +66,14 @@
 | 策动 | ACTIVATE (placeholder) | False |
 | 威慑 | INTIMIDATE (placeholder) | False |
 | 灵气 | AURA (placeholder) | False |
-| 瞬念召唤 | INVOCATION (placeholder) | False |
+| 瞬念召唤 | Invocation deck scan / INVOKE trigger | True |
 | 奥义 | UNION_BURST (placeholder) | False |
 | 回合开始 | TURN_START trigger / Emblem | True |
 | 回合结束 | TURN_END trigger / Emblem | True |
 | 倒数 | COUNTDOWN / countdown | True |
 | 抽取 | DRAW / DRAW_FILTERED | True |
 | 将.*加入手牌 | ADD_CARD | True |
-| 回复 | HEAL_LEADER | True |
+| 回复 | HEAL_LEADER / HEAL_UNIT | True |
 | 造成.*伤害 | DAMAGE_LEADER / DAMAGE_UNIT | True |
 | 破坏 | DESTROY | True |
 | 消失 | BANISH | True |

@@ -10,12 +10,12 @@ code and tests as the source of truth when this file drifts.
 - Database: 826 cards, 735 collectible cards, 91 non-collectible/generated
   cards from set `90000`.
 - Latest SVA source: `https://sva.hypd.asia/data/cards.json`.
-- Tests: `python -m unittest discover -s tests -v` currently runs 921 tests.
-- RL adapter: fixed 111-action space and 255-feature observation.
-- Ability registry status: 13 implemented, 4 partial, 17 placeholder.
+- Tests: `python -m unittest discover -s tests -v` currently runs 937 tests.
+- RL adapter: fixed 111-action space and 257-feature observation.
+- Ability registry status: 14 implemented, 4 partial, 16 placeholder.
 - Explicit card and demo rules live in `data/rules/`; the current coverage
-  report classifies 96 card IDs with explicit rules, passives, or fusion
-  definitions.
+  report classifies 97 card IDs with explicit rules, passives, fusion, or
+  invocation definitions.
 
 ## Stable Priorities
 
@@ -109,13 +109,33 @@ slice in this order:
   their material IDs through play and return-to-hand transitions. Structured
   source fusion-count conditions are available to normal and nested effects,
   and `CARD_FUSED` makes the transition auditable. The fixed 111-action layout
-  reuses existing special-hand and choice slots; the 255-feature observation
+  reuses existing special-hand and choice slots; the 257-feature observation
   exposes own-hand and public-board Fusion state without revealing the
   opponent's hidden hand.
 - Exact real rule `10213310` (`花园的指引`) accepts Elf-class Fusion materials
   and draws two cards if it was fused, otherwise one. These core semantics
   follow the official Fusion glossary; hand transformation and other-card
   Fusion-event triggers remain explicit unsupported edges.
+- `InvocationDefinition` provides deck-active `turn_start` conditions and the
+  `invoke` trigger. At the timing boundary, candidates are snapshotted in
+  top-of-deck order, duplicate copies of one card ID are limited to one attempt,
+  conditions and board space are revalidated, and eligible followers enter from
+  deck before the normal draw without spending mana, counting as played, or
+  firing Fanfare. `CARD_INVOKED` and `FOLLOWER_SUMMONED` (`via=invocation`) make
+  the transition auditable.
+- Invocation participates in normal summon-event ordering and can suspend for
+  an event or on-invoke target choice before the remaining candidates and normal
+  draw resume. Full boards leave candidates in deck; malformed non-follower
+  definitions remain visible through Invocation placeholder reporting instead
+  of silently executing. Match evolution counts include normal and super
+  evolution, are fingerprinted/invariant-checked, and are public in the
+  257-feature observation without changing the 111 actions.
+- Real `10404110` (`天司长的继承者·圣德芬`) is the current unique official
+  Invocation card. Its six-evolution condition, deck summon, countdown-2 crest,
+  return to hand, and crest turn-end healing of all allied followers and leader
+  are structured and tested. The new `heal_unit` primitive emits actual-heal
+  events and clamps to maximum health. The card remains `covered_partial` only
+  because its Fanfare `解放奥义` damage sequence awaits the Union Burst slice.
 - `target_exists` provides structured no-target branch semantics for explicit
   candidate-set targets and unit-or-leader fallback targets, including board
   target-dependent filters, then/else effect branches, and existing RL
@@ -194,13 +214,17 @@ slice in this order:
 - `连击` has natural per-turn counting, condition/expression support,
   `add_combo`, public observation counts, and real-card demos; broader real-card
   coverage remains partial.
-- `策动`, `瞬念召唤`, `信仰`, and `奥义` remain placeholder or incomplete.
+- `策动`, `信仰`, and `奥义` remain placeholder or incomplete.
   `土之秘术` / `土之印` core semantics are implemented, while broader
   real-card coverage remains intentionally incremental.
 - `融合` has the command-level material transition, state, event, structured
   filters/counts, source fused-count conditions, RL exposure, and one exact
   real-card demo. It remains partial because Fusion-driven hand transformations
   and triggers owned by other hand/board cards are not yet modeled.
+- `瞬念召唤` is implemented for its sole current official card and marked
+  implemented in the ability registry. Sandalphon as a whole stays partial
+  until `解放奥义` is implemented; this does not downgrade the Invocation
+  transition itself.
 - The ability registry is conservative; a generic primitive can exist before a
   keyword is marked fully implemented.
 - Many real cards are intentionally uncovered or only partly covered by
@@ -239,18 +263,17 @@ slice in this order:
 
 ## Next Coherent Slices
 
-### 1. Invocation
+### 1. Activate
 
-- Define the exact deck-to-play transition and timing window for `瞬念召唤`
-  before adding automatic scans to turn/event stabilization.
-- Add deterministic candidate ordering, duplicate-card handling, board-full
-  behavior, invariant/fingerprint coverage, and one exact real-card rule before
-  RL observation changes, if any, are introduced.
+- Model `策动` as its own command against an eligible amulet, including costs,
+  once-per-turn or countdown semantics only where verified by real text, stale
+  entity revalidation, action-mask agreement, and one real-card demo.
 
-### 2. Activate / Faith / Union Burst
+### 2. Faith / Union Burst
 
-- Implement `策动`, `信仰`, and `奥义` as separate command/state/rule slices in
-  that order, each tied to verified real text and one exact real-card demo.
+- Implement `信仰` and `奥义` as separate command/state/rule slices in that
+  order, each tied to verified real text and one real-card demo. Completing
+  Union Burst should promote the remaining Sandalphon Fanfare clause.
 
 ### 3. Targeting Edge Cases
 

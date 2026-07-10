@@ -41,6 +41,8 @@ class ConditionType(str, Enum):
     OPPONENT_COMBO_AT_LEAST = "opponent_combo_at_least"
     CONTROLLER_EARTH_SIGILS_AT_LEAST = "controller_earth_sigils_at_least"
     OPPONENT_EARTH_SIGILS_AT_LEAST = "opponent_earth_sigils_at_least"
+    CONTROLLER_EVOLUTIONS_THIS_MATCH_AT_LEAST = "controller_evolutions_this_match_at_least"
+    OPPONENT_EVOLUTIONS_THIS_MATCH_AT_LEAST = "opponent_evolutions_this_match_at_least"
     SOURCE_FUSION_COUNT_AT_LEAST = "source_fusion_count_at_least"
 
 
@@ -99,6 +101,7 @@ class EffectKind(str, Enum):
     DRAW = "draw"
     DRAW_FILTERED = "draw_filtered"
     HEAL_LEADER = "heal_leader"
+    HEAL_UNIT = "heal_unit"
     DAMAGE_LEADER = "damage_leader"
     DAMAGE_UNIT = "damage_unit"
     RESTORE_MANA = "restore_mana"

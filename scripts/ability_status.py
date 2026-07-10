@@ -46,6 +46,7 @@ _PRIMITIVE_PATTERN_BY_KEYWORD = {
     AbilityKeyword.CRYSTALLIZE: "结晶",
     AbilityKeyword.CHOOSE: "选择一项|模式",
     AbilityKeyword.FUSION: "融合",
+    AbilityKeyword.INVOCATION: "瞬念召唤",
     AbilityKeyword.EMBLEM: "纹章",
     AbilityKeyword.FAITH: "信仰",
 }

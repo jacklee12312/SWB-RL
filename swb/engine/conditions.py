@@ -204,6 +204,10 @@ def evaluate_condition(cond: Condition | None, ctx: EvalContext | None) -> bool:
         return player.earth_sigils >= cond.value
     elif t == ConditionType.OPPONENT_EARTH_SIGILS_AT_LEAST:
         return opponent.earth_sigils >= cond.value
+    elif t == ConditionType.CONTROLLER_EVOLUTIONS_THIS_MATCH_AT_LEAST:
+        return player.followers_evolved_this_match >= cond.value
+    elif t == ConditionType.OPPONENT_EVOLUTIONS_THIS_MATCH_AT_LEAST:
+        return opponent.followers_evolved_this_match >= cond.value
     elif t == ConditionType.SOURCE_FUSION_COUNT_AT_LEAST:
         return ctx.source_fusion_count >= cond.value
     elif t == ConditionType.TARGET_ATTACK_AT_MOST:

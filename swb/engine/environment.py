@@ -260,6 +260,10 @@ class ShadowverseEnv:
             for index in range(self.MAX_BOARD):
                 unit = board[index] if index < len(board) else None
                 values.extend(self._board_features(unit))
+        values.extend([
+            me.followers_evolved_this_match / 10,
+            opponent.followers_evolved_this_match / 10,
+        ])
         pending = self.core.state.pending_choice
         pending_target_count = 0 if pending is None else pending.target_count
         pending_selected_count = (

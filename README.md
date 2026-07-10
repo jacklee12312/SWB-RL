@@ -76,6 +76,13 @@ The deterministic rules core supports:
   material zone, inherited material identity, and `card_fused` events; real
   card `10213310` demonstrates an exact Elf-material fusion rule and a play
   effect that draws two cards after fusion instead of one;
+- structured `瞬念召唤` at turn start before the normal draw, with persistent
+  match evolution counts, deterministic topmost candidate ordering, one copy
+  per card definition per timing, board-full handling, summon-event and pending-choice
+  continuations, and explicit `card_invoked` events; real card `10404110`
+  invokes after six evolutions, gains its countdown crest, and returns to hand;
+- follower healing for selected, random, and all-unit target flows, used by the
+  invoked Sandalphon crest to heal all allied followers alongside the leader;
 - structured `target_exists` no-target branches that reuse normal target
   candidate generation before queuing a then/else effect branch, including
   unit-or-leader fallback targets when no target-dependent condition is present;
@@ -93,7 +100,7 @@ The deterministic rules core supports:
   necromancy, reanimate, spellboost-style hand cost changes, emblems, optional
   decisions, choose-one decisions, play modes, and runtime modifiers.
 
-The RL adapter provides a fixed 111-action space, 255-feature public
+The RL adapter provides a fixed 111-action space, 257-feature public
 observation, action mask, terminal reward, graveyard choice paging, special
 hand actions for fusion/play modes, and super-evolve actions. `info()` is public by default and
 redacts debug transcripts/events unless `debug_info=True` or
@@ -115,6 +122,12 @@ The material transition follows the
 [official Fusion glossary](https://shadowverse-wb.com/chs/deck/cardslist/card/?card_id=10021110):
 Fusion is usable from hand once per turn, an unspecified count permits multiple
 materials at once, and consumed materials do not enter the graveyard.
+The observation also exposes both players' public number of follower evolutions
+this match. Invocation itself is automatic and therefore adds no RL action.
+The current implementation follows the
+[official Skybound Dragons mechanic overview](https://shadowverse-wb.com/chs/cards/pack/skybound-dragons/),
+which identifies Sandalphon as the unique Invoke card and describes Invoke as
+entering the battlefield directly from the deck when its condition is met.
 
 ## Unsupported Or Partial
 
@@ -124,12 +137,15 @@ remain visible instead of silently behaving as implemented.
 Known broad gaps include:
 
 - exact semantics for many real cards and most generated-card workflows;
-- full `策动`, `瞬念召唤`, `信仰`, and `奥义` semantics, plus broader
+- full `策动`, `信仰`, and `奥义` semantics, plus broader
   real-card coverage for `土之秘术`, `觉醒`, and `连击` beyond the currently
   authored examples;
 - Fusion cards that transform in hand when fused and abilities on other cards
   that trigger from a fusion event remain unsupported; the command-level
   material transition and source-card fused-count conditions are covered;
+- `10404110` remains partial only because its Fanfare `解放奥义` damage sequence
+  is deferred to the Union Burst slice; its Invocation and crest clauses are
+  structured and tested;
 - non-manual super-evolution edge semantics;
 - remaining trigger-ordering edge cases beyond the current death-batch
   ordering diagnostics and `death_batch_end` boundary triggers, including

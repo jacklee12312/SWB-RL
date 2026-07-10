@@ -1,0 +1,60 @@
+{
+  "invocations": [
+    {
+      "card_id": 10404110,
+      "trigger": "turn_start",
+      "conditions": [
+        {
+          "type": "controller_evolutions_this_match_at_least",
+          "value": 6
+        }
+      ]
+    }
+  ],
+  "emblems": [
+    {
+      "id": "sandalphon_primarch_successor",
+      "source_card_id": 10404110,
+      "stacking": "allow",
+      "countdown": 2,
+      "triggers": [
+        {
+          "trigger": "turn_end",
+          "turn_scope": "owner_turn",
+          "operations": [
+            {
+              "kind": "heal_unit",
+              "target": "all_own_units",
+              "amount": 1
+            },
+            {
+              "kind": "heal_leader",
+              "target": "own_leader",
+              "amount": 1
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "rules": [
+    {
+      "card_id": 10404110,
+      "trigger": "invoke",
+      "coverage": "partial",
+      "implemented_text": "在牌组中发动。自己的回合开始时，若本次对战中自己的随从的进化次数为6次或以上，则瞬念召唤本卡牌。被瞬念召唤时，获得倒数2、回合结束回复己方全体1点生命的纹章，并使本卡牌返回手牌。",
+      "unsupported_text": "【入场曲】【解放奥义】随机对敌方随从或敌方主战者造成2点伤害，发动5次。",
+      "operations": [
+        {
+          "kind": "gain_emblem",
+          "target": "own_leader",
+          "emblem_id": "sandalphon_primarch_successor"
+        },
+        {
+          "kind": "return_to_hand",
+          "target": "self"
+        }
+      ]
+    }
+  ]
+}

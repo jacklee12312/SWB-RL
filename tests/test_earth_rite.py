@@ -450,7 +450,7 @@ class EarthSigilEnvironmentTests(unittest.TestCase):
 
         observation = env.observation()
 
-        self.assertEqual(len(observation), 255)
+        self.assertEqual(len(observation), 257)
         self.assertEqual(observation[-2:], [0.2, 0.1])
 
 

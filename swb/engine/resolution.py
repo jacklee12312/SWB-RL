@@ -148,6 +148,7 @@ _DURATION_EXPANSION: dict[ModifierDuration, tuple[str, ...]] = {
 
 _SOURCE_REQUIRED_SELF_TARGET_EFFECTS = frozenset({
     EffectKind.DAMAGE_UNIT,
+    EffectKind.HEAL_UNIT,
     EffectKind.BUFF_UNIT,
     EffectKind.DESTROY,
     EffectKind.BANISH,
@@ -319,6 +320,11 @@ class GameEngine:
             return False
         if ability is AbilityKeyword.FUSION:
             return self.rulebook.fusion_for(card.card_id) is not None
+        if ability is AbilityKeyword.INVOCATION:
+            return (
+                card.card_type == "随从"
+                and self.rulebook.invocation_for(card.card_id) is not None
+            )
         if ability in (AbilityKeyword.OVERFLOW, AbilityKeyword.COMBO):
             if ability is AbilityKeyword.OVERFLOW:
                 condition_types = (
@@ -1824,6 +1830,7 @@ class GameEngine:
             "turns_started": player.turns_started,
             "evolved_this_turn": player.evolved_this_turn,
             "super_evolved_this_turn": player.super_evolved_this_turn,
+            "followers_evolved_this_match": player.followers_evolved_this_match,
             "cards_played_this_turn": player.cards_played_this_turn,
             "followers_destroyed_this_turn": (
                 player.followers_destroyed_this_turn
@@ -3677,6 +3684,7 @@ class GameEngine:
         else:
             player.evolution_points -= 1
         player.evolved_this_turn = True
+        player.followers_evolved_this_match += 1
         if unit.attacks_remaining > 0:
             unit.can_attack = True
             unit.rush_only = not could_attack_leader
@@ -3696,7 +3704,10 @@ class GameEngine:
                 EventType.FOLLOWER_SUPER_EVOLVED if super_evolve else EventType.FOLLOWER_EVOLVED,
                 self.current_player,
                 source_id=unit.entity_id,
-                metadata={"source": unit},
+                metadata={
+                    "source": unit,
+                    "evolutions_this_match": player.followers_evolved_this_match,
+                },
             )
         )
         self._resolve_event_queue()
@@ -4217,6 +4228,163 @@ class GameEngine:
             self._dispatch_card_ability(
                 AbilityEvent.TURN_STARTED, card, player_index=player_index
             )
+        self._continue_turn_start_invocations(
+            player_index,
+            self._turn_start_invocation_card_ids(player_index),
+        )
+
+    def _turn_start_invocation_card_ids(self, player_index: int) -> list[int]:
+        card_ids: list[int] = []
+        seen: set[int] = set()
+        for card in reversed(self.players[player_index].deck):
+            definition = self.rulebook.invocation_for(card.card_id)
+            if (
+                definition is None
+                or definition.trigger is not Trigger.TURN_START
+                or card.card_id in seen
+            ):
+                continue
+            seen.add(card.card_id)
+            card_ids.append(card.card_id)
+        return card_ids
+
+    def _invocation_conditions_met(self, player_index: int, card_id: int) -> bool:
+        definition = self.rulebook.invocation_for(card_id)
+        if definition is None:
+            return False
+        result = evaluate_conditions_without_target(
+            definition.conditions,
+            EvalContext(controller=player_index, players=self.players),
+        )
+        return result is PartialConditionResult.TRUE
+
+    def _suspend_start_turn_invocation(
+        self,
+        player_index: int,
+        phase: str,
+        remaining_card_ids: list[int],
+        *,
+        invoked_entity_id: int | None = None,
+    ) -> None:
+        self._suspended_action = "turn_start"
+        self._suspended_action_state = {
+            "player_index": player_index,
+            "phase": phase,
+            "remaining_card_ids": list(remaining_card_ids),
+        }
+        if invoked_entity_id is not None:
+            self._suspended_action_state["invoked_entity_id"] = invoked_entity_id
+
+    def _finish_invoked_card(self, player_index: int, entity_id: int) -> None:
+        try:
+            unit = self._find_board_entity(entity_id)
+        except IllegalCommand:
+            return
+        if not isinstance(unit, Unit) or self._entity_owner(entity_id) != player_index:
+            return
+        operations = self.rulebook.operations_for(
+            unit.definition.card_id,
+            Trigger.INVOKE,
+        )
+        if operations:
+            self._start_effects(
+                unit.definition,
+                unit.entity_id,
+                operations,
+                controller=player_index,
+                label="瞬念召唤",
+            )
+
+    def _continue_turn_start_invocations(
+        self,
+        player_index: int,
+        remaining_card_ids: list[int],
+    ) -> None:
+        player = self.players[player_index]
+        while remaining_card_ids:
+            card_id = remaining_card_ids.pop(0)
+            definition = self.rulebook.invocation_for(card_id)
+            if (
+                definition is None
+                or definition.trigger is not Trigger.TURN_START
+                or not self._invocation_conditions_met(player_index, card_id)
+                or len(player.board) >= self.config.max_board
+            ):
+                continue
+            deck_index = next(
+                (
+                    index
+                    for index in range(len(player.deck) - 1, -1, -1)
+                    if player.deck[index].card_id == card_id
+                ),
+                None,
+            )
+            if deck_index is None:
+                continue
+            card = player.deck[deck_index]
+            if card.card_type != "随从":
+                continue
+            player.deck.pop(deck_index)
+            unit = self._summon_follower_to_board(
+                player_index,
+                card,
+                summon_cause="invocation",
+                origin=CardOrigin.DECK,
+            )
+            if unit is None:
+                raise IllegalCommand("Invocation failed after board-space validation")
+            self._log(
+                player_index,
+                f"瞬念召唤 {card.name} ({unit.attack}/{unit.health})",
+            )
+            self._emit(
+                GameEvent(
+                    EventType.FOLLOWER_SUMMONED,
+                    player_index,
+                    source_id=unit.entity_id,
+                    metadata={
+                        "source": unit,
+                        "card_id": card.card_id,
+                        "origin": unit.origin.value,
+                        "derived": False,
+                        "token": False,
+                        "via": "invocation",
+                    },
+                )
+            )
+            self._emit(
+                GameEvent(
+                    EventType.CARD_INVOKED,
+                    player_index,
+                    source_id=unit.entity_id,
+                    metadata={
+                        "source": unit,
+                        "card_id": card.card_id,
+                        "origin": unit.origin.value,
+                    },
+                )
+            )
+            self._resolve_event_queue()
+            if self.state.pending_choice is not None:
+                self._suspend_start_turn_invocation(
+                    player_index,
+                    "invocation_source",
+                    remaining_card_ids,
+                    invoked_entity_id=unit.entity_id,
+                )
+                return
+            self._finish_invoked_card(player_index, unit.entity_id)
+            if self.state.pending_choice is not None:
+                self._suspend_start_turn_invocation(
+                    player_index,
+                    "invocation_scan",
+                    remaining_card_ids,
+                )
+                return
+        self._complete_start_turn(player_index)
+
+    def _complete_start_turn(self, player_index: int) -> None:
+        player = self.players[player_index]
         self._emit(GameEvent(EventType.TURN_STARTED, player_index))
         self._log(
             player_index,
@@ -4231,6 +4399,29 @@ class GameEngine:
         self._suspended_action_state = None
         player_index = state["player_index"]
         phase = state["phase"]
+        if phase == "invocation_source":
+            self._finish_invoked_card(
+                player_index,
+                state["invoked_entity_id"],
+            )
+            if self.state.pending_choice is not None:
+                self._suspend_start_turn_invocation(
+                    player_index,
+                    "invocation_scan",
+                    state.get("remaining_card_ids", []),
+                )
+                return
+            self._continue_turn_start_invocations(
+                player_index,
+                state.get("remaining_card_ids", []),
+            )
+            return
+        if phase == "invocation_scan":
+            self._continue_turn_start_invocations(
+                player_index,
+                state.get("remaining_card_ids", []),
+            )
+            return
         remaining_ids = state.get("remaining_ids", [])
         if phase == "emblem_triggers":
             self._dispatch_emblem_triggers(player_index, "turn_start")
@@ -4463,7 +4654,7 @@ class GameEngine:
                     return
         amount = self._resolve_amount(operation, ctx)
         secondary = self._resolve_secondary(operation, ctx)
-        if operation.kind is EffectKind.HEAL_LEADER:
+        if operation.kind in (EffectKind.HEAL_LEADER, EffectKind.HEAL_UNIT):
             amount = max(0, amount)
         if operation.amount_expr is not None or operation.secondary_expr is not None or amount != operation.amount or secondary != operation.secondary_amount:
             resolved = replace(
@@ -4528,6 +4719,32 @@ class GameEngine:
                     amount=actual_heal,
                     metadata={"card_id": frame.source_card_id},
                 ))
+        elif effect.kind is EffectKind.HEAL_UNIT:
+            target = self._find_board_entity(target_id)
+            if not isinstance(target, Unit):
+                raise IllegalCommand("Heal target must be a follower")
+            before = target.health
+            target.health = min(target.max_health, target.health + effect.amount)
+            actual_heal = target.health - before
+            self._log(
+                frame.controller,
+                f"{name} {frame.label}回复 {target.definition.name} "
+                f"{actual_heal} 点生命（生命 {target.health}）",
+            )
+            if actual_heal > 0:
+                self._emit(
+                    GameEvent(
+                        EventType.FOLLOWER_HEALED,
+                        self._entity_owner(target.entity_id),
+                        source_id=frame.source_entity_id,
+                        target_id=target.entity_id,
+                        amount=actual_heal,
+                        metadata={
+                            "card_id": frame.source_card_id,
+                            "target": target,
+                        },
+                    )
+                )
         elif effect.kind is EffectKind.DAMAGE_LEADER:
             is_enemy = effect.target is TargetKind.ENEMY_LEADER
             target_idx = 1 - frame.controller if is_enemy else frame.controller
@@ -6372,6 +6589,11 @@ class GameEngine:
             event = self.state.event_queue.popleft()
             self.event_history.append(event)
             ability_event = event_to_ability.get(event.type)
+            if (
+                event.type is EventType.FOLLOWER_SUMMONED
+                and event.metadata.get("via") != "play"
+            ):
+                ability_event = None
             source = event.metadata.get("source")
             if source is None:
                 source = event.metadata.get("definition")
@@ -7113,6 +7335,7 @@ class GameEngine:
                 ("evolution_points", player.evolution_points),
                 ("super_evolution_points", player.super_evolution_points),
                 ("turns_started", player.turns_started),
+                ("followers_evolved_this_match", player.followers_evolved_this_match),
                 ("cards_played_this_turn", player.cards_played_this_turn),
                 ("followers_destroyed_this_turn", player.followers_destroyed_this_turn),
                 ("cooperation", player.cooperation),

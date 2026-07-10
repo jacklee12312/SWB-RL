@@ -203,6 +203,7 @@ ABILITY_DEFINITIONS = (
         AbilityKeyword.INVOCATION,
         (AbilityEvent.TURN_STARTED,),
         "handle_invocation",
+        status=AbilityStatus.IMPLEMENTED,
     ),
     _definition(
         AbilityKeyword.FANFARE,
@@ -409,7 +410,9 @@ class AbilityHandlers:
         pass
 
     def handle_invocation(self, context: AbilityContext) -> None:
-        self._placeholder(context, AbilityKeyword.INVOCATION)
+        covered = getattr(self.environment, "_is_ability_covered", None)
+        if covered is None or not covered(context, AbilityKeyword.INVOCATION):
+            self._placeholder(context, AbilityKeyword.INVOCATION)
 
     def handle_fanfare(self, context: AbilityContext) -> None:
         source = context.source

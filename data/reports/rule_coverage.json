@@ -5,14 +5,14 @@
   },
   "summary": {
     "total_cards": 826,
-    "total_with_rules": 96,
+    "total_with_rules": 97,
     "test_or_synthetic_ids_with_rules": 26,
     "coverage_counts": {
       "covered_exact": 62,
       "supported_missing_rule": 568,
       "text_unclear": 19,
-      "missing_primitive": 80,
-      "covered_partial": 6,
+      "missing_primitive": 79,
+      "covered_partial": 7,
       "token_or_non_collectible": 91
     }
   },
@@ -194,8 +194,8 @@
       "covered": false
     },
     "瞬念召唤": {
-      "primitive": "INVOCATION (placeholder)",
-      "covered": false
+      "primitive": "Invocation deck scan / INVOKE trigger",
+      "covered": true
     },
     "奥义": {
       "primitive": "UNION_BURST (placeholder)",
@@ -222,7 +222,7 @@
       "covered": true
     },
     "回复": {
-      "primitive": "HEAL_LEADER",
+      "primitive": "HEAL_LEADER / HEAL_UNIT",
       "covered": true
     },
     "造成.*伤害": {
@@ -9151,10 +9151,11 @@
       "cost": 6,
       "is_collectible": true,
       "card_set_id": 10004,
-      "coverage": "missing_primitive",
-      "reason": "Missing primitives: ['瞬念召唤', '奥义']",
+      "coverage": "covered_partial",
+      "reason": "Partial rule. Triggers: ['invoke', 'invocation', 'emblem_source'], Ops: ['gain_emblem', 'return_to_hand', 'invocation', 'heal_unit', 'heal_leader']; unsupported: 【入场曲】【解放奥义】随机对敌方随从或敌方主战者造成2点伤害，发动5次。",
       "hit_keywords": [
         "入场曲",
+        "瞬念召唤",
         "回合开始",
         "造成.*伤害",
         "召唤",
@@ -9162,7 +9163,6 @@
         "纹章"
       ],
       "missing_primitives": [
-        "瞬念召唤",
         "奥义"
       ],
       "ability_keywords": [
@@ -9174,7 +9174,12 @@
       "skill_texts": [
         "在牌组中发动。自己的回合开始时，若本次对战中自己的随从的进化次数为6次或以上，则【<color=Keyword>瞬念召唤</color>】本卡牌。\n<hr>本卡牌被【<color=Keyword>瞬念召唤</color>】时，使自己获得『纹章：天司长的继承者·圣德芬』。本卡牌返回手牌。\n【<color=Keyword>入场曲</color>】【<color=Keyword>解放奥义</color>】发动5次「随机对对手的战场上的1个随从或对手的主战者造成2点伤害」。"
       ],
-      "support_level": "unsupported"
+      "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "partial",
+        "implemented_text": "在牌组中发动。自己的回合开始时，若本次对战中自己的随从的进化次数为6次或以上，则瞬念召唤本卡牌。被瞬念召唤时，获得倒数2、回合结束回复己方全体1点生命的纹章，并使本卡牌返回手牌。",
+        "unsupported_text": "【入场曲】【解放奥义】随机对敌方随从或敌方主战者造成2点伤害，发动5次。"
+      }
     },
     "10411110": {
       "card_id": 10411110,

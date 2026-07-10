@@ -668,6 +668,7 @@ class PlayerState:
     turns_started: int = 0
     evolved_this_turn: bool = False
     super_evolved_this_turn: bool = False
+    followers_evolved_this_match: int = 0
     cards_played_this_turn: int = 0
     followers_destroyed_this_turn: int = 0
     cooperation: int = 0

@@ -37,14 +37,20 @@ PRIMITIVE_KEYWORD_MAP = OrderedDict([
     ("策动", {"primitive": "ACTIVATE (placeholder)", "covered": False}),
     ("威慑", {"primitive": "INTIMIDATE (placeholder)", "covered": False}),
     ("灵气", {"primitive": "AURA (placeholder)", "covered": False}),
-    ("瞬念召唤", {"primitive": "INVOCATION (placeholder)", "covered": False}),
+    (
+        "瞬念召唤",
+        {
+            "primitive": "Invocation deck scan / INVOKE trigger",
+            "covered": True,
+        },
+    ),
     ("奥义", {"primitive": "UNION_BURST (placeholder)", "covered": False}),
     ("回合开始", {"primitive": "TURN_START trigger / Emblem", "covered": True}),
     ("回合结束", {"primitive": "TURN_END trigger / Emblem", "covered": True}),
     ("倒数", {"primitive": "COUNTDOWN / countdown", "covered": True}),
     ("抽取", {"primitive": "DRAW / DRAW_FILTERED", "covered": True}),
     ("将.*加入手牌", {"primitive": "ADD_CARD", "covered": True}),
-    ("回复", {"primitive": "HEAL_LEADER", "covered": True}),
+    ("回复", {"primitive": "HEAL_LEADER / HEAL_UNIT", "covered": True}),
     ("造成.*伤害", {"primitive": "DAMAGE_LEADER / DAMAGE_UNIT", "covered": True}),
     ("破坏", {"primitive": "DESTROY", "covered": True}),
     ("消失", {"primitive": "BANISH", "covered": True}),
@@ -221,6 +227,11 @@ def _build_coverage_report(db_path: str, rules_dir: str) -> dict:
         ruled_ops.setdefault(cid, {"triggers": [], "effect_kinds": []})
         ruled_ops[cid]["triggers"].append("fusion")
         ruled_ops[cid]["effect_kinds"].append("fusion")
+    for cid in rulebook._invocation_defs:
+        ruled_cards.add(cid)
+        ruled_ops.setdefault(cid, {"triggers": [], "effect_kinds": []})
+        ruled_ops[cid]["triggers"].append("invocation")
+        ruled_ops[cid]["effect_kinds"].append("invocation")
     for cid, passives in rulebook._passives.items():
         ruled_cards.add(cid)
         ruled_ops.setdefault(cid, {"triggers": [], "effect_kinds": []})
