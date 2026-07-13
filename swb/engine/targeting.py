@@ -212,6 +212,8 @@ def target_candidates(
     operation: EffectOperation,
     controller: int,
     players: list,
+    *,
+    source_entity_id: int | None = None,
 ) -> list[BoardCard]:
     target = operation.target
     own_board = players[controller].board
@@ -276,6 +278,12 @@ def target_candidates(
         candidates = [
             e for e in candidates
             if operation.board_filter.matches_entity(e)
+        ]
+
+    if operation.exclude_source and source_entity_id is not None:
+        candidates = [
+            entity for entity in candidates
+            if entity.entity_id != source_entity_id
         ]
 
     if is_manual_target(operation.target):

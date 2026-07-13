@@ -10,13 +10,13 @@ code and tests as the source of truth when this file drifts.
 - Database: 826 cards, 735 collectible cards, 91 non-collectible/generated
   cards from set `90000`.
 - Latest SVA source: `https://sva.hypd.asia/data/cards.json`.
-- Tests: `python -m unittest discover -s tests -v` currently runs 1118 tests.
+- Tests: `python -m unittest discover -s tests -v` currently runs 1122 tests.
 - RL adapter: fixed 111-action space and 290-feature observation.
 - Ability registry status: 18 implemented, 5 partial, 11 placeholder.
 - Explicit card and demo rules live in `data/rules/`; the current coverage
-  report classifies 117 card IDs with explicit rules, passives, fusion,
+  report classifies 118 card IDs with explicit rules, passives, fusion,
   invocation, activation, Faith, Union Burst, or listener definitions. Current
-  collectible coverage is 86 exact, 0 partial, 631 supported-but-missing-rule,
+  collectible coverage is 86 exact, 1 partial, 630 supported-but-missing-rule,
   0 missing-primitive, and 18 text-unclear cards.
 
 ## Stable Priorities
@@ -274,6 +274,12 @@ slice in this order:
   existing single handler path and removed abilities remain disabled. Exact
   `10143120` (`荣弦的天宫·龙芙`) demonstrates Overflow-gated effect evolution
   followed by its untagged evolve rule raising max PP.
+- `exclude_source` is a structured selected-board targeting policy carried by
+  the centralized candidate generator. It works across mixed follower/amulet
+  zones and multi-target choices; legality, target-exists, pending choices,
+  stale revalidation, fingerprints/invariants, and RL masks share the filtered
+  set. Real `10664120` demonstrates selecting three other board cards. Its
+  turn-end Faith payment/generated-card clause remains explicitly partial.
 - `UnionBurstDefinition` provides structured `奥义` and `解放奥义` operations
   at fixed gauges 10 and 15. Every hand card independently records evolutions
   completed while it remains in hand; both normal and super evolution count,

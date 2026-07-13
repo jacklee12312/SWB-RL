@@ -2031,6 +2031,16 @@ def _parse_operation(
             f"{error_prefix}: allow_duplicate_targets and allow_duplicates conflict"
         )
     allow_duplicate_targets = duplicate_values[0] if duplicate_values else False
+    exclude_source = raw.get("exclude_source", False)
+    if not isinstance(exclude_source, bool):
+        raise ValueError(
+            f"{source_file}/exclude_source card {card_id}: must be boolean"
+        )
+    if exclude_source and target not in _MULTI_TARGET_TARGETS:
+        raise ValueError(
+            f"{source_file}/exclude_source card {card_id}: requires a "
+            "selected board-entity target"
+        )
     has_multi_target_fields = (
         raw_target_count is not None
         or raw_target_count_expr is not None
@@ -2939,6 +2949,7 @@ def _parse_operation(
         target_count=target_count,
         target_count_expr=target_count_expr,
         allow_duplicate_targets=allow_duplicate_targets,
+        exclude_source=exclude_source,
     )
 
 

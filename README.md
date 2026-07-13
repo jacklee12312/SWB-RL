@@ -192,6 +192,10 @@ The deterministic rules core supports:
 - structured `target_exists` no-target branches that reuse normal target
   candidate generation before queuing a then/else effect branch, including
   unit-or-leader fallback targets when no target-dependent condition is present;
+- selected board targets support explicit dynamic source exclusion across
+  follower/amulet mixed zones and multi-target choices. The same filtered
+  candidate set drives play legality, commands, pending choices, revalidation,
+  and RL masks; `10664120` demonstrates its verified three-other-card Fanfare;
 - countdown amulets, explicit last words, fanfare/play rules, attack/clash,
   evolve/super-evolve, turn-start/turn-end triggers, and trigger continuations
   that can pause for choices. Exact `10713110` uses a source-in-play turn-end
@@ -285,6 +289,9 @@ Known broad gaps include:
   structured abilities. Mode selection, Enhance play, named-follower entry,
   amulet-destruction progression, and the shared five-slot leader-area limit
   remain explicit unsupported edges;
+- `10664120` has exact mixed-board source-excluding Fanfare targeting, but its
+  turn-end Faith payment and generated `天书深渊` workflow remain explicitly
+  partial pending the shared-Faith identity and generated-card audit;
 - Fusion-driven hand transforms and refusion are implemented. Other cards can
   listen to `card_fused`, but their individual reactions and later generated
   Artifact end-form abilities still require audited structured rules;

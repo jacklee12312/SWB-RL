@@ -1,8 +1,9 @@
 from __future__ import annotations
 
+import os
 import unittest
 
-from swb.db.repository import CardDefinition
+from swb.db.repository import CardDefinition, CardRepository
 from swb.engine.card_rules import CardRule, RuleBook, Trigger
 from swb.engine.commands import Choose, PlayCard, EndTurn
 from swb.engine.effects import (
@@ -15,9 +16,10 @@ from swb.engine.effects import (
     TargetKind,
     ValueExpression,
 )
+from swb.engine.environment import ShadowverseEnv
 from swb.engine.events import EventType
 from swb.engine.resolution import GameEngine, IllegalCommand
-from swb.engine.state import Amulet, Phase, Unit
+from swb.engine.state import Amulet, HandCard, Phase, Unit
 
 
 def card(
@@ -454,6 +456,37 @@ class TargetingTests(unittest.TestCase):
                     allow_duplicates,
                 )
 
+    def test_source_exclusion_schema_is_explicit_and_board_only(self):
+        from swb.engine.card_rules import _parse_operation
+
+        operation = _parse_operation(
+            {
+                "kind": "destroy",
+                "target": "any_board",
+                "target_count": 3,
+                "exclude_source": True,
+            },
+            "test.json/operations[0]",
+            1,
+        )
+        self.assertTrue(operation.exclude_source)
+        for invalid in (
+            {
+                "kind": "draw",
+                "target": "own_leader",
+                "amount": 1,
+                "exclude_source": True,
+            },
+            {
+                "kind": "destroy",
+                "target": "any_board",
+                "exclude_source": "yes",
+            },
+        ):
+            with self.subTest(invalid=invalid):
+                with self.assertRaises(ValueError):
+                    _parse_operation(invalid, "test.json/operations[0]", 1)
+
     def test_preselected_multi_target_payload_fields_remain_unsupported(self):
         from swb.engine.card_rules import _parse_operation
 
@@ -607,6 +640,180 @@ class TargetingTests(unittest.TestCase):
         engine.apply(Choose(0, f"entity:{targets[1].entity_id}"))
         self.assertIsNone(engine.state.pending_choice)
         self.assertEqual([target.health for target in targets], [3, 3])
+
+    def test_mixed_board_multi_target_excludes_source_from_legality_and_choice(self):
+        operation = EffectOperation(
+            EffectKind.DESTROY,
+            TargetKind.ANY_BOARD,
+            target_count=3,
+            exclude_source=True,
+        )
+        rulebook = RuleBook((
+            CardRule(1, Trigger.FANFARE, (operation,)),
+        ))
+        engine = GameEngine(
+            [card(index) for index in range(100, 140)],
+            [card(index) for index in range(200, 240)],
+            class_a=1,
+            class_b=1,
+            seed=17,
+            rulebook=rulebook,
+        )
+        engine.reset(seed=17)
+        own_unit = Unit.summon(
+            card(901), entity_id=engine.state.allocate_entity_id()
+        )
+        own_amulet = Amulet(
+            definition=card(902, card_type="护符", attack=None, life=None),
+            entity_id=engine.state.allocate_entity_id(),
+        )
+        enemy_unit = Unit.summon(
+            card(903), entity_id=engine.state.allocate_entity_id()
+        )
+        enemy_amulet = Amulet(
+            definition=card(904, card_type="护符", attack=None, life=None),
+            entity_id=engine.state.allocate_entity_id(),
+        )
+        engine.players[0].board = [own_unit, own_amulet]
+        engine.players[1].board = [enemy_unit, enemy_amulet]
+        engine.players[0].hand[0] = card(1)
+        engine.players[0].max_mana = engine.players[0].mana = 10
+
+        engine.apply(PlayCard(0, 0))
+
+        source = next(
+            entity for entity in engine.players[0].board
+            if entity.definition.card_id == 1
+        )
+        request = engine.state.pending_choice
+        self.assertEqual(request.target_count, 3)
+        option_ids = {option.option_id for option in request.options}
+        self.assertNotIn(f"entity:{source.entity_id}", option_ids)
+        self.assertEqual(len(option_ids), 4)
+        self.assertNotIn(
+            Choose(0, f"entity:{source.entity_id}"),
+            engine.legal_commands(),
+        )
+        for option in request.options[:3]:
+            engine.apply(Choose(0, option.option_id))
+        self.assertIn(source, engine.players[0].board)
+        self.assertIsNone(engine.state.pending_choice)
+
+    def test_source_excluding_choice_and_rl_mask_share_option_set(self):
+        operation = EffectOperation(
+            EffectKind.DESTROY,
+            TargetKind.ANY_BOARD,
+            target_count=3,
+            exclude_source=True,
+        )
+        rulebook = RuleBook((CardRule(1, Trigger.FANFARE, (operation,)),))
+        env = ShadowverseEnv(
+            [card(index) for index in range(100, 140)],
+            [card(index) for index in range(200, 240)],
+            class_a=1,
+            class_b=1,
+            seed=29,
+            rulebook=rulebook,
+        )
+        env.reset(seed=29)
+        env.players[0].board = [
+            Unit.summon(card(921), entity_id=env.core.state.allocate_entity_id()),
+            Amulet(
+                definition=card(922, card_type="护符", attack=None, life=None),
+                entity_id=env.core.state.allocate_entity_id(),
+            ),
+        ]
+        env.players[1].board = [
+            Unit.summon(card(923), entity_id=env.core.state.allocate_entity_id()),
+            Amulet(
+                definition=card(924, card_type="护符", attack=None, life=None),
+                entity_id=env.core.state.allocate_entity_id(),
+            ),
+        ]
+        env.players[0].hand[0] = card(1)
+        env.players[0].max_mana = env.players[0].mana = 10
+
+        result = env.step(ShadowverseEnv.PLAY_OFFSET)
+
+        request = env.core.state.pending_choice
+        source = next(
+            entity for entity in env.players[0].board
+            if entity.definition.card_id == 1
+        )
+        self.assertNotIn(
+            f"entity:{source.entity_id}",
+            {option.option_id for option in request.options},
+        )
+        choice_mask = result.info["action_mask"][
+            ShadowverseEnv.CHOICE_OFFSET:
+            ShadowverseEnv.GRAVEYARD_CHOICE_OFFSET
+        ]
+        self.assertEqual(choice_mask[:5], [True, True, True, True, False])
+
+    @unittest.skipUnless(os.path.exists("data/cards.sqlite3"), "card database unavailable")
+    def test_real_lyanthoth_selects_three_other_mixed_board_cards(self):
+        repo = CardRepository("data/cards.sqlite3")
+        rulebook = RuleBook.from_directory("data/rules")
+        engine = GameEngine(
+            [card(index) for index in range(100, 140)],
+            [card(index) for index in range(200, 240)],
+            class_a=1,
+            class_b=1,
+            seed=23,
+            rulebook=rulebook,
+            card_resolver=repo.get,
+        )
+        engine.reset(seed=23)
+        own_unit = Unit.summon(
+            card(911), entity_id=engine.state.allocate_entity_id()
+        )
+        own_amulet = Amulet(
+            definition=card(912, card_type="护符", attack=None, life=None),
+            entity_id=engine.state.allocate_entity_id(),
+        )
+        enemy_unit = Unit.summon(
+            card(913), entity_id=engine.state.allocate_entity_id()
+        )
+        enemy_amulet = Amulet(
+            definition=card(914, card_type="护符", attack=None, life=None),
+            entity_id=engine.state.allocate_entity_id(),
+        )
+        engine.players[0].board = [own_unit, own_amulet]
+        engine.players[1].board = [enemy_unit, enemy_amulet]
+        source_definition = repo.get(10664120)
+        source = HandCard(
+            source_definition,
+            engine.state.allocate_entity_id(),
+        )
+        engine.players[0].hand = [source]
+        engine.players[0].hand_entity_ids = [source.entity_id]
+        engine.players[0].max_mana = engine.players[0].mana = 10
+
+        engine.apply(PlayCard(0, 0))
+
+        source_unit = next(
+            entity for entity in engine.players[0].board
+            if entity.definition.card_id == 10664120
+        )
+        request = engine.state.pending_choice
+        self.assertEqual(request.target_count, 3)
+        self.assertNotIn(
+            f"entity:{source_unit.entity_id}",
+            {option.option_id for option in request.options},
+        )
+        selected = request.options[:3]
+        for option in selected:
+            engine.apply(Choose(0, option.option_id))
+
+        self.assertIn(source_unit, engine.players[0].board)
+        self.assertIsNone(engine.state.pending_choice)
+        remaining_other_ids = {
+            entity.entity_id
+            for player in engine.players
+            for entity in player.board
+            if entity.entity_id != source_unit.entity_id
+        }
+        self.assertEqual(len(remaining_other_ids), 1)
 
     def test_multi_target_choice_uses_available_count_when_targets_are_short(self):
         engine, targets = self._multi_target_engine(

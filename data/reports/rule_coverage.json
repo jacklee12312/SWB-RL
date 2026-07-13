@@ -5,12 +5,13 @@
   },
   "summary": {
     "total_cards": 826,
-    "total_with_rules": 117,
+    "total_with_rules": 118,
     "test_or_synthetic_ids_with_rules": 26,
     "coverage_counts": {
       "covered_exact": 86,
-      "supported_missing_rule": 631,
+      "supported_missing_rule": 630,
       "text_unclear": 18,
+      "covered_partial": 1,
       "token_or_non_collectible": 91
     }
   },
@@ -14736,8 +14737,8 @@
       "cost": 9,
       "is_collectible": true,
       "card_set_id": 10006,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '回合结束', '将.*加入手牌', '破坏', '信仰']",
+      "coverage": "covered_partial",
+      "reason": "Partial rule. Triggers: ['fanfare'], Ops: ['destroy']; unsupported: 自己的回合结束时，信仰值-10，将1张『天书深渊』加入手牌。",
       "hit_keywords": [
         "入场曲",
         "回合结束",
@@ -14757,7 +14758,12 @@
       "skill_texts": [
         "【<color=Keyword>入场曲</color>】选择战场上的3张其他卡牌，破坏这些卡牌。\n<hr>【<color=Keyword>守护</color>】\n自己的回合结束时，信仰值-10，将1张『<color=Keyword>天书深渊</color>』加入手牌。"
       ],
-      "support_level": "unsupported"
+      "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "partial",
+        "implemented_text": "入场曲：选择战场上的3张其他卡牌，破坏这些卡牌。守护。",
+        "unsupported_text": "自己的回合结束时，信仰值-10，将1张『天书深渊』加入手牌。"
+      }
     },
     "10671110": {
       "card_id": 10671110,

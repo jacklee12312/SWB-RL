@@ -16,6 +16,21 @@
   ],
   "rules": [
     {
+      "card_id": 10664120,
+      "trigger": "fanfare",
+      "coverage": "partial",
+      "implemented_text": "入场曲：选择战场上的3张其他卡牌，破坏这些卡牌。守护。",
+      "unsupported_text": "自己的回合结束时，信仰值-10，将1张『天书深渊』加入手牌。",
+      "operations": [
+        {
+          "kind": "destroy",
+          "target": "any_board",
+          "target_count": 3,
+          "exclude_source": true
+        }
+      ]
+    },
+    {
       "card_id": 90014330,
       "trigger": "play",
       "operations": [

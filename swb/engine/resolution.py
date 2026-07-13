@@ -2041,6 +2041,7 @@ class GameEngine:
             "requires_target": operation.requires_target,
             "target_count": operation.target_count,
             "allow_duplicate_targets": operation.allow_duplicate_targets,
+            "exclude_source": operation.exclude_source,
         }
         if operation.card_id is not None:
             summary["card_id"] = operation.card_id
@@ -2848,6 +2849,7 @@ class GameEngine:
             operation.target_count,
             self._expression_fingerprint(operation.target_count_expr),
             operation.allow_duplicate_targets,
+            operation.exclude_source,
         )
 
     def _condition_fingerprint(
@@ -3745,7 +3747,12 @@ class GameEngine:
                     frame.defer_stabilize = False
                     frame.next_index += 1
                     continue
-                candidates = target_candidates(operation, frame.controller, self.players)
+                candidates = target_candidates(
+                    operation,
+                    frame.controller,
+                    self.players,
+                    source_entity_id=frame.source_entity_id,
+                )
                 if (
                     condition_state is PartialConditionResult.DEPENDS_ON_TARGET
                 ):
@@ -3790,7 +3797,12 @@ class GameEngine:
                     self._resolve_event_queue()
                     self._stabilize()
                     continue
-                candidates = target_candidates(operation, frame.controller, self.players)
+                candidates = target_candidates(
+                    operation,
+                    frame.controller,
+                    self.players,
+                    source_entity_id=frame.source_entity_id,
+                )
                 if (
                     condition_state is PartialConditionResult.DEPENDS_ON_TARGET
                 ):
@@ -3953,7 +3965,12 @@ class GameEngine:
         )
         if condition_state is PartialConditionResult.FALSE:
             return True
-        candidates = target_candidates(operation, controller, self.players)
+        candidates = target_candidates(
+            operation,
+            controller,
+            self.players,
+            source_entity_id=source_entity_id,
+        )
         if is_choice_target(operation.target):
             candidates = [
                 e for e in candidates
@@ -4048,7 +4065,12 @@ class GameEngine:
             return bool(self._hand_cards(controller))
         if is_graveyard_target(operation.target):
             return bool(graveyard_candidates(operation, controller, self.players))
-        candidates = target_candidates(operation, controller, self.players)
+        candidates = target_candidates(
+            operation,
+            controller,
+            self.players,
+            source_entity_id=source_entity_id,
+        )
         if is_choice_target(operation.target):
             candidates = [
                 e for e in candidates
@@ -4077,14 +4099,23 @@ class GameEngine:
         )
 
     def _target_options(
-        self, operation: EffectOperation, controller: int
+        self,
+        operation: EffectOperation,
+        controller: int,
+        *,
+        source_entity_id: int | None = None,
     ) -> list[ChoiceOption]:
         if operation.target == TargetKind.OWN_HAND:
             return hand_choice_options(self.players[controller])
         if is_graveyard_target(operation.target):
             gc = graveyard_candidates(operation, controller, self.players)
             return build_graveyard_choice_options(gc)
-        candidates = target_candidates(operation, controller, self.players)
+        candidates = target_candidates(
+            operation,
+            controller,
+            self.players,
+            source_entity_id=source_entity_id,
+        )
         candidates = [e for e in candidates if not (isinstance(e, Unit) and e.ambush_active and self._entity_owner(e.entity_id) != controller)]
         options = build_choice_options(candidates)
         options.extend(leader_choice_options(operation.target, controller))
@@ -4098,9 +4129,18 @@ class GameEngine:
         if is_graveyard_target(operation.target):
             gc = graveyard_candidates(operation, frame.controller, self.players)
             return build_graveyard_choice_options(gc)
-        options = self._target_options(operation, frame.controller)
+        options = self._target_options(
+            operation,
+            frame.controller,
+            source_entity_id=frame.source_entity_id,
+        )
         if operation.conditions:
-            candidates = target_candidates(operation, frame.controller, self.players)
+            candidates = target_candidates(
+                operation,
+                frame.controller,
+                self.players,
+                source_entity_id=frame.source_entity_id,
+            )
             candidates = [
                 e for e in candidates
                 if not (
@@ -6550,7 +6590,12 @@ class GameEngine:
             or is_random_target(operation.target)
             or is_all_target(operation.target)
         ):
-            candidates = target_candidates(operation, controller, self.players)
+            candidates = target_candidates(
+                operation,
+                controller,
+                self.players,
+                source_entity_id=source_entity_id,
+            )
             if is_choice_target(operation.target):
                 candidates = [
                     entity for entity in candidates
@@ -9575,6 +9620,10 @@ class GameEngine:
                 if not isinstance(operation.allow_duplicate_targets, bool):
                     raise IllegalCommand(
                         f"Invariant failed: {operation_zone} duplicate-target policy is invalid"
+                    )
+                if not isinstance(operation.exclude_source, bool):
+                    raise IllegalCommand(
+                        f"Invariant failed: {operation_zone} source-exclusion policy is invalid"
                     )
                 if operation.kind is EffectKind.CONSUME_FAITH:
                     if (

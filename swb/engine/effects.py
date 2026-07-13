@@ -306,6 +306,7 @@ class EffectOperation:
     target_count: int = 1
     target_count_expr: ValueExpression | None = None
     allow_duplicate_targets: bool = False
+    exclude_source: bool = False
 
 
 @dataclass
