@@ -20,34 +20,95 @@
 | text_unclear | 18 |
 | token_or_non_collectible | 91 |
 
-## Rule Consistency Issues
+### Clause Audit
 
-- **999001**: card_id_not_in_database — Card 999001 has rules but is not in the database
-- **999002**: card_id_not_in_database — Card 999002 has rules but is not in the database
-- **999101**: card_id_not_in_database — Card 999101 has rules but is not in the database
-- **999102**: card_id_not_in_database — Card 999102 has rules but is not in the database
-- **999103**: card_id_not_in_database — Card 999103 has rules but is not in the database
-- **999801**: card_id_not_in_database — Card 999801 has rules but is not in the database
-- **999802**: card_id_not_in_database — Card 999802 has rules but is not in the database
-- **999803**: card_id_not_in_database — Card 999803 has rules but is not in the database
-- **999804**: card_id_not_in_database — Card 999804 has rules but is not in the database
-- **999805**: card_id_not_in_database — Card 999805 has rules but is not in the database
-- **999806**: card_id_not_in_database — Card 999806 has rules but is not in the database
-- **999901**: card_id_not_in_database — Card 999901 has rules but is not in the database
-- **999902**: card_id_not_in_database — Card 999902 has rules but is not in the database
-- **999903**: card_id_not_in_database — Card 999903 has rules but is not in the database
-- **999910**: card_id_not_in_database — Card 999910 has rules but is not in the database
-- **999911**: card_id_not_in_database — Card 999911 has rules but is not in the database
-- **999912**: card_id_not_in_database — Card 999912 has rules but is not in the database
-- **999913**: card_id_not_in_database — Card 999913 has rules but is not in the database
-- **999914**: card_id_not_in_database — Card 999914 has rules but is not in the database
-- **999950**: card_id_not_in_database — Card 999950 has rules but is not in the database
-- **999951**: card_id_not_in_database — Card 999951 has rules but is not in the database
-- **999952**: card_id_not_in_database — Card 999952 has rules but is not in the database
-- **999953**: card_id_not_in_database — Card 999953 has rules but is not in the database
-- **999954**: card_id_not_in_database — Card 999954 has rules but is not in the database
-- **999955**: card_id_not_in_database — Card 999955 has rules but is not in the database
-- **999956**: card_id_not_in_database — Card 999956 has rules but is not in the database
+| Clause status | Count |
+|---|---:|
+| unverified_exact | 64 |
+| missing_rule | 630 |
+| text_unclear | 18 |
+| mapped_exact | 23 |
+| token_separate_audit | 91 |
+
+### Blocker Types
+
+| Blocker | Count |
+|---|---:|
+| missing_rule | 630 |
+| missing_schema | 0 |
+| missing_primitive | 0 |
+| missing_targeting | 0 |
+| timing_unclear | 0 |
+| text_unclear | 18 |
+| external_blocker | 0 |
+| audit_unverified | 64 |
+
+## Exact-Coverage Clause Audit Issues
+
+- **10001110**: covered_exact_without_clause_evidence — missing explicit_exact_annotation, implemented_text
+- **10011120**: covered_exact_without_clause_evidence — missing explicit_exact_annotation, implemented_text
+- **10011130**: covered_exact_without_clause_evidence — missing explicit_exact_annotation, implemented_text, test_evidence
+- **10012120**: covered_exact_without_clause_evidence — missing explicit_exact_annotation, implemented_text
+- **10012310**: covered_exact_without_clause_evidence — missing explicit_exact_annotation, implemented_text
+- **10021310**: covered_exact_without_clause_evidence — missing explicit_exact_annotation, implemented_text
+- **10022110**: covered_exact_without_clause_evidence — missing explicit_exact_annotation, implemented_text
+- **10031210**: covered_exact_without_clause_evidence — missing explicit_exact_annotation, implemented_text
+- **10031310**: covered_exact_without_clause_evidence — missing explicit_exact_annotation, implemented_text
+- **10031320**: covered_exact_without_clause_evidence — missing explicit_exact_annotation, implemented_text
+- **10032310**: covered_exact_without_clause_evidence — missing explicit_exact_annotation, implemented_text
+- **10041110**: covered_exact_without_clause_evidence — missing explicit_exact_annotation, implemented_text
+- **10041130**: covered_exact_without_clause_evidence — missing explicit_exact_annotation, implemented_text
+- **10041310**: covered_exact_without_clause_evidence — missing explicit_exact_annotation, implemented_text
+- **10051120**: covered_exact_without_clause_evidence — missing explicit_exact_annotation, implemented_text
+- **10051130**: covered_exact_without_clause_evidence — missing explicit_exact_annotation, implemented_text
+- **10051310**: covered_exact_without_clause_evidence — missing explicit_exact_annotation, implemented_text
+- **10052110**: covered_exact_without_clause_evidence — missing explicit_exact_annotation, implemented_text
+- **10052310**: covered_exact_without_clause_evidence — missing explicit_exact_annotation, implemented_text
+- **10061110**: covered_exact_without_clause_evidence — missing explicit_exact_annotation, implemented_text, test_evidence
+- **10111310**: covered_exact_without_clause_evidence — missing explicit_exact_annotation, implemented_text
+- **10112120**: covered_exact_without_clause_evidence — missing explicit_exact_annotation, implemented_text
+- **10121310**: covered_exact_without_clause_evidence — missing explicit_exact_annotation, implemented_text
+- **10132320**: covered_exact_without_clause_evidence — missing explicit_exact_annotation, implemented_text
+- **10151310**: covered_exact_without_clause_evidence — missing explicit_exact_annotation, implemented_text
+- **10153140**: covered_exact_without_clause_evidence — missing explicit_exact_annotation, implemented_text
+- **10153310**: covered_exact_without_clause_evidence — missing explicit_exact_annotation, implemented_text
+- **10161130**: covered_exact_without_clause_evidence — missing explicit_exact_annotation, implemented_text, test_evidence
+- **10162120**: covered_exact_without_clause_evidence — missing explicit_exact_annotation, implemented_text, test_evidence
+- **10171310**: covered_exact_without_clause_evidence — missing explicit_exact_annotation, implemented_text
+- **10171320**: covered_exact_without_clause_evidence — missing explicit_exact_annotation, implemented_text
+- **10172310**: covered_exact_without_clause_evidence — missing explicit_exact_annotation, implemented_text
+- **10213310**: covered_exact_without_clause_evidence — missing explicit_exact_annotation, implemented_text
+- **10214110**: covered_exact_without_clause_evidence — missing explicit_exact_annotation, implemented_text
+- **10221310**: covered_exact_without_clause_evidence — missing explicit_exact_annotation, implemented_text
+- **10231120**: covered_exact_without_clause_evidence — missing explicit_exact_annotation, implemented_text
+- **10243310**: covered_exact_without_clause_evidence — missing explicit_exact_annotation, implemented_text
+- **10251120**: covered_exact_without_clause_evidence — missing explicit_exact_annotation, implemented_text
+- **10251310**: covered_exact_without_clause_evidence — missing explicit_exact_annotation, implemented_text
+- **10252310**: covered_exact_without_clause_evidence — missing explicit_exact_annotation, implemented_text
+- **10301310**: covered_exact_without_clause_evidence — missing explicit_exact_annotation, implemented_text
+- **10311310**: covered_exact_without_clause_evidence — missing explicit_exact_annotation, implemented_text
+- **10321310**: covered_exact_without_clause_evidence — missing explicit_exact_annotation, implemented_text
+- **10351120**: covered_exact_without_clause_evidence — missing explicit_exact_annotation, implemented_text
+- **10404110**: covered_exact_without_clause_evidence — missing explicit_exact_annotation, implemented_text
+- **10411310**: covered_exact_without_clause_evidence — missing explicit_exact_annotation, implemented_text
+- **10431120**: covered_exact_without_clause_evidence — missing explicit_exact_annotation, implemented_text, test_evidence
+- **10442310**: covered_exact_without_clause_evidence — missing explicit_exact_annotation, implemented_text
+- **10472310**: covered_exact_without_clause_evidence — missing explicit_exact_annotation, implemented_text
+- **10521310**: covered_exact_without_clause_evidence — missing explicit_exact_annotation, implemented_text
+- **10531310**: covered_exact_without_clause_evidence — missing explicit_exact_annotation, implemented_text
+- **10551120**: covered_exact_without_clause_evidence — missing explicit_exact_annotation, implemented_text
+- **10571310**: covered_exact_without_clause_evidence — missing explicit_exact_annotation, implemented_text
+- **10601110**: covered_exact_without_clause_evidence — missing explicit_exact_annotation, implemented_text
+- **10631310**: covered_exact_without_clause_evidence — missing explicit_exact_annotation, implemented_text
+- **10632310**: covered_exact_without_clause_evidence — missing explicit_exact_annotation, implemented_text
+- **10642310**: covered_exact_without_clause_evidence — missing explicit_exact_annotation, implemented_text
+- **10651110**: covered_exact_without_clause_evidence — missing explicit_exact_annotation, implemented_text
+- **10661310**: covered_exact_without_clause_evidence — missing explicit_exact_annotation, implemented_text
+- **10671110**: covered_exact_without_clause_evidence — missing explicit_exact_annotation, implemented_text
+- **10671310**: covered_exact_without_clause_evidence — missing explicit_exact_annotation, implemented_text
+- **10711310**: covered_exact_without_clause_evidence — missing explicit_exact_annotation, implemented_text
+- **10721310**: covered_exact_without_clause_evidence — missing explicit_exact_annotation, implemented_text
+- **10732120**: covered_exact_without_clause_evidence — missing explicit_exact_annotation, implemented_text
 
 ## Primitive Keyword Map
 

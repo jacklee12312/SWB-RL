@@ -81,13 +81,105 @@ class CoverageReportTests(unittest.TestCase):
         self.assertEqual(keys1, keys2)
 
     def test_test_ids_recognized(self):
-        """Synthetic card IDs in rules (999xxx) are detected in issues."""
+        """Synthetic IDs are counted without becoming consistency issues."""
         from scripts.report_rule_coverage import _build_coverage_report
         report = _build_coverage_report(self.db_path, self.rules_dir)
         issues = report.get("rule_consistency_issues", [])
         unknown_ids = [i["card_id"] for i in issues]
-        found = any(999000 <= cid <= 999999 for cid in unknown_ids)
-        self.assertTrue(found, f"No synthetic IDs found in rule issues. Issues: {issues[:3]}")
+        self.assertFalse(any(999000 <= cid <= 999999 for cid in unknown_ids))
+        self.assertGreater(
+            report["summary"]["test_or_synthetic_ids_with_rules"],
+            0,
+        )
+
+    def test_clause_audit_flags_unverified_exact_rules(self):
+        from scripts.report_rule_coverage import _build_coverage_report
+
+        report = _build_coverage_report(self.db_path, self.rules_dir)
+        unverified = [
+            info for info in report["classifications"].values()
+            if info["clause_audit"]["status"] == "unverified_exact"
+        ]
+        self.assertTrue(unverified)
+        self.assertEqual(
+            len(unverified),
+            report["summary"]["clause_audit_counts"]["unverified_exact"],
+        )
+        self.assertEqual(
+            len(unverified),
+            len(report["clause_audit_issues"]),
+        )
+
+    def test_explicit_exact_rules_map_text_rules_and_tests(self):
+        from scripts.report_rule_coverage import _build_coverage_report
+
+        report = _build_coverage_report(self.db_path, self.rules_dir)
+        mapped = [
+            info for info in report["classifications"].values()
+            if info["clause_audit"]["status"] == "mapped_exact"
+        ]
+        self.assertTrue(mapped)
+        for info in mapped:
+            with self.subTest(card_id=info["card_id"]):
+                audit = info["clause_audit"]
+                self.assertTrue(audit["implemented_text"])
+                self.assertTrue(audit["test_evidence"])
+                self.assertIn("triggers", audit["structured_evidence"])
+                self.assertIn("effect_kinds", audit["structured_evidence"])
+                self.assertEqual(audit["rule_version"], 1)
+
+    def test_source_snapshot_detects_database_refreshes(self):
+        from scripts.report_rule_coverage import _build_coverage_report
+
+        report = _build_coverage_report(self.db_path, self.rules_dir)
+        snapshot = report["generated_from"]["source_snapshot"]
+        self.assertEqual(snapshot["card_count"], 826)
+        self.assertEqual(len(snapshot["sha256"]), 64)
+
+    def test_blocker_taxonomy_is_explicit_and_complete(self):
+        from scripts.report_rule_coverage import BLOCKER_TYPES, _build_coverage_report
+
+        report = _build_coverage_report(self.db_path, self.rules_dir)
+        self.assertEqual(
+            tuple(report["summary"]["blocker_counts"]),
+            BLOCKER_TYPES,
+        )
+        self.assertEqual(
+            report["summary"]["blocker_counts"]["audit_unverified"],
+            report["summary"]["clause_audit_counts"]["unverified_exact"],
+        )
+        self.assertEqual(
+            report["summary"]["blocker_counts"]["missing_rule"],
+            report["summary"]["coverage_counts"]["supported_missing_rule"],
+        )
+
+    def test_metadata_supports_rule_versions_errata_and_blockers(self):
+        import json
+        import tempfile
+        from pathlib import Path
+        from scripts.report_rule_coverage import _load_rule_metadata
+
+        with tempfile.TemporaryDirectory() as tmp:
+            Path(tmp, "versioned.json").write_text(
+                json.dumps({
+                    "rules": [{
+                        "card_id": 123,
+                        "trigger": "play",
+                        "coverage": "partial",
+                        "rule_version": 2,
+                        "errata": ["2026-07 official wording update"],
+                        "blocker_type": "timing_unclear",
+                        "unsupported_text": "resolve order pending ruling",
+                        "operations": [],
+                    }]
+                }),
+                encoding="utf-8",
+            )
+            metadata = _load_rule_metadata(tmp)[123]
+
+        self.assertEqual(metadata["rule_version"], 2)
+        self.assertEqual(metadata["errata"], ["2026-07 official wording update"])
+        self.assertEqual(metadata["blocker_type"], "timing_unclear")
 
     def test_real_card_ids_exist(self):
         """Cards in rules that exist in DB are properly classified."""

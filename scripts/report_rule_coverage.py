@@ -126,6 +126,17 @@ PRIMITIVE_KEYWORD_MAP = OrderedDict([
     ("选择一项|模式", {"primitive": "CHOOSE_ONE / OPTIONAL", "covered": True}),
 ])
 
+BLOCKER_TYPES = (
+    "missing_rule",
+    "missing_schema",
+    "missing_primitive",
+    "missing_targeting",
+    "timing_unclear",
+    "text_unclear",
+    "external_blocker",
+    "audit_unverified",
+)
+
 
 def _classify_card(
     card: CardDefinition,
@@ -259,6 +270,7 @@ def _build_coverage_report(db_path: str, rules_dir: str) -> dict:
     rulebook = RuleBook.from_directory(rules_dir)
 
     all_cards: dict[int, CardDefinition] = {}
+    source_snapshot: dict[str, object] = {}
     try:
         with closing(sqlite3.connect(db_path)) as conn:
             conn.row_factory = sqlite3.Row
@@ -268,6 +280,12 @@ def _build_coverage_report(db_path: str, rules_dir: str) -> dict:
                     all_cards[cid] = repo.get(cid)
                 except Exception:
                     continue
+            source_row = conn.execute(
+                "SELECT source_url, fetched_at, sha256, card_count "
+                "FROM source_imports ORDER BY id DESC LIMIT 1"
+            ).fetchone()
+            if source_row is not None:
+                source_snapshot = dict(source_row)
     except Exception as e:
         raise RuntimeError(f"Failed to read database: {e}")
 
@@ -393,6 +411,91 @@ def _build_coverage_report(db_path: str, rules_dir: str) -> dict:
             union_burst_cards=set(rulebook._union_burst_defs),
         )
 
+    test_sources = {
+        path.as_posix(): path.read_text(encoding="utf-8", errors="ignore")
+        for path in sorted(Path("tests").glob("test_*.py"))
+    }
+    clause_counts: dict[str, int] = {}
+    blocker_counts: dict[str, int] = {kind: 0 for kind in BLOCKER_TYPES}
+    clause_issues: list[dict] = []
+    for cid_text, classification in classifications.items():
+        cid = int(cid_text)
+        metadata = rule_metadata.get(cid, {})
+        evidence = [
+            path for path, source in test_sources.items()
+            if cid_text in source
+        ]
+        coverage = classification["coverage"]
+        if coverage == "token_or_non_collectible":
+            audit_status = "token_separate_audit"
+        elif coverage == "covered_exact":
+            if metadata.get("coverage") == "exact" and metadata.get("implemented_text") and evidence:
+                audit_status = "mapped_exact"
+            else:
+                audit_status = "unverified_exact"
+                missing = []
+                if metadata.get("coverage") != "exact":
+                    missing.append("explicit_exact_annotation")
+                if not metadata.get("implemented_text"):
+                    missing.append("implemented_text")
+                if not evidence:
+                    missing.append("test_evidence")
+                clause_issues.append({
+                    "card_id": cid,
+                    "issue": "covered_exact_without_clause_evidence",
+                    "missing": missing,
+                })
+        elif coverage == "covered_partial":
+            audit_status = "partial"
+        elif coverage == "supported_missing_rule":
+            audit_status = "missing_rule"
+        elif coverage == "missing_primitive":
+            audit_status = "missing_primitive"
+        else:
+            audit_status = "text_unclear"
+        clause_counts[audit_status] = clause_counts.get(audit_status, 0) + 1
+        classification["clause_audit"] = {
+            "status": audit_status,
+            "rule_version": metadata.get("rule_version", 1),
+            "errata": metadata.get("errata", []),
+            "source_clauses": [
+                {
+                    "clause_id": f"{cid}:{index}",
+                    "source_text": text,
+                    "mapping_status": (
+                        "implemented"
+                        if audit_status == "mapped_exact"
+                        else audit_status
+                    ),
+                }
+                for index, text in enumerate(classification.get("skill_texts", []))
+            ],
+            "implemented_text": metadata.get("implemented_text"),
+            "unsupported_text": metadata.get("unsupported_text"),
+            "structured_evidence": ruled_ops.get(cid, {"triggers": [], "effect_kinds": []}),
+            "test_evidence": evidence,
+            "blocker_type": metadata.get(
+                "blocker_type",
+                (
+                    "audit_unverified"
+                    if audit_status == "unverified_exact"
+                    else {
+                    "covered_partial": "missing_schema",
+                    "supported_missing_rule": "missing_rule",
+                    "missing_primitive": "missing_primitive",
+                    "text_unclear": "text_unclear",
+                    }.get(coverage)
+                ),
+            ),
+        }
+        blocker = classification["clause_audit"]["blocker_type"]
+        if blocker is not None:
+            if blocker not in blocker_counts:
+                raise ValueError(
+                    f"card {cid}: unsupported blocker_type {blocker!r}"
+                )
+            blocker_counts[blocker] += 1
+
     total = len(classifications)
     counts = {}
     for v in classifications.values():
@@ -402,7 +505,10 @@ def _build_coverage_report(db_path: str, rules_dir: str) -> dict:
     test_ids = sum(1 for cid in ruled_cards if 999000 <= int(cid) <= 999999)
 
     rule_issues = []
-    unknown_rules = sorted(ruled_cards - set(all_cards))
+    unknown_rules = sorted(
+        cid for cid in ruled_cards - set(all_cards)
+        if not 999000 <= cid <= 999999
+    )
     for cid in unknown_rules:
         rule_issues.append({
             "card_id": cid,
@@ -416,14 +522,18 @@ def _build_coverage_report(db_path: str, rules_dir: str) -> dict:
         ("generated_from", {
             "database": db_path,
             "rules_directory": rules_dir,
+            "source_snapshot": source_snapshot,
         }),
         ("summary", OrderedDict([
             ("total_cards", total),
             ("total_with_rules", len(ruled_cards)),
             ("test_or_synthetic_ids_with_rules", test_ids),
             ("coverage_counts", counts),
+            ("clause_audit_counts", clause_counts),
+            ("blocker_counts", blocker_counts),
         ])),
         ("rule_consistency_issues", rule_issues),
+        ("clause_audit_issues", clause_issues),
         ("primitive_keyword_map", OrderedDict([
             (kw, info) for kw, info in PRIMITIVE_KEYWORD_MAP.items()
         ])),
@@ -465,7 +575,15 @@ def _load_rule_metadata(rules_dir: str) -> dict[int, dict]:
             cid = int(raw_card_id)
             item = {
                 key: entry[key]
-                for key in ("coverage", "implemented_text", "unsupported_text", "notes")
+                for key in (
+                    "coverage",
+                    "implemented_text",
+                    "unsupported_text",
+                    "notes",
+                    "rule_version",
+                    "errata",
+                    "blocker_type",
+                )
                 if key in entry
             }
             if item:
@@ -534,6 +652,38 @@ def write_markdown_report(report: dict, output_path: str) -> None:
     ]
     for cat, cnt in s["coverage_counts"].items():
         lines.append(f"| {cat} | {cnt} |")
+
+    lines.extend([
+        "",
+        "### Clause Audit",
+        "",
+        "| Clause status | Count |",
+        "|---|---:|",
+    ])
+    for status, count in s["clause_audit_counts"].items():
+        lines.append(f"| {status} | {count} |")
+
+    lines.extend([
+        "",
+        "### Blocker Types",
+        "",
+        "| Blocker | Count |",
+        "|---|---:|",
+    ])
+    for blocker, count in s["blocker_counts"].items():
+        lines.append(f"| {blocker} | {count} |")
+
+    if report["clause_audit_issues"]:
+        lines.extend([
+            "",
+            "## Exact-Coverage Clause Audit Issues",
+            "",
+        ])
+        for issue in report["clause_audit_issues"]:
+            lines.append(
+                f"- **{issue['card_id']}**: {issue['issue']} — missing "
+                f"{', '.join(issue['missing'])}"
+            )
 
     if report["rule_consistency_issues"]:
         lines.append("")

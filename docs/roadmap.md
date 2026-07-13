@@ -10,7 +10,7 @@ code and tests as the source of truth when this file drifts.
 - Database: 826 cards, 735 collectible cards, 91 non-collectible/generated
   cards from set `90000`.
 - Latest SVA source: `https://sva.hypd.asia/data/cards.json`.
-- Tests: `python -m unittest discover -s tests -v` currently runs 1141 tests.
+- Tests: `python -m unittest discover -s tests -v` currently runs 1146 tests.
 - RL adapter: fixed 111-action space and 290-feature observation.
 - Ability registry status: 18 implemented, 5 partial, 11 placeholder.
 - Explicit card and demo rules live in `data/rules/`; the current coverage
@@ -30,6 +30,16 @@ code and tests as the source of truth when this file drifts.
   has a precise conservative reason and test evidence. Primitive support is a
   separate column and is covered for all 34; it does not automatically promote
   the 5 partial or 11 placeholder keyword statuses.
+- Coverage now has a backward-compatible clause audit. The legacy summary still
+  reports 87 exact collectible cards, but only 23 have an explicit exact text
+  mapping plus direct test evidence; 64 are flagged `unverified_exact` and may
+  not be treated as audited exact. Synthetic `999xxx` rules are counted but no
+  longer emitted as ordinary consistency failures. The report includes source
+  import hash/count/timestamp, rule version and errata metadata, structured
+  trigger/operation evidence, discovered tests, explicit unsupported text, and
+  a stable blocker taxonomy. The unverified set is content-audit debt and may
+  expose further primitives; `10162120` already exposes the missing
+  attack-twice grant and must not be promoted without that behavior.
 
 ## Stable Priorities
 

@@ -37,6 +37,15 @@ placeholder). Primitive availability is reported independently: all 34 have a
 covered generic boundary, but that never upgrades a partial or placeholder
 keyword whose full tagged-card semantics still require structured rules.
 
+The [rule coverage report](data/reports/rule_coverage.md) now includes a
+clause-audit layer without changing its legacy coverage categories. Of 87
+nominally exact collectible cards, 23 currently have explicit implemented text
+and direct test evidence; 64 are flagged `unverified_exact`. Blockers are
+separately typed as missing rule/schema/primitive/targeting, unclear timing or
+text, external blocker, or unverified audit. Rule metadata supports version and
+errata fields, and the report records the imported source snapshot hash so card
+database refreshes are visible.
+
 ## Implemented Engine Surface
 
 The deterministic rules core supports:
