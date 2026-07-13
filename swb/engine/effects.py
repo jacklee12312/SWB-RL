@@ -118,6 +118,7 @@ class EffectKind(str, Enum):
     ADD_KEYWORD = "add_keyword"
     REMOVE_KEYWORD = "remove_keyword"
     REMOVE_ALL_ABILITIES = "remove_all_abilities"
+    GRANT_ATTACKS_PER_TURN = "grant_attacks_per_turn"
     ADD_LEADER_DAMAGE_MODIFIER = "add_leader_damage_modifier"
     CHANGE_COST = "change_cost"
     TRANSFORM = "transform"

@@ -1811,6 +1811,7 @@ _EVENT_SOURCE_TARGET_EFFECTS = frozenset({
     EffectKind.ADD_KEYWORD,
     EffectKind.REMOVE_KEYWORD,
     EffectKind.REMOVE_ALL_ABILITIES,
+    EffectKind.GRANT_ATTACKS_PER_TURN,
     EffectKind.TRANSFORM,
     EffectKind.SET_STATS,
     EffectKind.EVOLVE_UNIT,
@@ -2134,6 +2135,34 @@ def _parse_operation(
             f"{source_file}/target card {card_id}: remove_all_abilities "
             "requires a follower target"
         )
+    if kind is EffectKind.GRANT_ATTACKS_PER_TURN:
+        if target not in (
+            TargetKind.SELF,
+            TargetKind.EVENT_SOURCE,
+            TargetKind.OWN_UNIT,
+            TargetKind.ENEMY_UNIT,
+            TargetKind.ANY_UNIT,
+            TargetKind.RANDOM_OWN_UNIT,
+            TargetKind.RANDOM_ENEMY_UNIT,
+            TargetKind.ALL_OWN_UNITS,
+            TargetKind.ALL_ENEMY_UNITS,
+            TargetKind.ALL_UNITS,
+            TargetKind.PREVIOUS_TARGET,
+        ):
+            raise ValueError(
+                f"{source_file}/target card {card_id}: "
+                "grant_attacks_per_turn requires a follower target"
+            )
+        if (
+            raw_amount is None
+            or isinstance(raw_amount, bool)
+            or not isinstance(raw_amount, int)
+            or raw_amount < 1
+        ):
+            raise ValueError(
+                f"{source_file}/amount card {card_id}: "
+                "grant_attacks_per_turn requires a positive integer amount"
+            )
     if kind is EffectKind.ADD_LEADER_DAMAGE_MODIFIER:
         if target not in (TargetKind.OWN_LEADER, TargetKind.ENEMY_LEADER):
             raise ValueError(

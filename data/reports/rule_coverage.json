@@ -20,10 +20,10 @@
       "token_or_non_collectible": 91
     },
     "clause_audit_counts": {
-      "unverified_exact": 64,
+      "unverified_exact": 63,
       "missing_rule": 630,
       "text_unclear": 18,
-      "mapped_exact": 23,
+      "mapped_exact": 24,
       "token_separate_audit": 91
     },
     "blocker_counts": {
@@ -34,7 +34,7 @@
       "timing_unclear": 0,
       "text_unclear": 18,
       "external_blocker": 0,
-      "audit_unverified": 64
+      "audit_unverified": 63
     }
   },
   "rule_consistency_issues": [],
@@ -259,15 +259,6 @@
     },
     {
       "card_id": 10161130,
-      "issue": "covered_exact_without_clause_evidence",
-      "missing": [
-        "explicit_exact_annotation",
-        "implemented_text",
-        "test_evidence"
-      ]
-    },
-    {
-      "card_id": 10162120,
       "issue": "covered_exact_without_clause_evidence",
       "missing": [
         "explicit_exact_annotation",
@@ -8515,7 +8506,7 @@
       "is_collectible": true,
       "card_set_id": 10001,
       "coverage": "covered_exact",
-      "reason": "Triggers: ['clash'], Ops: ['damage_leader']",
+      "reason": "Triggers: ['clash', 'super_evolve'], Ops: ['damage_leader', 'grant_attacks_per_turn']",
       "hit_keywords": [
         "进化时",
         "超进化",
@@ -8531,29 +8522,37 @@
         "【<color=Keyword>交战时</color>】对对手的主战者造成1点伤害。\n<hr><sev>【<color=Keyword>超进化时</color>】本随从获得「1回合可以攻击2次」。</sev>"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【交战时】对对手的主战者造成1点伤害。【超进化时】本随从获得「1回合可以攻击2次」。"
+      },
       "clause_audit": {
-        "status": "unverified_exact",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10162120:0",
             "source_text": "【<color=Keyword>交战时</color>】对对手的主战者造成1点伤害。\n<hr><sev>【<color=Keyword>超进化时</color>】本随从获得「1回合可以攻击2次」。</sev>",
-            "mapping_status": "unverified_exact"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "【交战时】对对手的主战者造成1点伤害。【超进化时】本随从获得「1回合可以攻击2次」。",
         "unsupported_text": null,
         "structured_evidence": {
           "triggers": [
-            "clash"
+            "clash",
+            "super_evolve"
           ],
           "effect_kinds": [
-            "damage_leader"
+            "damage_leader",
+            "grant_attacks_per_turn"
           ]
         },
-        "test_evidence": [],
-        "blocker_type": "audit_unverified"
+        "test_evidence": [
+          "tests/test_attack_capacity.py"
+        ],
+        "blocker_type": null
       }
     },
     "10162130": {

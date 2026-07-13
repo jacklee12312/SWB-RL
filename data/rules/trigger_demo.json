@@ -23,6 +23,19 @@
       ]
     },
     {
+      "card_id": 10162120,
+      "trigger": "super_evolve",
+      "coverage": "exact",
+      "implemented_text": "【交战时】对对手的主战者造成1点伤害。【超进化时】本随从获得「1回合可以攻击2次」。",
+      "operations": [
+        {
+          "kind": "grant_attacks_per_turn",
+          "target": "self",
+          "amount": 2
+        }
+      ]
+    },
+    {
       "card_id": 10012120,
       "trigger": "super_evolve",
       "operations": [

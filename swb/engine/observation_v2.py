@@ -59,7 +59,7 @@ def _hand_runtime(card: HandCard | None, turn: int) -> tuple[float, ...]:
 
 def _board_runtime(entity) -> tuple[float, ...]:
     if entity is None:
-        return (0.0,) * 12
+        return (0.0,) * 13
     if isinstance(entity, Amulet):
         return (
             1.0,
@@ -74,6 +74,7 @@ def _board_runtime(entity) -> tuple[float, ...]:
             0.0,
             0.0,
             0.0,
+            0.0,
         )
     return (
         1.0,
@@ -82,6 +83,7 @@ def _board_runtime(entity) -> tuple[float, ...]:
         min(max(entity.health, 0), 40) / 40,
         min(entity.max_health, 40) / 40,
         min(entity.attacks_remaining, 4) / 4,
+        min(entity.attacks_per_turn, 4) / 4,
         min(len(entity.stat_modifiers), 10) / 10,
         min(len(entity.attack_restrictions), 3) / 3,
         min(len(entity.targeting_restrictions), 3) / 3,
@@ -345,7 +347,7 @@ def observation_v2_spec(env: ShadowverseEnv) -> dict[str, object]:
         "graveyard_histograms": (2, len(env.card_vocabulary)),
         "banished_histograms": (2, len(env.card_vocabulary)),
         "own_hand_runtime": env.MAX_HAND * 10,
-        "public_board_runtime": 2 * env.MAX_BOARD * 12,
+        "public_board_runtime": 2 * env.MAX_BOARD * 13,
         "public_board_keyword_bits": 2 * env.MAX_BOARD * len(RUNTIME_KEYWORDS),
         "leader_area_slots_per_player": MAX_LEADER_AREA_SLOTS,
         "leader_damage_modifier_runtime": (

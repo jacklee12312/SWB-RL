@@ -221,6 +221,12 @@ The deterministic rules core supports:
   follower/amulet mixed zones and multi-target choices. The same filtered
   candidate set drives play legality, commands, pending choices, revalidation,
   and RL masks; `10664120` demonstrates its verified three-other-card Fanfare;
+- structured `grant_attacks_per_turn` capacity preserves attacks already used,
+  supports permanent and turn-scoped grants, does not bypass summoning
+  sickness, refreshes at turn start, and is removed by ability removal or
+  transform. Remaining capacity drives command legality and RL masks. Exact
+  `10162120` deals 1 leader damage on clash and gains two attacks per turn on
+  super evolution;
 - countdown amulets, explicit last words, fanfare/play rules, attack/clash,
   evolve/super-evolve, turn-start/turn-end triggers, and trigger continuations
   that can pause for choices. Exact `10713110` uses a source-in-play turn-end

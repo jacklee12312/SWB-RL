@@ -74,6 +74,7 @@ class EventType(str, Enum):
     CARD_LISTENER_TRIGGERED = "card_listener_triggered"
     EMBLEM_COUNTDOWN_CHANGED = "emblem_countdown_changed"
     EMBLEM_EXPIRED = "emblem_expired"
+    FOLLOWER_ATTACK_CAPACITY_GRANTED = "follower_attack_capacity_granted"
 
 
 @dataclass(frozen=True)

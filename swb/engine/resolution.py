@@ -182,6 +182,7 @@ _SOURCE_REQUIRED_SELF_TARGET_EFFECTS = frozenset({
     EffectKind.REDUCE_COUNTDOWN,
     EffectKind.ADD_KEYWORD,
     EffectKind.REMOVE_KEYWORD,
+    EffectKind.GRANT_ATTACKS_PER_TURN,
     EffectKind.TRANSFORM,
     EffectKind.SET_STATS,
     EffectKind.ADD_ATTACK_RESTRICTION,
@@ -2581,6 +2582,15 @@ class GameEngine:
                 "base_health": entity.base_health,
                 "can_attack": entity.can_attack,
                 "attacks_remaining": entity.attacks_remaining,
+                "attacks_per_turn": entity.attacks_per_turn,
+                "attack_capacity_modifiers": tuple(
+                    (
+                        modifier.attacks_per_turn,
+                        modifier.duration,
+                        modifier.expires_for_player,
+                    )
+                    for modifier in entity.attack_capacity_modifiers
+                ),
                 "evolved": entity.evolved,
                 "super_evolved": entity.super_evolved,
                 "super_evolved_turn": entity.super_evolved_turn,
@@ -4650,14 +4660,10 @@ class GameEngine:
             return
 
         if target is not None and target not in opponent.board:
-            attacker.attacks_remaining -= 1
-            attacker.can_attack = False
-            attacker.rush_only = False
+            attacker.consume_attack()
             return
 
-        attacker.attacks_remaining -= 1
-        attacker.can_attack = False
-        attacker.rush_only = False
+        attacker.consume_attack()
         if target is None:
             result = self.apply_damage(attacker, None, attacker.attack, DamageType.COMBAT, self.current_player, attacker=attacker)
             was_ambush = attacker.ambush_active
@@ -4771,9 +4777,7 @@ class GameEngine:
             target = None
 
         if phase == "declared":
-            attacker.attacks_remaining -= 1
-            attacker.can_attack = False
-            attacker.rush_only = False
+            attacker.consume_attack()
             if target is None:
                 result = self.apply_damage(attacker, None, attacker.attack, DamageType.COMBAT, self.current_player, attacker=attacker)
                 was_ambush = attacker.ambush_active
@@ -5101,7 +5105,7 @@ class GameEngine:
             if not isinstance(unit, Unit):
                 continue
             unit.can_attack = True
-            unit.attacks_remaining = 1
+            unit.attacks_remaining = unit.attacks_per_turn
             unit.rush_only = False
             unit.summoned_this_turn = False
             self._dispatch_ability(
@@ -5381,7 +5385,7 @@ class GameEngine:
                 if owner != player_index:
                     continue
                 unit.can_attack = True
-                unit.attacks_remaining = 1
+                unit.attacks_remaining = unit.attacks_per_turn
                 unit.rush_only = False
                 unit.summoned_this_turn = False
                 self._dispatch_ability(
@@ -5859,6 +5863,8 @@ class GameEngine:
             self._execute_keyword_change(effect, frame, target_id, add=False)
         elif effect.kind is EffectKind.REMOVE_ALL_ABILITIES:
             self._execute_remove_all_abilities(frame, target_id)
+        elif effect.kind is EffectKind.GRANT_ATTACKS_PER_TURN:
+            self._execute_grant_attacks_per_turn(effect, frame, target_id)
         elif effect.kind is EffectKind.ADD_LEADER_DAMAGE_MODIFIER:
             self._execute_add_leader_damage_modifier(effect, frame)
         elif effect.kind is EffectKind.CHANGE_COST:
@@ -6093,6 +6099,43 @@ class GameEngine:
             },
         ))
 
+    def _execute_grant_attacks_per_turn(
+        self,
+        effect: EffectOperation,
+        frame: EffectFrame,
+        target_id: int | None,
+    ) -> None:
+        target = self._find_board_entity(target_id)
+        if not isinstance(target, Unit):
+            raise IllegalCommand(
+                "grant_attacks_per_turn target must be a follower"
+            )
+        before = target.attacks_per_turn
+        target.grant_attacks_per_turn(
+            effect.amount,
+            duration=effect.duration.value,
+            expires_for_player=_expires_for_player(
+                effect.duration,
+                frame.controller,
+                self.state.active_player,
+            ),
+        )
+        self._emit(GameEvent(
+            EventType.FOLLOWER_ATTACK_CAPACITY_GRANTED,
+            frame.controller,
+            source_id=frame.source_entity_id,
+            target_id=target.entity_id,
+            amount=target.attacks_per_turn,
+            metadata={
+                "before": before,
+                "duration": effect.duration.value,
+            },
+        ))
+        self._log(
+            frame.controller,
+            f"{target.definition.name} 每回合可攻击 {target.attacks_per_turn} 次",
+        )
+
     def _execute_change_cost(
         self,
         effect: EffectOperation,
@@ -6152,7 +6195,9 @@ class GameEngine:
             )
         old_name = target.definition.name
         can_attack = target.can_attack
-        attacks_remaining = target.attacks_remaining
+        attacks_used = max(
+            0, target.attacks_per_turn - target.attacks_remaining
+        )
         summoned_this_turn = target.summoned_this_turn
         previous_origin = target.source_origin or target.origin
         fresh = Unit.summon(
@@ -6170,7 +6215,8 @@ class GameEngine:
         target.origin = fresh.origin
         target.source_origin = fresh.source_origin
         target.can_attack = can_attack
-        target.attacks_remaining = attacks_remaining
+        target.attacks_remaining = max(0, 1 - attacks_used)
+        target.can_attack = can_attack and target.attacks_remaining > 0
         target.evolved = False
         target.super_evolved = False
         target.super_evolved_turn = None
@@ -6183,6 +6229,7 @@ class GameEngine:
         target.removed_keywords.clear()
         target.temporary_keyword_removals.clear()
         target.stat_modifiers.clear()
+        target.attack_capacity_modifiers.clear()
         target.attack_restrictions.clear()
         target.targeting_restrictions.clear()
         target.printed_abilities_removed = False
@@ -9414,6 +9461,21 @@ class GameEngine:
                         raise IllegalCommand(
                             f"Invariant failed: {zone} attacks_remaining is negative"
                         )
+                    if entity.attacks_remaining > entity.attacks_per_turn:
+                        raise IllegalCommand(
+                            f"Invariant failed: {zone} attacks_remaining exceeds capacity"
+                        )
+                    for modifier in entity.attack_capacity_modifiers:
+                        if modifier.attacks_per_turn < 1:
+                            raise IllegalCommand(
+                                f"Invariant failed: {zone} attack capacity is not positive"
+                            )
+                        if modifier.duration not in {
+                            duration.value for duration in ModifierDuration
+                        }:
+                            raise IllegalCommand(
+                                f"Invariant failed: {zone} attack capacity duration is invalid"
+                            )
                     if entity.super_evolved:
                         if entity.super_evolved_turn is None:
                             raise IllegalCommand(
@@ -10171,6 +10233,7 @@ class GameEngine:
                 for dur_str in expire_durations:
                     entity.expire_keywords(dur_str, player_index)
                     entity.expire_stat_modifiers(dur_str, player_index)
+                    entity.expire_attack_capacity(dur_str, player_index)
                     entity.expire_attack_restrictions(dur_str, player_index)
                     entity.expire_targeting_restrictions(dur_str, player_index)
             for hand_card in self._hand_cards(owner_index):

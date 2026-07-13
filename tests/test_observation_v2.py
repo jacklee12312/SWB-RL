@@ -86,7 +86,7 @@ class ObservationV2Tests(unittest.TestCase):
         self.assertEqual(len(observation["card_indices"]["public_board"]), 10)
         self.assertEqual(len(observation["card_indices"]["initial_decks"][0]), 140)
         self.assertEqual(len(observation["own_hand_runtime"]), 90)
-        self.assertEqual(len(observation["public_board_runtime"]), 120)
+        self.assertEqual(len(observation["public_board_runtime"]), 130)
         self.assertEqual(len(observation["choice"]["option_references"]), 16)
         self.assertEqual(len(observation["public_history"]["event_types"]), 16)
         self.assertEqual(

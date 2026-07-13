@@ -173,6 +173,13 @@ class StatModifier:
 
 
 @dataclass(frozen=True)
+class AttackCapacityModifier:
+    attacks_per_turn: int
+    duration: str
+    expires_for_player: int | None = None
+
+
+@dataclass(frozen=True)
 class LeaderDamageModifier:
     modifier_id: int
     amount: int
@@ -317,6 +324,9 @@ class Unit(BoardEntity):
         default_factory=list
     )
     stat_modifiers: list[StatModifier] = field(default_factory=list)
+    attack_capacity_modifiers: list[AttackCapacityModifier] = field(
+        default_factory=list
+    )
     attack_restrictions: list[AttackRestrictionModifier] = field(default_factory=list)
     targeting_restrictions: list[TargetingRestrictionModifier] = field(default_factory=list)
     printed_abilities_removed: bool = False
@@ -378,6 +388,7 @@ class Unit(BoardEntity):
         )
 
     def remove_all_abilities(self) -> None:
+        old_capacity = self.attacks_per_turn
         self.printed_abilities_removed = True
         self.permanent_keywords.clear()
         self.temporary_keywords.clear()
@@ -385,7 +396,71 @@ class Unit(BoardEntity):
         self.temporary_keyword_removals.clear()
         self.attack_restrictions.clear()
         self.targeting_restrictions.clear()
+        self.attack_capacity_modifiers.clear()
+        self._adjust_attack_capacity(old_capacity)
         self._synchronize_keyword_state()
+
+    @property
+    def attacks_per_turn(self) -> int:
+        return max(
+            (modifier.attacks_per_turn for modifier in self.attack_capacity_modifiers),
+            default=1,
+        )
+
+    def grant_attacks_per_turn(
+        self,
+        attacks_per_turn: int,
+        *,
+        duration: str = "permanent",
+        expires_for_player: int | None = None,
+    ) -> None:
+        if attacks_per_turn < 1:
+            raise ValueError("attacks_per_turn must be positive")
+        old_capacity = self.attacks_per_turn
+        if not any(
+            modifier.attacks_per_turn >= attacks_per_turn
+            and modifier.duration == duration
+            and modifier.expires_for_player == expires_for_player
+            for modifier in self.attack_capacity_modifiers
+        ):
+            self.attack_capacity_modifiers.append(AttackCapacityModifier(
+                attacks_per_turn=attacks_per_turn,
+                duration=duration,
+                expires_for_player=expires_for_player,
+            ))
+        self._adjust_attack_capacity(old_capacity)
+
+    def expire_attack_capacity(self, duration: str, player_index: int) -> None:
+        old_capacity = self.attacks_per_turn
+        self.attack_capacity_modifiers = [
+            modifier
+            for modifier in self.attack_capacity_modifiers
+            if not (
+                modifier.duration == duration
+                and modifier.expires_for_player == player_index
+            )
+        ]
+        self._adjust_attack_capacity(old_capacity)
+
+    def consume_attack(self) -> None:
+        if self.attacks_remaining <= 0:
+            raise ValueError("cannot consume attack with no attacks remaining")
+        self.attacks_remaining -= 1
+        self.can_attack = self.attacks_remaining > 0
+
+    def _adjust_attack_capacity(self, old_capacity: int) -> None:
+        attacks_used = max(0, old_capacity - self.attacks_remaining)
+        was_capacity_exhausted = self.attacks_remaining == 0
+        self.attacks_remaining = max(0, self.attacks_per_turn - attacks_used)
+        if self.attacks_remaining == 0:
+            self.can_attack = False
+        elif was_capacity_exhausted and (
+            not self.summoned_this_turn
+            or self.evolved
+            or self.has_keyword("疾驰")
+            or self.has_keyword("突进")
+        ):
+            self.can_attack = True
 
     def has_keyword(self, keyword: str) -> bool:
         return normalize_keyword_name(keyword) in self.effective_keywords
