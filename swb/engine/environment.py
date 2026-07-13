@@ -16,7 +16,7 @@ from swb.engine.state import Amulet, BoardCard, HandCard, PlayerState, Unit
 
 @dataclass(frozen=True)
 class StepResult:
-    observation: list[float]
+    observation: list[float] | dict[str, object]
     reward: float
     terminated: bool
     truncated: bool
@@ -26,6 +26,7 @@ class StepResult:
 class ShadowverseEnv:
     """RL adapter around the deterministic command-based game engine."""
 
+    OBSERVATION_V1_SIZE = 290
     MAX_HAND = 9
     MAX_BOARD = 5
     MAX_MANA = 10
@@ -72,7 +73,39 @@ class ShadowverseEnv:
         card_resolver: Callable[[int], CardDefinition | None] | None = None,
         debug_info: bool = False,
         validate_invariants: bool = False,
+        observation_version: str = "v1",
+        card_vocabulary: Sequence[int] | None = None,
     ):
+        if observation_version not in {"v1", "v2"}:
+            raise ValueError(
+                f"observation_version must be 'v1' or 'v2', got {observation_version!r}"
+            )
+        self.observation_version = observation_version
+        vocabulary = (
+            []
+            if observation_version == "v1" and card_vocabulary is None
+            else (
+                sorted({card.card_id for card in (*deck_a, *deck_b)})
+                if card_vocabulary is None
+                else list(card_vocabulary)
+            )
+        )
+        if (
+            any(
+                not isinstance(card_id, int)
+                or isinstance(card_id, bool)
+                or card_id <= 0
+                for card_id in vocabulary
+            )
+            or len(vocabulary) != len(set(vocabulary))
+        ):
+            raise ValueError(
+                "card_vocabulary must contain unique positive integer card IDs"
+            )
+        self.card_vocabulary = tuple(vocabulary)
+        self._v2_card_index = {
+            card_id: index + 1 for index, card_id in enumerate(self.card_vocabulary)
+        }
         resolved_rulebook = rulebook or RuleBook.from_directory(
             self.DEFAULT_RULE_DIRECTORY
         )
@@ -105,6 +138,19 @@ class ShadowverseEnv:
         )
         self._graveyard_page: int = 0
         self._last_choice_request_key: tuple[str, int] | None = None
+        self._v2_faith_index = {
+            faith_id: index + 1
+            for index, faith_id in enumerate(
+                sorted({
+                    definition.faith_id
+                    for definition in resolved_rulebook._faith_defs.values()
+                })
+            )
+        }
+        self._v2_emblem_index = {
+            emblem_id: index + 1
+            for index, emblem_id in enumerate(sorted(resolved_rulebook._emblem_defs))
+        }
 
     @property
     def deck_lists(self) -> tuple[list[CardDefinition], list[CardDefinition]]:
@@ -147,7 +193,7 @@ class ShadowverseEnv:
 
     def reset(
         self, *, seed: int | None = None
-    ) -> tuple[list[float], dict[str, object]]:
+    ) -> tuple[list[float] | dict[str, object], dict[str, object]]:
         self.core.reset(seed=seed)
         self._graveyard_page = 0
         self._last_choice_request_key = None
@@ -191,7 +237,30 @@ class ShadowverseEnv:
             info=self.info(),
         )
 
-    def observation(self) -> list[float]:
+    def observation(self) -> list[float] | dict[str, object]:
+        if self.observation_version == "v2":
+            from swb.engine.observation_v2 import encode_observation_v2
+
+            self._sync_choice_page()
+            return encode_observation_v2(self)
+        return self._observation_v1()
+
+    def observation_v2_spec(self) -> dict[str, object]:
+        if self.observation_version != "v2":
+            raise ValueError("observation_v2_spec requires observation_version='v2'")
+        from swb.engine.observation_v2 import observation_v2_spec
+
+        return observation_v2_spec(self)
+
+    def recurrent_observation(self) -> dict[str, object]:
+        """Return v2 public history for a caller-owned recurrent/belief state."""
+        if self.observation_version != "v2":
+            raise ValueError("recurrent_observation requires observation_version='v2'")
+        from swb.engine.observation_v2 import encode_observation_v2
+
+        return encode_observation_v2(self)
+
+    def _observation_v1(self) -> list[float]:
         self._sync_choice_page()
         perspective = self.decision_player
         me = self.players[perspective]

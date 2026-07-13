@@ -237,8 +237,9 @@ The deterministic rules core supports:
   necromancy, reanimate, spellboost-style hand cost changes, emblems, optional
   decisions, choose-one decisions, play modes, and runtime modifiers.
 
-The RL adapter provides a fixed 111-action space, 290-feature public
-observation, action mask, terminal reward, graveyard choice paging, special
+The RL adapter keeps the original fixed 111-action space and 290-feature public
+observation as the default `observation_version="v1"`, together with an action
+mask, terminal reward, graveyard choice paging, special
 hand actions for fusion/play modes, and super-evolve actions. `info()` is public by default and
 redacts debug transcripts/events unless `debug_info=True` or
 `info(debug=True)` is used, including pending-choice and graveyard-page returns.
@@ -248,6 +249,23 @@ is awaiting resolution. The public observation includes explicit
 controller/opponent `觉醒` flags derived from maximum mana and public
 controller/opponent `连击` counts for the current turn, plus pending multi-target
 choice size and progress.
+
+An opt-in `observation_version="v2"` returns a structured, fixed-shape mapping
+for full-card training without changing any action IDs. Callers should pass a
+stable catalog-wide `card_vocabulary`; index 0 is reserved for padding or an
+unknown card. V2 adds categorical own-hand and public-board identities, initial
+deck-composition and public graveyard/banished histograms, origin and runtime
+modifier features, board keyword bits, Faith/emblem identity and values,
+parameterized-choice references, the legal action mask, and a bounded public
+event history. It never emits raw entity IDs, opponent hand identity, fusion
+materials hidden in the opponent hand, or remaining deck order. The default
+derived vocabulary is convenient for small fixtures, but production training
+must configure one shared vocabulary so shapes and indices are stable across
+matches. `observation_v2_spec()` exposes every shape and categorical ordering;
+`recurrent_observation()` supplies the same public v2 input for a caller-owned
+recurrent or belief state. Existing v1 consumers require no migration. V2
+consumers select the version explicitly and replace scalar card features with
+categorical embeddings while retaining `continuous_v1` during transition.
 Each public board slot appends Intimidate and Aura flags, migrating the
 observation from 270 to 280 and then 290 features without changing action IDs;
 attack and selected-effect mask entries come from the same command legality as

@@ -10,8 +10,10 @@ code and tests as the source of truth when this file drifts.
 - Database: 826 cards, 735 collectible cards, 91 non-collectible/generated
   cards from set `90000`.
 - Latest SVA source: `https://sva.hypd.asia/data/cards.json`.
-- Tests: `python -m unittest discover -s tests -v` currently runs 1146 tests.
-- RL adapter: fixed 111-action space and 290-feature observation.
+- Tests: `python -m unittest discover -s tests -v` currently runs 1157 tests.
+- RL adapter: fixed 111-action space; the default v1 observation remains 290
+  floats, while opt-in v2 provides fixed-shape categorical/public state without
+  changing action IDs.
 - Ability registry status: 18 implemented, 5 partial, 11 placeholder.
 - Explicit card and demo rules live in `data/rules/`; the current coverage
   report classifies 119 card IDs with explicit rules, passives, fusion,
@@ -40,6 +42,15 @@ code and tests as the source of truth when this file drifts.
   a stable blocker taxonomy. The unverified set is content-audit debt and may
   expose further primitives; `10162120` already exposes the missing
   attack-twice grant and must not be promoted without that behavior.
+- RL observation v2 is available behind an explicit version switch. A
+  configured card vocabulary supplies stable categorical indices for own-hand,
+  public-board, initial-deck composition, and public graveyard/banished state;
+  runtime modifier, keyword, origin, transform/Fusion, Faith/emblem, choice,
+  action-mask, and bounded public-history inputs have fixed shapes. Index 0 is
+  padding/unknown. Privacy tests lock out opponent hand identity, hidden Fusion
+  state, raw entity IDs, and remaining deck order. V1 stays the default at
+  111 actions and 290 floats, and the recurrent/belief-state interface leaves
+  model hidden state under caller ownership.
 
 ## Stable Priorities
 
