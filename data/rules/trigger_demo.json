@@ -3,11 +3,29 @@
     {
       "card_id": 10011130,
       "trigger": "attack",
+      "coverage": "exact",
+      "implemented_text": "【入场曲】【连击_3】本随从进化。【攻击时】回复自己的主战者2点生命值。",
       "operations": [
         {
           "kind": "heal_leader",
           "target": "own_leader",
           "amount": 2
+        }
+      ]
+    },
+    {
+      "card_id": 10011130,
+      "trigger": "fanfare",
+      "operations": [
+        {
+          "kind": "evolve_unit",
+          "target": "self",
+          "conditions": [
+            {
+              "type": "controller_combo_at_least",
+              "value": 3
+            }
+          ]
         }
       ]
     },

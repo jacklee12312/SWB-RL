@@ -227,6 +227,9 @@ The deterministic rules core supports:
   transform. Remaining capacity drives command legality and RL masks. Exact
   `10162120` deals 1 leader damage on clash and gains two attacks per turn on
   super evolution;
+- exact `10011130` now uses the normal post-play Combo count to evolve itself
+  on a Combo-3 Fanfare without spending EP, then heals its leader for 2 on
+  each attack;
 - countdown amulets, explicit last words, fanfare/play rules, attack/clash,
   evolve/super-evolve, turn-start/turn-end triggers, and trigger continuations
   that can pause for choices. Exact `10713110` uses a source-in-play turn-end

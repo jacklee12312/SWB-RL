@@ -20,10 +20,10 @@
       "token_or_non_collectible": 91
     },
     "clause_audit_counts": {
-      "unverified_exact": 63,
+      "unverified_exact": 62,
       "missing_rule": 630,
       "text_unclear": 18,
-      "mapped_exact": 24,
+      "mapped_exact": 25,
       "token_separate_audit": 91
     },
     "blocker_counts": {
@@ -34,7 +34,7 @@
       "timing_unclear": 0,
       "text_unclear": 18,
       "external_blocker": 0,
-      "audit_unverified": 63
+      "audit_unverified": 62
     }
   },
   "rule_consistency_issues": [],
@@ -53,15 +53,6 @@
       "missing": [
         "explicit_exact_annotation",
         "implemented_text"
-      ]
-    },
-    {
-      "card_id": 10011130,
-      "issue": "covered_exact_without_clause_evidence",
-      "missing": [
-        "explicit_exact_annotation",
-        "implemented_text",
-        "test_evidence"
       ]
     },
     {
@@ -1155,7 +1146,7 @@
       "is_collectible": true,
       "card_set_id": 10000,
       "coverage": "covered_exact",
-      "reason": "Triggers: ['attack'], Ops: ['heal_leader']",
+      "reason": "Triggers: ['attack', 'fanfare'], Ops: ['heal_leader', 'evolve_unit']",
       "hit_keywords": [
         "入场曲",
         "攻击时",
@@ -1172,29 +1163,37 @@
         "【<color=Keyword>入场曲</color>】【<color=Keyword>连击</color>_3】本随从进化。\n<hr>【<color=Keyword>攻击时</color>】回复自己的主战者2点生命值。"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【入场曲】【连击_3】本随从进化。【攻击时】回复自己的主战者2点生命值。"
+      },
       "clause_audit": {
-        "status": "unverified_exact",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10011130:0",
             "source_text": "【<color=Keyword>入场曲</color>】【<color=Keyword>连击</color>_3】本随从进化。\n<hr>【<color=Keyword>攻击时</color>】回复自己的主战者2点生命值。",
-            "mapping_status": "unverified_exact"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "【入场曲】【连击_3】本随从进化。【攻击时】回复自己的主战者2点生命值。",
         "unsupported_text": null,
         "structured_evidence": {
           "triggers": [
-            "attack"
+            "attack",
+            "fanfare"
           ],
           "effect_kinds": [
-            "heal_leader"
+            "heal_leader",
+            "evolve_unit"
           ]
         },
-        "test_evidence": [],
-        "blocker_type": "audit_unverified"
+        "test_evidence": [
+          "tests/test_triggers.py"
+        ],
+        "blocker_type": null
       }
     },
     "10011210": {

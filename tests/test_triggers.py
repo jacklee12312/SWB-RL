@@ -69,6 +69,45 @@ class AttackTriggerTests(unittest.TestCase):
         self.assertEqual(eng.players[1].health, 15)
 
 
+class RealTriggerCardTests(unittest.TestCase):
+    def test_10011130_combo_three_fanfare_evolves_without_spending_ep(self):
+        eng = mkengine(rulebook=RuleBook.from_directory("data/rules"))
+        definition = card(10011130, attack=2, life=3)
+        eng.players[0].hand[0] = definition
+        eng.players[0].mana = 10
+        eng.players[0].cards_played_this_turn = 2
+        ep_before = eng.players[0].evolution_points
+
+        eng.apply(PlayCard(0, 0))
+
+        source = eng.players[0].board[0]
+        self.assertTrue(source.evolved)
+        self.assertEqual((source.attack, source.health), (4, 5))
+        self.assertEqual(eng.players[0].evolution_points, ep_before)
+
+    def test_10011130_below_combo_three_does_not_evolve(self):
+        eng = mkengine(rulebook=RuleBook.from_directory("data/rules"))
+        eng.players[0].hand[0] = card(10011130, attack=2, life=3)
+        eng.players[0].mana = 10
+        eng.players[0].cards_played_this_turn = 1
+
+        eng.apply(PlayCard(0, 0))
+
+        self.assertFalse(eng.players[0].board[0].evolved)
+
+    def test_10011130_attack_heals_two(self):
+        eng = mkengine(rulebook=RuleBook.from_directory("data/rules"))
+        source = mkunit(eng, 10011130, attack=2, life=3)
+        source.summoned_this_turn = False
+        source.can_attack = True
+        eng.players[0].board = [source]
+        eng.players[0].health = 15
+
+        eng.apply(Attack(0, source.entity_id, None))
+
+        self.assertEqual(eng.players[0].health, 17)
+
+
 class ClashTriggerTests(unittest.TestCase):
     def test_clash_triggers_both_sides(self):
         rulebook = RuleBook((
