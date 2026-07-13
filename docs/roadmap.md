@@ -10,13 +10,13 @@ code and tests as the source of truth when this file drifts.
 - Database: 826 cards, 735 collectible cards, 91 non-collectible/generated
   cards from set `90000`.
 - Latest SVA source: `https://sva.hypd.asia/data/cards.json`.
-- Tests: `python -m unittest discover -s tests -v` currently runs 1111 tests.
+- Tests: `python -m unittest discover -s tests -v` currently runs 1116 tests.
 - RL adapter: fixed 111-action space and 290-feature observation.
 - Ability registry status: 18 implemented, 5 partial, 11 placeholder.
 - Explicit card and demo rules live in `data/rules/`; the current coverage
-  report classifies 115 card IDs with explicit rules, passives, fusion,
+  report classifies 116 card IDs with explicit rules, passives, fusion,
   invocation, activation, Faith, Union Burst, or listener definitions. Current
-  collectible coverage is 84 exact, 0 partial, 633 supported-but-missing-rule,
+  collectible coverage is 85 exact, 0 partial, 632 supported-but-missing-rule,
   0 missing-primitive, and 18 text-unclear cards.
 
 ## Stable Priorities
@@ -263,6 +263,11 @@ slice in this order:
   counters, emits `FOLLOWER_EVOLVED` with `cause=effect`, and resolves normal
   evolve abilities. Generated `90014330` (`天枪深渊`) selects an unevolved
   allied follower and now demonstrates the complete primitive.
+- `change_max_mana` applies signed maximum-PP changes within the configured
+  0–10 bounds and clamps current PP after reductions. `MAX_MANA_CHANGED`
+  records requested/applied deltas and before/after values; Overflow and public
+  observation derive immediately from the new maximum. Exact `10042310`
+  (`龙之启示`) demonstrates post-ramp conditional draw at 10 max PP.
 - `UnionBurstDefinition` provides structured `奥义` and `解放奥义` operations
   at fixed gauges 10 and 15. Every hand card independently records evolutions
   completed while it remains in hand; both normal and super evolution count,

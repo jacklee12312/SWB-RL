@@ -5,11 +5,11 @@
   },
   "summary": {
     "total_cards": 826,
-    "total_with_rules": 115,
+    "total_with_rules": 116,
     "test_or_synthetic_ids_with_rules": 26,
     "coverage_counts": {
-      "covered_exact": 84,
-      "supported_missing_rule": 633,
+      "covered_exact": 85,
+      "supported_missing_rule": 632,
       "text_unclear": 18,
       "token_or_non_collectible": 91
     }
@@ -1143,8 +1143,8 @@
       "cost": 3,
       "is_collectible": true,
       "card_set_id": 10000,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['抽取']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['play'], Ops: ['change_max_mana', 'conditional', 'draw']",
       "hit_keywords": [
         "抽取"
       ],
@@ -1153,7 +1153,11 @@
       "skill_texts": [
         "使自己的能量点最大值+1。之后，若自己的能量点最大值为10，则抽取1张卡牌。"
       ],
-      "support_level": "unsupported"
+      "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "使自己的能量点最大值+1。之后，若自己的能量点最大值为10，则抽取1张卡牌。"
+      }
     },
     "10051110": {
       "card_id": 10051110,
@@ -20159,23 +20163,6 @@
       "suggested_rule_file": "batch_梦魇.json"
     },
     {
-      "card_id": 10042310,
-      "name": "龙之启示",
-      "class_name": "龙族",
-      "card_type": "法术",
-      "cost": 3,
-      "ability_keywords": [],
-      "hit_keywords": [
-        "抽取"
-      ],
-      "confidence": "high",
-      "why_recommended": "Covered keywords: 抽取",
-      "required_primitives": [
-        "抽取"
-      ],
-      "suggested_rule_file": "batch_龙族.json"
-    },
-    {
       "card_id": 10102310,
       "name": "炽天使的福音",
       "class_name": "中立",
@@ -20301,6 +20288,27 @@
         "抽取"
       ],
       "suggested_rule_file": "batch_中立.json"
+    },
+    {
+      "card_id": 10872310,
+      "name": "纯净无垢的日常",
+      "class_name": "超越者",
+      "card_type": "法术",
+      "cost": 3,
+      "ability_keywords": [],
+      "hit_keywords": [
+        "超进化",
+        "抽取",
+        "回复"
+      ],
+      "confidence": "high",
+      "why_recommended": "Covered keywords: 超进化, 抽取, 回复",
+      "required_primitives": [
+        "超进化",
+        "抽取",
+        "回复"
+      ],
+      "suggested_rule_file": "batch_超越者.json"
     }
   ]
 }

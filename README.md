@@ -156,6 +156,10 @@ The deterministic rules core supports:
   no EP or once-per-turn manual evolution allowance, updates public evolution
   counters/gauges, and emits the normal evolution event with evolve abilities;
   generated spell `90014330` now uses this primitive exactly;
+- generic signed maximum-PP changes clamp the configured 0–10 range and clamp
+  current PP after reductions, emit requested/applied resource diagnostics,
+  and immediately update derived Overflow state; exact `10042310` raises max
+  PP and conditionally draws after reaching 10;
 - command-level `融合` from hand, including structured material filters and
   count limits, variable-count selection with explicit confirmation, once-per-
   card-per-turn tracking, atomic hand-zone revalidation, a distinct consumed

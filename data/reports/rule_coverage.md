@@ -8,15 +8,15 @@
 | Metric | Count |
 |---|---|
 | Total cards in DB | 826 |
-| Cards with rules | 115 |
+| Cards with rules | 116 |
 | Test/synthetic IDs with rules | 26 |
 
 ### Coverage Categories
 
 | Category | Count |
 |---|---|
-| covered_exact | 84 |
-| supported_missing_rule | 633 |
+| covered_exact | 85 |
+| supported_missing_rule | 632 |
 | text_unclear | 18 |
 | token_or_non_collectible | 91 |
 
@@ -117,11 +117,11 @@
 | 10 | 10772310 | 闪光一瞬 | 超越者 | 2 | 法术 | high | Covered keywords: 超进化 |
 | 11 | 10832310 | 其乐融融的团聚 | 巫师 | 2 | 法术 | high | Covered keywords: 回复, 魔力增幅 |
 | 12 | 10853310 | 改变的流向 | 梦魇 | 2 | 法术 | high | Covered keywords: 超进化, 抽取, 返回牌 |
-| 13 | 10042310 | 龙之启示 | 龙族 | 3 | 法术 | high | Covered keywords: 抽取 |
-| 14 | 10102310 | 炽天使的福音 | 中立 | 3 | 法术 | high | Covered keywords: 抽取 |
-| 15 | 10112310 | 薰交的思慕 | 精灵 | 3 | 法术 | high | Covered keywords: 抽取, 将.*加入手牌 |
-| 16 | 10541310 | 波摇花的裁决 | 龙族 | 3 | 法术 | high | Covered keywords: 抽取, 造成.*伤害 |
-| 17 | 10561310 | 雾卷花的激愤 | 主教 | 3 | 法术 | high | Covered keywords: 抽取, 返回牌 |
-| 18 | 10673310 | 恶劣的天斧 | 超越者 | 3 | 法术 | high | Covered keywords: 回合结束, 造成.*伤害 |
-| 19 | 10773310 | 瞬移斩击 | 超越者 | 3 | 法术 | high | Covered keywords: 造成.*伤害 |
-| 20 | 10802310 | 救世的英姿 | 中立 | 3 | 法术 | high | Covered keywords: 抽取 |
+| 13 | 10102310 | 炽天使的福音 | 中立 | 3 | 法术 | high | Covered keywords: 抽取 |
+| 14 | 10112310 | 薰交的思慕 | 精灵 | 3 | 法术 | high | Covered keywords: 抽取, 将.*加入手牌 |
+| 15 | 10541310 | 波摇花的裁决 | 龙族 | 3 | 法术 | high | Covered keywords: 抽取, 造成.*伤害 |
+| 16 | 10561310 | 雾卷花的激愤 | 主教 | 3 | 法术 | high | Covered keywords: 抽取, 返回牌 |
+| 17 | 10673310 | 恶劣的天斧 | 超越者 | 3 | 法术 | high | Covered keywords: 回合结束, 造成.*伤害 |
+| 18 | 10773310 | 瞬移斩击 | 超越者 | 3 | 法术 | high | Covered keywords: 造成.*伤害 |
+| 19 | 10802310 | 救世的英姿 | 中立 | 3 | 法术 | high | Covered keywords: 抽取 |
+| 20 | 10872310 | 纯净无垢的日常 | 超越者 | 3 | 法术 | high | Covered keywords: 超进化, 抽取, 回复 |

@@ -5634,6 +5634,39 @@ class GameEngine:
                 frame.controller,
                 f"{name} {frame.label}回复 {restored} 点能量",
             )
+        elif effect.kind is EffectKind.CHANGE_MAX_MANA:
+            target_player_index = (
+                1 - frame.controller
+                if effect.target is TargetKind.ENEMY_LEADER
+                else frame.controller
+            )
+            target_player = self.players[target_player_index]
+            before_max = target_player.max_mana
+            before_mana = target_player.mana
+            target_player.max_mana = max(
+                0,
+                min(self.config.max_mana, before_max + effect.amount),
+            )
+            target_player.mana = min(target_player.mana, target_player.max_mana)
+            self._emit(GameEvent(
+                EventType.MAX_MANA_CHANGED,
+                target_player_index,
+                source_id=frame.source_entity_id,
+                metadata={
+                    "source_card_id": frame.source_card_id,
+                    "requested_amount": effect.amount,
+                    "applied_amount": target_player.max_mana - before_max,
+                    "before_max_mana": before_max,
+                    "after_max_mana": target_player.max_mana,
+                    "before_mana": before_mana,
+                    "after_mana": target_player.mana,
+                },
+            ))
+            self._log(
+                frame.controller,
+                f"{name} {frame.label}使能量上限由 {before_max} "
+                f"变为 {target_player.max_mana}",
+            )
         elif effect.kind is EffectKind.BUFF_UNIT:
             target = (
                 self._find_board_entity(target_id)

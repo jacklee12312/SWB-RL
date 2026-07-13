@@ -181,6 +181,8 @@ def evaluate_condition(cond: Condition | None, ctx: EvalContext | None) -> bool:
         return _matching_board_count(opponent.board, cond) >= threshold
     elif t == ConditionType.CONTROLLER_HAND_COUNT_AT_LEAST:
         return len(player.hand) >= cond.value
+    elif t == ConditionType.CONTROLLER_MAX_MANA_AT_LEAST:
+        return player.max_mana >= cond.value
     elif t == ConditionType.CONTROLLER_DECK_HAS_NO_DUPLICATES:
         card_ids = [card.card_id for card in player.deck]
         return len(card_ids) == len(set(card_ids))

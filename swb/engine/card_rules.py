@@ -2049,6 +2049,23 @@ def _parse_operation(
                 f"SET_STATS requires at least one of 'attack'/'amount' or 'health'/'secondary_amount'"
             )
 
+    if kind is EffectKind.CHANGE_MAX_MANA:
+        if target not in (TargetKind.OWN_LEADER, TargetKind.ENEMY_LEADER):
+            raise ValueError(
+                f"{source_file}/target card {card_id}: change_max_mana "
+                "requires a leader target"
+            )
+        if (
+            raw_amount is None
+            or isinstance(raw_amount, bool)
+            or not isinstance(raw_amount, int)
+            or raw_amount == 0
+        ):
+            raise ValueError(
+                f"{source_file}/amount card {card_id}: change_max_mana "
+                "requires a non-zero integer amount"
+            )
+
     keyword = raw.get("keyword")
     if kind in (EffectKind.ADD_KEYWORD, EffectKind.REMOVE_KEYWORD):
         if not isinstance(keyword, str) or not keyword:
@@ -2956,6 +2973,7 @@ def _parse_condition(raw: dict, source_path: str, card_id: int) -> Condition:
 
     cooperation_threshold_types = (
         ConditionType.CONTROLLER_COOPERATION_AT_LEAST,
+        ConditionType.CONTROLLER_MAX_MANA_AT_LEAST,
         ConditionType.OPPONENT_COOPERATION_AT_LEAST,
         ConditionType.CONTROLLER_COMBO_AT_LEAST,
         ConditionType.OPPONENT_COMBO_AT_LEAST,

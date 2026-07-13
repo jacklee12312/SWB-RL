@@ -1,0 +1,34 @@
+{
+  "rules": [
+    {
+      "card_id": 10042310,
+      "trigger": "play",
+      "coverage": "exact",
+      "implemented_text": "使自己的能量点最大值+1。之后，若自己的能量点最大值为10，则抽取1张卡牌。",
+      "operations": [
+        {
+          "kind": "change_max_mana",
+          "target": "own_leader",
+          "amount": 1
+        },
+        {
+          "kind": "conditional",
+          "target": "own_leader",
+          "conditions": [
+            {
+              "type": "controller_max_mana_at_least",
+              "value": 10
+            }
+          ],
+          "then": [
+            {
+              "kind": "draw",
+              "target": "own_leader",
+              "amount": 1
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

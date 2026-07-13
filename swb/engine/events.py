@@ -63,6 +63,7 @@ class EventType(str, Enum):
     FAITH_CONSUME_FAILED = "faith_consume_failed"
     FAITH_ABILITY_GRANTED = "faith_ability_granted"
     FAITH_ABILITY_TRIGGERED = "faith_ability_triggered"
+    MAX_MANA_CHANGED = "max_mana_changed"
     UNION_BURST_ACTIVATED = "union_burst_activated"
     FOLLOWER_HEALED = "follower_healed"
     FOLLOWER_ABILITIES_REMOVED = "follower_abilities_removed"
