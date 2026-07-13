@@ -20,10 +20,10 @@
       "token_or_non_collectible": 91
     },
     "clause_audit_counts": {
-      "unverified_exact": 61,
+      "unverified_exact": 58,
       "missing_rule": 630,
       "text_unclear": 18,
-      "mapped_exact": 26,
+      "mapped_exact": 29,
       "token_separate_audit": 91
     },
     "blocker_counts": {
@@ -34,7 +34,7 @@
       "timing_unclear": 0,
       "text_unclear": 18,
       "external_blocker": 0,
-      "audit_unverified": 61
+      "audit_unverified": 58
     }
   },
   "rule_consistency_issues": [],
@@ -184,15 +184,6 @@
       ]
     },
     {
-      "card_id": 10061110,
-      "issue": "covered_exact_without_clause_evidence",
-      "missing": [
-        "explicit_exact_annotation",
-        "implemented_text",
-        "test_evidence"
-      ]
-    },
-    {
       "card_id": 10111310,
       "issue": "covered_exact_without_clause_evidence",
       "missing": [
@@ -246,15 +237,6 @@
       "missing": [
         "explicit_exact_annotation",
         "implemented_text"
-      ]
-    },
-    {
-      "card_id": 10161130,
-      "issue": "covered_exact_without_clause_evidence",
-      "missing": [
-        "explicit_exact_annotation",
-        "implemented_text",
-        "test_evidence"
       ]
     },
     {
@@ -383,15 +365,6 @@
       "missing": [
         "explicit_exact_annotation",
         "implemented_text"
-      ]
-    },
-    {
-      "card_id": 10431120,
-      "issue": "covered_exact_without_clause_evidence",
-      "missing": [
-        "explicit_exact_annotation",
-        "implemented_text",
-        "test_evidence"
       ]
     },
     {
@@ -2728,18 +2701,22 @@
         "【<color=Keyword>入场曲</color>】回复自己的主战者5点生命值。\n<hr>【<color=Keyword>守护</color>】"
       ],
       "support_level": "keyword",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【入场曲】回复自己的主战者5点生命值。【守护】"
+      },
       "clause_audit": {
-        "status": "unverified_exact",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10061110:0",
             "source_text": "【<color=Keyword>入场曲</color>】回复自己的主战者5点生命值。\n<hr>【<color=Keyword>守护</color>】",
-            "mapping_status": "unverified_exact"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "【入场曲】回复自己的主战者5点生命值。【守护】",
         "unsupported_text": null,
         "structured_evidence": {
           "triggers": [
@@ -2749,8 +2726,10 @@
             "heal_leader"
           ]
         },
-        "test_evidence": [],
-        "blocker_type": "audit_unverified"
+        "test_evidence": [
+          "tests/test_exact_rule_audit.py"
+        ],
+        "blocker_type": null
       }
     },
     "10061120": {
@@ -8255,18 +8234,22 @@
         "【<color=Keyword>入场曲</color>】抽取2张卡牌。回复自己的主战者2点生命值。"
       ],
       "support_level": "keyword",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【入场曲】抽取2张卡牌。回复自己的主战者2点生命值。"
+      },
       "clause_audit": {
-        "status": "unverified_exact",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10161130:0",
             "source_text": "【<color=Keyword>入场曲</color>】抽取2张卡牌。回复自己的主战者2点生命值。",
-            "mapping_status": "unverified_exact"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "【入场曲】抽取2张卡牌。回复自己的主战者2点生命值。",
         "unsupported_text": null,
         "structured_evidence": {
           "triggers": [
@@ -8277,8 +8260,10 @@
             "heal_leader"
           ]
         },
-        "test_evidence": [],
-        "blocker_type": "audit_unverified"
+        "test_evidence": [
+          "tests/test_exact_rule_audit.py"
+        ],
+        "blocker_type": null
       }
     },
     "10161140": {
@@ -18315,18 +18300,22 @@
         "自己的回合结束时，使自己的所有手牌发动X次魔力增幅。X为本随从的攻击力。\n<hr><ev>【<color=Keyword>进化时</color>】本随从获得「无法攻击随从或主战者」。</ev>"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "自己的回合结束时，使自己的所有手牌发动X次魔力增幅。X为本随从的攻击力。【进化时】本随从获得「无法攻击随从或主战者」。"
+      },
       "clause_audit": {
-        "status": "unverified_exact",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10431120:0",
             "source_text": "自己的回合结束时，使自己的所有手牌发动X次魔力增幅。X为本随从的攻击力。\n<hr><ev>【<color=Keyword>进化时</color>】本随从获得「无法攻击随从或主战者」。</ev>",
-            "mapping_status": "unverified_exact"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "自己的回合结束时，使自己的所有手牌发动X次魔力增幅。X为本随从的攻击力。【进化时】本随从获得「无法攻击随从或主战者」。",
         "unsupported_text": null,
         "structured_evidence": {
           "triggers": [
@@ -18338,8 +18327,10 @@
             "add_attack_restriction"
           ]
         },
-        "test_evidence": [],
-        "blocker_type": "audit_unverified"
+        "test_evidence": [
+          "tests/test_exact_rule_audit.py"
+        ],
+        "blocker_type": null
       }
     },
     "10431310": {

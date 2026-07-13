@@ -14,6 +14,8 @@
     {
       "card_id": 10061110,
       "trigger": "fanfare",
+      "coverage": "exact",
+      "implemented_text": "【入场曲】回复自己的主战者5点生命值。【守护】",
       "operations": [
         {
           "kind": "heal_leader",
@@ -36,6 +38,8 @@
     {
       "card_id": 10161130,
       "trigger": "fanfare",
+      "coverage": "exact",
+      "implemented_text": "【入场曲】抽取2张卡牌。回复自己的主战者2点生命值。",
       "operations": [
         {
           "kind": "draw",

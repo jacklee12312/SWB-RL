@@ -24,10 +24,10 @@
 
 | Clause status | Count |
 |---|---:|
-| unverified_exact | 61 |
+| unverified_exact | 58 |
 | missing_rule | 630 |
 | text_unclear | 18 |
-| mapped_exact | 26 |
+| mapped_exact | 29 |
 | token_separate_audit | 91 |
 
 ### Blocker Types
@@ -41,7 +41,7 @@
 | timing_unclear | 0 |
 | text_unclear | 18 |
 | external_blocker | 0 |
-| audit_unverified | 61 |
+| audit_unverified | 58 |
 
 ## Exact-Coverage Clause Audit Issues
 
@@ -63,7 +63,6 @@
 - **10051310**: covered_exact_without_clause_evidence — missing explicit_exact_annotation, implemented_text
 - **10052110**: covered_exact_without_clause_evidence — missing explicit_exact_annotation, implemented_text
 - **10052310**: covered_exact_without_clause_evidence — missing explicit_exact_annotation, implemented_text
-- **10061110**: covered_exact_without_clause_evidence — missing explicit_exact_annotation, implemented_text, test_evidence
 - **10111310**: covered_exact_without_clause_evidence — missing explicit_exact_annotation, implemented_text
 - **10112120**: covered_exact_without_clause_evidence — missing explicit_exact_annotation, implemented_text
 - **10121310**: covered_exact_without_clause_evidence — missing explicit_exact_annotation, implemented_text
@@ -71,7 +70,6 @@
 - **10151310**: covered_exact_without_clause_evidence — missing explicit_exact_annotation, implemented_text
 - **10153140**: covered_exact_without_clause_evidence — missing explicit_exact_annotation, implemented_text
 - **10153310**: covered_exact_without_clause_evidence — missing explicit_exact_annotation, implemented_text
-- **10161130**: covered_exact_without_clause_evidence — missing explicit_exact_annotation, implemented_text, test_evidence
 - **10171310**: covered_exact_without_clause_evidence — missing explicit_exact_annotation, implemented_text
 - **10171320**: covered_exact_without_clause_evidence — missing explicit_exact_annotation, implemented_text
 - **10172310**: covered_exact_without_clause_evidence — missing explicit_exact_annotation, implemented_text
@@ -88,7 +86,6 @@
 - **10351120**: covered_exact_without_clause_evidence — missing explicit_exact_annotation, implemented_text
 - **10404110**: covered_exact_without_clause_evidence — missing explicit_exact_annotation, implemented_text
 - **10411310**: covered_exact_without_clause_evidence — missing explicit_exact_annotation, implemented_text
-- **10431120**: covered_exact_without_clause_evidence — missing explicit_exact_annotation, implemented_text, test_evidence
 - **10442310**: covered_exact_without_clause_evidence — missing explicit_exact_annotation, implemented_text
 - **10472310**: covered_exact_without_clause_evidence — missing explicit_exact_annotation, implemented_text
 - **10521310**: covered_exact_without_clause_evidence — missing explicit_exact_annotation, implemented_text

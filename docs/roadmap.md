@@ -10,7 +10,7 @@ code and tests as the source of truth when this file drifts.
 - Database: 826 cards, 735 collectible cards, 91 non-collectible/generated
   cards from set `90000`.
 - Latest SVA source: `https://sva.hypd.asia/data/cards.json`.
-- Tests: `python -m unittest discover -s tests -v` currently runs 1172 tests.
+- Tests: `python -m unittest discover -s tests -v` currently runs 1176 tests.
 - RL adapter: fixed 111-action space; the default v1 observation remains 290
   floats, while opt-in v2 provides fixed-shape categorical/public state without
   changing action IDs.
@@ -33,8 +33,8 @@ code and tests as the source of truth when this file drifts.
   separate column and is covered for all 34; it does not automatically promote
   the 5 partial or 11 placeholder keyword statuses.
 - Coverage now has a backward-compatible clause audit. The legacy summary still
-  reports 87 exact collectible cards, but only 26 have an explicit exact text
-  mapping plus direct test evidence; 61 are flagged `unverified_exact` and may
+  reports 87 exact collectible cards, but only 29 have an explicit exact text
+  mapping plus direct test evidence; 58 are flagged `unverified_exact` and may
   not be treated as audited exact. Synthetic `999xxx` rules are counted but no
   longer emitted as ordinary consistency failures. The report includes source
   import hash/count/timestamp, rule version and errata metadata, structured

@@ -234,6 +234,9 @@ The deterministic rules core supports:
   choice now transforms an enemy follower into Fairy while preserving stable
   entity identity and recording transformed origin, and safely skips when no
   enemy follower exists;
+- direct exact-card audits lock `10061110` heal/Ward, `10161130` draw-plus-heal,
+  and `10431120` source-Attack-scaled whole-hand Spellboost plus its permanent
+  post-Evolve attack restriction;
 - countdown amulets, explicit last words, fanfare/play rules, attack/clash,
   evolve/super-evolve, turn-start/turn-end triggers, and trigger continuations
   that can pause for choices. Exact `10713110` uses a source-in-play turn-end

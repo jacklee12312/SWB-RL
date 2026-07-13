@@ -29,6 +29,8 @@
     {
       "card_id": 10431120,
       "trigger": "turn_end",
+      "coverage": "exact",
+      "implemented_text": "自己的回合结束时，使自己的所有手牌发动X次魔力增幅。X为本随从的攻击力。【进化时】本随从获得「无法攻击随从或主战者」。",
       "operations": [
         {
           "kind": "spellboost_hand",
