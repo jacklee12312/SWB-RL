@@ -1122,6 +1122,92 @@ class GameEngine:
                 f"Fusion material record {exc.args[0]} is missing"
             ) from exc
 
+    @staticmethod
+    def _fusion_transform_result(
+        definition,
+        material_definitions: tuple[CardDefinition, ...],
+    ):
+        total_count = len(material_definitions)
+        total_cost = sum(card.cost for card in material_definitions)
+        distinct_cards = len({card.card_id for card in material_definitions})
+        for result in definition.transform_results:
+            if (
+                result.min_total_materials is not None
+                and total_count < result.min_total_materials
+            ):
+                continue
+            if (
+                result.max_total_materials is not None
+                and total_count > result.max_total_materials
+            ):
+                continue
+            if (
+                result.min_total_material_cost is not None
+                and total_cost < result.min_total_material_cost
+            ):
+                continue
+            if (
+                result.max_total_material_cost is not None
+                and total_cost > result.max_total_material_cost
+            ):
+                continue
+            if (
+                result.min_distinct_material_cards is not None
+                and distinct_cards < result.min_distinct_material_cards
+            ):
+                continue
+            if result.material_filter is not None:
+                matches = [
+                    result.material_filter.matches(card)
+                    for card in material_definitions
+                ]
+                if result.material_match == "all" and not all(matches):
+                    continue
+                if result.material_match == "any" and not any(matches):
+                    continue
+            return result
+        return None
+
+    def _transform_hand_card_after_fusion(
+        self,
+        hand_card: HandCard,
+        replacement: CardDefinition,
+        player_index: int,
+        *,
+        preserve_fused_materials: bool,
+    ) -> GameEvent:
+        old_definition = hand_card.definition
+        previous_origin = hand_card.source_origin or hand_card.origin
+        fused_material_ids = (
+            list(hand_card.fused_material_ids)
+            if preserve_fused_materials
+            else []
+        )
+        hand_card.definition = replacement
+        hand_card.cost_modifiers.clear()
+        hand_card.spellboost_count = 0
+        hand_card.spellboost_cost_reduction = (
+            self.rulebook.spellboost_cost_reduction(replacement.card_id)
+        )
+        hand_card.cannot_be_played = self.rulebook.cannot_be_played(
+            replacement.card_id
+        )
+        hand_card.origin = CardOrigin.TRANSFORMED
+        hand_card.source_origin = previous_origin
+        hand_card.fused_material_ids = fused_material_ids
+        hand_card.fusion_used_turn = None
+        hand_card.evolutions_while_in_hand = 0
+        return GameEvent(
+            EventType.HAND_CARD_TRANSFORMED,
+            player_index,
+            source_id=hand_card.entity_id,
+            metadata={
+                "from_card_id": old_definition.card_id,
+                "to_card_id": replacement.card_id,
+                "fused_material_ids": tuple(fused_material_ids),
+            },
+        )
+
     def _can_begin_fusion(
         self,
         fusion_card: HandCard,
@@ -1243,6 +1329,32 @@ class GameEngine:
                     raise IllegalCommand("Selected fusion material is no longer legal")
                 materials.append(material)
 
+            existing_records = self._fusion_material_records(
+                player, fusion_card.fused_material_ids
+            )
+            prospective_definitions = tuple(
+                record.definition for record in existing_records
+            ) + tuple(material.definition for material in materials)
+            transform_result = self._fusion_transform_result(
+                definition, prospective_definitions
+            )
+            replacement = None
+            if transform_result is not None:
+                if self.card_resolver is None:
+                    raise IllegalCommand(
+                        "Fusion hand transform requires a card resolver"
+                    )
+                try:
+                    replacement = self.card_resolver(transform_result.card_id)
+                except KeyError as exc:
+                    raise IllegalCommand(
+                        f"Fusion transform card {transform_result.card_id} not found"
+                    ) from exc
+                if replacement is None:
+                    raise IllegalCommand(
+                        f"Fusion transform card {transform_result.card_id} not found"
+                    )
+
             for material in materials:
                 index = next(
                     idx
@@ -1267,6 +1379,19 @@ class GameEngine:
                 fusion_card.fused_material_ids.append(record.entity_id)
 
             fusion_card.fusion_used_turn = self.turn
+            fused_from_definition = fusion_card.definition
+            fused_from_card_id = fusion_card.card_id
+            fusion_count = len(fusion_card.fused_material_ids)
+            transform_event = None
+            if replacement is not None:
+                transform_event = self._transform_hand_card_after_fusion(
+                    fusion_card,
+                    replacement,
+                    request.player_index,
+                    preserve_fused_materials=(
+                        transform_result.preserve_fused_materials
+                    ),
+                )
             self.state.pending_choice = None
             self.state.phase = Phase.MAIN
             self._emit(
@@ -1276,16 +1401,19 @@ class GameEngine:
                     source_id=fusion_card.entity_id,
                     amount=len(materials),
                     metadata={
-                        "source": fusion_card.definition,
-                        "fusion_card_id": fusion_card.card_id,
+                        "source": fused_from_definition,
+                        "fusion_card_id": fused_from_card_id,
+                        "result_card_id": fusion_card.card_id,
                         "material_entity_ids": selected_ids,
                         "material_card_ids": tuple(
                             material.card_id for material in materials
                         ),
-                        "fusion_count": len(fusion_card.fused_material_ids),
+                        "fusion_count": fusion_count,
                     },
                 )
             )
+            if transform_event is not None:
+                self._emit(transform_event)
             self._log(
                 request.player_index,
                 f"{fusion_card.name} 融合 {len(materials)} 张卡牌",
@@ -2698,6 +2826,8 @@ class GameEngine:
             deck_filter.cost_max,
             deck_filter.card_id,
             deck_filter.card_name,
+            deck_filter.tribe_id,
+            deck_filter.tribe_name,
         )
 
     def _board_filter_fingerprint(

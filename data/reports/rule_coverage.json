@@ -5,13 +5,13 @@
   },
   "summary": {
     "total_cards": 826,
-    "total_with_rules": 112,
+    "total_with_rules": 114,
     "test_or_synthetic_ids_with_rules": 26,
     "coverage_counts": {
-      "covered_exact": 82,
+      "covered_exact": 83,
       "supported_missing_rule": 633,
       "text_unclear": 18,
-      "covered_partial": 2,
+      "covered_partial": 1,
       "token_or_non_collectible": 91
     }
   },
@@ -4781,8 +4781,8 @@
       "cost": 1,
       "is_collectible": true,
       "card_set_id": 10001,
-      "coverage": "covered_partial",
-      "reason": "Partial rule. Triggers: ['last_words'], Ops: ['add_card']; unsupported: 『过往核心』自身的融合文本尚未实现。",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['last_words'], Ops: ['add_card']",
       "hit_keywords": [
         "谢幕曲",
         "将.*加入手牌"
@@ -4796,9 +4796,8 @@
       ],
       "support_level": "unsupported",
       "rule_metadata": {
-        "coverage": "partial",
-        "implemented_text": "【谢幕曲】将1张『过往核心』加入手牌。",
-        "unsupported_text": "『过往核心』自身的融合文本尚未实现。"
+        "coverage": "exact",
+        "implemented_text": "【谢幕曲】将1张『过往核心』加入手牌。"
       }
     },
     "10171120": {

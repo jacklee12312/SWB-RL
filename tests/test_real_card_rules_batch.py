@@ -2067,14 +2067,13 @@ class RulesLoadTests(unittest.TestCase):
         self.assertEqual(info["coverage"], "covered_exact")
         self.assertNotIn("unsupported_text", info.get("rule_metadata", {}))
 
-    def test_generated_unplayable_token_rule_is_reported_as_partial(self):
+    def test_generated_core_rule_is_reported_as_exact(self):
         from scripts.report_rule_coverage import _build_coverage_report
 
         report = _build_coverage_report("data/cards.sqlite3", "data/rules")
         info = report["classifications"]["10171110"]
-        self.assertEqual(info["coverage"], "covered_partial")
-        self.assertIn("融合", info["rule_metadata"]["unsupported_text"])
-        self.assertNotIn("无法使用", info["rule_metadata"]["unsupported_text"])
+        self.assertEqual(info["coverage"], "covered_exact")
+        self.assertNotIn("unsupported_text", info.get("rule_metadata", {}))
 
     def test_10713110_rule_covers_combo_turn_end_exactly(self):
         from scripts.report_rule_coverage import _build_coverage_report

@@ -226,11 +226,25 @@ class CardPassive:
 
 
 @dataclass(frozen=True)
+class FusionTransformResult:
+    card_id: int
+    min_total_materials: int | None = None
+    max_total_materials: int | None = None
+    min_total_material_cost: int | None = None
+    max_total_material_cost: int | None = None
+    min_distinct_material_cards: int | None = None
+    material_filter: DeckFilter | None = None
+    material_match: str = "all"
+    preserve_fused_materials: bool = True
+
+
+@dataclass(frozen=True)
 class FusionDefinition:
     card_id: int
     material_filter: DeckFilter
     min_materials: int = 1
     max_materials: int | None = None
+    transform_results: tuple[FusionTransformResult, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -1138,6 +1152,7 @@ def _parse_fusion_definition(raw: dict, source_path: str) -> FusionDefinition:
         raise ValueError(f"{source_path}: fusion definition must be an object")
     unknown = set(raw) - {
         "card_id", "material_filter", "min_materials", "max_materials",
+        "transform_results",
     }
     if unknown:
         raise ValueError(f"{source_path}: unknown fields {sorted(unknown)}")
@@ -1150,7 +1165,7 @@ def _parse_fusion_definition(raw: dict, source_path: str) -> FusionDefinition:
         raise ValueError(f"{source_path}/material_filter: must be an object")
     filter_unknown = set(raw_filter) - {
         "card_type", "class_id", "class_name", "cost_min", "cost_max",
-        "card_id", "card_name",
+        "card_id", "card_name", "tribe_id", "tribe_name",
     }
     if filter_unknown:
         raise ValueError(
@@ -1197,6 +1212,18 @@ def _parse_fusion_definition(raw: dict, source_path: str) -> FusionDefinition:
         raise ValueError(
             f"{source_path}/material_filter/card_name: must be a non-empty string"
         )
+    tribe_id = raw_filter.get("tribe_id")
+    if tribe_id is not None:
+        tribe_id = _parse_non_negative_int(
+            tribe_id, f"{source_path}/material_filter/tribe_id", card_id
+        )
+    tribe_name = raw_filter.get("tribe_name")
+    if tribe_name is not None and (
+        not isinstance(tribe_name, str) or not tribe_name
+    ):
+        raise ValueError(
+            f"{source_path}/material_filter/tribe_name: must be a non-empty string"
+        )
 
     min_materials = raw.get("min_materials", 1)
     min_materials = _parse_non_negative_int(
@@ -1214,6 +1241,154 @@ def _parse_fusion_definition(raw: dict, source_path: str) -> FusionDefinition:
                 f"{source_path}/max_materials: must be at least min_materials"
             )
 
+    raw_results = raw.get("transform_results", [])
+    if not isinstance(raw_results, list):
+        raise ValueError(f"{source_path}/transform_results: must be a list")
+    transform_results: list[FusionTransformResult] = []
+    for index, raw_result in enumerate(raw_results):
+        result_path = f"{source_path}/transform_results[{index}]"
+        if not isinstance(raw_result, dict):
+            raise ValueError(f"{result_path}: must be an object")
+        result_unknown = set(raw_result) - {
+            "card_id",
+            "min_total_materials",
+            "max_total_materials",
+            "min_total_material_cost",
+            "max_total_material_cost",
+            "min_distinct_material_cards",
+            "material_filter",
+            "material_match",
+            "preserve_fused_materials",
+        }
+        if result_unknown:
+            raise ValueError(
+                f"{result_path}: unknown fields {sorted(result_unknown)}"
+            )
+        result_card_id = raw_result.get("card_id")
+        if (
+            isinstance(result_card_id, bool)
+            or not isinstance(result_card_id, int)
+            or result_card_id <= 0
+        ):
+            raise ValueError(f"{result_path}/card_id: must be a positive integer")
+
+        limits: dict[str, int | None] = {}
+        for field_name in (
+            "min_total_materials",
+            "max_total_materials",
+            "min_total_material_cost",
+            "max_total_material_cost",
+            "min_distinct_material_cards",
+        ):
+            value = raw_result.get(field_name)
+            limits[field_name] = (
+                None
+                if value is None
+                else _parse_non_negative_int(
+                    value, f"{result_path}/{field_name}", card_id
+                )
+            )
+        if (
+            limits["min_total_materials"] is not None
+            and limits["max_total_materials"] is not None
+            and limits["min_total_materials"] > limits["max_total_materials"]
+        ):
+            raise ValueError(
+                f"{result_path}: min_total_materials must not exceed maximum"
+            )
+        if (
+            limits["min_total_material_cost"] is not None
+            and limits["max_total_material_cost"] is not None
+            and limits["min_total_material_cost"] > limits["max_total_material_cost"]
+        ):
+            raise ValueError(
+                f"{result_path}: min_total_material_cost must not exceed maximum"
+            )
+
+        result_filter = None
+        raw_result_filter = raw_result.get("material_filter")
+        if raw_result_filter is not None:
+            if not isinstance(raw_result_filter, dict):
+                raise ValueError(f"{result_path}/material_filter: must be an object")
+            parsed_result_filter = dict(raw_result_filter)
+            filter_unknown = set(raw_result_filter) - {
+                "card_type", "class_id", "class_name", "cost_min", "cost_max",
+                "card_id", "card_name", "tribe_id", "tribe_name",
+            }
+            if filter_unknown:
+                raise ValueError(
+                    f"{result_path}/material_filter: unknown fields "
+                    f"{sorted(filter_unknown)}"
+                )
+            result_card_type = raw_result_filter.get("card_type")
+            if (
+                result_card_type is not None
+                and result_card_type not in _VALID_CARD_TYPES
+            ):
+                raise ValueError(
+                    f"{result_path}/material_filter/card_type: must be one of "
+                    f"{sorted(_VALID_CARD_TYPES)}"
+                )
+            for integer_field in (
+                "class_id", "cost_min", "cost_max", "card_id", "tribe_id"
+            ):
+                value = parsed_result_filter.get(integer_field)
+                if value is not None:
+                    parsed_result_filter[integer_field] = _parse_non_negative_int(
+                        value,
+                        f"{result_path}/material_filter/{integer_field}",
+                        card_id,
+                    )
+            for text_field in ("class_name", "card_name", "tribe_name"):
+                value = parsed_result_filter.get(text_field)
+                if value is not None and (
+                    not isinstance(value, str) or not value
+                ):
+                    raise ValueError(
+                        f"{result_path}/material_filter/{text_field}: "
+                        "must be a non-empty string"
+                    )
+            if (
+                parsed_result_filter.get("cost_min") is not None
+                and parsed_result_filter.get("cost_max") is not None
+                and parsed_result_filter["cost_min"] > parsed_result_filter["cost_max"]
+            ):
+                raise ValueError(
+                    f"{result_path}/material_filter: cost_min must not exceed cost_max"
+                )
+            result_filter = DeckFilter(
+                card_type=result_card_type,
+                class_id=parsed_result_filter.get("class_id"),
+                class_name=parsed_result_filter.get("class_name"),
+                cost_min=parsed_result_filter.get("cost_min"),
+                cost_max=parsed_result_filter.get("cost_max"),
+                card_id=parsed_result_filter.get("card_id"),
+                card_name=parsed_result_filter.get("card_name"),
+                tribe_id=parsed_result_filter.get("tribe_id"),
+                tribe_name=parsed_result_filter.get("tribe_name"),
+            )
+        material_match = raw_result.get("material_match", "all")
+        if material_match not in {"all", "any"}:
+            raise ValueError(f"{result_path}/material_match: must be 'all' or 'any'")
+        preserve_fused_materials = raw_result.get(
+            "preserve_fused_materials", True
+        )
+        if not isinstance(preserve_fused_materials, bool):
+            raise ValueError(
+                f"{result_path}/preserve_fused_materials: must be boolean"
+            )
+        transform_results.append(FusionTransformResult(
+            card_id=result_card_id,
+            min_total_materials=limits["min_total_materials"],
+            max_total_materials=limits["max_total_materials"],
+            min_total_material_cost=limits["min_total_material_cost"],
+            max_total_material_cost=limits["max_total_material_cost"],
+            min_distinct_material_cards=limits["min_distinct_material_cards"],
+            material_filter=result_filter,
+            material_match=material_match,
+            preserve_fused_materials=preserve_fused_materials,
+        ))
+
     return FusionDefinition(
         card_id=card_id,
         material_filter=DeckFilter(
@@ -1224,9 +1399,12 @@ def _parse_fusion_definition(raw: dict, source_path: str) -> FusionDefinition:
             cost_max=cost_max,
             card_id=filter_card_id,
             card_name=card_name,
+            tribe_id=tribe_id,
+            tribe_name=tribe_name,
         ),
         min_materials=min_materials,
         max_materials=max_materials,
+        transform_results=tuple(transform_results),
     )
 
 

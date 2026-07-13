@@ -149,6 +149,14 @@ The deterministic rules core supports:
   material zone, inherited material identity, and `card_fused` events; real
   card `10213310` demonstrates an exact Elf-material fusion rule and a play
   effect that draws two cards after fusion instead of one;
+- ordered post-Fusion hand transforms can branch on cumulative material count,
+  cost, distinct card identities, and all/any material filters. Transform is
+  atomically prevalidated, preserves stable hand identity and nested material
+  lineage by default (or explicitly resets it), resets per-card runtime state,
+  adopts the replacement's cost/type/passives/rules/play modes, and may fuse
+  again when the replacement has its own definition. Exact `10171110`
+  generates Past Core; Past/Future Core and their Castle/Attack Artifact forms
+  demonstrate Artifact filters and cumulative-cost transformation;
 - structured `瞬念召唤` at turn start before the normal draw, with persistent
   match evolution counts, seeded random candidate ordering weighted by copies,
   one copy per card definition per timing, board-full handling, summon-event and pending-choice
@@ -255,9 +263,9 @@ Known broad gaps include:
   for normal and super evolution. Mode selection, Enhance play, named-follower
   entry, amulet-destruction progression, value spending, gained Faith abilities,
   and the shared five-slot leader-area limit remain explicit unsupported edges;
-- Fusion cards that transform in hand when fused remain unsupported. Other
-  cards can now listen to `card_fused`, but their individual reactions still
-  require audited structured rules;
+- Fusion-driven hand transforms and refusion are implemented. Other cards can
+  listen to `card_fused`, but their individual reactions and later generated
+  Artifact end-form abilities still require audited structured rules;
 - additional `奥义` cards still require explicit structured definitions; the
   generic gauge, thresholds, activation event, and repeated random target flow
   are implemented, while unsupported card-specific clauses remain visible;

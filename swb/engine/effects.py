@@ -216,6 +216,8 @@ class DeckFilter:
     cost_max: int | None = None
     card_id: int | None = None
     card_name: str | None = None
+    tribe_id: int | None = None
+    tribe_name: str | None = None
 
     def matches(self, card: CardDefinition) -> bool:
         return (
@@ -226,6 +228,8 @@ class DeckFilter:
             and (self.cost_max is None or card.cost <= self.cost_max)
             and (self.card_id is None or card.card_id == self.card_id)
             and (self.card_name is None or card.name == self.card_name)
+            and (self.tribe_id is None or card.tribe_id == self.tribe_id)
+            and (self.tribe_name is None or card.tribe_name == self.tribe_name)
         )
 
 

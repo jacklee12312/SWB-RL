@@ -10,13 +10,13 @@ code and tests as the source of truth when this file drifts.
 - Database: 826 cards, 735 collectible cards, 91 non-collectible/generated
   cards from set `90000`.
 - Latest SVA source: `https://sva.hypd.asia/data/cards.json`.
-- Tests: `python -m unittest discover -s tests -v` currently runs 1086 tests.
+- Tests: `python -m unittest discover -s tests -v` currently runs 1094 tests.
 - RL adapter: fixed 111-action space and 290-feature observation.
 - Ability registry status: 18 implemented, 5 partial, 11 placeholder.
 - Explicit card and demo rules live in `data/rules/`; the current coverage
-  report classifies 112 card IDs with explicit rules, passives, fusion,
+  report classifies 114 card IDs with explicit rules, passives, fusion,
   invocation, activation, Faith, Union Burst, or listener definitions. Current
-  collectible coverage is 82 exact, 2 partial, 633 supported-but-missing-rule,
+  collectible coverage is 83 exact, 1 partial, 633 supported-but-missing-rule,
   0 missing-primitive, and 18 text-unclear cards.
 
 ## Stable Priorities
@@ -362,10 +362,11 @@ slice in this order:
   leader-area listeners. Individual real-card reactions still require authored
   rules and tests.
 - `融合` has the command-level material transition, state, event, structured
-  filters/counts, source fused-count conditions, RL exposure, and one exact
-  real-card demo. Other hand/board cards can now listen to Fusion, but
-  Fusion-driven hand transformations and their real-card rule set are not yet
-  modeled.
+  filters/counts, source fused-count conditions, ordered post-Fusion hand
+  transforms, material lineage preservation/reset policy, refusion, RL
+  exposure, and exact real-card demos. Other hand/board cards can listen to
+  Fusion; later generated Artifact end-form abilities remain incremental
+  structured-rule content.
 - `瞬念召唤` is implemented for its sole current official card and marked
   implemented in the ability registry. Sandalphon now combines exact
   Invocation, crest, return-to-hand, and `解放奥义` rules.

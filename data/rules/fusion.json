@@ -5,6 +5,76 @@
       "material_filter": {
         "class_id": 1
       }
+    },
+    {
+      "card_id": 90071220,
+      "material_filter": {
+        "card_type": "护符",
+        "tribe_id": 14
+      },
+      "transform_results": [
+        {
+          "card_id": 90072120,
+          "preserve_fused_materials": true
+        }
+      ]
+    },
+    {
+      "card_id": 90071210,
+      "material_filter": {
+        "card_type": "护符",
+        "tribe_id": 14
+      },
+      "transform_results": [
+        {
+          "card_id": 90072110,
+          "preserve_fused_materials": true
+        }
+      ]
+    },
+    {
+      "card_id": 90072120,
+      "material_filter": {
+        "tribe_id": 14
+      },
+      "transform_results": [
+        {
+          "card_id": 90073130,
+          "min_total_material_cost": 3
+        },
+        {
+          "card_id": 90073120,
+          "min_total_material_cost": 2,
+          "max_total_material_cost": 2
+        },
+        {
+          "card_id": 90073110,
+          "min_total_material_cost": 1,
+          "max_total_material_cost": 1
+        }
+      ]
+    },
+    {
+      "card_id": 90072110,
+      "material_filter": {
+        "tribe_id": 14
+      },
+      "transform_results": [
+        {
+          "card_id": 90073130,
+          "min_total_material_cost": 3
+        },
+        {
+          "card_id": 90073120,
+          "min_total_material_cost": 2,
+          "max_total_material_cost": 2
+        },
+        {
+          "card_id": 90073110,
+          "min_total_material_cost": 1,
+          "max_total_material_cost": 1
+        }
+      ]
     }
   ],
   "rules": [

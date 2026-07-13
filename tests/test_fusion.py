@@ -8,6 +8,7 @@ from swb.engine.abilities import AbilityKeyword
 from swb.engine.card_rules import (
     CardRule,
     FusionDefinition,
+    FusionTransformResult,
     RuleBook,
     Trigger,
     _parse_fusion_definition,
@@ -123,6 +124,161 @@ def _fuse_one(engine: GameEngine, target: HandCard, material: HandCard) -> None:
 
 
 class FusionCommandTests(unittest.TestCase):
+    def test_post_fusion_transform_preserves_identity_materials_and_resets_runtime(self):
+        target = _fusion_spell()
+        material = _card(217, cost=2)
+        replacement = _card(300, name="Transformed", cost=5, attack=4, life=6)
+        definition = FusionDefinition(
+            card_id=100,
+            material_filter=DeckFilter(class_id=1),
+            transform_results=(FusionTransformResult(card_id=300),),
+        )
+        engine = _engine(
+            fusion_definitions=(definition,),
+            definitions={100: target, 217: material, 300: replacement},
+        )
+        target_hand = _insert(engine, target)
+        material_hand = _insert(engine, material, index=1)
+        original_entity_id = target_hand.entity_id
+        target_hand.spellboost_count = 3
+
+        _fuse_one(engine, target_hand, material_hand)
+
+        self.assertEqual(target_hand.entity_id, original_entity_id)
+        self.assertEqual(target_hand.card_id, 300)
+        self.assertEqual(target_hand.current_cost, 5)
+        self.assertEqual(target_hand.spellboost_count, 0)
+        self.assertEqual(target_hand.fused_material_ids, [material_hand.entity_id])
+        self.assertIs(target_hand.origin, CardOrigin.TRANSFORMED)
+        self.assertIs(target_hand.source_origin, CardOrigin.DECK)
+        self.assertIsNone(target_hand.fusion_used_turn)
+        event_types = [event.type for event in engine.event_history]
+        self.assertIn(EventType.HAND_CARD_TRANSFORMED, event_types)
+        self.assertLess(
+            event_types.index(EventType.CARD_FUSED),
+            event_types.index(EventType.HAND_CARD_TRANSFORMED),
+        )
+        fused = next(
+            event for event in engine.event_history
+            if event.type is EventType.CARD_FUSED
+        )
+        self.assertEqual(fused.metadata["fusion_card_id"], 100)
+        self.assertEqual(fused.metadata["result_card_id"], 300)
+        self.assertEqual(fused.metadata["source"].card_id, 100)
+
+    def test_missing_transform_definition_is_atomic(self):
+        target = _fusion_spell()
+        material = _card(218)
+        definition = FusionDefinition(
+            card_id=100,
+            material_filter=DeckFilter(class_id=1),
+            transform_results=(FusionTransformResult(card_id=9999),),
+        )
+        engine = _engine(
+            fusion_definitions=(definition,),
+            definitions={100: target, 218: material},
+        )
+        target_hand = _insert(engine, target)
+        material_hand = _insert(engine, material, index=1)
+        engine.apply(BeginFusion(0, target_hand.entity_id))
+        _choose(engine, f"hand:{material_hand.entity_id}")
+        before = engine.deterministic_fingerprint()
+
+        with self.assertRaises(IllegalCommand):
+            _choose(engine, "fusion:confirm")
+
+        self.assertEqual(engine.deterministic_fingerprint(), before)
+
+    def test_transform_result_can_reset_material_lineage_explicitly(self):
+        target = _fusion_spell()
+        material = _card(219)
+        replacement = _card(301)
+        definition = FusionDefinition(
+            card_id=100,
+            material_filter=DeckFilter(class_id=1),
+            transform_results=(
+                FusionTransformResult(
+                    card_id=301,
+                    preserve_fused_materials=False,
+                ),
+            ),
+        )
+        engine = _engine(
+            fusion_definitions=(definition,),
+            definitions={100: target, 219: material, 301: replacement},
+        )
+        target_hand = _insert(engine, target)
+        material_hand = _insert(engine, material, index=1)
+
+        _fuse_one(engine, target_hand, material_hand)
+
+        self.assertEqual(target_hand.fused_material_ids, [])
+        self.assertEqual(len(engine.players[0].fusion_materials), 1)
+
+    def test_ordered_results_select_by_cumulative_cost_and_allow_refusion(self):
+        core = _fusion_spell(100)
+        castle = _card(300, cost=3)
+        beta = _card(302, cost=5)
+        first = _card(220, cost=1)
+        second = _card(221, cost=1)
+        core_definition = FusionDefinition(
+            card_id=100,
+            material_filter=DeckFilter(class_id=1),
+            transform_results=(FusionTransformResult(card_id=300),),
+        )
+        castle_definition = FusionDefinition(
+            card_id=300,
+            material_filter=DeckFilter(class_id=1),
+            transform_results=(
+                FusionTransformResult(card_id=302, min_total_material_cost=2),
+            ),
+        )
+        engine = _engine(
+            fusion_definitions=(core_definition, castle_definition),
+            definitions={
+                100: core,
+                300: castle,
+                302: beta,
+                220: first,
+                221: second,
+            },
+        )
+        target = _insert(engine, core)
+        first_hand = _insert(engine, first, index=1)
+        second_hand = _insert(engine, second, index=2)
+
+        _fuse_one(engine, target, first_hand)
+        self.assertEqual(target.card_id, 300)
+        self.assertIn(BeginFusion(0, target.entity_id), engine.legal_commands())
+        _fuse_one(engine, target, second_hand)
+
+        self.assertEqual(target.card_id, 302)
+        self.assertEqual(
+            target.fused_material_ids,
+            [first_hand.entity_id, second_hand.entity_id],
+        )
+
+    def test_post_fusion_transform_is_seed_deterministic(self):
+        target = _fusion_spell()
+        material = _card(222, cost=2)
+        replacement = _card(303, cost=4)
+        definition = FusionDefinition(
+            card_id=100,
+            material_filter=DeckFilter(class_id=1),
+            transform_results=(FusionTransformResult(card_id=303),),
+        )
+        fingerprints = []
+        for _ in range(2):
+            game = _engine(
+                fusion_definitions=(definition,),
+                definitions={100: target, 222: material, 303: replacement},
+            )
+            target_hand = _insert(game, target)
+            material_hand = _insert(game, material, index=1)
+            _fuse_one(game, target_hand, material_hand)
+            fingerprints.append(game.deterministic_fingerprint())
+        self.assertEqual(fingerprints[0], fingerprints[1])
+
     def test_begin_fusion_is_legal_without_mana_and_uses_hand_choice(self):
         target = _fusion_spell()
         material = _card(200)
@@ -349,6 +505,31 @@ class FusionCommandTests(unittest.TestCase):
 
 
 class FusionSchemaTests(unittest.TestCase):
+    def test_schema_parses_ordered_hand_transform_results(self):
+        definition = _parse_fusion_definition(
+            {
+                "card_id": 100,
+                "material_filter": {"tribe_id": 14},
+                "transform_results": [
+                    {
+                        "card_id": 300,
+                        "min_total_material_cost": 3,
+                        "min_distinct_material_cards": 2,
+                        "material_filter": {"card_type": "护符"},
+                        "material_match": "any",
+                        "preserve_fused_materials": False,
+                    }
+                ],
+            },
+            "test/fusions[0]",
+        )
+        result = definition.transform_results[0]
+        self.assertEqual(definition.material_filter.tribe_id, 14)
+        self.assertEqual(result.card_id, 300)
+        self.assertEqual(result.min_total_material_cost, 3)
+        self.assertEqual(result.min_distinct_material_cards, 2)
+        self.assertEqual(result.material_match, "any")
+        self.assertFalse(result.preserve_fused_materials)
     def test_schema_parses_filters_and_limits(self):
         definition = _parse_fusion_definition(
             {
@@ -503,6 +684,13 @@ class FusionEnvironmentTests(unittest.TestCase):
         opponent._next_fusion_sequence = 2
         hidden_card.fused_material_ids.append(material_id)
         hidden_card.fusion_used_turn = env.core.turn
+        hidden_card.definition = _card(
+            4998,
+            cost=9,
+            card_type="法术",
+            attack=None,
+            life=None,
+        )
         env.core.assert_invariants()
 
         self.assertEqual(env.observation(), before)
@@ -576,6 +764,38 @@ class RealFusionCardTests(unittest.TestCase):
 
         report = _build_coverage_report("data/cards.sqlite3", "data/rules")
         info = report["classifications"]["10213310"]
+        self.assertEqual(info["coverage"], "covered_exact")
+        self.assertEqual(info["missing_primitives"], [])
+
+    def test_past_core_transforms_then_uses_cumulative_cost_branch(self):
+        engine = self._real_engine()
+        past_core = self.repo.get(90071220)
+        future_core = self.repo.get(90071210)
+        past_hand = _insert(engine, past_core)
+        future_hand = _insert(engine, future_core, index=1)
+        first_material = _insert(engine, future_core, index=2)
+        original_entity_id = past_hand.entity_id
+
+        _fuse_one(engine, past_hand, first_material)
+
+        self.assertEqual(past_hand.card_id, 90072120)
+        self.assertEqual(past_hand.entity_id, original_entity_id)
+        self.assertEqual(past_hand.fused_material_ids, [first_material.entity_id])
+        self.assertIn(BeginFusion(0, past_hand.entity_id), engine.legal_commands())
+
+        _fuse_one(engine, past_hand, future_hand)
+
+        self.assertEqual(past_hand.card_id, 90073120)
+        self.assertEqual(
+            past_hand.fused_material_ids,
+            [first_material.entity_id, future_hand.entity_id],
+        )
+
+    def test_iris_and_past_core_coverage_is_exact(self):
+        from scripts.report_rule_coverage import _build_coverage_report
+
+        report = _build_coverage_report("data/cards.sqlite3", "data/rules")
+        info = report["classifications"]["10171110"]
         self.assertEqual(info["coverage"], "covered_exact")
         self.assertEqual(info["missing_primitives"], [])
 
