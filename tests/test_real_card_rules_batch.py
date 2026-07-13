@@ -2050,7 +2050,12 @@ class RulesLoadTests(unittest.TestCase):
         report = _build_coverage_report("data/cards.sqlite3", "data/rules")
         info = report["classifications"]["10041310"]
         self.assertEqual(info["coverage"], "covered_exact")
-        self.assertNotIn("rule_metadata", info)
+        self.assertEqual(info["clause_audit"]["status"], "mapped_exact")
+        self.assertEqual(len(info["clause_audit"]["source_text_sha256"]), 64)
+        self.assertIn(
+            "tests/test_overflow.py",
+            info["clause_audit"]["test_evidence"],
+        )
 
     def test_multi_target_real_rule_is_reported_as_exact(self):
         from scripts.report_rule_coverage import _build_coverage_report

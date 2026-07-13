@@ -39,12 +39,15 @@ keyword whose full tagged-card semantics still require structured rules.
 
 The [rule coverage report](data/reports/rule_coverage.md) now includes a
 clause-audit layer without changing its legacy coverage categories. Of 87
-nominally exact collectible cards, 23 currently have explicit implemented text
-and direct test evidence; 64 are flagged `unverified_exact`. Blockers are
-separately typed as missing rule/schema/primitive/targeting, unclear timing or
-text, external blocker, or unverified audit. Rule metadata supports version and
-errata fields, and the report records the imported source snapshot hash so card
-database refreshes are visible.
+exact collectible cards, all 87 have explicit implemented text and named direct
+test evidence. The sibling `data/audits/rule_clauses.json` registry hashes every
+imported skill and alternate-mode clause, so a database text change or stale
+test reference invalidates the audit instead of silently retaining exact
+status. The current report has no unverified exact entry or missing generic
+schema, primitive, targeting, or timing blocker. Its remaining 630 collectible
+gaps are missing per-card structured rules, while 18 unclear texts remain
+explicit. Rule metadata also supports version and errata fields, and the report
+records the complete imported source snapshot hash.
 
 ## Implemented Engine Surface
 
@@ -234,9 +237,11 @@ The deterministic rules core supports:
   choice now transforms an enemy follower into Fairy while preserving stable
   entity identity and recording transformed origin, and safely skips when no
   enemy follower exists;
-- direct exact-card audits lock `10061110` heal/Ward, `10161130` draw-plus-heal,
-  and `10431120` source-Attack-scaled whole-hand Spellboost plus its permanent
-  post-Evolve attack restriction;
+- direct exact-card audits lock `10041130` leader damage, `10051120` self
+  damage, `10061110` heal/Ward, `10132320` health-setting and timed attack
+  restriction, `10161130` draw-plus-heal, `10431120` source-Attack-scaled
+  whole-hand Spellboost plus its permanent post-Evolve attack restriction,
+  `10551120` Reanimate, and `10642310` staged discard/destroy choices;
 - countdown amulets, explicit last words, fanfare/play rules, attack/clash,
   evolve/super-evolve, turn-start/turn-end triggers, and trigger continuations
   that can pause for choices. Exact `10713110` uses a source-in-play turn-end

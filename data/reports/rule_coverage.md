@@ -24,10 +24,12 @@
 
 | Clause status | Count |
 |---|---:|
-| unverified_exact | 58 |
+| mapped_exact | 87 |
+| unverified_exact | 0 |
+| partial | 0 |
 | missing_rule | 630 |
+| missing_primitive | 0 |
 | text_unclear | 18 |
-| mapped_exact | 29 |
 | token_separate_audit | 91 |
 
 ### Blocker Types
@@ -41,68 +43,7 @@
 | timing_unclear | 0 |
 | text_unclear | 18 |
 | external_blocker | 0 |
-| audit_unverified | 58 |
-
-## Exact-Coverage Clause Audit Issues
-
-- **10001110**: covered_exact_without_clause_evidence — missing explicit_exact_annotation, implemented_text
-- **10011120**: covered_exact_without_clause_evidence — missing explicit_exact_annotation, implemented_text
-- **10012120**: covered_exact_without_clause_evidence — missing explicit_exact_annotation, implemented_text
-- **10012310**: covered_exact_without_clause_evidence — missing explicit_exact_annotation, implemented_text
-- **10021310**: covered_exact_without_clause_evidence — missing explicit_exact_annotation, implemented_text
-- **10022110**: covered_exact_without_clause_evidence — missing explicit_exact_annotation, implemented_text
-- **10031210**: covered_exact_without_clause_evidence — missing explicit_exact_annotation, implemented_text
-- **10031310**: covered_exact_without_clause_evidence — missing explicit_exact_annotation, implemented_text
-- **10031320**: covered_exact_without_clause_evidence — missing explicit_exact_annotation, implemented_text
-- **10032310**: covered_exact_without_clause_evidence — missing explicit_exact_annotation, implemented_text
-- **10041110**: covered_exact_without_clause_evidence — missing explicit_exact_annotation, implemented_text
-- **10041130**: covered_exact_without_clause_evidence — missing explicit_exact_annotation, implemented_text
-- **10041310**: covered_exact_without_clause_evidence — missing explicit_exact_annotation, implemented_text
-- **10051120**: covered_exact_without_clause_evidence — missing explicit_exact_annotation, implemented_text
-- **10051130**: covered_exact_without_clause_evidence — missing explicit_exact_annotation, implemented_text
-- **10051310**: covered_exact_without_clause_evidence — missing explicit_exact_annotation, implemented_text
-- **10052110**: covered_exact_without_clause_evidence — missing explicit_exact_annotation, implemented_text
-- **10052310**: covered_exact_without_clause_evidence — missing explicit_exact_annotation, implemented_text
-- **10111310**: covered_exact_without_clause_evidence — missing explicit_exact_annotation, implemented_text
-- **10112120**: covered_exact_without_clause_evidence — missing explicit_exact_annotation, implemented_text
-- **10121310**: covered_exact_without_clause_evidence — missing explicit_exact_annotation, implemented_text
-- **10132320**: covered_exact_without_clause_evidence — missing explicit_exact_annotation, implemented_text
-- **10151310**: covered_exact_without_clause_evidence — missing explicit_exact_annotation, implemented_text
-- **10153140**: covered_exact_without_clause_evidence — missing explicit_exact_annotation, implemented_text
-- **10153310**: covered_exact_without_clause_evidence — missing explicit_exact_annotation, implemented_text
-- **10171310**: covered_exact_without_clause_evidence — missing explicit_exact_annotation, implemented_text
-- **10171320**: covered_exact_without_clause_evidence — missing explicit_exact_annotation, implemented_text
-- **10172310**: covered_exact_without_clause_evidence — missing explicit_exact_annotation, implemented_text
-- **10213310**: covered_exact_without_clause_evidence — missing explicit_exact_annotation, implemented_text
-- **10221310**: covered_exact_without_clause_evidence — missing explicit_exact_annotation, implemented_text
-- **10231120**: covered_exact_without_clause_evidence — missing explicit_exact_annotation, implemented_text
-- **10243310**: covered_exact_without_clause_evidence — missing explicit_exact_annotation, implemented_text
-- **10251120**: covered_exact_without_clause_evidence — missing explicit_exact_annotation, implemented_text
-- **10251310**: covered_exact_without_clause_evidence — missing explicit_exact_annotation, implemented_text
-- **10252310**: covered_exact_without_clause_evidence — missing explicit_exact_annotation, implemented_text
-- **10301310**: covered_exact_without_clause_evidence — missing explicit_exact_annotation, implemented_text
-- **10311310**: covered_exact_without_clause_evidence — missing explicit_exact_annotation, implemented_text
-- **10321310**: covered_exact_without_clause_evidence — missing explicit_exact_annotation, implemented_text
-- **10351120**: covered_exact_without_clause_evidence — missing explicit_exact_annotation, implemented_text
-- **10404110**: covered_exact_without_clause_evidence — missing explicit_exact_annotation, implemented_text
-- **10411310**: covered_exact_without_clause_evidence — missing explicit_exact_annotation, implemented_text
-- **10442310**: covered_exact_without_clause_evidence — missing explicit_exact_annotation, implemented_text
-- **10472310**: covered_exact_without_clause_evidence — missing explicit_exact_annotation, implemented_text
-- **10521310**: covered_exact_without_clause_evidence — missing explicit_exact_annotation, implemented_text
-- **10531310**: covered_exact_without_clause_evidence — missing explicit_exact_annotation, implemented_text
-- **10551120**: covered_exact_without_clause_evidence — missing explicit_exact_annotation, implemented_text
-- **10571310**: covered_exact_without_clause_evidence — missing explicit_exact_annotation, implemented_text
-- **10601110**: covered_exact_without_clause_evidence — missing explicit_exact_annotation, implemented_text
-- **10631310**: covered_exact_without_clause_evidence — missing explicit_exact_annotation, implemented_text
-- **10632310**: covered_exact_without_clause_evidence — missing explicit_exact_annotation, implemented_text
-- **10642310**: covered_exact_without_clause_evidence — missing explicit_exact_annotation, implemented_text
-- **10651110**: covered_exact_without_clause_evidence — missing explicit_exact_annotation, implemented_text
-- **10661310**: covered_exact_without_clause_evidence — missing explicit_exact_annotation, implemented_text
-- **10671110**: covered_exact_without_clause_evidence — missing explicit_exact_annotation, implemented_text
-- **10671310**: covered_exact_without_clause_evidence — missing explicit_exact_annotation, implemented_text
-- **10711310**: covered_exact_without_clause_evidence — missing explicit_exact_annotation, implemented_text
-- **10721310**: covered_exact_without_clause_evidence — missing explicit_exact_annotation, implemented_text
-- **10732120**: covered_exact_without_clause_evidence — missing explicit_exact_annotation, implemented_text
+| audit_unverified | 0 |
 
 ## Primitive Keyword Map
 

@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import os
 import re
@@ -135,6 +136,16 @@ BLOCKER_TYPES = (
     "text_unclear",
     "external_blocker",
     "audit_unverified",
+)
+
+CLAUSE_AUDIT_STATUSES = (
+    "mapped_exact",
+    "unverified_exact",
+    "partial",
+    "missing_rule",
+    "missing_primitive",
+    "text_unclear",
+    "token_separate_audit",
 )
 
 
@@ -375,16 +386,11 @@ def _build_coverage_report(db_path: str, rules_dir: str) -> dict:
                 ability_map.setdefault(cid, []).append(ab)
                 if cid not in support_map:
                     support_map[cid] = sl or "unsupported"
-            text_rows = conn.execute(
-                "SELECT card_id, text_chs, text FROM skill_texts "
-                "ORDER BY card_id, position"
-            ).fetchall()
-            for cid, text_chs, text in text_rows:
-                text_value = text_chs or text or ""
-                if text_value:
-                    skill_text_map.setdefault(cid, []).append(text_value)
+            skill_text_map = _load_source_text_map(conn)
     except Exception:
         pass
+
+    _validate_rule_metadata_source_hashes(rule_metadata, skill_text_map)
 
     classifications = OrderedDict()
     for cid in sorted(all_cards):
@@ -415,21 +421,42 @@ def _build_coverage_report(db_path: str, rules_dir: str) -> dict:
         path.as_posix(): path.read_text(encoding="utf-8", errors="ignore")
         for path in sorted(Path("tests").glob("test_*.py"))
     }
-    clause_counts: dict[str, int] = {}
+    clause_counts: dict[str, int] = {
+        status: 0 for status in CLAUSE_AUDIT_STATUSES
+    }
     blocker_counts: dict[str, int] = {kind: 0 for kind in BLOCKER_TYPES}
     clause_issues: list[dict] = []
     for cid_text, classification in classifications.items():
         cid = int(cid_text)
         metadata = rule_metadata.get(cid, {})
-        evidence = [
+        discovered_evidence = [
             path for path, source in test_sources.items()
             if cid_text in source
         ]
+        configured_evidence = metadata.get("test_evidence")
+        if configured_evidence is None:
+            evidence = discovered_evidence
+        else:
+            evidence = [
+                path
+                for path in configured_evidence
+                if path in test_sources and cid_text in test_sources[path]
+            ]
+            if len(evidence) != len(configured_evidence):
+                metadata["audit_validation_error"] = (
+                    "configured test_evidence is missing or does not reference "
+                    f"card {cid}"
+                )
         coverage = classification["coverage"]
         if coverage == "token_or_non_collectible":
             audit_status = "token_separate_audit"
         elif coverage == "covered_exact":
-            if metadata.get("coverage") == "exact" and metadata.get("implemented_text") and evidence:
+            if (
+                metadata.get("coverage") == "exact"
+                and metadata.get("implemented_text")
+                and evidence
+                and not metadata.get("audit_validation_error")
+            ):
                 audit_status = "mapped_exact"
             else:
                 audit_status = "unverified_exact"
@@ -440,6 +467,8 @@ def _build_coverage_report(db_path: str, rules_dir: str) -> dict:
                     missing.append("implemented_text")
                 if not evidence:
                     missing.append("test_evidence")
+                if metadata.get("audit_validation_error"):
+                    missing.append("audit_validation")
                 clause_issues.append({
                     "card_id": cid,
                     "issue": "covered_exact_without_clause_evidence",
@@ -453,7 +482,7 @@ def _build_coverage_report(db_path: str, rules_dir: str) -> dict:
             audit_status = "missing_primitive"
         else:
             audit_status = "text_unclear"
-        clause_counts[audit_status] = clause_counts.get(audit_status, 0) + 1
+        clause_counts[audit_status] += 1
         classification["clause_audit"] = {
             "status": audit_status,
             "rule_version": metadata.get("rule_version", 1),
@@ -472,8 +501,10 @@ def _build_coverage_report(db_path: str, rules_dir: str) -> dict:
             ],
             "implemented_text": metadata.get("implemented_text"),
             "unsupported_text": metadata.get("unsupported_text"),
+            "source_text_sha256": metadata.get("source_text_sha256"),
             "structured_evidence": ruled_ops.get(cid, {"triggers": [], "effect_kinds": []}),
             "test_evidence": evidence,
+            "audit_validation_error": metadata.get("audit_validation_error"),
             "blocker_type": metadata.get(
                 "blocker_type",
                 (
@@ -504,7 +535,15 @@ def _build_coverage_report(db_path: str, rules_dir: str) -> dict:
 
     test_ids = sum(1 for cid in ruled_cards if 999000 <= int(cid) <= 999999)
 
-    rule_issues = []
+    rule_issues = [
+        {
+            "card_id": cid,
+            "issue": "clause_audit_validation_failed",
+            "detail": metadata["audit_validation_error"],
+        }
+        for cid, metadata in sorted(rule_metadata.items())
+        if metadata.get("audit_validation_error")
+    ]
     unknown_rules = sorted(
         cid for cid in ruled_cards - set(all_cards)
         if not 999000 <= cid <= 999999
@@ -522,6 +561,9 @@ def _build_coverage_report(db_path: str, rules_dir: str) -> dict:
         ("generated_from", {
             "database": db_path,
             "rules_directory": rules_dir,
+            "clause_audit_registry": str(
+                Path(rules_dir).parent / "audits" / "rule_clauses.json"
+            ),
             "source_snapshot": source_snapshot,
         }),
         ("summary", OrderedDict([
@@ -588,7 +630,93 @@ def _load_rule_metadata(rules_dir: str) -> dict[int, dict]:
             }
             if item:
                 metadata.setdefault(cid, {}).update(item)
+    audit_path = path.parent / "audits" / "rule_clauses.json"
+    if audit_path.exists():
+        payload = json.loads(audit_path.read_text(encoding="utf-8"))
+        entries = payload.get("cards", []) if isinstance(payload, dict) else payload
+        if not isinstance(entries, list):
+            raise ValueError(f"{audit_path}: cards must be a list")
+        for index, entry in enumerate(entries):
+            if not isinstance(entry, dict):
+                raise ValueError(f"{audit_path}/cards[{index}]: must be an object")
+            if "card_id" not in entry:
+                raise ValueError(f"{audit_path}/cards[{index}]: card_id is required")
+            cid = int(entry["card_id"])
+            item = {
+                key: entry[key]
+                for key in (
+                    "coverage",
+                    "implemented_text",
+                    "unsupported_text",
+                    "notes",
+                    "rule_version",
+                    "errata",
+                    "blocker_type",
+                    "source_text_sha256",
+                    "test_evidence",
+                )
+                if key in entry
+            }
+            duplicate_keys = sorted(set(metadata.get(cid, {})) & set(item))
+            if duplicate_keys:
+                raise ValueError(
+                    f"{audit_path}/cards[{index}]: card {cid} duplicates rule "
+                    f"metadata keys {duplicate_keys}"
+                )
+            if item:
+                metadata.setdefault(cid, {}).update(item)
     return metadata
+
+
+def _source_text_sha256(texts: list[str]) -> str:
+    payload = json.dumps(
+        texts,
+        ensure_ascii=False,
+        separators=(",", ":"),
+    ).encode("utf-8")
+    return hashlib.sha256(payload).hexdigest()
+
+
+def _load_source_text_map(conn: sqlite3.Connection) -> dict[int, list[str]]:
+    """Load every rules-bearing text clause, including alternate modes."""
+    source_text_map: dict[int, list[str]] = {}
+    text_rows = conn.execute(
+        "SELECT card_id, text_chs, text FROM skill_texts "
+        "ORDER BY card_id, position"
+    ).fetchall()
+    for cid, text_chs, text in text_rows:
+        text_value = text_chs or text or ""
+        if text_value:
+            source_text_map.setdefault(cid, []).append(text_value)
+
+    mode_rows = conn.execute(
+        "SELECT card_id, mode_type, cost, text_chs FROM alt_modes "
+        "ORDER BY card_id, position"
+    ).fetchall()
+    for cid, mode_type, cost, text_chs in mode_rows:
+        mode_label = mode_type if cost is None else f"{mode_type}_{cost}"
+        text_value = f"【{mode_label}】{text_chs}" if text_chs else f"【{mode_label}】"
+        clauses = source_text_map.setdefault(cid, [])
+        if text_value not in clauses:
+            clauses.append(text_value)
+    return source_text_map
+
+
+def _validate_rule_metadata_source_hashes(
+    rule_metadata: dict[int, dict],
+    source_text_map: dict[int, list[str]],
+) -> None:
+    """Invalidate audit entries when imported source text changes."""
+    for cid, metadata in rule_metadata.items():
+        expected_hash = metadata.get("source_text_sha256")
+        if expected_hash is None:
+            continue
+        actual_hash = _source_text_sha256(source_text_map.get(cid, []))
+        if actual_hash != expected_hash:
+            metadata["audit_validation_error"] = (
+                f"source_text_sha256 mismatch: expected {expected_hash}, "
+                f"got {actual_hash}"
+            )
 
 
 def _generate_recommendations(

@@ -10,7 +10,7 @@ code and tests as the source of truth when this file drifts.
 - Database: 826 cards, 735 collectible cards, 91 non-collectible/generated
   cards from set `90000`.
 - Latest SVA source: `https://sva.hypd.asia/data/cards.json`.
-- Tests: `python -m unittest discover -s tests -v` currently runs 1176 tests.
+- Tests: `python -m unittest discover -s tests -v` currently runs 1184 tests.
 - RL adapter: fixed 111-action space; the default v1 observation remains 290
   floats, while opt-in v2 provides fixed-shape categorical/public state without
   changing action IDs.
@@ -33,17 +33,17 @@ code and tests as the source of truth when this file drifts.
   separate column and is covered for all 34; it does not automatically promote
   the 5 partial or 11 placeholder keyword statuses.
 - Coverage now has a backward-compatible clause audit. The legacy summary still
-  reports 87 exact collectible cards, but only 29 have an explicit exact text
-  mapping plus direct test evidence; 58 are flagged `unverified_exact` and may
-  not be treated as audited exact. Synthetic `999xxx` rules are counted but no
-  longer emitted as ordinary consistency failures. The report includes source
-  import hash/count/timestamp, rule version and errata metadata, structured
-  trigger/operation evidence, discovered tests, explicit unsupported text, and
-  a stable blocker taxonomy. The unverified set is content-audit debt and may
-  expose further primitives. The previously exposed `10162120` attack-twice
-  blocker is now a generic structured capacity grant with exact clash and
-  super-evolution behavior; the current report has no known missing primitive,
-  schema, or targeting blocker.
+  reports 87 exact collectible cards, and all 87 now have an explicit exact
+  text mapping plus named direct test evidence. The versioned sibling registry
+  at `data/audits/rule_clauses.json` hashes every imported primary and
+  alternate-mode clause; changed source text or stale test evidence invalidates
+  the audit. Synthetic `999xxx` rules are counted but are not ordinary
+  consistency failures. The report includes source import hash/count/timestamp,
+  rule version and errata metadata, structured trigger/operation evidence,
+  explicit unsupported text, and a stable blocker taxonomy. There are zero
+  unverified exact entries and no known missing schema, primitive, targeting,
+  or timing blocker. The 630 supported-but-missing-rule cards are now the
+  per-card structured-content backlog; 18 unclear texts remain explicit.
 - RL observation v2 is available behind an explicit version switch. A
   configured card vocabulary supplies stable categorical indices for own-hand,
   public-board, initial-deck composition, and public graveyard/banished state;

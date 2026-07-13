@@ -92,7 +92,7 @@ class CoverageReportTests(unittest.TestCase):
             0,
         )
 
-    def test_clause_audit_flags_unverified_exact_rules(self):
+    def test_clause_audit_has_no_unverified_exact_rules(self):
         from scripts.report_rule_coverage import _build_coverage_report
 
         report = _build_coverage_report(self.db_path, self.rules_dir)
@@ -100,15 +100,16 @@ class CoverageReportTests(unittest.TestCase):
             info for info in report["classifications"].values()
             if info["clause_audit"]["status"] == "unverified_exact"
         ]
-        self.assertTrue(unverified)
+        self.assertEqual(unverified, [])
         self.assertEqual(
-            len(unverified),
-            report["summary"]["clause_audit_counts"]["unverified_exact"],
+            report["summary"]["clause_audit_counts"].get("unverified_exact", 0),
+            0,
         )
-        self.assertEqual(
-            len(unverified),
-            len(report["clause_audit_issues"]),
-        )
+        self.assertEqual(report["clause_audit_issues"], [])
+        self.assertFalse(any(
+            issue["issue"] == "clause_audit_validation_failed"
+            for issue in report["rule_consistency_issues"]
+        ))
 
     def test_explicit_exact_rules_map_text_rules_and_tests(self):
         from scripts.report_rule_coverage import _build_coverage_report
@@ -127,6 +128,8 @@ class CoverageReportTests(unittest.TestCase):
                 self.assertIn("triggers", audit["structured_evidence"])
                 self.assertIn("effect_kinds", audit["structured_evidence"])
                 self.assertEqual(audit["rule_version"], 1)
+                self.assertEqual(len(audit["source_text_sha256"]), 64)
+                self.assertIsNone(audit["audit_validation_error"])
 
     def test_source_snapshot_detects_database_refreshes(self):
         from scripts.report_rule_coverage import _build_coverage_report
@@ -180,6 +183,77 @@ class CoverageReportTests(unittest.TestCase):
         self.assertEqual(metadata["rule_version"], 2)
         self.assertEqual(metadata["errata"], ["2026-07 official wording update"])
         self.assertEqual(metadata["blocker_type"], "timing_unclear")
+
+    def test_clause_audit_registry_merges_hash_and_explicit_test_evidence(self):
+        import json
+        import tempfile
+        from pathlib import Path
+        from scripts.report_rule_coverage import (
+            _load_rule_metadata,
+            _source_text_sha256,
+        )
+
+        with tempfile.TemporaryDirectory() as tmp:
+            rules = Path(tmp, "rules")
+            audits = Path(tmp, "audits")
+            rules.mkdir()
+            audits.mkdir()
+            Path(rules, "rule.json").write_text(
+                json.dumps({"rules": [{
+                    "card_id": 123,
+                    "trigger": "play",
+                    "operations": [],
+                }]}),
+                encoding="utf-8",
+            )
+            Path(audits, "rule_clauses.json").write_text(
+                json.dumps({"cards": [{
+                    "card_id": 123,
+                    "coverage": "exact",
+                    "implemented_text": "draw one",
+                    "source_text_sha256": _source_text_sha256(["draw one"]),
+                    "test_evidence": ["tests/test_draw.py"],
+                }]}),
+                encoding="utf-8",
+            )
+            metadata = _load_rule_metadata(str(rules))[123]
+
+        self.assertEqual(metadata["coverage"], "exact")
+        self.assertEqual(metadata["implemented_text"], "draw one")
+        self.assertEqual(metadata["test_evidence"], ["tests/test_draw.py"])
+        self.assertEqual(
+            metadata["source_text_sha256"],
+            _source_text_sha256(["draw one"]),
+        )
+
+    def test_source_hash_validation_detects_changed_text(self):
+        from scripts.report_rule_coverage import (
+            _source_text_sha256,
+            _validate_rule_metadata_source_hashes,
+        )
+
+        metadata = {
+            123: {"source_text_sha256": _source_text_sha256(["old text"])}
+        }
+        _validate_rule_metadata_source_hashes(metadata, {123: ["new text"]})
+
+        self.assertIn("mismatch", metadata[123]["audit_validation_error"])
+
+    def test_source_text_map_includes_deduplicated_alternate_modes(self):
+        from scripts.report_rule_coverage import _load_source_text_map
+
+        with sqlite3.connect(self.db_path) as conn:
+            source_texts = _load_source_text_map(conn)
+
+        self.assertIn(
+            "【激奏_2】召唤1个『<color=Keyword>低劣的玩具</color>』。",
+            source_texts[10671110],
+        )
+        emblem_clauses = [
+            text for text in source_texts[10153140]
+            if text.startswith("【纹章_0】")
+        ]
+        self.assertEqual(len(emblem_clauses), 1)
 
     def test_real_card_ids_exist(self):
         """Cards in rules that exist in DB are properly classified."""

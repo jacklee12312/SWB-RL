@@ -1,0 +1,854 @@
+{
+  "schema_version": 1,
+  "cards": [
+    {
+      "card_id": 10001110,
+      "coverage": "exact",
+      "implemented_text": "【爆能强化_4】本随从+3/+3。",
+      "rule_version": 1,
+      "source_text_sha256": "84389152a52cc6a3b561f231e355b006c1016bde32a20b4b5aa7d7bc5e0284f0",
+      "test_evidence": [
+        "tests/test_play_modes_audit.py"
+      ],
+      "notes": "All imported source clauses are mapped to the structured rule and cited behavior tests."
+    },
+    {
+      "card_id": 10011120,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】使自己的【连击】+1。",
+      "rule_version": 1,
+      "source_text_sha256": "cff146f33e43a99455362bf1016dc02aa0121ddb2b3651eb9d8ad408475cfdfc",
+      "test_evidence": [
+        "tests/test_combo.py"
+      ],
+      "notes": "All imported source clauses are mapped to the structured rule and cited behavior tests."
+    },
+    {
+      "card_id": 10011130,
+      "source_text_sha256": "582564fa9e14cfe65ee9f0be149ddd251ea737c7e8775374992e96fe6d9ee6e6",
+      "test_evidence": [
+        "tests/test_triggers.py"
+      ]
+    },
+    {
+      "card_id": 10012120,
+      "coverage": "exact",
+      "implemented_text": "【疾驰】 / / 【超进化时】选择对手的战场上的1个随从，使其返回手牌。",
+      "rule_version": 1,
+      "source_text_sha256": "d30529436bf141f83815fdb6324617524e736a72eee9b3f8c1966a24739fac89",
+      "test_evidence": [
+        "tests/test_real_card_rules_batch.py"
+      ],
+      "notes": "All imported source clauses are mapped to the structured rule and cited behavior tests."
+    },
+    {
+      "card_id": 10012310,
+      "coverage": "exact",
+      "implemented_text": "选择自己的战场上的1张卡牌，使其返回手牌。对对手的战场上的随机1个随从造成2点伤害。",
+      "rule_version": 1,
+      "source_text_sha256": "277e96bbcf018633da04005b63e6e4965f2e257dd0153c8cfdf861312bccdfe4",
+      "test_evidence": [
+        "tests/test_real_card_rules_batch.py"
+      ],
+      "notes": "All imported source clauses are mapped to the structured rule and cited behavior tests."
+    },
+    {
+      "card_id": 10021310,
+      "coverage": "exact",
+      "implemented_text": "选择自己的1张手牌，使其返回牌组。抽取2张皇家护卫·随从。",
+      "rule_version": 1,
+      "source_text_sha256": "e81685154f847bddc13885a01da37b21f4df9edf7b903e279b90e75e3898cc8b",
+      "test_evidence": [
+        "tests/test_real_card_rules_batch.py"
+      ],
+      "notes": "All imported source clauses are mapped to the structured rule and cited behavior tests."
+    },
+    {
+      "card_id": 10022110,
+      "coverage": "exact",
+      "implemented_text": "【谢幕曲】召唤1个『骑士』。",
+      "rule_version": 1,
+      "source_text_sha256": "d38a11809a37f1dbc22d69a24e82d27f7cfef33cb92fe9f96627819b492ad9ad",
+      "test_evidence": [
+        "tests/test_real_card_rules_batch.py"
+      ],
+      "notes": "All imported source clauses are mapped to the structured rule and cited behavior tests."
+    },
+    {
+      "card_id": 10031210,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】抽取1张卡牌。 / / 【土之印】 / / 费用1【启动】使自己的战场上的土之印+1。",
+      "rule_version": 1,
+      "source_text_sha256": "3387d1d63720bc2549cb2ba926e3a1f34cb08aef0c95c9a37abeda3c6e3e3d4e",
+      "test_evidence": [
+        "tests/test_activate.py"
+      ],
+      "notes": "All imported source clauses are mapped to the structured rule and cited behavior tests."
+    },
+    {
+      "card_id": 10031310,
+      "coverage": "exact",
+      "implemented_text": "抽取1张卡牌。",
+      "rule_version": 1,
+      "source_text_sha256": "fd58d19cfaa2e3f0bb2ca1e8989cfddafe9adb67783748ac2b028247c5bbef34",
+      "test_evidence": [
+        "tests/test_real_card_rules_batch.py"
+      ],
+      "notes": "All imported source clauses are mapped to the structured rule and cited behavior tests."
+    },
+    {
+      "card_id": 10031320,
+      "coverage": "exact",
+      "implemented_text": "召唤1个『泥尘巨像』。",
+      "rule_version": 1,
+      "source_text_sha256": "51a7247d7bf71411e3bcef953c50b4b51414cdd6dae1f3746b50b5b2a71e48c7",
+      "test_evidence": [
+        "tests/test_real_card_rules_batch.py"
+      ],
+      "notes": "All imported source clauses are mapped to the structured rule and cited behavior tests."
+    },
+    {
+      "card_id": 10032310,
+      "coverage": "exact",
+      "implemented_text": "对战场上的所有随从造成2点伤害。【土之秘术_1】抽取1张卡牌。",
+      "rule_version": 1,
+      "source_text_sha256": "643f4cb6a5a539485bd7888d33a84a8d50c67a0eb98b94cc3074342d83d59c68",
+      "test_evidence": [
+        "tests/test_earth_rite.py"
+      ],
+      "notes": "All imported source clauses are mapped to the structured rule and cited behavior tests."
+    },
+    {
+      "card_id": 10041110,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】选择对手的战场上的1个随从，对其造成1点伤害。",
+      "rule_version": 1,
+      "source_text_sha256": "968897cd1f844c1945f9eef6d3f39e386c0c81bcfc271eddeb777f1861994972",
+      "test_evidence": [
+        "tests/test_real_card_rules_batch.py"
+      ],
+      "notes": "All imported source clauses are mapped to the structured rule and cited behavior tests."
+    },
+    {
+      "card_id": 10041130,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】对对手的主战者造成6点伤害。",
+      "rule_version": 1,
+      "source_text_sha256": "90e49aebf0d9844756cd32a491e71e53639889c60dcda82d057063f71745808d",
+      "test_evidence": [
+        "tests/test_exact_rule_audit.py"
+      ],
+      "notes": "All imported source clauses are mapped to the structured rule and cited behavior tests."
+    },
+    {
+      "card_id": 10041310,
+      "coverage": "exact",
+      "implemented_text": "选择对手的战场上的1个随从，对其造成2点伤害。若为【觉醒】，则改为4点伤害。",
+      "rule_version": 1,
+      "source_text_sha256": "7076c88bea20672525de3b1d8b8711032daca3ffd8137e15ccc53f7de6405814",
+      "test_evidence": [
+        "tests/test_overflow.py"
+      ],
+      "notes": "All imported source clauses are mapped to the structured rule and cited behavior tests."
+    },
+    {
+      "card_id": 10042310,
+      "source_text_sha256": "6804b27e53e05984fb13259101cfa98268abcb71d233ceb9775ebed245055864",
+      "test_evidence": [
+        "tests/test_mana_resources.py"
+      ]
+    },
+    {
+      "card_id": 10051120,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】对自己的主战者造成1点伤害。",
+      "rule_version": 1,
+      "source_text_sha256": "5afbf4c6f2f3fe99a41f74eeb80ff22882fd1903b533027a7ba60049d4479c25",
+      "test_evidence": [
+        "tests/test_exact_rule_audit.py"
+      ],
+      "notes": "All imported source clauses are mapped to the structured rule and cited behavior tests."
+    },
+    {
+      "card_id": 10051130,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】【唤灵_4】本随从获得【疾驰】。",
+      "rule_version": 1,
+      "source_text_sha256": "d35c8ead0bb4c2573b0d83c170eab47d45591794b489c4e27f8f4deb716282e2",
+      "test_evidence": [
+        "tests/test_necromancy.py"
+      ],
+      "notes": "All imported source clauses are mapped to the structured rule and cited behavior tests."
+    },
+    {
+      "card_id": 10051310,
+      "coverage": "exact",
+      "implemented_text": "【模式】选择1个能力发动。 / （1）抽取1张随从。 / （2）发动【亡者召还_2】。",
+      "rule_version": 1,
+      "source_text_sha256": "b435c8cbb78307bacd6867c7fa42280e30944e8bbd22d5e72a50d351ce0a43ef",
+      "test_evidence": [
+        "tests/test_real_card_rules_batch.py"
+      ],
+      "notes": "All imported source clauses are mapped to the structured rule and cited behavior tests."
+    },
+    {
+      "card_id": 10052110,
+      "coverage": "exact",
+      "implemented_text": "【谢幕曲】将1张『蝙蝠』加入手牌。",
+      "rule_version": 1,
+      "source_text_sha256": "644cd1fec722094544e3e7aa907238b43264f36e64cb8f542fbbaaa8b928b9ba",
+      "test_evidence": [
+        "tests/test_real_card_rules_batch.py"
+      ],
+      "notes": "All imported source clauses are mapped to the structured rule and cited behavior tests."
+    },
+    {
+      "card_id": 10052310,
+      "coverage": "exact",
+      "implemented_text": "选择自己的战场上的1个随从，破坏该随从。抽取2张卡牌。",
+      "rule_version": 1,
+      "source_text_sha256": "1a4a3913e74a7e824ba2dd2d1b7344e2243b5678722bbbef5d0e95063e9a9028",
+      "test_evidence": [
+        "tests/test_real_card_rules_batch.py"
+      ],
+      "notes": "All imported source clauses are mapped to the structured rule and cited behavior tests."
+    },
+    {
+      "card_id": 10061110,
+      "source_text_sha256": "321bb0c22acda0eda0c45ed3b7ad932058af198d4fa1e8fe7d300a8b85b5cd90",
+      "test_evidence": [
+        "tests/test_exact_rule_audit.py"
+      ]
+    },
+    {
+      "card_id": 10111310,
+      "coverage": "exact",
+      "implemented_text": "将2张『妖精』加入手牌。",
+      "rule_version": 1,
+      "source_text_sha256": "5d2c2bad4742ccbefb3c0598f65df2eb406cd46e5c8b5dad3b6110250ed289f1",
+      "test_evidence": [
+        "tests/test_real_card_rules_batch.py"
+      ],
+      "notes": "All imported source clauses are mapped to the structured rule and cited behavior tests."
+    },
+    {
+      "card_id": 10112120,
+      "coverage": "exact",
+      "implemented_text": "【谢幕曲】将1张『妖精』加入手牌。",
+      "rule_version": 1,
+      "source_text_sha256": "c7d63b46b5ad253b9892c74f02ba841e18f9cc0fa3ea321b575116e03266802f",
+      "test_evidence": [
+        "tests/test_real_card_rules_batch.py"
+      ],
+      "notes": "All imported source clauses are mapped to the structured rule and cited behavior tests."
+    },
+    {
+      "card_id": 10121310,
+      "coverage": "exact",
+      "implemented_text": "选择对手的战场上的1个随从，破坏该随从。召唤1个『铁甲骑士』。",
+      "rule_version": 1,
+      "source_text_sha256": "11d8a1213bb335eed3379db72ee06a6ca3741a94d1a4334cd725891574dce712",
+      "test_evidence": [
+        "tests/test_real_card_rules_batch.py"
+      ],
+      "notes": "All imported source clauses are mapped to the structured rule and cited behavior tests."
+    },
+    {
+      "card_id": 10122110,
+      "source_text_sha256": "3ef605a891709ecfbe4fa4d4cba2df7a36fcfc67dc6947ea54cd678c025698bb",
+      "test_evidence": [
+        "tests/test_royal_trait_listeners.py"
+      ]
+    },
+    {
+      "card_id": 10122120,
+      "source_text_sha256": "8d619c24840374c05337d9471671e6e98730583bf7248ad16a9fae5e301dab32",
+      "test_evidence": [
+        "tests/test_royal_trait_listeners.py"
+      ]
+    },
+    {
+      "card_id": 10122130,
+      "source_text_sha256": "e711ef23265ba16d5259858de412a0b2bb421d6c96acaf84345d443146caed7f",
+      "test_evidence": [
+        "tests/test_royal_trait_listeners.py"
+      ]
+    },
+    {
+      "card_id": 10123140,
+      "source_text_sha256": "ffc07a6f7fdd7c8be59f427b2b97c3ef7b5fbc4848abed5410f9ce91cc98e779",
+      "test_evidence": [
+        "tests/test_royal_trait_listeners.py"
+      ]
+    },
+    {
+      "card_id": 10132320,
+      "coverage": "exact",
+      "implemented_text": "【魔力增幅时】使本卡牌的费用-1。 / / 选择对手的战场上的1个随从，使其生命值变为1。对手的回合结束前，使其获得「无法攻击随从或主战者」。",
+      "rule_version": 1,
+      "source_text_sha256": "e33e9f0716dbc8f8b80d0b063da610d07cb7e8abad1b3fe7ecf90e3ef0b86e9b",
+      "test_evidence": [
+        "tests/test_exact_rule_audit.py"
+      ],
+      "notes": "All imported source clauses are mapped to the structured rule and cited behavior tests."
+    },
+    {
+      "card_id": 10143120,
+      "source_text_sha256": "477ce03a340d5bb107123e33ea7eb2eeea9e7b21b6120dccea553656a6081387",
+      "test_evidence": [
+        "tests/test_mana_resources.py"
+      ]
+    },
+    {
+      "card_id": 10151110,
+      "source_text_sha256": "bd994481a9a5e68b25f6b281f35a34bacd9d03d88c7a3c6faf9147893960c40b",
+      "test_evidence": [
+        "tests/test_cross_class_trait_listeners.py"
+      ]
+    },
+    {
+      "card_id": 10151310,
+      "coverage": "exact",
+      "implemented_text": "选择自己的战场上的1个随从和对手的战场上的1个随从。破坏这些随从。",
+      "rule_version": 1,
+      "source_text_sha256": "0039b1e30fcbe9a146130686722f68244c6dfcabddbdba327b0f99eb3741ff60",
+      "test_evidence": [
+        "tests/test_real_card_rules_batch.py"
+      ],
+      "notes": "All imported source clauses are mapped to the structured rule and cited behavior tests."
+    },
+    {
+      "card_id": 10153140,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】使自己获得『纹章：地下赏金猎人·巴尔特』。 | 【纹章_0】【吟唱_4】 / 自己的回合结束时，对所有主战者造成1点伤害。",
+      "rule_version": 1,
+      "source_text_sha256": "299d78eecb3bd3215b10bb2a3f1f9162798c6f49976151d76833480652a58e18",
+      "test_evidence": [
+        "tests/test_emblems.py"
+      ],
+      "notes": "All imported source clauses are mapped to the structured rule and cited behavior tests."
+    },
+    {
+      "card_id": 10153310,
+      "coverage": "exact",
+      "implemented_text": "选择对手的战场上的1个随从或对手的主战者，对其造成3点伤害。对自己的主战者造成2点伤害。",
+      "rule_version": 1,
+      "source_text_sha256": "5b28ab9c3d06900326704af1ae7558483ad1e548b6cbdc521e0e7176e63d6d81",
+      "test_evidence": [
+        "tests/test_real_card_rules_batch.py"
+      ],
+      "notes": "All imported source clauses are mapped to the structured rule and cited behavior tests."
+    },
+    {
+      "card_id": 10161130,
+      "source_text_sha256": "079c6445e02ed60ae845d14caad4e269f1b6fb94cc33c5551df3bc3b78eb1e17",
+      "test_evidence": [
+        "tests/test_exact_rule_audit.py"
+      ]
+    },
+    {
+      "card_id": 10161140,
+      "source_text_sha256": "74042a7fb285acbafc1b0703d55b5d664dde48a38fe5d251a437cc1e01dde287",
+      "test_evidence": [
+        "tests/test_aura.py"
+      ]
+    },
+    {
+      "card_id": 10161210,
+      "source_text_sha256": "6ee16f697cabaf95b3f7f9a20b3aee07358c0b6ef7ce0e70fa3e1d793985f85c",
+      "test_evidence": [
+        "tests/test_activate.py",
+        "tests/test_core_engine.py",
+        "tests/test_last_words.py",
+        "tests/test_real_card_rules_batch.py"
+      ]
+    },
+    {
+      "card_id": 10162120,
+      "source_text_sha256": "60eee3892cc698fa38800427d0ea288e07bf16be5dcfeb66a5b8d45bfaaf5820",
+      "test_evidence": [
+        "tests/test_attack_capacity.py"
+      ]
+    },
+    {
+      "card_id": 10171110,
+      "source_text_sha256": "15260fb7e2ce037cc73193028f637fea44f56b59043a230f5e0a6a5db7b61046",
+      "test_evidence": [
+        "tests/test_fusion.py",
+        "tests/test_real_card_rules_batch.py"
+      ]
+    },
+    {
+      "card_id": 10171310,
+      "coverage": "exact",
+      "implemented_text": "召唤2个『改良型·悬丝傀儡』。",
+      "rule_version": 1,
+      "source_text_sha256": "a7f75255a7948971c2f6017988d636d235ce5be2c149e2f948737024f0a3795b",
+      "test_evidence": [
+        "tests/test_real_card_rules_batch.py"
+      ],
+      "notes": "All imported source clauses are mapped to the structured rule and cited behavior tests."
+    },
+    {
+      "card_id": 10171320,
+      "coverage": "exact",
+      "implemented_text": "将1张『未来核心』和1张『过往核心』加入手牌。",
+      "rule_version": 1,
+      "source_text_sha256": "af430320db21190c55241bd673cd715fec9e44efa97ec9f42c76366ab74b5021",
+      "test_evidence": [
+        "tests/test_real_card_rules_batch.py"
+      ],
+      "notes": "All imported source clauses are mapped to the structured rule and cited behavior tests."
+    },
+    {
+      "card_id": 10172310,
+      "coverage": "exact",
+      "implemented_text": "选择对手的战场上的1个随从，对其造成3点伤害。将1张『过往核心』加入手牌。",
+      "rule_version": 1,
+      "source_text_sha256": "b67539f8137a538a227f070c4aed0fdb038a10f1343f0d69e541b2dc9a0c41fe",
+      "test_evidence": [
+        "tests/test_real_card_rules_batch.py"
+      ],
+      "notes": "All imported source clauses are mapped to the structured rule and cited behavior tests."
+    },
+    {
+      "card_id": 10213310,
+      "coverage": "exact",
+      "implemented_text": "【融合】精灵·卡牌 / / 抽取1张卡牌。若已与本卡牌【融合】，则改为抽取2张。",
+      "rule_version": 1,
+      "source_text_sha256": "4987741dd29fe8470cf97dfb43479fa65a2e50213a8fc428ddf5e83ac687cee7",
+      "test_evidence": [
+        "tests/test_fusion.py"
+      ],
+      "notes": "All imported source clauses are mapped to the structured rule and cited behavior tests."
+    },
+    {
+      "card_id": 10214110,
+      "source_text_sha256": "31d17c56b4d092e92b7ac264f3363ca0ad5537f1b72a75cc1b5850bae5b361f5",
+      "test_evidence": [
+        "tests/test_emblems.py",
+        "tests/test_rule_coverage_report.py"
+      ]
+    },
+    {
+      "card_id": 10221310,
+      "coverage": "exact",
+      "implemented_text": "抽取2张卡牌。对手抽取1张卡牌。",
+      "rule_version": 1,
+      "source_text_sha256": "d941896f78dd9bfc5ec02eca961f526ece2647c51d7381b31b31c1e070e0ca4e",
+      "test_evidence": [
+        "tests/test_real_card_rules_batch.py"
+      ],
+      "notes": "All imported source clauses are mapped to the structured rule and cited behavior tests."
+    },
+    {
+      "card_id": 10231120,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】选择自己的1张手牌，使其返回牌组。抽取1张法术。",
+      "rule_version": 1,
+      "source_text_sha256": "cef10ebda1463ead60e2a4f1134dd830ac79280239a8b07fe23e3d50fe7d6e95",
+      "test_evidence": [
+        "tests/test_real_card_rules_batch.py"
+      ],
+      "notes": "All imported source clauses are mapped to the structured rule and cited behavior tests."
+    },
+    {
+      "card_id": 10243310,
+      "coverage": "exact",
+      "implemented_text": "选择自己的1张手牌，使其费用-2。对对手的战场上的所有随从造成3点伤害。",
+      "rule_version": 1,
+      "source_text_sha256": "4487027354d2ec3e1fb1acd912a8eef56146fe299ec36c981a31f6622ae0ecce",
+      "test_evidence": [
+        "tests/test_runtime_modifiers.py"
+      ],
+      "notes": "All imported source clauses are mapped to the structured rule and cited behavior tests."
+    },
+    {
+      "card_id": 10251120,
+      "coverage": "exact",
+      "implemented_text": "【谢幕曲】将1张『怨灵』加入手牌。",
+      "rule_version": 1,
+      "source_text_sha256": "c1f8b40112fb4a0726ae5094168bdb3fe96b07ce2efc5f8f4b242c753fdf6f68",
+      "test_evidence": [
+        "tests/test_real_card_rules_batch.py"
+      ],
+      "notes": "All imported source clauses are mapped to the structured rule and cited behavior tests."
+    },
+    {
+      "card_id": 10251310,
+      "coverage": "exact",
+      "implemented_text": "将1张『怨灵』和1张『骸骨士兵』和1张『腐臭的僵尸』加入手牌。",
+      "rule_version": 1,
+      "source_text_sha256": "33c95a78e18a4b988ac3bbb725952f63272a260639cce985223a56cab063da34",
+      "test_evidence": [
+        "tests/test_real_card_rules_batch.py"
+      ],
+      "notes": "All imported source clauses are mapped to the structured rule and cited behavior tests."
+    },
+    {
+      "card_id": 10252310,
+      "coverage": "exact",
+      "implemented_text": "召唤2个『蝙蝠』。",
+      "rule_version": 1,
+      "source_text_sha256": "d5c30020384e42a58115c551b09f7f14b25279e5aab6e68b844ab842b3f891cf",
+      "test_evidence": [
+        "tests/test_real_card_rules_batch.py"
+      ],
+      "notes": "All imported source clauses are mapped to the structured rule and cited behavior tests."
+    },
+    {
+      "card_id": 10301310,
+      "coverage": "exact",
+      "implemented_text": "抽取3张卡牌。若自己的牌组中没有重复卡牌，则回复自己3点能量点。",
+      "rule_version": 1,
+      "source_text_sha256": "5e6961247eec8d100cb69384d43bcf80e276936a06aeaacfe12c0dcd4897ee9c",
+      "test_evidence": [
+        "tests/test_real_card_rules_batch.py"
+      ],
+      "notes": "All imported source clauses are mapped to the structured rule and cited behavior tests."
+    },
+    {
+      "card_id": 10311120,
+      "source_text_sha256": "8d25a8d8c8610d26a9bcc508e918540cc7df5906022a015a89d9d58da6564d92",
+      "test_evidence": [
+        "tests/test_trait_listeners.py"
+      ]
+    },
+    {
+      "card_id": 10311310,
+      "coverage": "exact",
+      "implemented_text": "选择对手的战场上的1个随从，对其造成4点伤害。【连击_3】抽取1张卡牌。",
+      "rule_version": 1,
+      "source_text_sha256": "37926f7cd0716bf785c228ab6bf283220e629f519bc668cb5687980b113cb90c",
+      "test_evidence": [
+        "tests/test_combo.py"
+      ],
+      "notes": "All imported source clauses are mapped to the structured rule and cited behavior tests."
+    },
+    {
+      "card_id": 10321310,
+      "coverage": "exact",
+      "implemented_text": "选择自己的战场上的1个随从，使其获得【守护】。对对手的战场上的随机1个随从造成4点伤害。",
+      "rule_version": 1,
+      "source_text_sha256": "2f963f05dab6a6afd10fa977d206f073d154d2b03c2f3b055017aad3e83533fa",
+      "test_evidence": [
+        "tests/test_runtime_modifiers.py"
+      ],
+      "notes": "All imported source clauses are mapped to the structured rule and cited behavior tests."
+    },
+    {
+      "card_id": 10351120,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】选择对手的战场上的2个随从，破坏这些随从。对自己的主战者造成4点伤害。 / / 【疾驰】",
+      "rule_version": 1,
+      "source_text_sha256": "a8d038671d600b67c8d3e1a181e2f48ac460b1a939caa53173ba88664cc6da79",
+      "test_evidence": [
+        "tests/test_real_card_rules_batch.py"
+      ],
+      "notes": "All imported source clauses are mapped to the structured rule and cited behavior tests."
+    },
+    {
+      "card_id": 10402110,
+      "source_text_sha256": "1cd8bc10f796a37909d5c6391c6b06225d982c47b0dd91c6eae63f01f2f5c6fb",
+      "test_evidence": [
+        "tests/test_trait_listeners.py"
+      ]
+    },
+    {
+      "card_id": 10404110,
+      "coverage": "exact",
+      "implemented_text": "在牌组中发动。自己的回合开始时，若本次对战中自己的随从的进化次数为6次或以上，则【瞬念召唤】本卡牌。 / / 本卡牌被【瞬念召唤】时，使自己获得『纹章：天司长的继承者·圣德芬』。本卡牌返回手牌。 / 【入场曲】【解放奥义】发动5次「随机对对手的战场上的1个随从或对手的主战者造成2点伤害」。 | 【纹章_0】【吟唱_2】 / 自己的回合结束时，回复自己的战场上的所有随从和自己的主战者1点生命值。",
+      "rule_version": 1,
+      "source_text_sha256": "2dbc220fad2d20d311f5398fc9cfcc405a9305d3b3b4de2062a3da8fb8ff60f6",
+      "test_evidence": [
+        "tests/test_invocation.py",
+        "tests/test_union_burst.py"
+      ],
+      "notes": "All imported source clauses are mapped to the structured rule and cited behavior tests."
+    },
+    {
+      "card_id": 10411310,
+      "coverage": "exact",
+      "implemented_text": "选择对手的战场上的1个随从，对其造成4点伤害。若自己的战场上有进化后的随从，则抽取1张卡牌。",
+      "rule_version": 1,
+      "source_text_sha256": "d417324093294ed7b114e9f7f925bb8c1361140570d26b7677b62e7e42e1c26c",
+      "test_evidence": [
+        "tests/test_real_card_rules_batch.py"
+      ],
+      "notes": "All imported source clauses are mapped to the structured rule and cited behavior tests."
+    },
+    {
+      "card_id": 10431120,
+      "source_text_sha256": "996d3f9bc4c5cd1423042cdf72e98cd5929cfdd0b3ae55297082ee2745c00980",
+      "test_evidence": [
+        "tests/test_exact_rule_audit.py"
+      ]
+    },
+    {
+      "card_id": 10442310,
+      "coverage": "exact",
+      "implemented_text": "选择对手的战场上的1个随从，对其造成3点伤害，对手的回合结束前，使其获得「无法攻击随从或主战者」。",
+      "rule_version": 1,
+      "source_text_sha256": "2beec8e34f02eda5a8831f26ebd67ee188b5968a2e79ceebf427487259e950bd",
+      "test_evidence": [
+        "tests/test_real_card_rules_batch.py"
+      ],
+      "notes": "All imported source clauses are mapped to the structured rule and cited behavior tests."
+    },
+    {
+      "card_id": 10443110,
+      "source_text_sha256": "bfae6b963c24d13511000e3e3728251b630f6ffd2d865779c1ff8dd23dd22a1a",
+      "test_evidence": [
+        "tests/test_card_listeners.py",
+        "tests/test_super_evolution.py"
+      ]
+    },
+    {
+      "card_id": 10451120,
+      "source_text_sha256": "a4b64b25f559bea3c0f8feb6d30e6ab26bc8a03cd464dd7aa84050b2f7232add",
+      "test_evidence": [
+        "tests/test_intimidate.py"
+      ]
+    },
+    {
+      "card_id": 10472310,
+      "coverage": "exact",
+      "implemented_text": "发动6次「对对手的战场上的随机1个随从造成1点伤害」。",
+      "rule_version": 1,
+      "source_text_sha256": "9d5e11d73f183d70ceaf7108537995ce9b475923bb2639a97d7a22438df4f5c4",
+      "test_evidence": [
+        "tests/test_real_card_rules_batch.py"
+      ],
+      "notes": "All imported source clauses are mapped to the structured rule and cited behavior tests."
+    },
+    {
+      "card_id": 10474120,
+      "source_text_sha256": "170376166e1f412d8b44d0b547a6c64c36a2c702281c23bffa171d36c5c4d862",
+      "test_evidence": [
+        "tests/test_real_card_rules_batch.py"
+      ]
+    },
+    {
+      "card_id": 10511120,
+      "source_text_sha256": "6a0a10cbb9935bd7d86bf0071cdce162121bbcdc4a6cc51575c8b1e86e9c6d9f",
+      "test_evidence": [
+        "tests/test_trait_listeners.py"
+      ]
+    },
+    {
+      "card_id": 10521310,
+      "coverage": "exact",
+      "implemented_text": "选择自己的手牌中的1张法术，舍弃该手牌。发动2次「对对手的战场上的随机1个随从造成3点伤害」。",
+      "rule_version": 1,
+      "source_text_sha256": "d04f8f9c0f60679868dbe2a58f6a2c10f39a823fccca657c3ba06c35f4e71d86",
+      "test_evidence": [
+        "tests/test_real_card_rules_batch.py"
+      ],
+      "notes": "All imported source clauses are mapped to the structured rule and cited behavior tests."
+    },
+    {
+      "card_id": 10531310,
+      "coverage": "exact",
+      "implemented_text": "选择自己的1张手牌，舍弃该手牌。抽取2张卡牌。",
+      "rule_version": 1,
+      "source_text_sha256": "1349090850451ab2e11fc3808dbfcfa96d26bcc847e4392ea716ba6e8a3f4357",
+      "test_evidence": [
+        "tests/test_real_card_rules_batch.py"
+      ],
+      "notes": "All imported source clauses are mapped to the structured rule and cited behavior tests."
+    },
+    {
+      "card_id": 10541120,
+      "source_text_sha256": "cfb3a853193ced6322494a4eec2813c28904ae0aa01d80f842832fa4f2fc89c0",
+      "test_evidence": [
+        "tests/test_cross_class_trait_listeners.py"
+      ]
+    },
+    {
+      "card_id": 10551120,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】发动【亡者召还_2】。 / / 【进化时】发动与【入场曲】相同的能力。",
+      "rule_version": 1,
+      "source_text_sha256": "60c5687434ad50db7b561b8b1503bcc0c359f7c65d8f9e691cf0b41d5a0ec143",
+      "test_evidence": [
+        "tests/test_exact_rule_audit.py"
+      ],
+      "notes": "All imported source clauses are mapped to the structured rule and cited behavior tests."
+    },
+    {
+      "card_id": 10563210,
+      "source_text_sha256": "f5490cc66247075e9bf7ec2db983422cca1486abc48c167c3b5a049d2531e2ed",
+      "test_evidence": [
+        "tests/test_activate.py"
+      ]
+    },
+    {
+      "card_id": 10571310,
+      "coverage": "exact",
+      "implemented_text": "抽取1张卡牌。",
+      "rule_version": 1,
+      "source_text_sha256": "fd58d19cfaa2e3f0bb2ca1e8989cfddafe9adb67783748ac2b028247c5bbef34",
+      "test_evidence": [
+        "tests/test_real_card_rules_batch.py"
+      ],
+      "notes": "All imported source clauses are mapped to the structured rule and cited behavior tests."
+    },
+    {
+      "card_id": 10601110,
+      "coverage": "exact",
+      "implemented_text": "【谢幕曲】对对手的主战者造成1点伤害。",
+      "rule_version": 1,
+      "source_text_sha256": "82937c23a51193b6abf20a84a8d42f5cc44cddf3231cd7681696ae0829f343e3",
+      "test_evidence": [
+        "tests/test_real_card_rules_batch.py"
+      ],
+      "notes": "All imported source clauses are mapped to the structured rule and cited behavior tests."
+    },
+    {
+      "card_id": 10614120,
+      "source_text_sha256": "2020e70b4c1f1b27404eb83b16e2b26ec90d40630f961b8e9f4db57541876544",
+      "test_evidence": [
+        "tests/test_faith.py"
+      ]
+    },
+    {
+      "card_id": 10631310,
+      "coverage": "exact",
+      "implemented_text": "召唤2个『天晶魔手』。",
+      "rule_version": 1,
+      "source_text_sha256": "1a8b4a63f7ab860b128c08f7f779c29080fd315b32f9e17848ad3fcd65efc2bf",
+      "test_evidence": [
+        "tests/test_real_card_rules_batch.py"
+      ],
+      "notes": "All imported source clauses are mapped to the structured rule and cited behavior tests."
+    },
+    {
+      "card_id": 10632110,
+      "source_text_sha256": "e2e73fb48454b01af1ef0aba718d09aef5ce7c72b406da95d7ddeb748eb9cabe",
+      "test_evidence": [
+        "tests/test_trait_listeners.py"
+      ]
+    },
+    {
+      "card_id": 10632310,
+      "coverage": "exact",
+      "implemented_text": "选择自己的战场上的1个『天晶魔手』，破坏该随从。抽取2张巫师·随从。",
+      "rule_version": 1,
+      "source_text_sha256": "b8d5d16783735903b97418e050ac9b7184c9cbadd94039d5b33c215a910d8ed9",
+      "test_evidence": [
+        "tests/test_real_card_rules_batch.py"
+      ],
+      "notes": "All imported source clauses are mapped to the structured rule and cited behavior tests."
+    },
+    {
+      "card_id": 10642310,
+      "coverage": "exact",
+      "implemented_text": "选择自己的1张手牌，舍弃该手牌。选择对手的战场上的1个随从，破坏该随从。",
+      "rule_version": 1,
+      "source_text_sha256": "c713fc379599833abb3aba07afeec2c123ad539e45333dbb87d3e26c01ffdcbb",
+      "test_evidence": [
+        "tests/test_exact_rule_audit.py"
+      ],
+      "notes": "All imported source clauses are mapped to the structured rule and cited behavior tests."
+    },
+    {
+      "card_id": 10651110,
+      "coverage": "exact",
+      "implemented_text": "【谢幕曲】抽取1张卡牌。对自己的主战者造成1点伤害。",
+      "rule_version": 1,
+      "source_text_sha256": "420012d658c874a823a393fa4e43cca79e70273f5b29272b4e6453af9a7357be",
+      "test_evidence": [
+        "tests/test_real_card_rules_batch.py"
+      ],
+      "notes": "All imported source clauses are mapped to the structured rule and cited behavior tests."
+    },
+    {
+      "card_id": 10661310,
+      "coverage": "exact",
+      "implemented_text": "抽取2张护符。",
+      "rule_version": 1,
+      "source_text_sha256": "22a1a086e00be55dc342187d220691bc7fb623ab82ce3e8164a9ec55d911e1bb",
+      "test_evidence": [
+        "tests/test_real_card_rules_batch.py"
+      ],
+      "notes": "All imported source clauses are mapped to the structured rule and cited behavior tests."
+    },
+    {
+      "card_id": 10664120,
+      "source_text_sha256": "d7cd8bc5324e3d20ff2415288e88c8bea6abad37030baf772d5e2f0cdd078cd3",
+      "test_evidence": [
+        "tests/test_faith.py",
+        "tests/test_targeting_and_zones.py"
+      ]
+    },
+    {
+      "card_id": 10671110,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】抽取3张卡牌。 / / 【守护】 | 【激奏_2】召唤1个『低劣的玩具』。",
+      "rule_version": 1,
+      "source_text_sha256": "47aaabbae62b2a2099645e3692ab6ba62ab695b2e8f7c86a6f618ed77dba4b24",
+      "test_evidence": [
+        "tests/test_play_modes_audit.py"
+      ],
+      "notes": "All imported source clauses are mapped to the structured rule and cited behavior tests."
+    },
+    {
+      "card_id": 10671310,
+      "coverage": "exact",
+      "implemented_text": "选择对手的战场上的1个随从，对其造成4点伤害。若自己的战场上有原始费用为5或以上的随从，则抽取1张卡牌。",
+      "rule_version": 1,
+      "source_text_sha256": "7b7733b12489682aac1934848d16c35bfab454910e7c723b74b9133229ee643b",
+      "test_evidence": [
+        "tests/test_real_card_rules_batch.py"
+      ],
+      "notes": "All imported source clauses are mapped to the structured rule and cited behavior tests."
+    },
+    {
+      "card_id": 10711310,
+      "coverage": "exact",
+      "implemented_text": "选择自己的2张手牌，使其返回牌组。抽取2张卡牌。",
+      "rule_version": 1,
+      "source_text_sha256": "c63e58b42eb3b61d347c9a3ba6b365f1f4ba32066276659fda20c3c3ebb903ae",
+      "test_evidence": [
+        "tests/test_real_card_rules_batch.py"
+      ],
+      "notes": "All imported source clauses are mapped to the structured rule and cited behavior tests."
+    },
+    {
+      "card_id": 10713110,
+      "source_text_sha256": "eaf32eabbc50701a43e19bc6f97d3a68d88ea0513866c2c321a88c8e8d75e2cb",
+      "test_evidence": [
+        "tests/test_real_card_rules_batch.py"
+      ]
+    },
+    {
+      "card_id": 10721310,
+      "coverage": "exact",
+      "implemented_text": "选择对手的战场上的1个随从，对其造成3点伤害。【协作_10】对手的回合结束前，使其获得「无法攻击随从或主战者」。",
+      "rule_version": 1,
+      "source_text_sha256": "ecea94d2109d1360b7d1421018661f21083878d5c3e3e5e972f7446372461cc3",
+      "test_evidence": [
+        "tests/test_cooperation.py"
+      ],
+      "notes": "All imported source clauses are mapped to the structured rule and cited behavior tests."
+    },
+    {
+      "card_id": 10732120,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】使自己的战场上的土之印+2。 / / 【守护】",
+      "rule_version": 1,
+      "source_text_sha256": "3eab890d0184ae32899c0787e22f110046b81ede4462510d16580b65aed1259b",
+      "test_evidence": [
+        "tests/test_earth_rite.py"
+      ],
+      "notes": "All imported source clauses are mapped to the structured rule and cited behavior tests."
+    },
+    {
+      "card_id": 10771110,
+      "source_text_sha256": "162ff2f0d07b6f3680a86f4191ec4446147e2114b33ef38a179e2e3d704f805b",
+      "test_evidence": [
+        "tests/test_cross_class_trait_listeners.py"
+      ]
+    }
+  ]
+}

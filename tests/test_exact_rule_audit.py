@@ -1,12 +1,13 @@
 from __future__ import annotations
 
 import unittest
+from dataclasses import replace
 
 from swb.db.repository import CardDefinition, CardRepository
 from swb.engine.card_rules import RuleBook
-from swb.engine.commands import EndTurn, Evolve, PlayCard
+from swb.engine.commands import Choose, EndTurn, Evolve, PlayCard
 from swb.engine.resolution import GameEngine
-from swb.engine.state import HandCard, Unit
+from swb.engine.state import DeathCause, DestroyedFollowerRecord, HandCard, Unit
 
 
 def card(card_id: int, *, attack: int = 1) -> CardDefinition:
@@ -114,6 +115,108 @@ class ExactRuleAuditTests(unittest.TestCase):
         self.assertTrue(source.evolved)
         self.assertFalse(source.can_attack_units)
         self.assertFalse(source.can_attack_leader)
+
+    def test_10041130_fanfare_damages_enemy_leader_for_six(self):
+        game = self.make_engine()
+        game.players[0].hand = [self.repo.get(10041130)]
+        game.players[0].hand_entity_ids = []
+        game.players[0].mana = 10
+
+        game.apply(PlayCard(0, 0))
+
+        self.assertEqual(game.players[1].health, 14)
+
+    def test_10051120_fanfare_damages_own_leader_for_one(self):
+        game = self.make_engine()
+        game.players[0].hand = [self.repo.get(10051120)]
+        game.players[0].hand_entity_ids = []
+        game.players[0].mana = 10
+
+        game.apply(PlayCard(0, 0))
+
+        self.assertEqual(game.players[0].health, 19)
+
+    def test_10132320_sets_health_and_restricts_through_opponent_turn(self):
+        game = self.make_engine()
+        game.players[0].hand = [self.repo.get(10132320)]
+        game.players[0].hand_entity_ids = []
+        game.players[0].mana = 10
+        target = Unit.summon(
+            card(800, attack=4),
+            entity_id=game.state.allocate_entity_id(),
+        )
+        target.health = 6
+        target.max_health = 6
+        target.base_health = 6
+        game.players[1].board = [target]
+
+        game.apply(PlayCard(0, 0))
+        game.apply(next(
+            command
+            for command in game.legal_commands()
+            if isinstance(command, Choose)
+        ))
+
+        self.assertEqual((target.health, target.max_health), (1, 1))
+        self.assertFalse(target.can_attack_units)
+        self.assertFalse(target.can_attack_leader)
+        game.apply(EndTurn(0))
+        self.assertFalse(target.can_attack_units)
+        game.apply(EndTurn(1))
+        self.assertTrue(target.can_attack_units)
+
+    def test_10551120_fanfare_reanimates_cost_two_follower(self):
+        game = self.make_engine()
+        game.players[0].hand = [self.repo.get(10551120)]
+        game.players[0].hand_entity_ids = []
+        game.players[0].mana = 10
+        buried = replace(card(801), cost=2)
+        game.state.destroyed_followers.append(DestroyedFollowerRecord(
+            definition=buried,
+            owner=0,
+            death_sequence=1,
+            cause=DeathCause.EFFECT_DESTROY,
+        ))
+
+        game.apply(PlayCard(0, 0))
+
+        self.assertTrue(any(
+            unit.definition.card_id == buried.card_id
+            for unit in game.players[0].board
+        ))
+
+    def test_10642310_discards_then_destroys_selected_enemy(self):
+        game = self.make_engine()
+        spell = self.repo.get(10642310)
+        material = card(802)
+        game.players[0].hand = [spell, material]
+        game.players[0].hand_entity_ids = []
+        game.players[0].mana = 10
+        target = Unit.summon(
+            card(803),
+            entity_id=game.state.allocate_entity_id(),
+        )
+        game.players[1].board = [target]
+
+        game.apply(PlayCard(0, 0))
+        hand_choice = next(
+            command
+            for command in game.legal_commands()
+            if isinstance(command, Choose)
+        )
+        game.apply(hand_choice)
+        board_choice = next(
+            command
+            for command in game.legal_commands()
+            if isinstance(command, Choose)
+        )
+        game.apply(board_choice)
+
+        self.assertFalse(any(
+            hand.definition.card_id == material.card_id
+            for hand in game.players[0].hand
+        ))
+        self.assertNotIn(target, game.players[1].board)
 
 
 if __name__ == "__main__":
