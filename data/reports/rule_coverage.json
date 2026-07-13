@@ -20,10 +20,10 @@
       "token_or_non_collectible": 91
     },
     "clause_audit_counts": {
-      "unverified_exact": 62,
+      "unverified_exact": 61,
       "missing_rule": 630,
       "text_unclear": 18,
-      "mapped_exact": 25,
+      "mapped_exact": 26,
       "token_separate_audit": 91
     },
     "blocker_counts": {
@@ -34,7 +34,7 @@
       "timing_unclear": 0,
       "text_unclear": 18,
       "external_blocker": 0,
-      "audit_unverified": 62
+      "audit_unverified": 61
     }
   },
   "rule_consistency_issues": [],
@@ -283,14 +283,6 @@
     },
     {
       "card_id": 10213310,
-      "issue": "covered_exact_without_clause_evidence",
-      "missing": [
-        "explicit_exact_annotation",
-        "implemented_text"
-      ]
-    },
-    {
-      "card_id": 10214110,
       "issue": "covered_exact_without_clause_evidence",
       "missing": [
         "explicit_exact_annotation",
@@ -777,6 +769,7 @@
         "test_evidence": [
           "tests/test_card_origin.py",
           "tests/test_database.py",
+          "tests/test_emblems.py",
           "tests/test_play_modes.py",
           "tests/test_play_modes_audit.py",
           "tests/test_rule_coverage_report.py"
@@ -10616,7 +10609,7 @@
       "is_collectible": true,
       "card_set_id": 10002,
       "coverage": "covered_exact",
-      "reason": "Triggers: ['fanfare', 'emblem_source'], Ops: ['summon', 'gain_emblem', 'add_card']",
+      "reason": "Triggers: ['fanfare', 'evolve', 'emblem_source'], Ops: ['summon', 'gain_emblem', 'transform', 'add_card']",
       "hit_keywords": [
         "入场曲",
         "进化时",
@@ -10633,27 +10626,33 @@
         "【<color=Keyword>入场曲</color>】召唤1个『<color=Keyword>妖精</color>』。使自己获得『纹章：翅翼女王·提泰妮娅』。\n<hr><ev>【<color=Keyword>进化时</color>】选择对手的战场上的1个随从，使其变身为『<color=Keyword>妖精</color>』。</ev>"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【入场曲】召唤1个『妖精』。使自己获得『纹章：翅翼女王·提泰妮娅』。【进化时】选择对手的战场上的1个随从，使其变身为『妖精』。"
+      },
       "clause_audit": {
-        "status": "unverified_exact",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10214110:0",
             "source_text": "【<color=Keyword>入场曲</color>】召唤1个『<color=Keyword>妖精</color>』。使自己获得『纹章：翅翼女王·提泰妮娅』。\n<hr><ev>【<color=Keyword>进化时</color>】选择对手的战场上的1个随从，使其变身为『<color=Keyword>妖精</color>』。</ev>",
-            "mapping_status": "unverified_exact"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "【入场曲】召唤1个『妖精』。使自己获得『纹章：翅翼女王·提泰妮娅』。【进化时】选择对手的战场上的1个随从，使其变身为『妖精』。",
         "unsupported_text": null,
         "structured_evidence": {
           "triggers": [
             "fanfare",
+            "evolve",
             "emblem_source"
           ],
           "effect_kinds": [
             "summon",
             "gain_emblem",
+            "transform",
             "add_card"
           ]
         },
@@ -10661,7 +10660,7 @@
           "tests/test_emblems.py",
           "tests/test_rule_coverage_report.py"
         ],
-        "blocker_type": "audit_unverified"
+        "blocker_type": null
       }
     },
     "10214120": {

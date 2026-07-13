@@ -24,10 +24,10 @@
 
 | Clause status | Count |
 |---|---:|
-| unverified_exact | 62 |
+| unverified_exact | 61 |
 | missing_rule | 630 |
 | text_unclear | 18 |
-| mapped_exact | 25 |
+| mapped_exact | 26 |
 | token_separate_audit | 91 |
 
 ### Blocker Types
@@ -41,7 +41,7 @@
 | timing_unclear | 0 |
 | text_unclear | 18 |
 | external_blocker | 0 |
-| audit_unverified | 62 |
+| audit_unverified | 61 |
 
 ## Exact-Coverage Clause Audit Issues
 
@@ -76,7 +76,6 @@
 - **10171320**: covered_exact_without_clause_evidence — missing explicit_exact_annotation, implemented_text
 - **10172310**: covered_exact_without_clause_evidence — missing explicit_exact_annotation, implemented_text
 - **10213310**: covered_exact_without_clause_evidence — missing explicit_exact_annotation, implemented_text
-- **10214110**: covered_exact_without_clause_evidence — missing explicit_exact_annotation, implemented_text
 - **10221310**: covered_exact_without_clause_evidence — missing explicit_exact_annotation, implemented_text
 - **10231120**: covered_exact_without_clause_evidence — missing explicit_exact_annotation, implemented_text
 - **10243310**: covered_exact_without_clause_evidence — missing explicit_exact_annotation, implemented_text

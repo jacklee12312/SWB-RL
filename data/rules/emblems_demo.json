@@ -99,6 +99,8 @@
         {
             "card_id": 10214110,
             "trigger": "fanfare",
+            "coverage": "exact",
+            "implemented_text": "【入场曲】召唤1个『妖精』。使自己获得『纹章：翅翼女王·提泰妮娅』。【进化时】选择对手的战场上的1个随从，使其变身为『妖精』。",
             "operations": [
                 {
                     "kind": "summon",
@@ -109,6 +111,17 @@
                     "kind": "gain_emblem",
                     "target": "own_leader",
                     "emblem_id": "wings_queen_titania"
+                }
+            ]
+        },
+        {
+            "card_id": 10214110,
+            "trigger": "evolve",
+            "operations": [
+                {
+                    "kind": "transform",
+                    "target": "enemy_unit",
+                    "card_id": 90011110
                 }
             ]
         },

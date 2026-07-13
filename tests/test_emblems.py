@@ -12,7 +12,7 @@ from pathlib import Path
 
 from swb.db.repository import CardDefinition, CardRepository
 from swb.engine.card_rules import CardRule, RuleBook, Trigger, _parse_operation
-from swb.engine.commands import Choose, EndTurn, PlayCard
+from swb.engine.commands import Choose, EndTurn, Evolve, PlayCard
 from swb.engine.effects import EffectKind, EffectOperation, TargetKind
 from swb.engine.emblem import (
     EmblemDefinition,
@@ -963,6 +963,72 @@ class RealCardEndToEndTests(unittest.TestCase):
             for hand in engine.players[0].hand
         )
         self.assertEqual(fairies_after, fairies_before + 1)
+
+    def test_10214110_evolve_transforms_selected_enemy_into_fairy(self):
+        repo = CardRepository(str(self.db_path))
+        source = repo.get(10214110)
+        fairy = repo.get(90011110)
+        enemy = repo.get(10001110)
+        engine = GameEngine(
+            deck_a=[_card(i) for i in range(1000, 1040)],
+            deck_b=[_card(i) for i in range(2000, 2040)],
+            class_a=1,
+            class_b=1,
+            seed=42,
+            rulebook=RuleBook.from_directory("data/rules"),
+            card_resolver=repo.get,
+        )
+        engine.reset(seed=42)
+        source_unit = Unit.summon(
+            source,
+            entity_id=engine.state.allocate_entity_id(),
+        )
+        target = Unit.summon(
+            enemy,
+            entity_id=engine.state.allocate_entity_id(),
+        )
+        target_id = target.entity_id
+        engine.players[0].board = [source_unit]
+        engine.players[1].board = [target]
+        engine.players[0].turns_started = engine.config.evolution_unlock_turn
+
+        engine.apply(Evolve(0, source_unit.entity_id))
+        choice = next(
+            command
+            for command in engine.legal_commands()
+            if isinstance(command, Choose)
+            and command.option_id == f"entity:{target_id}"
+        )
+        engine.apply(choice)
+
+        self.assertEqual(target.entity_id, target_id)
+        self.assertEqual(target.definition.card_id, fairy.card_id)
+        self.assertIs(target.origin, CardOrigin.TRANSFORMED)
+
+    def test_10214110_evolve_without_enemy_still_completes(self):
+        repo = CardRepository(str(self.db_path))
+        source = repo.get(10214110)
+        engine = GameEngine(
+            deck_a=[_card(i) for i in range(1000, 1040)],
+            deck_b=[_card(i) for i in range(2000, 2040)],
+            class_a=1,
+            class_b=1,
+            seed=42,
+            rulebook=RuleBook.from_directory("data/rules"),
+            card_resolver=repo.get,
+        )
+        engine.reset(seed=42)
+        source_unit = Unit.summon(
+            source,
+            entity_id=engine.state.allocate_entity_id(),
+        )
+        engine.players[0].board = [source_unit]
+        engine.players[0].turns_started = engine.config.evolution_unlock_turn
+
+        engine.apply(Evolve(0, source_unit.entity_id))
+
+        self.assertTrue(source_unit.evolved)
+        self.assertIsNone(engine.state.pending_choice)
 
     def test_10153140_real_card_turn_end_emblem(self):
         repo = CardRepository(str(self.db_path))

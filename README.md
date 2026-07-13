@@ -230,6 +230,10 @@ The deterministic rules core supports:
 - exact `10011130` now uses the normal post-play Combo count to evolve itself
   on a Combo-3 Fanfare without spending EP, then heals its leader for 2 on
   each attack;
+- exact `10214110` summons Fairy and gains its emblem on Fanfare; its Evolve
+  choice now transforms an enemy follower into Fairy while preserving stable
+  entity identity and recording transformed origin, and safely skips when no
+  enemy follower exists;
 - countdown amulets, explicit last words, fanfare/play rules, attack/clash,
   evolve/super-evolve, turn-start/turn-end triggers, and trigger continuations
   that can pause for choices. Exact `10713110` uses a source-in-play turn-end
