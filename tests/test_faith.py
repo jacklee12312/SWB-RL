@@ -9,7 +9,13 @@ from pathlib import Path
 from scripts.report_rule_coverage import _build_coverage_report
 from swb.db.repository import CardDefinition, CardRepository
 from swb.engine.abilities import AbilityKeyword
-from swb.engine.card_rules import CardRule, RuleBook, Trigger, _parse_faith_definition
+from swb.engine.card_rules import (
+    CardRule,
+    RuleBook,
+    Trigger,
+    _parse_faith_definition,
+    _parse_operation,
+)
 from swb.engine.commands import Choose, Evolve, PlayCard, SuperEvolve
 from swb.engine.effects import EffectKind, EffectOperation, TargetKind
 from swb.engine.environment import ShadowverseEnv
@@ -123,6 +129,138 @@ def _unlock_evolution(engine: GameEngine, player_index: int) -> None:
         if player_index == 0
         else engine.config.second_player_super_evolution_unlock_turn,
     )
+
+
+def _insert_hand(engine: GameEngine, definition: CardDefinition) -> HandCard:
+    hand_card = HandCard(
+        definition=definition,
+        entity_id=engine.state.allocate_entity_id(),
+    )
+    engine.players[0].hand.insert(0, hand_card)
+    engine.players[0].hand_entity_ids.insert(0, hand_card.entity_id)
+    return hand_card
+
+
+class FaithConsumptionTests(unittest.TestCase):
+    @staticmethod
+    def _rule() -> CardRule:
+        return CardRule(
+            100,
+            Trigger.FANFARE,
+            (
+                EffectOperation(
+                    EffectKind.CONSUME_FAITH,
+                    TargetKind.OWN_LEADER,
+                    amount=10,
+                    faith_id="faith-test",
+                    faith_operations=(
+                        EffectOperation(
+                            EffectKind.DAMAGE_LEADER,
+                            TargetKind.ENEMY_LEADER,
+                            amount=2,
+                        ),
+                    ),
+                ),
+            ),
+        )
+
+    def test_full_cost_is_consumed_before_nested_operations(self):
+        source = _faith_card()
+        game = _engine(
+            _deck(source),
+            definitions=(_faith_definition(initial_value=10),),
+            rules=(self._rule(),),
+        )
+        _insert_hand(game, source)
+        game.players[0].max_mana = game.players[0].mana = 10
+
+        game.apply(PlayCard(0, 0))
+
+        self.assertEqual(game.players[0].faiths[0].value, 0)
+        self.assertEqual(game.players[1].health, 18)
+        relevant = [
+            event.type
+            for event in game.event_history
+            if event.type in {
+                EventType.FAITH_CONSUMED,
+                EventType.FAITH_VALUE_CHANGED,
+                EventType.DAMAGE_APPLIED,
+            }
+        ]
+        self.assertLess(
+            relevant.index(EventType.FAITH_CONSUMED),
+            relevant.index(EventType.DAMAGE_APPLIED),
+        )
+        changed = next(
+            event for event in game.event_history
+            if event.type is EventType.FAITH_VALUE_CHANGED
+            and event.metadata.get("change") == "spend"
+        )
+        self.assertEqual(changed.amount, -10)
+
+    def test_insufficient_value_skips_entire_nested_payoff_without_clamping(self):
+        source = _faith_card()
+        game = _engine(
+            _deck(source),
+            definitions=(_faith_definition(initial_value=9),),
+            rules=(self._rule(),),
+        )
+        _insert_hand(game, source)
+        game.players[0].max_mana = game.players[0].mana = 10
+
+        game.apply(PlayCard(0, 0))
+
+        self.assertEqual(game.players[0].faiths[0].value, 9)
+        self.assertEqual(game.players[1].health, 20)
+        failed = next(
+            event for event in game.event_history
+            if event.type is EventType.FAITH_CONSUME_FAILED
+        )
+        self.assertEqual(failed.metadata["reason"], "insufficient")
+        self.assertEqual(failed.metadata["faith_value"], 9)
+
+    def test_missing_named_faith_skips_payoff_deterministically(self):
+        source = _card(100)
+        game = _engine(
+            _deck(),
+            definitions=(),
+            rules=(self._rule(),),
+        )
+        _insert_hand(game, source)
+        game.players[0].max_mana = game.players[0].mana = 10
+
+        game.apply(PlayCard(0, 0))
+
+        self.assertEqual(game.players[1].health, 20)
+        failed = next(
+            event for event in game.event_history
+            if event.type is EventType.FAITH_CONSUME_FAILED
+        )
+        self.assertEqual(failed.metadata["reason"], "missing")
+
+    def test_schema_requires_positive_cost_named_faith_and_nested_operations(self):
+        operation = _parse_operation(
+            {
+                "kind": "consume_faith",
+                "target": "own_leader",
+                "faith_id": "faith-test",
+                "amount": 10,
+                "operations": [
+                    {"kind": "draw", "target": "own_leader", "amount": 1}
+                ],
+            },
+            "test",
+            100,
+        )
+        self.assertEqual(operation.faith_id, "faith-test")
+        self.assertEqual(operation.faith_operations[0].kind, EffectKind.DRAW)
+        for invalid in (
+            {"kind": "consume_faith", "target": "own_leader", "amount": 10, "operations": []},
+            {"kind": "consume_faith", "target": "own_leader", "faith_id": "x", "amount": 0, "operations": [{"kind": "draw", "target": "own_leader", "amount": 1}]},
+            {"kind": "consume_faith", "target": "enemy_leader", "faith_id": "x", "amount": 1, "operations": [{"kind": "draw", "target": "own_leader", "amount": 1}]},
+        ):
+            with self.subTest(invalid=invalid), self.assertRaises(ValueError):
+                _parse_operation(invalid, "test", 100)
 
 
 class FaithInitializationTests(unittest.TestCase):

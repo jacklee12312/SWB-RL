@@ -10,7 +10,7 @@ code and tests as the source of truth when this file drifts.
 - Database: 826 cards, 735 collectible cards, 91 non-collectible/generated
   cards from set `90000`.
 - Latest SVA source: `https://sva.hypd.asia/data/cards.json`.
-- Tests: `python -m unittest discover -s tests -v` currently runs 1094 tests.
+- Tests: `python -m unittest discover -s tests -v` currently runs 1098 tests.
 - RL adapter: fixed 111-action space and 290-feature observation.
 - Ability registry status: 18 implemented, 5 partial, 11 placeholder.
 - Explicit card and demo rules live in `data/rules/`; the current coverage
@@ -246,6 +246,11 @@ slice in this order:
   111-action layout unchanged. The database importer now includes alternate-mode
   text in keyword extraction, so Faith-only alternate modes remain visible in
   normalized `card_abilities` and coverage reports.
+- `consume_faith` is a structured atomic cost boundary: it resolves a stable
+  `faith_id`, requires the complete value, never clamps below zero, emits
+  success or missing/insufficient diagnostics, and only schedules nested
+  operations after successful payment. Sasanid's generated card and gained
+  Faith ability remain separate follow-up slices.
 - `UnionBurstDefinition` provides structured `奥义` and `解放奥义` operations
   at fixed gauges 10 and 15. Every hand card independently records evolutions
   completed while it remains in hand; both normal and super evolution count,

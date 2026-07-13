@@ -133,6 +133,7 @@ class EffectKind(str, Enum):
     ADD_COMBO = "add_combo"
     ADD_EARTH_SIGILS = "add_earth_sigils"
     EARTH_RITE = "earth_rite"
+    CONSUME_FAITH = "consume_faith"
     NECROMANCY = "necromancy"
     REANIMATE = "reanimate"
     RETURN_FROM_GRAVEYARD_TO_HAND = "return_from_graveyard_to_hand"
@@ -280,6 +281,8 @@ class EffectOperation:
     target_key: str | None = None
     earth_rite_operations: tuple["EffectOperation", ...] = ()
     necromancy_operations: tuple["EffectOperation", ...] = ()
+    faith_id: str | None = None
+    faith_operations: tuple["EffectOperation", ...] = ()
     graveyard_cost_max: int | None = None
     graveyard_cost_min: int | None = None
     graveyard_follower_only: bool = False

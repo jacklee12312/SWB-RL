@@ -143,6 +143,9 @@ The deterministic rules core supports:
   deterministic fingerprints, and public value-change events; the first
   verified trigger counts both normal and super evolution for real card
   `10614120`, whose separate Fanfare payoff remains explicitly partial;
+- generic `consume_faith` costs identify a stable Faith instance, require the
+  full value without clamping, emit explicit success/failure diagnostics, and
+  queue nested payoff operations only after an atomic successful payment;
 - command-level `融合` from hand, including structured material filters and
   count limits, variable-count selection with explicit confirmation, once-per-
   card-per-turn tracking, atomic hand-zone revalidation, a distinct consumed

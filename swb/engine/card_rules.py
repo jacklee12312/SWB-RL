@@ -1087,6 +1087,8 @@ def _iter_nested_operations(
             yield from _iter_nested_operations(operation.necromancy_operations)
         if operation.earth_rite_operations:
             yield from _iter_nested_operations(operation.earth_rite_operations)
+        if operation.faith_operations:
+            yield from _iter_nested_operations(operation.faith_operations)
         if operation.then_operations:
             yield from _iter_nested_operations(operation.then_operations)
         if operation.else_operations:
@@ -1850,6 +1852,11 @@ def _validate_target_keys(operations: tuple[EffectOperation, ...], source: str) 
                 op.earth_rite_operations,
                 f"{source}/operations[{i}]/earth_rite",
             )
+        if op.faith_operations:
+            _validate_target_keys(
+                op.faith_operations,
+                f"{source}/operations[{i}]/faith",
+            )
         if op.then_operations:
             _validate_target_keys(
                 op.then_operations,
@@ -1894,6 +1901,7 @@ def _parse_operation(
         raw_target = raw.get("target", "own_leader" if kind in (
             EffectKind.ADD_EARTH_SIGILS,
             EffectKind.EARTH_RITE,
+            EffectKind.CONSUME_FAITH,
             EffectKind.NECROMANCY,
             EffectKind.REANIMATE,
             EffectKind.CONDITIONAL,
@@ -2283,6 +2291,55 @@ def _parse_operation(
                 f"{source_file}/target card {card_id}: {kind.value} "
                 "requires target 'own_leader'"
             )
+
+    faith_ops: tuple = ()
+    faith_id = raw.get("faith_id")
+    if kind is EffectKind.CONSUME_FAITH:
+        if not isinstance(faith_id, str) or not faith_id:
+            raise ValueError(
+                f"{source_file}/faith_id card {card_id}: "
+                "consume_faith requires a non-empty faith_id"
+            )
+        if (
+            raw_amount is None
+            or isinstance(raw_amount, bool)
+            or not isinstance(raw_amount, int)
+            or raw_amount <= 0
+        ):
+            raise ValueError(
+                f"{source_file}/amount card {card_id}: consume_faith "
+                f"requires a positive integer amount, got {raw_amount!r}"
+            )
+        if target is not TargetKind.OWN_LEADER:
+            raise ValueError(
+                f"{source_file}/target card {card_id}: consume_faith "
+                "requires target 'own_leader'"
+            )
+        raw_inner = raw.get("operations")
+        if not isinstance(raw_inner, list) or not raw_inner:
+            raise ValueError(
+                f"{source_file} card {card_id}: consume_faith requires "
+                "a non-empty operations list"
+            )
+        faith_ops = tuple(
+            _parse_operation(
+                op,
+                f"{source_file}/operations[{i}]",
+                card_id,
+                _depth + 1,
+                _allow_event_source=_allow_event_source,
+            )
+            for i, op in enumerate(raw_inner)
+        )
+        _validate_target_keys(
+            faith_ops,
+            f"{source_file} card {card_id} (consume_faith)",
+        )
+    elif faith_id is not None:
+        raise ValueError(
+            f"{source_file}/faith_id card {card_id}: faith_id is only valid "
+            "for consume_faith"
+        )
 
     necromancy_ops: tuple = ()
     if kind is EffectKind.NECROMANCY:
@@ -2767,6 +2824,8 @@ def _parse_operation(
         target_key=target_key,
         earth_rite_operations=earth_rite_ops,
         necromancy_operations=necromancy_ops,
+        faith_id=faith_id if kind is EffectKind.CONSUME_FAITH else None,
+        faith_operations=faith_ops,
         graveyard_cost_max=graveyard_cost_max,
         graveyard_cost_min=graveyard_cost_min,
         graveyard_follower_only=graveyard_follower_only,

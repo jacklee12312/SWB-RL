@@ -439,6 +439,7 @@ class GameEngine:
                     nested = (
                         operation.earth_rite_operations
                         + operation.necromancy_operations
+                        + operation.faith_operations
                         + operation.then_operations
                         + operation.else_operations
                         + operation.optional_operations
@@ -474,6 +475,7 @@ class GameEngine:
                 nested = (
                     operation.earth_rite_operations
                     + operation.necromancy_operations
+                    + operation.faith_operations
                     + operation.then_operations
                     + operation.else_operations
                     + operation.optional_operations
@@ -1993,6 +1995,8 @@ class GameEngine:
             summary["card_id"] = operation.card_id
         if operation.emblem_id is not None:
             summary["emblem_id"] = operation.emblem_id
+        if operation.faith_id is not None:
+            summary["faith_id"] = operation.faith_id
         if operation.target_key is not None:
             summary["target_key"] = operation.target_key
         if operation.keyword is not None:
@@ -2006,6 +2010,7 @@ class GameEngine:
         nested_counts = {
             "earth_rite": len(operation.earth_rite_operations),
             "necromancy": len(operation.necromancy_operations),
+            "faith": len(operation.faith_operations),
             "then": len(operation.then_operations),
             "else": len(operation.else_operations),
             "choose_one": len(operation.choose_one_options),
@@ -2740,6 +2745,11 @@ class GameEngine:
             tuple(
                 self._operation_fingerprint(nested)
                 for nested in operation.necromancy_operations
+            ),
+            operation.faith_id,
+            tuple(
+                self._operation_fingerprint(nested)
+                for nested in operation.faith_operations
             ),
             operation.graveyard_cost_max,
             operation.graveyard_cost_min,
@@ -5648,6 +5658,8 @@ class GameEngine:
             self._execute_add_earth_sigils(effect, frame)
         elif effect.kind is EffectKind.EARTH_RITE:
             self._execute_earth_rite(effect, frame)
+        elif effect.kind is EffectKind.CONSUME_FAITH:
+            self._execute_consume_faith(effect, frame)
         elif effect.kind is EffectKind.NECROMANCY:
             self._execute_necromancy(effect, frame, target_id)
         elif effect.kind is EffectKind.REANIMATE:
@@ -7605,6 +7617,79 @@ class GameEngine:
             label="土之秘术",
         )
 
+    def _execute_consume_faith(
+        self,
+        effect: EffectOperation,
+        frame: EffectFrame,
+    ) -> None:
+        if effect.faith_id is None:
+            raise IllegalCommand("consume_faith requires faith_id")
+        player = self.players[frame.controller]
+        instance = next(
+            (
+                faith
+                for faith in player.faiths
+                if faith.faith_id == effect.faith_id
+            ),
+            None,
+        )
+        cost = effect.amount
+        if instance is None or instance.value < cost:
+            self._emit(GameEvent(
+                EventType.FAITH_CONSUME_FAILED,
+                frame.controller,
+                source_id=frame.source_entity_id,
+                amount=cost,
+                metadata={
+                    "faith_id": effect.faith_id,
+                    "faith_entity_id": (
+                        None if instance is None else instance.entity_id
+                    ),
+                    "faith_value": None if instance is None else instance.value,
+                    "source_card_id": frame.source_card_id,
+                    "reason": "missing" if instance is None else "insufficient",
+                },
+            ))
+            return
+
+        before = instance.value
+        instance.value -= cost
+        self._emit(GameEvent(
+            EventType.FAITH_CONSUMED,
+            frame.controller,
+            source_id=frame.source_entity_id,
+            target_id=instance.entity_id,
+            amount=cost,
+            metadata={
+                "faith_id": instance.faith_id,
+                "faith_value_before": before,
+                "faith_value_after": instance.value,
+                "source_card_id": frame.source_card_id,
+            },
+        ))
+        self._emit(GameEvent(
+            EventType.FAITH_VALUE_CHANGED,
+            frame.controller,
+            source_id=instance.entity_id,
+            amount=-cost,
+            metadata={
+                "faith_id": instance.faith_id,
+                "faith_value_before": before,
+                "faith_value_after": instance.value,
+                "change": "spend",
+                "source_card_id": frame.source_card_id,
+            },
+        ))
+        self._log(
+            frame.controller,
+            f"信仰 {instance.faith_id} 消费 {cost}：{before} → {instance.value}",
+        )
+        self._queue_effects_from_frame(
+            frame,
+            effect.faith_operations,
+            label="信仰消费",
+        )
+
     def _execute_banish(self, target_id: int | None, frame: EffectFrame) -> None:
         entity = self._find_board_entity(target_id)
         owner = self._entity_owner(entity.entity_id)
@@ -9236,6 +9321,16 @@ class GameEngine:
                     raise IllegalCommand(
                         f"Invariant failed: {operation_zone} duplicate-target policy is invalid"
                     )
+                if operation.kind is EffectKind.CONSUME_FAITH:
+                    if (
+                        not isinstance(operation.faith_id, str)
+                        or not operation.faith_id
+                        or operation.amount <= 0
+                        or not operation.faith_operations
+                    ):
+                        raise IllegalCommand(
+                            f"Invariant failed: {operation_zone} consume_faith payload is invalid"
+                        )
 
             def check_positive_int(value: int | None, field: str) -> None:
                 if value is None:

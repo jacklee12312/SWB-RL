@@ -59,6 +59,8 @@ class EventType(str, Enum):
     AMULET_ACTIVATED = "amulet_activated"
     FAITH_PLACED = "faith_placed"
     FAITH_VALUE_CHANGED = "faith_value_changed"
+    FAITH_CONSUMED = "faith_consumed"
+    FAITH_CONSUME_FAILED = "faith_consume_failed"
     UNION_BURST_ACTIVATED = "union_burst_activated"
     FOLLOWER_HEALED = "follower_healed"
     FOLLOWER_ABILITIES_REMOVED = "follower_abilities_removed"
