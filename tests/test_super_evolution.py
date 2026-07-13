@@ -305,6 +305,80 @@ class ManualSuperEvolutionTests(unittest.TestCase):
         self.assertLess(emblem_index, super_index)
 
 
+class EffectNormalEvolutionTests(unittest.TestCase):
+    @staticmethod
+    def _rulebook() -> RuleBook:
+        return RuleBook(rules=(
+            CardRule(
+                100,
+                Trigger.PLAY,
+                (EffectOperation(
+                    EffectKind.EVOLVE_UNIT,
+                    TargetKind.OWN_UNIT,
+                    requires_target=True,
+                ),),
+            ),
+            CardRule(
+                200,
+                Trigger.EVOLVE,
+                (EffectOperation(
+                    EffectKind.DAMAGE_LEADER,
+                    TargetKind.ENEMY_LEADER,
+                    3,
+                ),),
+            ),
+        ))
+
+    def test_schema_parses_effect_normal_evolution(self):
+        operation = _parse_operation(
+            {"kind": "evolve_unit", "target": "own_unit", "requires_target": True},
+            "test",
+            100,
+        )
+        self.assertIs(operation.kind, EffectKind.EVOLVE_UNIT)
+
+    def test_effect_evolution_is_free_and_fires_evolve_ability(self):
+        engine = _engine(self._rulebook())
+        target = _place(engine, 0, _card(200, keywords=frozenset({"进化时"})))
+        hand_card = _insert_hand(engine, _card(300), evolutions=2)
+        _insert_hand(engine, _card(100, card_type="法术", attack=None, life=None))
+        ep_before = engine.players[0].evolution_points
+
+        _play_last_hand_card(engine)
+        engine.apply(Choose(0, engine.state.pending_choice.options[0].option_id))
+
+        self.assertTrue(target.evolved)
+        self.assertFalse(target.super_evolved)
+        self.assertEqual((target.attack, target.health), (4, 5))
+        self.assertEqual(engine.players[0].evolution_points, ep_before)
+        self.assertFalse(engine.players[0].evolved_this_turn)
+        self.assertEqual(engine.players[0].followers_evolved_this_match, 1)
+        self.assertEqual(hand_card.evolutions_while_in_hand, 3)
+        self.assertEqual(engine.players[1].health, 17)
+        event = next(
+            event for event in engine.event_history
+            if event.type is EventType.FOLLOWER_EVOLVED
+            and event.source_id == target.entity_id
+        )
+        self.assertEqual(event.metadata["cause"], "effect")
+        self.assertTrue(event.metadata["trigger_abilities"])
+
+    def test_stale_choice_skips_already_evolved_target(self):
+        engine = _engine(self._rulebook())
+        target = _place(engine, 0, _card(200))
+        _insert_hand(engine, _card(100, card_type="法术", attack=None, life=None))
+        _play_last_hand_card(engine)
+        request = engine.state.pending_choice
+        target.evolved = True
+        before = engine.deterministic_fingerprint()
+
+        engine.apply(Choose(0, request.options[0].option_id))
+
+        self.assertEqual(engine.players[0].followers_evolved_this_match, 0)
+        self.assertEqual(engine.players[1].health, 20)
+        self.assertNotEqual(before, engine.deterministic_fingerprint())
+
+
 class EffectSuperEvolutionTests(unittest.TestCase):
     @staticmethod
     def _rulebook_for_target(target_card_id: int = 200) -> RuleBook:

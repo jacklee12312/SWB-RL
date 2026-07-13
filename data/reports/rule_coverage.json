@@ -5,7 +5,7 @@
   },
   "summary": {
     "total_cards": 826,
-    "total_with_rules": 114,
+    "total_with_rules": 115,
     "test_or_synthetic_ids_with_rules": 26,
     "coverage_counts": {
       "covered_exact": 84,

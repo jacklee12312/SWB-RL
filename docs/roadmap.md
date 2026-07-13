@@ -10,11 +10,11 @@ code and tests as the source of truth when this file drifts.
 - Database: 826 cards, 735 collectible cards, 91 non-collectible/generated
   cards from set `90000`.
 - Latest SVA source: `https://sva.hypd.asia/data/cards.json`.
-- Tests: `python -m unittest discover -s tests -v` currently runs 1107 tests.
+- Tests: `python -m unittest discover -s tests -v` currently runs 1111 tests.
 - RL adapter: fixed 111-action space and 290-feature observation.
 - Ability registry status: 18 implemented, 5 partial, 11 placeholder.
 - Explicit card and demo rules live in `data/rules/`; the current coverage
-  report classifies 114 card IDs with explicit rules, passives, fusion,
+  report classifies 115 card IDs with explicit rules, passives, fusion,
   invocation, activation, Faith, Union Burst, or listener definitions. Current
   collectible coverage is 84 exact, 0 partial, 633 supported-but-missing-rule,
   0 missing-primitive, and 18 text-unclear cards.
@@ -258,6 +258,11 @@ slice in this order:
   abilities execute in Faith-placement then grant order after normal Faith
   progression; grant and trigger events, fingerprints, invariants, loop
   diagnostics, and pending-choice event continuation cover the dynamic state.
+- `evolve_unit` provides effect-caused normal evolution without consuming EP
+  or the manual once-per-turn allowance. It updates match/hand evolution
+  counters, emits `FOLLOWER_EVOLVED` with `cause=effect`, and resolves normal
+  evolve abilities. Generated `90014330` (`天枪深渊`) selects an unevolved
+  allied follower and now demonstrates the complete primitive.
 - `UnionBurstDefinition` provides structured `奥义` and `解放奥义` operations
   at fixed gauges 10 and 15. Every hand card independently records evolutions
   completed while it remains in hand; both normal and super evolution count,

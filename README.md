@@ -152,6 +152,10 @@ The deterministic rules core supports:
   stable leader-area instance, support explicit unique/stacking policies,
   resolve in Faith-placement then grant order, preserve pending-choice event
   continuations, and participate in fingerprints, invariants, and diagnostics;
+- generic effect-caused normal evolution selects an unevolved follower, spends
+  no EP or once-per-turn manual evolution allowance, updates public evolution
+  counters/gauges, and emits the normal evolution event with evolve abilities;
+  generated spell `90014330` now uses this primitive exactly;
 - command-level `融合` from hand, including structured material filters and
   count limits, variable-count selection with explicit confirmation, once-per-
   card-per-turn tracking, atomic hand-zone revalidation, a distinct consumed

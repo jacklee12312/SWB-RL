@@ -8,7 +8,7 @@
 | Metric | Count |
 |---|---|
 | Total cards in DB | 826 |
-| Cards with rules | 114 |
+| Cards with rules | 115 |
 | Test/synthetic IDs with rules | 26 |
 
 ### Coverage Categories

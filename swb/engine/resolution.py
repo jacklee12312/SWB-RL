@@ -190,6 +190,7 @@ _SOURCE_REQUIRED_SELF_TARGET_EFFECTS = frozenset({
 })
 
 _EVENT_SOURCE_BOARD_EFFECTS = _SOURCE_REQUIRED_SELF_TARGET_EFFECTS | frozenset({
+    EffectKind.EVOLVE_UNIT,
     EffectKind.SUPER_EVOLVE_UNIT,
 })
 
@@ -5717,6 +5718,8 @@ class GameEngine:
             self._execute_transform(effect, frame, target_id)
         elif effect.kind is EffectKind.SET_STATS:
             self._execute_set_stats(effect, frame, target_id)
+        elif effect.kind is EffectKind.EVOLVE_UNIT:
+            self._execute_evolve_unit(frame, target_id)
         elif effect.kind is EffectKind.SUPER_EVOLVE_UNIT:
             self._execute_super_evolve_unit(frame, target_id)
         elif effect.kind is EffectKind.ADD_ATTACK_RESTRICTION:
@@ -5766,6 +5769,33 @@ class GameEngine:
                 frame.controller,
                 f"[未实现效果] {name} {frame.label}: {effect.kind.value}",
             )
+
+    def _execute_evolve_unit(
+        self,
+        frame: EffectFrame,
+        target_id: int | None,
+    ) -> None:
+        try:
+            target = self._find_board_entity(target_id)
+        except IllegalCommand:
+            return
+        if not isinstance(target, Unit) or target.evolved:
+            return
+        owner = self._entity_owner(target.entity_id)
+        if not self._apply_evolution_state(
+            target,
+            owner,
+            super_evolve=False,
+            cause="effect",
+            trigger_abilities=True,
+        ):
+            return
+        self._log(
+            frame.controller,
+            f"{frame.source_name} {frame.label}使 "
+            f"{target.definition.name} 进化，变为 "
+            f"{target.attack}/{target.health}",
+        )
 
     def _execute_super_evolve_unit(
         self,

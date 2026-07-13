@@ -124,6 +124,7 @@ class EffectKind(str, Enum):
     REDUCE_COUNTDOWN = "reduce_countdown"
     DISCARD = "discard"
     SET_STATS = "set_stats"
+    EVOLVE_UNIT = "evolve_unit"
     SUPER_EVOLVE_UNIT = "super_evolve_unit"
     ADD_ATTACK_RESTRICTION = "add_attack_restriction"
     REMOVE_ATTACK_RESTRICTION = "remove_attack_restriction"

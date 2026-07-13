@@ -137,10 +137,16 @@ def _unlock_evolution(engine: GameEngine, player_index: int) -> None:
     )
 
 
-def _insert_hand(engine: GameEngine, definition: CardDefinition) -> HandCard:
+def _insert_hand(
+    engine: GameEngine,
+    definition: CardDefinition,
+    *,
+    origin: CardOrigin = CardOrigin.DECK,
+) -> HandCard:
     hand_card = HandCard(
         definition=definition,
         entity_id=engine.state.allocate_entity_id(),
+        origin=origin,
     )
     engine.players[0].hand.insert(0, hand_card)
     engine.players[0].hand_entity_ids.insert(0, hand_card.entity_id)
@@ -837,6 +843,30 @@ class RealFaithCardTests(unittest.TestCase):
                 for event in engine.event_history
             )
         )
+
+    def test_abyssal_lance_evolves_selected_unevolved_follower(self):
+        engine = self._engine()
+        lance = self.repo.get(90014330)
+        engine.players[0].hand.clear()
+        engine.players[0].hand_entity_ids.clear()
+        _insert_hand(engine, lance, origin=CardOrigin.TOKEN)
+        engine.players[0].max_mana = engine.players[0].mana = 10
+        target = _place_unit(engine, 0, card_id=8099)
+        ep_before = engine.players[0].evolution_points
+
+        engine.apply(PlayCard(0, 0))
+        request = engine.state.pending_choice
+        engine.apply(Choose(0, request.options[0].option_id))
+
+        self.assertTrue(target.evolved)
+        self.assertFalse(target.super_evolved)
+        self.assertEqual(engine.players[0].evolution_points, ep_before)
+        event = next(
+            event for event in engine.event_history
+            if event.type is EventType.FOLLOWER_EVOLVED
+            and event.source_id == target.entity_id
+        )
+        self.assertEqual(event.metadata["cause"], "effect")
 
     def test_sasanid_grants_stacking_evolution_damage_ability(self):
         engine = self._engine()

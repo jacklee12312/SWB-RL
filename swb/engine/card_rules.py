@@ -1766,7 +1766,7 @@ _MULTI_TARGET_TARGETS = frozenset({
     TargetKind.OWN_GRAVEYARD_CARD,
 })
 
-_SUPER_EVOLVE_TARGETS = frozenset({
+_EVOLVE_TARGETS = frozenset({
     TargetKind.SELF,
     TargetKind.EVENT_SOURCE,
     TargetKind.OWN_UNIT,
@@ -1813,6 +1813,7 @@ _EVENT_SOURCE_TARGET_EFFECTS = frozenset({
     EffectKind.REMOVE_ALL_ABILITIES,
     EffectKind.TRANSFORM,
     EffectKind.SET_STATS,
+    EffectKind.EVOLVE_UNIT,
     EffectKind.SUPER_EVOLVE_UNIT,
     EffectKind.ADD_ATTACK_RESTRICTION,
     EffectKind.REMOVE_ATTACK_RESTRICTION,
@@ -2234,11 +2235,11 @@ def _parse_operation(
                 f"a target with explicit candidate sets, got {target.value!r}"
             )
     if (
-        kind is EffectKind.SUPER_EVOLVE_UNIT
-        and target not in _SUPER_EVOLVE_TARGETS
+        kind in {EffectKind.EVOLVE_UNIT, EffectKind.SUPER_EVOLVE_UNIT}
+        and target not in _EVOLVE_TARGETS
     ):
         raise ValueError(
-            f"{source_file}/target card {card_id}: super_evolve_unit requires "
+            f"{source_file}/target card {card_id}: {kind.value} requires "
             f"a follower target, got {target.value!r}"
         )
     if kind is EffectKind.REDUCE_COUNTDOWN:

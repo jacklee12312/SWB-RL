@@ -16,6 +16,17 @@
   ],
   "rules": [
     {
+      "card_id": 90014330,
+      "trigger": "play",
+      "operations": [
+        {
+          "kind": "evolve_unit",
+          "target": "own_unit",
+          "requires_target": true
+        }
+      ]
+    },
+    {
       "card_id": 10614120,
       "trigger": "fanfare",
       "operations": [
