@@ -10,13 +10,13 @@ code and tests as the source of truth when this file drifts.
 - Database: 826 cards, 735 collectible cards, 91 non-collectible/generated
   cards from set `90000`.
 - Latest SVA source: `https://sva.hypd.asia/data/cards.json`.
-- Tests: `python -m unittest discover -s tests -v` currently runs 1116 tests.
+- Tests: `python -m unittest discover -s tests -v` currently runs 1118 tests.
 - RL adapter: fixed 111-action space and 290-feature observation.
 - Ability registry status: 18 implemented, 5 partial, 11 placeholder.
 - Explicit card and demo rules live in `data/rules/`; the current coverage
-  report classifies 116 card IDs with explicit rules, passives, fusion,
+  report classifies 117 card IDs with explicit rules, passives, fusion,
   invocation, activation, Faith, Union Burst, or listener definitions. Current
-  collectible coverage is 85 exact, 0 partial, 632 supported-but-missing-rule,
+  collectible coverage is 86 exact, 0 partial, 631 supported-but-missing-rule,
   0 missing-primitive, and 18 text-unclear cards.
 
 ## Stable Priorities
@@ -268,6 +268,12 @@ slice in this order:
   records requested/applied deltas and before/after values; Overflow and public
   observation derive immediately from the new maximum. Exact `10042310`
   (`龙之启示`) demonstrates post-ramp conditional draw at 10 max PP.
+- Structured evolve/super-evolve/attack/clash rules no longer depend on a
+  redundant normalized keyword tag: if a rule exists but extraction omitted
+  the tag, event dispatch executes it directly; tagged rules retain their
+  existing single handler path and removed abilities remain disabled. Exact
+  `10143120` (`荣弦的天宫·龙芙`) demonstrates Overflow-gated effect evolution
+  followed by its untagged evolve rule raising max PP.
 - `UnionBurstDefinition` provides structured `奥义` and `解放奥义` operations
   at fixed gauges 10 and 15. Every hand card independently records evolutions
   completed while it remains in hand; both normal and super evolution count,

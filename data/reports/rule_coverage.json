@@ -5,11 +5,11 @@
   },
   "summary": {
     "total_cards": 826,
-    "total_with_rules": 116,
+    "total_with_rules": 117,
     "test_or_synthetic_ids_with_rules": 26,
     "coverage_counts": {
-      "covered_exact": 85,
-      "supported_missing_rule": 632,
+      "covered_exact": 86,
+      "supported_missing_rule": 631,
       "text_unclear": 18,
       "token_or_non_collectible": 91
     }
@@ -3621,8 +3621,8 @@
       "cost": 3,
       "is_collectible": true,
       "card_set_id": 10001,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '进化时', '觉醒']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['fanfare', 'evolve'], Ops: ['conditional', 'evolve_unit', 'change_max_mana']",
       "hit_keywords": [
         "入场曲",
         "进化时",
@@ -3636,7 +3636,11 @@
       "skill_texts": [
         "【<color=Keyword>入场曲</color>】若为【<color=Keyword>觉醒</color>】，则本随从进化。\n<hr><ev>本随从进化时，使自己的能量点最大值+1。</ev>"
       ],
-      "support_level": "unsupported"
+      "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "入场曲：若为觉醒，则本随从进化。本随从进化时，使自己的能量点最大值+1。"
+      }
     },
     "10143130": {
       "card_id": 10143130,

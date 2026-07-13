@@ -9762,6 +9762,43 @@ class GameEngine:
     ) -> None:
         if isinstance(source, Unit) and source.printed_abilities_removed:
             return
+        structured_trigger = {
+            AbilityEvent.FOLLOWER_EVOLVED: (
+                Trigger.EVOLVE,
+                AbilityKeyword.ON_EVOLVE,
+            ),
+            AbilityEvent.FOLLOWER_SUPER_EVOLVED: (
+                Trigger.SUPER_EVOLVE,
+                AbilityKeyword.ON_SUPER_EVOLVE,
+            ),
+            AbilityEvent.BEFORE_ATTACK: (
+                Trigger.ATTACK,
+                AbilityKeyword.ON_ATTACK,
+            ),
+            AbilityEvent.BEFORE_COMBAT: (
+                Trigger.CLASH,
+                AbilityKeyword.ON_CLASH,
+            ),
+        }.get(event)
+        if structured_trigger is not None:
+            trigger, keyword = structured_trigger
+            if (
+                keyword not in source.definition.abilities
+                and self.rulebook.operations_for(source.definition.card_id, trigger)
+            ):
+                self._execute_trigger_rules(
+                    trigger,
+                    AbilityContext(
+                        event=event,
+                        player_index=(
+                            self.current_player
+                            if player_index is None
+                            else player_index
+                        ),
+                        source=source,
+                        target=target,
+                    ),
+                )
         self.ability_handlers.dispatch(
             AbilityContext(
                 event=event,

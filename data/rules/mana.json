@@ -1,6 +1,40 @@
 {
   "rules": [
     {
+      "card_id": 10143120,
+      "trigger": "fanfare",
+      "coverage": "exact",
+      "implemented_text": "入场曲：若为觉醒，则本随从进化。本随从进化时，使自己的能量点最大值+1。",
+      "operations": [
+        {
+          "kind": "conditional",
+          "target": "own_leader",
+          "conditions": [
+            {
+              "type": "controller_overflow"
+            }
+          ],
+          "then": [
+            {
+              "kind": "evolve_unit",
+              "target": "self"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "card_id": 10143120,
+      "trigger": "evolve",
+      "operations": [
+        {
+          "kind": "change_max_mana",
+          "target": "own_leader",
+          "amount": 1
+        }
+      ]
+    },
+    {
       "card_id": 10042310,
       "trigger": "play",
       "coverage": "exact",

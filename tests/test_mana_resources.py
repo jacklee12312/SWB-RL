@@ -135,6 +135,48 @@ class DragonOracleTests(unittest.TestCase):
         self.assertEqual(engine.players[0].max_mana, 9)
         self.assertEqual(len(engine.players[0].deck), deck_before)
 
+    def test_longfu_overflow_fanfare_evolves_and_then_raises_max_mana(self):
+        longfu = self.repo.get(10143120)
+        engine = _engine(self.rulebook, resolver=self.repo.get)
+        engine.players[0].max_mana = engine.players[0].mana = 7
+        engine.players[0].hand.clear()
+        engine.players[0].hand_entity_ids.clear()
+        _insert(engine, longfu)
+        ep_before = engine.players[0].evolution_points
+
+        engine.apply(PlayCard(0, 0))
+
+        unit = next(
+            unit for unit in engine.players[0].board
+            if unit.definition.card_id == 10143120
+        )
+        self.assertTrue(unit.evolved)
+        self.assertEqual(engine.players[0].max_mana, 8)
+        self.assertEqual(engine.players[0].evolution_points, ep_before)
+        evolution = next(
+            event for event in engine.event_history
+            if event.type is EventType.FOLLOWER_EVOLVED
+            and event.source_id == unit.entity_id
+        )
+        self.assertEqual(evolution.metadata["cause"], "effect")
+
+    def test_longfu_below_overflow_stays_unevolved(self):
+        longfu = self.repo.get(10143120)
+        engine = _engine(self.rulebook, resolver=self.repo.get)
+        engine.players[0].max_mana = engine.players[0].mana = 6
+        engine.players[0].hand.clear()
+        engine.players[0].hand_entity_ids.clear()
+        _insert(engine, longfu)
+
+        engine.apply(PlayCard(0, 0))
+
+        unit = next(
+            unit for unit in engine.players[0].board
+            if unit.definition.card_id == 10143120
+        )
+        self.assertFalse(unit.evolved)
+        self.assertEqual(engine.players[0].max_mana, 6)
+
 
 if __name__ == "__main__":
     unittest.main()

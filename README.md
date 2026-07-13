@@ -160,6 +160,10 @@ The deterministic rules core supports:
   current PP after reductions, emit requested/applied resource diagnostics,
   and immediately update derived Overflow state; exact `10042310` raises max
   PP and conditionally draws after reaching 10;
+- authored evolve, super-evolve, attack, and clash rules dispatch even when the
+  normalized source text omitted the corresponding keyword tag, without
+  double-running tagged abilities and while still respecting ability removal;
+  exact `10143120` auto-evolves at Overflow before its evolve rule raises max PP;
 - command-level `融合` from hand, including structured material filters and
   count limits, variable-count selection with explicit confirmation, once-per-
   card-per-turn tracking, atomic hand-zone revalidation, a distinct consumed
