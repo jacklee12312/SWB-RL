@@ -625,6 +625,57 @@ class RealFaithCardTests(unittest.TestCase):
             )
         )
 
+    def test_sasanid_pays_ten_and_generates_abyssal_lance_with_token_origin(self):
+        engine = self._engine()
+        source = self.repo.get(10614120)
+        engine.players[0].hand.clear()
+        engine.players[0].hand_entity_ids.clear()
+        _insert_hand(engine, source)
+        engine.players[0].max_mana = engine.players[0].mana = 10
+        faith = engine.players[0].faiths[0]
+        faith.value = 10
+
+        engine.apply(PlayCard(0, 0))
+
+        self.assertEqual(faith.value, 0)
+        lance = next(
+            card for card in engine.players[0].hand
+            if card.card_id == 90014330
+        )
+        self.assertIs(lance.origin, CardOrigin.TOKEN)
+        added = next(
+            event for event in engine.event_history
+            if event.type is EventType.CARD_ADDED_TO_HAND
+            and event.metadata["card_id"] == 90014330
+        )
+        self.assertEqual(added.metadata["origin"], CardOrigin.TOKEN.value)
+        self.assertTrue(added.metadata["derived"])
+        self.assertTrue(added.metadata["token"])
+
+    def test_sasanid_insufficient_faith_adds_no_lance_and_keeps_value(self):
+        engine = self._engine()
+        source = self.repo.get(10614120)
+        engine.players[0].hand.clear()
+        engine.players[0].hand_entity_ids.clear()
+        _insert_hand(engine, source)
+        engine.players[0].max_mana = engine.players[0].mana = 10
+        faith = engine.players[0].faiths[0]
+        faith.value = 9
+
+        engine.apply(PlayCard(0, 0))
+
+        self.assertEqual(faith.value, 9)
+        self.assertFalse(
+            any(card.card_id == 90014330 for card in engine.players[0].hand)
+        )
+        self.assertTrue(
+            any(
+                event.type is EventType.FAITH_CONSUME_FAILED
+                and event.metadata["reason"] == "insufficient"
+                for event in engine.event_history
+            )
+        )
+
     def test_coverage_keeps_unimplemented_heavenspear_payoff_partial(self):
         report = _build_coverage_report("data/cards.sqlite3", "data/rules")
         classification = report["classifications"]["10614120"]
@@ -632,6 +683,10 @@ class RealFaithCardTests(unittest.TestCase):
         self.assertEqual(classification["coverage"], "covered_partial")
         self.assertNotIn("信仰", classification["missing_primitives"])
         self.assertIn("unsupported_text", classification["rule_metadata"])
+        self.assertIn(
+            "进化时",
+            classification["rule_metadata"]["unsupported_text"],
+        )
 
 
 if __name__ == "__main__":

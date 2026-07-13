@@ -142,7 +142,9 @@ The deterministic rules core supports:
   removing physical card copies, with same-name deduplication, stable identity,
   deterministic fingerprints, and public value-change events; the first
   verified trigger counts both normal and super evolution for real card
-  `10614120`, whose separate Fanfare payoff remains explicitly partial;
+  `10614120`. Its Fanfare now atomically pays 10 Faith and generates token
+  `90014330` with auditable origin; its gained Faith evolution-damage ability
+  remains explicitly partial;
 - generic `consume_faith` costs identify a stable Faith instance, require the
   full value without clamping, emit explicit success/failure diagnostics, and
   queue nested payoff operations only after an atomic successful payment;

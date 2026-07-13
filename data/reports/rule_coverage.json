@@ -13427,7 +13427,7 @@
       "is_collectible": true,
       "card_set_id": 10006,
       "coverage": "covered_partial",
-      "reason": "Partial rule. Triggers: ['faith'], Ops: ['faith_value']; unsupported: 入场曲：信仰值-10，将天枪深渊加入手牌，并使信仰获得进化时伤害能力。",
+      "reason": "Partial rule. Triggers: ['fanfare', 'faith'], Ops: ['consume_faith', 'add_card', 'faith_value']; unsupported: 使信仰获得「自己的随从进化时，对对手的主战者造成1点伤害」。",
       "hit_keywords": [
         "入场曲",
         "进化时",
@@ -13448,8 +13448,8 @@
       "support_level": "unsupported",
       "rule_metadata": {
         "coverage": "partial",
-        "implemented_text": "信仰值起始为0。自己的随从进化时，信仰值+1。",
-        "unsupported_text": "入场曲：信仰值-10，将天枪深渊加入手牌，并使信仰获得进化时伤害能力。"
+        "implemented_text": "信仰值起始为0。自己的随从进化时，信仰值+1。入场曲：信仰值-10，将天枪深渊加入手牌。",
+        "unsupported_text": "使信仰获得「自己的随从进化时，对对手的主战者造成1点伤害」。"
       }
     },
     "10621110": {
