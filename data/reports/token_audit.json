@@ -1,0 +1,3881 @@
+{
+  "generated_from": {
+    "database": "data/cards.sqlite3",
+    "rules": "data/rules",
+    "overrides": "data/audits/token_overrides.json"
+  },
+  "summary": {
+    "total": 91,
+    "categories": {
+      "entry_behavior_complete": 10,
+      "entry_behavior_partial": 11,
+      "database_only_no_entry": 70,
+      "text_unclear": 0,
+      "external_blocker": 0
+    }
+  },
+  "cards": [
+    {
+      "card_id": 90001110,
+      "name": "哥布林",
+      "class_name": "中立",
+      "card_type": "随从",
+      "card_set_id": 90000,
+      "is_collectible": false,
+      "support_level": "basic",
+      "category": "database_only_no_entry",
+      "reason": "Database source references exist, but no executable producer is authored.",
+      "database_sources": [
+        {
+          "source_card_id": 10101310,
+          "source_name": "哥布林的偷袭",
+          "referenced_name": "哥布林"
+        }
+      ],
+      "authored_producers": [],
+      "has_authored_behavior": false,
+      "explicit_coverage": null,
+      "keyword_only_text": false,
+      "abilities": [],
+      "skill_texts": []
+    },
+    {
+      "card_id": 90004110,
+      "name": "沉默的魔将",
+      "class_name": "中立",
+      "card_type": "随从",
+      "card_set_id": 90000,
+      "is_collectible": false,
+      "support_level": "keyword",
+      "category": "database_only_no_entry",
+      "reason": "Token exists in the database without a resolved executable producer.",
+      "database_sources": [],
+      "authored_producers": [],
+      "has_authored_behavior": false,
+      "explicit_coverage": null,
+      "keyword_only_text": true,
+      "abilities": [
+        {
+          "keyword": "疾驰",
+          "status": "implemented"
+        }
+      ],
+      "skill_texts": [
+        "【<color=Keyword>疾驰</color>】"
+      ]
+    },
+    {
+      "card_id": 90004120,
+      "name": "深渊之主的仆从",
+      "class_name": "中立",
+      "card_type": "随从",
+      "card_set_id": 90000,
+      "is_collectible": false,
+      "support_level": "basic",
+      "category": "database_only_no_entry",
+      "reason": "Token exists in the database without a resolved executable producer.",
+      "database_sources": [],
+      "authored_producers": [],
+      "has_authored_behavior": false,
+      "explicit_coverage": null,
+      "keyword_only_text": false,
+      "abilities": [],
+      "skill_texts": []
+    },
+    {
+      "card_id": 90004130,
+      "name": "边狱的邪祟",
+      "class_name": "中立",
+      "card_type": "随从",
+      "card_set_id": 90000,
+      "is_collectible": false,
+      "support_level": "unsupported",
+      "category": "database_only_no_entry",
+      "reason": "Token exists in the database without a resolved executable producer.",
+      "database_sources": [],
+      "authored_producers": [],
+      "has_authored_behavior": false,
+      "explicit_coverage": null,
+      "keyword_only_text": false,
+      "abilities": [
+        {
+          "keyword": "入场曲",
+          "status": "partial"
+        }
+      ],
+      "skill_texts": [
+        "【<color=Keyword>入场曲</color>】选择对手的战场上的2个随从，对这些随从和对手的主战者造成6点伤害。"
+      ]
+    },
+    {
+      "card_id": 90004310,
+      "name": "阿斯塔罗特的宣判",
+      "class_name": "中立",
+      "card_type": "法术",
+      "card_set_id": 90000,
+      "is_collectible": false,
+      "support_level": "unsupported",
+      "category": "database_only_no_entry",
+      "reason": "Token exists in the database without a resolved executable producer.",
+      "database_sources": [],
+      "authored_producers": [],
+      "has_authored_behavior": false,
+      "explicit_coverage": null,
+      "keyword_only_text": false,
+      "abilities": [],
+      "skill_texts": [
+        "使对手的主战者的生命值的最大值变为1。"
+      ]
+    },
+    {
+      "card_id": 90004320,
+      "name": "绝大的证明",
+      "class_name": "中立",
+      "card_type": "法术",
+      "card_set_id": 90000,
+      "is_collectible": false,
+      "support_level": "unsupported",
+      "category": "database_only_no_entry",
+      "reason": "Database source references exist, but no executable producer is authored.",
+      "database_sources": [
+        {
+          "source_card_id": 10304110,
+          "source_name": "绝大的显现·麦哲佩恩",
+          "referenced_name": "绝大的证明"
+        }
+      ],
+      "authored_producers": [],
+      "has_authored_behavior": false,
+      "explicit_coverage": null,
+      "keyword_only_text": false,
+      "abilities": [],
+      "skill_texts": [
+        "选择对手的战场上的1个随从，破坏该随从。"
+      ]
+    },
+    {
+      "card_id": 90004330,
+      "name": "涸绝的甘露",
+      "class_name": "中立",
+      "card_type": "法术",
+      "card_set_id": 90000,
+      "is_collectible": false,
+      "support_level": "unsupported",
+      "category": "database_only_no_entry",
+      "reason": "Database source references exist, but no executable producer is authored.",
+      "database_sources": [
+        {
+          "source_card_id": 10304120,
+          "source_name": "涸绝的显现·吉尔内莉莎",
+          "referenced_name": "涸绝的甘露"
+        }
+      ],
+      "authored_producers": [],
+      "has_authored_behavior": false,
+      "explicit_coverage": null,
+      "keyword_only_text": false,
+      "abilities": [],
+      "skill_texts": [
+        "对对手的战场上的随机1个随从和对手的主战者造成5点伤害。"
+      ]
+    },
+    {
+      "card_id": 90011110,
+      "name": "妖精",
+      "class_name": "精灵",
+      "card_type": "随从",
+      "card_set_id": 90000,
+      "is_collectible": false,
+      "support_level": "keyword",
+      "category": "entry_behavior_complete",
+      "reason": "Executable entry exists and behavior is vanilla, fully implemented keyword-only, or explicitly audited exact.",
+      "database_sources": [
+        {
+          "source_card_id": 10011110,
+          "source_name": "妖精驯服者",
+          "referenced_name": "妖精"
+        },
+        {
+          "source_card_id": 10011210,
+          "source_name": "缭乱之庭",
+          "referenced_name": "妖精"
+        },
+        {
+          "source_card_id": 10111120,
+          "source_name": "恋触妖精",
+          "referenced_name": "妖精"
+        },
+        {
+          "source_card_id": 10111310,
+          "source_name": "妖精召集令",
+          "referenced_name": "妖精"
+        },
+        {
+          "source_card_id": 10112120,
+          "source_name": "纯真的水之妖精",
+          "referenced_name": "妖精"
+        },
+        {
+          "source_card_id": 10112210,
+          "source_name": "磷光辉岩",
+          "referenced_name": "妖精"
+        },
+        {
+          "source_card_id": 10114110,
+          "source_name": "自然妖精公主·阿丽雅",
+          "referenced_name": "妖精"
+        },
+        {
+          "source_card_id": 10212120,
+          "source_name": "妖精击剑士",
+          "referenced_name": "妖精"
+        },
+        {
+          "source_card_id": 10213110,
+          "source_name": "森林骑士道·辛西亚",
+          "referenced_name": "妖精"
+        },
+        {
+          "source_card_id": 10214110,
+          "source_name": "翅翼女王·提泰妮娅",
+          "referenced_name": "妖精"
+        },
+        {
+          "source_card_id": 10312120,
+          "source_name": "树海的战士",
+          "referenced_name": "妖精"
+        },
+        {
+          "source_card_id": 10511120,
+          "source_name": "森林羽子板工匠",
+          "referenced_name": "妖精"
+        },
+        {
+          "source_card_id": 10511310,
+          "source_name": "虫风花的飞翔",
+          "referenced_name": "妖精"
+        },
+        {
+          "source_card_id": 10513110,
+          "source_name": "引路船工",
+          "referenced_name": "妖精"
+        },
+        {
+          "source_card_id": 10514120,
+          "source_name": "虫风花·魅禄",
+          "referenced_name": "妖精"
+        },
+        {
+          "source_card_id": 10711120,
+          "source_name": "精灵陷阱师",
+          "referenced_name": "妖精"
+        },
+        {
+          "source_card_id": 10811120,
+          "source_name": "异端隐士·西特拉斯",
+          "referenced_name": "妖精"
+        },
+        {
+          "source_card_id": 10812110,
+          "source_name": "太古的妖精·露芙蕾",
+          "referenced_name": "妖精"
+        }
+      ],
+      "authored_producers": [
+        {
+          "source_card_id": 10111310,
+          "entry_kind": "add_card",
+          "rule_file": "batch_basic_real_cards.json",
+          "rule_group": "rules"
+        },
+        {
+          "source_card_id": 10112120,
+          "entry_kind": "add_card",
+          "rule_file": "batch_basic_real_cards.json",
+          "rule_group": "rules"
+        },
+        {
+          "source_card_id": 10214110,
+          "entry_kind": "add_card",
+          "rule_file": "emblems_demo.json",
+          "rule_group": "emblems"
+        },
+        {
+          "source_card_id": 10214110,
+          "entry_kind": "summon",
+          "rule_file": "emblems_demo.json",
+          "rule_group": "rules"
+        },
+        {
+          "source_card_id": 10511120,
+          "entry_kind": "summon",
+          "rule_file": "real_listener_batch.json",
+          "rule_group": "rules"
+        }
+      ],
+      "has_authored_behavior": false,
+      "explicit_coverage": null,
+      "keyword_only_text": true,
+      "abilities": [
+        {
+          "keyword": "突进",
+          "status": "implemented"
+        }
+      ],
+      "skill_texts": [
+        "【<color=Keyword>突进</color>】"
+      ]
+    },
+    {
+      "card_id": 90011120,
+      "name": "新绿的妖精",
+      "class_name": "精灵",
+      "card_type": "随从",
+      "card_set_id": 90000,
+      "is_collectible": false,
+      "support_level": "unsupported",
+      "category": "database_only_no_entry",
+      "reason": "Database source references exist, but no executable producer is authored.",
+      "database_sources": [
+        {
+          "source_card_id": 10611110,
+          "source_name": "慈育的森民",
+          "referenced_name": "新绿的妖精"
+        },
+        {
+          "source_card_id": 10611310,
+          "source_name": "天枪授予",
+          "referenced_name": "新绿的妖精"
+        },
+        {
+          "source_card_id": 10612110,
+          "source_name": "慈颜的拥趸",
+          "referenced_name": "新绿的妖精"
+        },
+        {
+          "source_card_id": 10613110,
+          "source_name": "慈惠的心腹",
+          "referenced_name": "新绿的妖精"
+        },
+        {
+          "source_card_id": 10613310,
+          "source_name": "慈爱的天枪",
+          "referenced_name": "新绿的妖精"
+        },
+        {
+          "source_card_id": 10614110,
+          "source_name": "慈爱的凛华·奥尔提雅",
+          "referenced_name": "新绿的妖精"
+        }
+      ],
+      "authored_producers": [],
+      "has_authored_behavior": false,
+      "explicit_coverage": null,
+      "keyword_only_text": false,
+      "abilities": [
+        {
+          "keyword": "守护",
+          "status": "implemented"
+        }
+      ],
+      "skill_texts": [
+        "【<color=Keyword>守护</color>】\n自己的回合结束时，本随从进化。"
+      ]
+    },
+    {
+      "card_id": 90011310,
+      "name": "森林的奥秘",
+      "class_name": "精灵",
+      "card_type": "法术",
+      "card_set_id": 90000,
+      "is_collectible": false,
+      "support_level": "unsupported",
+      "category": "database_only_no_entry",
+      "reason": "Database source references exist, but no executable producer is authored.",
+      "database_sources": [
+        {
+          "source_card_id": 10112210,
+          "source_name": "磷光辉岩",
+          "referenced_name": "森林的奥秘"
+        },
+        {
+          "source_card_id": 10112310,
+          "source_name": "薰交的思慕",
+          "referenced_name": "森林的奥秘"
+        },
+        {
+          "source_card_id": 10312120,
+          "source_name": "树海的战士",
+          "referenced_name": "森林的奥秘"
+        },
+        {
+          "source_card_id": 10714120,
+          "source_name": "冰界鹿王",
+          "referenced_name": "森林的奥秘"
+        }
+      ],
+      "authored_producers": [],
+      "has_authored_behavior": false,
+      "explicit_coverage": null,
+      "keyword_only_text": false,
+      "abilities": [],
+      "skill_texts": [
+        "回复自己的主战者1点生命值。"
+      ]
+    },
+    {
+      "card_id": 90014110,
+      "name": "冰晶剑士·伊芙",
+      "class_name": "精灵",
+      "card_type": "随从",
+      "card_set_id": 90000,
+      "is_collectible": false,
+      "support_level": "keyword",
+      "category": "database_only_no_entry",
+      "reason": "Database source references exist, but no executable producer is authored.",
+      "database_sources": [
+        {
+          "source_card_id": 10814120,
+          "source_name": "永恒冰晶·蒂亚",
+          "referenced_name": "冰晶剑士·伊芙"
+        }
+      ],
+      "authored_producers": [],
+      "has_authored_behavior": false,
+      "explicit_coverage": null,
+      "keyword_only_text": true,
+      "abilities": [
+        {
+          "keyword": "守护",
+          "status": "implemented"
+        },
+        {
+          "keyword": "疾驰",
+          "status": "implemented"
+        }
+      ],
+      "skill_texts": [
+        "【<color=Keyword>疾驰</color>】\n【<color=Keyword>守护</color>】"
+      ]
+    },
+    {
+      "card_id": 90014310,
+      "name": "蔷薇之闪击",
+      "class_name": "精灵",
+      "card_type": "法术",
+      "card_set_id": 90000,
+      "is_collectible": false,
+      "support_level": "unsupported",
+      "category": "database_only_no_entry",
+      "reason": "Database source references exist, but no executable producer is authored.",
+      "database_sources": [
+        {
+          "source_card_id": 10114120,
+          "source_name": "丰丽的玫瑰皇后",
+          "referenced_name": "蔷薇之闪击"
+        }
+      ],
+      "authored_producers": [],
+      "has_authored_behavior": false,
+      "explicit_coverage": null,
+      "keyword_only_text": false,
+      "abilities": [],
+      "skill_texts": [
+        "选择对手的战场上的1个随从或对手的主战者，对其造成3点伤害。"
+      ]
+    },
+    {
+      "card_id": 90014320,
+      "name": "绝命的痛击",
+      "class_name": "精灵",
+      "card_type": "法术",
+      "card_set_id": 90000,
+      "is_collectible": false,
+      "support_level": "unsupported",
+      "category": "database_only_no_entry",
+      "reason": "Database source references exist, but no executable producer is authored.",
+      "database_sources": [
+        {
+          "source_card_id": 10314120,
+          "source_name": "绝命的显现·艾斯迪亚",
+          "referenced_name": "绝命的痛击"
+        }
+      ],
+      "authored_producers": [],
+      "has_authored_behavior": false,
+      "explicit_coverage": null,
+      "keyword_only_text": false,
+      "abilities": [],
+      "skill_texts": [
+        "在手牌中发动。自己的回合结束时，使本卡牌的费用-1。\n<hr>对对手的主战者造成6点伤害。若自己的战场上有『<color=Keyword>绝命的显现·艾斯迪亚</color>』，则改为20点伤害。"
+      ]
+    },
+    {
+      "card_id": 90014330,
+      "name": "天枪深渊",
+      "class_name": "精灵",
+      "card_type": "法术",
+      "card_set_id": 90000,
+      "is_collectible": false,
+      "support_level": "unsupported",
+      "category": "entry_behavior_complete",
+      "reason": "Executable entry exists and behavior is vanilla, fully implemented keyword-only, or explicitly audited exact.",
+      "database_sources": [
+        {
+          "source_card_id": 10614120,
+          "source_name": "古旧天枪·萨莎妮德",
+          "referenced_name": "天枪深渊"
+        }
+      ],
+      "authored_producers": [
+        {
+          "source_card_id": 10614120,
+          "entry_kind": "add_card",
+          "rule_file": "faith.json",
+          "rule_group": "rules"
+        }
+      ],
+      "has_authored_behavior": true,
+      "explicit_coverage": "exact",
+      "keyword_only_text": false,
+      "abilities": [],
+      "skill_texts": [
+        "选择自己的战场上的1个进化前的随从，使其进化。"
+      ]
+    },
+    {
+      "card_id": 90021110,
+      "name": "骑士",
+      "class_name": "皇家护卫",
+      "card_type": "随从",
+      "card_set_id": 90000,
+      "is_collectible": false,
+      "support_level": "basic",
+      "category": "entry_behavior_complete",
+      "reason": "Executable entry exists and behavior is vanilla, fully implemented keyword-only, or explicitly audited exact.",
+      "database_sources": [
+        {
+          "source_card_id": 10022110,
+          "source_name": "王室御用车夫",
+          "referenced_name": "骑士"
+        },
+        {
+          "source_card_id": 10122110,
+          "source_name": "统率的鲁米那斯骑士",
+          "referenced_name": "骑士"
+        },
+        {
+          "source_card_id": 10122130,
+          "source_name": "勇猛的鲁米那斯枪士",
+          "referenced_name": "骑士"
+        },
+        {
+          "source_card_id": 10122310,
+          "source_name": "王断的威光",
+          "referenced_name": "骑士"
+        },
+        {
+          "source_card_id": 10123110,
+          "source_name": "雷维翁之斧·杰诺",
+          "referenced_name": "骑士"
+        },
+        {
+          "source_card_id": 10123130,
+          "source_name": "王断的天宫·斯塔奇乌姆",
+          "referenced_name": "骑士"
+        },
+        {
+          "source_card_id": 10224120,
+          "source_name": "雷维翁超越者·尤里乌斯",
+          "referenced_name": "骑士"
+        },
+        {
+          "source_card_id": 10522310,
+          "source_name": "温柔援军",
+          "referenced_name": "骑士"
+        },
+        {
+          "source_card_id": 10721120,
+          "source_name": "传调联络兵",
+          "referenced_name": "骑士"
+        },
+        {
+          "source_card_id": 10722110,
+          "source_name": "听略谍报兵",
+          "referenced_name": "骑士"
+        },
+        {
+          "source_card_id": 10722120,
+          "source_name": "斩奏医护兵",
+          "referenced_name": "骑士"
+        },
+        {
+          "source_card_id": 10723110,
+          "source_name": "响爪分队长",
+          "referenced_name": "骑士"
+        },
+        {
+          "source_card_id": 10824120,
+          "source_name": "焦灼炎将·玛尔斯",
+          "referenced_name": "骑士"
+        }
+      ],
+      "authored_producers": [
+        {
+          "source_card_id": 10022110,
+          "entry_kind": "summon",
+          "rule_file": "batch_basic_real_cards.json",
+          "rule_group": "rules"
+        },
+        {
+          "source_card_id": 10122110,
+          "entry_kind": "summon",
+          "rule_file": "royal_trait_listeners.json",
+          "rule_group": "rules"
+        },
+        {
+          "source_card_id": 10122130,
+          "entry_kind": "summon",
+          "rule_file": "royal_trait_listeners.json",
+          "rule_group": "rules"
+        }
+      ],
+      "has_authored_behavior": false,
+      "explicit_coverage": null,
+      "keyword_only_text": false,
+      "abilities": [],
+      "skill_texts": []
+    },
+    {
+      "card_id": 90021120,
+      "name": "铁甲骑士",
+      "class_name": "皇家护卫",
+      "card_type": "随从",
+      "card_set_id": 90000,
+      "is_collectible": false,
+      "support_level": "basic",
+      "category": "entry_behavior_complete",
+      "reason": "Executable entry exists and behavior is vanilla, fully implemented keyword-only, or explicitly audited exact.",
+      "database_sources": [
+        {
+          "source_card_id": 10121130,
+          "source_name": "救援的鲁米那斯治疗师·莉拉拉",
+          "referenced_name": "铁甲骑士"
+        },
+        {
+          "source_card_id": 10121310,
+          "source_name": "剑士的斩击",
+          "referenced_name": "铁甲骑士"
+        },
+        {
+          "source_card_id": 10122120,
+          "source_name": "卓越的鲁米那斯法师",
+          "referenced_name": "铁甲骑士"
+        },
+        {
+          "source_card_id": 10122310,
+          "source_name": "王断的威光",
+          "referenced_name": "铁甲骑士"
+        },
+        {
+          "source_card_id": 10123140,
+          "source_name": "煌刃勇者·阿玛利亚",
+          "referenced_name": "铁甲骑士"
+        },
+        {
+          "source_card_id": 10224110,
+          "source_name": "静寂的安纳提玛·吉尔达利娅",
+          "referenced_name": "铁甲骑士"
+        },
+        {
+          "source_card_id": 10523110,
+          "source_name": "不动如山的将校",
+          "referenced_name": "铁甲骑士"
+        },
+        {
+          "source_card_id": 10721120,
+          "source_name": "传调联络兵",
+          "referenced_name": "铁甲骑士"
+        },
+        {
+          "source_card_id": 10722310,
+          "source_name": "无音的包围",
+          "referenced_name": "铁甲骑士"
+        },
+        {
+          "source_card_id": 10724110,
+          "source_name": "统音的安纳提玛·吉尔达利娅",
+          "referenced_name": "铁甲骑士"
+        },
+        {
+          "source_card_id": 10724120,
+          "source_name": "宽严的音帅·塞扎尔",
+          "referenced_name": "铁甲骑士"
+        },
+        {
+          "source_card_id": 10821130,
+          "source_name": "悠久的骑士·莎夏",
+          "referenced_name": "铁甲骑士"
+        }
+      ],
+      "authored_producers": [
+        {
+          "source_card_id": 10121310,
+          "entry_kind": "summon",
+          "rule_file": "batch_basic_real_cards.json",
+          "rule_group": "rules"
+        },
+        {
+          "source_card_id": 10122120,
+          "entry_kind": "summon",
+          "rule_file": "royal_trait_listeners.json",
+          "rule_group": "rules"
+        },
+        {
+          "source_card_id": 10123140,
+          "entry_kind": "summon",
+          "rule_file": "royal_trait_listeners.json",
+          "rule_group": "rules"
+        }
+      ],
+      "has_authored_behavior": false,
+      "explicit_coverage": null,
+      "keyword_only_text": false,
+      "abilities": [],
+      "skill_texts": []
+    },
+    {
+      "card_id": 90021130,
+      "name": "娜哈特的私兵",
+      "class_name": "皇家护卫",
+      "card_type": "随从",
+      "card_set_id": 90000,
+      "is_collectible": false,
+      "support_level": "basic",
+      "category": "database_only_no_entry",
+      "reason": "Database source references exist, but no executable producer is authored.",
+      "database_sources": [
+        {
+          "source_card_id": 10821110,
+          "source_name": "武力与治安·娜哈特·娜哈特&宾森特",
+          "referenced_name": "娜哈特的私兵"
+        }
+      ],
+      "authored_producers": [],
+      "has_authored_behavior": false,
+      "explicit_coverage": null,
+      "keyword_only_text": false,
+      "abilities": [],
+      "skill_texts": []
+    },
+    {
+      "card_id": 90021310,
+      "name": "黄金短剑",
+      "class_name": "皇家护卫",
+      "card_type": "法术",
+      "card_set_id": 90000,
+      "is_collectible": false,
+      "support_level": "unsupported",
+      "category": "database_only_no_entry",
+      "reason": "Database source references exist, but no executable producer is authored.",
+      "database_sources": [
+        {
+          "source_card_id": 10322110,
+          "source_name": "篡夺的祈祷者",
+          "referenced_name": "黄金短剑"
+        },
+        {
+          "source_card_id": 10322210,
+          "source_name": "篡夺的据点",
+          "referenced_name": "黄金短剑"
+        },
+        {
+          "source_card_id": 10323310,
+          "source_name": "奉还的剑闪",
+          "referenced_name": "黄金短剑"
+        },
+        {
+          "source_card_id": 10324120,
+          "source_name": "空绝的显现·奥克托丽丝",
+          "referenced_name": "黄金短剑"
+        }
+      ],
+      "authored_producers": [],
+      "has_authored_behavior": false,
+      "explicit_coverage": null,
+      "keyword_only_text": false,
+      "abilities": [],
+      "skill_texts": [
+        "选择对手的战场上的1个随从或对手的主战者，对其造成1点伤害。"
+      ]
+    },
+    {
+      "card_id": 90021320,
+      "name": "黄金之杯",
+      "class_name": "皇家护卫",
+      "card_type": "法术",
+      "card_set_id": 90000,
+      "is_collectible": false,
+      "support_level": "unsupported",
+      "category": "database_only_no_entry",
+      "reason": "Database source references exist, but no executable producer is authored.",
+      "database_sources": [
+        {
+          "source_card_id": 10321110,
+          "source_name": "篡夺的肯定者",
+          "referenced_name": "黄金之杯"
+        },
+        {
+          "source_card_id": 10322210,
+          "source_name": "篡夺的据点",
+          "referenced_name": "黄金之杯"
+        },
+        {
+          "source_card_id": 10323110,
+          "source_name": "篡夺的团结者",
+          "referenced_name": "黄金之杯"
+        }
+      ],
+      "authored_producers": [],
+      "has_authored_behavior": false,
+      "explicit_coverage": null,
+      "keyword_only_text": false,
+      "abilities": [],
+      "skill_texts": [
+        "回复自己的主战者2点生命值。"
+      ]
+    },
+    {
+      "card_id": 90021330,
+      "name": "黄金之靴",
+      "class_name": "皇家护卫",
+      "card_type": "法术",
+      "card_set_id": 90000,
+      "is_collectible": false,
+      "support_level": "unsupported",
+      "category": "database_only_no_entry",
+      "reason": "Database source references exist, but no executable producer is authored.",
+      "database_sources": [
+        {
+          "source_card_id": 10321110,
+          "source_name": "篡夺的肯定者",
+          "referenced_name": "黄金之靴"
+        },
+        {
+          "source_card_id": 10322210,
+          "source_name": "篡夺的据点",
+          "referenced_name": "黄金之靴"
+        },
+        {
+          "source_card_id": 10323110,
+          "source_name": "篡夺的团结者",
+          "referenced_name": "黄金之靴"
+        }
+      ],
+      "authored_producers": [],
+      "has_authored_behavior": false,
+      "explicit_coverage": null,
+      "keyword_only_text": false,
+      "abilities": [
+        {
+          "keyword": "突进",
+          "status": "implemented"
+        }
+      ],
+      "skill_texts": [
+        "选择自己的战场上的1个随从，使其+1/+0且获得【<color=Keyword>突进</color>】。"
+      ]
+    },
+    {
+      "card_id": 90021340,
+      "name": "黄金项链",
+      "class_name": "皇家护卫",
+      "card_type": "法术",
+      "card_set_id": 90000,
+      "is_collectible": false,
+      "support_level": "unsupported",
+      "category": "database_only_no_entry",
+      "reason": "Database source references exist, but no executable producer is authored.",
+      "database_sources": [
+        {
+          "source_card_id": 10322110,
+          "source_name": "篡夺的祈祷者",
+          "referenced_name": "黄金项链"
+        },
+        {
+          "source_card_id": 10322210,
+          "source_name": "篡夺的据点",
+          "referenced_name": "黄金项链"
+        },
+        {
+          "source_card_id": 10324120,
+          "source_name": "空绝的显现·奥克托丽丝",
+          "referenced_name": "黄金项链"
+        }
+      ],
+      "authored_producers": [],
+      "has_authored_behavior": false,
+      "explicit_coverage": null,
+      "keyword_only_text": false,
+      "abilities": [
+        {
+          "keyword": "守护",
+          "status": "implemented"
+        }
+      ],
+      "skill_texts": [
+        "选择自己的战场上的1个随从，使其+0/+1且获得【<color=Keyword>守护</color>】。"
+      ]
+    },
+    {
+      "card_id": 90021350,
+      "name": "闪耀的金币",
+      "class_name": "皇家护卫",
+      "card_type": "法术",
+      "card_set_id": 90000,
+      "is_collectible": false,
+      "support_level": "unsupported",
+      "category": "database_only_no_entry",
+      "reason": "Database source references exist, but no executable producer is authored.",
+      "database_sources": [
+        {
+          "source_card_id": 10521120,
+          "source_name": "烟管美玉",
+          "referenced_name": "闪耀的金币"
+        },
+        {
+          "source_card_id": 10522120,
+          "source_name": "吉祥蛙",
+          "referenced_name": "闪耀的金币"
+        },
+        {
+          "source_card_id": 10523310,
+          "source_name": "荣耀的丽金花",
+          "referenced_name": "闪耀的金币"
+        },
+        {
+          "source_card_id": 10524120,
+          "source_name": "丽金花·云庆",
+          "referenced_name": "闪耀的金币"
+        },
+        {
+          "source_card_id": 10822110,
+          "source_name": "越狱者·卡婕",
+          "referenced_name": "闪耀的金币"
+        }
+      ],
+      "authored_producers": [],
+      "has_authored_behavior": false,
+      "explicit_coverage": null,
+      "keyword_only_text": false,
+      "abilities": [
+        {
+          "keyword": "模式",
+          "status": "placeholder"
+        }
+      ],
+      "skill_texts": [
+        "【<color=Keyword>模式</color>】选择1个能力发动。\n<ridx=0>（1）抽取1张卡牌。</ridx>\n<ridx=1>（2）对对手的战场上的随机1个随从造成2点伤害。</ridx>"
+      ]
+    },
+    {
+      "card_id": 90022110,
+      "name": "异形",
+      "class_name": "皇家护卫",
+      "card_type": "随从",
+      "card_set_id": 90000,
+      "is_collectible": false,
+      "support_level": "keyword",
+      "category": "database_only_no_entry",
+      "reason": "Database source references exist, but no executable producer is authored.",
+      "database_sources": [
+        {
+          "source_card_id": 10822310,
+          "source_name": "重历新生",
+          "referenced_name": "异形"
+        }
+      ],
+      "authored_producers": [],
+      "has_authored_behavior": false,
+      "explicit_coverage": null,
+      "keyword_only_text": true,
+      "abilities": [
+        {
+          "keyword": "突进",
+          "status": "implemented"
+        }
+      ],
+      "skill_texts": [
+        "【<color=Keyword>突进</color>】"
+      ]
+    },
+    {
+      "card_id": 90023110,
+      "name": "安静的女仆·诺嘉",
+      "class_name": "皇家护卫",
+      "card_type": "随从",
+      "card_set_id": 90000,
+      "is_collectible": false,
+      "support_level": "unsupported",
+      "category": "database_only_no_entry",
+      "reason": "Database source references exist, but no executable producer is authored.",
+      "database_sources": [
+        {
+          "source_card_id": 10223120,
+          "source_name": "假日中的王女·普莉姆",
+          "referenced_name": "安静的女仆·诺嘉"
+        }
+      ],
+      "authored_producers": [],
+      "has_authored_behavior": false,
+      "explicit_coverage": null,
+      "keyword_only_text": false,
+      "abilities": [
+        {
+          "keyword": "入场曲",
+          "status": "partial"
+        },
+        {
+          "keyword": "守护",
+          "status": "implemented"
+        },
+        {
+          "keyword": "必杀",
+          "status": "implemented"
+        }
+      ],
+      "skill_texts": [
+        "【<color=Keyword>入场曲</color>】若自己的战场上有『<color=Keyword>假日中的王女·普莉姆</color>』，则本随从+1/+1且获得【<color=Keyword>毁灭</color>】。\n<hr>【<color=Keyword>守护</color>】"
+      ]
+    },
+    {
+      "card_id": 90024310,
+      "name": "空绝的残光",
+      "class_name": "皇家护卫",
+      "card_type": "法术",
+      "card_set_id": 90000,
+      "is_collectible": false,
+      "support_level": "unsupported",
+      "category": "database_only_no_entry",
+      "reason": "Database source references exist, but no executable producer is authored.",
+      "database_sources": [
+        {
+          "source_card_id": 10324120,
+          "source_name": "空绝的显现·奥克托丽丝",
+          "referenced_name": "空绝的残光"
+        }
+      ],
+      "authored_producers": [],
+      "has_authored_behavior": false,
+      "explicit_coverage": null,
+      "keyword_only_text": false,
+      "abilities": [],
+      "skill_texts": [
+        "对对手的战场上的所有随从和对手的主战者分配4点伤害。"
+      ]
+    },
+    {
+      "card_id": 90024320,
+      "name": "天剑深渊",
+      "class_name": "皇家护卫",
+      "card_type": "法术",
+      "card_set_id": 90000,
+      "is_collectible": false,
+      "support_level": "unsupported",
+      "category": "database_only_no_entry",
+      "reason": "Database source references exist, but no executable producer is authored.",
+      "database_sources": [
+        {
+          "source_card_id": 10624120,
+          "source_name": "古旧天剑·伊德梅塔",
+          "referenced_name": "天剑深渊"
+        }
+      ],
+      "authored_producers": [],
+      "has_authored_behavior": false,
+      "explicit_coverage": null,
+      "keyword_only_text": false,
+      "abilities": [
+        {
+          "keyword": "爆能强化",
+          "status": "placeholder"
+        }
+      ],
+      "skill_texts": [
+        "选择对手的战场上的1个随从，对其造成1点伤害。\n【<color=Keyword>爆能强化</color>_1】改为3点伤害。"
+      ]
+    },
+    {
+      "card_id": 90024330,
+      "name": "亡命者的枪击",
+      "class_name": "皇家护卫",
+      "card_type": "法术",
+      "card_set_id": 90000,
+      "is_collectible": false,
+      "support_level": "unsupported",
+      "category": "database_only_no_entry",
+      "reason": "Database source references exist, but no executable producer is authored.",
+      "database_sources": [
+        {
+          "source_card_id": 10824110,
+          "source_name": "天命的子弹·巴妮&巴隆",
+          "referenced_name": "亡命者的枪击"
+        }
+      ],
+      "authored_producers": [],
+      "has_authored_behavior": false,
+      "explicit_coverage": null,
+      "keyword_only_text": false,
+      "abilities": [],
+      "skill_texts": [
+        "发动2次「对对手的战场上的随机1个随从造成4点伤害」。"
+      ]
+    },
+    {
+      "card_id": 90031110,
+      "name": "泥尘巨像",
+      "class_name": "巫师",
+      "card_type": "随从",
+      "card_set_id": 90000,
+      "is_collectible": false,
+      "support_level": "basic",
+      "category": "entry_behavior_complete",
+      "reason": "Executable entry exists and behavior is vanilla, fully implemented keyword-only, or explicitly audited exact.",
+      "database_sources": [
+        {
+          "source_card_id": 10031320,
+          "source_name": "召唤真理",
+          "referenced_name": "泥尘巨像"
+        },
+        {
+          "source_card_id": 10132120,
+          "source_name": "奇迹女巫·爱蜜儿",
+          "referenced_name": "泥尘巨像"
+        },
+        {
+          "source_card_id": 10332310,
+          "source_name": "双重创造",
+          "referenced_name": "泥尘巨像"
+        },
+        {
+          "source_card_id": 10532310,
+          "source_name": "魔猫戏法",
+          "referenced_name": "泥尘巨像"
+        }
+      ],
+      "authored_producers": [
+        {
+          "source_card_id": 10031320,
+          "entry_kind": "summon",
+          "rule_file": "batch_basic_real_cards.json",
+          "rule_group": "rules"
+        }
+      ],
+      "has_authored_behavior": false,
+      "explicit_coverage": null,
+      "keyword_only_text": false,
+      "abilities": [],
+      "skill_texts": []
+    },
+    {
+      "card_id": 90031120,
+      "name": "守护者巨像",
+      "class_name": "巫师",
+      "card_type": "随从",
+      "card_set_id": 90000,
+      "is_collectible": false,
+      "support_level": "keyword",
+      "category": "database_only_no_entry",
+      "reason": "Database source references exist, but no executable producer is authored.",
+      "database_sources": [
+        {
+          "source_card_id": 10032110,
+          "source_name": "双面魔女·蕾米拉米",
+          "referenced_name": "守护者巨像"
+        },
+        {
+          "source_card_id": 10133110,
+          "source_name": "黎明炼金术师·诺诺",
+          "referenced_name": "守护者巨像"
+        },
+        {
+          "source_card_id": 10234120,
+          "source_name": "精金炼金术师·诺曼",
+          "referenced_name": "守护者巨像"
+        },
+        {
+          "source_card_id": 10332310,
+          "source_name": "双重创造",
+          "referenced_name": "守护者巨像"
+        },
+        {
+          "source_card_id": 10531110,
+          "source_name": "创造魔法师",
+          "referenced_name": "守护者巨像"
+        },
+        {
+          "source_card_id": 10533110,
+          "source_name": "元素支配者",
+          "referenced_name": "守护者巨像"
+        },
+        {
+          "source_card_id": 10834120,
+          "source_name": "灾难言灵·洋荷",
+          "referenced_name": "守护者巨像"
+        }
+      ],
+      "authored_producers": [],
+      "has_authored_behavior": false,
+      "explicit_coverage": null,
+      "keyword_only_text": true,
+      "abilities": [
+        {
+          "keyword": "守护",
+          "status": "implemented"
+        }
+      ],
+      "skill_texts": [
+        "【<color=Keyword>守护</color>】"
+      ]
+    },
+    {
+      "card_id": 90031130,
+      "name": "式神·小纸人",
+      "class_name": "巫师",
+      "card_type": "随从",
+      "card_set_id": 90000,
+      "is_collectible": false,
+      "support_level": "unsupported",
+      "category": "database_only_no_entry",
+      "reason": "Database source references exist, but no executable producer is authored.",
+      "database_sources": [
+        {
+          "source_card_id": 10134110,
+          "source_name": "五行之巅·久苑",
+          "referenced_name": "式神·小纸人"
+        },
+        {
+          "source_card_id": 10331120,
+          "source_name": "五行修行者",
+          "referenced_name": "式神·小纸人"
+        }
+      ],
+      "authored_producers": [],
+      "has_authored_behavior": false,
+      "explicit_coverage": null,
+      "keyword_only_text": false,
+      "abilities": [
+        {
+          "keyword": "突进",
+          "status": "implemented"
+        },
+        {
+          "keyword": "谢幕曲",
+          "status": "partial"
+        }
+      ],
+      "skill_texts": [
+        "【<color=Keyword>突进</color>】\n【<color=Keyword>谢幕曲</color>】使自己的所有手牌发动1次魔力增幅。"
+      ]
+    },
+    {
+      "card_id": 90031140,
+      "name": "式神·暴鬼",
+      "class_name": "巫师",
+      "card_type": "随从",
+      "card_set_id": 90000,
+      "is_collectible": false,
+      "support_level": "unsupported",
+      "category": "database_only_no_entry",
+      "reason": "Database source references exist, but no executable producer is authored.",
+      "database_sources": [
+        {
+          "source_card_id": 10133320,
+          "source_name": "唤鬼术",
+          "referenced_name": "式神·暴鬼"
+        },
+        {
+          "source_card_id": 10134110,
+          "source_name": "五行之巅·久苑",
+          "referenced_name": "式神·暴鬼"
+        }
+      ],
+      "authored_producers": [],
+      "has_authored_behavior": false,
+      "explicit_coverage": null,
+      "keyword_only_text": false,
+      "abilities": [
+        {
+          "keyword": "突进",
+          "status": "implemented"
+        },
+        {
+          "keyword": "谢幕曲",
+          "status": "partial"
+        }
+      ],
+      "skill_texts": [
+        "【<color=Keyword>突进</color>】\n【<color=Keyword>谢幕曲</color>】使自己的所有手牌发动1次魔力增幅。"
+      ]
+    },
+    {
+      "card_id": 90031210,
+      "name": "大地之魔片",
+      "class_name": "巫师",
+      "card_type": "护符",
+      "card_set_id": 90000,
+      "is_collectible": false,
+      "support_level": "unsupported",
+      "category": "entry_behavior_partial",
+      "reason": "Executable entry exists, but nontrivial token text lacks an exact audit.",
+      "database_sources": [],
+      "authored_producers": [
+        {
+          "source_card_id": null,
+          "entry_kind": "engine_earth_sigil",
+          "rule_file": null,
+          "rule_group": "generic_primitive",
+          "notes": "ADD_EARTH_SIGILS creates or stacks the canonical Earth Sigil token."
+        }
+      ],
+      "has_authored_behavior": false,
+      "explicit_coverage": null,
+      "keyword_only_text": false,
+      "abilities": [
+        {
+          "keyword": "土之印",
+          "status": "implemented"
+        },
+        {
+          "keyword": "策动",
+          "status": "implemented"
+        }
+      ],
+      "skill_texts": [
+        "【<color=Keyword>土之印</color>】\n<hr>费用1【<color=Keyword>启动</color>】使自己的战场上的土之印+1。"
+      ]
+    },
+    {
+      "card_id": 90031310,
+      "name": "玛纳利亚魔弹",
+      "class_name": "巫师",
+      "card_type": "法术",
+      "card_set_id": 90000,
+      "is_collectible": false,
+      "support_level": "unsupported",
+      "category": "database_only_no_entry",
+      "reason": "Database source references exist, but no executable producer is authored.",
+      "database_sources": [
+        {
+          "source_card_id": 10831120,
+          "source_name": "玛纳利亚书记官·波比",
+          "referenced_name": "玛纳利亚魔弹"
+        },
+        {
+          "source_card_id": 10833110,
+          "source_name": "玛纳利亚文书官·琪可",
+          "referenced_name": "玛纳利亚魔弹"
+        }
+      ],
+      "authored_producers": [],
+      "has_authored_behavior": false,
+      "explicit_coverage": null,
+      "keyword_only_text": false,
+      "abilities": [],
+      "skill_texts": [
+        "对对手的战场上的随机1个随从造成3点伤害。"
+      ]
+    },
+    {
+      "card_id": 90032110,
+      "name": "洋葱军团兵",
+      "class_name": "巫师",
+      "card_type": "随从",
+      "card_set_id": 90000,
+      "is_collectible": false,
+      "support_level": "unsupported",
+      "category": "database_only_no_entry",
+      "reason": "Database source references exist, but no executable producer is authored.",
+      "database_sources": [
+        {
+          "source_card_id": 10232110,
+          "source_name": "否定的咏唱·芭赛特",
+          "referenced_name": "洋葱军团兵"
+        }
+      ],
+      "authored_producers": [],
+      "has_authored_behavior": false,
+      "explicit_coverage": null,
+      "keyword_only_text": false,
+      "abilities": [
+        {
+          "keyword": "攻击时",
+          "status": "implemented"
+        },
+        {
+          "keyword": "突进",
+          "status": "implemented"
+        }
+      ],
+      "skill_texts": [
+        "【<color=Keyword>突进</color>】\n【<color=Keyword>攻击时</color>】使自己的所有手牌发动1次魔力增幅。"
+      ]
+    },
+    {
+      "card_id": 90033310,
+      "name": "有所成长了！",
+      "class_name": "巫师",
+      "card_type": "法术",
+      "card_set_id": 90000,
+      "is_collectible": false,
+      "support_level": "unsupported",
+      "category": "database_only_no_entry",
+      "reason": "Database source references exist, but no executable producer is authored.",
+      "database_sources": [
+        {
+          "source_card_id": 10133310,
+          "source_name": "做作业啦！",
+          "referenced_name": "有所成长了！"
+        }
+      ],
+      "authored_producers": [],
+      "has_authored_behavior": false,
+      "explicit_coverage": null,
+      "keyword_only_text": false,
+      "abilities": [],
+      "skill_texts": [
+        "抽取2张卡牌。对对手的战场上的随机1个随从造成2点伤害。"
+      ]
+    },
+    {
+      "card_id": 90034110,
+      "name": "式神·天后",
+      "class_name": "巫师",
+      "card_type": "随从",
+      "card_set_id": 90000,
+      "is_collectible": false,
+      "support_level": "unsupported",
+      "category": "database_only_no_entry",
+      "reason": "Database source references exist, but no executable producer is authored.",
+      "database_sources": [
+        {
+          "source_card_id": 10134110,
+          "source_name": "五行之巅·久苑",
+          "referenced_name": "式神·天后"
+        }
+      ],
+      "authored_producers": [],
+      "has_authored_behavior": false,
+      "explicit_coverage": null,
+      "keyword_only_text": false,
+      "abilities": [
+        {
+          "keyword": "守护",
+          "status": "implemented"
+        },
+        {
+          "keyword": "谢幕曲",
+          "status": "partial"
+        }
+      ],
+      "skill_texts": [
+        "【<color=Keyword>守护</color>】\n【<color=Keyword>谢幕曲</color>】使自己的所有手牌发动3次魔力增幅。"
+      ]
+    },
+    {
+      "card_id": 90034120,
+      "name": "式神·贵人",
+      "class_name": "巫师",
+      "card_type": "随从",
+      "card_set_id": 90000,
+      "is_collectible": false,
+      "support_level": "unsupported",
+      "category": "database_only_no_entry",
+      "reason": "Database source references exist, but no executable producer is authored.",
+      "database_sources": [
+        {
+          "source_card_id": 10134110,
+          "source_name": "五行之巅·久苑",
+          "referenced_name": "式神·贵人"
+        }
+      ],
+      "authored_producers": [],
+      "has_authored_behavior": false,
+      "explicit_coverage": null,
+      "keyword_only_text": false,
+      "abilities": [
+        {
+          "keyword": "守护",
+          "status": "implemented"
+        },
+        {
+          "keyword": "灵气",
+          "status": "placeholder"
+        }
+      ],
+      "skill_texts": [
+        "本随从进入战场时，本随从+X/+Y。X/Y为本回合中被破坏的自己的式神·随从的原始的攻击力/生命值的合计。\n<hr>【<color=Keyword>守护</color>】\n【<color=Keyword>灵气</color>】"
+      ]
+    },
+    {
+      "card_id": 90034130,
+      "name": "安的巨大英灵",
+      "class_name": "巫师",
+      "card_type": "随从",
+      "card_set_id": 90000,
+      "is_collectible": false,
+      "support_level": "unsupported",
+      "category": "database_only_no_entry",
+      "reason": "Database source references exist, but no executable producer is authored.",
+      "database_sources": [
+        {
+          "source_card_id": 10134120,
+          "source_name": "玛纳利亚密友·安&古蕾雅",
+          "referenced_name": "安的巨大英灵"
+        }
+      ],
+      "authored_producers": [],
+      "has_authored_behavior": false,
+      "explicit_coverage": null,
+      "keyword_only_text": false,
+      "abilities": [
+        {
+          "keyword": "守护",
+          "status": "implemented"
+        },
+        {
+          "keyword": "突进",
+          "status": "implemented"
+        }
+      ],
+      "skill_texts": [
+        "【<color=Keyword>突进</color>】\n【<color=Keyword>守护</color>】\n对手的回合结束时，破坏本卡牌。"
+      ]
+    },
+    {
+      "card_id": 90034310,
+      "name": "绝尽的伪证",
+      "class_name": "巫师",
+      "card_type": "法术",
+      "card_set_id": 90000,
+      "is_collectible": false,
+      "support_level": "unsupported",
+      "category": "database_only_no_entry",
+      "reason": "Database source references exist, but no executable producer is authored.",
+      "database_sources": [
+        {
+          "source_card_id": 10334120,
+          "source_name": "绝尽的显现·莱奥",
+          "referenced_name": "绝尽的伪证"
+        }
+      ],
+      "authored_producers": [],
+      "has_authored_behavior": false,
+      "explicit_coverage": null,
+      "keyword_only_text": false,
+      "abilities": [],
+      "skill_texts": [
+        "使自己的手牌中的所有随从的费用+1。破坏对手的战场上的所有随从。"
+      ]
+    },
+    {
+      "card_id": 90034320,
+      "name": "伟大之术",
+      "class_name": "巫师",
+      "card_type": "法术",
+      "card_set_id": 90000,
+      "is_collectible": false,
+      "support_level": "unsupported",
+      "category": "database_only_no_entry",
+      "reason": "Database source references exist, but no executable producer is authored.",
+      "database_sources": [
+        {
+          "source_card_id": 10434120,
+          "source_name": "天才美少女炼金术士·卡莉奥丝特罗",
+          "referenced_name": "伟大之术"
+        }
+      ],
+      "authored_producers": [],
+      "has_authored_behavior": false,
+      "explicit_coverage": null,
+      "keyword_only_text": false,
+      "abilities": [],
+      "skill_texts": [
+        "选择对手的战场上的1个随从或对手的主战者，对其造成2点伤害。回复自己的主战者1点生命值。\n"
+      ]
+    },
+    {
+      "card_id": 90034330,
+      "name": "天晶深渊",
+      "class_name": "巫师",
+      "card_type": "法术",
+      "card_set_id": 90000,
+      "is_collectible": false,
+      "support_level": "unsupported",
+      "category": "database_only_no_entry",
+      "reason": "Database source references exist, but no executable producer is authored.",
+      "database_sources": [
+        {
+          "source_card_id": 10634120,
+          "source_name": "古旧天晶·卡卢基典瑟拉",
+          "referenced_name": "天晶深渊"
+        }
+      ],
+      "authored_producers": [],
+      "has_authored_behavior": false,
+      "explicit_coverage": null,
+      "keyword_only_text": false,
+      "abilities": [
+        {
+          "keyword": "信仰",
+          "status": "partial"
+        }
+      ],
+      "skill_texts": [
+        "召唤1个『<color=Keyword>天晶魔手</color>』，使其+X/+X。回复自己的主战者Y点生命值。对对手的主战者造成Z点伤害。X/Y/Z的数值随机决定，合计为信仰值。"
+      ]
+    },
+    {
+      "card_id": 90034340,
+      "name": "苍奏之四",
+      "class_name": "巫师",
+      "card_type": "法术",
+      "card_set_id": 90000,
+      "is_collectible": false,
+      "support_level": "unsupported",
+      "category": "database_only_no_entry",
+      "reason": "Database source references exist, but no executable producer is authored.",
+      "database_sources": [
+        {
+          "source_card_id": 10834110,
+          "source_name": "恩爱的大地·坦忒拉&拉缇卡",
+          "referenced_name": "苍奏之四"
+        }
+      ],
+      "authored_producers": [],
+      "has_authored_behavior": false,
+      "explicit_coverage": null,
+      "keyword_only_text": false,
+      "abilities": [],
+      "skill_texts": [
+        "对对手的战场上的所有随从造成5点伤害。"
+      ]
+    },
+    {
+      "card_id": 90034350,
+      "name": "宏大的回归",
+      "class_name": "巫师",
+      "card_type": "法术",
+      "card_set_id": 90000,
+      "is_collectible": false,
+      "support_level": "unsupported",
+      "category": "database_only_no_entry",
+      "reason": "Database source references exist, but no executable producer is authored.",
+      "database_sources": [
+        {
+          "source_card_id": 10834110,
+          "source_name": "恩爱的大地·坦忒拉&拉缇卡",
+          "referenced_name": "宏大的回归"
+        }
+      ],
+      "authored_producers": [],
+      "has_authored_behavior": false,
+      "explicit_coverage": null,
+      "keyword_only_text": false,
+      "abilities": [],
+      "skill_texts": [
+        "选择自己的战场上的1个随从，使其获得「1回合可以攻击2次」。"
+      ]
+    },
+    {
+      "card_id": 90041110,
+      "name": "炽炎幼龙",
+      "class_name": "龙族",
+      "card_type": "随从",
+      "card_set_id": 90000,
+      "is_collectible": false,
+      "support_level": "unsupported",
+      "category": "database_only_no_entry",
+      "reason": "Database source references exist, but no executable producer is authored.",
+      "database_sources": [
+        {
+          "source_card_id": 10141140,
+          "source_name": "育龙少女",
+          "referenced_name": "炽炎幼龙"
+        }
+      ],
+      "authored_producers": [],
+      "has_authored_behavior": false,
+      "explicit_coverage": null,
+      "keyword_only_text": true,
+      "abilities": [
+        {
+          "keyword": "威慑",
+          "status": "placeholder"
+        }
+      ],
+      "skill_texts": [
+        "【<color=Keyword>威慑</color>】"
+      ]
+    },
+    {
+      "card_id": 90041120,
+      "name": "巨翼飞龙",
+      "class_name": "龙族",
+      "card_type": "随从",
+      "card_set_id": 90000,
+      "is_collectible": false,
+      "support_level": "unsupported",
+      "category": "database_only_no_entry",
+      "reason": "Database source references exist, but no executable producer is authored.",
+      "database_sources": [
+        {
+          "source_card_id": 10042120,
+          "source_name": "咆哮的驭龙使",
+          "referenced_name": "巨翼飞龙"
+        },
+        {
+          "source_card_id": 10141110,
+          "source_name": "云海龙骑兵",
+          "referenced_name": "巨翼飞龙"
+        },
+        {
+          "source_card_id": 10143130,
+          "source_name": "惊涛龙骑士·扎哈尔",
+          "referenced_name": "巨翼飞龙"
+        },
+        {
+          "source_card_id": 10241110,
+          "source_name": "庇护的智龙",
+          "referenced_name": "巨翼飞龙"
+        },
+        {
+          "source_card_id": 10542110,
+          "source_name": "铁锤龙骑士",
+          "referenced_name": "巨翼飞龙"
+        },
+        {
+          "source_card_id": 10744120,
+          "source_name": "龙峪的古龙",
+          "referenced_name": "巨翼飞龙"
+        }
+      ],
+      "authored_producers": [],
+      "has_authored_behavior": false,
+      "explicit_coverage": null,
+      "keyword_only_text": true,
+      "abilities": [
+        {
+          "keyword": "威慑",
+          "status": "placeholder"
+        }
+      ],
+      "skill_texts": [
+        "【<color=Keyword>威慑</color>】"
+      ]
+    },
+    {
+      "card_id": 90041130,
+      "name": "大海虎鲸",
+      "class_name": "龙族",
+      "card_type": "随从",
+      "card_set_id": 90000,
+      "is_collectible": false,
+      "support_level": "keyword",
+      "category": "entry_behavior_complete",
+      "reason": "Executable entry exists and behavior is vanilla, fully implemented keyword-only, or explicitly audited exact.",
+      "database_sources": [
+        {
+          "source_card_id": 10241310,
+          "source_name": "虎鲸的呼声",
+          "referenced_name": "大海虎鲸"
+        },
+        {
+          "source_card_id": 10242120,
+          "source_name": "身经百战的鱼人",
+          "referenced_name": "大海虎鲸"
+        },
+        {
+          "source_card_id": 10243110,
+          "source_name": "苍海的制裁·尼普顿",
+          "referenced_name": "大海虎鲸"
+        },
+        {
+          "source_card_id": 10342120,
+          "source_name": "海洋骑手",
+          "referenced_name": "大海虎鲸"
+        },
+        {
+          "source_card_id": 10541120,
+          "source_name": "水滴打拍者",
+          "referenced_name": "大海虎鲸"
+        },
+        {
+          "source_card_id": 10542120,
+          "source_name": "水母舞姬",
+          "referenced_name": "大海虎鲸"
+        },
+        {
+          "source_card_id": 10544120,
+          "source_name": "波摇花·夕夜",
+          "referenced_name": "大海虎鲸"
+        },
+        {
+          "source_card_id": 10841130,
+          "source_name": "沧海之精",
+          "referenced_name": "大海虎鲸"
+        },
+        {
+          "source_card_id": 10842110,
+          "source_name": "闪耀旋律·莉芙&萝萝",
+          "referenced_name": "大海虎鲸"
+        }
+      ],
+      "authored_producers": [
+        {
+          "source_card_id": 10541120,
+          "entry_kind": "summon",
+          "rule_file": "cross_class_trait_listeners.json",
+          "rule_group": "rules"
+        }
+      ],
+      "has_authored_behavior": false,
+      "explicit_coverage": null,
+      "keyword_only_text": true,
+      "abilities": [
+        {
+          "keyword": "突进",
+          "status": "implemented"
+        }
+      ],
+      "skill_texts": [
+        "【<color=Keyword>突进</color>】"
+      ]
+    },
+    {
+      "card_id": 90043110,
+      "name": "乙姬近卫队",
+      "class_name": "龙族",
+      "card_type": "随从",
+      "card_set_id": 90000,
+      "is_collectible": false,
+      "support_level": "keyword",
+      "category": "database_only_no_entry",
+      "reason": "Database source references exist, but no executable producer is authored.",
+      "database_sources": [
+        {
+          "source_card_id": 10143210,
+          "source_name": "乙姬的宝扇",
+          "referenced_name": "乙姬近卫队"
+        }
+      ],
+      "authored_producers": [],
+      "has_authored_behavior": false,
+      "explicit_coverage": null,
+      "keyword_only_text": true,
+      "abilities": [
+        {
+          "keyword": "守护",
+          "status": "implemented"
+        },
+        {
+          "keyword": "疾驰",
+          "status": "implemented"
+        }
+      ],
+      "skill_texts": [
+        "【<color=Keyword>疾驰</color>】\n【<color=Keyword>守护</color>】"
+      ]
+    },
+    {
+      "card_id": 90044110,
+      "name": "霸道之金龙",
+      "class_name": "龙族",
+      "card_type": "随从",
+      "card_set_id": 90000,
+      "is_collectible": false,
+      "support_level": "keyword",
+      "category": "database_only_no_entry",
+      "reason": "Database source references exist, but no executable producer is authored.",
+      "database_sources": [
+        {
+          "source_card_id": 10144130,
+          "source_name": "龙人演义·卧龙",
+          "referenced_name": "霸道之金龙"
+        }
+      ],
+      "authored_producers": [],
+      "has_authored_behavior": false,
+      "explicit_coverage": null,
+      "keyword_only_text": true,
+      "abilities": [
+        {
+          "keyword": "守护",
+          "status": "implemented"
+        }
+      ],
+      "skill_texts": [
+        "【<color=Keyword>守护</color>】"
+      ]
+    },
+    {
+      "card_id": 90044120,
+      "name": "霸道之银龙",
+      "class_name": "龙族",
+      "card_type": "随从",
+      "card_set_id": 90000,
+      "is_collectible": false,
+      "support_level": "keyword",
+      "category": "database_only_no_entry",
+      "reason": "Database source references exist, but no executable producer is authored.",
+      "database_sources": [
+        {
+          "source_card_id": 10144130,
+          "source_name": "龙人演义·卧龙",
+          "referenced_name": "霸道之银龙"
+        }
+      ],
+      "authored_producers": [],
+      "has_authored_behavior": false,
+      "explicit_coverage": null,
+      "keyword_only_text": true,
+      "abilities": [
+        {
+          "keyword": "突进",
+          "status": "implemented"
+        }
+      ],
+      "skill_texts": [
+        "【<color=Keyword>突进</color>】"
+      ]
+    },
+    {
+      "card_id": 90044310,
+      "name": "银冰吐息",
+      "class_name": "龙族",
+      "card_type": "法术",
+      "card_set_id": 90000,
+      "is_collectible": false,
+      "support_level": "unsupported",
+      "category": "database_only_no_entry",
+      "reason": "Database source references exist, but no executable producer is authored.",
+      "database_sources": [
+        {
+          "source_card_id": 10244110,
+          "source_name": "银冰龙少女·菲琳",
+          "referenced_name": "银冰吐息"
+        }
+      ],
+      "authored_producers": [],
+      "has_authored_behavior": false,
+      "explicit_coverage": null,
+      "keyword_only_text": false,
+      "abilities": [
+        {
+          "keyword": "模式",
+          "status": "placeholder"
+        }
+      ],
+      "skill_texts": [
+        "【<color=Keyword>模式</color>】选择1个能力发动。\n<ridx=0>（1）破坏对手的战场上的所有受伤的随从。</ridx>\n<ridx=1>（2）对手的回合结束前，使对手的所有手牌的费用+1。</ridx>"
+      ]
+    },
+    {
+      "card_id": 90044320,
+      "name": "烈绝的灭牙",
+      "class_name": "龙族",
+      "card_type": "法术",
+      "card_set_id": 90000,
+      "is_collectible": false,
+      "support_level": "unsupported",
+      "category": "database_only_no_entry",
+      "reason": "Database source references exist, but no executable producer is authored.",
+      "database_sources": [
+        {
+          "source_card_id": 10344120,
+          "source_name": "烈绝的显现·嘉尔缪",
+          "referenced_name": "烈绝的灭牙"
+        }
+      ],
+      "authored_producers": [],
+      "has_authored_behavior": false,
+      "explicit_coverage": null,
+      "keyword_only_text": false,
+      "abilities": [],
+      "skill_texts": [
+        "对战场上的所有随从造成1点伤害。"
+      ]
+    },
+    {
+      "card_id": 90044330,
+      "name": "天刀深渊",
+      "class_name": "龙族",
+      "card_type": "法术",
+      "card_set_id": 90000,
+      "is_collectible": false,
+      "support_level": "unsupported",
+      "category": "database_only_no_entry",
+      "reason": "Database source references exist, but no executable producer is authored.",
+      "database_sources": [
+        {
+          "source_card_id": 10644120,
+          "source_name": "古旧天刀·波菈莱",
+          "referenced_name": "天刀深渊"
+        }
+      ],
+      "authored_producers": [],
+      "has_authored_behavior": false,
+      "explicit_coverage": null,
+      "keyword_only_text": false,
+      "abilities": [],
+      "skill_texts": [
+        "本卡牌被舍弃时，对对手的主战者造成1点伤害。回复自己的主战者1点生命值。\n<hr>对对手的主战者造成1点伤害。回复自己的主战者1点生命值。"
+      ]
+    },
+    {
+      "card_id": 90051110,
+      "name": "骸骨士兵",
+      "class_name": "梦魇",
+      "card_type": "随从",
+      "card_set_id": 90000,
+      "is_collectible": false,
+      "support_level": "basic",
+      "category": "entry_behavior_complete",
+      "reason": "Executable entry exists and behavior is vanilla, fully implemented keyword-only, or explicitly audited exact.",
+      "database_sources": [
+        {
+          "source_card_id": 10151130,
+          "source_name": "白骨少女",
+          "referenced_name": "骸骨士兵"
+        },
+        {
+          "source_card_id": 10152110,
+          "source_name": "干练的死神·蜜诺",
+          "referenced_name": "骸骨士兵"
+        },
+        {
+          "source_card_id": 10251310,
+          "source_name": "诅咒派对",
+          "referenced_name": "骸骨士兵"
+        },
+        {
+          "source_card_id": 10552110,
+          "source_name": "制造麻烦的唤灵师",
+          "referenced_name": "骸骨士兵"
+        },
+        {
+          "source_card_id": 10553110,
+          "source_name": "致命掠夺者",
+          "referenced_name": "骸骨士兵"
+        },
+        {
+          "source_card_id": 10553310,
+          "source_name": "严酷的奥夜花",
+          "referenced_name": "骸骨士兵"
+        },
+        {
+          "source_card_id": 10751120,
+          "source_name": "恶魔鼓手·拉兹",
+          "referenced_name": "骸骨士兵"
+        },
+        {
+          "source_card_id": 10752110,
+          "source_name": "猫咪走绳师",
+          "referenced_name": "骸骨士兵"
+        },
+        {
+          "source_card_id": 10752310,
+          "source_name": "讴歌青春",
+          "referenced_name": "骸骨士兵"
+        },
+        {
+          "source_card_id": 10753110,
+          "source_name": "骸骨驯兽师",
+          "referenced_name": "骸骨士兵"
+        }
+      ],
+      "authored_producers": [
+        {
+          "source_card_id": 10251310,
+          "entry_kind": "add_card",
+          "rule_file": "batch_basic_real_cards.json",
+          "rule_group": "rules"
+        }
+      ],
+      "has_authored_behavior": false,
+      "explicit_coverage": null,
+      "keyword_only_text": false,
+      "abilities": [],
+      "skill_texts": []
+    },
+    {
+      "card_id": 90051120,
+      "name": "蝙蝠",
+      "class_name": "梦魇",
+      "card_type": "随从",
+      "card_set_id": 90000,
+      "is_collectible": false,
+      "support_level": "unsupported",
+      "category": "entry_behavior_complete",
+      "reason": "Executable entry exists and behavior is vanilla, fully implemented keyword-only, or explicitly audited exact.",
+      "database_sources": [
+        {
+          "source_card_id": 10052110,
+          "source_name": "魅惑的魅魔·莉莉姆",
+          "referenced_name": "蝙蝠"
+        },
+        {
+          "source_card_id": 10151110,
+          "source_name": "午夜眷属·埃拉尔",
+          "referenced_name": "蝙蝠"
+        },
+        {
+          "source_card_id": 10151120,
+          "source_name": "无名恶魔",
+          "referenced_name": "蝙蝠"
+        },
+        {
+          "source_card_id": 10152130,
+          "source_name": "怪奇探索者·尤娜",
+          "referenced_name": "蝙蝠"
+        },
+        {
+          "source_card_id": 10252310,
+          "source_name": "使唤蝙蝠",
+          "referenced_name": "蝙蝠"
+        },
+        {
+          "source_card_id": 10653110,
+          "source_name": "渴命的破坏者",
+          "referenced_name": "蝙蝠"
+        },
+        {
+          "source_card_id": 10751110,
+          "source_name": "暗夜键盘手·露露米",
+          "referenced_name": "蝙蝠"
+        },
+        {
+          "source_card_id": 10752310,
+          "source_name": "讴歌青春",
+          "referenced_name": "蝙蝠"
+        },
+        {
+          "source_card_id": 10851120,
+          "source_name": "可爱恶魔·莉莉姆",
+          "referenced_name": "蝙蝠"
+        },
+        {
+          "source_card_id": 10851130,
+          "source_name": "兔耳恶魔·莉蜜儿",
+          "referenced_name": "蝙蝠"
+        },
+        {
+          "source_card_id": 10852110,
+          "source_name": "母爱恶魔·菲欧蕾",
+          "referenced_name": "蝙蝠"
+        }
+      ],
+      "authored_producers": [
+        {
+          "source_card_id": 10052110,
+          "entry_kind": "add_card",
+          "rule_file": "batch_basic_real_cards.json",
+          "rule_group": "rules"
+        },
+        {
+          "source_card_id": 10151110,
+          "entry_kind": "summon",
+          "rule_file": "cross_class_trait_listeners.json",
+          "rule_group": "rules"
+        },
+        {
+          "source_card_id": 10252310,
+          "entry_kind": "summon",
+          "rule_file": "batch_basic_real_cards.json",
+          "rule_group": "rules"
+        }
+      ],
+      "has_authored_behavior": false,
+      "explicit_coverage": null,
+      "keyword_only_text": true,
+      "abilities": [
+        {
+          "keyword": "吸血",
+          "status": "implemented"
+        }
+      ],
+      "skill_texts": [
+        "【<color=Keyword>虹吸</color>】"
+      ]
+    },
+    {
+      "card_id": 90051130,
+      "name": "怨灵",
+      "class_name": "梦魇",
+      "card_type": "随从",
+      "card_set_id": 90000,
+      "is_collectible": false,
+      "support_level": "unsupported",
+      "category": "entry_behavior_partial",
+      "reason": "Executable entry exists, but nontrivial token text lacks an exact audit.",
+      "database_sources": [
+        {
+          "source_card_id": 10052120,
+          "source_name": "多情的唤灵师",
+          "referenced_name": "怨灵"
+        },
+        {
+          "source_card_id": 10152130,
+          "source_name": "怪奇探索者·尤娜",
+          "referenced_name": "怨灵"
+        },
+        {
+          "source_card_id": 10152210,
+          "source_name": "瞑地的陵园",
+          "referenced_name": "怨灵"
+        },
+        {
+          "source_card_id": 10153130,
+          "source_name": "瞑地的天宫·穆甘",
+          "referenced_name": "怨灵"
+        },
+        {
+          "source_card_id": 10251120,
+          "source_name": "怨恨的栽培者",
+          "referenced_name": "怨灵"
+        },
+        {
+          "source_card_id": 10251310,
+          "source_name": "诅咒派对",
+          "referenced_name": "怨灵"
+        },
+        {
+          "source_card_id": 10552110,
+          "source_name": "制造麻烦的唤灵师",
+          "referenced_name": "怨灵"
+        },
+        {
+          "source_card_id": 10651120,
+          "source_name": "逃避幽灵者",
+          "referenced_name": "怨灵"
+        },
+        {
+          "source_card_id": 10752310,
+          "source_name": "讴歌青春",
+          "referenced_name": "怨灵"
+        }
+      ],
+      "authored_producers": [
+        {
+          "source_card_id": 10251120,
+          "entry_kind": "add_card",
+          "rule_file": "batch_basic_real_cards.json",
+          "rule_group": "rules"
+        },
+        {
+          "source_card_id": 10251310,
+          "entry_kind": "add_card",
+          "rule_file": "batch_basic_real_cards.json",
+          "rule_group": "rules"
+        }
+      ],
+      "has_authored_behavior": false,
+      "explicit_coverage": null,
+      "keyword_only_text": false,
+      "abilities": [
+        {
+          "keyword": "疾驰",
+          "status": "implemented"
+        }
+      ],
+      "skill_texts": [
+        "【<color=Keyword>疾驰</color>】\n离场时，使本随从消失。\n自己的回合结束时，使本随从消失。"
+      ]
+    },
+    {
+      "card_id": 90051140,
+      "name": "腐臭的僵尸",
+      "class_name": "梦魇",
+      "card_type": "随从",
+      "card_set_id": 90000,
+      "is_collectible": false,
+      "support_level": "unsupported",
+      "category": "entry_behavior_partial",
+      "reason": "Executable entry exists, but nontrivial token text lacks an exact audit.",
+      "database_sources": [
+        {
+          "source_card_id": 10251310,
+          "source_name": "诅咒派对",
+          "referenced_name": "腐臭的僵尸"
+        },
+        {
+          "source_card_id": 10252120,
+          "source_name": "尸兵",
+          "referenced_name": "腐臭的僵尸"
+        },
+        {
+          "source_card_id": 10552110,
+          "source_name": "制造麻烦的唤灵师",
+          "referenced_name": "腐臭的僵尸"
+        },
+        {
+          "source_card_id": 10753110,
+          "source_name": "骸骨驯兽师",
+          "referenced_name": "腐臭的僵尸"
+        },
+        {
+          "source_card_id": 10754120,
+          "source_name": "死亡主持人·马克米朗",
+          "referenced_name": "腐臭的僵尸"
+        },
+        {
+          "source_card_id": 90051140,
+          "source_name": "腐臭的僵尸",
+          "referenced_name": "腐臭的僵尸"
+        }
+      ],
+      "authored_producers": [
+        {
+          "source_card_id": 10251310,
+          "entry_kind": "add_card",
+          "rule_file": "batch_basic_real_cards.json",
+          "rule_group": "rules"
+        }
+      ],
+      "has_authored_behavior": false,
+      "explicit_coverage": null,
+      "keyword_only_text": false,
+      "abilities": [
+        {
+          "keyword": "谢幕曲",
+          "status": "partial"
+        }
+      ],
+      "skill_texts": [
+        "【<color=Keyword>谢幕曲</color>】召唤1个『<color=Keyword>腐臭的僵尸</color>』，使其失去【<color=Keyword>谢幕曲</color>】。"
+      ]
+    },
+    {
+      "card_id": 90054110,
+      "name": "守卫犬的右腕·米米",
+      "class_name": "梦魇",
+      "card_type": "随从",
+      "card_set_id": 90000,
+      "is_collectible": false,
+      "support_level": "unsupported",
+      "category": "database_only_no_entry",
+      "reason": "Database source references exist, but no executable producer is authored.",
+      "database_sources": [
+        {
+          "source_card_id": 10154110,
+          "source_name": "奔放的狱焰·凯尔贝洛斯",
+          "referenced_name": "守卫犬的右腕·米米"
+        }
+      ],
+      "authored_producers": [],
+      "has_authored_behavior": false,
+      "explicit_coverage": null,
+      "keyword_only_text": false,
+      "abilities": [
+        {
+          "keyword": "突进",
+          "status": "implemented"
+        },
+        {
+          "keyword": "谢幕曲",
+          "status": "partial"
+        }
+      ],
+      "skill_texts": [
+        "【<color=Keyword>突进</color>】\n【<color=Keyword>谢幕曲</color>】对对手的主战者造成2点伤害。"
+      ]
+    },
+    {
+      "card_id": 90054120,
+      "name": "守卫犬的左腕·可可",
+      "class_name": "梦魇",
+      "card_type": "随从",
+      "card_set_id": 90000,
+      "is_collectible": false,
+      "support_level": "unsupported",
+      "category": "database_only_no_entry",
+      "reason": "Database source references exist, but no executable producer is authored.",
+      "database_sources": [
+        {
+          "source_card_id": 10154110,
+          "source_name": "奔放的狱焰·凯尔贝洛斯",
+          "referenced_name": "守卫犬的左腕·可可"
+        }
+      ],
+      "authored_producers": [],
+      "has_authored_behavior": false,
+      "explicit_coverage": null,
+      "keyword_only_text": false,
+      "abilities": [
+        {
+          "keyword": "突进",
+          "status": "implemented"
+        },
+        {
+          "keyword": "谢幕曲",
+          "status": "partial"
+        }
+      ],
+      "skill_texts": [
+        "【<color=Keyword>突进</color>】\n【<color=Keyword>谢幕曲</color>】回复自己的主战者2点生命值。"
+      ]
+    },
+    {
+      "card_id": 90054130,
+      "name": "一尾狐",
+      "class_name": "梦魇",
+      "card_type": "随从",
+      "card_set_id": 90000,
+      "is_collectible": false,
+      "support_level": "unsupported",
+      "category": "database_only_no_entry",
+      "reason": "Database source references exist, but no executable producer is authored.",
+      "database_sources": [
+        {
+          "source_card_id": 10254110,
+          "source_name": "双轮夜行·吟雪&夕月",
+          "referenced_name": "一尾狐"
+        }
+      ],
+      "authored_producers": [],
+      "has_authored_behavior": false,
+      "explicit_coverage": null,
+      "keyword_only_text": false,
+      "abilities": [
+        {
+          "keyword": "守护",
+          "status": "implemented"
+        },
+        {
+          "keyword": "突进",
+          "status": "implemented"
+        },
+        {
+          "keyword": "谢幕曲",
+          "status": "partial"
+        }
+      ],
+      "skill_texts": [
+        "【<color=Keyword>突进</color>】\n【<color=Keyword>守护</color>】\n【<color=Keyword>谢幕曲</color>】使自己的战场上的随机1个『<color=Keyword>双轮夜行·吟雪&夕月</color>』+1/+0。"
+      ]
+    },
+    {
+      "card_id": 90054310,
+      "name": "绝叫的扩散",
+      "class_name": "梦魇",
+      "card_type": "法术",
+      "card_set_id": 90000,
+      "is_collectible": false,
+      "support_level": "unsupported",
+      "category": "database_only_no_entry",
+      "reason": "Database source references exist, but no executable producer is authored.",
+      "database_sources": [
+        {
+          "source_card_id": 10354120,
+          "source_name": "绝叫与爱绝的显现·鲁鲁纳伊&巴娜蕾卡",
+          "referenced_name": "绝叫的扩散"
+        }
+      ],
+      "authored_producers": [],
+      "has_authored_behavior": false,
+      "explicit_coverage": null,
+      "keyword_only_text": false,
+      "abilities": [
+        {
+          "keyword": "突进",
+          "status": "implemented"
+        }
+      ],
+      "skill_texts": [
+        "召唤2个『<color=Keyword>绝叫与爱绝的显现·鲁鲁纳伊&巴娜蕾卡</color>』，使其获得【<color=Keyword>突进</color>】。"
+      ]
+    },
+    {
+      "card_id": 90054320,
+      "name": "爱绝的飞翔",
+      "class_name": "梦魇",
+      "card_type": "法术",
+      "card_set_id": 90000,
+      "is_collectible": false,
+      "support_level": "unsupported",
+      "category": "database_only_no_entry",
+      "reason": "Database source references exist, but no executable producer is authored.",
+      "database_sources": [
+        {
+          "source_card_id": 10354120,
+          "source_name": "绝叫与爱绝的显现·鲁鲁纳伊&巴娜蕾卡",
+          "referenced_name": "爱绝的飞翔"
+        }
+      ],
+      "authored_producers": [],
+      "has_authored_behavior": false,
+      "explicit_coverage": null,
+      "keyword_only_text": false,
+      "abilities": [
+        {
+          "keyword": "疾驰",
+          "status": "implemented"
+        }
+      ],
+      "skill_texts": [
+        "选择自己的战场上的1个『<color=Keyword>绝叫与爱绝的显现·鲁鲁纳伊&巴娜蕾卡</color>』，使其获得【<color=Keyword>疾驰</color>】。"
+      ]
+    },
+    {
+      "card_id": 90054330,
+      "name": "天眼深渊",
+      "class_name": "梦魇",
+      "card_type": "法术",
+      "card_set_id": 90000,
+      "is_collectible": false,
+      "support_level": "unsupported",
+      "category": "database_only_no_entry",
+      "reason": "Database source references exist, but no executable producer is authored.",
+      "database_sources": [
+        {
+          "source_card_id": 10654120,
+          "source_name": "古旧天眼·比芭提",
+          "referenced_name": "天眼深渊"
+        }
+      ],
+      "authored_producers": [],
+      "has_authored_behavior": false,
+      "explicit_coverage": null,
+      "keyword_only_text": false,
+      "abilities": [],
+      "skill_texts": [
+        "抽取2张卡牌。"
+      ]
+    },
+    {
+      "card_id": 90061110,
+      "name": "神圣猎鹰",
+      "class_name": "主教",
+      "card_type": "随从",
+      "card_set_id": 90000,
+      "is_collectible": false,
+      "support_level": "keyword",
+      "category": "database_only_no_entry",
+      "reason": "Database source references exist, but no executable producer is authored.",
+      "database_sources": [
+        {
+          "source_card_id": 10062210,
+          "source_name": "羽翼石像",
+          "referenced_name": "神圣猎鹰"
+        },
+        {
+          "source_card_id": 10161310,
+          "source_name": "翎雨",
+          "referenced_name": "神圣猎鹰"
+        },
+        {
+          "source_card_id": 10362220,
+          "source_name": "羽翼狮子像",
+          "referenced_name": "神圣猎鹰"
+        },
+        {
+          "source_card_id": 10564120,
+          "source_name": "雾卷花·茎白",
+          "referenced_name": "神圣猎鹰"
+        },
+        {
+          "source_card_id": 10662120,
+          "source_name": "飞马骑手",
+          "referenced_name": "神圣猎鹰"
+        }
+      ],
+      "authored_producers": [],
+      "has_authored_behavior": false,
+      "explicit_coverage": null,
+      "keyword_only_text": true,
+      "abilities": [
+        {
+          "keyword": "疾驰",
+          "status": "implemented"
+        }
+      ],
+      "skill_texts": [
+        "【<color=Keyword>疾驰</color>】"
+      ]
+    },
+    {
+      "card_id": 90061120,
+      "name": "圣炎猛虎",
+      "class_name": "主教",
+      "card_type": "随从",
+      "card_set_id": 90000,
+      "is_collectible": false,
+      "support_level": "keyword",
+      "category": "database_only_no_entry",
+      "reason": "Database source references exist, but no executable producer is authored.",
+      "database_sources": [
+        {
+          "source_card_id": 10163210,
+          "source_name": "野兽公主的誓约",
+          "referenced_name": "圣炎猛虎"
+        },
+        {
+          "source_card_id": 10362220,
+          "source_name": "羽翼狮子像",
+          "referenced_name": "圣炎猛虎"
+        }
+      ],
+      "authored_producers": [],
+      "has_authored_behavior": false,
+      "explicit_coverage": null,
+      "keyword_only_text": true,
+      "abilities": [
+        {
+          "keyword": "突进",
+          "status": "implemented"
+        }
+      ],
+      "skill_texts": [
+        "【<color=Keyword>突进</color>】"
+      ]
+    },
+    {
+      "card_id": 90061130,
+      "name": "壮丽大神隼",
+      "class_name": "主教",
+      "card_type": "随从",
+      "card_set_id": 90000,
+      "is_collectible": false,
+      "support_level": "keyword",
+      "category": "database_only_no_entry",
+      "reason": "Database source references exist, but no executable producer is authored.",
+      "database_sources": [
+        {
+          "source_card_id": 10061210,
+          "source_name": "投影鸟像",
+          "referenced_name": "壮丽大神隼"
+        },
+        {
+          "source_card_id": 10534120,
+          "source_name": "明越花·阿罗",
+          "referenced_name": "壮丽大神隼"
+        }
+      ],
+      "authored_producers": [],
+      "has_authored_behavior": false,
+      "explicit_coverage": null,
+      "keyword_only_text": true,
+      "abilities": [
+        {
+          "keyword": "疾驰",
+          "status": "implemented"
+        }
+      ],
+      "skill_texts": [
+        "【<color=Keyword>疾驰</color>】"
+      ]
+    },
+    {
+      "card_id": 90064110,
+      "name": "圣骑兵",
+      "class_name": "主教",
+      "card_type": "随从",
+      "card_set_id": 90000,
+      "is_collectible": false,
+      "support_level": "keyword",
+      "category": "database_only_no_entry",
+      "reason": "Database source references exist, but no executable producer is authored.",
+      "database_sources": [
+        {
+          "source_card_id": 10264120,
+          "source_name": "呜咽的圣骑士·维尔伯特",
+          "referenced_name": "圣骑兵"
+        }
+      ],
+      "authored_producers": [],
+      "has_authored_behavior": false,
+      "explicit_coverage": null,
+      "keyword_only_text": true,
+      "abilities": [
+        {
+          "keyword": "守护",
+          "status": "implemented"
+        }
+      ],
+      "skill_texts": [
+        "【<color=Keyword>守护</color>】"
+      ]
+    },
+    {
+      "card_id": 90064210,
+      "name": "月影指环",
+      "class_name": "主教",
+      "card_type": "护符",
+      "card_set_id": 90000,
+      "is_collectible": false,
+      "support_level": "unsupported",
+      "category": "database_only_no_entry",
+      "reason": "Database source references exist, but no executable producer is authored.",
+      "database_sources": [
+        {
+          "source_card_id": 10764110,
+          "source_name": "裁神的安纳提玛·罗德欧",
+          "referenced_name": "月影指环"
+        }
+      ],
+      "authored_producers": [],
+      "has_authored_behavior": false,
+      "explicit_coverage": null,
+      "keyword_only_text": false,
+      "abilities": [
+        {
+          "keyword": "倒数",
+          "status": "partial"
+        },
+        {
+          "keyword": "灵气",
+          "status": "placeholder"
+        }
+      ],
+      "skill_texts": [
+        "【<color=Keyword>吟唱</color>_1】\n【<color=Keyword>灵气</color>】\n自己的回合结束时，若自己的战场上的护符的张数为3张或以上，则对对手的战场上的所有随从和对手的主战者造成3点伤害。"
+      ]
+    },
+    {
+      "card_id": 90064310,
+      "name": "绝望的奔流",
+      "class_name": "主教",
+      "card_type": "法术",
+      "card_set_id": 90000,
+      "is_collectible": false,
+      "support_level": "unsupported",
+      "category": "database_only_no_entry",
+      "reason": "Database source references exist, but no executable producer is authored.",
+      "database_sources": [
+        {
+          "source_card_id": 10364120,
+          "source_name": "绝望的显现·玛温",
+          "referenced_name": "绝望的奔流"
+        }
+      ],
+      "authored_producers": [],
+      "has_authored_behavior": false,
+      "explicit_coverage": null,
+      "keyword_only_text": false,
+      "abilities": [],
+      "skill_texts": [
+        "使对手的战场上的随机1个随从消失。使自己的所有纹章的倒计数+1。"
+      ]
+    },
+    {
+      "card_id": 90064320,
+      "name": "天书深渊",
+      "class_name": "主教",
+      "card_type": "法术",
+      "card_set_id": 90000,
+      "is_collectible": false,
+      "support_level": "unsupported",
+      "category": "entry_behavior_complete",
+      "reason": "Executable entry exists and behavior is vanilla, fully implemented keyword-only, or explicitly audited exact.",
+      "database_sources": [
+        {
+          "source_card_id": 10664120,
+          "source_name": "古旧天书·莲妥丝",
+          "referenced_name": "天书深渊"
+        },
+        {
+          "source_card_id": 90064320,
+          "source_name": "天书深渊",
+          "referenced_name": "天书深渊"
+        }
+      ],
+      "authored_producers": [
+        {
+          "source_card_id": 10664120,
+          "entry_kind": "add_card",
+          "rule_file": "faith.json",
+          "rule_group": "rules"
+        },
+        {
+          "source_card_id": 90064320,
+          "entry_kind": "add_card",
+          "rule_file": "faith.json",
+          "rule_group": "rules"
+        }
+      ],
+      "has_authored_behavior": true,
+      "explicit_coverage": "exact",
+      "keyword_only_text": false,
+      "abilities": [],
+      "skill_texts": [
+        "选择战场上的1张卡牌，破坏该卡牌。若选择了自己的护符，则对对手的主战者造成2点伤害。将1张『<color=Keyword>天书深渊</color>』加入手牌。"
+      ]
+    },
+    {
+      "card_id": 90071110,
+      "name": "悬丝傀儡",
+      "class_name": "超越者",
+      "card_type": "随从",
+      "card_set_id": 90000,
+      "is_collectible": false,
+      "support_level": "unsupported",
+      "category": "database_only_no_entry",
+      "reason": "Database source references exist, but no executable producer is authored.",
+      "database_sources": [
+        {
+          "source_card_id": 10072210,
+          "source_name": "人偶剧场",
+          "referenced_name": "悬丝傀儡"
+        },
+        {
+          "source_card_id": 10172120,
+          "source_name": "依恋的人偶师",
+          "referenced_name": "悬丝傀儡"
+        },
+        {
+          "source_card_id": 10172130,
+          "source_name": "杀意之丝·诺亚",
+          "referenced_name": "悬丝傀儡"
+        },
+        {
+          "source_card_id": 10271120,
+          "source_name": "猫偶",
+          "referenced_name": "悬丝傀儡"
+        },
+        {
+          "source_card_id": 10371310,
+          "source_name": "丝线突袭",
+          "referenced_name": "悬丝傀儡"
+        },
+        {
+          "source_card_id": 10571110,
+          "source_name": "舞台缔造者",
+          "referenced_name": "悬丝傀儡"
+        }
+      ],
+      "authored_producers": [],
+      "has_authored_behavior": false,
+      "explicit_coverage": null,
+      "keyword_only_text": false,
+      "abilities": [
+        {
+          "keyword": "突进",
+          "status": "implemented"
+        }
+      ],
+      "skill_texts": [
+        "【<color=Keyword>突进</color>】\n对手的回合结束时，破坏本卡牌。"
+      ]
+    },
+    {
+      "card_id": 90071120,
+      "name": "改良型·悬丝傀儡",
+      "class_name": "超越者",
+      "card_type": "随从",
+      "card_set_id": 90000,
+      "is_collectible": false,
+      "support_level": "unsupported",
+      "category": "entry_behavior_partial",
+      "reason": "Executable entry exists, but nontrivial token text lacks an exact audit.",
+      "database_sources": [
+        {
+          "source_card_id": 10071120,
+          "source_name": "人偶长矛手",
+          "referenced_name": "改良型·悬丝傀儡"
+        },
+        {
+          "source_card_id": 10171140,
+          "source_name": "自动机械刺客",
+          "referenced_name": "改良型·悬丝傀儡"
+        },
+        {
+          "source_card_id": 10171310,
+          "source_name": "人偶替身",
+          "referenced_name": "改良型·悬丝傀儡"
+        },
+        {
+          "source_card_id": 10173130,
+          "source_name": "疯狂的创造者·历亚姆",
+          "referenced_name": "改良型·悬丝傀儡"
+        },
+        {
+          "source_card_id": 10174120,
+          "source_name": "迈进之心·奥契丝",
+          "referenced_name": "改良型·悬丝傀儡"
+        },
+        {
+          "source_card_id": 10274110,
+          "source_name": "交响之心·枷薇",
+          "referenced_name": "改良型·悬丝傀儡"
+        },
+        {
+          "source_card_id": 10571110,
+          "source_name": "舞台缔造者",
+          "referenced_name": "改良型·悬丝傀儡"
+        }
+      ],
+      "authored_producers": [
+        {
+          "source_card_id": 10171310,
+          "entry_kind": "summon",
+          "rule_file": "batch_basic_real_cards.json",
+          "rule_group": "rules"
+        }
+      ],
+      "has_authored_behavior": false,
+      "explicit_coverage": null,
+      "keyword_only_text": false,
+      "abilities": [
+        {
+          "keyword": "突进",
+          "status": "implemented"
+        }
+      ],
+      "skill_texts": [
+        "【<color=Keyword>突进</color>】\n对手的回合结束时，破坏本卡牌。"
+      ]
+    },
+    {
+      "card_id": 90071130,
+      "name": "解析的创造物",
+      "class_name": "超越者",
+      "card_type": "随从",
+      "card_set_id": 90000,
+      "is_collectible": false,
+      "support_level": "unsupported",
+      "category": "database_only_no_entry",
+      "reason": "Database source references exist, but no executable producer is authored.",
+      "database_sources": [
+        {
+          "source_card_id": 10771310,
+          "source_name": "跑酷",
+          "referenced_name": "解析的创造物"
+        },
+        {
+          "source_card_id": 10773110,
+          "source_name": "狂野播报员",
+          "referenced_name": "解析的创造物"
+        },
+        {
+          "source_card_id": 10874120,
+          "source_name": "你的前辈·欧丝",
+          "referenced_name": "解析的创造物"
+        }
+      ],
+      "authored_producers": [],
+      "has_authored_behavior": false,
+      "explicit_coverage": null,
+      "keyword_only_text": false,
+      "abilities": [],
+      "skill_texts": [
+        "本随从进入战场时，抽取1张卡牌。"
+      ]
+    },
+    {
+      "card_id": 90071140,
+      "name": "古老的创造物",
+      "class_name": "超越者",
+      "card_type": "随从",
+      "card_set_id": 90000,
+      "is_collectible": false,
+      "support_level": "keyword",
+      "category": "database_only_no_entry",
+      "reason": "Database source references exist, but no executable producer is authored.",
+      "database_sources": [
+        {
+          "source_card_id": 10771310,
+          "source_name": "跑酷",
+          "referenced_name": "古老的创造物"
+        },
+        {
+          "source_card_id": 10772110,
+          "source_name": "悠然的滑手",
+          "referenced_name": "古老的创造物"
+        },
+        {
+          "source_card_id": 10772120,
+          "source_name": "大胆的涂鸦师",
+          "referenced_name": "古老的创造物"
+        },
+        {
+          "source_card_id": 10774120,
+          "source_name": "奋厉追赶·米乌",
+          "referenced_name": "古老的创造物"
+        },
+        {
+          "source_card_id": 10872110,
+          "source_name": "人造的馈赠·蕾拉",
+          "referenced_name": "古老的创造物"
+        }
+      ],
+      "authored_producers": [],
+      "has_authored_behavior": false,
+      "explicit_coverage": null,
+      "keyword_only_text": true,
+      "abilities": [
+        {
+          "keyword": "突进",
+          "status": "implemented"
+        }
+      ],
+      "skill_texts": [
+        "【<color=Keyword>突进</color>】"
+      ]
+    },
+    {
+      "card_id": 90071150,
+      "name": "神秘的创造物",
+      "class_name": "超越者",
+      "card_type": "随从",
+      "card_set_id": 90000,
+      "is_collectible": false,
+      "support_level": "keyword",
+      "category": "entry_behavior_complete",
+      "reason": "Executable entry exists and behavior is vanilla, fully implemented keyword-only, or explicitly audited exact.",
+      "database_sources": [
+        {
+          "source_card_id": 10771110,
+          "source_name": "个性店主",
+          "referenced_name": "神秘的创造物"
+        },
+        {
+          "source_card_id": 10772120,
+          "source_name": "大胆的涂鸦师",
+          "referenced_name": "神秘的创造物"
+        },
+        {
+          "source_card_id": 10773110,
+          "source_name": "狂野播报员",
+          "referenced_name": "神秘的创造物"
+        }
+      ],
+      "authored_producers": [
+        {
+          "source_card_id": 10771110,
+          "entry_kind": "summon",
+          "rule_file": "cross_class_trait_listeners.json",
+          "rule_group": "rules"
+        }
+      ],
+      "has_authored_behavior": false,
+      "explicit_coverage": null,
+      "keyword_only_text": true,
+      "abilities": [
+        {
+          "keyword": "守护",
+          "status": "implemented"
+        }
+      ],
+      "skill_texts": [
+        "【<color=Keyword>守护</color>】"
+      ]
+    },
+    {
+      "card_id": 90071160,
+      "name": "绚烂的创造物",
+      "class_name": "超越者",
+      "card_type": "随从",
+      "card_set_id": 90000,
+      "is_collectible": false,
+      "support_level": "keyword",
+      "category": "database_only_no_entry",
+      "reason": "Database source references exist, but no executable producer is authored.",
+      "database_sources": [
+        {
+          "source_card_id": 10872120,
+          "source_name": "门扉接续者·拉姿莉",
+          "referenced_name": "绚烂的创造物"
+        },
+        {
+          "source_card_id": 10873110,
+          "source_name": "知恩图报·米莉亚姆",
+          "referenced_name": "绚烂的创造物"
+        }
+      ],
+      "authored_producers": [],
+      "has_authored_behavior": false,
+      "explicit_coverage": null,
+      "keyword_only_text": true,
+      "abilities": [
+        {
+          "keyword": "疾驰",
+          "status": "implemented"
+        }
+      ],
+      "skill_texts": [
+        "【<color=Keyword>疾驰</color>】"
+      ]
+    },
+    {
+      "card_id": 90071210,
+      "name": "未来核心",
+      "class_name": "超越者",
+      "card_type": "护符",
+      "card_set_id": 90000,
+      "is_collectible": false,
+      "support_level": "unsupported",
+      "category": "entry_behavior_partial",
+      "reason": "Executable entry exists, but nontrivial token text lacks an exact audit.",
+      "database_sources": [
+        {
+          "source_card_id": 10071110,
+          "source_name": "炮击猫兽人",
+          "referenced_name": "未来核心"
+        },
+        {
+          "source_card_id": 10071310,
+          "source_name": "来自异次元的枪击",
+          "referenced_name": "未来核心"
+        },
+        {
+          "source_card_id": 10171130,
+          "source_name": "永不停火的枪手",
+          "referenced_name": "未来核心"
+        },
+        {
+          "source_card_id": 10171320,
+          "source_name": "创造物充能",
+          "referenced_name": "未来核心"
+        },
+        {
+          "source_card_id": 10172110,
+          "source_name": "抗争领袖·露琪娜",
+          "referenced_name": "未来核心"
+        },
+        {
+          "source_card_id": 10173110,
+          "source_name": "决心之誓·米莉亚姆",
+          "referenced_name": "未来核心"
+        },
+        {
+          "source_card_id": 10173140,
+          "source_name": "改境的天宫·阿洛艾特",
+          "referenced_name": "未来核心"
+        },
+        {
+          "source_card_id": 10173210,
+          "source_name": "遗产的炮击",
+          "referenced_name": "未来核心"
+        },
+        {
+          "source_card_id": 10271210,
+          "source_name": "创造物弹射器",
+          "referenced_name": "未来核心"
+        }
+      ],
+      "authored_producers": [
+        {
+          "source_card_id": 10171320,
+          "entry_kind": "add_card",
+          "rule_file": "batch_basic_real_cards.json",
+          "rule_group": "rules"
+        }
+      ],
+      "has_authored_behavior": true,
+      "explicit_coverage": null,
+      "keyword_only_text": false,
+      "abilities": [
+        {
+          "keyword": "融合",
+          "status": "partial"
+        }
+      ],
+      "skill_texts": [
+        "【<color=Keyword>融合</color>】创造物·护符\n与本卡牌【<color=Keyword>融合</color>】时，本卡牌变身为『<color=Keyword>攻击创造物</color>』。\n<hr>无法使用。"
+      ]
+    },
+    {
+      "card_id": 90071220,
+      "name": "过往核心",
+      "class_name": "超越者",
+      "card_type": "护符",
+      "card_set_id": 90000,
+      "is_collectible": false,
+      "support_level": "unsupported",
+      "category": "entry_behavior_partial",
+      "reason": "Executable entry exists, but nontrivial token text lacks an exact audit.",
+      "database_sources": [
+        {
+          "source_card_id": 10071310,
+          "source_name": "来自异次元的枪击",
+          "referenced_name": "过往核心"
+        },
+        {
+          "source_card_id": 10072110,
+          "source_name": "电鞭手",
+          "referenced_name": "过往核心"
+        },
+        {
+          "source_card_id": 10171110,
+          "source_name": "耀眼的发明家·伊莉斯",
+          "referenced_name": "过往核心"
+        },
+        {
+          "source_card_id": 10171320,
+          "source_name": "创造物充能",
+          "referenced_name": "过往核心"
+        },
+        {
+          "source_card_id": 10172110,
+          "source_name": "抗争领袖·露琪娜",
+          "referenced_name": "过往核心"
+        },
+        {
+          "source_card_id": 10172310,
+          "source_name": "生命的奔流",
+          "referenced_name": "过往核心"
+        },
+        {
+          "source_card_id": 10173110,
+          "source_name": "决心之誓·米莉亚姆",
+          "referenced_name": "过往核心"
+        },
+        {
+          "source_card_id": 10173140,
+          "source_name": "改境的天宫·阿洛艾特",
+          "referenced_name": "过往核心"
+        },
+        {
+          "source_card_id": 10271110,
+          "source_name": "引擎剑士",
+          "referenced_name": "过往核心"
+        },
+        {
+          "source_card_id": 10271210,
+          "source_name": "创造物弹射器",
+          "referenced_name": "过往核心"
+        },
+        {
+          "source_card_id": 10273110,
+          "source_name": "暗狱的余晖·贾丝珀",
+          "referenced_name": "过往核心"
+        }
+      ],
+      "authored_producers": [
+        {
+          "source_card_id": 10171110,
+          "entry_kind": "add_card",
+          "rule_file": "batch_basic_real_cards.json",
+          "rule_group": "rules"
+        },
+        {
+          "source_card_id": 10171320,
+          "entry_kind": "add_card",
+          "rule_file": "batch_basic_real_cards.json",
+          "rule_group": "rules"
+        },
+        {
+          "source_card_id": 10172310,
+          "entry_kind": "add_card",
+          "rule_file": "batch_basic_real_cards.json",
+          "rule_group": "rules"
+        }
+      ],
+      "has_authored_behavior": true,
+      "explicit_coverage": null,
+      "keyword_only_text": false,
+      "abilities": [
+        {
+          "keyword": "融合",
+          "status": "partial"
+        }
+      ],
+      "skill_texts": [
+        "【<color=Keyword>融合</color>】创造物·护符\n与本卡牌【<color=Keyword>融合</color>】时，本卡牌变身为『<color=Keyword>城堡创造物</color>』。\n<hr>无法使用。"
+      ]
+    },
+    {
+      "card_id": 90072110,
+      "name": "攻击创造物",
+      "class_name": "超越者",
+      "card_type": "随从",
+      "card_set_id": 90000,
+      "is_collectible": false,
+      "support_level": "unsupported",
+      "category": "entry_behavior_partial",
+      "reason": "Executable entry exists, but nontrivial token text lacks an exact audit.",
+      "database_sources": [
+        {
+          "source_card_id": 10172110,
+          "source_name": "抗争领袖·露琪娜",
+          "referenced_name": "攻击创造物"
+        },
+        {
+          "source_card_id": 10271110,
+          "source_name": "引擎剑士",
+          "referenced_name": "攻击创造物"
+        },
+        {
+          "source_card_id": 10471130,
+          "source_name": "报恩工匠·艾萨克",
+          "referenced_name": "攻击创造物"
+        },
+        {
+          "source_card_id": 90071210,
+          "source_name": "未来核心",
+          "referenced_name": "攻击创造物"
+        }
+      ],
+      "authored_producers": [
+        {
+          "source_card_id": 90071210,
+          "entry_kind": "fusion_transform",
+          "rule_file": "fusion.json",
+          "rule_group": "fusions"
+        }
+      ],
+      "has_authored_behavior": true,
+      "explicit_coverage": null,
+      "keyword_only_text": false,
+      "abilities": [
+        {
+          "keyword": "突进",
+          "status": "implemented"
+        },
+        {
+          "keyword": "融合",
+          "status": "partial"
+        }
+      ],
+      "skill_texts": [
+        "【<color=Keyword>融合</color>】创造物·卡牌\n根据与本卡牌【<color=Keyword>融合</color>】的卡牌的费用的合计而变身。\n1⇒『<color=Keyword>毁灭创造物α</color>』\n2⇒『<color=Keyword>毁灭创造物β</color>』\n3或以上⇒『<color=Keyword>毁灭创造物γ</color>』\n<hr>【<color=Keyword>突进</color>】"
+      ]
+    },
+    {
+      "card_id": 90072120,
+      "name": "城堡创造物",
+      "class_name": "超越者",
+      "card_type": "随从",
+      "card_set_id": 90000,
+      "is_collectible": false,
+      "support_level": "unsupported",
+      "category": "entry_behavior_partial",
+      "reason": "Executable entry exists, but nontrivial token text lacks an exact audit.",
+      "database_sources": [
+        {
+          "source_card_id": 10171120,
+          "source_name": "钢铁佣兵·迪尔克",
+          "referenced_name": "城堡创造物"
+        },
+        {
+          "source_card_id": 10473110,
+          "source_name": "向往天空的回归者·卡西乌斯",
+          "referenced_name": "城堡创造物"
+        },
+        {
+          "source_card_id": 90071220,
+          "source_name": "过往核心",
+          "referenced_name": "城堡创造物"
+        }
+      ],
+      "authored_producers": [
+        {
+          "source_card_id": 90071220,
+          "entry_kind": "fusion_transform",
+          "rule_file": "fusion.json",
+          "rule_group": "fusions"
+        }
+      ],
+      "has_authored_behavior": true,
+      "explicit_coverage": null,
+      "keyword_only_text": false,
+      "abilities": [
+        {
+          "keyword": "守护",
+          "status": "implemented"
+        },
+        {
+          "keyword": "融合",
+          "status": "partial"
+        }
+      ],
+      "skill_texts": [
+        "【<color=Keyword>融合</color>】创造物·卡牌\n根据与本卡牌【<color=Keyword>融合</color>】的卡牌的费用的合计而变身。\n1⇒『<color=Keyword>毁灭创造物α</color>』\n2⇒『<color=Keyword>毁灭创造物β</color>』\n3或以上⇒『<color=Keyword>毁灭创造物γ</color>』\n<hr>【<color=Keyword>守护</color>】"
+      ]
+    },
+    {
+      "card_id": 90072130,
+      "name": "屠戮人偶",
+      "class_name": "超越者",
+      "card_type": "随从",
+      "card_set_id": 90000,
+      "is_collectible": false,
+      "support_level": "unsupported",
+      "category": "database_only_no_entry",
+      "reason": "Database source references exist, but no executable producer is authored.",
+      "database_sources": [
+        {
+          "source_card_id": 10272110,
+          "source_name": "心灵屠戮者·菲亚",
+          "referenced_name": "屠戮人偶"
+        }
+      ],
+      "authored_producers": [],
+      "has_authored_behavior": false,
+      "explicit_coverage": null,
+      "keyword_only_text": false,
+      "abilities": [
+        {
+          "keyword": "潜行",
+          "status": "implemented"
+        },
+        {
+          "keyword": "谢幕曲",
+          "status": "partial"
+        }
+      ],
+      "skill_texts": [
+        "【<color=Keyword>潜行</color>】\n【<color=Keyword>谢幕曲</color>】召唤1个『<color=Keyword>心灵屠戮者·菲亚</color>』。"
+      ]
+    },
+    {
+      "card_id": 90073110,
+      "name": "毁灭创造物α",
+      "class_name": "超越者",
+      "card_type": "随从",
+      "card_set_id": 90000,
+      "is_collectible": false,
+      "support_level": "unsupported",
+      "category": "entry_behavior_partial",
+      "reason": "Executable entry exists, but nontrivial token text lacks an exact audit.",
+      "database_sources": [
+        {
+          "source_card_id": 10671120,
+          "source_name": "聪明的创造者",
+          "referenced_name": "毁灭创造物α"
+        },
+        {
+          "source_card_id": 90072110,
+          "source_name": "攻击创造物",
+          "referenced_name": "毁灭创造物α"
+        },
+        {
+          "source_card_id": 90072120,
+          "source_name": "城堡创造物",
+          "referenced_name": "毁灭创造物α"
+        }
+      ],
+      "authored_producers": [
+        {
+          "source_card_id": 90072110,
+          "entry_kind": "fusion_transform",
+          "rule_file": "fusion.json",
+          "rule_group": "fusions"
+        },
+        {
+          "source_card_id": 90072120,
+          "entry_kind": "fusion_transform",
+          "rule_file": "fusion.json",
+          "rule_group": "fusions"
+        }
+      ],
+      "has_authored_behavior": false,
+      "explicit_coverage": null,
+      "keyword_only_text": false,
+      "abilities": [
+        {
+          "keyword": "融合",
+          "status": "partial"
+        }
+      ],
+      "skill_texts": [
+        "【<color=Keyword>融合</color>】『<color=Keyword>毁灭创造物β</color>』或『<color=Keyword>毁灭创造物γ</color>』\n与本卡牌【<color=Keyword>融合</color>】时，若与本卡牌【<color=Keyword>融合</color>】的种类为2，则本卡牌变身为『<color=Keyword>卓越创造物Ω</color>』。\n<hr>自己的回合结束时，回复自己的主战者3点生命值。"
+      ]
+    },
+    {
+      "card_id": 90073120,
+      "name": "毁灭创造物β",
+      "class_name": "超越者",
+      "card_type": "随从",
+      "card_set_id": 90000,
+      "is_collectible": false,
+      "support_level": "unsupported",
+      "category": "entry_behavior_partial",
+      "reason": "Executable entry exists, but nontrivial token text lacks an exact audit.",
+      "database_sources": [
+        {
+          "source_card_id": 10572110,
+          "source_name": "新时代地理学者",
+          "referenced_name": "毁灭创造物β"
+        },
+        {
+          "source_card_id": 90072110,
+          "source_name": "攻击创造物",
+          "referenced_name": "毁灭创造物β"
+        },
+        {
+          "source_card_id": 90072120,
+          "source_name": "城堡创造物",
+          "referenced_name": "毁灭创造物β"
+        },
+        {
+          "source_card_id": 90073110,
+          "source_name": "毁灭创造物α",
+          "referenced_name": "毁灭创造物β"
+        }
+      ],
+      "authored_producers": [
+        {
+          "source_card_id": 90072110,
+          "entry_kind": "fusion_transform",
+          "rule_file": "fusion.json",
+          "rule_group": "fusions"
+        },
+        {
+          "source_card_id": 90072120,
+          "entry_kind": "fusion_transform",
+          "rule_file": "fusion.json",
+          "rule_group": "fusions"
+        }
+      ],
+      "has_authored_behavior": false,
+      "explicit_coverage": null,
+      "keyword_only_text": false,
+      "abilities": [],
+      "skill_texts": [
+        "自己的回合结束时，对对手的主战者造成3点伤害。"
+      ]
+    },
+    {
+      "card_id": 90073130,
+      "name": "毁灭创造物γ",
+      "class_name": "超越者",
+      "card_type": "随从",
+      "card_set_id": 90000,
+      "is_collectible": false,
+      "support_level": "unsupported",
+      "category": "entry_behavior_partial",
+      "reason": "Executable entry exists, but nontrivial token text lacks an exact audit.",
+      "database_sources": [
+        {
+          "source_card_id": 10371120,
+          "source_name": "音速飞行兵",
+          "referenced_name": "毁灭创造物γ"
+        },
+        {
+          "source_card_id": 90072110,
+          "source_name": "攻击创造物",
+          "referenced_name": "毁灭创造物γ"
+        },
+        {
+          "source_card_id": 90072120,
+          "source_name": "城堡创造物",
+          "referenced_name": "毁灭创造物γ"
+        },
+        {
+          "source_card_id": 90073110,
+          "source_name": "毁灭创造物α",
+          "referenced_name": "毁灭创造物γ"
+        }
+      ],
+      "authored_producers": [
+        {
+          "source_card_id": 90072110,
+          "entry_kind": "fusion_transform",
+          "rule_file": "fusion.json",
+          "rule_group": "fusions"
+        },
+        {
+          "source_card_id": 90072120,
+          "entry_kind": "fusion_transform",
+          "rule_file": "fusion.json",
+          "rule_group": "fusions"
+        }
+      ],
+      "has_authored_behavior": false,
+      "explicit_coverage": null,
+      "keyword_only_text": false,
+      "abilities": [],
+      "skill_texts": [
+        "自己的回合结束时，对对手的战场上的所有随从造成3点伤害。"
+      ]
+    },
+    {
+      "card_id": 90074110,
+      "name": "卓越创造物Ω",
+      "class_name": "超越者",
+      "card_type": "随从",
+      "card_set_id": 90000,
+      "is_collectible": false,
+      "support_level": "unsupported",
+      "category": "database_only_no_entry",
+      "reason": "Database source references exist, but no executable producer is authored.",
+      "database_sources": [
+        {
+          "source_card_id": 90073110,
+          "source_name": "毁灭创造物α",
+          "referenced_name": "卓越创造物Ω"
+        }
+      ],
+      "authored_producers": [],
+      "has_authored_behavior": false,
+      "explicit_coverage": null,
+      "keyword_only_text": false,
+      "abilities": [
+        {
+          "keyword": "入场曲",
+          "status": "partial"
+        },
+        {
+          "keyword": "守护",
+          "status": "implemented"
+        },
+        {
+          "keyword": "灵气",
+          "status": "placeholder"
+        },
+        {
+          "keyword": "疾驰",
+          "status": "implemented"
+        }
+      ],
+      "skill_texts": [
+        "【<color=Keyword>入场曲</color>】对对手的战场上的所有随从造成5点伤害。回复自己的主战者5点生命值。\n<hr>【<color=Keyword>疾驰</color>】\n【<color=Keyword>守护</color>】\n【<color=Keyword>灵气</color>】"
+      ]
+    },
+    {
+      "card_id": 90074120,
+      "name": "洛伊德",
+      "class_name": "超越者",
+      "card_type": "随从",
+      "card_set_id": 90000,
+      "is_collectible": false,
+      "support_level": "unsupported",
+      "category": "database_only_no_entry",
+      "reason": "Database source references exist, but no executable producer is authored.",
+      "database_sources": [
+        {
+          "source_card_id": 10174120,
+          "source_name": "迈进之心·奥契丝",
+          "referenced_name": "洛伊德"
+        },
+        {
+          "source_card_id": 10273310,
+          "source_name": "心有灵犀的共斗",
+          "referenced_name": "洛伊德"
+        }
+      ],
+      "authored_producers": [],
+      "has_authored_behavior": false,
+      "explicit_coverage": null,
+      "keyword_only_text": false,
+      "abilities": [
+        {
+          "keyword": "守护",
+          "status": "implemented"
+        }
+      ],
+      "skill_texts": [
+        "【<color=Keyword>守护</color>】\n对手能力只能选择本卡牌。"
+      ]
+    },
+    {
+      "card_id": 90074130,
+      "name": "维多利亚",
+      "class_name": "超越者",
+      "card_type": "随从",
+      "card_set_id": 90000,
+      "is_collectible": false,
+      "support_level": "unsupported",
+      "category": "database_only_no_entry",
+      "reason": "Database source references exist, but no executable producer is authored.",
+      "database_sources": [
+        {
+          "source_card_id": 10273310,
+          "source_name": "心有灵犀的共斗",
+          "referenced_name": "维多利亚"
+        },
+        {
+          "source_card_id": 10274110,
+          "source_name": "交响之心·枷薇",
+          "referenced_name": "维多利亚"
+        }
+      ],
+      "authored_producers": [],
+      "has_authored_behavior": false,
+      "explicit_coverage": null,
+      "keyword_only_text": false,
+      "abilities": [
+        {
+          "keyword": "攻击时",
+          "status": "implemented"
+        },
+        {
+          "keyword": "突进",
+          "status": "implemented"
+        }
+      ],
+      "skill_texts": [
+        "【<color=Keyword>突进</color>】\n【<color=Keyword>攻击时</color>】若攻击随从，则对交战对手造成X点伤害。X为本随从的攻击力。"
+      ]
+    },
+    {
+      "card_id": 90074140,
+      "name": "伊鞠的小鬼",
+      "class_name": "超越者",
+      "card_type": "随从",
+      "card_set_id": 90000,
+      "is_collectible": false,
+      "support_level": "keyword",
+      "category": "database_only_no_entry",
+      "reason": "Database source references exist, but no executable producer is authored.",
+      "database_sources": [
+        {
+          "source_card_id": 10573310,
+          "source_name": "诚心的尽小花",
+          "referenced_name": "伊鞠的小鬼"
+        },
+        {
+          "source_card_id": 10574120,
+          "source_name": "尽小花·伊鞠",
+          "referenced_name": "伊鞠的小鬼"
+        }
+      ],
+      "authored_producers": [],
+      "has_authored_behavior": false,
+      "explicit_coverage": null,
+      "keyword_only_text": true,
+      "abilities": [
+        {
+          "keyword": "突进",
+          "status": "implemented"
+        }
+      ],
+      "skill_texts": [
+        "【<color=Keyword>突进</color>】"
+      ]
+    },
+    {
+      "card_id": 90074210,
+      "name": "新约·白之章",
+      "class_name": "超越者",
+      "card_type": "护符",
+      "card_set_id": 90000,
+      "is_collectible": false,
+      "support_level": "unsupported",
+      "category": "database_only_no_entry",
+      "reason": "Database source references exist, but no executable producer is authored.",
+      "database_sources": [
+        {
+          "source_card_id": 10373310,
+          "source_name": "歼灭的歌声",
+          "referenced_name": "新约·白之章"
+        },
+        {
+          "source_card_id": 10374120,
+          "source_name": "奏绝的显现·莉洁纳",
+          "referenced_name": "新约·白之章"
+        },
+        {
+          "source_card_id": 90074220,
+          "source_name": "新约·黑之章",
+          "referenced_name": "新约·白之章"
+        }
+      ],
+      "authored_producers": [],
+      "has_authored_behavior": false,
+      "explicit_coverage": null,
+      "keyword_only_text": false,
+      "abilities": [
+        {
+          "keyword": "倒数",
+          "status": "partial"
+        },
+        {
+          "keyword": "谢幕曲",
+          "status": "partial"
+        }
+      ],
+      "skill_texts": [
+        "【<color=Keyword>吟唱</color>_1】\n【<color=Keyword>谢幕曲</color>】回复自己的主战者1点生命值。召唤1张『<color=Keyword>新约·黑之章</color>』。"
+      ]
+    },
+    {
+      "card_id": 90074220,
+      "name": "新约·黑之章",
+      "class_name": "超越者",
+      "card_type": "护符",
+      "card_set_id": 90000,
+      "is_collectible": false,
+      "support_level": "unsupported",
+      "category": "database_only_no_entry",
+      "reason": "Database source references exist, but no executable producer is authored.",
+      "database_sources": [
+        {
+          "source_card_id": 90074210,
+          "source_name": "新约·白之章",
+          "referenced_name": "新约·黑之章"
+        }
+      ],
+      "authored_producers": [],
+      "has_authored_behavior": false,
+      "explicit_coverage": null,
+      "keyword_only_text": false,
+      "abilities": [
+        {
+          "keyword": "倒数",
+          "status": "partial"
+        },
+        {
+          "keyword": "谢幕曲",
+          "status": "partial"
+        }
+      ],
+      "skill_texts": [
+        "【<color=Keyword>吟唱</color>_1】\n【<color=Keyword>谢幕曲</color>】对对手的主战者造成1点伤害。召唤1张『<color=Keyword>新约·白之章</color>』。"
+      ]
+    },
+    {
+      "card_id": 90074310,
+      "name": "奏绝的独唱",
+      "class_name": "超越者",
+      "card_type": "法术",
+      "card_set_id": 90000,
+      "is_collectible": false,
+      "support_level": "unsupported",
+      "category": "database_only_no_entry",
+      "reason": "Database source references exist, but no executable producer is authored.",
+      "database_sources": [
+        {
+          "source_card_id": 10374120,
+          "source_name": "奏绝的显现·莉洁纳",
+          "referenced_name": "奏绝的独唱"
+        }
+      ],
+      "authored_producers": [],
+      "has_authored_behavior": false,
+      "explicit_coverage": null,
+      "keyword_only_text": false,
+      "abilities": [],
+      "skill_texts": [
+        "选择自己的战场上的1张卡牌，破坏该卡牌。对对手的战场上的随机1个随从造成4点伤害。"
+      ]
+    },
+    {
+      "card_id": 90074320,
+      "name": "天斧深渊",
+      "class_name": "超越者",
+      "card_type": "法术",
+      "card_set_id": 90000,
+      "is_collectible": false,
+      "support_level": "unsupported",
+      "category": "database_only_no_entry",
+      "reason": "Database source references exist, but no executable producer is authored.",
+      "database_sources": [
+        {
+          "source_card_id": 10674120,
+          "source_name": "古旧天斧·尤泽塔",
+          "referenced_name": "天斧深渊"
+        }
+      ],
+      "authored_producers": [],
+      "has_authored_behavior": false,
+      "explicit_coverage": null,
+      "keyword_only_text": false,
+      "abilities": [],
+      "skill_texts": [
+        "选择自己的战场上的1个原始费用为5或以上的随从，将1张与其同名的卡牌以非公开形式加入手牌，使其费用-3。"
+      ]
+    }
+  ]
+}

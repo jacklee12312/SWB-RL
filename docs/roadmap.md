@@ -10,7 +10,7 @@ code and tests as the source of truth when this file drifts.
 - Database: 826 cards, 735 collectible cards, 91 non-collectible/generated
   cards from set `90000`.
 - Latest SVA source: `https://sva.hypd.asia/data/cards.json`.
-- Tests: `python -m unittest discover -s tests -v` currently runs 1132 tests.
+- Tests: `python -m unittest discover -s tests -v` currently runs 1137 tests.
 - RL adapter: fixed 111-action space and 290-feature observation.
 - Ability registry status: 18 implemented, 5 partial, 11 placeholder.
 - Explicit card and demo rules live in `data/rules/`; the current coverage
@@ -18,6 +18,13 @@ code and tests as the source of truth when this file drifts.
   invocation, activation, Faith, Union Burst, or listener definitions. Current
   collectible coverage is 87 exact, 0 partial, 630 supported-but-missing-rule,
   0 missing-primitive, and 18 text-unclear cards.
+- `data/reports/token_audit.{json,md}` audits all 91 non-collectible/generated
+  cards independently of collectible coverage. Database `card_references` and
+  executable structured producers are reported separately: 10 tokens have a
+  complete executable entry/behavior path, 11 have an executable entry but
+  partial behavior, and 70 have no authored producer. No token is currently
+  classified text-unclear or externally blocked; those categories remain
+  explicit and can be assigned through `data/audits/token_overrides.json`.
 
 ## Stable Priorities
 
@@ -420,6 +427,12 @@ slice in this order:
 - `瞬念召唤` is implemented for its sole current official card and marked
   implemented in the ability registry. Sandalphon now combines exact
   Invocation, crest, return-to-hand, and `解放奥义` rules.
+- The generated-card audit is deterministic and covers all 91 database tokens.
+  It does not equate a database reference with an executable entry, and it only
+  marks behavior complete for vanilla cards, fully implemented keyword-only
+  cards, or explicitly exact structured rules. Current output is 10 complete,
+  11 partial, and 70 database-only/no-entry; this is the content backlog for
+  later card-rule entry, not a claim of broad generated-card support.
 - The ability registry is conservative; a generic primitive can exist before a
   keyword is marked fully implemented.
 - Many real cards are intentionally uncovered or only partly covered by

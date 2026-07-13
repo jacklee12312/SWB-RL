@@ -109,6 +109,8 @@
     {
       "card_id": 90014330,
       "trigger": "play",
+      "coverage": "exact",
+      "implemented_text": "选择自己的战场上的1个进化前的随从，使其进化。",
       "operations": [
         {
           "kind": "evolve_unit",

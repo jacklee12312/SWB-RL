@@ -14,10 +14,13 @@ references, extra asset metadata, source import records, and the original JSON
 record. Rule support is tracked separately so database completeness is not
 confused with engine completeness.
 
-Cards from set `90000` are marked non-collectible. They remain available for
-future generated-card effects, but are excluded from training/deck-building
-pools and rejected if passed directly in an initial deck. Deck validation
-requires exactly 40 collectible cards from the selected class and/or neutral.
+Cards from set `90000` are marked non-collectible. They remain resolvable by
+generated-card effects, but are excluded from training/deck-building pools and
+rejected if passed directly in an initial deck. Deck validation requires
+exactly 40 collectible cards from the selected class and/or neutral. The
+auditable [token report](data/reports/token_audit.md) distinguishes database
+references from executable producer paths and behavior completeness for all 91
+cards: 10 complete entries, 11 partial entries, and 70 with no authored entry.
 
 Abilities are normalized in two relational tables:
 
@@ -285,7 +288,9 @@ remain visible instead of silently behaving as implemented.
 
 Known broad gaps include:
 
-- exact semantics for many real cards and most generated-card workflows;
+- exact semantics for many real cards and most generated-card workflows; the
+  token audit keeps the remaining 11 partial and 70 unimplemented entries
+  explicit instead of treating non-collectible classification as coverage;
 - remaining `信仰` progression/payoff semantics, plus broader real-card coverage for `策动`,
   `土之秘术`, `觉醒`, and `连击` beyond the currently authored examples;
 - ordinary board, hand, and leader-area listeners now receive
@@ -295,8 +300,8 @@ Known broad gaps include:
   for normal and super evolution, owner amulet-destruction progression, atomic
   value spending, and dynamically gained structured abilities. Mode selection,
   Enhance play, named-follower entry, and the shared five-slot leader-area
-  limit remain explicit unsupported edges; other generated cards remain part
-  of the later token/generated-card behavior audit;
+  limit remain explicit unsupported edges; other generated cards remain
+  individually classified in the token/generated-card audit;
 - Fusion-driven hand transforms and refusion are implemented. Other cards can
   listen to `card_fused`, but their individual reactions and later generated
   Artifact end-form abilities still require audited structured rules;

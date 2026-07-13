@@ -1,0 +1,11 @@
+{
+  "entries": [
+    {
+      "card_id": 90031210,
+      "entry_kind": "engine_earth_sigil",
+      "rule_group": "generic_primitive",
+      "notes": "ADD_EARTH_SIGILS creates or stacks the canonical Earth Sigil token."
+    }
+  ],
+  "classifications": []
+}
