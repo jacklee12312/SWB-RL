@@ -152,6 +152,10 @@ The deterministic rules core supports:
   stable leader-area instance, support explicit unique/stacking policies,
   resolve in Faith-placement then grant order, preserve pending-choice event
   continuations, and participate in fingerprints, invariants, and diagnostics;
+- Faith progression also accepts owner-scoped amulet-destruction events in
+  active-player death-batch order. Exact `10664120` owns a separate persistent
+  Faith, advances it when its controller's amulets are destroyed, and at turn
+  end atomically pays 10 to generate `90064320` with token origin while present;
 - generic effect-caused normal evolution selects an unevolved follower, spends
   no EP or once-per-turn manual evolution allowance, updates public evolution
   counters/gauges, and emits the normal evolution event with evolve abilities;
@@ -285,13 +289,11 @@ Known broad gaps include:
   `amulet_activated` and `card_fused`; remaining cards that use those events
   still need individual structured rules and official-text verification;
 - Faith currently supports the verified `follower_evolved` progression trigger
-  for normal and super evolution, atomic value spending, and dynamically gained
-  structured abilities. Mode selection, Enhance play, named-follower entry,
-  amulet-destruction progression, and the shared five-slot leader-area limit
-  remain explicit unsupported edges;
-- `10664120` has exact mixed-board source-excluding Fanfare targeting, but its
-  turn-end Faith payment and generated `天书深渊` workflow remain explicitly
-  partial pending the shared-Faith identity and generated-card audit;
+  for normal and super evolution, owner amulet-destruction progression, atomic
+  value spending, and dynamically gained structured abilities. Mode selection,
+  Enhance play, named-follower entry, and the shared five-slot leader-area
+  limit remain explicit unsupported edges; generated `天书深渊` itself remains
+  part of the later token/generated-card behavior audit;
 - Fusion-driven hand transforms and refusion are implemented. Other cards can
   listen to `card_fused`, but their individual reactions and later generated
   Artifact end-form abilities still require audited structured rules;

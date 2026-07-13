@@ -10,6 +10,7 @@ if TYPE_CHECKING:
 
 class FaithTrigger(str, Enum):
     FOLLOWER_EVOLVED = "follower_evolved"
+    AMULET_DESTROYED = "amulet_destroyed"
 
 
 class FaithAbilityStacking(str, Enum):

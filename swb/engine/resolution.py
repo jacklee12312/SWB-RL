@@ -8255,6 +8255,12 @@ class GameEngine:
                     FaithTrigger.FOLLOWER_EVOLVED,
                     event,
                 )
+            if event.type is EventType.AMULET_DESTROYED:
+                self._advance_faiths_for_event(
+                    event.player_index,
+                    FaithTrigger.AMULET_DESTROYED,
+                    event,
+                )
             ability_event = event_to_ability.get(event.type)
             if event.metadata.get("trigger_abilities") is False:
                 ability_event = None

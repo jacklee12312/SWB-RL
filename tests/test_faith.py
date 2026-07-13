@@ -16,7 +16,7 @@ from swb.engine.card_rules import (
     _parse_faith_definition,
     _parse_operation,
 )
-from swb.engine.commands import Choose, Evolve, PlayCard, SuperEvolve
+from swb.engine.commands import Choose, EndTurn, Evolve, PlayCard, SuperEvolve
 from swb.engine.effects import EffectKind, EffectOperation, TargetKind
 from swb.engine.environment import ShadowverseEnv
 from swb.engine.events import EventType
@@ -29,7 +29,7 @@ from swb.engine.faith import (
 )
 from swb.engine.origin import CardOrigin
 from swb.engine.resolution import GameConfig, GameEngine, IllegalCommand
-from swb.engine.state import HandCard, Unit
+from swb.engine.state import Amulet, HandCard, Unit
 
 
 def _card(card_id: int, **overrides) -> CardDefinition:
@@ -510,6 +510,85 @@ class FaithInitializationTests(unittest.TestCase):
         self.assertEqual(engine.deterministic_fingerprint(), first)
 
 
+class FaithAmuletTriggerTests(unittest.TestCase):
+    def test_own_amulet_destruction_advances_only_matching_faith(self):
+        source = _faith_card()
+        definition = FaithDefinition(
+            faith_id="amulet-faith",
+            source_card_id=source.card_id,
+            triggers=(
+                FaithTriggerRule(FaithTrigger.AMULET_DESTROYED, 2),
+            ),
+        )
+        game = _engine(_deck(source), definitions=(definition,))
+        own_amulet = Amulet(
+            definition=_card(410, card_type="护符", attack=None, life=None),
+            entity_id=game.state.allocate_entity_id(),
+        )
+        enemy_amulet = Amulet(
+            definition=_card(411, card_type="护符", attack=None, life=None),
+            entity_id=game.state.allocate_entity_id(),
+        )
+        game.players[0].board.append(own_amulet)
+        game.players[1].board.append(enemy_amulet)
+
+        enemy_amulet.pending_destroy = True
+        game._stabilize()
+        self.assertEqual(game.players[0].faiths[0].value, 0)
+        own_amulet.pending_destroy = True
+        game._stabilize()
+
+        self.assertEqual(game.players[0].faiths[0].value, 2)
+        destroyed_index = next(
+            index for index, event in enumerate(game.event_history)
+            if event.type is EventType.AMULET_DESTROYED
+            and event.source_id == own_amulet.entity_id
+        )
+        changed_index = next(
+            index for index, event in enumerate(game.event_history)
+            if event.type is EventType.FAITH_VALUE_CHANGED
+        )
+        self.assertLess(destroyed_index, changed_index)
+
+    def test_simultaneous_amulet_faith_progression_is_active_player_first(self):
+        sources = (_faith_card(100), _faith_card(101))
+        definitions = tuple(
+            FaithDefinition(
+                faith_id=f"amulet-faith-{index}",
+                source_card_id=source.card_id,
+                triggers=(
+                    FaithTriggerRule(FaithTrigger.AMULET_DESTROYED, 1),
+                ),
+            )
+            for index, source in enumerate(sources)
+        )
+        game = _engine(
+            _deck(sources[0]),
+            definitions=definitions,
+            deck_b=_deck(sources[1]),
+        )
+        own = Amulet(
+            definition=_card(420, card_type="护符", attack=None, life=None),
+            entity_id=game.state.allocate_entity_id(),
+        )
+        enemy = Amulet(
+            definition=_card(421, card_type="护符", attack=None, life=None),
+            entity_id=game.state.allocate_entity_id(),
+        )
+        game.players[0].board.append(own)
+        game.players[1].board.append(enemy)
+        own.pending_destroy = True
+        enemy.pending_destroy = True
+
+        game._stabilize()
+
+        changed_players = [
+            event.player_index for event in game.event_history
+            if event.type is EventType.FAITH_VALUE_CHANGED
+        ]
+        self.assertEqual(changed_players, [0, 1])
+
+
 class FaithEvolutionTriggerTests(unittest.TestCase):
     def test_illegal_evolution_does_not_increment_faith_or_mutate_state(self):
         source = _faith_card()
@@ -755,6 +834,121 @@ class RealFaithCardTests(unittest.TestCase):
         )
         engine.reset(seed=42)
         return engine
+
+    def _lyanthoth_engine(self) -> GameEngine:
+        source = self.repo.get(10664120)
+        deck = [
+            source,
+            source,
+            source,
+            *[
+                _card(
+                    7200 + index,
+                    class_id=6,
+                    class_name="主教",
+                )
+                for index in range(37)
+            ],
+        ]
+        engine = GameEngine(
+            deck,
+            _deck(),
+            class_a=6,
+            class_b=1,
+            seed=43,
+            rulebook=self.rulebook,
+            card_resolver=self.repo.get,
+            config=GameConfig(validate_invariants=True),
+        )
+        engine.reset(seed=43)
+        return engine
+
+    def test_lyanthoth_faith_tracks_own_amulet_destruction(self):
+        engine = self._lyanthoth_engine()
+        faith = engine.players[0].faiths[0]
+        self.assertEqual(faith.faith_id, "ancient_tome")
+        self.assertEqual(faith.value, 0)
+        amulet = Amulet(
+            definition=_card(
+                8200,
+                class_id=6,
+                class_name="主教",
+                card_type="护符",
+                attack=None,
+                life=None,
+            ),
+            entity_id=engine.state.allocate_entity_id(),
+        )
+        engine.players[0].board.append(amulet)
+
+        amulet.pending_destroy = True
+        engine._stabilize()
+
+        self.assertEqual(faith.value, 1)
+
+    def test_lyanthoth_turn_end_pays_and_generates_depths_with_token_origin(self):
+        engine = self._lyanthoth_engine()
+        source = self.repo.get(10664120)
+        engine.players[0].hand.clear()
+        engine.players[0].hand_entity_ids.clear()
+        _insert_hand(engine, source)
+        engine.players[0].max_mana = engine.players[0].mana = 10
+        faith = engine.players[0].faiths[0]
+        faith.value = 10
+        engine.apply(PlayCard(0, 0))
+
+        engine.apply(EndTurn(0))
+
+        self.assertEqual(faith.value, 0)
+        generated = next(
+            card for card in engine.players[0].hand
+            if card.card_id == 90064320
+        )
+        self.assertIs(generated.origin, CardOrigin.TOKEN)
+        consumed_index = next(
+            index for index, event in enumerate(engine.event_history)
+            if event.type is EventType.FAITH_CONSUMED
+            and event.metadata["faith_id"] == "ancient_tome"
+        )
+        added_index = next(
+            index for index, event in enumerate(engine.event_history)
+            if event.type is EventType.CARD_ADDED_TO_HAND
+            and event.metadata["card_id"] == 90064320
+        )
+        self.assertLess(consumed_index, added_index)
+
+    def test_lyanthoth_leaving_play_prevents_turn_end_payment(self):
+        engine = self._lyanthoth_engine()
+        source = self.repo.get(10664120)
+        engine.players[0].hand.clear()
+        engine.players[0].hand_entity_ids.clear()
+        _insert_hand(engine, source)
+        engine.players[0].max_mana = engine.players[0].mana = 10
+        faith = engine.players[0].faiths[0]
+        faith.value = 10
+        engine.apply(PlayCard(0, 0))
+        unit = next(
+            entity for entity in engine.players[0].board
+            if entity.definition.card_id == 10664120
+        )
+        engine.players[0].board.remove(unit)
+
+        engine.apply(EndTurn(0))
+
+        self.assertEqual(faith.value, 10)
+        self.assertFalse(
+            any(card.card_id == 90064320 for card in engine.players[0].hand)
+        )
+
+    def test_coverage_marks_complete_lyanthoth_rule_exact(self):
+        report = _build_coverage_report("data/cards.sqlite3", "data/rules")
+        classification = report["classifications"]["10664120"]
+
+        self.assertEqual(classification["coverage"], "covered_exact")
+        self.assertNotIn(
+            "unsupported_text",
+            classification.get("rule_metadata", {}),
+        )
 
     def test_ancient_heavenspear_faith_starts_at_zero_and_tracks_evolution(self):
         engine = self._engine()

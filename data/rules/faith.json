@@ -12,21 +12,52 @@
       ],
       "coverage": "exact",
       "implemented_text": "信仰值起始为0。自己的随从进化时，信仰值+1。入场曲：信仰值-10，将天枪深渊加入手牌。使信仰获得「自己的随从进化时，对对手的主战者造成1点伤害」。"
+    },
+    {
+      "id": "ancient_tome",
+      "source_card_id": 10664120,
+      "initial_value": 0,
+      "triggers": [
+        {
+          "trigger": "amulet_destroyed",
+          "amount": 1
+        }
+      ],
+      "coverage": "exact",
+      "implemented_text": "信仰值起始为0。自己的护符被破坏时，信仰值+1。入场曲：选择战场上的3张其他卡牌并破坏。守护。自己的回合结束时，信仰值-10，将天书深渊加入手牌。"
     }
   ],
   "rules": [
     {
       "card_id": 10664120,
       "trigger": "fanfare",
-      "coverage": "partial",
-      "implemented_text": "入场曲：选择战场上的3张其他卡牌，破坏这些卡牌。守护。",
-      "unsupported_text": "自己的回合结束时，信仰值-10，将1张『天书深渊』加入手牌。",
+      "coverage": "exact",
+      "implemented_text": "入场曲：选择战场上的3张其他卡牌，破坏这些卡牌。守护。自己的回合结束时，信仰值-10，将1张『天书深渊』加入手牌。",
       "operations": [
         {
           "kind": "destroy",
           "target": "any_board",
           "target_count": 3,
           "exclude_source": true
+        }
+      ]
+    },
+    {
+      "card_id": 10664120,
+      "trigger": "turn_end",
+      "operations": [
+        {
+          "kind": "consume_faith",
+          "target": "own_leader",
+          "faith_id": "ancient_tome",
+          "amount": 10,
+          "operations": [
+            {
+              "kind": "add_card",
+              "target": "own_leader",
+              "card_id": 90064320
+            }
+          ]
         }
       ]
     },

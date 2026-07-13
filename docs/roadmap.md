@@ -10,13 +10,13 @@ code and tests as the source of truth when this file drifts.
 - Database: 826 cards, 735 collectible cards, 91 non-collectible/generated
   cards from set `90000`.
 - Latest SVA source: `https://sva.hypd.asia/data/cards.json`.
-- Tests: `python -m unittest discover -s tests -v` currently runs 1122 tests.
+- Tests: `python -m unittest discover -s tests -v` currently runs 1128 tests.
 - RL adapter: fixed 111-action space and 290-feature observation.
 - Ability registry status: 18 implemented, 5 partial, 11 placeholder.
 - Explicit card and demo rules live in `data/rules/`; the current coverage
   report classifies 118 card IDs with explicit rules, passives, fusion,
   invocation, activation, Faith, Union Burst, or listener definitions. Current
-  collectible coverage is 86 exact, 1 partial, 630 supported-but-missing-rule,
+  collectible coverage is 87 exact, 0 partial, 630 supported-but-missing-rule,
   0 missing-primitive, and 18 text-unclear cards.
 
 ## Stable Priorities
@@ -236,13 +236,19 @@ slice in this order:
   `faith_id`, and generated cards do not retroactively create Faith. Instances
   carry stable entity/sequence identity, non-negative public values, reset
   deterministically, and emit `FAITH_PLACED` / `FAITH_VALUE_CHANGED` events.
-- The first accepted Faith trigger is `follower_evolved`; both normal and super
+- Faith accepts `follower_evolved`; both normal and super
   evolution increment only the evolving player's matching Faith before later
   event listeners resolve. Real `10614120` (`古旧天枪·萨莎妮德`) starts at 0
   and increments by 1. Its Fanfare atomically spends 10 and generates
   `90014330` with token origin, then grants its Faith a stacking evolution
   trigger that damages the opposing leader after value progression. The full
   source-card text is now `covered_exact`.
+- Owner `amulet_destroyed` events provide a second Faith progression trigger
+  and preserve active-player-first death-batch order. Exact `10664120`
+  (`古旧天书·莲妥丝`) owns a distinct `ancient_tome` Faith, advances it for
+  its controller's destroyed amulets, and while present at turn end atomically
+  spends 10 to generate `90064320` with token origin. The generated spell's own
+  behavior remains part of the token audit rather than the parent card's text.
 - Faith count and aggregate value for both players add four public observation
   features, migrating the fixed observation from 257 to 261 while leaving the
   111-action layout unchanged. The database importer now includes alternate-mode
@@ -279,7 +285,8 @@ slice in this order:
   zones and multi-target choices; legality, target-exists, pending choices,
   stale revalidation, fingerprints/invariants, and RL masks share the filtered
   set. Real `10664120` demonstrates selecting three other board cards. Its
-  turn-end Faith payment/generated-card clause remains explicitly partial.
+  turn-end Faith payment/generated-card clause is now exact through the
+  owner-scoped amulet-destruction Faith trigger.
 - `UnionBurstDefinition` provides structured `奥义` and `解放奥义` operations
   at fixed gauges 10 and 15. Every hand card independently records evolutions
   completed while it remains in hand; both normal and super evolution count,
@@ -386,7 +393,7 @@ slice in this order:
   additional real card still needs an explicit structured definition. Faith
   leader-area initialization, evolution progression, atomic value spending,
   and gained structured abilities are implemented, while mode-selection,
-  Enhance, named-follower, and amulet-destruction progression triggers remain
+  Enhance, and named-follower progression triggers remain
   explicit partial semantics. `策动` and `土之秘术` /
   `土之印` core semantics are implemented, while broader real-card coverage
   remains intentionally incremental.
