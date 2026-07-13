@@ -43,7 +43,12 @@ from swb.engine.effects import (
     ValueExpression,
 )
 from swb.engine.events import EventType, GameEvent
-from swb.engine.faith import FaithInstance, FaithTrigger
+from swb.engine.faith import (
+    FaithAbilityStacking,
+    FaithGrantedAbility,
+    FaithInstance,
+    FaithTrigger,
+)
 from swb.engine.listeners import (
     CardListenerDefinition,
     ListenerZone,
@@ -664,6 +669,51 @@ class GameEngine:
                     f"信仰 {instance.faith_id} 信仰值 "
                     f"{before} → {instance.value}",
                 )
+
+        accepted: list[tuple[FaithInstance, FaithGrantedAbility, CardDefinition]] = []
+        for instance in sorted(
+            player.faiths,
+            key=lambda item: item.created_sequence,
+        ):
+            source_card = self._listener_source_definition(
+                player_index,
+                ListenerZone.LEADER_AREA.value,
+                instance.entity_id,
+                instance.source_card_id,
+            )
+            if source_card is None:
+                continue
+            for ability in sorted(
+                instance.granted_abilities,
+                key=lambda item: item.granted_sequence,
+            ):
+                if ability.trigger is trigger:
+                    accepted.append((instance, ability, source_card))
+
+        for instance, ability, _source_card in accepted:
+            self._emit(GameEvent(
+                EventType.FAITH_ABILITY_TRIGGERED,
+                player_index,
+                source_id=instance.entity_id,
+                target_id=event.source_id,
+                metadata={
+                    "faith_id": instance.faith_id,
+                    "ability_id": ability.ability_id,
+                    "faith_trigger": trigger.value,
+                    "granted_sequence": ability.granted_sequence,
+                    "trigger_source_id": event.source_id,
+                },
+            ))
+        for instance, ability, source_card in reversed(accepted):
+            self._queue_effects(
+                source_card,
+                instance.entity_id,
+                ability.operations,
+                controller=player_index,
+                label=f"信仰能力:{ability.ability_id}",
+            )
+        if accepted:
+            self._continue_effects()
 
     def apply(self, command: GameCommand) -> CoreTransition:
         self._ensure_entity_ids()
@@ -1997,6 +2047,10 @@ class GameEngine:
             summary["emblem_id"] = operation.emblem_id
         if operation.faith_id is not None:
             summary["faith_id"] = operation.faith_id
+        if operation.faith_ability_id is not None:
+            summary["faith_ability_id"] = operation.faith_ability_id
+            summary["faith_trigger"] = operation.faith_trigger
+            summary["faith_stacking"] = operation.faith_stacking
         if operation.target_key is not None:
             summary["target_key"] = operation.target_key
         if operation.keyword is not None:
@@ -2747,6 +2801,9 @@ class GameEngine:
                 for nested in operation.necromancy_operations
             ),
             operation.faith_id,
+            operation.faith_ability_id,
+            operation.faith_trigger,
+            operation.faith_stacking,
             tuple(
                 self._operation_fingerprint(nested)
                 for nested in operation.faith_operations
@@ -2910,8 +2967,8 @@ class GameEngine:
             "once_per_turn_used": tuple(sorted(emblem._once_per_turn_used)),
         }
 
-    @staticmethod
     def _faith_instance_fingerprint(
+        self,
         faith: FaithInstance,
     ) -> tuple[object, ...]:
         return (
@@ -2926,6 +2983,19 @@ class GameEngine:
                 (trigger.trigger.value, trigger.amount)
                 for trigger in faith.definition.triggers
             ),
+            tuple(
+                (
+                    ability.ability_id,
+                    ability.trigger.value,
+                    ability.granted_sequence,
+                    tuple(
+                        self._operation_fingerprint(operation)
+                        for operation in ability.operations
+                    ),
+                )
+                for ability in faith.granted_abilities
+            ),
+            faith._next_granted_ability_sequence,
         )
 
     def _emblem_definition_fingerprint(
@@ -5366,10 +5436,17 @@ class GameEngine:
             ) is not None
         if frame.source_entity_id is None:
             return False
-        return any(
+        if any(
             entity.entity_id == frame.source_entity_id
             for player in self.players
             for entity in player.board
+        ):
+            return True
+        return any(
+            instance.entity_id == frame.source_entity_id
+            and instance.source_card_id == frame.source_card_id
+            for player in self.players
+            for instance in (*player.emblems, *player.faiths)
         )
 
     @staticmethod
@@ -5660,6 +5737,8 @@ class GameEngine:
             self._execute_earth_rite(effect, frame)
         elif effect.kind is EffectKind.CONSUME_FAITH:
             self._execute_consume_faith(effect, frame)
+        elif effect.kind is EffectKind.GRANT_FAITH_ABILITY:
+            self._execute_grant_faith_ability(effect, frame)
         elif effect.kind is EffectKind.NECROMANCY:
             self._execute_necromancy(effect, frame, target_id)
         elif effect.kind is EffectKind.REANIMATE:
@@ -7690,6 +7769,60 @@ class GameEngine:
             label="信仰消费",
         )
 
+    def _execute_grant_faith_ability(
+        self,
+        effect: EffectOperation,
+        frame: EffectFrame,
+    ) -> None:
+        if (
+            effect.faith_id is None
+            or effect.faith_ability_id is None
+            or effect.faith_trigger is None
+        ):
+            raise IllegalCommand("grant_faith_ability payload is incomplete")
+        player = self.players[frame.controller]
+        instance = next(
+            (
+                faith
+                for faith in player.faiths
+                if faith.faith_id == effect.faith_id
+            ),
+            None,
+        )
+        if instance is None:
+            return
+        stacking = FaithAbilityStacking(effect.faith_stacking)
+        if (
+            stacking is FaithAbilityStacking.UNIQUE
+            and any(
+                ability.ability_id == effect.faith_ability_id
+                for ability in instance.granted_abilities
+            )
+        ):
+            return
+        ability = FaithGrantedAbility(
+            ability_id=effect.faith_ability_id,
+            trigger=FaithTrigger(effect.faith_trigger),
+            operations=effect.faith_operations,
+            granted_sequence=instance._next_granted_ability_sequence,
+        )
+        instance._next_granted_ability_sequence += 1
+        instance.granted_abilities.append(ability)
+        self._emit(GameEvent(
+            EventType.FAITH_ABILITY_GRANTED,
+            frame.controller,
+            source_id=frame.source_entity_id,
+            target_id=instance.entity_id,
+            metadata={
+                "faith_id": instance.faith_id,
+                "ability_id": ability.ability_id,
+                "faith_trigger": ability.trigger.value,
+                "granted_sequence": ability.granted_sequence,
+                "stacking": stacking.value,
+                "source_card_id": frame.source_card_id,
+            },
+        ))
+
     def _execute_banish(self, target_id: int | None, frame: EffectFrame) -> None:
         entity = self._find_board_entity(target_id)
         owner = self._entity_owner(entity.entity_id)
@@ -8026,6 +8159,15 @@ class GameEngine:
             if source is None:
                 source = event.metadata.get("definition")
             target = event.metadata.get("target")
+            if self.state.pending_choice is not None:
+                self._save_event_continuation(
+                    event,
+                    source,
+                    target,
+                    ability_event,
+                    phase="faith_done",
+                )
+                return
             if ability_event is not None and source is not None:
                 if isinstance(source, Unit):
                     self._dispatch_ability(
@@ -8145,6 +8287,27 @@ class GameEngine:
         source = state["source"]
         target = state["target"]
         ability_event = state["ability_event"]
+
+        if phase == "faith_done":
+            if ability_event is not None and source is not None:
+                if isinstance(source, Unit):
+                    self._dispatch_ability(
+                        ability_event,
+                        source,
+                        target if isinstance(target, Unit) else None,
+                        player_index=event.player_index,
+                    )
+                elif hasattr(source, "card_id"):
+                    self._dispatch_card_ability(
+                        ability_event,
+                        source,
+                        player_index=event.player_index,
+                    )
+                if self.state.pending_choice is not None:
+                    state["phase"] = "source_done"
+                    self._suspended_event_state = state
+                    return
+            phase = "source_done"
 
         if phase == "source_done" and event.type is EventType.COMBAT_STARTED and isinstance(target, Unit):
             self._dispatch_ability(
@@ -9158,6 +9321,35 @@ class GameEngine:
                         f"{faith.faith_id!r}"
                     )
                 faith_ids.add(faith.faith_id)
+                granted_sequences = [
+                    ability.granted_sequence
+                    for ability in faith.granted_abilities
+                ]
+                if (
+                    len(granted_sequences) != len(set(granted_sequences))
+                    or any(sequence <= 0 for sequence in granted_sequences)
+                ):
+                    raise IllegalCommand(
+                        f"Invariant failed: {zone} granted ability sequences are invalid"
+                    )
+                if faith._next_granted_ability_sequence <= max(
+                    granted_sequences, default=0
+                ):
+                    raise IllegalCommand(
+                        f"Invariant failed: {zone} next granted ability sequence is not ahead"
+                    )
+                for ability_index, ability in enumerate(faith.granted_abilities):
+                    ability_zone = f"{zone}.granted_abilities[{ability_index}]"
+                    if (
+                        not isinstance(ability.ability_id, str)
+                        or not ability.ability_id
+                        or not isinstance(ability.trigger, FaithTrigger)
+                        or not isinstance(ability.operations, tuple)
+                        or not ability.operations
+                    ):
+                        raise IllegalCommand(
+                            f"Invariant failed: {ability_zone} is invalid"
+                        )
                 remember(faith.entity_id, zone)
 
         for frame_index, frame in enumerate(state.effect_stack):
@@ -9330,6 +9522,23 @@ class GameEngine:
                     ):
                         raise IllegalCommand(
                             f"Invariant failed: {operation_zone} consume_faith payload is invalid"
+                        )
+                if operation.kind is EffectKind.GRANT_FAITH_ABILITY:
+                    if (
+                        not isinstance(operation.faith_id, str)
+                        or not operation.faith_id
+                        or not isinstance(operation.faith_ability_id, str)
+                        or not operation.faith_ability_id
+                        or operation.faith_trigger not in {
+                            trigger.value for trigger in FaithTrigger
+                        }
+                        or operation.faith_stacking not in {
+                            policy.value for policy in FaithAbilityStacking
+                        }
+                        or not operation.faith_operations
+                    ):
+                        raise IllegalCommand(
+                            f"Invariant failed: {operation_zone} grant_faith_ability payload is invalid"
                         )
 
             def check_positive_int(value: int | None, field: str) -> None:

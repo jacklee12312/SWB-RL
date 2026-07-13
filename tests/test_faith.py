@@ -20,7 +20,13 @@ from swb.engine.commands import Choose, Evolve, PlayCard, SuperEvolve
 from swb.engine.effects import EffectKind, EffectOperation, TargetKind
 from swb.engine.environment import ShadowverseEnv
 from swb.engine.events import EventType
-from swb.engine.faith import FaithDefinition, FaithTrigger, FaithTriggerRule
+from swb.engine.faith import (
+    FaithAbilityStacking,
+    FaithDefinition,
+    FaithGrantedAbility,
+    FaithTrigger,
+    FaithTriggerRule,
+)
 from swb.engine.origin import CardOrigin
 from swb.engine.resolution import GameConfig, GameEngine, IllegalCommand
 from swb.engine.state import HandCard, Unit
@@ -261,6 +267,162 @@ class FaithConsumptionTests(unittest.TestCase):
         ):
             with self.subTest(invalid=invalid), self.assertRaises(ValueError):
                 _parse_operation(invalid, "test", 100)
+
+
+class FaithDynamicAbilityTests(unittest.TestCase):
+    @staticmethod
+    def _grant_rule(
+        *,
+        stacking: str = "unique",
+        operations: tuple[EffectOperation, ...] | None = None,
+    ) -> CardRule:
+        return CardRule(
+            100,
+            Trigger.FANFARE,
+            (
+                EffectOperation(
+                    EffectKind.GRANT_FAITH_ABILITY,
+                    TargetKind.OWN_LEADER,
+                    faith_id="faith-test",
+                    faith_ability_id="evolve-payoff",
+                    faith_trigger=FaithTrigger.FOLLOWER_EVOLVED.value,
+                    faith_stacking=stacking,
+                    faith_operations=operations or (
+                        EffectOperation(
+                            EffectKind.DAMAGE_LEADER,
+                            TargetKind.ENEMY_LEADER,
+                            amount=1,
+                        ),
+                    ),
+                ),
+            ),
+        )
+
+    def _grant_then_evolve(
+        self,
+        *,
+        stacking: str = "unique",
+        copies: int = 1,
+        operations: tuple[EffectOperation, ...] | None = None,
+    ) -> GameEngine:
+        source = _faith_card()
+        game = _engine(
+            _deck(source),
+            definitions=(_faith_definition(),),
+            rules=(self._grant_rule(stacking=stacking, operations=operations),),
+        )
+        game.players[0].hand.clear()
+        game.players[0].hand_entity_ids.clear()
+        for _ in range(copies):
+            _insert_hand(game, source)
+        game.players[0].max_mana = game.players[0].mana = 10
+        for _ in range(copies):
+            game.apply(PlayCard(0, 0))
+        evolving = _place_unit(game, 0, card_id=401)
+        _unlock_evolution(game, 0)
+        game.apply(Evolve(0, evolving.entity_id))
+        return game
+
+    def test_granted_evolution_ability_fires_after_faith_progression(self):
+        game = self._grant_then_evolve()
+        faith = game.players[0].faiths[0]
+
+        self.assertEqual(faith.value, 1)
+        self.assertEqual(game.players[1].health, 19)
+        self.assertEqual(len(faith.granted_abilities), 1)
+        value_event_index = next(
+            index for index, event in enumerate(game.event_history)
+            if event.type is EventType.FAITH_VALUE_CHANGED
+        )
+        trigger_event_index = next(
+            index for index, event in enumerate(game.event_history)
+            if event.type is EventType.FAITH_ABILITY_TRIGGERED
+        )
+        self.assertLess(value_event_index, trigger_event_index)
+
+    def test_unique_grant_deduplicates_but_allow_stacks_in_grant_order(self):
+        unique = self._grant_then_evolve(copies=2)
+        allowed = self._grant_then_evolve(
+            copies=2,
+            stacking=FaithAbilityStacking.ALLOW.value,
+        )
+
+        self.assertEqual(len(unique.players[0].faiths[0].granted_abilities), 1)
+        self.assertEqual(unique.players[1].health, 19)
+        self.assertEqual(len(allowed.players[0].faiths[0].granted_abilities), 2)
+        self.assertEqual(allowed.players[1].health, 18)
+        self.assertEqual(
+            [
+                ability.granted_sequence
+                for ability in allowed.players[0].faiths[0].granted_abilities
+            ],
+            [1, 2],
+        )
+
+    def test_pending_choice_pauses_after_progress_and_resumes_event(self):
+        operations = (
+            EffectOperation(
+                EffectKind.BUFF_UNIT,
+                TargetKind.OWN_UNIT,
+                amount=1,
+                secondary_amount=1,
+                requires_target=True,
+            ),
+        )
+        game = self._grant_then_evolve(operations=operations)
+
+        self.assertIsNotNone(game.state.pending_choice)
+        self.assertEqual(game.players[0].faiths[0].value, 1)
+        self.assertEqual(game._suspended_event_state["phase"], "faith_done")
+        target = game.players[0].board[0]
+        before = (target.attack, target.health)
+        game.apply(Choose(0, f"entity:{target.entity_id}"))
+        self.assertEqual((target.attack, target.health), (before[0] + 1, before[1] + 1))
+        self.assertIsNone(game._suspended_event_state)
+
+    def test_granted_ability_state_is_fingerprinted_and_invariant_checked(self):
+        source = _faith_card()
+        game = _engine(
+            _deck(source),
+            definitions=(_faith_definition(),),
+            rules=(self._grant_rule(),),
+        )
+        before = game.deterministic_fingerprint()
+        game.players[0].faiths[0].granted_abilities.append(
+            FaithGrantedAbility(
+                "manual",
+                FaithTrigger.FOLLOWER_EVOLVED,
+                (EffectOperation(EffectKind.DRAW, TargetKind.OWN_LEADER, 1),),
+                1,
+            )
+        )
+        game.players[0].faiths[0]._next_granted_ability_sequence = 2
+        self.assertNotEqual(before, game.deterministic_fingerprint())
+        game.assert_invariants()
+
+    def test_schema_parses_dynamic_faith_ability_and_stacking(self):
+        operation = _parse_operation(
+            {
+                "kind": "grant_faith_ability",
+                "target": "own_leader",
+                "faith_id": "faith-test",
+                "ability_id": "evolve-payoff",
+                "faith_trigger": "follower_evolved",
+                "stacking": "allow",
+                "operations": [
+                    {
+                        "kind": "damage_leader",
+                        "target": "enemy_leader",
+                        "amount": 1,
+                    }
+                ],
+            },
+            "test",
+            100,
+        )
+        self.assertEqual(operation.faith_ability_id, "evolve-payoff")
+        self.assertEqual(operation.faith_stacking, "allow")
+        self.assertEqual(operation.faith_operations[0].kind, EffectKind.DAMAGE_LEADER)
 
 
 class FaithInitializationTests(unittest.TestCase):
@@ -676,17 +838,61 @@ class RealFaithCardTests(unittest.TestCase):
             )
         )
 
-    def test_coverage_keeps_unimplemented_heavenspear_payoff_partial(self):
+    def test_sasanid_grants_stacking_evolution_damage_ability(self):
+        engine = self._engine()
+        source = self.repo.get(10614120)
+        engine.players[0].hand.clear()
+        engine.players[0].hand_entity_ids.clear()
+        _insert_hand(engine, source)
+        engine.players[0].max_mana = engine.players[0].mana = 10
+        faith = engine.players[0].faiths[0]
+        faith.value = 10
+        engine.apply(PlayCard(0, 0))
+        evolving = _place_unit(engine, 0, card_id=8100)
+        _unlock_evolution(engine, 0)
+
+        engine.apply(Evolve(0, evolving.entity_id))
+
+        self.assertEqual(faith.value, 1)
+        self.assertEqual(engine.players[1].health, 19)
+        self.assertEqual(
+            [ability.ability_id for ability in faith.granted_abilities],
+            ["sasanid_evolve_leader_damage"],
+        )
+
+    def test_sasanid_repeated_grants_trigger_in_grant_order(self):
+        engine = self._engine()
+        source = self.repo.get(10614120)
+        engine.players[0].hand.clear()
+        engine.players[0].hand_entity_ids.clear()
+        _insert_hand(engine, source)
+        _insert_hand(engine, source)
+        engine.players[0].max_mana = engine.players[0].mana = 10
+        faith = engine.players[0].faiths[0]
+        faith.value = 20
+        engine.apply(PlayCard(0, 0))
+        engine.apply(PlayCard(0, 0))
+        evolving = _place_unit(engine, 0, card_id=8101)
+        _unlock_evolution(engine, 0)
+
+        engine.apply(Evolve(0, evolving.entity_id))
+
+        self.assertEqual(len(faith.granted_abilities), 2)
+        self.assertEqual(engine.players[1].health, 18)
+        triggered = [
+            event.metadata["granted_sequence"]
+            for event in engine.event_history
+            if event.type is EventType.FAITH_ABILITY_TRIGGERED
+        ]
+        self.assertEqual(triggered, [1, 2])
+
+    def test_coverage_marks_complete_heavenspear_rule_exact(self):
         report = _build_coverage_report("data/cards.sqlite3", "data/rules")
         classification = report["classifications"]["10614120"]
 
-        self.assertEqual(classification["coverage"], "covered_partial")
+        self.assertEqual(classification["coverage"], "covered_exact")
         self.assertNotIn("信仰", classification["missing_primitives"])
-        self.assertIn("unsupported_text", classification["rule_metadata"])
-        self.assertIn(
-            "进化时",
-            classification["rule_metadata"]["unsupported_text"],
-        )
+        self.assertNotIn("unsupported_text", classification.get("rule_metadata", {}))
 
 
 if __name__ == "__main__":

@@ -1,11 +1,20 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from enum import Enum
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from swb.engine.effects import EffectOperation
 
 
 class FaithTrigger(str, Enum):
     FOLLOWER_EVOLVED = "follower_evolved"
+
+
+class FaithAbilityStacking(str, Enum):
+    UNIQUE = "unique"
+    ALLOW = "allow"
 
 
 @dataclass(frozen=True)
@@ -22,6 +31,14 @@ class FaithDefinition:
     triggers: tuple[FaithTriggerRule, ...] = ()
 
 
+@dataclass(frozen=True)
+class FaithGrantedAbility:
+    ability_id: str
+    trigger: FaithTrigger
+    operations: tuple["EffectOperation", ...]
+    granted_sequence: int
+
+
 @dataclass
 class FaithInstance:
     definition: FaithDefinition
@@ -29,6 +46,8 @@ class FaithInstance:
     controller: int
     created_sequence: int
     value: int = 0
+    granted_abilities: list[FaithGrantedAbility] = field(default_factory=list)
+    _next_granted_ability_sequence: int = 1
 
     @property
     def faith_id(self) -> str:

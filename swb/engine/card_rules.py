@@ -27,7 +27,12 @@ from swb.engine.emblem import (
     EventScope,
     TurnScope,
 )
-from swb.engine.faith import FaithDefinition, FaithTrigger, FaithTriggerRule
+from swb.engine.faith import (
+    FaithAbilityStacking,
+    FaithDefinition,
+    FaithTrigger,
+    FaithTriggerRule,
+)
 from swb.engine.listeners import (
     LISTENER_EVENT_TYPES,
     CardListenerDefinition,
@@ -1902,6 +1907,7 @@ def _parse_operation(
             EffectKind.ADD_EARTH_SIGILS,
             EffectKind.EARTH_RITE,
             EffectKind.CONSUME_FAITH,
+            EffectKind.GRANT_FAITH_ABILITY,
             EffectKind.NECROMANCY,
             EffectKind.REANIMATE,
             EffectKind.CONDITIONAL,
@@ -2294,6 +2300,9 @@ def _parse_operation(
 
     faith_ops: tuple = ()
     faith_id = raw.get("faith_id")
+    faith_ability_id = raw.get("ability_id")
+    faith_trigger = raw.get("faith_trigger")
+    faith_stacking = raw.get("stacking", FaithAbilityStacking.UNIQUE.value)
     if kind is EffectKind.CONSUME_FAITH:
         if not isinstance(faith_id, str) or not faith_id:
             raise ValueError(
@@ -2335,10 +2344,61 @@ def _parse_operation(
             faith_ops,
             f"{source_file} card {card_id} (consume_faith)",
         )
-    elif faith_id is not None:
+    elif kind is EffectKind.GRANT_FAITH_ABILITY:
+        if not isinstance(faith_id, str) or not faith_id:
+            raise ValueError(
+                f"{source_file}/faith_id card {card_id}: "
+                "grant_faith_ability requires a non-empty faith_id"
+            )
+        if not isinstance(faith_ability_id, str) or not faith_ability_id:
+            raise ValueError(
+                f"{source_file}/ability_id card {card_id}: "
+                "grant_faith_ability requires a non-empty ability_id"
+            )
+        try:
+            faith_trigger = FaithTrigger(faith_trigger).value
+        except (TypeError, ValueError) as exc:
+            raise ValueError(
+                f"{source_file}/faith_trigger card {card_id}: invalid Faith trigger"
+            ) from exc
+        try:
+            faith_stacking = FaithAbilityStacking(faith_stacking).value
+        except (TypeError, ValueError) as exc:
+            raise ValueError(
+                f"{source_file}/stacking card {card_id}: invalid Faith stacking policy"
+            ) from exc
+        if target is not TargetKind.OWN_LEADER:
+            raise ValueError(
+                f"{source_file}/target card {card_id}: grant_faith_ability "
+                "requires target 'own_leader'"
+            )
+        raw_inner = raw.get("operations")
+        if not isinstance(raw_inner, list) or not raw_inner:
+            raise ValueError(
+                f"{source_file} card {card_id}: grant_faith_ability requires "
+                "a non-empty operations list"
+            )
+        faith_ops = tuple(
+            _parse_operation(
+                op,
+                f"{source_file}/operations[{i}]",
+                card_id,
+                _depth + 1,
+                _allow_event_source=_allow_event_source,
+            )
+            for i, op in enumerate(raw_inner)
+        )
+        _validate_target_keys(
+            faith_ops,
+            f"{source_file} card {card_id} (grant_faith_ability)",
+        )
+    elif any(
+        value is not None
+        for value in (faith_id, faith_ability_id, faith_trigger)
+    ) or "stacking" in raw:
         raise ValueError(
-            f"{source_file}/faith_id card {card_id}: faith_id is only valid "
-            "for consume_faith"
+            f"{source_file} card {card_id}: Faith ability fields are only valid "
+            "for consume_faith or grant_faith_ability"
         )
 
     necromancy_ops: tuple = ()
@@ -2824,7 +2884,27 @@ def _parse_operation(
         target_key=target_key,
         earth_rite_operations=earth_rite_ops,
         necromancy_operations=necromancy_ops,
-        faith_id=faith_id if kind is EffectKind.CONSUME_FAITH else None,
+        faith_id=(
+            faith_id
+            if kind in {
+                EffectKind.CONSUME_FAITH,
+                EffectKind.GRANT_FAITH_ABILITY,
+            }
+            else None
+        ),
+        faith_ability_id=(
+            faith_ability_id
+            if kind is EffectKind.GRANT_FAITH_ABILITY
+            else None
+        ),
+        faith_trigger=(
+            faith_trigger if kind is EffectKind.GRANT_FAITH_ABILITY else None
+        ),
+        faith_stacking=(
+            faith_stacking
+            if kind is EffectKind.GRANT_FAITH_ABILITY
+            else FaithAbilityStacking.UNIQUE.value
+        ),
         faith_operations=faith_ops,
         graveyard_cost_max=graveyard_cost_max,
         graveyard_cost_min=graveyard_cost_min,

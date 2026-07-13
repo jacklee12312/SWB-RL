@@ -10,9 +10,8 @@
           "amount": 1
         }
       ],
-      "coverage": "partial",
-      "implemented_text": "信仰值起始为0。自己的随从进化时，信仰值+1。入场曲：信仰值-10，将天枪深渊加入手牌。",
-      "unsupported_text": "使信仰获得「自己的随从进化时，对对手的主战者造成1点伤害」。"
+      "coverage": "exact",
+      "implemented_text": "信仰值起始为0。自己的随从进化时，信仰值+1。入场曲：信仰值-10，将天枪深渊加入手牌。使信仰获得「自己的随从进化时，对对手的主战者造成1点伤害」。"
     }
   ],
   "rules": [
@@ -30,6 +29,21 @@
               "kind": "add_card",
               "target": "own_leader",
               "card_id": 90014330
+            },
+            {
+              "kind": "grant_faith_ability",
+              "target": "own_leader",
+              "faith_id": "ancient_heavenspear",
+              "ability_id": "sasanid_evolve_leader_damage",
+              "faith_trigger": "follower_evolved",
+              "stacking": "allow",
+              "operations": [
+                {
+                  "kind": "damage_leader",
+                  "target": "enemy_leader",
+                  "amount": 1
+                }
+              ]
             }
           ]
         }

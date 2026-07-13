@@ -143,11 +143,15 @@ The deterministic rules core supports:
   deterministic fingerprints, and public value-change events; the first
   verified trigger counts both normal and super evolution for real card
   `10614120`. Its Fanfare now atomically pays 10 Faith and generates token
-  `90014330` with auditable origin; its gained Faith evolution-damage ability
-  remains explicitly partial;
+  `90014330` with auditable origin, then grants a stacking evolution trigger
+  that deals 1 damage to the opposing leader after Faith progression;
 - generic `consume_faith` costs identify a stable Faith instance, require the
   full value without clamping, emit explicit success/failure diagnostics, and
   queue nested payoff operations only after an atomic successful payment;
+- generic Faith abilities store structured triggers and operations on the
+  stable leader-area instance, support explicit unique/stacking policies,
+  resolve in Faith-placement then grant order, preserve pending-choice event
+  continuations, and participate in fingerprints, invariants, and diagnostics;
 - command-level `融合` from hand, including structured material filters and
   count limits, variable-count selection with explicit confirmation, once-per-
   card-per-turn tracking, atomic hand-zone revalidation, a distinct consumed
@@ -265,9 +269,10 @@ Known broad gaps include:
   `amulet_activated` and `card_fused`; remaining cards that use those events
   still need individual structured rules and official-text verification;
 - Faith currently supports the verified `follower_evolved` progression trigger
-  for normal and super evolution. Mode selection, Enhance play, named-follower
-  entry, amulet-destruction progression, value spending, gained Faith abilities,
-  and the shared five-slot leader-area limit remain explicit unsupported edges;
+  for normal and super evolution, atomic value spending, and dynamically gained
+  structured abilities. Mode selection, Enhance play, named-follower entry,
+  amulet-destruction progression, and the shared five-slot leader-area limit
+  remain explicit unsupported edges;
 - Fusion-driven hand transforms and refusion are implemented. Other cards can
   listen to `card_fused`, but their individual reactions and later generated
   Artifact end-form abilities still require audited structured rules;

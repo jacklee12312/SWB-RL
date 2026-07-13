@@ -10,13 +10,13 @@ code and tests as the source of truth when this file drifts.
 - Database: 826 cards, 735 collectible cards, 91 non-collectible/generated
   cards from set `90000`.
 - Latest SVA source: `https://sva.hypd.asia/data/cards.json`.
-- Tests: `python -m unittest discover -s tests -v` currently runs 1100 tests.
+- Tests: `python -m unittest discover -s tests -v` currently runs 1107 tests.
 - RL adapter: fixed 111-action space and 290-feature observation.
 - Ability registry status: 18 implemented, 5 partial, 11 placeholder.
 - Explicit card and demo rules live in `data/rules/`; the current coverage
   report classifies 114 card IDs with explicit rules, passives, fusion,
   invocation, activation, Faith, Union Burst, or listener definitions. Current
-  collectible coverage is 83 exact, 1 partial, 633 supported-but-missing-rule,
+  collectible coverage is 84 exact, 0 partial, 633 supported-but-missing-rule,
   0 missing-primitive, and 18 text-unclear cards.
 
 ## Stable Priorities
@@ -240,8 +240,9 @@ slice in this order:
   evolution increment only the evolving player's matching Faith before later
   event listeners resolve. Real `10614120` (`古旧天枪·萨莎妮德`) starts at 0
   and increments by 1. Its Fanfare atomically spends 10 and generates
-  `90014330` with token origin; only its gained evolution-damage Faith ability
-  remains annotated `covered_partial`.
+  `90014330` with token origin, then grants its Faith a stacking evolution
+  trigger that damages the opposing leader after value progression. The full
+  source-card text is now `covered_exact`.
 - Faith count and aggregate value for both players add four public observation
   features, migrating the fixed observation from 257 to 261 while leaving the
   111-action layout unchanged. The database importer now includes alternate-mode
@@ -251,7 +252,12 @@ slice in this order:
   `faith_id`, requires the complete value, never clamps below zero, emits
   success or missing/insufficient diagnostics, and only schedules nested
   operations after successful payment. Sasanid's generated-card payoff now
-  uses this boundary; its gained Faith ability remains a separate follow-up.
+  uses this boundary.
+- `grant_faith_ability` stores structured trigger/operation payloads on the
+  stable Faith instance with explicit unique or stacking semantics. Matching
+  abilities execute in Faith-placement then grant order after normal Faith
+  progression; grant and trigger events, fingerprints, invariants, loop
+  diagnostics, and pending-choice event continuation cover the dynamic state.
 - `UnionBurstDefinition` provides structured `奥义` and `解放奥义` operations
   at fixed gauges 10 and 15. Every hand card independently records evolutions
   completed while it remains in hand; both normal and super evolution count,
@@ -356,9 +362,10 @@ slice in this order:
   while the source remains in play; broader real-card coverage remains partial.
 - Union Burst core gauge and threshold semantics are implemented, but every
   additional real card still needs an explicit structured definition. Faith
-  leader-area initialization and evolution progression are implemented, while mode-selection, Enhance, named-follower,
-  and amulet-destruction progression triggers plus value spending/gained Faith
-  abilities remain explicit partial semantics. `策动` and `土之秘术` /
+  leader-area initialization, evolution progression, atomic value spending,
+  and gained structured abilities are implemented, while mode-selection,
+  Enhance, named-follower, and amulet-destruction progression triggers remain
+  explicit partial semantics. `策动` and `土之秘术` /
   `土之印` core semantics are implemented, while broader real-card coverage
   remains intentionally incremental.
 - Faith and emblems are both represented in the leader area, but the official
