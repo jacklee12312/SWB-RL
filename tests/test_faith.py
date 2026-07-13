@@ -940,6 +940,85 @@ class RealFaithCardTests(unittest.TestCase):
             any(card.card_id == 90064320 for card in engine.players[0].hand)
         )
 
+    def test_tome_depths_destroys_own_amulet_then_uses_selection_snapshot(self):
+        engine = self._lyanthoth_engine()
+        token = self.repo.get(90064320)
+        engine.players[0].hand.clear()
+        engine.players[0].hand_entity_ids.clear()
+        _insert_hand(engine, token, origin=CardOrigin.TOKEN)
+        engine.players[0].max_mana = engine.players[0].mana = token.cost
+        amulet = Amulet(
+            definition=_card(
+                8300,
+                class_id=6,
+                class_name="主教",
+                card_type="护符",
+                attack=None,
+                life=None,
+            ),
+            entity_id=engine.state.allocate_entity_id(),
+        )
+        engine.players[0].board.append(amulet)
+
+        engine.apply(PlayCard(0, 0))
+        engine.apply(Choose(0, f"entity:{amulet.entity_id}"))
+
+        self.assertNotIn(amulet, engine.players[0].board)
+        self.assertEqual(engine.players[1].health, 18)
+        generated = next(
+            card for card in engine.players[0].hand
+            if card.card_id == 90064320
+        )
+        self.assertIs(generated.origin, CardOrigin.TOKEN)
+
+    def test_tome_depths_requires_a_board_target_without_mutation(self):
+        engine = self._lyanthoth_engine()
+        token = self.repo.get(90064320)
+        engine.players[0].hand.clear()
+        engine.players[0].hand_entity_ids.clear()
+        _insert_hand(engine, token, origin=CardOrigin.TOKEN)
+        engine.players[0].max_mana = engine.players[0].mana = token.cost
+        before = engine.deterministic_fingerprint()
+
+        with self.assertRaises(IllegalCommand):
+            engine.apply(PlayCard(0, 0))
+
+        self.assertEqual(engine.deterministic_fingerprint(), before)
+
+    def test_tome_depths_only_damages_for_selected_allied_amulet(self):
+        for owner, card_type in ((1, "护符"), (0, "随从")):
+            with self.subTest(owner=owner, card_type=card_type):
+                engine = self._lyanthoth_engine()
+                token = self.repo.get(90064320)
+                engine.players[0].hand.clear()
+                engine.players[0].hand_entity_ids.clear()
+                _insert_hand(engine, token, origin=CardOrigin.TOKEN)
+                engine.players[0].max_mana = engine.players[0].mana = token.cost
+                if card_type == "护符":
+                    target = Amulet(
+                        definition=_card(
+                            8400 + owner,
+                            card_type="护符",
+                            attack=None,
+                            life=None,
+                        ),
+                        entity_id=engine.state.allocate_entity_id(),
+                    )
+                else:
+                    target = Unit.summon(
+                        _card(8400 + owner),
+                        entity_id=engine.state.allocate_entity_id(),
+                    )
+                engine.players[owner].board.append(target)
+
+                engine.apply(PlayCard(0, 0))
+                engine.apply(Choose(0, f"entity:{target.entity_id}"))
+
+                self.assertEqual(engine.players[1].health, 20)
+                self.assertTrue(
+                    any(card.card_id == 90064320 for card in engine.players[0].hand)
+                )
+
     def test_coverage_marks_complete_lyanthoth_rule_exact(self):
         report = _build_coverage_report("data/cards.sqlite3", "data/rules")
         classification = report["classifications"]["10664120"]

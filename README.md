@@ -155,7 +155,10 @@ The deterministic rules core supports:
 - Faith progression also accepts owner-scoped amulet-destruction events in
   active-player death-batch order. Exact `10664120` owns a separate persistent
   Faith, advances it when its controller's amulets are destroyed, and at turn
-  end atomically pays 10 to generate `90064320` with token origin while present;
+  end atomically pays 10 to generate `90064320` with token origin while present.
+  Bound selected-board snapshots retain auditable owner/type metadata after a
+  target leaves play; generated `90064320` uses that snapshot to destroy any
+  selected board card, damage only for an allied amulet, and replace itself;
 - generic effect-caused normal evolution selects an unevolved follower, spends
   no EP or once-per-turn manual evolution allowance, updates public evolution
   counters/gauges, and emits the normal evolution event with evolve abilities;
@@ -292,8 +295,8 @@ Known broad gaps include:
   for normal and super evolution, owner amulet-destruction progression, atomic
   value spending, and dynamically gained structured abilities. Mode selection,
   Enhance play, named-follower entry, and the shared five-slot leader-area
-  limit remain explicit unsupported edges; generated `天书深渊` itself remains
-  part of the later token/generated-card behavior audit;
+  limit remain explicit unsupported edges; other generated cards remain part
+  of the later token/generated-card behavior audit;
 - Fusion-driven hand transforms and refusion are implemented. Other cards can
   listen to `card_fused`, but their individual reactions and later generated
   Artifact end-form abilities still require audited structured rules;

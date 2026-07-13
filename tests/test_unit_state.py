@@ -754,6 +754,60 @@ class BackwardCompatTests(unittest.TestCase):
 
 
 class TargetBindingTests(unittest.TestCase):
+    def test_schema_rejects_invalid_condition_target_bindings(self):
+        import json
+        import tempfile
+        from pathlib import Path
+
+        cases = (
+            (
+                [{
+                    "kind": "conditional",
+                    "condition_target_key": "missing",
+                    "conditions": [{"type": "target_is_own"}],
+                    "then": [],
+                }],
+                "was not defined",
+            ),
+            (
+                [{
+                    "kind": "select_targets",
+                    "target": "any_board",
+                    "target_key": "many",
+                    "target_count": 2,
+                }, {
+                    "kind": "conditional",
+                    "condition_target_key": "many",
+                    "conditions": [{"type": "target_is_own"}],
+                    "then": [],
+                }],
+                "exactly one target",
+            ),
+            (
+                [{
+                    "kind": "destroy",
+                    "target": "enemy_unit",
+                    "condition_target_key": "bad",
+                }],
+                "only valid for conditional",
+            ),
+        )
+        for operations, message in cases:
+            with self.subTest(message=message), tempfile.TemporaryDirectory() as tmp:
+                payload = {
+                    "rules": [{
+                        "card_id": 123,
+                        "trigger": "play",
+                        "operations": operations,
+                    }]
+                }
+                Path(tmp, "bad.json").write_text(
+                    json.dumps(payload),
+                    encoding="utf-8",
+                )
+                with self.assertRaisesRegex(ValueError, message):
+                    RuleBook.from_directory(tmp)
+
     def test_both_ops_target_same_unit_single_choice(self):
         rulebook = RuleBook((
             CardRule(card_id=1, trigger=Trigger.PLAY, operations=(

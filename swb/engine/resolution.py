@@ -30,6 +30,7 @@ from swb.engine.commands import (
 )
 from swb.engine.deck import CLASS_NAMES, validate_deck
 from swb.engine.effects import (
+    BoundTargetSnapshot,
     Condition,
     ConditionType,
     CostChangeMode,
@@ -2055,6 +2056,8 @@ class GameEngine:
             summary["faith_stacking"] = operation.faith_stacking
         if operation.target_key is not None:
             summary["target_key"] = operation.target_key
+        if operation.condition_target_key is not None:
+            summary["condition_target_key"] = operation.condition_target_key
         if operation.keyword is not None:
             summary["keyword"] = operation.keyword
         if operation.amount_expr is not None:
@@ -2747,6 +2750,9 @@ class GameEngine:
             "target_binding_operations": self._fingerprint_value(
                 frame._target_binding_operations
             ),
+            "target_binding_snapshots": self._fingerprint_value(
+                frame._target_binding_snapshots
+            ),
             "decision_meta": self._fingerprint_value(frame._decision_meta),
             "emblem_batch_id": frame.emblem_batch_id,
             "emblem_activation_owner": frame.emblem_activation_owner,
@@ -2794,6 +2800,7 @@ class GameEngine:
             operation.set_attack,
             operation.set_health,
             operation.target_key,
+            operation.condition_target_key,
             tuple(
                 self._operation_fingerprint(nested)
                 for nested in operation.earth_rite_operations
@@ -2860,6 +2867,7 @@ class GameEngine:
             condition.type.value,
             condition.value,
             condition.keyword,
+            condition.card_type,
             self._board_filter_fingerprint(condition.board_filter),
             tuple(
                 self._condition_fingerprint(nested)
@@ -3124,6 +3132,15 @@ class GameEngine:
             return self._event_fingerprint(value)
         if isinstance(value, EffectOperation):
             return self._operation_fingerprint(value)
+        if isinstance(value, BoundTargetSnapshot):
+            return (
+                value.entity_id,
+                value.controller,
+                value.card_id,
+                value.card_type,
+                value.card_name,
+                value.cost,
+            )
         if isinstance(value, Condition):
             return self._condition_fingerprint(value)
         if isinstance(value, ValueExpression):
@@ -3705,8 +3722,17 @@ class GameEngine:
                 target_ids = tuple(frame.pending_target_ids)
                 frame.pending_target_ids.clear()
                 if operation.target_key:
-                    frame._target_bindings[operation.target_key] = target_ids
-                    frame._target_binding_operations[operation.target_key] = operation
+                    pending_snapshots = frame._decision_meta.pop(
+                        "pending_target_snapshots",
+                        None,
+                    )
+                    self._bind_targets(
+                        frame,
+                        operation.target_key,
+                        target_ids,
+                        operation,
+                        snapshots=pending_snapshots,
+                    )
                 frame.defer_stabilize = True
                 for selected_target_id in target_ids:
                     if not self._target_id_still_legal(
@@ -3843,8 +3869,12 @@ class GameEngine:
                     raise IllegalCommand(
                         "target_key requires a resolved board entity"
                     ) from exc
-                frame._target_bindings[operation.target_key] = (target_id,)
-                frame._target_binding_operations[operation.target_key] = operation
+                self._bind_targets(
+                    frame,
+                    operation.target_key,
+                    (target_id,),
+                    operation,
+                )
             self._checked_execute(operation, frame, target_id)
             frame.next_index += 1
             self._resolve_event_queue()
@@ -4329,6 +4359,37 @@ class GameEngine:
             option.option_id
             for option in self._target_choice_options(binding_operation, frame)
         }
+
+    def _bind_targets(
+        self,
+        frame: EffectFrame,
+        target_key: str,
+        target_ids: tuple[int, ...],
+        operation: EffectOperation,
+        *,
+        snapshots: tuple[BoundTargetSnapshot, ...] | None = None,
+    ) -> None:
+        if snapshots is None:
+            snapshots = tuple(
+                self._bound_target_snapshot(target_id)
+                for target_id in target_ids
+            )
+        if tuple(snapshot.entity_id for snapshot in snapshots) != target_ids:
+            raise IllegalCommand("Bound target snapshots do not match target IDs")
+        frame._target_bindings[target_key] = target_ids
+        frame._target_binding_operations[target_key] = operation
+        frame._target_binding_snapshots[target_key] = snapshots
+
+    def _bound_target_snapshot(self, target_id: int) -> BoundTargetSnapshot:
+        entity = self._find_board_entity(target_id)
+        return BoundTargetSnapshot(
+            entity_id=target_id,
+            controller=self._entity_owner(target_id),
+            card_id=entity.definition.card_id,
+            card_type=entity.definition.card_type,
+            card_name=entity.definition.name,
+            cost=entity.definition.cost,
+        )
 
     def _stale_choice_reason(
         self,
@@ -4907,6 +4968,15 @@ class GameEngine:
                 self._try_spellboost_hand()
                 return
             if request.target_count > 1 or request.selected_options:
+                selected_target_id = self._choice_option_target_id(option)
+                if selected_target_id is None:
+                    raise IllegalCommand(
+                        "Multi-target choice option has no target identity"
+                    )
+                selected_snapshots = (
+                    *frame._decision_meta.get("pending_target_snapshots", ()),
+                    self._bound_target_snapshot(selected_target_id),
+                )
                 selected_options = (*request.selected_options, option)
                 if len(selected_options) < request.target_count:
                     remaining_options = request.options
@@ -4920,6 +4990,9 @@ class GameEngine:
                         raise IllegalCommand(
                             "Multi-target choice has no remaining legal options"
                         )
+                    frame._decision_meta[
+                        "pending_target_snapshots"
+                    ] = selected_snapshots
                     self.state.pending_choice = replace(
                         request,
                         options=remaining_options,
@@ -4939,6 +5012,9 @@ class GameEngine:
                     raise IllegalCommand(
                         "Multi-target choice option has no target identity"
                     )
+                frame._decision_meta[
+                    "pending_target_snapshots"
+                ] = selected_snapshots
                 frame.pending_target_ids = list(target_ids)
                 self.state.pending_choice = None
                 self.state.phase = Phase.MAIN
@@ -7211,14 +7287,35 @@ class GameEngine:
                 return
 
     def _execute_conditional(self, effect, frame) -> None:
+        target_snapshot = None
+        if effect.condition_target_key is not None:
+            snapshots = frame._target_binding_snapshots.get(
+                effect.condition_target_key,
+                (),
+            )
+            if len(snapshots) != 1:
+                raise IllegalCommand(
+                    "condition_target_key requires exactly one bound target snapshot"
+                )
+            target_snapshot = snapshots[0]
         ctx = EvalContext(
             controller=frame.controller,
             players=self.players,
             source_entity_id=frame.source_entity_id,
             source_fusion_count=len(frame.fusion_materials),
+            target_snapshot=target_snapshot,
         )
-        result = evaluate_conditions_without_target(effect.conditions, ctx)
-        branch_ops = effect.then_operations if result is PartialConditionResult.TRUE else effect.else_operations
+        if target_snapshot is None:
+            condition_matches = (
+                evaluate_conditions_without_target(effect.conditions, ctx)
+                is PartialConditionResult.TRUE
+            )
+        else:
+            condition_matches = all(
+                evaluate_condition(condition, ctx)
+                for condition in effect.conditions
+            )
+        branch_ops = effect.then_operations if condition_matches else effect.else_operations
         if branch_ops:
             self._queue_effects_from_frame(
                 frame,
@@ -9597,6 +9694,45 @@ class GameEngine:
                     raise IllegalCommand(
                         f"Invariant failed: {zone} target binding operation is invalid"
                     )
+            if not isinstance(frame._target_binding_snapshots, dict):
+                raise IllegalCommand(
+                    f"Invariant failed: {zone} _target_binding_snapshots must be a dict"
+                )
+            if set(frame._target_binding_snapshots) != set(frame._target_bindings):
+                raise IllegalCommand(
+                    f"Invariant failed: {zone} target bindings and snapshots differ"
+                )
+            for key, snapshots in frame._target_binding_snapshots.items():
+                if not isinstance(snapshots, tuple) or len(snapshots) != len(
+                    frame._target_bindings[key]
+                ):
+                    raise IllegalCommand(
+                        f"Invariant failed: {zone} target snapshots do not match binding"
+                    )
+                for snapshot_index, snapshot in enumerate(snapshots):
+                    if not isinstance(snapshot, BoundTargetSnapshot):
+                        raise IllegalCommand(
+                            f"Invariant failed: {zone} target snapshot is invalid"
+                        )
+                    if snapshot.entity_id != frame._target_bindings[key][snapshot_index]:
+                        raise IllegalCommand(
+                            f"Invariant failed: {zone} target snapshot entity differs"
+                        )
+                    if (
+                        snapshot.controller not in (0, 1)
+                        or not isinstance(snapshot.card_id, int)
+                        or isinstance(snapshot.card_id, bool)
+                        or snapshot.card_id <= 0
+                        or not isinstance(snapshot.card_type, str)
+                        or not snapshot.card_type
+                        or not isinstance(snapshot.card_name, str)
+                        or not isinstance(snapshot.cost, int)
+                        or isinstance(snapshot.cost, bool)
+                        or snapshot.cost < 0
+                    ):
+                        raise IllegalCommand(
+                            f"Invariant failed: {zone} target snapshot payload is invalid"
+                        )
             if not isinstance(frame._decision_meta, dict):
                 raise IllegalCommand(
                     f"Invariant failed: {zone} _decision_meta must be a dict"
@@ -9630,6 +9766,14 @@ class GameEngine:
                 if not isinstance(operation.exclude_source, bool):
                     raise IllegalCommand(
                         f"Invariant failed: {operation_zone} source-exclusion policy is invalid"
+                    )
+                if operation.condition_target_key is not None and (
+                    operation.kind is not EffectKind.CONDITIONAL
+                    or not isinstance(operation.condition_target_key, str)
+                    or not operation.condition_target_key
+                ):
+                    raise IllegalCommand(
+                        f"Invariant failed: {operation_zone} condition target key is invalid"
                     )
                 if operation.kind is EffectKind.CONSUME_FAITH:
                     if (

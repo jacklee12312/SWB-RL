@@ -62,6 +62,51 @@
       ]
     },
     {
+      "card_id": 90064320,
+      "trigger": "play",
+      "coverage": "exact",
+      "implemented_text": "选择战场上的1张卡牌，破坏该卡牌。若选择了自己的护符，则对对手的主战者造成2点伤害。将1张『天书深渊』加入手牌。",
+      "operations": [
+        {
+          "kind": "select_targets",
+          "target": "any_board",
+          "target_key": "selected_card",
+          "requires_target": true
+        },
+        {
+          "kind": "destroy",
+          "target": "previous_target",
+          "target_key": "selected_card"
+        },
+        {
+          "kind": "conditional",
+          "target": "own_leader",
+          "condition_target_key": "selected_card",
+          "conditions": [
+            {
+              "type": "target_is_own"
+            },
+            {
+              "type": "target_card_type_is",
+              "card_type": "护符"
+            }
+          ],
+          "then": [
+            {
+              "kind": "damage_leader",
+              "target": "enemy_leader",
+              "amount": 2
+            }
+          ]
+        },
+        {
+          "kind": "add_card",
+          "target": "own_leader",
+          "card_id": 90064320
+        }
+      ]
+    },
+    {
       "card_id": 90014330,
       "trigger": "play",
       "operations": [

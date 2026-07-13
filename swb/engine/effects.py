@@ -32,6 +32,8 @@ class ConditionType(str, Enum):
     SOURCE_EVOLVED = "source_evolved"
     SOURCE_HAS_KEYWORD = "source_has_keyword"
     TARGET_HAS_KEYWORD = "target_has_keyword"
+    TARGET_IS_OWN = "target_is_own"
+    TARGET_CARD_TYPE_IS = "target_card_type_is"
     CONTROLLER_SHADOWS_AT_LEAST = "controller_shadows_at_least"
     OPPONENT_SHADOWS_AT_LEAST = "opponent_shadows_at_least"
     CONTROLLER_COOPERATION_AT_LEAST = "controller_cooperation_at_least"
@@ -78,6 +80,7 @@ class Condition:
     type: ConditionType
     value: int = 0
     keyword: str | None = None
+    card_type: str | None = None
     board_filter: "BoardFilter | None" = None
     conditions: list[Condition] = field(default_factory=list)
 
@@ -283,6 +286,7 @@ class EffectOperation:
     set_attack: bool = False
     set_health: bool = False
     target_key: str | None = None
+    condition_target_key: str | None = None
     earth_rite_operations: tuple["EffectOperation", ...] = ()
     necromancy_operations: tuple["EffectOperation", ...] = ()
     faith_id: str | None = None
@@ -309,6 +313,16 @@ class EffectOperation:
     exclude_source: bool = False
 
 
+@dataclass(frozen=True)
+class BoundTargetSnapshot:
+    entity_id: int
+    controller: int
+    card_id: int
+    card_type: str
+    card_name: str
+    cost: int
+
+
 @dataclass
 class EffectFrame:
     controller: int
@@ -332,6 +346,9 @@ class EffectFrame:
     _hand_source_origin_parent: Any = None
     _target_bindings: dict[str, tuple[int, ...]] = field(default_factory=dict)
     _target_binding_operations: dict[str, EffectOperation] = field(default_factory=dict)
+    _target_binding_snapshots: dict[
+        str, tuple[BoundTargetSnapshot, ...]
+    ] = field(default_factory=dict)
     _decision_meta: dict[str, Any] = field(default_factory=dict)
     emblem_batch_id: int | None = None
     emblem_activation_owner: int | None = None

@@ -4,7 +4,13 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import TYPE_CHECKING
 
-from swb.engine.effects import Condition, ConditionType, ExprType, ValueExpression
+from swb.engine.effects import (
+    BoundTargetSnapshot,
+    Condition,
+    ConditionType,
+    ExprType,
+    ValueExpression,
+)
 from swb.engine.state import Unit
 
 if TYPE_CHECKING:
@@ -22,6 +28,7 @@ class EvalContext:
     target_entity_id: int | None = None
     source_card_id: int | None = None
     source_fusion_count: int = 0
+    target_snapshot: BoundTargetSnapshot | None = None
 
     @property
     def controller_player(self) -> PlayerState:
@@ -55,6 +62,8 @@ _TARGET_DEPENDENT_CONDITIONS = frozenset({
     ConditionType.TARGET_HEALTH_AT_MOST,
     ConditionType.TARGET_HEALTH_AT_LEAST,
     ConditionType.TARGET_HAS_KEYWORD,
+    ConditionType.TARGET_IS_OWN,
+    ConditionType.TARGET_CARD_TYPE_IS,
 })
 
 
@@ -160,6 +169,21 @@ def evaluate_condition(cond: Condition | None, ctx: EvalContext | None) -> bool:
     opponent = ctx.opponent_player
     target = ctx.target_entity
     source = ctx.source_entity
+
+    if t == ConditionType.TARGET_IS_OWN:
+        if ctx.target_snapshot is not None:
+            return ctx.target_snapshot.controller == ctx.controller
+        return any(
+            target in player.board and player_index == ctx.controller
+            for player_index, player in enumerate(ctx.players)
+        )
+    elif t == ConditionType.TARGET_CARD_TYPE_IS:
+        if ctx.target_snapshot is not None:
+            return ctx.target_snapshot.card_type == cond.card_type
+        return (
+            target is not None
+            and target.definition.card_type == cond.card_type
+        )
 
     if t == ConditionType.CONTROLLER_HEALTH_AT_MOST:
         return player.health <= cond.value

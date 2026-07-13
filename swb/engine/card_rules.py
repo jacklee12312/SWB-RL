@@ -1824,7 +1824,28 @@ _EVENT_SOURCE_TARGET_EFFECTS = frozenset({
 
 def _validate_target_keys(operations: tuple[EffectOperation, ...], source: str) -> None:
     defined: set[str] = set()
+    binding_operations: dict[str, EffectOperation] = {}
     for i, op in enumerate(operations):
+        if op.condition_target_key:
+            if op.kind is not EffectKind.CONDITIONAL:
+                raise ValueError(
+                    f"{source}/operations[{i}]: condition_target_key is only "
+                    "valid for conditional operations"
+                )
+            if op.condition_target_key not in defined:
+                raise ValueError(
+                    f"{source}/operations[{i}]: condition_target_key "
+                    f"{op.condition_target_key!r} was not defined by a previous operation"
+                )
+            binding_operation = binding_operations[op.condition_target_key]
+            if (
+                binding_operation.target_count != 1
+                or binding_operation.target_count_expr is not None
+            ):
+                raise ValueError(
+                    f"{source}/operations[{i}]: condition_target_key requires "
+                    "a binding that selects exactly one target"
+                )
         if op.target is TargetKind.PREVIOUS_TARGET:
             if not op.target_key:
                 raise ValueError(
@@ -1848,6 +1869,7 @@ def _validate_target_keys(operations: tuple[EffectOperation, ...], source: str) 
                     f"{op.target_key!r}"
                 )
             defined.add(op.target_key)
+            binding_operations[op.target_key] = op
         if op.necromancy_operations:
             _validate_target_keys(
                 op.necromancy_operations,
@@ -2238,6 +2260,20 @@ def _parse_operation(
                 f"{source_file}/target card {card_id}: select_targets requires "
                 "selected board-entity targets"
             )
+
+    condition_target_key = raw.get("condition_target_key")
+    if condition_target_key is not None and (
+        not isinstance(condition_target_key, str) or not condition_target_key
+    ):
+        raise ValueError(
+            f"{source_file}/condition_target_key card {card_id}: "
+            "must be a non-empty string"
+        )
+    if condition_target_key is not None and kind is not EffectKind.CONDITIONAL:
+        raise ValueError(
+            f"{source_file}/condition_target_key card {card_id}: "
+            "is only valid for conditional operations"
+        )
 
     requires_target = raw.get("requires_target", False)
     if not isinstance(requires_target, bool):
@@ -2673,6 +2709,7 @@ def _parse_operation(
     if kind is EffectKind.CONDITIONAL:
         unknown_conditional_keys = set(raw) - {
             "kind", "target", "conditions", "then", "else",
+            "condition_target_key",
         }
         if unknown_conditional_keys:
             raise ValueError(
@@ -2684,7 +2721,7 @@ def _parse_operation(
             conditions,
             f"{source_file} card {card_id}",
         )
-        if invalid_conditional_conditions:
+        if invalid_conditional_conditions and condition_target_key is None:
             raise ValueError(
                 f"{error_prefix}/conditions: conditional conditions cannot "
                 f"depend on a selected target: {sorted(invalid_conditional_conditions)}"
@@ -2910,6 +2947,7 @@ def _parse_operation(
             and (raw.get("secondary_amount") is not None or raw.get("health") is not None or secondary_expr is not None)
         ),
         target_key=target_key,
+        condition_target_key=condition_target_key,
         earth_rite_operations=earth_rite_ops,
         necromancy_operations=necromancy_ops,
         faith_id=(
@@ -3018,6 +3056,18 @@ def _parse_condition(raw: dict, source_path: str, card_id: int) -> Condition:
                 f"{source_path}/keyword card {card_id}: {exc}"
             ) from exc
 
+    card_type = raw.get("card_type")
+    if t is ConditionType.TARGET_CARD_TYPE_IS:
+        if not isinstance(card_type, str) or not card_type:
+            raise ValueError(
+                f"{source_path}/card_type card {card_id}: card_type required"
+            )
+    elif card_type is not None:
+        raise ValueError(
+            f"{source_path}/card_type card {card_id}: card_type is only valid "
+            "for target_card_type_is"
+        )
+
     board_filter = None
     if t in (ConditionType.CONTROLLER_BOARD_HAS, ConditionType.OPPONENT_BOARD_HAS):
         board_filter = _parse_board_filter(
@@ -3031,6 +3081,7 @@ def _parse_condition(raw: dict, source_path: str, card_id: int) -> Condition:
         type=t,
         value=value,
         keyword=keyword,
+        card_type=card_type,
         board_filter=board_filter,
         conditions=sub,
     )
