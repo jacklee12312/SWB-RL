@@ -112,6 +112,8 @@ class EffectKind(str, Enum):
     ADD_CARD = "add_card"
     ADD_KEYWORD = "add_keyword"
     REMOVE_KEYWORD = "remove_keyword"
+    REMOVE_ALL_ABILITIES = "remove_all_abilities"
+    ADD_LEADER_DAMAGE_MODIFIER = "add_leader_damage_modifier"
     CHANGE_COST = "change_cost"
     TRANSFORM = "transform"
     GAIN_EMBLEM = "gain_emblem"
@@ -188,6 +190,7 @@ class ModifierDuration(str, Enum):
     UNTIL_END_OF_CONTROLLER_TURN = "until_end_of_controller_turn"
     UNTIL_END_OF_OPPONENT_TURN = "until_end_of_opponent_turn"
     UNTIL_START_OF_CONTROLLER_NEXT_TURN = "until_start_of_controller_next_turn"
+    WHILE_SOURCE_IN_PLAY = "while_source_in_play"
 
 
 class CostChangeMode(str, Enum):

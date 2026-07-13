@@ -76,6 +76,11 @@ PRIMITIVE_KEYWORD_MAP = OrderedDict([
     ("将.*加入手牌", {"primitive": "ADD_CARD", "covered": True}),
     ("回复", {"primitive": "HEAL_LEADER / HEAL_UNIT", "covered": True}),
     ("造成.*伤害", {"primitive": "DAMAGE_LEADER / DAMAGE_UNIT", "covered": True}),
+    ("失去所有能力", {"primitive": "REMOVE_ALL_ABILITIES", "covered": True}),
+    (
+        "受到的伤害[+＋]",
+        {"primitive": "ADD_LEADER_DAMAGE_MODIFIER", "covered": True},
+    ),
     ("破坏", {"primitive": "DESTROY", "covered": True}),
     ("消失", {"primitive": "BANISH", "covered": True}),
     ("召唤", {"primitive": "SUMMON", "covered": True}),

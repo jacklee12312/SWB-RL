@@ -72,6 +72,7 @@ from swb.engine.state import (
     GameState,
     GraveyardCard,
     HandCard,
+    LeaderDamageModifier,
     CostModifier,
     Phase,
     PlayerState,
@@ -332,6 +333,8 @@ class GameEngine:
             trigger = Trigger(trigger)
         source = context.source
         if not isinstance(source, Unit):
+            return
+        if isinstance(source, Unit) and source.printed_abilities_removed:
             return
         ops = self.rulebook.operations_for(source.definition.card_id, trigger)
         if not ops:
@@ -2252,6 +2255,18 @@ class GameEngine:
             ),
             "cooperation": player.cooperation,
             "shadows": player.shadows,
+            "leader_damage_modifiers": tuple(
+                (
+                    modifier.modifier_id,
+                    modifier.amount,
+                    modifier.duration,
+                    modifier.expires_for_player,
+                    modifier.source_controller,
+                    modifier.source_entity_id,
+                    modifier.source_card_id,
+                )
+                for modifier in player.leader_damage_modifiers
+            ),
             "next_graveyard_sequence": player._next_graveyard_sequence,
             "next_emblem_sequence": player._next_emblem_sequence,
             "next_faith_sequence": player._next_faith_sequence,
@@ -2403,6 +2418,7 @@ class GameEngine:
                     self._targeting_restriction_fingerprint(modifier)
                     for modifier in entity.targeting_restrictions
                 ),
+                "printed_abilities_removed": entity.printed_abilities_removed,
             })
         elif isinstance(entity, Amulet):
             base.update({
@@ -3150,14 +3166,25 @@ class GameEngine:
         controller: int,
     ) -> DamageResult:
         health_before = target_player.health
-        actual = min(amount, health_before)
+        modifier_amount = sum(
+            modifier.amount
+            for modifier in target_player.leader_damage_modifiers
+            if self._leader_damage_modifier_active(modifier)
+        )
+        modified_amount = max(0, amount + modifier_amount)
+        actual = min(modified_amount, health_before)
         target_player.health -= actual
 
         self._emit(GameEvent(
             EventType.DAMAGE_APPLIED, controller,
             source_id=source.entity_id if hasattr(source, 'entity_id') else None,
             amount=actual,
-            metadata={"target_player": self.players.index(target_player), "damage_type": damage_type.value},
+            metadata={
+                "target_player": self.players.index(target_player),
+                "damage_type": damage_type.value,
+                "base_amount": amount,
+                "modifier_amount": modifier_amount,
+            },
         ))
 
         if isinstance(source, Unit) and source.has_keyword("吸血"):
@@ -3191,6 +3218,23 @@ class GameEngine:
             target_health_before=health_before,
             target_health_after=target_player.health,
             lethal=target_player.health <= 0,
+        )
+
+    def _leader_damage_modifier_active(
+        self, modifier: LeaderDamageModifier
+    ) -> bool:
+        if modifier.duration != ModifierDuration.WHILE_SOURCE_IN_PLAY.value:
+            return True
+        if (
+            modifier.source_controller not in (0, 1)
+            or modifier.source_entity_id is None
+            or modifier.source_card_id is None
+        ):
+            return False
+        return any(
+            entity.entity_id == modifier.source_entity_id
+            and entity.definition.card_id == modifier.source_card_id
+            for entity in self.players[modifier.source_controller].board
         )
 
     def _send_to_graveyard(
@@ -4497,7 +4541,13 @@ class GameEngine:
             self._dispatch_ability(
                 AbilityEvent.TURN_ENDED, unit, player_index=player_index
             )
-            ops = self.rulebook.operations_for(unit.definition.card_id, Trigger.TURN_END)
+            ops = (
+                ()
+                if isinstance(unit, Unit) and unit.printed_abilities_removed
+                else self.rulebook.operations_for(
+                    unit.definition.card_id, Trigger.TURN_END
+                )
+            )
             if ops:
                 self._start_effects(unit.definition, unit.entity_id, ops, label="回合结束")
                 if self.state.pending_choice is not None:
@@ -4538,7 +4588,13 @@ class GameEngine:
             self._dispatch_ability(
                 AbilityEvent.TURN_ENDED, unit, player_index=player_index
             )
-            ops = self.rulebook.operations_for(unit.definition.card_id, Trigger.TURN_END)
+            ops = (
+                ()
+                if isinstance(unit, Unit) and unit.printed_abilities_removed
+                else self.rulebook.operations_for(
+                    unit.definition.card_id, Trigger.TURN_END
+                )
+            )
             if ops:
                 self._start_effects(unit.definition, unit.entity_id, ops, label="回合结束")
                 if self.state.pending_choice is not None:
@@ -4724,7 +4780,13 @@ class GameEngine:
             self._dispatch_ability(
                 AbilityEvent.TURN_STARTED, unit, player_index=player_index
             )
-            ops = self.rulebook.operations_for(unit.definition.card_id, Trigger.TURN_START)
+            ops = (
+                ()
+                if isinstance(unit, Unit) and unit.printed_abilities_removed
+                else self.rulebook.operations_for(
+                    unit.definition.card_id, Trigger.TURN_START
+                )
+            )
             if ops:
                 self._start_effects(unit.definition, unit.entity_id, ops, label="回合开始")
                 if self.state.pending_choice is not None:
@@ -4998,7 +5060,13 @@ class GameEngine:
                 self._dispatch_ability(
                     AbilityEvent.TURN_STARTED, unit, player_index=player_index
                 )
-                ops = self.rulebook.operations_for(unit.definition.card_id, Trigger.TURN_START)
+                ops = (
+                    ()
+                    if isinstance(unit, Unit) and unit.printed_abilities_removed
+                    else self.rulebook.operations_for(
+                        unit.definition.card_id, Trigger.TURN_START
+                    )
+                )
                 if ops:
                     self._start_effects(unit.definition, unit.entity_id, ops, label="回合开始")
                     if self.state.pending_choice is not None:
@@ -5422,6 +5490,10 @@ class GameEngine:
             self._execute_keyword_change(effect, frame, target_id, add=True)
         elif effect.kind is EffectKind.REMOVE_KEYWORD:
             self._execute_keyword_change(effect, frame, target_id, add=False)
+        elif effect.kind is EffectKind.REMOVE_ALL_ABILITIES:
+            self._execute_remove_all_abilities(frame, target_id)
+        elif effect.kind is EffectKind.ADD_LEADER_DAMAGE_MODIFIER:
+            self._execute_add_leader_damage_modifier(effect, frame)
         elif effect.kind is EffectKind.CHANGE_COST:
             self._execute_change_cost(effect, frame, target_id)
         elif effect.kind is EffectKind.TRANSFORM:
@@ -5572,6 +5644,55 @@ class GameEngine:
             f"{target.definition.name} {verb}关键词 {effect.keyword}",
         )
 
+    def _execute_remove_all_abilities(
+        self, frame: EffectFrame, target_id: int | None
+    ) -> None:
+        target = self._find_board_entity(target_id)
+        if not isinstance(target, Unit):
+            raise IllegalCommand("remove_all_abilities target must be a follower")
+        target.remove_all_abilities()
+        self._emit(GameEvent(
+            EventType.FOLLOWER_ABILITIES_REMOVED,
+            frame.controller,
+            source_id=frame.source_entity_id,
+            target_id=target.entity_id,
+            metadata={"card_id": target.definition.card_id},
+        ))
+        self._log(frame.controller, f"{target.definition.name} 失去所有能力")
+
+    def _execute_add_leader_damage_modifier(
+        self, effect: EffectOperation, frame: EffectFrame
+    ) -> None:
+        player_index = (
+            frame.controller
+            if effect.target is TargetKind.OWN_LEADER
+            else 1 - frame.controller
+        )
+        source_bound = effect.duration is ModifierDuration.WHILE_SOURCE_IN_PLAY
+        modifier = LeaderDamageModifier(
+            modifier_id=self._allocate_modifier_id(),
+            amount=effect.amount,
+            duration=effect.duration.value,
+            expires_for_player=_expires_for_player(
+                effect.duration, frame.controller, self.state.active_player
+            ),
+            source_controller=frame.controller if source_bound else None,
+            source_entity_id=frame.source_entity_id if source_bound else None,
+            source_card_id=frame.source_card_id if source_bound else None,
+        )
+        self.players[player_index].leader_damage_modifiers.append(modifier)
+        self._emit(GameEvent(
+            EventType.LEADER_DAMAGE_MODIFIER_ADDED,
+            frame.controller,
+            source_id=frame.source_entity_id,
+            amount=effect.amount,
+            metadata={
+                "target_player": player_index,
+                "duration": effect.duration.value,
+                "modifier_id": modifier.modifier_id,
+            },
+        ))
+
     def _execute_change_cost(
         self,
         effect: EffectOperation,
@@ -5664,6 +5785,7 @@ class GameEngine:
         target.stat_modifiers.clear()
         target.attack_restrictions.clear()
         target.targeting_restrictions.clear()
+        target.printed_abilities_removed = False
         self._apply_initial_keyword_overrides(target)
         target._synchronize_keyword_state()
         self._death_causes.pop(target.entity_id, None)
@@ -6306,6 +6428,11 @@ class GameEngine:
                     entity.entity_id == entity_id
                     and entity.definition.card_id == card_id
                 ):
+                    if (
+                        isinstance(entity, Unit)
+                        and entity.printed_abilities_removed
+                    ):
+                        return None
                     return entity.definition
             return None
         if zone == ListenerZone.HAND.value:
@@ -7994,7 +8121,7 @@ class GameEngine:
                         definition=entity.definition,
                         cause=cause,
                         board_position=pos,
-                        allows_last_words=True,
+                        allows_last_words=not entity.printed_abilities_removed,
                         effective_keywords=entity.effective_keywords,
                     )
                     unit_origin = entity.origin
@@ -8574,6 +8701,30 @@ class GameEngine:
                 raise IllegalCommand(
                     f"Invariant failed: {prefix} health out of range: {player.health}"
                 )
+            modifier_ids = [
+                modifier.modifier_id
+                for modifier in player.leader_damage_modifiers
+            ]
+            if len(modifier_ids) != len(set(modifier_ids)):
+                raise IllegalCommand(
+                    f"Invariant failed: {prefix} has duplicate leader damage modifier ids"
+                )
+            for modifier in player.leader_damage_modifiers:
+                if modifier.modifier_id <= 0:
+                    raise IllegalCommand(
+                        f"Invariant failed: {prefix} leader damage modifier id is not positive"
+                    )
+                if modifier.duration == ModifierDuration.WHILE_SOURCE_IN_PLAY.value:
+                    if (
+                        modifier.source_controller not in (0, 1)
+                        or modifier.source_entity_id is None
+                        or modifier.source_entity_id <= 0
+                        or modifier.source_card_id is None
+                        or modifier.source_card_id <= 0
+                    ):
+                        raise IllegalCommand(
+                            f"Invariant failed: {prefix} source-bound leader modifier is invalid"
+                        )
             for name, value in (
                 ("fatigue", player.fatigue),
                 ("evolution_points", player.evolution_points),
@@ -8650,6 +8801,10 @@ class GameEngine:
                         f"Invariant failed: {zone} references missing fusion material"
                     )
                 if isinstance(entity, Unit):
+                    if not isinstance(entity.printed_abilities_removed, bool):
+                        raise IllegalCommand(
+                            f"Invariant failed: {zone} ability-removal flag is invalid"
+                        )
                     if entity.attack < 0:
                         raise IllegalCommand(
                             f"Invariant failed: {zone} attack is negative"
@@ -9108,6 +9263,8 @@ class GameEngine:
         *,
         player_index: int | None = None,
     ) -> None:
+        if isinstance(source, Unit) and source.printed_abilities_removed:
+            return
         self.ability_handlers.dispatch(
             AbilityContext(
                 event=event,
@@ -9273,6 +9430,8 @@ class GameEngine:
     ) -> None:
         expire_durations = _expire_duration_values(duration)
         for owner_index, player in enumerate(self.players):
+            for dur_str in expire_durations:
+                player.expire_leader_damage_modifiers(dur_str, player_index)
             for entity in player.board:
                 if not isinstance(entity, Unit):
                     continue

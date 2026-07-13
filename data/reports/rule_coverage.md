@@ -15,10 +15,10 @@
 
 | Category | Count |
 |---|---|
-| covered_exact | 81 |
+| covered_exact | 82 |
 | supported_missing_rule | 633 |
 | text_unclear | 18 |
-| covered_partial | 3 |
+| covered_partial | 2 |
 | token_or_non_collectible | 91 |
 
 ## Rule Consistency Issues
@@ -74,6 +74,8 @@
 | 将.*加入手牌 | ADD_CARD | True |
 | 回复 | HEAL_LEADER / HEAL_UNIT | True |
 | 造成.*伤害 | DAMAGE_LEADER / DAMAGE_UNIT | True |
+| 失去所有能力 | REMOVE_ALL_ABILITIES | True |
+| 受到的伤害[+＋] | ADD_LEADER_DAMAGE_MODIFIER | True |
 | 破坏 | DESTROY | True |
 | 消失 | BANISH | True |
 | 召唤 | SUMMON | True |

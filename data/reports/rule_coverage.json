@@ -8,10 +8,10 @@
     "total_with_rules": 112,
     "test_or_synthetic_ids_with_rules": 26,
     "coverage_counts": {
-      "covered_exact": 81,
+      "covered_exact": 82,
       "supported_missing_rule": 633,
       "text_unclear": 18,
-      "covered_partial": 3,
+      "covered_partial": 2,
       "token_or_non_collectible": 91
     }
   },
@@ -226,6 +226,14 @@
     },
     "造成.*伤害": {
       "primitive": "DAMAGE_LEADER / DAMAGE_UNIT",
+      "covered": true
+    },
+    "失去所有能力": {
+      "primitive": "REMOVE_ALL_ABILITIES",
+      "covered": true
+    },
+    "受到的伤害[+＋]": {
+      "primitive": "ADD_LEADER_DAMAGE_MODIFIER",
       "covered": true
     },
     "破坏": {
@@ -9968,12 +9976,13 @@
       "is_collectible": true,
       "card_set_id": 10004,
       "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '进化时', '超进化', '造成.*伤害', '纹章']",
+      "reason": "Covered keywords: ['入场曲', '进化时', '超进化', '造成.*伤害', '失去所有能力', '纹章']",
       "hit_keywords": [
         "入场曲",
         "进化时",
         "超进化",
         "造成.*伤害",
+        "失去所有能力",
         "纹章"
       ],
       "missing_primitives": [],
@@ -11114,11 +11123,13 @@
       "cost": 9,
       "is_collectible": true,
       "card_set_id": 10004,
-      "coverage": "covered_partial",
-      "reason": "Partial rule. Triggers: ['fanfare'], Ops: ['select_targets', 'damage_unit']; unsupported: 使所选随从失去所有能力；使对手的主战者获得「受到的伤害+1」。",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['fanfare'], Ops: ['select_targets', 'remove_all_abilities', 'damage_unit', 'add_leader_damage_modifier']",
       "hit_keywords": [
         "入场曲",
-        "造成.*伤害"
+        "造成.*伤害",
+        "失去所有能力",
+        "受到的伤害[+＋]"
       ],
       "missing_primitives": [],
       "ability_keywords": [
@@ -11129,9 +11140,8 @@
       ],
       "support_level": "unsupported",
       "rule_metadata": {
-        "coverage": "partial",
-        "implemented_text": "【入场曲】选择对手的战场上的2个随从，对其造成9点伤害。",
-        "unsupported_text": "使所选随从失去所有能力；使对手的主战者获得「受到的伤害+1」。"
+        "coverage": "exact",
+        "implemented_text": "【入场曲】选择对手的战场上的2个随从，使其失去所有能力，对其造成9点伤害。使对手的主战者获得「受到的伤害+1」。"
       }
     },
     "10501110": {
@@ -18428,12 +18438,13 @@
       "is_collectible": true,
       "card_set_id": 10008,
       "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['谢幕曲', '进化时', '抽取', '造成.*伤害']",
+      "reason": "Covered keywords: ['谢幕曲', '进化时', '抽取', '造成.*伤害', '失去所有能力']",
       "hit_keywords": [
         "谢幕曲",
         "进化时",
         "抽取",
-        "造成.*伤害"
+        "造成.*伤害",
+        "失去所有能力"
       ],
       "missing_primitives": [],
       "ability_keywords": [

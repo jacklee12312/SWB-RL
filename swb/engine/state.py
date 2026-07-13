@@ -172,6 +172,17 @@ class StatModifier:
     expires_for_player: int | None = None
 
 
+@dataclass(frozen=True)
+class LeaderDamageModifier:
+    modifier_id: int
+    amount: int
+    duration: str
+    expires_for_player: int | None = None
+    source_controller: int | None = None
+    source_entity_id: int | None = None
+    source_card_id: int | None = None
+
+
 class AttackRestriction(str, Enum):
     CANNOT_ATTACK = "cannot_attack"
     CANNOT_ATTACK_LEADER = "cannot_attack_leader"
@@ -308,6 +319,7 @@ class Unit(BoardEntity):
     stat_modifiers: list[StatModifier] = field(default_factory=list)
     attack_restrictions: list[AttackRestrictionModifier] = field(default_factory=list)
     targeting_restrictions: list[TargetingRestrictionModifier] = field(default_factory=list)
+    printed_abilities_removed: bool = False
 
     @classmethod
     def summon(
@@ -356,10 +368,24 @@ class Unit(BoardEntity):
             modifier.keyword for modifier in self.temporary_keyword_removals
         }
         return frozenset(
-            (set(self.original_keywords) | self.permanent_keywords | temporary)
+            (
+                (set() if self.printed_abilities_removed else set(self.original_keywords))
+                | self.permanent_keywords
+                | temporary
+            )
             - self.removed_keywords
             - temporarily_removed
         )
+
+    def remove_all_abilities(self) -> None:
+        self.printed_abilities_removed = True
+        self.permanent_keywords.clear()
+        self.temporary_keywords.clear()
+        self.removed_keywords.clear()
+        self.temporary_keyword_removals.clear()
+        self.attack_restrictions.clear()
+        self.targeting_restrictions.clear()
+        self._synchronize_keyword_state()
 
     def has_keyword(self, keyword: str) -> bool:
         return normalize_keyword_name(keyword) in self.effective_keywords
@@ -689,6 +715,7 @@ class PlayerState:
     followers_destroyed_this_turn: int = 0
     cooperation: int = 0
     shadows: int = 0
+    leader_damage_modifiers: list[LeaderDamageModifier] = field(default_factory=list)
     _next_graveyard_sequence: int = 1
     _next_emblem_sequence: int = 1
     _next_faith_sequence: int = 1
@@ -716,6 +743,18 @@ class PlayerState:
         if amount < 0:
             raise ValueError("combo increase must be non-negative")
         self.cards_played_this_turn += amount
+
+    def expire_leader_damage_modifiers(
+        self, duration: str, player_index: int
+    ) -> None:
+        self.leader_damage_modifiers = [
+            modifier
+            for modifier in self.leader_damage_modifiers
+            if not (
+                modifier.duration == duration
+                and modifier.expires_for_player == player_index
+            )
+        ]
 
     @property
     def earth_sigils(self) -> int:

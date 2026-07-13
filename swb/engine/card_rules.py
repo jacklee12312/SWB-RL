@@ -1625,6 +1625,7 @@ _EVENT_SOURCE_TARGET_EFFECTS = frozenset({
     EffectKind.REDUCE_COUNTDOWN,
     EffectKind.ADD_KEYWORD,
     EffectKind.REMOVE_KEYWORD,
+    EffectKind.REMOVE_ALL_ABILITIES,
     EffectKind.TRANSFORM,
     EffectKind.SET_STATS,
     EffectKind.SUPER_EVOLVE_UNIT,
@@ -1872,6 +1873,39 @@ def _parse_operation(
             raise ValueError(
                 f"{source_file}/keyword card {card_id}: keyword "
                 f"{keyword!r} is not a supported runtime unit keyword"
+            )
+
+    if kind is EffectKind.REMOVE_ALL_ABILITIES and target not in (
+        TargetKind.SELF,
+        TargetKind.EVENT_SOURCE,
+        TargetKind.OWN_UNIT,
+        TargetKind.ENEMY_UNIT,
+        TargetKind.ANY_UNIT,
+        TargetKind.RANDOM_OWN_UNIT,
+        TargetKind.RANDOM_ENEMY_UNIT,
+        TargetKind.ALL_OWN_UNITS,
+        TargetKind.ALL_ENEMY_UNITS,
+        TargetKind.ALL_UNITS,
+        TargetKind.PREVIOUS_TARGET,
+    ):
+        raise ValueError(
+            f"{source_file}/target card {card_id}: remove_all_abilities "
+            "requires a follower target"
+        )
+    if kind is EffectKind.ADD_LEADER_DAMAGE_MODIFIER:
+        if target not in (TargetKind.OWN_LEADER, TargetKind.ENEMY_LEADER):
+            raise ValueError(
+                f"{source_file}/target card {card_id}: "
+                "add_leader_damage_modifier requires a leader target"
+            )
+        if (
+            raw_amount is None
+            or isinstance(raw_amount, bool)
+            or not isinstance(raw_amount, int)
+        ):
+            raise ValueError(
+                f"{source_file}/amount card {card_id}: "
+                "add_leader_damage_modifier requires an integer amount"
             )
 
     restriction = raw.get("restriction")

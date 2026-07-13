@@ -10,13 +10,13 @@ code and tests as the source of truth when this file drifts.
 - Database: 826 cards, 735 collectible cards, 91 non-collectible/generated
   cards from set `90000`.
 - Latest SVA source: `https://sva.hypd.asia/data/cards.json`.
-- Tests: `python -m unittest discover -s tests -v` currently runs 1073 tests.
+- Tests: `python -m unittest discover -s tests -v` currently runs 1086 tests.
 - RL adapter: fixed 111-action space and 290-feature observation.
 - Ability registry status: 18 implemented, 5 partial, 11 placeholder.
 - Explicit card and demo rules live in `data/rules/`; the current coverage
   report classifies 112 card IDs with explicit rules, passives, fusion,
   invocation, activation, Faith, Union Burst, or listener definitions. Current
-  collectible coverage is 81 exact, 3 partial, 633 supported-but-missing-rule,
+  collectible coverage is 82 exact, 2 partial, 633 supported-but-missing-rule,
   0 missing-primitive, and 18 text-unclear cards.
 
 ## Stable Priorities
@@ -151,10 +151,18 @@ slice in this order:
 - `select_targets` can bind an ordered selected board-entity tuple to one
   `target_key`; later `previous_target` operations reuse that set in selection
   order and revalidate every member against the original target specification.
-  Missing runtime bindings caused by a no-candidate branch skip safely. Partial
-  real rule `10474120` demonstrates selecting two enemy followers and applying
-  later damage to the same set without claiming support for its ability-loss or
-  leader-damage-amplification clauses.
+  Missing runtime bindings caused by a no-candidate branch skip safely. Exact
+  real rule `10474120` selects up to two available enemy followers, removes
+  their abilities, damages each remaining valid target, and installs a
+  permanent opposing-leader damage-taken modifier.
+- `remove_all_abilities` separates removed printed abilities from later runtime
+  grants, suppresses board listeners/turn triggers/Last Words, preserves queued
+  effects and non-ability state, and resets on transform or re-entry. Generic
+  leader damage modifiers stack increases/reductions and support permanent,
+  turn-scoped, and source-in-play lifetimes with deterministic source
+  revalidation and fingerprint/event diagnostics. The default RL v1 interface
+  remains 111 actions/290 observations; these public fields are reserved for
+  the later versioned observation migration rather than breaking v1.
 - `土之印` is modeled on `Amulet.earth_sigil_count`, not as a player-side
   integer. A Sigil enters at 1, banishes and merges all other friendly Sigils
   into the newest entity, cannot be destroyed by abilities, cannot be manually

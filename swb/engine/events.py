@@ -60,6 +60,8 @@ class EventType(str, Enum):
     FAITH_VALUE_CHANGED = "faith_value_changed"
     UNION_BURST_ACTIVATED = "union_burst_activated"
     FOLLOWER_HEALED = "follower_healed"
+    FOLLOWER_ABILITIES_REMOVED = "follower_abilities_removed"
+    LEADER_DAMAGE_MODIFIER_ADDED = "leader_damage_modifier_added"
     EMBLEM_GAINED = "emblem_gained"
     EMBLEM_REMOVED = "emblem_removed"
     EMBLEM_TRIGGERED = "emblem_triggered"

@@ -87,8 +87,20 @@ The deterministic rules core supports:
   `allow_duplicates` policy, candidate-shortage handling, command-level
   selection progress, ordered multi-target `target_key` bindings, and
   per-target revalidation before resolution; real card `10351120` demonstrates
-  selecting and destroying two enemy followers, while partial real rule
-  `10474120` demonstrates reusing the same selected set for later damage;
+  selecting and destroying two enemy followers. Exact `10474120` reuses the
+  same selected set for ability removal followed by damage, including
+  candidate shortage and targets leaving before resolution;
+- structured `remove_all_abilities` suppresses a follower's printed keywords,
+  future printed triggers, Last Words, and board listeners while clearing
+  runtime-granted keywords and ability restrictions without changing identity,
+  stats, damage, evolution, or origin. Queued effects continue, transform and
+  re-entry restore the new/current printed ability set, and later runtime
+  grants remain possible;
+- leader damage-taken modifiers support deterministic additive stacking,
+  increases and reductions, permanent/turn/source-in-play lifetimes, effect,
+  combat, and self-damage, with source leave/transform/control revalidation,
+  fingerprint coverage, and auditable damage metadata. Exact `10474120`
+  permanently gives the opposing leader damage taken +1;
 - structured ordinary-card event listeners sourced from the board, hand, or
   shared leader area. Rules can observe `amulet_activated`, `card_fused`,
   follower summon/evolution/destruction, amulet destruction, entity leave-play,
@@ -253,16 +265,13 @@ Known broad gaps include:
   multiple/selected followers still need their own structured rules; real
   `10443110` now exactly covers both its `奥义` self-super-evolution and its
   cost-2-follower Ward listener;
-- source-backed continuous modifiers that derive stats or keywords from
-  another permanent remain unsupported; this is separate from the implemented
-  official `灵气` targeting-protection keyword;
+- source-backed continuous stat or keyword derivation remains unsupported;
+  source-backed leader damage modifiers are implemented and revalidate entry,
+  leave, transform, and control changes;
 - remaining trigger-ordering edge cases beyond the current death-batch
   ordering diagnostics and `death_batch_end` boundary triggers, including
   unsupported `death_batch_start` emblem triggers, plus broad real-card
   coverage audits;
-- `10474120` remains partial: its selected-set damage is covered, but making
-  the selected followers lose all abilities and applying persistent
-  leader-damage amplification remain unsupported primitives;
 - keyword registry status is intentionally conservative: handlers and generic
   primitives may exist before a keyword is marked fully implemented.
 

@@ -16,7 +16,7 @@ from swb.engine.environment import ShadowverseEnv
 from swb.engine.effects import EffectKind, EffectOperation, TargetKind
 from swb.engine.events import EventType
 from swb.engine.origin import CardOrigin
-from swb.engine.resolution import GameEngine, IllegalCommand
+from swb.engine.resolution import DamageType, GameEngine, IllegalCommand
 from swb.engine.state import AttackRestriction, Amulet, DeathCause, DestroyedFollowerRecord, HandCard, Unit
 
 
@@ -2059,14 +2059,13 @@ class RulesLoadTests(unittest.TestCase):
         info = report["classifications"]["10351120"]
         self.assertEqual(info["coverage"], "covered_exact")
 
-    def test_multi_target_binding_real_rule_is_reported_as_partial(self):
+    def test_multi_target_binding_real_rule_is_reported_as_exact(self):
         from scripts.report_rule_coverage import _build_coverage_report
 
         report = _build_coverage_report("data/cards.sqlite3", "data/rules")
         info = report["classifications"]["10474120"]
-        self.assertEqual(info["coverage"], "covered_partial")
-        self.assertIn("失去所有能力", info["rule_metadata"]["unsupported_text"])
-        self.assertIn("受到的伤害+1", info["rule_metadata"]["unsupported_text"])
+        self.assertEqual(info["coverage"], "covered_exact")
+        self.assertNotIn("unsupported_text", info.get("rule_metadata", {}))
 
     def test_generated_unplayable_token_rule_is_reported_as_partial(self):
         from scripts.report_rule_coverage import _build_coverage_report
@@ -2146,11 +2145,14 @@ class BehaviorTests(unittest.TestCase):
             any(unit.definition.card_id == 10351120 for unit in engine.players[0].board)
         )
 
-    def test_10474120_reuses_two_selected_targets_for_damage(self):
+    def test_10474120_removes_abilities_damages_targets_and_marks_leader(self):
         engine = _make_engine(self.rb)
         engine.reset(seed=42)
         targets = [
-            Unit.summon(_card(980 + index, life=12), entity_id=980 + index)
+            Unit.summon(
+                _card(980 + index, life=12, keywords=frozenset({"守护"})),
+                entity_id=980 + index,
+            )
             for index in range(2)
         ]
         engine.players[1].board = list(targets)
@@ -2171,6 +2173,96 @@ class BehaviorTests(unittest.TestCase):
             engine.apply(Choose(0, f"entity:{target.entity_id}"))
 
         self.assertEqual([target.health for target in targets], [3, 3])
+        self.assertTrue(all(target.printed_abilities_removed for target in targets))
+        self.assertTrue(all(not target.has_keyword("守护") for target in targets))
+        self.assertEqual(
+            [modifier.amount for modifier in engine.players[1].leader_damage_modifiers],
+            [1],
+        )
+        engine.apply_damage(
+            None,
+            None,
+            2,
+            DamageType.EFFECT,
+            0,
+            target_player_index=1,
+        )
+        self.assertEqual(engine.players[1].health, 17)
+
+    def test_10474120_uses_single_available_target_when_targets_are_short(self):
+        engine = _make_engine(self.rb)
+        engine.reset(seed=42)
+        engine.players[1].board = [
+            Unit.summon(_card(980, life=12), entity_id=980)
+        ]
+        _insert_card(
+            engine,
+            _card(10474120, name="唯一王者·别西卜", cost=9, attack=9, life=9),
+        )
+        engine.players[0].mana = 10
+        engine.apply(PlayCard(0, 0))
+        self.assertEqual(engine.state.pending_choice.target_count, 1)
+        engine.apply(Choose(0, "entity:980"))
+        target = engine.players[1].board[0]
+        self.assertEqual(target.health, 3)
+        self.assertTrue(target.printed_abilities_removed)
+
+    def test_10474120_rl_mask_matches_two_target_legality(self):
+        beelzebub = _card(
+            10474120,
+            name="唯一王者·别西卜",
+            cost=9,
+            attack=9,
+            life=9,
+        )
+        env = ShadowverseEnv(
+            [_card(i) for i in range(1000, 1040)],
+            [_card(i) for i in range(2000, 2040)],
+            class_a=1,
+            class_b=1,
+            seed=42,
+            rulebook=self.rb,
+        )
+        env.reset(seed=42)
+        _insert_card(env.core, beelzebub)
+        env.players[0].mana = 10
+        env.players[1].board = [
+            Unit.summon(_card(980), entity_id=980)
+        ]
+        self.assertTrue(env.action_mask()[ShadowverseEnv.PLAY_OFFSET])
+        env.players[1].board.append(
+            Unit.summon(_card(981), entity_id=981)
+        )
+        self.assertTrue(env.action_mask()[ShadowverseEnv.PLAY_OFFSET])
+
+    def test_10474120_uses_remaining_valid_target_if_first_leaves_play(self):
+        engine = _make_engine(self.rb)
+        engine.reset(seed=42)
+        first = Unit.summon(
+            _card(980, life=12, keywords=frozenset({"守护"})), entity_id=980
+        )
+        second = Unit.summon(
+            _card(981, life=12, keywords=frozenset({"守护"})), entity_id=981
+        )
+        engine.players[1].board = [first, second]
+        _insert_card(
+            engine,
+            _card(10474120, name="唯一王者·别西卜", cost=9, attack=9, life=9),
+        )
+        engine.players[0].mana = 10
+
+        engine.apply(PlayCard(0, 0))
+        engine.apply(Choose(0, "entity:980"))
+        engine.players[1].board.remove(first)
+        before_invalid = engine.deterministic_fingerprint()
+        with self.assertRaises(IllegalCommand):
+            engine.apply(Choose(0, "entity:980"))
+        self.assertEqual(engine.deterministic_fingerprint(), before_invalid)
+        engine.apply(Choose(0, "entity:981"))
+
+        self.assertEqual(second.health, 3)
+        self.assertTrue(second.printed_abilities_removed)
+        self.assertEqual(engine.players[1].leader_damage_modifiers[0].amount, 1)
 
     def test_10041310_target_changed_controller_before_choice_skips_damage(self):
         engine = _make_engine(self.rb)
