@@ -1,7 +1,7 @@
 # Token / Non-Collectible Audit
 
-**Database**: `data/cards.sqlite3`  
-**Rules**: `data/rules`  
+**Database**: `data/cards.sqlite3`
+**Rules**: `data/rules`
 **Overrides**: `data/audits/token_overrides.json`
 
 ## Summary

@@ -291,8 +291,8 @@ def _render_markdown(report: dict) -> str:
     lines = [
         "# Token / Non-Collectible Audit",
         "",
-        f"**Database**: `{report['generated_from']['database']}`  ",
-        f"**Rules**: `{report['generated_from']['rules']}`  ",
+        f"**Database**: `{report['generated_from']['database']}`",
+        f"**Rules**: `{report['generated_from']['rules']}`",
         f"**Overrides**: `{report['generated_from']['overrides']}`",
         "",
         "## Summary",
