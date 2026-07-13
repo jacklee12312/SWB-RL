@@ -8,10 +8,10 @@
     "total_with_rules": 112,
     "test_or_synthetic_ids_with_rules": 26,
     "coverage_counts": {
-      "covered_exact": 80,
+      "covered_exact": 81,
       "supported_missing_rule": 633,
       "text_unclear": 18,
-      "covered_partial": 4,
+      "covered_partial": 3,
       "token_or_non_collectible": 91
     }
   },
@@ -15321,8 +15321,8 @@
       "cost": 3,
       "is_collectible": true,
       "card_set_id": 10007,
-      "coverage": "covered_partial",
-      "reason": "Partial rule. Triggers: ['fanfare'], Ops: ['damage_unit']; unsupported: 自己的回合结束时，【连击_3】抽取1张卡牌。",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['fanfare', 'turn_end'], Ops: ['damage_unit', 'draw']",
       "hit_keywords": [
         "入场曲",
         "连击",
@@ -15340,9 +15340,8 @@
       ],
       "support_level": "unsupported",
       "rule_metadata": {
-        "coverage": "partial",
-        "implemented_text": "【入场曲】选择对手的战场上的1个随从，对其造成X点伤害。X为本随从的攻击力。",
-        "unsupported_text": "自己的回合结束时，【连击_3】抽取1张卡牌。"
+        "coverage": "exact",
+        "implemented_text": "【入场曲】选择对手的战场上的1个随从，对其造成X点伤害。X为本随从的攻击力。自己的回合结束时，【连击_3】抽取1张卡牌。"
       }
     },
     "10713310": {

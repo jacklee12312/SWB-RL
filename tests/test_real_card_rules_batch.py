@@ -2077,13 +2077,13 @@ class RulesLoadTests(unittest.TestCase):
         self.assertIn("融合", info["rule_metadata"]["unsupported_text"])
         self.assertNotIn("无法使用", info["rule_metadata"]["unsupported_text"])
 
-    def test_10713110_rule_keeps_combo_turn_end_unsupported(self):
+    def test_10713110_rule_covers_combo_turn_end_exactly(self):
         from scripts.report_rule_coverage import _build_coverage_report
 
         report = _build_coverage_report("data/cards.sqlite3", "data/rules")
         info = report["classifications"]["10713110"]
-        self.assertEqual(info["coverage"], "covered_partial")
-        self.assertIn("\u8fde\u51fb_3", info["rule_metadata"]["unsupported_text"])
+        self.assertEqual(info["coverage"], "covered_exact")
+        self.assertNotIn("unsupported_text", info["rule_metadata"])
 
 
 class BehaviorTests(unittest.TestCase):
@@ -2310,6 +2310,30 @@ class BehaviorTests(unittest.TestCase):
 
         self.assertIsNone(engine.state.pending_choice)
         self.assertEqual(target.health, 5)
+
+    def test_10713110_turn_end_draw_requires_combo_three_and_source_in_play(self):
+        for combo, source_present, expected_draws in (
+            (2, True, 0),
+            (3, True, 1),
+            (3, False, 0),
+        ):
+            with self.subTest(combo=combo, source_present=source_present):
+                engine = _make_engine(self.rb)
+                engine.reset(seed=42)
+                if source_present:
+                    engine.players[0].board.append(Unit.summon(
+                        _card(10713110, cost=3, attack=3, life=1),
+                        entity_id=engine.state.allocate_entity_id(),
+                    ))
+                engine.players[0].cards_played_this_turn = combo
+                deck_before = len(engine.players[0].deck)
+
+                engine.apply(EndTurn(0))
+
+                self.assertEqual(
+                    deck_before - len(engine.players[0].deck),
+                    expected_draws,
+                )
 
     def test_10052310_destroys_own_and_draws(self):
         engine = _make_engine(self.rb)

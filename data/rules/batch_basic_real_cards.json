@@ -110,15 +110,28 @@
         },
         {
             "card_id": 10713110,
-            "coverage": "partial",
-            "implemented_text": "【入场曲】选择对手的战场上的1个随从，对其造成X点伤害。X为本随从的攻击力。",
-            "unsupported_text": "自己的回合结束时，【连击_3】抽取1张卡牌。",
+            "coverage": "exact",
+            "implemented_text": "【入场曲】选择对手的战场上的1个随从，对其造成X点伤害。X为本随从的攻击力。自己的回合结束时，【连击_3】抽取1张卡牌。",
             "trigger": "fanfare",
             "operations": [
                 {
                     "kind": "damage_unit",
                     "target": "enemy_unit",
                     "amount": {"type": "source_attack"}
+                }
+            ]
+        },
+        {
+            "card_id": 10713110,
+            "trigger": "turn_end",
+            "operations": [
+                {
+                    "kind": "draw",
+                    "target": "own_leader",
+                    "amount": 1,
+                    "conditions": [
+                        {"type": "controller_combo_at_least", "value": 3}
+                    ]
                 }
             ]
         },

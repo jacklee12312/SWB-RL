@@ -10,13 +10,13 @@ code and tests as the source of truth when this file drifts.
 - Database: 826 cards, 735 collectible cards, 91 non-collectible/generated
   cards from set `90000`.
 - Latest SVA source: `https://sva.hypd.asia/data/cards.json`.
-- Tests: `python -m unittest discover -s tests -v` currently runs 1072 tests.
+- Tests: `python -m unittest discover -s tests -v` currently runs 1073 tests.
 - RL adapter: fixed 111-action space and 290-feature observation.
 - Ability registry status: 18 implemented, 5 partial, 11 placeholder.
 - Explicit card and demo rules live in `data/rules/`; the current coverage
   report classifies 112 card IDs with explicit rules, passives, fusion,
   invocation, activation, Faith, Union Burst, or listener definitions. Current
-  collectible coverage is 80 exact, 4 partial, 633 supported-but-missing-rule,
+  collectible coverage is 81 exact, 3 partial, 633 supported-but-missing-rule,
   0 missing-primitive, and 18 text-unclear cards.
 
 ## Stable Priorities
@@ -337,8 +337,9 @@ slice in this order:
   real-card rule demo; broader real-card coverage and future max-mana ramp
   interactions remain partial.
 - `连击` has natural per-turn counting, condition/expression support,
-  `add_combo`, public observation counts, and real-card demos; broader real-card
-  coverage remains partial.
+  `add_combo`, public observation counts, and real-card demos. Exact
+  `10713110` evaluates Combo 3 at its controller's turn-end boundary and only
+  while the source remains in play; broader real-card coverage remains partial.
 - Union Burst core gauge and threshold semantics are implemented, but every
   additional real card still needs an explicit structured definition. Faith
   leader-area initialization and evolution progression are implemented, while mode-selection, Enhance, named-follower,

@@ -153,7 +153,8 @@ The deterministic rules core supports:
   unit-or-leader fallback targets when no target-dependent condition is present;
 - countdown amulets, explicit last words, fanfare/play rules, attack/clash,
   evolve/super-evolve, turn-start/turn-end triggers, and trigger continuations
-  that can pause for choices;
+  that can pause for choices. Exact `10713110` uses a source-in-play turn-end
+  rule to draw only when the ending player's current Combo count is at least 3;
 - death-batch event diagnostics that expose the active-player-first,
   left-to-right order used by destroyed, left-play, and Last Words lifecycle
   events, including follower/amulet composition for mixed death batches;
