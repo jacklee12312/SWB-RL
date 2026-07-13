@@ -10,7 +10,7 @@ code and tests as the source of truth when this file drifts.
 - Database: 826 cards, 735 collectible cards, 91 non-collectible/generated
   cards from set `90000`.
 - Latest SVA source: `https://sva.hypd.asia/data/cards.json`.
-- Tests: `python -m unittest discover -s tests -v` currently runs 1137 tests.
+- Tests: `python -m unittest discover -s tests -v` currently runs 1141 tests.
 - RL adapter: fixed 111-action space and 290-feature observation.
 - Ability registry status: 18 implemented, 5 partial, 11 placeholder.
 - Explicit card and demo rules live in `data/rules/`; the current coverage
@@ -25,6 +25,11 @@ code and tests as the source of truth when this file drifts.
   partial behavior, and 70 have no authored producer. No token is currently
   classified text-unclear or externally blocked; those categories remain
   explicit and can be assigned through `data/audits/token_overrides.json`.
+- `data/reports/ability_audit.{json,md}` validates all 34 runtime/database
+  registry entries against `data/audits/ability_registry.json`. Every status
+  has a precise conservative reason and test evidence. Primitive support is a
+  separate column and is covered for all 34; it does not automatically promote
+  the 5 partial or 11 placeholder keyword statuses.
 
 ## Stable Priorities
 
@@ -433,8 +438,9 @@ slice in this order:
   cards, or explicitly exact structured rules. Current output is 10 complete,
   11 partial, and 70 database-only/no-entry; this is the content backlog for
   later card-rule entry, not a claim of broad generated-card support.
-- The ability registry is conservative; a generic primitive can exist before a
-  keyword is marked fully implemented.
+- The ability registry is conservative and fully audited: all 34 entries have
+  a reason and test evidence, and a covered generic primitive does not promote
+  a keyword until its real tagged-card semantics and boundaries are complete.
 - Many real cards are intentionally uncovered or only partly covered by
   structured rules.
 - Additional effect-driven normal-evolution cards, SEP restoration, and cards

@@ -31,6 +31,12 @@ Abilities are normalized in two relational tables:
 the engine use the normalized tables, so aliases such as `毁灭 -> 必杀` do not
 need special handling at runtime.
 
+The [ability registry audit](data/reports/ability_audit.md) records a reason
+and test evidence for all 34 statuses (18 implemented, 5 partial, 11
+placeholder). Primitive availability is reported independently: all 34 have a
+covered generic boundary, but that never upgrades a partial or placeholder
+keyword whose full tagged-card semantics still require structured rules.
+
 ## Implemented Engine Surface
 
 The deterministic rules core supports:

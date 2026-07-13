@@ -1,6 +1,9 @@
 from __future__ import annotations
 
+import argparse
+import json
 import sys
+from collections import Counter
 from pathlib import Path
 
 if __package__ in (None, ""):
@@ -18,6 +21,8 @@ _MANUAL_PRIMITIVE_STATUS = {
     AbilityKeyword.AMBUSH: "covered",
     AbilityKeyword.INTIMIDATE: "covered",
     AbilityKeyword.AURA: "covered",
+    AbilityKeyword.ACTIVATE: "covered",
+    AbilityKeyword.UNION_BURST: "covered",
 }
 
 _PRIMITIVE_PATTERN_BY_KEYWORD = {
@@ -67,7 +72,113 @@ def primitive_status(keyword: AbilityKeyword) -> str:
     return "covered" if info["covered"] else "missing"
 
 
+def build_ability_audit(
+    audit_path: str = "data/audits/ability_registry.json",
+) -> dict:
+    payload = json.loads(Path(audit_path).read_text(encoding="utf-8"))
+    audited = {entry["keyword"]: entry for entry in payload.get("abilities", [])}
+    expected = {definition.keyword.value for definition in ABILITY_DEFINITIONS}
+    missing = sorted(expected - set(audited))
+    extra = sorted(set(audited) - expected)
+    if missing or extra:
+        raise ValueError(
+            f"Ability audit mismatch: missing={missing}, extra={extra}"
+        )
+    rows = []
+    counts: Counter[str] = Counter()
+    for definition in ABILITY_DEFINITIONS:
+        item = audited[definition.keyword.value]
+        if item.get("status") != definition.status.value:
+            raise ValueError(
+                f"Ability {definition.keyword.value!r} audit status "
+                f"{item.get('status')!r} != registry {definition.status.value!r}"
+            )
+        if not isinstance(item.get("reason"), str) or not item["reason"].strip():
+            raise ValueError(
+                f"Ability {definition.keyword.value!r} requires a non-empty reason"
+            )
+        evidence = item.get("test_evidence", [])
+        if not isinstance(evidence, list) or not evidence:
+            raise ValueError(
+                f"Ability {definition.keyword.value!r} requires test_evidence"
+            )
+        counts[definition.status.value] += 1
+        rows.append({
+            "keyword": definition.keyword.value,
+            "status": definition.status.value,
+            "handler_name": definition.handler_name,
+            "primitive_status": primitive_status(definition.keyword),
+            "events": [event.value for event in sorted(definition.events, key=lambda e: e.value)],
+            "aliases": list(definition.aliases),
+            "reason": item["reason"],
+            "test_evidence": evidence,
+        })
+    return {
+        "audit_source": audit_path,
+        "summary": {
+            "total": len(rows),
+            "statuses": {
+                status: counts.get(status, 0)
+                for status in ("implemented", "partial", "placeholder")
+            },
+            "primitive_statuses": dict(sorted(Counter(
+                row["primitive_status"] for row in rows
+            ).items())),
+        },
+        "abilities": rows,
+    }
+
+
+def render_markdown(report: dict) -> str:
+    lines = [
+        "# Ability Registry Audit",
+        "",
+        f"Audit source: `{report['audit_source']}`",
+        "",
+        "## Summary",
+        "",
+        "| Status | Count |",
+        "|---|---:|",
+    ]
+    for status, count in report["summary"]["statuses"].items():
+        lines.append(f"| {status} | {count} |")
+    lines.extend([
+        "",
+        "## Abilities",
+        "",
+        "| Ability | Registry | Primitive | Handler | Audit reason |",
+        "|---|---|---|---|---|",
+    ])
+    for row in report["abilities"]:
+        lines.append(
+            f"| {row['keyword']} | {row['status']} | {row['primitive_status']} | "
+            f"`{row['handler_name']}` | {row['reason']} |"
+        )
+        lines.append(
+            f"| ↳ tests |  |  |  | {', '.join(f'`{path}`' for path in row['test_evidence'])} |"
+        )
+    lines.append("")
+    return "\n".join(lines)
+
+
 def main() -> None:
+    parser = argparse.ArgumentParser(description="Report audited ability status")
+    parser.add_argument("--audit", default="data/audits/ability_registry.json")
+    parser.add_argument("--output")
+    parser.add_argument("--markdown")
+    args = parser.parse_args()
+    report = build_ability_audit(args.audit)
+    if args.output:
+        output = Path(args.output)
+        output.parent.mkdir(parents=True, exist_ok=True)
+        output.write_text(
+            json.dumps(report, ensure_ascii=False, indent=2) + "\n",
+            encoding="utf-8",
+        )
+    if args.markdown:
+        markdown = Path(args.markdown)
+        markdown.parent.mkdir(parents=True, exist_ok=True)
+        markdown.write_text(render_markdown(report), encoding="utf-8")
     print(f"{'能力':<10} {'Handler':<12} {'Primitive':<10} 触发事件")
     print("-" * 76)
     for definition in ABILITY_DEFINITIONS:

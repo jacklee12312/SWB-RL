@@ -1510,7 +1510,7 @@
         },
         {
           "keyword": "灵气",
-          "status": "placeholder"
+          "status": "implemented"
         }
       ],
       "skill_texts": [
@@ -1711,7 +1711,7 @@
       "abilities": [
         {
           "keyword": "威慑",
-          "status": "placeholder"
+          "status": "implemented"
         }
       ],
       "skill_texts": [
@@ -1767,7 +1767,7 @@
       "abilities": [
         {
           "keyword": "威慑",
-          "status": "placeholder"
+          "status": "implemented"
         }
       ],
       "skill_texts": [
@@ -2734,7 +2734,7 @@
         },
         {
           "keyword": "灵气",
-          "status": "placeholder"
+          "status": "implemented"
         }
       ],
       "skill_texts": [
@@ -3622,7 +3622,7 @@
         },
         {
           "keyword": "灵气",
-          "status": "placeholder"
+          "status": "implemented"
         },
         {
           "keyword": "疾驰",
