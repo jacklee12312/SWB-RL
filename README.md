@@ -38,13 +38,13 @@ covered generic boundary, but that never upgrades a partial or placeholder
 keyword whose full tagged-card semantics still require structured rules.
 
 The [rule coverage report](data/reports/rule_coverage.md) now includes a
-clause-audit layer without changing its legacy coverage categories. Of 113
-exact collectible cards, all 113 have explicit implemented text and named direct
+clause-audit layer without changing its legacy coverage categories. Of 122
+exact collectible cards, all 122 have explicit implemented text and named direct
 test evidence. The sibling `data/audits/rule_clauses.json` registry hashes every
 imported skill and alternate-mode clause, so a database text change or stale
 test reference invalidates the audit instead of silently retaining exact
 status. The current report has no unverified exact entry or missing generic
-schema, primitive, targeting, or timing blocker. Its remaining 604 collectible
+schema, primitive, targeting, or timing blocker. Its remaining 595 collectible
 gaps are missing per-card structured rules, while 18 unclear texts remain
 explicit. Rule metadata also supports version and errata fields, and the report
 records the complete imported source snapshot hash.
@@ -260,6 +260,11 @@ The deterministic rules core supports:
   repository-backed tests also lock each card's normalized Ward, Storm, Rush,
   Bane, Intimidate, or granted Barrier state and the source-excluding RL choice
   mask;
+- a 9-card exact Dragoncraft Overflow batch covers the 6/7-max-mana boundary,
+  conditional Storm and Intimidate grants, conditional healing and draws,
+  source-excluding replacement buffs, class/type-filtered draw, and independent
+  seeded random hits. Direct tests also prohibit a selected-target spell when no
+  allied follower exists and lock the corresponding RL mask;
 - countdown amulets, explicit last words, fanfare/play rules, attack/clash,
   evolve/super-evolve, turn-start/turn-end triggers, and trigger continuations
   that can pause for choices. Exact `10713110` uses a source-in-play turn-end

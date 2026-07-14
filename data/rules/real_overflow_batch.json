@@ -1,0 +1,148 @@
+{
+  "passives": [
+    {
+      "card_id": 10141120,
+      "kind": "non_intrinsic_keyword",
+      "keyword": "疾驰",
+      "notes": "疾驰只在觉醒入场曲满足后获得，不是本体初始关键词。"
+    }
+  ],
+  "rules": [
+    {
+      "card_id": 10141120,
+      "trigger": "fanfare",
+      "operations": [
+        {
+          "kind": "add_keyword",
+          "target": "self",
+          "keyword": "疾驰",
+          "conditions": [{"type": "controller_overflow"}]
+        }
+      ]
+    },
+    {
+      "card_id": 10141150,
+      "trigger": "fanfare",
+      "operations": [
+        {
+          "kind": "heal_leader",
+          "target": "own_leader",
+          "amount": 4,
+          "conditions": [{"type": "controller_overflow"}]
+        }
+      ]
+    },
+    {
+      "card_id": 10142120,
+      "trigger": "fanfare",
+      "operations": [
+        {
+          "kind": "add_keyword",
+          "target": "self",
+          "keyword": "威慑",
+          "conditions": [{"type": "controller_overflow"}]
+        }
+      ]
+    },
+    {
+      "card_id": 10142140,
+      "trigger": "fanfare",
+      "operations": [
+        {
+          "kind": "buff_unit",
+          "target": "own_unit",
+          "amount": 3,
+          "secondary_amount": 3,
+          "exclude_source": true,
+          "conditions": [{"type": "controller_overflow"}]
+        },
+        {
+          "kind": "buff_unit",
+          "target": "own_unit",
+          "amount": 2,
+          "secondary_amount": 2,
+          "exclude_source": true,
+          "conditions": [
+            {
+              "type": "not",
+              "conditions": [{"type": "controller_overflow"}]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "card_id": 10142310,
+      "trigger": "play",
+      "operations": [
+        {"kind": "draw", "target": "own_leader", "amount": 2},
+        {
+          "kind": "heal_leader",
+          "target": "own_leader",
+          "amount": 2,
+          "conditions": [{"type": "controller_overflow"}]
+        }
+      ]
+    },
+    {
+      "card_id": 10241120,
+      "trigger": "fanfare",
+      "operations": [
+        {
+          "kind": "draw",
+          "target": "own_leader",
+          "amount": 1,
+          "conditions": [{"type": "controller_overflow"}]
+        }
+      ]
+    },
+    {
+      "card_id": 10343310,
+      "trigger": "play",
+      "operations": [
+        {
+          "kind": "damage_unit",
+          "target": "own_unit",
+          "amount": 1,
+          "requires_target": true
+        },
+        {"kind": "damage_unit", "target": "random_enemy_unit", "amount": 3},
+        {
+          "kind": "draw_filtered",
+          "target": "own_leader",
+          "amount": 1,
+          "card_type_filter": "随从",
+          "class_id_filter": 4,
+          "conditions": [{"type": "controller_overflow"}]
+        }
+      ]
+    },
+    {
+      "card_id": 10543310,
+      "trigger": "play",
+      "operations": [
+        {"kind": "damage_unit", "target": "random_enemy_unit", "amount": 2},
+        {"kind": "damage_unit", "target": "random_enemy_unit", "amount": 2},
+        {
+          "kind": "damage_leader",
+          "target": "enemy_leader",
+          "amount": 2,
+          "conditions": [{"type": "controller_overflow"}]
+        }
+      ]
+    },
+    {
+      "card_id": 10742310,
+      "trigger": "play",
+      "operations": [
+        {"kind": "heal_leader", "target": "own_leader", "amount": 3},
+        {
+          "kind": "draw",
+          "target": "own_leader",
+          "amount": 1,
+          "conditions": [{"type": "controller_overflow"}]
+        }
+      ]
+    }
+  ]
+}

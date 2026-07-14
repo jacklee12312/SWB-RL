@@ -359,6 +359,15 @@
       "notes": "All imported source clauses are mapped to the structured rule and cited behavior tests."
     },
     {
+      "card_id": 10141120,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】若为【觉醒】，则本随从获得【疾驰】。",
+      "rule_version": 1,
+      "source_text_sha256": "a2f5ad93a1f7602d5e731d43870b5b232207ac757446b8100715ae6351821e0a",
+      "test_evidence": ["tests/test_real_overflow_batch.py"],
+      "notes": "Overflow is evaluated at the seven-max-mana boundary; non_intrinsic_keyword keeps the conditional Storm off the base follower."
+    },
+    {
       "card_id": 10141130,
       "coverage": "exact",
       "implemented_text": "【入场曲】选择对手的战场上的1个随从，破坏该随从。",
@@ -379,6 +388,42 @@
         "tests/test_real_basic_spells_batch.py"
       ],
       "notes": "All imported source clauses are mapped to structured rules and direct behavior tests."
+    },
+    {
+      "card_id": 10141150,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】若为【觉醒】，则回复自己的主战者4点生命值。",
+      "rule_version": 1,
+      "source_text_sha256": "a9527a94f19e75af171818fa6d8ead08c8046f520091dac9369066fc3794266c",
+      "test_evidence": ["tests/test_real_overflow_batch.py"],
+      "notes": "All imported source clauses are mapped to the structured rule and direct boundary tests."
+    },
+    {
+      "card_id": 10142120,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】若为【觉醒】，则本随从获得【威慑】。 / / 【疾驰】",
+      "rule_version": 1,
+      "source_text_sha256": "b14c5bcc85c3aff3fe08adb098bd8e9d08f8be4e7666e051a2b630b62f9b152f",
+      "test_evidence": ["tests/test_real_overflow_batch.py"],
+      "notes": "Storm is intrinsic; the existing non_intrinsic_keyword annotation keeps conditional Intimidate off the base follower until Overflow."
+    },
+    {
+      "card_id": 10142140,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】选择自己的战场上的1个其他随从，使其+2/+2。若为【觉醒】，则改为+3/+3。",
+      "rule_version": 1,
+      "source_text_sha256": "52cd7a3e28bcf9e5c9617851aec1ef1d78a487ae5a12227aac5e3c229eff146b",
+      "test_evidence": ["tests/test_real_overflow_batch.py"],
+      "notes": "Mutually exclusive Overflow branches share source-excluding target semantics and are covered at both boundaries."
+    },
+    {
+      "card_id": 10142310,
+      "coverage": "exact",
+      "implemented_text": "抽取2张卡牌。若为【觉醒】，则回复自己的主战者2点生命值。",
+      "rule_version": 1,
+      "source_text_sha256": "2eae57890691d442bbd85e5acb0249e31d107ff58ae3254bed684a1a6cc2cfce",
+      "test_evidence": ["tests/test_real_overflow_batch.py"],
+      "notes": "The unconditional draw and conditional heal are mapped in printed order."
     },
     {
       "card_id": 10143120,
@@ -552,6 +597,15 @@
       "notes": "All imported source clauses are mapped to the structured rule and cited behavior tests."
     },
     {
+      "card_id": 10241120,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】若为【觉醒】，则抽取1张卡牌。 / / 【突进】",
+      "rule_version": 1,
+      "source_text_sha256": "4a7f9bd61214c9969f5e432b466d7e3847910baa2b73500123b10480ba3435bf",
+      "test_evidence": ["tests/test_real_overflow_batch.py"],
+      "notes": "The conditional draw and intrinsic Rush are covered directly at both Overflow boundaries."
+    },
+    {
       "card_id": 10243310,
       "coverage": "exact",
       "implemented_text": "选择自己的1张手牌，使其费用-2。对对手的战场上的所有随从造成3点伤害。",
@@ -656,6 +710,15 @@
         "tests/test_filtered_hand_targets.py"
       ],
       "notes": "All imported source clauses are mapped to the structured rule and direct behavior tests."
+    },
+    {
+      "card_id": 10343310,
+      "coverage": "exact",
+      "implemented_text": "选择自己的战场上的1个随从，对其造成1点伤害。对对手的战场上的随机1个随从造成3点伤害。若为【觉醒】，则抽取1张龙族·随从。",
+      "rule_version": 1,
+      "source_text_sha256": "b7528e95118a688cfd75d6270933619ac8b593a37b6b4dfd9e4b13bcb1a86d1d",
+      "test_evidence": ["tests/test_real_overflow_batch.py"],
+      "notes": "Selected self-damage, seeded random enemy damage, and class/type-filtered draw resolve in printed order."
     },
     {
       "card_id": 10351120,
@@ -828,6 +891,15 @@
       "test_evidence": [
         "tests/test_cross_class_trait_listeners.py"
       ]
+    },
+    {
+      "card_id": 10543310,
+      "coverage": "exact",
+      "implemented_text": "发动2次「对对手的战场上的随机1个随从造成2点伤害」。若为【觉醒】，则对对手的主战者造成2点伤害。",
+      "rule_version": 1,
+      "source_text_sha256": "334d5c6abd7da82d4f9ea4218714b91d69127f46a73d41c38e196df81c2e3d42",
+      "test_evidence": ["tests/test_real_overflow_batch.py"],
+      "notes": "Two independent seeded random damage operations revalidate between hits; leader damage is Overflow-only."
     },
     {
       "card_id": 10551120,
@@ -1051,6 +1123,15 @@
         "tests/test_real_basic_followers_batch.py"
       ],
       "notes": "All imported source clauses and normalized static keywords are mapped to structured rules and direct behavior tests."
+    },
+    {
+      "card_id": 10742310,
+      "coverage": "exact",
+      "implemented_text": "回复自己的主战者3点生命值。若为【觉醒】，则抽取1张卡牌。",
+      "rule_version": 1,
+      "source_text_sha256": "35d0257d86fca7c8b2143c0737a73c417572d27a79dd95c650e34333134d881e",
+      "test_evidence": ["tests/test_real_overflow_batch.py"],
+      "notes": "The unconditional heal and conditional draw are mapped in printed order."
     },
     {
       "card_id": 10743310,

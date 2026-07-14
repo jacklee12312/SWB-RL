@@ -12,25 +12,25 @@
   },
   "summary": {
     "total_cards": 826,
-    "total_with_rules": 145,
+    "total_with_rules": 154,
     "test_or_synthetic_ids_with_rules": 26,
     "coverage_counts": {
-      "covered_exact": 113,
-      "supported_missing_rule": 604,
+      "covered_exact": 122,
+      "supported_missing_rule": 595,
       "text_unclear": 18,
       "token_or_non_collectible": 91
     },
     "clause_audit_counts": {
-      "mapped_exact": 113,
+      "mapped_exact": 122,
       "unverified_exact": 0,
       "partial": 0,
-      "missing_rule": 604,
+      "missing_rule": 595,
       "missing_primitive": 0,
       "text_unclear": 18,
       "token_separate_audit": 91
     },
     "blocker_counts": {
-      "missing_rule": 604,
+      "missing_rule": 595,
       "missing_schema": 0,
       "missing_primitive": 0,
       "missing_targeting": 0,
@@ -6555,8 +6555,8 @@
       "cost": 5,
       "is_collectible": true,
       "card_set_id": 10001,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '觉醒']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['fanfare'], Ops: ['add_keyword']",
       "hit_keywords": [
         "入场曲",
         "觉醒"
@@ -6571,27 +6571,43 @@
         "【<color=Keyword>入场曲</color>】若为【<color=Keyword>觉醒</color>】，则本随从获得【<color=Keyword>疾驰</color>】。"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【入场曲】若为【觉醒】，则本随从获得【疾驰】。",
+        "notes": "Overflow is evaluated at the seven-max-mana boundary; non_intrinsic_keyword keeps the conditional Storm off the base follower.",
+        "rule_version": 1,
+        "source_text_sha256": "a2f5ad93a1f7602d5e731d43870b5b232207ac757446b8100715ae6351821e0a",
+        "test_evidence": [
+          "tests/test_real_overflow_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10141120:0",
             "source_text": "【<color=Keyword>入场曲</color>】若为【<color=Keyword>觉醒</color>】，则本随从获得【<color=Keyword>疾驰</color>】。",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "【入场曲】若为【觉醒】，则本随从获得【疾驰】。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "a2f5ad93a1f7602d5e731d43870b5b232207ac757446b8100715ae6351821e0a",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "fanfare"
+          ],
+          "effect_kinds": [
+            "add_keyword"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_overflow_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10141130": {
@@ -6710,8 +6726,8 @@
       "cost": 4,
       "is_collectible": true,
       "card_set_id": 10001,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '觉醒', '回复']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['fanfare'], Ops: ['heal_leader']",
       "hit_keywords": [
         "入场曲",
         "觉醒",
@@ -6726,27 +6742,43 @@
         "【<color=Keyword>入场曲</color>】若为【<color=Keyword>觉醒</color>】，则回复自己的主战者4点生命值。"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【入场曲】若为【觉醒】，则回复自己的主战者4点生命值。",
+        "notes": "All imported source clauses are mapped to the structured rule and direct boundary tests.",
+        "rule_version": 1,
+        "source_text_sha256": "a9527a94f19e75af171818fa6d8ead08c8046f520091dac9369066fc3794266c",
+        "test_evidence": [
+          "tests/test_real_overflow_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10141150:0",
             "source_text": "【<color=Keyword>入场曲</color>】若为【<color=Keyword>觉醒</color>】，则回复自己的主战者4点生命值。",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "【入场曲】若为【觉醒】，则回复自己的主战者4点生命值。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "a9527a94f19e75af171818fa6d8ead08c8046f520091dac9369066fc3794266c",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "fanfare"
+          ],
+          "effect_kinds": [
+            "heal_leader"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_overflow_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10141310": {
@@ -6859,8 +6891,8 @@
       "cost": 3,
       "is_collectible": true,
       "card_set_id": 10001,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '觉醒', '威慑']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['fanfare'], Ops: ['add_keyword']",
       "hit_keywords": [
         "入场曲",
         "觉醒",
@@ -6877,29 +6909,43 @@
         "【<color=Keyword>入场曲</color>】若为【<color=Keyword>觉醒</color>】，则本随从获得【<color=Keyword>威慑</color>】。\n<hr>【<color=Keyword>疾驰</color>】"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【入场曲】若为【觉醒】，则本随从获得【威慑】。 / / 【疾驰】",
+        "notes": "Storm is intrinsic; the existing non_intrinsic_keyword annotation keeps conditional Intimidate off the base follower until Overflow.",
+        "rule_version": 1,
+        "source_text_sha256": "b14c5bcc85c3aff3fe08adb098bd8e9d08f8be4e7666e051a2b630b62f9b152f",
+        "test_evidence": [
+          "tests/test_real_overflow_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10142120:0",
             "source_text": "【<color=Keyword>入场曲</color>】若为【<color=Keyword>觉醒</color>】，则本随从获得【<color=Keyword>威慑</color>】。\n<hr>【<color=Keyword>疾驰</color>】",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "【入场曲】若为【觉醒】，则本随从获得【威慑】。 / / 【疾驰】",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "b14c5bcc85c3aff3fe08adb098bd8e9d08f8be4e7666e051a2b630b62f9b152f",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "fanfare"
+          ],
+          "effect_kinds": [
+            "add_keyword"
+          ]
         },
         "test_evidence": [
-          "tests/test_intimidate.py"
+          "tests/test_real_overflow_batch.py"
         ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10142130": {
@@ -6956,8 +7002,8 @@
       "cost": 4,
       "is_collectible": true,
       "card_set_id": 10001,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '觉醒']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['fanfare'], Ops: ['buff_unit', 'buff_unit']",
       "hit_keywords": [
         "入场曲",
         "觉醒"
@@ -6971,27 +7017,44 @@
         "【<color=Keyword>入场曲</color>】选择自己的战场上的1个其他随从，使其+2/+2。若为【<color=Keyword>觉醒</color>】，则改为+3/+3。"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【入场曲】选择自己的战场上的1个其他随从，使其+2/+2。若为【觉醒】，则改为+3/+3。",
+        "notes": "Mutually exclusive Overflow branches share source-excluding target semantics and are covered at both boundaries.",
+        "rule_version": 1,
+        "source_text_sha256": "52cd7a3e28bcf9e5c9617851aec1ef1d78a487ae5a12227aac5e3c229eff146b",
+        "test_evidence": [
+          "tests/test_real_overflow_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10142140:0",
             "source_text": "【<color=Keyword>入场曲</color>】选择自己的战场上的1个其他随从，使其+2/+2。若为【<color=Keyword>觉醒</color>】，则改为+3/+3。",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "【入场曲】选择自己的战场上的1个其他随从，使其+2/+2。若为【觉醒】，则改为+3/+3。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "52cd7a3e28bcf9e5c9617851aec1ef1d78a487ae5a12227aac5e3c229eff146b",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "fanfare"
+          ],
+          "effect_kinds": [
+            "buff_unit",
+            "buff_unit"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_overflow_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10142310": {
@@ -7002,8 +7065,8 @@
       "cost": 3,
       "is_collectible": true,
       "card_set_id": 10001,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['觉醒', '抽取', '回复']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['play'], Ops: ['draw', 'heal_leader']",
       "hit_keywords": [
         "觉醒",
         "抽取",
@@ -7017,27 +7080,44 @@
         "抽取2张卡牌。若为【<color=Keyword>觉醒</color>】，则回复自己的主战者2点生命值。"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "抽取2张卡牌。若为【觉醒】，则回复自己的主战者2点生命值。",
+        "notes": "The unconditional draw and conditional heal are mapped in printed order.",
+        "rule_version": 1,
+        "source_text_sha256": "2eae57890691d442bbd85e5acb0249e31d107ff58ae3254bed684a1a6cc2cfce",
+        "test_evidence": [
+          "tests/test_real_overflow_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10142310:0",
             "source_text": "抽取2张卡牌。若为【<color=Keyword>觉醒</color>】，则回复自己的主战者2点生命值。",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "抽取2张卡牌。若为【觉醒】，则回复自己的主战者2点生命值。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "2eae57890691d442bbd85e5acb0249e31d107ff58ae3254bed684a1a6cc2cfce",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "play"
+          ],
+          "effect_kinds": [
+            "draw",
+            "heal_leader"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_overflow_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10143110": {
@@ -12275,8 +12355,8 @@
       "cost": 1,
       "is_collectible": true,
       "card_set_id": 10002,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '觉醒', '抽取']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['fanfare'], Ops: ['draw']",
       "hit_keywords": [
         "入场曲",
         "觉醒",
@@ -12292,27 +12372,43 @@
         "【<color=Keyword>入场曲</color>】若为【<color=Keyword>觉醒</color>】，则抽取1张卡牌。\n<hr>【<color=Keyword>突进</color>】"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【入场曲】若为【觉醒】，则抽取1张卡牌。 / / 【突进】",
+        "notes": "The conditional draw and intrinsic Rush are covered directly at both Overflow boundaries.",
+        "rule_version": 1,
+        "source_text_sha256": "4a7f9bd61214c9969f5e432b466d7e3847910baa2b73500123b10480ba3435bf",
+        "test_evidence": [
+          "tests/test_real_overflow_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10241120:0",
             "source_text": "【<color=Keyword>入场曲</color>】若为【<color=Keyword>觉醒</color>】，则抽取1张卡牌。\n<hr>【<color=Keyword>突进</color>】",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "【入场曲】若为【觉醒】，则抽取1张卡牌。 / / 【突进】",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "4a7f9bd61214c9969f5e432b466d7e3847910baa2b73500123b10480ba3435bf",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "fanfare"
+          ],
+          "effect_kinds": [
+            "draw"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_overflow_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10241310": {
@@ -16403,8 +16499,8 @@
       "cost": 1,
       "is_collectible": true,
       "card_set_id": 10003,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['觉醒', '抽取', '造成.*伤害']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['play'], Ops: ['damage_unit', 'damage_unit', 'draw_filtered']",
       "hit_keywords": [
         "觉醒",
         "抽取",
@@ -16418,27 +16514,45 @@
         "选择自己的战场上的1个随从，对其造成1点伤害。对对手的战场上的随机1个随从造成3点伤害。若为【<color=Keyword>觉醒</color>】，则抽取1张龙族·随从。"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "选择自己的战场上的1个随从，对其造成1点伤害。对对手的战场上的随机1个随从造成3点伤害。若为【觉醒】，则抽取1张龙族·随从。",
+        "notes": "Selected self-damage, seeded random enemy damage, and class/type-filtered draw resolve in printed order.",
+        "rule_version": 1,
+        "source_text_sha256": "b7528e95118a688cfd75d6270933619ac8b593a37b6b4dfd9e4b13bcb1a86d1d",
+        "test_evidence": [
+          "tests/test_real_overflow_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10343310:0",
             "source_text": "选择自己的战场上的1个随从，对其造成1点伤害。对对手的战场上的随机1个随从造成3点伤害。若为【<color=Keyword>觉醒</color>】，则抽取1张龙族·随从。",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "选择自己的战场上的1个随从，对其造成1点伤害。对对手的战场上的随机1个随从造成3点伤害。若为【觉醒】，则抽取1张龙族·随从。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "b7528e95118a688cfd75d6270933619ac8b593a37b6b4dfd9e4b13bcb1a86d1d",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "play"
+          ],
+          "effect_kinds": [
+            "damage_unit",
+            "damage_unit",
+            "draw_filtered"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_overflow_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10344110": {
@@ -24119,8 +24233,8 @@
       "cost": 2,
       "is_collectible": true,
       "card_set_id": 10005,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['觉醒', '造成.*伤害']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['play'], Ops: ['damage_unit', 'damage_unit', 'damage_leader']",
       "hit_keywords": [
         "觉醒",
         "造成.*伤害"
@@ -24133,27 +24247,45 @@
         "发动2次「对对手的战场上的随机1个随从造成2点伤害」。若为【<color=Keyword>觉醒</color>】，则对对手的主战者造成2点伤害。"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "发动2次「对对手的战场上的随机1个随从造成2点伤害」。若为【觉醒】，则对对手的主战者造成2点伤害。",
+        "notes": "Two independent seeded random damage operations revalidate between hits; leader damage is Overflow-only.",
+        "rule_version": 1,
+        "source_text_sha256": "334d5c6abd7da82d4f9ea4218714b91d69127f46a73d41c38e196df81c2e3d42",
+        "test_evidence": [
+          "tests/test_real_overflow_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10543310:0",
             "source_text": "发动2次「对对手的战场上的随机1个随从造成2点伤害」。若为【<color=Keyword>觉醒</color>】，则对对手的主战者造成2点伤害。",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "发动2次「对对手的战场上的随机1个随从造成2点伤害」。若为【觉醒】，则对对手的主战者造成2点伤害。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "334d5c6abd7da82d4f9ea4218714b91d69127f46a73d41c38e196df81c2e3d42",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "play"
+          ],
+          "effect_kinds": [
+            "damage_unit",
+            "damage_unit",
+            "damage_leader"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_overflow_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10544110": {
@@ -31867,8 +31999,8 @@
       "cost": 3,
       "is_collectible": true,
       "card_set_id": 10007,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['觉醒', '抽取', '回复']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['play'], Ops: ['heal_leader', 'draw']",
       "hit_keywords": [
         "觉醒",
         "抽取",
@@ -31882,27 +32014,44 @@
         "回复自己的主战者3点生命值。若为【<color=Keyword>觉醒</color>】，则抽取1张卡牌。"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "回复自己的主战者3点生命值。若为【觉醒】，则抽取1张卡牌。",
+        "notes": "The unconditional heal and conditional draw are mapped in printed order.",
+        "rule_version": 1,
+        "source_text_sha256": "35d0257d86fca7c8b2143c0737a73c417572d27a79dd95c650e34333134d881e",
+        "test_evidence": [
+          "tests/test_real_overflow_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10742310:0",
             "source_text": "回复自己的主战者3点生命值。若为【<color=Keyword>觉醒</color>】，则抽取1张卡牌。",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "回复自己的主战者3点生命值。若为【觉醒】，则抽取1张卡牌。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "35d0257d86fca7c8b2143c0737a73c417572d27a79dd95c650e34333134d881e",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "play"
+          ],
+          "effect_kinds": [
+            "heal_leader",
+            "draw"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_overflow_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10743110": {
