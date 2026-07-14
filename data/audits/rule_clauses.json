@@ -128,6 +128,17 @@
       "notes": "All imported source clauses are mapped to the structured rule and cited behavior tests."
     },
     {
+      "card_id": 10032120,
+      "coverage": "exact",
+      "implemented_text": "【魔力增幅时】使本卡牌的费用-1。",
+      "rule_version": 1,
+      "source_text_sha256": "5b65063d9f42f569ed8ec20fe9f8f78c5e05802188761617422cb083faa60b0a",
+      "test_evidence": [
+        "tests/test_real_core_primitives_batch.py"
+      ],
+      "notes": "The per-Spellboost cost reduction passive is mapped directly and tested through an actual spell play."
+    },
+    {
       "card_id": 10032310,
       "coverage": "exact",
       "implemented_text": "对战场上的所有随从造成2点伤害。【土之秘术_1】抽取1张卡牌。",
@@ -248,6 +259,17 @@
       "source_text_sha256": "c3903e1393ed1422eb6bfb8205ae337383fd22a7c9f27d9a2a9a198e018c10f1",
       "test_evidence": ["tests/test_real_evolution_batch.py"],
       "notes": "Fanfare and evolve use the same source-excluding selected-target buff."
+    },
+    {
+      "card_id": 10101110,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】选择自己的1张手牌，使其返回牌组。抽取1张卡牌。",
+      "rule_version": 1,
+      "source_text_sha256": "d902171ad258ff623776ac1ecfbcc9ebdc7068ca799ae97325b0d33c1107ec79",
+      "test_evidence": [
+        "tests/test_real_core_primitives_batch.py"
+      ],
+      "notes": "Selected hand return and the following draw preserve entity and deck-zone behavior in direct tests."
     },
     {
       "card_id": 10101310,
@@ -653,6 +675,17 @@
       "notes": "All imported source clauses are mapped to the structured rule and cited behavior tests."
     },
     {
+      "card_id": 10203110,
+      "coverage": "exact",
+      "implemented_text": "【进化时】使自己的战场上的所有进化前的随从进化。",
+      "rule_version": 1,
+      "source_text_sha256": "b1f17efcd1486335a3d89c89848df0a93eb1ec28b450ab0064ddd8fc7b983f6f",
+      "test_evidence": [
+        "tests/test_real_core_primitives_batch.py"
+      ],
+      "notes": "The evolve trigger filters all allied followers to unevolved entities and effect-evolves them without extra EP."
+    },
+    {
       "card_id": 10204110,
       "coverage": "exact",
       "implemented_text": "【入场曲】选择对手的战场上的1张卡牌，使其消失。 / / 【疾驰】",
@@ -780,6 +813,17 @@
       "notes": "All imported source clauses are mapped to structured rules and direct behavior tests."
     },
     {
+      "card_id": 10301110,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】选择战场上的1个其他随从，使其+4/-4。",
+      "rule_version": 1,
+      "source_text_sha256": "24e3b6ed466bd154dd006638eb6248cb56f4ccdb958e04d47ce17d3c2962839a",
+      "test_evidence": [
+        "tests/test_real_core_primitives_batch.py"
+      ],
+      "notes": "Cross-controller follower selection excludes the source and applies lethal +4/-4 through normal state checks."
+    },
+    {
       "card_id": 10301310,
       "coverage": "exact",
       "implemented_text": "抽取3张卡牌。若自己的牌组中没有重复卡牌，则回复自己3点能量点。",
@@ -873,6 +917,17 @@
       "notes": "All imported source clauses are mapped to the structured rule and cited behavior tests."
     },
     {
+      "card_id": 10372120,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】选择自己的1张手牌，舍弃该手牌。抽取3张卡牌。",
+      "rule_version": 1,
+      "source_text_sha256": "a9c61beaaace03057ffa7c5b0330445920c478abab01d88ead10068f0ca71ede",
+      "test_evidence": [
+        "tests/test_real_core_primitives_batch.py"
+      ],
+      "notes": "Selected discard, three-card draw, and explicit no-candidate fallthrough are covered directly."
+    },
+    {
       "card_id": 10402110,
       "source_text_sha256": "1cd8bc10f796a37909d5c6391c6b06225d982c47b0dd91c6eae63f01f2f5c6fb",
       "test_evidence": [
@@ -912,6 +967,17 @@
         "tests/test_real_basic_followers_batch.py"
       ],
       "notes": "All imported source clauses are mapped to the structured rule; non_intrinsic_keyword prevents the granted Barrier mention from becoming an initial keyword."
+    },
+    {
+      "card_id": 10421110,
+      "coverage": "exact",
+      "implemented_text": "【爆能强化_5】本随从获得【疾驰】。",
+      "rule_version": 1,
+      "source_text_sha256": "525c0726a706a24bf7b3d3ea2c9b45473dd45d0138685750fcb63f348f8c3a7a",
+      "test_evidence": [
+        "tests/test_real_core_primitives_batch.py"
+      ],
+      "notes": "A non-intrinsic keyword annotation keeps Storm off the base follower until Enhance 5 grants it."
     },
     {
       "card_id": 10422110,
@@ -1014,6 +1080,17 @@
       "test_evidence": [
         "tests/test_trait_listeners.py"
       ]
+    },
+    {
+      "card_id": 10513310,
+      "coverage": "exact",
+      "implemented_text": "抽取X张卡牌。X为自己的【连击】。",
+      "rule_version": 1,
+      "source_text_sha256": "97577ecbdaa11aa4257ade9502e86257c017929b2f6104e5e99da3e39d3cf96c",
+      "test_evidence": [
+        "tests/test_real_core_primitives_batch.py"
+      ],
+      "notes": "The draw amount uses the current Combo expression, including the card being played."
     },
     {
       "card_id": 10521310,
@@ -1127,11 +1204,33 @@
       "notes": "All imported source clauses and normalized keyword alias 毁灭 -> 必杀 are mapped to structured rules and direct behavior tests."
     },
     {
+      "card_id": 10611120,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】【连击_3】本随从进化。",
+      "rule_version": 1,
+      "source_text_sha256": "468dcf5dc3e6e45b627b511aca230f303ddb815ae9018d8b4e85fdc11c74a520",
+      "test_evidence": [
+        "tests/test_real_core_primitives_batch.py"
+      ],
+      "notes": "Combo 3 conditionally effect-evolves the source without EP or manual-evolution consumption."
+    },
+    {
       "card_id": 10614120,
       "source_text_sha256": "2020e70b4c1f1b27404eb83b16e2b26ec90d40630f961b8e9f4db57541876544",
       "test_evidence": [
         "tests/test_faith.py"
       ]
+    },
+    {
+      "card_id": 10621110,
+      "coverage": "exact",
+      "implemented_text": "【爆能强化_3】本随从+1/+1。 / / 【突进】",
+      "rule_version": 1,
+      "source_text_sha256": "15d2c297d375d597b8b09d45b69c01826506845821bd99db6523c7546f353d2b",
+      "test_evidence": [
+        "tests/test_real_core_primitives_batch.py"
+      ],
+      "notes": "Enhance 3 adds +1/+1 while the normalized intrinsic Rush remains active and directly tested."
     },
     {
       "card_id": 10631310,
@@ -1183,6 +1282,17 @@
         "tests/test_real_card_rules_batch.py"
       ],
       "notes": "All imported source clauses are mapped to the structured rule and cited behavior tests."
+    },
+    {
+      "card_id": 10651310,
+      "coverage": "exact",
+      "implemented_text": "抽取2张卡牌。【唤灵_4】回复自己的主战者2点生命值。",
+      "rule_version": 1,
+      "source_text_sha256": "32eeb859d738897f1b4a83c80fdeeb47c9910bc59e55258846d545bf3ff3f645",
+      "test_evidence": [
+        "tests/test_real_core_primitives_batch.py"
+      ],
+      "notes": "Unconditional draw precedes optional Necromancy 4 healing; sufficient and insufficient Shadow paths are tested."
     },
     {
       "card_id": 10661310,
@@ -1246,6 +1356,17 @@
         "tests/test_real_basic_spells_batch.py"
       ],
       "notes": "All imported source clauses are mapped to structured rules and direct behavior tests."
+    },
+    {
+      "card_id": 10704120,
+      "coverage": "exact",
+      "implemented_text": "【潜行】 / / 自己的回合结束时，抽取1张卡牌。",
+      "rule_version": 1,
+      "source_text_sha256": "a99607745a8d517f4c1160bd3046cda69e6097dff519d2dd7d2f2166042ba47c",
+      "test_evidence": [
+        "tests/test_real_core_primitives_batch.py"
+      ],
+      "notes": "Intrinsic Ambush and the source-bound own-turn-end draw are mapped and directly tested."
     },
     {
       "card_id": 10711310,
@@ -1339,6 +1460,17 @@
         "tests/test_real_basic_spells_batch.py"
       ],
       "notes": "All imported source clauses are mapped to structured rules and direct behavior tests."
+    },
+    {
+      "card_id": 10752120,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】选择对手的战场上的1个随从，破坏该随从。发动【亡者召还_2】。",
+      "rule_version": 1,
+      "source_text_sha256": "a642ff2fdd283b7508724fe008f1dacdc77dc400ff6c0f02252f18c0ba4a47a9",
+      "test_evidence": [
+        "tests/test_real_core_primitives_batch.py"
+      ],
+      "notes": "Selected destruction precedes Reanimate 2, which still resolves when no enemy target exists."
     },
     {
       "card_id": 10771110,

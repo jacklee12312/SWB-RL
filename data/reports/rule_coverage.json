@@ -12,25 +12,25 @@
   },
   "summary": {
     "total_cards": 826,
-    "total_with_rules": 178,
+    "total_with_rules": 190,
     "test_or_synthetic_ids_with_rules": 26,
     "coverage_counts": {
-      "covered_exact": 146,
+      "covered_exact": 158,
       "text_unclear": 18,
-      "supported_missing_rule": 571,
+      "supported_missing_rule": 559,
       "token_or_non_collectible": 91
     },
     "clause_audit_counts": {
-      "mapped_exact": 146,
+      "mapped_exact": 158,
       "unverified_exact": 0,
       "partial": 0,
-      "missing_rule": 571,
+      "missing_rule": 559,
       "missing_primitive": 0,
       "text_unclear": 18,
       "token_separate_audit": 91
     },
     "blocker_counts": {
-      "missing_rule": 571,
+      "missing_rule": 559,
       "missing_schema": 0,
       "missing_primitive": 0,
       "missing_targeting": 0,
@@ -1627,8 +1627,8 @@
       "cost": 10,
       "is_collectible": true,
       "card_set_id": 10000,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['魔力增幅']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['passive'], Ops: ['spellboost_cost_reduction']",
       "hit_keywords": [
         "魔力增幅"
       ],
@@ -1640,27 +1640,43 @@
         "【<color=Keyword>魔力增幅时</color>】使本卡牌的费用-1。"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【魔力增幅时】使本卡牌的费用-1。",
+        "notes": "The per-Spellboost cost reduction passive is mapped directly and tested through an actual spell play.",
+        "rule_version": 1,
+        "source_text_sha256": "5b65063d9f42f569ed8ec20fe9f8f78c5e05802188761617422cb083faa60b0a",
+        "test_evidence": [
+          "tests/test_real_core_primitives_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10032120:0",
             "source_text": "【<color=Keyword>魔力增幅时</color>】使本卡牌的费用-1。",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "【魔力增幅时】使本卡牌的费用-1。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "5b65063d9f42f569ed8ec20fe9f8f78c5e05802188761617422cb083faa60b0a",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "passive"
+          ],
+          "effect_kinds": [
+            "spellboost_cost_reduction"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_core_primitives_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10032310": {
@@ -3202,8 +3218,8 @@
       "cost": 2,
       "is_collectible": true,
       "card_set_id": 10001,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '抽取', '返回牌']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['fanfare'], Ops: ['return_to_deck', 'draw']",
       "hit_keywords": [
         "入场曲",
         "抽取",
@@ -3217,27 +3233,44 @@
         "【<color=Keyword>入场曲</color>】选择自己的1张手牌，使其返回牌组。抽取1张卡牌。"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【入场曲】选择自己的1张手牌，使其返回牌组。抽取1张卡牌。",
+        "notes": "Selected hand return and the following draw preserve entity and deck-zone behavior in direct tests.",
+        "rule_version": 1,
+        "source_text_sha256": "d902171ad258ff623776ac1ecfbcc9ebdc7068ca799ae97325b0d33c1107ec79",
+        "test_evidence": [
+          "tests/test_real_core_primitives_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10101110:0",
             "source_text": "【<color=Keyword>入场曲</color>】选择自己的1张手牌，使其返回牌组。抽取1张卡牌。",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "【入场曲】选择自己的1张手牌，使其返回牌组。抽取1张卡牌。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "d902171ad258ff623776ac1ecfbcc9ebdc7068ca799ae97325b0d33c1107ec79",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "fanfare"
+          ],
+          "effect_kinds": [
+            "return_to_deck",
+            "draw"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_core_primitives_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10101120": {
@@ -10803,8 +10836,8 @@
       "cost": 7,
       "is_collectible": true,
       "card_set_id": 10002,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['进化时']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['evolve'], Ops: ['evolve_unit']",
       "hit_keywords": [
         "进化时"
       ],
@@ -10816,27 +10849,43 @@
         "<ev>【<color=Keyword>进化时</color>】使自己的战场上的所有进化前的随从进化。</ev>"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【进化时】使自己的战场上的所有进化前的随从进化。",
+        "notes": "The evolve trigger filters all allied followers to unevolved entities and effect-evolves them without extra EP.",
+        "rule_version": 1,
+        "source_text_sha256": "b1f17efcd1486335a3d89c89848df0a93eb1ec28b450ab0064ddd8fc7b983f6f",
+        "test_evidence": [
+          "tests/test_real_core_primitives_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10203110:0",
             "source_text": "<ev>【<color=Keyword>进化时</color>】使自己的战场上的所有进化前的随从进化。</ev>",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "【进化时】使自己的战场上的所有进化前的随从进化。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "b1f17efcd1486335a3d89c89848df0a93eb1ec28b450ab0064ddd8fc7b983f6f",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "evolve"
+          ],
+          "effect_kinds": [
+            "evolve_unit"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_core_primitives_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10203120": {
@@ -14551,8 +14600,8 @@
       "cost": 4,
       "is_collectible": true,
       "card_set_id": 10003,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['fanfare'], Ops: ['buff_unit']",
       "hit_keywords": [
         "入场曲"
       ],
@@ -14564,27 +14613,43 @@
         "【<color=Keyword>入场曲</color>】选择战场上的1个其他随从，使其+4/-4。"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【入场曲】选择战场上的1个其他随从，使其+4/-4。",
+        "notes": "Cross-controller follower selection excludes the source and applies lethal +4/-4 through normal state checks.",
+        "rule_version": 1,
+        "source_text_sha256": "24e3b6ed466bd154dd006638eb6248cb56f4ccdb958e04d47ce17d3c2962839a",
+        "test_evidence": [
+          "tests/test_real_core_primitives_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10301110:0",
             "source_text": "【<color=Keyword>入场曲</color>】选择战场上的1个其他随从，使其+4/-4。",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "【入场曲】选择战场上的1个其他随从，使其+4/-4。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "24e3b6ed466bd154dd006638eb6248cb56f4ccdb958e04d47ce17d3c2962839a",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "fanfare"
+          ],
+          "effect_kinds": [
+            "buff_unit"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_core_primitives_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10301310": {
@@ -18173,8 +18238,8 @@
       "cost": 5,
       "is_collectible": true,
       "card_set_id": 10003,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '抽取', '舍弃']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['fanfare'], Ops: ['discard', 'draw']",
       "hit_keywords": [
         "入场曲",
         "抽取",
@@ -18188,27 +18253,44 @@
         "【<color=Keyword>入场曲</color>】选择自己的1张手牌，舍弃该手牌。抽取3张卡牌。"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【入场曲】选择自己的1张手牌，舍弃该手牌。抽取3张卡牌。",
+        "notes": "Selected discard, three-card draw, and explicit no-candidate fallthrough are covered directly.",
+        "rule_version": 1,
+        "source_text_sha256": "a9c61beaaace03057ffa7c5b0330445920c478abab01d88ead10068f0ca71ede",
+        "test_evidence": [
+          "tests/test_real_core_primitives_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10372120:0",
             "source_text": "【<color=Keyword>入场曲</color>】选择自己的1张手牌，舍弃该手牌。抽取3张卡牌。",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "【入场曲】选择自己的1张手牌，舍弃该手牌。抽取3张卡牌。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "a9c61beaaace03057ffa7c5b0330445920c478abab01d88ead10068f0ca71ede",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "fanfare"
+          ],
+          "effect_kinds": [
+            "discard",
+            "draw"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_core_primitives_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10372210": {
@@ -19333,8 +19415,8 @@
       "cost": 2,
       "is_collectible": true,
       "card_set_id": 10004,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['爆能强化']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['fanfare', 'play_modes'], Ops: ['play_mode', 'add_keyword']",
       "hit_keywords": [
         "爆能强化"
       ],
@@ -19347,27 +19429,45 @@
         "【<color=Keyword>爆能强化</color>_5】本随从获得【<color=Keyword>疾驰</color>】。"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【爆能强化_5】本随从获得【疾驰】。",
+        "notes": "A non-intrinsic keyword annotation keeps Storm off the base follower until Enhance 5 grants it.",
+        "rule_version": 1,
+        "source_text_sha256": "525c0726a706a24bf7b3d3ea2c9b45473dd45d0138685750fcb63f348f8c3a7a",
+        "test_evidence": [
+          "tests/test_real_core_primitives_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10421110:0",
             "source_text": "【<color=Keyword>爆能强化</color>_5】本随从获得【<color=Keyword>疾驰</color>】。",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "【爆能强化_5】本随从获得【疾驰】。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "525c0726a706a24bf7b3d3ea2c9b45473dd45d0138685750fcb63f348f8c3a7a",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "fanfare",
+            "play_modes"
+          ],
+          "effect_kinds": [
+            "play_mode",
+            "add_keyword"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_core_primitives_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10421120": {
@@ -23043,8 +23143,8 @@
       "cost": 3,
       "is_collectible": true,
       "card_set_id": 10005,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['连击', '抽取']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['play'], Ops: ['draw']",
       "hit_keywords": [
         "连击",
         "抽取"
@@ -23057,27 +23157,43 @@
         "抽取X张卡牌。X为自己的【<color=Keyword>连击</color>】。"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "抽取X张卡牌。X为自己的【连击】。",
+        "notes": "The draw amount uses the current Combo expression, including the card being played.",
+        "rule_version": 1,
+        "source_text_sha256": "97577ecbdaa11aa4257ade9502e86257c017929b2f6104e5e99da3e39d3cf96c",
+        "test_evidence": [
+          "tests/test_real_core_primitives_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10513310:0",
             "source_text": "抽取X张卡牌。X为自己的【<color=Keyword>连击</color>】。",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "抽取X张卡牌。X为自己的【连击】。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "97577ecbdaa11aa4257ade9502e86257c017929b2f6104e5e99da3e39d3cf96c",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "play"
+          ],
+          "effect_kinds": [
+            "draw"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_core_primitives_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10514110": {
@@ -26598,8 +26714,8 @@
       "cost": 3,
       "is_collectible": true,
       "card_set_id": 10006,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '连击']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['fanfare'], Ops: ['conditional', 'evolve_unit']",
       "hit_keywords": [
         "入场曲",
         "连击"
@@ -26613,27 +26729,44 @@
         "【<color=Keyword>入场曲</color>】【<color=Keyword>连击</color>_3】本随从进化。"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【入场曲】【连击_3】本随从进化。",
+        "notes": "Combo 3 conditionally effect-evolves the source without EP or manual-evolution consumption.",
+        "rule_version": 1,
+        "source_text_sha256": "468dcf5dc3e6e45b627b511aca230f303ddb815ae9018d8b4e85fdc11c74a520",
+        "test_evidence": [
+          "tests/test_real_core_primitives_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10611120:0",
             "source_text": "【<color=Keyword>入场曲</color>】【<color=Keyword>连击</color>_3】本随从进化。",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "【入场曲】【连击_3】本随从进化。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "468dcf5dc3e6e45b627b511aca230f303ddb815ae9018d8b4e85fdc11c74a520",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "fanfare"
+          ],
+          "effect_kinds": [
+            "conditional",
+            "evolve_unit"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_core_primitives_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10611310": {
@@ -27035,8 +27168,8 @@
       "cost": 2,
       "is_collectible": true,
       "card_set_id": 10006,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['爆能强化']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['fanfare', 'play_modes'], Ops: ['play_mode', 'buff_unit']",
       "hit_keywords": [
         "爆能强化"
       ],
@@ -27049,27 +27182,45 @@
         "【<color=Keyword>爆能强化</color>_3】本随从+1/+1。\n<hr>【<color=Keyword>突进</color>】"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【爆能强化_3】本随从+1/+1。 / / 【突进】",
+        "notes": "Enhance 3 adds +1/+1 while the normalized intrinsic Rush remains active and directly tested.",
+        "rule_version": 1,
+        "source_text_sha256": "15d2c297d375d597b8b09d45b69c01826506845821bd99db6523c7546f353d2b",
+        "test_evidence": [
+          "tests/test_real_core_primitives_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10621110:0",
             "source_text": "【<color=Keyword>爆能强化</color>_3】本随从+1/+1。\n<hr>【<color=Keyword>突进</color>】",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "【爆能强化_3】本随从+1/+1。 / / 【突进】",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "15d2c297d375d597b8b09d45b69c01826506845821bd99db6523c7546f353d2b",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "fanfare",
+            "play_modes"
+          ],
+          "effect_kinds": [
+            "play_mode",
+            "buff_unit"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_core_primitives_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10621120": {
@@ -28671,8 +28822,8 @@
       "cost": 3,
       "is_collectible": true,
       "card_set_id": 10006,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['抽取', '回复', '死灵术|唤灵']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['play'], Ops: ['draw', 'necromancy', 'heal_leader']",
       "hit_keywords": [
         "抽取",
         "回复",
@@ -28686,27 +28837,45 @@
         "抽取2张卡牌。【<color=Keyword>唤灵</color>_4】回复自己的主战者2点生命值。"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "抽取2张卡牌。【唤灵_4】回复自己的主战者2点生命值。",
+        "notes": "Unconditional draw precedes optional Necromancy 4 healing; sufficient and insufficient Shadow paths are tested.",
+        "rule_version": 1,
+        "source_text_sha256": "32eeb859d738897f1b4a83c80fdeeb47c9910bc59e55258846d545bf3ff3f645",
+        "test_evidence": [
+          "tests/test_real_core_primitives_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10651310:0",
             "source_text": "抽取2张卡牌。【<color=Keyword>唤灵</color>_4】回复自己的主战者2点生命值。",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "抽取2张卡牌。【唤灵_4】回复自己的主战者2点生命值。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "32eeb859d738897f1b4a83c80fdeeb47c9910bc59e55258846d545bf3ff3f645",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "play"
+          ],
+          "effect_kinds": [
+            "draw",
+            "necromancy",
+            "heal_leader"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_core_primitives_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10652110": {
@@ -30458,8 +30627,8 @@
       "cost": 3,
       "is_collectible": true,
       "card_set_id": 10007,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['回合结束', '抽取']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['turn_end'], Ops: ['draw']",
       "hit_keywords": [
         "回合结束",
         "抽取"
@@ -30472,27 +30641,43 @@
         "【<color=Keyword>潜行</color>】\n自己的回合结束时，抽取1张卡牌。"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【潜行】 / / 自己的回合结束时，抽取1张卡牌。",
+        "notes": "Intrinsic Ambush and the source-bound own-turn-end draw are mapped and directly tested.",
+        "rule_version": 1,
+        "source_text_sha256": "a99607745a8d517f4c1160bd3046cda69e6097dff519d2dd7d2f2166042ba47c",
+        "test_evidence": [
+          "tests/test_real_core_primitives_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10704120:0",
             "source_text": "【<color=Keyword>潜行</color>】\n自己的回合结束时，抽取1张卡牌。",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "【潜行】 / / 自己的回合结束时，抽取1张卡牌。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "a99607745a8d517f4c1160bd3046cda69e6097dff519d2dd7d2f2166042ba47c",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "turn_end"
+          ],
+          "effect_kinds": [
+            "draw"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_core_primitives_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10711110": {
@@ -32823,8 +33008,8 @@
       "cost": 6,
       "is_collectible": true,
       "card_set_id": 10007,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '破坏', '亡者召还']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['fanfare'], Ops: ['destroy', 'reanimate']",
       "hit_keywords": [
         "入场曲",
         "破坏",
@@ -32839,27 +33024,44 @@
         "【<color=Keyword>入场曲</color>】选择对手的战场上的1个随从，破坏该随从。发动【<color=Keyword>亡者召还</color>_2】。"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【入场曲】选择对手的战场上的1个随从，破坏该随从。发动【亡者召还_2】。",
+        "notes": "Selected destruction precedes Reanimate 2, which still resolves when no enemy target exists.",
+        "rule_version": 1,
+        "source_text_sha256": "a642ff2fdd283b7508724fe008f1dacdc77dc400ff6c0f02252f18c0ba4a47a9",
+        "test_evidence": [
+          "tests/test_real_core_primitives_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10752120:0",
             "source_text": "【<color=Keyword>入场曲</color>】选择对手的战场上的1个随从，破坏该随从。发动【<color=Keyword>亡者召还</color>_2】。",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "【入场曲】选择对手的战场上的1个随从，破坏该随从。发动【亡者召还_2】。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "a642ff2fdd283b7508724fe008f1dacdc77dc400ff6c0f02252f18c0ba4a47a9",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "fanfare"
+          ],
+          "effect_kinds": [
+            "destroy",
+            "reanimate"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_core_primitives_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10752310": {

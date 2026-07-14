@@ -10,15 +10,15 @@ code and tests as the source of truth when this file drifts.
 - Database: 826 cards, 735 collectible cards, 91 non-collectible/generated
   cards from set `90000`.
 - Latest SVA source: `https://sva.hypd.asia/data/cards.json`.
-- Tests: `python -m unittest discover -s tests -v` currently runs 1275 tests.
+- Tests: `python -m unittest discover -s tests -v` currently runs 1290 tests.
 - RL adapter: fixed 111-action space; the default v1 observation remains 290
   floats, while opt-in v2 provides fixed-shape categorical/public state without
   changing action IDs.
 - Ability registry status: 18 implemented, 5 partial, 11 placeholder.
 - Explicit card and demo rules live in `data/rules/`; the current coverage
-  report classifies 178 card IDs with explicit rules, passives, fusion,
+  report classifies 190 card IDs with explicit rules, passives, fusion,
   invocation, activation, Faith, Union Burst, or listener definitions. Current
-  collectible coverage is 146 exact, 0 partial, 571 supported-but-missing-rule,
+  collectible coverage is 158 exact, 0 partial, 559 supported-but-missing-rule,
   0 missing-primitive, and 18 text-unclear cards.
 - `data/reports/token_audit.{json,md}` audits all 91 non-collectible/generated
   cards independently of collectible coverage. Database `card_references` and
@@ -33,7 +33,7 @@ code and tests as the source of truth when this file drifts.
   separate column and is covered for all 34; it does not automatically promote
   the 5 partial or 11 placeholder keyword statuses.
 - Coverage now has a backward-compatible clause audit. The legacy summary still
-  reports 146 exact collectible cards, and all 146 now have an explicit exact
+  reports 158 exact collectible cards, and all 158 now have an explicit exact
   text mapping plus named direct test evidence. The versioned sibling registry
   at `data/audits/rule_clauses.json` hashes every imported primary and
   alternate-mode clause; changed source text or stale test evidence invalidates
@@ -42,7 +42,7 @@ code and tests as the source of truth when this file drifts.
   rule version and errata metadata, structured trigger/operation evidence,
   explicit unsupported text, and a stable blocker taxonomy. There are zero
   unverified exact entries and no known missing schema, primitive, targeting,
-  or timing blocker among authored rules. The 571 supported-but-missing-rule
+  or timing blocker among authored rules. The 559 supported-but-missing-rule
   cards are now the per-card structured-content backlog; 18 unclear texts
   remain explicit.
 - RL observation v2 is available behind an explicit version switch. A
@@ -469,9 +469,22 @@ slice in this order:
   grants, intrinsic Ambush/Guard, lethal state checks, a temporary attack lock,
   and RL mask parity. Cards whose text permanently buffs a follower in hand
   remain unsupported until a persistent hand-stat primitive is implemented.
+- Exact file `data/rules/real_core_primitives_batch.json` adds 12 audited cards
+  with no alternate modes or referenced cards. Direct tests cover per-boost
+  cost reduction, Combo expressions and conditions, effect evolution without
+  EP, Enhance grants with non-intrinsic Storm provenance, selected hand return
+  or discard, source-bound turn-end draw, all-ally unevolved filtering,
+  source-excluding cross-controller targets, sufficient/insufficient
+  Necromancy, Reanimate after selected destruction, and no-target fallthrough.
 
 ## Known Partial Or Unsupported Areas
 
+- Random board targeting currently resolves one target per operation and does
+  not consume `target_count`; `10221110` and `10351310` therefore remain
+  unsupported rather than incorrectly allowing one hit or duplicate hits.
+- Normal-play legality for an amulet with only an activation definition and no
+  play operations/countdown is not yet defined. `10163220` remains unsupported
+  instead of receiving a synthetic no-op play effect.
 - `觉醒` has condition/expression support, public observation flags, and one
   real-card rule demo; broader real-card coverage and future max-mana ramp
   interactions remain partial.

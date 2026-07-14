@@ -38,13 +38,13 @@ covered generic boundary, but that never upgrades a partial or placeholder
 keyword whose full tagged-card semantics still require structured rules.
 
 The [rule coverage report](data/reports/rule_coverage.md) now includes a
-clause-audit layer without changing its legacy coverage categories. Of 146
-exact collectible cards, all 146 have explicit implemented text and named direct
+clause-audit layer without changing its legacy coverage categories. Of 158
+exact collectible cards, all 158 have explicit implemented text and named direct
 test evidence. The sibling `data/audits/rule_clauses.json` registry hashes every
 imported skill and alternate-mode clause, so a database text change or stale
 test reference invalidates the audit instead of silently retaining exact
 status. The current report has no unverified exact entry or missing generic
-schema, primitive, targeting, or timing blocker. Its remaining 571 collectible
+schema, primitive, targeting, or timing blocker. Its remaining 559 collectible
 gaps are missing per-card structured rules, while 18 unclear texts remain
 explicit. Rule metadata also supports version and errata fields, and the report
 records the complete imported source snapshot hash.
@@ -277,6 +277,12 @@ The deterministic rules core supports:
   normal and Super-Evolve stat/ability triggers, and a temporary attack lock.
   Direct tests also lock intrinsic Ambush/Guard, evolve-only Storm provenance,
   lethal state checks, and RL mask parity;
+- a 12-card exact core-primitives batch covers per-Spellboost cost reduction,
+  Combo-based draw and automatic evolution, Enhance buffs and keyword grants,
+  selected hand cycling/discard, own-turn-end draw, all-ally effect evolution,
+  source-excluding cross-controller targeting, Necromancy healing, and
+  destruction followed by Reanimate. Direct tests cover insufficient-resource
+  and no-target fallthrough paths plus intrinsic Ambush/Rush provenance;
 - countdown amulets, explicit last words, fanfare/play rules, attack/clash,
   evolve/super-evolve, turn-start/turn-end triggers, and trigger continuations
   that can pause for choices. Exact `10713110` uses a source-in-play turn-end
@@ -377,6 +383,11 @@ remain visible instead of silently behaving as implemented.
 
 Known broad gaps include:
 
+- random board operations do not yet consume `target_count`, so cards that say
+  “random 2 followers” remain unsupported instead of being approximated by one
+  target or two independently repeatable targets. An activation-only amulet
+  with neither play operations nor countdown is also rejected by normal-play
+  legality; `10163220` remains unsupported until that generic path is defined;
 - exact semantics for many real cards and most generated-card workflows; the
   token audit keeps the remaining 11 partial and 69 unimplemented entries
   explicit instead of treating non-collectible classification as coverage;

@@ -1,0 +1,143 @@
+{
+  "passives": [
+    {
+      "card_id": 10032120,
+      "kind": "spellboost_cost_reduction",
+      "amount": 1
+    },
+    {
+      "card_id": 10421110,
+      "kind": "non_intrinsic_keyword",
+      "keyword": "疾驰",
+      "notes": "疾驰只由爆能强化能力授予，不是本体初始关键词。"
+    }
+  ],
+  "rules": [
+    {
+      "card_id": 10101110,
+      "trigger": "fanfare",
+      "operations": [
+        {"kind": "return_to_deck", "target": "own_hand"},
+        {"kind": "draw", "target": "own_leader", "amount": 1}
+      ]
+    },
+    {
+      "card_id": 10513310,
+      "trigger": "play",
+      "operations": [
+        {
+          "kind": "draw",
+          "target": "own_leader",
+          "amount": {"type": "controller_combo"}
+        }
+      ]
+    },
+    {
+      "card_id": 10611120,
+      "trigger": "fanfare",
+      "operations": [
+        {
+          "kind": "conditional",
+          "target": "own_leader",
+          "conditions": [
+            {"type": "controller_combo_at_least", "value": 3}
+          ],
+          "then": [
+            {"kind": "evolve_unit", "target": "self"}
+          ]
+        }
+      ]
+    },
+    {
+      "card_id": 10421110,
+      "trigger": "fanfare",
+      "operations": [],
+      "play_modes": [
+        {
+          "id": "enhance_5",
+          "type": "enhance",
+          "cost": 5,
+          "operations": [
+            {"kind": "add_keyword", "target": "self", "keyword": "疾驰"}
+          ]
+        }
+      ]
+    },
+    {
+      "card_id": 10704120,
+      "trigger": "turn_end",
+      "operations": [
+        {"kind": "draw", "target": "own_leader", "amount": 1}
+      ]
+    },
+    {
+      "card_id": 10203110,
+      "trigger": "evolve",
+      "operations": [
+        {
+          "kind": "evolve_unit",
+          "target": "all_own_units",
+          "target_evolved_filter": false
+        }
+      ]
+    },
+    {
+      "card_id": 10301110,
+      "trigger": "fanfare",
+      "operations": [
+        {
+          "kind": "buff_unit",
+          "target": "any_unit",
+          "amount": 4,
+          "secondary_amount": -4,
+          "exclude_source": true
+        }
+      ]
+    },
+    {
+      "card_id": 10621110,
+      "trigger": "fanfare",
+      "operations": [],
+      "play_modes": [
+        {
+          "id": "enhance_3",
+          "type": "enhance",
+          "cost": 3,
+          "operations": [
+            {"kind": "buff_unit", "target": "self", "amount": 1, "secondary_amount": 1}
+          ]
+        }
+      ]
+    },
+    {
+      "card_id": 10651310,
+      "trigger": "play",
+      "operations": [
+        {"kind": "draw", "target": "own_leader", "amount": 2},
+        {
+          "kind": "necromancy",
+          "amount": 4,
+          "operations": [
+            {"kind": "heal_leader", "target": "own_leader", "amount": 2}
+          ]
+        }
+      ]
+    },
+    {
+      "card_id": 10372120,
+      "trigger": "fanfare",
+      "operations": [
+        {"kind": "discard", "target": "own_hand"},
+        {"kind": "draw", "target": "own_leader", "amount": 3}
+      ]
+    },
+    {
+      "card_id": 10752120,
+      "trigger": "fanfare",
+      "operations": [
+        {"kind": "destroy", "target": "enemy_unit"},
+        {"kind": "reanimate", "amount": 2}
+      ]
+    }
+  ]
+}
