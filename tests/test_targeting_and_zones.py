@@ -470,6 +470,29 @@ class TargetingTests(unittest.TestCase):
             1,
         )
         self.assertTrue(operation.exclude_source)
+        all_operation = _parse_operation(
+            {
+                "kind": "buff_unit",
+                "target": "all_own_units",
+                "amount": 1,
+                "secondary_amount": 1,
+                "exclude_source": True,
+            },
+            "test.json/operations[0]",
+            1,
+        )
+        self.assertTrue(all_operation.exclude_source)
+        random_operation = _parse_operation(
+            {
+                "kind": "damage_unit",
+                "target": "random_own_unit",
+                "amount": 1,
+                "exclude_source": True,
+            },
+            "test.json/operations[0]",
+            1,
+        )
+        self.assertTrue(random_operation.exclude_source)
         for invalid in (
             {
                 "kind": "draw",
@@ -698,6 +721,73 @@ class TargetingTests(unittest.TestCase):
             engine.apply(Choose(0, option.option_id))
         self.assertIn(source, engine.players[0].board)
         self.assertIsNone(engine.state.pending_choice)
+
+    def test_all_own_units_excludes_source_without_creating_a_choice(self):
+        operation = EffectOperation(
+            EffectKind.BUFF_UNIT,
+            TargetKind.ALL_OWN_UNITS,
+            amount=1,
+            secondary_amount=1,
+            exclude_source=True,
+        )
+        rulebook = RuleBook((CardRule(1, Trigger.FANFARE, (operation,)),))
+        engine = GameEngine(
+            [card(index) for index in range(100, 140)],
+            [card(index) for index in range(200, 240)],
+            class_a=1,
+            class_b=1,
+            seed=23,
+            rulebook=rulebook,
+        )
+        engine.reset(seed=23)
+        allies = [
+            Unit.summon(
+                card(911 + index, attack=1, life=2),
+                entity_id=engine.state.allocate_entity_id(),
+            )
+            for index in range(2)
+        ]
+        engine.players[0].board = list(allies)
+        engine.players[0].hand[0] = card(1, attack=2, life=3)
+        engine.players[0].max_mana = engine.players[0].mana = 10
+
+        engine.apply(PlayCard(0, 0))
+
+        source = engine.players[0].board[-1]
+        self.assertEqual([(ally.attack, ally.health) for ally in allies], [(2, 3), (2, 3)])
+        self.assertEqual((source.attack, source.health), (2, 3))
+        self.assertIsNone(engine.state.pending_choice)
+
+    def test_random_own_unit_excludes_source_before_seeded_selection(self):
+        operation = EffectOperation(
+            EffectKind.DAMAGE_UNIT,
+            TargetKind.RANDOM_OWN_UNIT,
+            amount=1,
+            exclude_source=True,
+        )
+        rulebook = RuleBook((CardRule(1, Trigger.FANFARE, (operation,)),))
+        engine = GameEngine(
+            [card(index) for index in range(100, 140)],
+            [card(index) for index in range(200, 240)],
+            class_a=1,
+            class_b=1,
+            seed=31,
+            rulebook=rulebook,
+        )
+        engine.reset(seed=31)
+        ally = Unit.summon(
+            card(915, attack=1, life=3),
+            entity_id=engine.state.allocate_entity_id(),
+        )
+        engine.players[0].board = [ally]
+        engine.players[0].hand[0] = card(1, attack=2, life=3)
+        engine.players[0].max_mana = engine.players[0].mana = 10
+
+        engine.apply(PlayCard(0, 0))
+
+        source = engine.players[0].board[-1]
+        self.assertEqual(ally.health, 2)
+        self.assertEqual(source.health, 3)
 
     def test_source_excluding_choice_and_rl_mask_share_option_set(self):
         operation = EffectOperation(

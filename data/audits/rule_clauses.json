@@ -13,6 +13,15 @@
       "notes": "All imported source clauses are mapped to the structured rule and cited behavior tests."
     },
     {
+      "card_id": 10001120,
+      "coverage": "exact",
+      "implemented_text": "【守护】 / 【谢幕曲】抽取1张卡牌。 / / 【进化时】抽取1张卡牌。",
+      "rule_version": 1,
+      "source_text_sha256": "ac655a7408e42ea3b08ccd5262199c24b347f3326957092e27f16b74053a43ec",
+      "test_evidence": ["tests/test_real_evolution_batch.py"],
+      "notes": "Intrinsic Guard, evolve draw, and Last Words draw are each covered directly."
+    },
+    {
       "card_id": 10011120,
       "coverage": "exact",
       "implemented_text": "【入场曲】使自己的【连击】+1。",
@@ -232,6 +241,15 @@
       ]
     },
     {
+      "card_id": 10061130,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】选择自己的战场上的1个其他随从，使其+1/+1。 / / 【进化时】发动与【入场曲】相同的能力。",
+      "rule_version": 1,
+      "source_text_sha256": "c3903e1393ed1422eb6bfb8205ae337383fd22a7c9f27d9a2a9a198e018c10f1",
+      "test_evidence": ["tests/test_real_evolution_batch.py"],
+      "notes": "Fanfare and evolve use the same source-excluding selected-target buff."
+    },
+    {
       "card_id": 10101310,
       "coverage": "exact",
       "implemented_text": "召唤5个『<color=Keyword>哥布林</color>』。",
@@ -243,6 +261,15 @@
       "notes": "All imported source clauses are mapped to structured rules and direct behavior tests."
     },
     {
+      "card_id": 10102110,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】对对手的战场上的所有随从造成1点伤害。 / / 【进化时】发动与【入场曲】相同的能力。",
+      "rule_version": 1,
+      "source_text_sha256": "6e9437010fa8ec109425e2f95e78629c0479c91afef82a24a2ae53bf371205ff",
+      "test_evidence": ["tests/test_real_evolution_batch.py"],
+      "notes": "Fanfare and evolve each resolve a simultaneous enemy-wide damage batch."
+    },
+    {
       "card_id": 10102310,
       "coverage": "exact",
       "implemented_text": "抽取2张卡牌。",
@@ -252,6 +279,15 @@
         "tests/test_real_basic_spells_batch.py"
       ],
       "notes": "All imported source clauses are mapped to structured rules and direct behavior tests."
+    },
+    {
+      "card_id": 10103110,
+      "coverage": "exact",
+      "implemented_text": "【进化时】选择对手的战场上的1个随从，破坏该随从。",
+      "rule_version": 1,
+      "source_text_sha256": "7fd76efc10ec548628edb68de701c23238e76905e164799c12f3d591a6e9b34b",
+      "test_evidence": ["tests/test_real_evolution_batch.py"],
+      "notes": "Selected evolve destruction and the no-candidate path are covered directly."
     },
     {
       "card_id": 10111310,
@@ -296,6 +332,15 @@
         "tests/test_real_basic_followers_batch.py"
       ],
       "notes": "All imported source clauses and normalized static keywords are mapped to structured rules and direct behavior tests."
+    },
+    {
+      "card_id": 10121120,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】使自己的战场上的其他所有随从+1/+1。 / / 【进化时】发动与【入场曲】相同的能力。",
+      "rule_version": 1,
+      "source_text_sha256": "ab7e83cf328146f3e25ac2e44c08b49cfa935cc40103575559188e007770067d",
+      "test_evidence": ["tests/test_real_evolution_batch.py"],
+      "notes": "Both triggers buff all allied followers except the source."
     },
     {
       "card_id": 10121310,
@@ -346,6 +391,15 @@
         "tests/test_real_basic_spells_batch.py"
       ],
       "notes": "All imported source clauses are mapped to structured rules and direct behavior tests."
+    },
+    {
+      "card_id": 10131140,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】抽取2张卡牌。 / / 【进化时】使自己的所有手牌发动2次魔力增幅。",
+      "rule_version": 1,
+      "source_text_sha256": "21ee8c3b3f4118d3c6d78244f1e3cc64e8234e10366ca265ca06dd0e9c4b2d65",
+      "test_evidence": ["tests/test_real_evolution_batch.py"],
+      "notes": "Fanfare draw and evolve-time all-hand Spellboost are covered directly."
     },
     {
       "card_id": 10132320,
@@ -408,6 +462,15 @@
       "notes": "Storm is intrinsic; the existing non_intrinsic_keyword annotation keeps conditional Intimidate off the base follower until Overflow."
     },
     {
+      "card_id": 10142130,
+      "coverage": "exact",
+      "implemented_text": "【超进化时】选择自己的战场上的1个其他随从，使其获得【疾驰】。",
+      "rule_version": 1,
+      "source_text_sha256": "9618d198aebbe506763f8acf0bded8ee3f8b5591efa5e7e3ce908cf3d239bbad",
+      "test_evidence": ["tests/test_real_evolution_batch.py"],
+      "notes": "non_intrinsic_keyword removes the granted Storm from the source; direct RL tests cover the other-follower choice."
+    },
+    {
       "card_id": 10142140,
       "coverage": "exact",
       "implemented_text": "【入场曲】选择自己的战场上的1个其他随从，使其+2/+2。若为【觉醒】，则改为+3/+3。",
@@ -433,11 +496,29 @@
       ]
     },
     {
+      "card_id": 10143140,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】使对手的战场上的所有随从-0/-9。 / / 【超进化时】抽取3张卡牌。",
+      "rule_version": 1,
+      "source_text_sha256": "0636b738f560af2281a66c8ad976b4b05db290aad6e8e45b09c18043a2edd6f3",
+      "test_evidence": ["tests/test_real_evolution_batch.py"],
+      "notes": "The health debuff collects state-based deaths before the Super-Evolve draw is tested."
+    },
+    {
       "card_id": 10151110,
       "source_text_sha256": "bd994481a9a5e68b25f6b281f35a34bacd9d03d88c7a3c6faf9147893960c40b",
       "test_evidence": [
         "tests/test_cross_class_trait_listeners.py"
       ]
+    },
+    {
+      "card_id": 10151150,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】抽取2张卡牌。对自己的主战者造成2点伤害。 / / 【进化时】选择对手的战场上的1个随从，对其造成6点伤害。",
+      "rule_version": 1,
+      "source_text_sha256": "597b6b2d954ea70b888466d8323469a03dd6e11735bcbe5619bf55fe57f89430",
+      "test_evidence": ["tests/test_real_evolution_batch.py"],
+      "notes": "Draw, self-damage, and selected evolve damage resolve in printed order."
     },
     {
       "card_id": 10151310,
@@ -449,6 +530,15 @@
         "tests/test_real_card_rules_batch.py"
       ],
       "notes": "All imported source clauses are mapped to the structured rule and cited behavior tests."
+    },
+    {
+      "card_id": 10152120,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】对自己的主战者造成3点伤害。 / / 【进化时】回复自己的主战者5点生命值。",
+      "rule_version": 1,
+      "source_text_sha256": "076b27ec1bdae7b69af2594a3a5ccaa7545eaece806c3d3650e2cbf36030d3ad",
+      "test_evidence": ["tests/test_real_evolution_batch.py"],
+      "notes": "Fanfare self-damage and evolve healing are covered as separate triggers."
     },
     {
       "card_id": 10153140,
@@ -502,6 +592,24 @@
       "test_evidence": [
         "tests/test_attack_capacity.py"
       ]
+    },
+    {
+      "card_id": 10163120,
+      "coverage": "exact",
+      "implemented_text": "【潜行】 / / 【进化时】选择对手的战场上的1个随从，破坏该随从。",
+      "rule_version": 1,
+      "source_text_sha256": "6d0f00187d323b895c73f37707a4746a48f9b4702ac3db614420bb1c4ca90f9b",
+      "test_evidence": ["tests/test_real_evolution_batch.py"],
+      "notes": "Intrinsic Ambush, selected evolve destruction, and the no-candidate path are covered directly."
+    },
+    {
+      "card_id": 10164130,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】回复自己的主战者3点生命值。 / 【守护】 / / 【进化时】对对手的战场上的所有随从造成3点伤害。",
+      "rule_version": 1,
+      "source_text_sha256": "6563ac1865ab4f9e442e9cfe6c433f58dfe9a6692f76e9e75c7ca65cd68a69ad",
+      "test_evidence": ["tests/test_real_evolution_batch.py"],
+      "notes": "Fanfare healing, intrinsic Guard, and simultaneous evolve damage are covered directly."
     },
     {
       "card_id": 10171110,

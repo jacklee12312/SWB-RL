@@ -1874,6 +1874,21 @@ _MULTI_TARGET_TARGETS = frozenset({
     TargetKind.OWN_GRAVEYARD_CARD,
 })
 
+_SOURCE_EXCLUDABLE_TARGETS = _MULTI_TARGET_TARGETS | frozenset({
+    TargetKind.RANDOM_OWN_UNIT,
+    TargetKind.RANDOM_ENEMY_UNIT,
+    TargetKind.RANDOM_OWN_BOARD,
+    TargetKind.RANDOM_ENEMY_BOARD,
+    TargetKind.ALL_OWN_UNITS,
+    TargetKind.ALL_ENEMY_UNITS,
+    TargetKind.ALL_UNITS,
+    TargetKind.ALL_OWN_BOARD,
+    TargetKind.ALL_ENEMY_BOARD,
+    TargetKind.ALL_BOARD,
+    TargetKind.ALL_OWN_AMULETS,
+    TargetKind.ALL_ENEMY_AMULETS,
+})
+
 _EVOLVE_TARGETS = frozenset({
     TargetKind.SELF,
     TargetKind.EVENT_SOURCE,
@@ -2167,10 +2182,10 @@ def _parse_operation(
         raise ValueError(
             f"{source_file}/exclude_source card {card_id}: must be boolean"
         )
-    if exclude_source and target not in _MULTI_TARGET_TARGETS:
+    if exclude_source and target not in _SOURCE_EXCLUDABLE_TARGETS:
         raise ValueError(
             f"{source_file}/exclude_source card {card_id}: requires a "
-            "selected board-entity target"
+            "selected, random, or all board-entity target"
         )
     has_multi_target_fields = (
         raw_target_count is not None

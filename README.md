@@ -38,13 +38,13 @@ covered generic boundary, but that never upgrades a partial or placeholder
 keyword whose full tagged-card semantics still require structured rules.
 
 The [rule coverage report](data/reports/rule_coverage.md) now includes a
-clause-audit layer without changing its legacy coverage categories. Of 122
-exact collectible cards, all 122 have explicit implemented text and named direct
+clause-audit layer without changing its legacy coverage categories. Of 134
+exact collectible cards, all 134 have explicit implemented text and named direct
 test evidence. The sibling `data/audits/rule_clauses.json` registry hashes every
 imported skill and alternate-mode clause, so a database text change or stale
 test reference invalidates the audit instead of silently retaining exact
 status. The current report has no unverified exact entry or missing generic
-schema, primitive, targeting, or timing blocker. Its remaining 595 collectible
+schema, primitive, targeting, or timing blocker. Its remaining 583 collectible
 gaps are missing per-card structured rules, while 18 unclear texts remain
 explicit. Rule metadata also supports version and errata fields, and the report
 records the complete imported source snapshot hash.
@@ -225,10 +225,11 @@ The deterministic rules core supports:
 - structured `target_exists` no-target branches that reuse normal target
   candidate generation before queuing a then/else effect branch, including
   unit-or-leader fallback targets when no target-dependent condition is present;
-- selected board targets support explicit dynamic source exclusion across
-  follower/amulet mixed zones and multi-target choices. The same filtered
-  candidate set drives play legality, commands, pending choices, revalidation,
-  and RL masks; `10664120` demonstrates its verified three-other-card Fanfare;
+- selected, random, and all board targets support explicit dynamic source
+  exclusion across follower/amulet mixed zones. The same filtered candidate set
+  drives play legality, commands, pending choices, revalidation, and RL masks;
+  `10664120` demonstrates a three-other-card choice and `10121120` demonstrates
+  an automatic all-other-followers effect;
 - structured `grant_attacks_per_turn` capacity preserves attacks already used,
   supports permanent and turn-scoped grants, does not bypass summoning
   sickness, refreshes at turn start, and is removed by ability removal or
@@ -265,6 +266,11 @@ The deterministic rules core supports:
   source-excluding replacement buffs, class/type-filtered draw, and independent
   seeded random hits. Direct tests also prohibit a selected-target spell when no
   allied follower exists and lock the corresponding RL mask;
+- a 12-card exact evolution batch covers Fanfare/Evolve replay, Last Words plus
+  Evolve draws, all-other-follower buffs, all-hand Spellboost, conditional
+  self-damage/healing, selected destruction and damage, simultaneous damage and
+  health-reduction deaths, and Super-Evolve draws or Storm grants. Static Guard
+  and Ambush plus the real Super-Evolve target/RL mask are audited directly;
 - countdown amulets, explicit last words, fanfare/play rules, attack/clash,
   evolve/super-evolve, turn-start/turn-end triggers, and trigger continuations
   that can pause for choices. Exact `10713110` uses a source-in-play turn-end

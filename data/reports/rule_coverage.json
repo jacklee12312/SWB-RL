@@ -12,25 +12,25 @@
   },
   "summary": {
     "total_cards": 826,
-    "total_with_rules": 154,
+    "total_with_rules": 166,
     "test_or_synthetic_ids_with_rules": 26,
     "coverage_counts": {
-      "covered_exact": 122,
-      "supported_missing_rule": 595,
+      "covered_exact": 134,
       "text_unclear": 18,
+      "supported_missing_rule": 583,
       "token_or_non_collectible": 91
     },
     "clause_audit_counts": {
-      "mapped_exact": 122,
+      "mapped_exact": 134,
       "unverified_exact": 0,
       "partial": 0,
-      "missing_rule": 595,
+      "missing_rule": 583,
       "missing_primitive": 0,
       "text_unclear": 18,
       "token_separate_audit": 91
     },
     "blocker_counts": {
-      "missing_rule": 595,
+      "missing_rule": 583,
       "missing_schema": 0,
       "missing_primitive": 0,
       "missing_targeting": 0,
@@ -303,8 +303,8 @@
       "cost": 2,
       "is_collectible": true,
       "card_set_id": 10000,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['谢幕曲', '进化时', '抽取']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['last_words', 'evolve'], Ops: ['draw', 'draw']",
       "hit_keywords": [
         "谢幕曲",
         "进化时",
@@ -320,27 +320,45 @@
         "【<color=Keyword>守护</color>】\n【<color=Keyword>谢幕曲</color>】抽取1张卡牌。\n<hr><ev>【<color=Keyword>进化时</color>】抽取1张卡牌。</ev>"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【守护】 / 【谢幕曲】抽取1张卡牌。 / / 【进化时】抽取1张卡牌。",
+        "notes": "Intrinsic Guard, evolve draw, and Last Words draw are each covered directly.",
+        "rule_version": 1,
+        "source_text_sha256": "ac655a7408e42ea3b08ccd5262199c24b347f3326957092e27f16b74053a43ec",
+        "test_evidence": [
+          "tests/test_real_evolution_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10001120:0",
             "source_text": "【<color=Keyword>守护</color>】\n【<color=Keyword>谢幕曲</color>】抽取1张卡牌。\n<hr><ev>【<color=Keyword>进化时</color>】抽取1张卡牌。</ev>",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "【守护】 / 【谢幕曲】抽取1张卡牌。 / / 【进化时】抽取1张卡牌。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "ac655a7408e42ea3b08ccd5262199c24b347f3326957092e27f16b74053a43ec",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "last_words",
+            "evolve"
+          ],
+          "effect_kinds": [
+            "draw",
+            "draw"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_evolution_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10001130": {
@@ -2600,8 +2618,8 @@
       "cost": 4,
       "is_collectible": true,
       "card_set_id": 10000,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '进化时']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['fanfare', 'evolve'], Ops: ['buff_unit', 'buff_unit']",
       "hit_keywords": [
         "入场曲",
         "进化时"
@@ -2615,27 +2633,45 @@
         "【<color=Keyword>入场曲</color>】选择自己的战场上的1个其他随从，使其+1/+1。\n<hr><ev>【<color=Keyword>进化时</color>】发动与【<color=Keyword>入场曲</color>】相同的能力。</ev>"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【入场曲】选择自己的战场上的1个其他随从，使其+1/+1。 / / 【进化时】发动与【入场曲】相同的能力。",
+        "notes": "Fanfare and evolve use the same source-excluding selected-target buff.",
+        "rule_version": 1,
+        "source_text_sha256": "c3903e1393ed1422eb6bfb8205ae337383fd22a7c9f27d9a2a9a198e018c10f1",
+        "test_evidence": [
+          "tests/test_real_evolution_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10061130:0",
             "source_text": "【<color=Keyword>入场曲</color>】选择自己的战场上的1个其他随从，使其+1/+1。\n<hr><ev>【<color=Keyword>进化时</color>】发动与【<color=Keyword>入场曲</color>】相同的能力。</ev>",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "【入场曲】选择自己的战场上的1个其他随从，使其+1/+1。 / / 【进化时】发动与【入场曲】相同的能力。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "c3903e1393ed1422eb6bfb8205ae337383fd22a7c9f27d9a2a9a198e018c10f1",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "fanfare",
+            "evolve"
+          ],
+          "effect_kinds": [
+            "buff_unit",
+            "buff_unit"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_evolution_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10061210": {
@@ -3319,8 +3355,8 @@
       "cost": 3,
       "is_collectible": true,
       "card_set_id": 10001,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '进化时', '造成.*伤害']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['fanfare', 'evolve'], Ops: ['damage_unit', 'damage_unit']",
       "hit_keywords": [
         "入场曲",
         "进化时",
@@ -3335,27 +3371,45 @@
         "【<color=Keyword>入场曲</color>】对对手的战场上的所有随从造成1点伤害。\n<hr><ev>【<color=Keyword>进化时</color>】发动与【<color=Keyword>入场曲</color>】相同的能力。</ev>"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【入场曲】对对手的战场上的所有随从造成1点伤害。 / / 【进化时】发动与【入场曲】相同的能力。",
+        "notes": "Fanfare and evolve each resolve a simultaneous enemy-wide damage batch.",
+        "rule_version": 1,
+        "source_text_sha256": "6e9437010fa8ec109425e2f95e78629c0479c91afef82a24a2ae53bf371205ff",
+        "test_evidence": [
+          "tests/test_real_evolution_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10102110:0",
             "source_text": "【<color=Keyword>入场曲</color>】对对手的战场上的所有随从造成1点伤害。\n<hr><ev>【<color=Keyword>进化时</color>】发动与【<color=Keyword>入场曲</color>】相同的能力。</ev>",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "【入场曲】对对手的战场上的所有随从造成1点伤害。 / / 【进化时】发动与【入场曲】相同的能力。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "6e9437010fa8ec109425e2f95e78629c0479c91afef82a24a2ae53bf371205ff",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "fanfare",
+            "evolve"
+          ],
+          "effect_kinds": [
+            "damage_unit",
+            "damage_unit"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_evolution_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10102310": {
@@ -3424,8 +3478,8 @@
       "cost": 2,
       "is_collectible": true,
       "card_set_id": 10001,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['进化时', '破坏']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['evolve'], Ops: ['destroy']",
       "hit_keywords": [
         "进化时",
         "破坏"
@@ -3438,27 +3492,43 @@
         "<ev>【<color=Keyword>进化时</color>】选择对手的战场上的1个随从，破坏该随从。</ev>"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【进化时】选择对手的战场上的1个随从，破坏该随从。",
+        "notes": "Selected evolve destruction and the no-candidate path are covered directly.",
+        "rule_version": 1,
+        "source_text_sha256": "7fd76efc10ec548628edb68de701c23238e76905e164799c12f3d591a6e9b34b",
+        "test_evidence": [
+          "tests/test_real_evolution_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10103110:0",
             "source_text": "<ev>【<color=Keyword>进化时</color>】选择对手的战场上的1个随从，破坏该随从。</ev>",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "【进化时】选择对手的战场上的1个随从，破坏该随从。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "7fd76efc10ec548628edb68de701c23238e76905e164799c12f3d591a6e9b34b",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "evolve"
+          ],
+          "effect_kinds": [
+            "destroy"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_evolution_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10103310": {
@@ -4622,8 +4692,8 @@
       "cost": 6,
       "is_collectible": true,
       "card_set_id": 10001,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '进化时']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['fanfare', 'evolve'], Ops: ['buff_unit', 'buff_unit']",
       "hit_keywords": [
         "入场曲",
         "进化时"
@@ -4637,27 +4707,45 @@
         "【<color=Keyword>入场曲</color>】使自己的战场上的其他所有随从+1/+1。\n<hr><ev>【<color=Keyword>进化时</color>】发动与【<color=Keyword>入场曲</color>】相同的能力。</ev>"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【入场曲】使自己的战场上的其他所有随从+1/+1。 / / 【进化时】发动与【入场曲】相同的能力。",
+        "notes": "Both triggers buff all allied followers except the source.",
+        "rule_version": 1,
+        "source_text_sha256": "ab7e83cf328146f3e25ac2e44c08b49cfa935cc40103575559188e007770067d",
+        "test_evidence": [
+          "tests/test_real_evolution_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10121120:0",
             "source_text": "【<color=Keyword>入场曲</color>】使自己的战场上的其他所有随从+1/+1。\n<hr><ev>【<color=Keyword>进化时</color>】发动与【<color=Keyword>入场曲</color>】相同的能力。</ev>",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "【入场曲】使自己的战场上的其他所有随从+1/+1。 / / 【进化时】发动与【入场曲】相同的能力。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "ab7e83cf328146f3e25ac2e44c08b49cfa935cc40103575559188e007770067d",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "fanfare",
+            "evolve"
+          ],
+          "effect_kinds": [
+            "buff_unit",
+            "buff_unit"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_evolution_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10121130": {
@@ -5715,8 +5803,8 @@
       "cost": 4,
       "is_collectible": true,
       "card_set_id": 10001,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '进化时', '抽取', '魔力增幅']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['fanfare', 'evolve'], Ops: ['draw', 'spellboost_hand']",
       "hit_keywords": [
         "入场曲",
         "进化时",
@@ -5732,27 +5820,45 @@
         "【<color=Keyword>入场曲</color>】抽取2张卡牌。\n<hr><ev>【<color=Keyword>进化时</color>】使自己的所有手牌发动2次魔力增幅。</ev>"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【入场曲】抽取2张卡牌。 / / 【进化时】使自己的所有手牌发动2次魔力增幅。",
+        "notes": "Fanfare draw and evolve-time all-hand Spellboost are covered directly.",
+        "rule_version": 1,
+        "source_text_sha256": "21ee8c3b3f4118d3c6d78244f1e3cc64e8234e10366ca265ca06dd0e9c4b2d65",
+        "test_evidence": [
+          "tests/test_real_evolution_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10131140:0",
             "source_text": "【<color=Keyword>入场曲</color>】抽取2张卡牌。\n<hr><ev>【<color=Keyword>进化时</color>】使自己的所有手牌发动2次魔力增幅。</ev>",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "【入场曲】抽取2张卡牌。 / / 【进化时】使自己的所有手牌发动2次魔力增幅。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "21ee8c3b3f4118d3c6d78244f1e3cc64e8234e10366ca265ca06dd0e9c4b2d65",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "fanfare",
+            "evolve"
+          ],
+          "effect_kinds": [
+            "draw",
+            "spellboost_hand"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_evolution_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10131310": {
@@ -6956,8 +7062,8 @@
       "cost": 3,
       "is_collectible": true,
       "card_set_id": 10001,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['进化时', '超进化']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['super_evolve'], Ops: ['add_keyword']",
       "hit_keywords": [
         "进化时",
         "超进化"
@@ -6971,27 +7077,43 @@
         "<sev>【<color=Keyword>超进化时</color>】选择自己的战场上的1个其他随从，使其获得【<color=Keyword>疾驰</color>】。</sev>"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【超进化时】选择自己的战场上的1个其他随从，使其获得【疾驰】。",
+        "notes": "non_intrinsic_keyword removes the granted Storm from the source; direct RL tests cover the other-follower choice.",
+        "rule_version": 1,
+        "source_text_sha256": "9618d198aebbe506763f8acf0bded8ee3f8b5591efa5e7e3ce908cf3d239bbad",
+        "test_evidence": [
+          "tests/test_real_evolution_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10142130:0",
             "source_text": "<sev>【<color=Keyword>超进化时</color>】选择自己的战场上的1个其他随从，使其获得【<color=Keyword>疾驰</color>】。</sev>",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "【超进化时】选择自己的战场上的1个其他随从，使其获得【疾驰】。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "9618d198aebbe506763f8acf0bded8ee3f8b5591efa5e7e3ce908cf3d239bbad",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "super_evolve"
+          ],
+          "effect_kinds": [
+            "add_keyword"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_evolution_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10142140": {
@@ -7280,8 +7402,8 @@
       "cost": 9,
       "is_collectible": true,
       "card_set_id": 10001,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '进化时', '超进化', '抽取']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['fanfare', 'super_evolve'], Ops: ['buff_unit', 'draw']",
       "hit_keywords": [
         "入场曲",
         "进化时",
@@ -7297,27 +7419,45 @@
         "【<color=Keyword>入场曲</color>】使对手的战场上的所有随从-0/-9。\n<hr><sev>【<color=Keyword>超进化时</color>】抽取3张卡牌。</sev>"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【入场曲】使对手的战场上的所有随从-0/-9。 / / 【超进化时】抽取3张卡牌。",
+        "notes": "The health debuff collects state-based deaths before the Super-Evolve draw is tested.",
+        "rule_version": 1,
+        "source_text_sha256": "0636b738f560af2281a66c8ad976b4b05db290aad6e8e45b09c18043a2edd6f3",
+        "test_evidence": [
+          "tests/test_real_evolution_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10143140:0",
             "source_text": "【<color=Keyword>入场曲</color>】使对手的战场上的所有随从-0/-9。\n<hr><sev>【<color=Keyword>超进化时</color>】抽取3张卡牌。</sev>",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "【入场曲】使对手的战场上的所有随从-0/-9。 / / 【超进化时】抽取3张卡牌。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "0636b738f560af2281a66c8ad976b4b05db290aad6e8e45b09c18043a2edd6f3",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "fanfare",
+            "super_evolve"
+          ],
+          "effect_kinds": [
+            "buff_unit",
+            "draw"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_evolution_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10143210": {
@@ -7732,8 +7872,8 @@
       "cost": 5,
       "is_collectible": true,
       "card_set_id": 10001,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '进化时', '抽取', '造成.*伤害']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['fanfare', 'evolve'], Ops: ['draw', 'damage_leader', 'damage_unit']",
       "hit_keywords": [
         "入场曲",
         "进化时",
@@ -7749,27 +7889,46 @@
         "【<color=Keyword>入场曲</color>】抽取2张卡牌。对自己的主战者造成2点伤害。\n<hr><ev>【<color=Keyword>进化时</color>】选择对手的战场上的1个随从，对其造成6点伤害。</ev>"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【入场曲】抽取2张卡牌。对自己的主战者造成2点伤害。 / / 【进化时】选择对手的战场上的1个随从，对其造成6点伤害。",
+        "notes": "Draw, self-damage, and selected evolve damage resolve in printed order.",
+        "rule_version": 1,
+        "source_text_sha256": "597b6b2d954ea70b888466d8323469a03dd6e11735bcbe5619bf55fe57f89430",
+        "test_evidence": [
+          "tests/test_real_evolution_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10151150:0",
             "source_text": "【<color=Keyword>入场曲</color>】抽取2张卡牌。对自己的主战者造成2点伤害。\n<hr><ev>【<color=Keyword>进化时</color>】选择对手的战场上的1个随从，对其造成6点伤害。</ev>",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "【入场曲】抽取2张卡牌。对自己的主战者造成2点伤害。 / / 【进化时】选择对手的战场上的1个随从，对其造成6点伤害。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "597b6b2d954ea70b888466d8323469a03dd6e11735bcbe5619bf55fe57f89430",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "fanfare",
+            "evolve"
+          ],
+          "effect_kinds": [
+            "draw",
+            "damage_leader",
+            "damage_unit"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_evolution_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10151310": {
@@ -7889,8 +8048,8 @@
       "cost": 2,
       "is_collectible": true,
       "card_set_id": 10001,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '进化时', '回复', '造成.*伤害']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['fanfare', 'evolve'], Ops: ['damage_leader', 'heal_leader']",
       "hit_keywords": [
         "入场曲",
         "进化时",
@@ -7906,27 +8065,45 @@
         "【<color=Keyword>入场曲</color>】对自己的主战者造成3点伤害。\n<hr><ev>【<color=Keyword>进化时</color>】回复自己的主战者5点生命值。</ev>"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【入场曲】对自己的主战者造成3点伤害。 / / 【进化时】回复自己的主战者5点生命值。",
+        "notes": "Fanfare self-damage and evolve healing are covered as separate triggers.",
+        "rule_version": 1,
+        "source_text_sha256": "076b27ec1bdae7b69af2594a3a5ccaa7545eaece806c3d3650e2cbf36030d3ad",
+        "test_evidence": [
+          "tests/test_real_evolution_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10152120:0",
             "source_text": "【<color=Keyword>入场曲</color>】对自己的主战者造成3点伤害。\n<hr><ev>【<color=Keyword>进化时</color>】回复自己的主战者5点生命值。</ev>",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "【入场曲】对自己的主战者造成3点伤害。 / / 【进化时】回复自己的主战者5点生命值。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "076b27ec1bdae7b69af2594a3a5ccaa7545eaece806c3d3650e2cbf36030d3ad",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "fanfare",
+            "evolve"
+          ],
+          "effect_kinds": [
+            "damage_leader",
+            "heal_leader"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_evolution_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10152130": {
@@ -9144,8 +9321,8 @@
       "cost": 4,
       "is_collectible": true,
       "card_set_id": 10001,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['进化时', '破坏']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['evolve'], Ops: ['destroy']",
       "hit_keywords": [
         "进化时",
         "破坏"
@@ -9159,27 +9336,43 @@
         "【<color=Keyword>潜行</color>】\n<hr><ev>【<color=Keyword>进化时</color>】选择对手的战场上的1个随从，破坏该随从。</ev>"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【潜行】 / / 【进化时】选择对手的战场上的1个随从，破坏该随从。",
+        "notes": "Intrinsic Ambush, selected evolve destruction, and the no-candidate path are covered directly.",
+        "rule_version": 1,
+        "source_text_sha256": "6d0f00187d323b895c73f37707a4746a48f9b4702ac3db614420bb1c4ca90f9b",
+        "test_evidence": [
+          "tests/test_real_evolution_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10163120:0",
             "source_text": "【<color=Keyword>潜行</color>】\n<hr><ev>【<color=Keyword>进化时</color>】选择对手的战场上的1个随从，破坏该随从。</ev>",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "【潜行】 / / 【进化时】选择对手的战场上的1个随从，破坏该随从。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "6d0f00187d323b895c73f37707a4746a48f9b4702ac3db614420bb1c4ca90f9b",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "evolve"
+          ],
+          "effect_kinds": [
+            "destroy"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_evolution_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10163130": {
@@ -9443,8 +9636,8 @@
       "cost": 5,
       "is_collectible": true,
       "card_set_id": 10001,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '进化时', '回复', '造成.*伤害']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['fanfare', 'evolve'], Ops: ['heal_leader', 'damage_unit']",
       "hit_keywords": [
         "入场曲",
         "进化时",
@@ -9461,27 +9654,45 @@
         "【<color=Keyword>入场曲</color>】回复自己的主战者3点生命值。\n<hr>【<color=Keyword>守护</color>】\n<hr><ev>【<color=Keyword>进化时</color>】对对手的战场上的所有随从造成3点伤害。</ev>"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【入场曲】回复自己的主战者3点生命值。 / 【守护】 / / 【进化时】对对手的战场上的所有随从造成3点伤害。",
+        "notes": "Fanfare healing, intrinsic Guard, and simultaneous evolve damage are covered directly.",
+        "rule_version": 1,
+        "source_text_sha256": "6563ac1865ab4f9e442e9cfe6c433f58dfe9a6692f76e9e75c7ca65cd68a69ad",
+        "test_evidence": [
+          "tests/test_real_evolution_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10164130:0",
             "source_text": "【<color=Keyword>入场曲</color>】回复自己的主战者3点生命值。\n<hr>【<color=Keyword>守护</color>】\n<hr><ev>【<color=Keyword>进化时</color>】对对手的战场上的所有随从造成3点伤害。</ev>",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "【入场曲】回复自己的主战者3点生命值。 / 【守护】 / / 【进化时】对对手的战场上的所有随从造成3点伤害。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "6563ac1865ab4f9e442e9cfe6c433f58dfe9a6692f76e9e75c7ca65cd68a69ad",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "fanfare",
+            "evolve"
+          ],
+          "effect_kinds": [
+            "heal_leader",
+            "damage_unit"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_evolution_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10171110": {
