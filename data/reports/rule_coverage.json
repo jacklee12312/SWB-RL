@@ -12,25 +12,25 @@
   },
   "summary": {
     "total_cards": 826,
-    "total_with_rules": 210,
+    "total_with_rules": 217,
     "test_or_synthetic_ids_with_rules": 26,
     "coverage_counts": {
-      "covered_exact": 177,
+      "covered_exact": 183,
       "text_unclear": 18,
-      "supported_missing_rule": 540,
+      "supported_missing_rule": 534,
       "token_or_non_collectible": 91
     },
     "clause_audit_counts": {
-      "mapped_exact": 177,
+      "mapped_exact": 183,
       "unverified_exact": 0,
       "partial": 0,
-      "missing_rule": 540,
+      "missing_rule": 534,
       "missing_primitive": 0,
       "text_unclear": 18,
       "token_separate_audit": 91
     },
     "blocker_counts": {
-      "missing_rule": 540,
+      "missing_rule": 534,
       "missing_schema": 0,
       "missing_primitive": 0,
       "missing_targeting": 0,
@@ -13634,8 +13634,8 @@
       "cost": 9,
       "is_collectible": true,
       "card_set_id": 10002,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '回复', '破坏', '召唤', '选择一项|模式']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['fanfare'], Ops: ['choose_one', 'summon', 'summon', 'summon', 'summon', 'destroy', 'heal_leader']",
       "hit_keywords": [
         "入场曲",
         "回复",
@@ -13652,27 +13652,49 @@
         "【<color=Keyword>入场曲</color>】【<color=Keyword>模式</color>】选择1个能力发动。\n<ridx=0>（1）召唤4个『<color=Keyword>一尾狐</color>』。</ridx>\n<ridx=1>（2）破坏对手的战场上的随机4个随从。回复自己的主战者4点生命值。</ridx>"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【入场曲】【模式】选择1个能力发动。（1）召唤4个『一尾狐』。（2）破坏对手战场上的随机4个随从。回复自己的主战者4点生命值。",
+        "notes": "Both Mode branches are directly tested; the summon branch creates the exact audited One-Tailed Fox token, while the destruction branch uses four distinct random targets before healing.",
+        "rule_version": 1,
+        "source_text_sha256": "6637a9a9c55d445982ff5d244d154f8ab9516f3989d00631c54dcd6ee9afde44",
+        "test_evidence": [
+          "tests/test_real_random_effect_followup_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10254110:0",
             "source_text": "【<color=Keyword>入场曲</color>】【<color=Keyword>模式</color>】选择1个能力发动。\n<ridx=0>（1）召唤4个『<color=Keyword>一尾狐</color>』。</ridx>\n<ridx=1>（2）破坏对手的战场上的随机4个随从。回复自己的主战者4点生命值。</ridx>",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "【入场曲】【模式】选择1个能力发动。（1）召唤4个『一尾狐』。（2）破坏对手战场上的随机4个随从。回复自己的主战者4点生命值。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "6637a9a9c55d445982ff5d244d154f8ab9516f3989d00631c54dcd6ee9afde44",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "fanfare"
+          ],
+          "effect_kinds": [
+            "choose_one",
+            "summon",
+            "summon",
+            "summon",
+            "summon",
+            "destroy",
+            "heal_leader"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_random_effect_followup_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10254120": {
@@ -13902,8 +13924,8 @@
       "cost": 3,
       "is_collectible": true,
       "card_set_id": 10002,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '造成.*伤害']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['fanfare'], Ops: ['damage_unit', 'damage_unit']",
       "hit_keywords": [
         "入场曲",
         "造成.*伤害"
@@ -13916,27 +13938,44 @@
         "【<color=Keyword>入场曲</color>】发动1次「对对手的战场上的随机1个随从造成2点伤害」。若自己的战场上的护符的张数为2张或以上，则改为发动2次。"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【入场曲】发动1次『对随机1个敌方随从造成2点伤害』。若自己的战场上有至少2个护符，则改为发动2次。",
+        "notes": "A filtered board-count threshold distinguishes one from two allied amulets, and the second damage instance is an independent random operation.",
+        "rule_version": 1,
+        "source_text_sha256": "eb9cce2813e592e6be8473fd09fa7a0ba2dbfa946a8877bc4cc065d31ee303be",
+        "test_evidence": [
+          "tests/test_real_random_effect_followup_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10262110:0",
             "source_text": "【<color=Keyword>入场曲</color>】发动1次「对对手的战场上的随机1个随从造成2点伤害」。若自己的战场上的护符的张数为2张或以上，则改为发动2次。",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "【入场曲】发动1次『对随机1个敌方随从造成2点伤害』。若自己的战场上有至少2个护符，则改为发动2次。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "eb9cce2813e592e6be8473fd09fa7a0ba2dbfa946a8877bc4cc065d31ee303be",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "fanfare"
+          ],
+          "effect_kinds": [
+            "damage_unit",
+            "damage_unit"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_random_effect_followup_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10262120": {
@@ -18557,8 +18596,8 @@
       "cost": 6,
       "is_collectible": true,
       "card_set_id": 10003,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '破坏']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['fanfare'], Ops: ['destroy', 'destroy']",
       "hit_keywords": [
         "入场曲",
         "破坏"
@@ -18571,27 +18610,44 @@
         "【<color=Keyword>入场曲</color>】破坏对手的战场上的随机X个随从。X为自己的战场上的其他卡牌张数。破坏自己的战场上的其他所有卡牌。"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【入场曲】破坏随机X个敌方随从。X为自己战场上的其他卡牌数。破坏自己战场上的其他所有卡牌。",
+        "notes": "The dynamic distinct target count is evaluated from allied board size minus the source; the following all-board destruction explicitly excludes the source and includes amulets.",
+        "rule_version": 1,
+        "source_text_sha256": "90d7ba2b1fd033e213b1399c95fd8423ae2d89603374092949472a734cf39ed1",
+        "test_evidence": [
+          "tests/test_real_random_effect_followup_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10373110:0",
             "source_text": "【<color=Keyword>入场曲</color>】破坏对手的战场上的随机X个随从。X为自己的战场上的其他卡牌张数。破坏自己的战场上的其他所有卡牌。",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "【入场曲】破坏随机X个敌方随从。X为自己战场上的其他卡牌数。破坏自己战场上的其他所有卡牌。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "90d7ba2b1fd033e213b1399c95fd8423ae2d89603374092949472a734cf39ed1",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "fanfare"
+          ],
+          "effect_kinds": [
+            "destroy",
+            "destroy"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_random_effect_followup_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10373310": {
@@ -21336,8 +21392,8 @@
       "cost": 6,
       "is_collectible": true,
       "card_set_id": 10004,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['回合结束', '造成.*伤害']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['turn_end'], Ops: ['damage_unit', 'damage_unit']",
       "hit_keywords": [
         "回合结束",
         "造成.*伤害"
@@ -21350,27 +21406,44 @@
         "【<color=Keyword>突进</color>】\n自己的回合结束时，对对手的战场上的随机1个随从造成4点伤害。对对手的战场上的随机1个随从造成2点伤害。"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【突进】自己的回合结束时，对随机1个敌方随从造成4点伤害。对随机1个敌方随从造成2点伤害。",
+        "notes": "Intrinsic Rush and the two ordered own-turn-end random damage operations are covered, including the second operation skipping after the only target dies.",
+        "rule_version": 1,
+        "source_text_sha256": "add04689e3fd5f661c63cb05374c5ede2e714e5ffacdb8868b4566d78e283e97",
+        "test_evidence": [
+          "tests/test_real_random_effect_followup_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10452110:0",
             "source_text": "【<color=Keyword>突进</color>】\n自己的回合结束时，对对手的战场上的随机1个随从造成4点伤害。对对手的战场上的随机1个随从造成2点伤害。",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "【突进】自己的回合结束时，对随机1个敌方随从造成4点伤害。对随机1个敌方随从造成2点伤害。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "add04689e3fd5f661c63cb05374c5ede2e714e5ffacdb8868b4566d78e283e97",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "turn_end"
+          ],
+          "effect_kinds": [
+            "damage_unit",
+            "damage_unit"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_random_effect_followup_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10452120": {
@@ -22381,8 +22454,8 @@
       "cost": 7,
       "is_collectible": true,
       "card_set_id": 10004,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '造成.*伤害', '选择一项|模式']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['fanfare'], Ops: ['choose_one', 'damage_unit', 'damage_unit', 'damage_unit', 'damage_leader']",
       "hit_keywords": [
         "入场曲",
         "造成.*伤害",
@@ -22397,27 +22470,47 @@
         "【<color=Keyword>入场曲</color>】【<color=Keyword>模式</color>】选择1个能力发动。\n<ridx=0>（1）发动3次「对对手的战场上的随机1个随从造成4点伤害」。</ridx>\n<ridx=1>（2）对对手的主战者造成4点伤害。</ridx>"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【入场曲】【模式】选择1个能力发动。（1）发动3次『对随机1个敌方随从造成4点伤害』。（2）对敌方主战者造成4点伤害。",
+        "notes": "Both Mode branches are directly executable; the follower branch remains three sequential independent random hits and the leader branch is separately tested through core and RL choices.",
+        "rule_version": 1,
+        "source_text_sha256": "d3dd9f687657b9e1c86161c58e420512542ba81f8f1460dbcdf093312d225fd3",
+        "test_evidence": [
+          "tests/test_real_random_effect_followup_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10472120:0",
             "source_text": "【<color=Keyword>入场曲</color>】【<color=Keyword>模式</color>】选择1个能力发动。\n<ridx=0>（1）发动3次「对对手的战场上的随机1个随从造成4点伤害」。</ridx>\n<ridx=1>（2）对对手的主战者造成4点伤害。</ridx>",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "【入场曲】【模式】选择1个能力发动。（1）发动3次『对随机1个敌方随从造成4点伤害』。（2）对敌方主战者造成4点伤害。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "d3dd9f687657b9e1c86161c58e420512542ba81f8f1460dbcdf093312d225fd3",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "fanfare"
+          ],
+          "effect_kinds": [
+            "choose_one",
+            "damage_unit",
+            "damage_unit",
+            "damage_unit",
+            "damage_leader"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_random_effect_followup_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10472310": {
@@ -37833,8 +37926,8 @@
       "cost": 3,
       "is_collectible": true,
       "card_set_id": 10008,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '进化时', '造成.*伤害']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['fanfare', 'evolve'], Ops: ['evolve_unit', 'damage_unit', 'damage_unit']",
       "hit_keywords": [
         "入场曲",
         "进化时",
@@ -37849,27 +37942,46 @@
         "【<color=Keyword>入场曲</color>】若自己的战场上有进化后的随从，则本随从进化。\n<hr>【<color=Keyword>守护</color>】\n<hr><ev>本随从进化时，发动2次「对对手的战场上的随机1个随从造成1点伤害」。</ev>"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【入场曲】若自己的战场上有进化后的随从，则本随从进化。【守护】【进化时】发动2次『对随机1个敌方随从造成1点伤害』。",
+        "notes": "The evolved-allied-follower condition effect-evolves the source without EP, intrinsic Ward remains active, and the evolve trigger performs two sequential random hits.",
+        "rule_version": 1,
+        "source_text_sha256": "b41ba1e1de77f996c6fdd8380df96869cb58a966d9f981c7ebb85a662587ce87",
+        "test_evidence": [
+          "tests/test_real_random_effect_followup_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10863110:0",
             "source_text": "【<color=Keyword>入场曲</color>】若自己的战场上有进化后的随从，则本随从进化。\n<hr>【<color=Keyword>守护</color>】\n<hr><ev>本随从进化时，发动2次「对对手的战场上的随机1个随从造成1点伤害」。</ev>",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "【入场曲】若自己的战场上有进化后的随从，则本随从进化。【守护】【进化时】发动2次『对随机1个敌方随从造成1点伤害』。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "b41ba1e1de77f996c6fdd8380df96869cb58a966d9f981c7ebb85a662587ce87",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "fanfare",
+            "evolve"
+          ],
+          "effect_kinds": [
+            "evolve_unit",
+            "damage_unit",
+            "damage_unit"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_random_effect_followup_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10863210": {
@@ -40137,14 +40249,20 @@
         "rule_version": 1,
         "errata": [],
         "source_clauses": [],
-        "implemented_text": null,
+        "implemented_text": "【突进】【守护】【谢幕曲】使自己战场上的随机1个『双轮夜行·吟雪&夕月』+1/+0。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "e16d436aa1db2ec275f0314684519699357922978f32547640cb35673d75de3e",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "last_words"
+          ],
+          "effect_kinds": [
+            "buff_unit"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_random_effect_followup_batch.py"
+        ],
         "audit_validation_error": null,
         "blocker_type": null
       }

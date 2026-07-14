@@ -10,9 +10,9 @@ Total audited cards: **91**
 
 | Category | Count |
 |---|---:|
-| entry_behavior_complete | 12 |
+| entry_behavior_complete | 13 |
 | entry_behavior_partial | 11 |
-| database_only_no_entry | 68 |
+| database_only_no_entry | 67 |
 | text_unclear | 0 |
 | external_blocker | 0 |
 
@@ -78,7 +78,7 @@ Total audited cards: **91**
 | 90051140 腐臭的僵尸 | 梦魇 / 随从 | entry_behavior_partial | 6 | 1 | unsupported |
 | 90054110 守卫犬的右腕·米米 | 梦魇 / 随从 | database_only_no_entry | 1 | 0 | unsupported |
 | 90054120 守卫犬的左腕·可可 | 梦魇 / 随从 | database_only_no_entry | 1 | 0 | unsupported |
-| 90054130 一尾狐 | 梦魇 / 随从 | database_only_no_entry | 1 | 0 | unsupported |
+| 90054130 一尾狐 | 梦魇 / 随从 | entry_behavior_complete | 1 | 1 | exact |
 | 90054310 绝叫的扩散 | 梦魇 / 法术 | database_only_no_entry | 1 | 0 | unsupported |
 | 90054320 爱绝的飞翔 | 梦魇 / 法术 | database_only_no_entry | 1 | 0 | unsupported |
 | 90054330 天眼深渊 | 梦魇 / 法术 | database_only_no_entry | 1 | 0 | unsupported |

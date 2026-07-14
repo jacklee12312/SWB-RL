@@ -20,7 +20,7 @@ rejected if passed directly in an initial deck. Deck validation requires
 exactly 40 collectible cards from the selected class and/or neutral. The
 auditable [token report](data/reports/token_audit.md) distinguishes database
 references from executable producer paths and behavior completeness for all 91
-cards: 12 complete entries, 11 partial entries, and 68 with no authored entry.
+cards: 13 complete entries, 11 partial entries, and 67 with no authored entry.
 
 Abilities are normalized in two relational tables:
 
@@ -38,13 +38,13 @@ covered generic boundary, but that never upgrades a partial or placeholder
 keyword whose full tagged-card semantics still require structured rules.
 
 The [rule coverage report](data/reports/rule_coverage.md) now includes a
-clause-audit layer without changing its legacy coverage categories. Of 177
-exact collectible cards, all 177 have explicit implemented text and named direct
+clause-audit layer without changing its legacy coverage categories. Of 183
+exact collectible cards, all 183 have explicit implemented text and named direct
 test evidence. The sibling `data/audits/rule_clauses.json` registry hashes every
 imported skill and alternate-mode clause, so a database text change or stale
 test reference invalidates the audit instead of silently retaining exact
 status. The current report has no unverified exact entry or missing generic
-schema, primitive, targeting, or timing blocker. Its remaining 540 collectible
+schema, primitive, targeting, or timing blocker. Its remaining 534 collectible
 gaps are missing per-card structured rules, while 18 unclear texts remain
 explicit. Rule metadata also supports version and errata fields, and the report
 records the complete imported source snapshot hash.
@@ -301,6 +301,12 @@ The deterministic rules core supports:
   three-follower damage, candidate shortage, simultaneous deaths, subsequent
   leader damage, whole-hand Spellboost, deterministic replay, and automatic RL
   resolution without adding a target-selection action;
+- a 6-card exact random-effect follow-up batch covers two Mode followers,
+  filtered allied-amulet thresholds, a dynamic other-card count followed by
+  source-excluding self-board destruction, ordered turn-end damage, conditional
+  effect evolution, distinct random batches versus repeated independent hits,
+  and RL Mode-mask parity. It also promotes generated follower `90054130` to an
+  exact executable Token with Rush, Ward, and its card-ID-filtered Last Words;
 - Enhance keeps the original card type: enhanced spells resolve as spells and
   enhanced amulets enter as amulets. Mode operations append to base operations
   by default, while explicit `replace_base_operations` models printed “instead”

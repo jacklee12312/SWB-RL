@@ -1799,6 +1799,83 @@
       "notes": "Enhance replaces one required filtered selection with simultaneous filtered all-target banishment and no pending choice."
     },
     {
+      "card_id": 10254110,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】【模式】选择1个能力发动。（1）召唤4个『一尾狐』。（2）破坏对手战场上的随机4个随从。回复自己的主战者4点生命值。",
+      "rule_version": 1,
+      "source_text_sha256": "6637a9a9c55d445982ff5d244d154f8ab9516f3989d00631c54dcd6ee9afde44",
+      "test_evidence": [
+        "tests/test_real_random_effect_followup_batch.py"
+      ],
+      "notes": "Both Mode branches are directly tested; the summon branch creates the exact audited One-Tailed Fox token, while the destruction branch uses four distinct random targets before healing."
+    },
+    {
+      "card_id": 10262110,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】发动1次『对随机1个敌方随从造成2点伤害』。若自己的战场上有至少2个护符，则改为发动2次。",
+      "rule_version": 1,
+      "source_text_sha256": "eb9cce2813e592e6be8473fd09fa7a0ba2dbfa946a8877bc4cc065d31ee303be",
+      "test_evidence": [
+        "tests/test_real_random_effect_followup_batch.py"
+      ],
+      "notes": "A filtered board-count threshold distinguishes one from two allied amulets, and the second damage instance is an independent random operation."
+    },
+    {
+      "card_id": 10373110,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】破坏随机X个敌方随从。X为自己战场上的其他卡牌数。破坏自己战场上的其他所有卡牌。",
+      "rule_version": 1,
+      "source_text_sha256": "90d7ba2b1fd033e213b1399c95fd8423ae2d89603374092949472a734cf39ed1",
+      "test_evidence": [
+        "tests/test_real_random_effect_followup_batch.py"
+      ],
+      "notes": "The dynamic distinct target count is evaluated from allied board size minus the source; the following all-board destruction explicitly excludes the source and includes amulets."
+    },
+    {
+      "card_id": 10452110,
+      "coverage": "exact",
+      "implemented_text": "【突进】自己的回合结束时，对随机1个敌方随从造成4点伤害。对随机1个敌方随从造成2点伤害。",
+      "rule_version": 1,
+      "source_text_sha256": "add04689e3fd5f661c63cb05374c5ede2e714e5ffacdb8868b4566d78e283e97",
+      "test_evidence": [
+        "tests/test_real_random_effect_followup_batch.py"
+      ],
+      "notes": "Intrinsic Rush and the two ordered own-turn-end random damage operations are covered, including the second operation skipping after the only target dies."
+    },
+    {
+      "card_id": 10472120,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】【模式】选择1个能力发动。（1）发动3次『对随机1个敌方随从造成4点伤害』。（2）对敌方主战者造成4点伤害。",
+      "rule_version": 1,
+      "source_text_sha256": "d3dd9f687657b9e1c86161c58e420512542ba81f8f1460dbcdf093312d225fd3",
+      "test_evidence": [
+        "tests/test_real_random_effect_followup_batch.py"
+      ],
+      "notes": "Both Mode branches are directly executable; the follower branch remains three sequential independent random hits and the leader branch is separately tested through core and RL choices."
+    },
+    {
+      "card_id": 10863110,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】若自己的战场上有进化后的随从，则本随从进化。【守护】【进化时】发动2次『对随机1个敌方随从造成1点伤害』。",
+      "rule_version": 1,
+      "source_text_sha256": "b41ba1e1de77f996c6fdd8380df96869cb58a966d9f981c7ebb85a662587ce87",
+      "test_evidence": [
+        "tests/test_real_random_effect_followup_batch.py"
+      ],
+      "notes": "The evolved-allied-follower condition effect-evolves the source without EP, intrinsic Ward remains active, and the evolve trigger performs two sequential random hits."
+    },
+    {
+      "card_id": 90054130,
+      "coverage": "exact",
+      "implemented_text": "【突进】【守护】【谢幕曲】使自己战场上的随机1个『双轮夜行·吟雪&夕月』+1/+0。",
+      "rule_version": 1,
+      "source_text_sha256": "e16d436aa1db2ec275f0314684519699357922978f32547640cb35673d75de3e",
+      "test_evidence": [
+        "tests/test_real_random_effect_followup_batch.py"
+      ],
+      "notes": "The generated follower retains intrinsic Rush and Ward; its Last Words uses an exact card-ID filter and is tested after token death."
+    },
+    {
       "card_id": 90021350,
       "coverage": "exact",
       "implemented_text": "【模式】选择1个能力发动。（1）抽取1张卡牌。（2）对随机1个敌方随从造成2点伤害。",

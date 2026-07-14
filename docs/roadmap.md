@@ -10,21 +10,21 @@ code and tests as the source of truth when this file drifts.
 - Database: 826 cards, 735 collectible cards, 91 non-collectible/generated
   cards from set `90000`.
 - Latest SVA source: `https://sva.hypd.asia/data/cards.json`.
-- Tests: `python -m unittest discover -s tests -v` currently runs 1336 tests.
+- Tests: `python -m unittest discover -s tests -v` currently runs 1347 tests.
 - RL adapter: fixed 111-action space; the default v1 observation remains 290
   floats, while opt-in v2 provides fixed-shape categorical/public state without
   changing action IDs.
 - Ability registry status: 18 implemented, 5 partial, 11 placeholder.
 - Explicit card and demo rules live in `data/rules/`; the current coverage
-  report classifies 210 card IDs with explicit rules, passives, fusion,
+  report classifies 217 card IDs with explicit rules, passives, fusion,
   invocation, activation, Faith, Union Burst, or listener definitions. Current
-  collectible coverage is 177 exact, 0 partial, 540 supported-but-missing-rule,
+  collectible coverage is 183 exact, 0 partial, 534 supported-but-missing-rule,
   0 missing-primitive, and 18 text-unclear cards.
 - `data/reports/token_audit.{json,md}` audits all 91 non-collectible/generated
   cards independently of collectible coverage. Database `card_references` and
-  executable structured producers are reported separately: 12 tokens have a
+  executable structured producers are reported separately: 13 tokens have a
   complete executable entry/behavior path, 11 have an executable entry but
-  partial behavior, and 68 have no authored producer. No token is currently
+  partial behavior, and 67 have no authored producer. No token is currently
   classified text-unclear or externally blocked; those categories remain
   explicit and can be assigned through `data/audits/token_overrides.json`.
 - `data/reports/ability_audit.{json,md}` validates all 34 runtime/database
@@ -33,7 +33,7 @@ code and tests as the source of truth when this file drifts.
   separate column and is covered for all 34; it does not automatically promote
   the 5 partial or 11 placeholder keyword statuses.
 - Coverage now has a backward-compatible clause audit. The legacy summary still
-  reports 177 exact collectible cards, and all 177 now have an explicit exact
+  reports 183 exact collectible cards, and all 183 now have an explicit exact
   text mapping plus named direct test evidence. The versioned sibling registry
   at `data/audits/rule_clauses.json` hashes every imported primary and
   alternate-mode clause; changed source text or stale test evidence invalidates
@@ -42,7 +42,7 @@ code and tests as the source of truth when this file drifts.
   rule version and errata metadata, structured trigger/operation evidence,
   explicit unsupported text, and a stable blocker taxonomy. There are zero
   unverified exact entries and no known missing schema, primitive, targeting,
-  or timing blocker among authored rules. The 540 supported-but-missing-rule
+  or timing blocker among authored rules. The 534 supported-but-missing-rule
   cards are now the per-card structured-content backlog; 18 unclear texts
   remain explicit.
 - RL observation v2 is available behind an explicit version switch. A
@@ -511,6 +511,14 @@ slice in this order:
   filtered selected/all banishment, spell graveyard identity, and RL mask
   parity. The Token audit now recognizes Glittering Gold as an exact generated
   card with an executable producer and both printed branches.
+- Exact file `data/rules/real_random_effect_followup_batch.json` adds 6 audited
+  collectible followers plus generated follower `90054130`. Direct tests cover
+  both Mode branches, Token capacity/origin/keywords/Last Words, filtered
+  two-amulet thresholds, dynamic other-card target counts, mixed-zone
+  source-excluding destruction, ordered own-turn-end effects, repeated random
+  hits, conditional effect evolution without EP, determinism, death batches,
+  and RL Mode-mask parity. The Token audit now recognizes One-Tailed Fox as an
+  exact generated card with an executable producer and full printed behavior.
 
 ## Known Partial Or Unsupported Areas
 
@@ -551,8 +559,8 @@ slice in this order:
 - The generated-card audit is deterministic and covers all 91 database tokens.
   It does not equate a database reference with an executable entry, and it only
   marks behavior complete for vanilla cards, fully implemented keyword-only
-  cards, or explicitly exact structured rules. Current output is 12 complete,
-  11 partial, and 68 database-only/no-entry; this is the content backlog for
+  cards, or explicitly exact structured rules. Current output is 13 complete,
+  11 partial, and 67 database-only/no-entry; this is the content backlog for
   later card-rule entry, not a claim of broad generated-card support.
 - The ability registry is conservative and fully audited: all 34 entries have
   a reason and test evidence, and a covered generic primitive does not promote

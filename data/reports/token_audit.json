@@ -7,9 +7,9 @@
   "summary": {
     "total": 91,
     "categories": {
-      "entry_behavior_complete": 12,
+      "entry_behavior_complete": 13,
       "entry_behavior_partial": 11,
-      "database_only_no_entry": 68,
+      "database_only_no_entry": 67,
       "text_unclear": 0,
       "external_blocker": 0
     }
@@ -2459,8 +2459,8 @@
       "card_set_id": 90000,
       "is_collectible": false,
       "support_level": "unsupported",
-      "category": "database_only_no_entry",
-      "reason": "Database source references exist, but no executable producer is authored.",
+      "category": "entry_behavior_complete",
+      "reason": "Executable entry exists and behavior is vanilla, fully implemented keyword-only, or explicitly audited exact.",
       "database_sources": [
         {
           "source_card_id": 10254110,
@@ -2468,9 +2468,16 @@
           "referenced_name": "一尾狐"
         }
       ],
-      "authored_producers": [],
-      "has_authored_behavior": false,
-      "explicit_coverage": null,
+      "authored_producers": [
+        {
+          "source_card_id": 10254110,
+          "entry_kind": "summon",
+          "rule_file": "real_random_effect_followup_batch.json",
+          "rule_group": "rules"
+        }
+      ],
+      "has_authored_behavior": true,
+      "explicit_coverage": "exact",
       "keyword_only_text": false,
       "abilities": [
         {
