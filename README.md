@@ -38,13 +38,13 @@ covered generic boundary, but that never upgrades a partial or placeholder
 keyword whose full tagged-card semantics still require structured rules.
 
 The [rule coverage report](data/reports/rule_coverage.md) now includes a
-clause-audit layer without changing its legacy coverage categories. Of 183
-exact collectible cards, all 183 have explicit implemented text and named direct
+clause-audit layer without changing its legacy coverage categories. Of 184
+exact collectible cards, all 184 have explicit implemented text and named direct
 test evidence. The sibling `data/audits/rule_clauses.json` registry hashes every
 imported skill and alternate-mode clause, so a database text change or stale
 test reference invalidates the audit instead of silently retaining exact
 status. The current report has no unverified exact entry or missing generic
-schema, primitive, targeting, or timing blocker. Its remaining 534 collectible
+schema, primitive, targeting, or timing blocker. Its remaining 533 collectible
 gaps are missing per-card structured rules, while 18 unclear texts remain
 explicit. Rule metadata also supports version and errata fields, and the report
 records the complete imported source snapshot hash.
@@ -330,7 +330,8 @@ The deterministic rules core supports:
   and expressions remain deterministic through nested pending choices after
   the entity leaves play, while board-mutating `self` targets still require a
   live source; snapshots participate in event diagnostics, fingerprints, and
-  runtime invariants;
+  runtime invariants. Exact `10203120` uses this path for an evolved-only random
+  damage Last Words after normal, manual-evolution, or Enhance play;
 - `death_batch_end` emblem triggers that fire after a death batch's Last Words
   complete, with any new deaths collected into a later death batch;
 - recursive resolution-loop diagnostics for events, effects, death batches,

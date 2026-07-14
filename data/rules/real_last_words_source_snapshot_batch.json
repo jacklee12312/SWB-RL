@@ -1,0 +1,28 @@
+{
+  "rules": [
+    {
+      "card_id": 10203120,
+      "trigger": "last_words",
+      "operations": [
+        {
+          "kind": "damage_unit",
+          "target": "random_enemy_unit",
+          "amount": 4,
+          "conditions": [
+            {"type": "source_evolved"}
+          ]
+        }
+      ],
+      "play_modes": [
+        {
+          "id": "enhance_5",
+          "type": "enhance",
+          "cost": 5,
+          "operations": [
+            {"kind": "evolve_unit", "target": "self"}
+          ]
+        }
+      ]
+    }
+  ]
+}

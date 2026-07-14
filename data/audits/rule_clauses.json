@@ -1799,6 +1799,17 @@
       "notes": "Enhance replaces one required filtered selection with simultaneous filtered all-target banishment and no pending choice."
     },
     {
+      "card_id": 10203120,
+      "coverage": "exact",
+      "implemented_text": "【爆能强化_5】本随从进化。【谢幕曲】若本随从为进化后，则对随机1个敌方随从造成4点伤害。",
+      "rule_version": 1,
+      "source_text_sha256": "699983f2f7a5c36863c705113c6315c564fbf8285a5cc00e767ae024435691d3",
+      "test_evidence": [
+        "tests/test_real_last_words_source_snapshot_batch.py"
+      ],
+      "notes": "Enhance effect-evolves the follower without EP; its conditional Last Words reads the immutable death-time evolved source snapshot and skips safely when unevolved or when no enemy follower remains."
+    },
+    {
       "card_id": 10254110,
       "coverage": "exact",
       "implemented_text": "【入场曲】【模式】选择1个能力发动。（1）召唤4个『一尾狐』。（2）破坏对手战场上的随机4个随从。回复自己的主战者4点生命值。",

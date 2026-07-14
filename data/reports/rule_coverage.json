@@ -12,25 +12,25 @@
   },
   "summary": {
     "total_cards": 826,
-    "total_with_rules": 217,
+    "total_with_rules": 218,
     "test_or_synthetic_ids_with_rules": 26,
     "coverage_counts": {
-      "covered_exact": 183,
+      "covered_exact": 184,
       "text_unclear": 18,
-      "supported_missing_rule": 534,
+      "supported_missing_rule": 533,
       "token_or_non_collectible": 91
     },
     "clause_audit_counts": {
-      "mapped_exact": 183,
+      "mapped_exact": 184,
       "unverified_exact": 0,
       "partial": 0,
-      "missing_rule": 534,
+      "missing_rule": 533,
       "missing_primitive": 0,
       "text_unclear": 18,
       "token_separate_audit": 91
     },
     "blocker_counts": {
-      "missing_rule": 534,
+      "missing_rule": 533,
       "missing_schema": 0,
       "missing_primitive": 0,
       "missing_targeting": 0,
@@ -10962,8 +10962,8 @@
       "cost": 2,
       "is_collectible": true,
       "card_set_id": 10002,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['谢幕曲', '造成.*伤害', '爆能强化']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['last_words', 'play_modes'], Ops: ['damage_unit', 'play_mode', 'evolve_unit']",
       "hit_keywords": [
         "谢幕曲",
         "造成.*伤害",
@@ -10978,27 +10978,46 @@
         "【<color=Keyword>爆能强化</color>_5】本随从进化。\n<hr>【<color=Keyword>谢幕曲</color>】若本随从为进化后，则对对手的战场上的随机1个随从造成4点伤害。"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【爆能强化_5】本随从进化。【谢幕曲】若本随从为进化后，则对随机1个敌方随从造成4点伤害。",
+        "notes": "Enhance effect-evolves the follower without EP; its conditional Last Words reads the immutable death-time evolved source snapshot and skips safely when unevolved or when no enemy follower remains.",
+        "rule_version": 1,
+        "source_text_sha256": "699983f2f7a5c36863c705113c6315c564fbf8285a5cc00e767ae024435691d3",
+        "test_evidence": [
+          "tests/test_real_last_words_source_snapshot_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10203120:0",
             "source_text": "【<color=Keyword>爆能强化</color>_5】本随从进化。\n<hr>【<color=Keyword>谢幕曲</color>】若本随从为进化后，则对对手的战场上的随机1个随从造成4点伤害。",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "【爆能强化_5】本随从进化。【谢幕曲】若本随从为进化后，则对随机1个敌方随从造成4点伤害。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "699983f2f7a5c36863c705113c6315c564fbf8285a5cc00e767ae024435691d3",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "last_words",
+            "play_modes"
+          ],
+          "effect_kinds": [
+            "damage_unit",
+            "play_mode",
+            "evolve_unit"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_last_words_source_snapshot_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10204110": {
