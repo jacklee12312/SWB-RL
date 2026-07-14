@@ -39,6 +39,7 @@ from swb.engine.effects import (
     EffectKind,
     EffectOperation,
     ExprType,
+    HandFilter,
     ModifierDuration,
     TargetKind,
     ValueExpression,
@@ -90,6 +91,7 @@ from swb.engine.targeting import (
     build_choice_options,
     build_graveyard_choice_options,
     graveyard_candidates,
+    hand_candidates,
     hand_choice_options,
     has_leader_choice,
     is_all_target,
@@ -1030,8 +1032,15 @@ class GameEngine:
                 return False
         ops = mode_def.operations if mode_def.operations else ()
         if ops:
+            source_entity_id = (
+                card.entity_id if isinstance(card, HandCard) else None
+            )
             if any(
-                op.requires_target and not self._has_candidates(op)
+                op.requires_target
+                and not self._has_candidates(
+                    op,
+                    source_entity_id=source_entity_id,
+                )
                 for op in ops
             ):
                 return False
@@ -1039,7 +1048,13 @@ class GameEngine:
                 self._operation_consumes_target(op)
                 for op in ops
             )
-            if all_require_target and all(not self._has_candidates(op) for op in ops):
+            if all_require_target and all(
+                not self._has_candidates(
+                    op,
+                    source_entity_id=source_entity_id,
+                )
+                for op in ops
+            ):
                 return False
         return True
 
@@ -2867,6 +2882,7 @@ class GameEngine:
             self._expression_fingerprint(operation.target_count_expr),
             operation.allow_duplicate_targets,
             operation.exclude_source,
+            self._hand_filter_fingerprint(operation.hand_filter),
         )
 
     def _condition_fingerprint(
@@ -2931,6 +2947,24 @@ class GameEngine:
             board_filter.card_id,
             board_filter.card_name,
             board_filter.evolved,
+        )
+
+    def _hand_filter_fingerprint(
+        self,
+        hand_filter: HandFilter | None,
+    ) -> tuple[object, ...] | None:
+        if hand_filter is None:
+            return None
+        return (
+            hand_filter.card_type,
+            hand_filter.class_id,
+            hand_filter.class_name,
+            hand_filter.cost_min,
+            hand_filter.cost_max,
+            hand_filter.card_id,
+            hand_filter.card_name,
+            hand_filter.tribe_id,
+            hand_filter.tribe_name,
         )
 
     def _death_batch_fingerprint(
@@ -3770,7 +3804,12 @@ class GameEngine:
                 if operation.target is TargetKind.ALL_OWN_HAND:
                     target_ids = [
                         card.entity_id
-                        for card in self._hand_cards(frame.controller)
+                        for card in hand_candidates(
+                            operation,
+                            frame.controller,
+                            self.players,
+                            source_entity_id=frame.source_entity_id,
+                        )
                     ]
                     if not target_ids:
                         frame.next_index += 1
@@ -3820,7 +3859,12 @@ class GameEngine:
 
             if is_random_target(operation.target) and frame.pending_target_id is None:
                 if operation.target is TargetKind.RANDOM_OWN_HAND:
-                    hand_cards = self._hand_cards(frame.controller)
+                    hand_cards = hand_candidates(
+                        operation,
+                        frame.controller,
+                        self.players,
+                        source_entity_id=frame.source_entity_id,
+                    )
                     chosen_hand = (
                         self.random.choice(hand_cards) if hand_cards else None
                     )
@@ -3943,8 +3987,13 @@ class GameEngine:
         if not operations:
             return True
 
+        source_entity_id = card.entity_id if isinstance(card, HandCard) else None
         if any(
-            op.requires_target and not self._has_candidates(op)
+            op.requires_target
+            and not self._has_candidates(
+                op,
+                source_entity_id=source_entity_id,
+            )
             for op in operations
         ):
             return False
@@ -3954,16 +4003,25 @@ class GameEngine:
             for op in operations
         )
         if all_require_target and all(
-            not self._has_candidates(op)
+            not self._has_candidates(
+                op,
+                source_entity_id=source_entity_id,
+            )
             for op in operations
         ):
             return False
         return True
 
-    def _has_candidates(self, operation: EffectOperation) -> bool:
+    def _has_candidates(
+        self,
+        operation: EffectOperation,
+        *,
+        source_entity_id: int | None = None,
+    ) -> bool:
         return self._has_candidates_for(
             operation,
             self.current_player,
+            source_entity_id=source_entity_id,
         )
 
     def _has_candidates_for(
@@ -3983,12 +4041,27 @@ class GameEngine:
             ) <= 0
         ):
             return False
-        if operation.target == TargetKind.OWN_HAND:
-            return len(self.players[controller].hand) > 1
-        if operation.target == TargetKind.RANDOM_OWN_HAND:
-            return len(self.players[controller].hand) > 1
+        if operation.target in {
+            TargetKind.OWN_HAND,
+            TargetKind.RANDOM_OWN_HAND,
+        }:
+            return bool(
+                hand_candidates(
+                    operation,
+                    controller,
+                    self.players,
+                    source_entity_id=source_entity_id,
+                )
+            )
         if operation.target == TargetKind.ALL_OWN_HAND:
-            return True
+            return not operation.requires_target or bool(
+                hand_candidates(
+                    operation,
+                    controller,
+                    self.players,
+                    source_entity_id=source_entity_id,
+                )
+            )
         if operation.target == TargetKind.RANDOM_ENEMY_UNIT_OR_LEADER:
             return True
         if is_graveyard_target(operation.target):
@@ -4102,7 +4175,14 @@ class GameEngine:
             TargetKind.RANDOM_OWN_HAND,
             TargetKind.ALL_OWN_HAND,
         }:
-            return bool(self._hand_cards(controller))
+            return bool(
+                hand_candidates(
+                    operation,
+                    controller,
+                    self.players,
+                    source_entity_id=source_entity_id,
+                )
+            )
         if is_graveyard_target(operation.target):
             return bool(graveyard_candidates(operation, controller, self.players))
         candidates = target_candidates(
@@ -4146,7 +4226,14 @@ class GameEngine:
         source_entity_id: int | None = None,
     ) -> list[ChoiceOption]:
         if operation.target == TargetKind.OWN_HAND:
-            return hand_choice_options(self.players[controller])
+            return hand_choice_options(
+                hand_candidates(
+                    operation,
+                    controller,
+                    self.players,
+                    source_entity_id=source_entity_id,
+                )
+            )
         if is_graveyard_target(operation.target):
             gc = graveyard_candidates(operation, controller, self.players)
             return build_graveyard_choice_options(gc)
@@ -4165,7 +4252,14 @@ class GameEngine:
         self, operation: EffectOperation, frame: EffectFrame
     ) -> list[ChoiceOption]:
         if operation.target == TargetKind.OWN_HAND:
-            return hand_choice_options(self.players[frame.controller])
+            return hand_choice_options(
+                hand_candidates(
+                    operation,
+                    frame.controller,
+                    self.players,
+                    source_entity_id=frame.source_entity_id,
+                )
+            )
         if is_graveyard_target(operation.target):
             gc = graveyard_candidates(operation, frame.controller, self.players)
             return build_graveyard_choice_options(gc)
@@ -6705,7 +6799,14 @@ class GameEngine:
             TargetKind.RANDOM_OWN_HAND,
             TargetKind.ALL_OWN_HAND,
         }:
-            return bool(self._hand_cards(controller))
+            return bool(
+                hand_candidates(
+                    operation,
+                    controller,
+                    self.players,
+                    source_entity_id=source_entity_id,
+                )
+            )
         if is_graveyard_target(operation.target):
             return bool(graveyard_candidates(operation, controller, self.players))
         if (

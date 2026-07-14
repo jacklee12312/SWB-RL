@@ -208,6 +208,33 @@ def graveyard_candidates(
     )
 
 
+def hand_candidates(
+    operation: EffectOperation,
+    controller: int,
+    players: list,
+    *,
+    source_entity_id: int | None = None,
+) -> list:
+    """Return legal hand targets, excluding the resolving source by identity."""
+
+    candidates = list(players[controller].hand)
+    if source_entity_id is not None:
+        candidates = [
+            card
+            for card in candidates
+            if getattr(card, "entity_id", None) != source_entity_id
+        ]
+    if operation.hand_filter is not None:
+        candidates = [
+            card
+            for card in candidates
+            if operation.hand_filter.matches(
+                getattr(card, "definition", card)
+            )
+        ]
+    return candidates
+
+
 def target_candidates(
     operation: EffectOperation,
     controller: int,
@@ -390,17 +417,14 @@ def candidate_entity_ids(candidates: list[BoardCard]) -> list[int]:
     return [entity.entity_id for entity in candidates]
 
 
-def hand_choice_options(player) -> list:
+def hand_choice_options(candidates: list) -> list:
     from swb.engine.commands import ChoiceOption
 
-    options = []
-    for idx, card in enumerate(player.hand):
-        eid = getattr(card, "entity_id", player.hand_entity_ids[idx])
-        options.append(
-            ChoiceOption(
-                option_id=f"hand:{eid}",
-                label=card.name,
-                entity_id=eid,
-            )
+    return [
+        ChoiceOption(
+            option_id=f"hand:{card.entity_id}",
+            label=getattr(card, "definition", card).name,
+            entity_id=card.entity_id,
         )
-    return options
+        for card in candidates
+    ]

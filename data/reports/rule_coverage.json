@@ -12,25 +12,25 @@
   },
   "summary": {
     "total_cards": 826,
-    "total_with_rules": 131,
+    "total_with_rules": 132,
     "test_or_synthetic_ids_with_rules": 26,
     "coverage_counts": {
-      "covered_exact": 99,
-      "supported_missing_rule": 618,
+      "covered_exact": 100,
+      "supported_missing_rule": 617,
       "text_unclear": 18,
       "token_or_non_collectible": 91
     },
     "clause_audit_counts": {
-      "mapped_exact": 99,
+      "mapped_exact": 100,
       "unverified_exact": 0,
       "partial": 0,
-      "missing_rule": 618,
+      "missing_rule": 617,
       "missing_primitive": 0,
       "text_unclear": 18,
       "token_separate_audit": 91
     },
     "blocker_counts": {
-      "missing_rule": 618,
+      "missing_rule": 617,
       "missing_schema": 0,
       "missing_primitive": 0,
       "missing_targeting": 0,
@@ -15829,8 +15829,8 @@
       "cost": 2,
       "is_collectible": true,
       "card_set_id": 10003,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['破坏']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['play'], Ops: ['change_cost', 'destroy']",
       "hit_keywords": [
         "破坏"
       ],
@@ -15840,27 +15840,44 @@
         "选择自己的手牌中的1张随从，使其费用+1。破坏对手的战场上的随机1个随从。"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "选择自己的手牌中的1张随从，使其费用+1。破坏对手的战场上的随机1个随从。",
+        "notes": "All imported source clauses are mapped to the structured rule and direct behavior tests.",
+        "rule_version": 1,
+        "source_text_sha256": "034852eb372ed93c1c99a85a3645b6563e61e4d7246670915e82077889ea2052",
+        "test_evidence": [
+          "tests/test_filtered_hand_targets.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10333310:0",
             "source_text": "选择自己的手牌中的1张随从，使其费用+1。破坏对手的战场上的随机1个随从。",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "选择自己的手牌中的1张随从，使其费用+1。破坏对手的战场上的随机1个随从。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "034852eb372ed93c1c99a85a3645b6563e61e4d7246670915e82077889ea2052",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "play"
+          ],
+          "effect_kinds": [
+            "change_cost",
+            "destroy"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_filtered_hand_targets.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10334110": {
@@ -39723,23 +39740,6 @@
       "suggested_rule_file": "batch_超越者.json"
     },
     {
-      "card_id": 10333310,
-      "name": "虚假的术式",
-      "class_name": "巫师",
-      "card_type": "法术",
-      "cost": 2,
-      "ability_keywords": [],
-      "hit_keywords": [
-        "破坏"
-      ],
-      "confidence": "high",
-      "why_recommended": "Covered keywords: 破坏",
-      "required_primitives": [
-        "破坏"
-      ],
-      "suggested_rule_file": "batch_巫师.json"
-    },
-    {
       "card_id": 10341110,
       "name": "侮蔑的肯定者",
       "class_name": "龙族",
@@ -40072,6 +40072,23 @@
         "召唤"
       ],
       "suggested_rule_file": "batch_巫师.json"
+    },
+    {
+      "card_id": 10351310,
+      "name": "前进的暴虐",
+      "class_name": "梦魇",
+      "card_type": "法术",
+      "cost": 4,
+      "ability_keywords": [],
+      "hit_keywords": [
+        "造成.*伤害"
+      ],
+      "confidence": "high",
+      "why_recommended": "Covered keywords: 造成.*伤害",
+      "required_primitives": [
+        "造成.*伤害"
+      ],
+      "suggested_rule_file": "batch_梦魇.json"
     }
   ]
 }

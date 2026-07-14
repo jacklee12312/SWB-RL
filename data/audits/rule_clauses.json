@@ -581,6 +581,17 @@
       "notes": "All imported source clauses are mapped to the structured rule and cited behavior tests."
     },
     {
+      "card_id": 10333310,
+      "coverage": "exact",
+      "implemented_text": "选择自己的手牌中的1张随从，使其费用+1。破坏对手的战场上的随机1个随从。",
+      "rule_version": 1,
+      "source_text_sha256": "034852eb372ed93c1c99a85a3645b6563e61e4d7246670915e82077889ea2052",
+      "test_evidence": [
+        "tests/test_filtered_hand_targets.py"
+      ],
+      "notes": "All imported source clauses are mapped to the structured rule and direct behavior tests."
+    },
+    {
       "card_id": 10351120,
       "coverage": "exact",
       "implemented_text": "【入场曲】选择对手的战场上的2个随从，破坏这些随从。对自己的主战者造成4点伤害。 / / 【疾驰】",

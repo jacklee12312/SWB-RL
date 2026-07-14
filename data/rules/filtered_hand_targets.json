@@ -1,0 +1,25 @@
+{
+  "rules": [
+    {
+      "card_id": 10333310,
+      "trigger": "play",
+      "operations": [
+        {
+          "kind": "change_cost",
+          "target": "own_hand",
+          "amount": 1,
+          "mode": "add",
+          "duration": "permanent",
+          "requires_target": true,
+          "hand_filter": {
+            "card_type": "随从"
+          }
+        },
+        {
+          "kind": "destroy",
+          "target": "random_enemy_unit"
+        }
+      ]
+    }
+  ]
+}

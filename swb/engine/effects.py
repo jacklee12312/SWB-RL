@@ -243,6 +243,34 @@ class DeckFilter:
 
 
 @dataclass(frozen=True)
+class HandFilter:
+    """Matches hand cards by their printed card definition."""
+
+    card_type: str | None = None
+    class_id: int | None = None
+    class_name: str | None = None
+    cost_min: int | None = None
+    cost_max: int | None = None
+    card_id: int | None = None
+    card_name: str | None = None
+    tribe_id: int | None = None
+    tribe_name: str | None = None
+
+    def matches(self, card: CardDefinition) -> bool:
+        return (
+            (self.card_type is None or card.card_type == self.card_type)
+            and (self.class_id is None or card.class_id == self.class_id)
+            and (self.class_name is None or card.class_name == self.class_name)
+            and (self.cost_min is None or card.cost >= self.cost_min)
+            and (self.cost_max is None or card.cost <= self.cost_max)
+            and (self.card_id is None or card.card_id == self.card_id)
+            and (self.card_name is None or card.name == self.card_name)
+            and (self.tribe_id is None or card.tribe_id == self.tribe_id)
+            and (self.tribe_name is None or card.tribe_name == self.tribe_name)
+        )
+
+
+@dataclass(frozen=True)
 class BoardFilter:
     card_type: str | None = None
     cost_min: int | None = None
@@ -312,6 +340,7 @@ class EffectOperation:
     target_count_expr: ValueExpression | None = None
     allow_duplicate_targets: bool = False
     exclude_source: bool = False
+    hand_filter: HandFilter | None = None
 
 
 @dataclass(frozen=True)

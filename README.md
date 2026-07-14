@@ -38,13 +38,13 @@ covered generic boundary, but that never upgrades a partial or placeholder
 keyword whose full tagged-card semantics still require structured rules.
 
 The [rule coverage report](data/reports/rule_coverage.md) now includes a
-clause-audit layer without changing its legacy coverage categories. Of 99
-exact collectible cards, all 99 have explicit implemented text and named direct
+clause-audit layer without changing its legacy coverage categories. Of 100
+exact collectible cards, all 100 have explicit implemented text and named direct
 test evidence. The sibling `data/audits/rule_clauses.json` registry hashes every
 imported skill and alternate-mode clause, so a database text change or stale
 test reference invalidates the audit instead of silently retaining exact
 status. The current report has no unverified exact entry or missing generic
-schema, primitive, targeting, or timing blocker. Its remaining 618 collectible
+schema, primitive, targeting, or timing blocker. Its remaining 617 collectible
 gaps are missing per-card structured rules, while 18 unclear texts remain
 explicit. Rule metadata also supports version and errata fields, and the report
 records the complete imported source snapshot hash.
@@ -103,6 +103,11 @@ The deterministic rules core supports:
   resolution resumes; `target_key` stores an ordered tuple of selected board
   targets and `previous_target` chains revalidate each member against the
   original bound target filter before later operations resolve;
+- structured hand filters match printed type, class, cost, identity, name, and
+  trait fields. Selected, random, and all-hand flows share the same centralized
+  candidates with play legality, stale-choice revalidation, and RL masks.
+  Exact `10333310` uses the type filter to expose only followers before adding
+  1 to the selected card's cost and destroying a seeded-random enemy follower;
 - true multi-target pending choices through `target_count` or
   `target_count_expr`, with explicit `allow_duplicate_targets` /
   `allow_duplicates` policy, candidate-shortage handling, command-level

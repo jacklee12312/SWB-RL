@@ -16,6 +16,7 @@ from swb.engine.effects import (
     EffectKind,
     EffectOperation,
     ExprType,
+    HandFilter,
     ModifierDuration,
     TargetKind,
     ValueExpression,
@@ -61,6 +62,12 @@ _GRAVEYARD_TARGETS = frozenset({
     TargetKind.OWN_GRAVEYARD_CARD,
     TargetKind.RANDOM_OWN_GRAVEYARD_CARD,
     TargetKind.ALL_OWN_GRAVEYARD_CARDS,
+})
+
+_HAND_TARGETS = frozenset({
+    TargetKind.OWN_HAND,
+    TargetKind.RANDOM_OWN_HAND,
+    TargetKind.ALL_OWN_HAND,
 })
 
 _TARGET_DEPENDENT_CONDITIONS = frozenset({
@@ -196,6 +203,107 @@ def _parse_board_filter(
         card_id=filter_card_id,
         card_name=card_name,
         evolved=evolved,
+    )
+
+
+def _parse_hand_filter(
+    raw: object,
+    *,
+    source_path: str,
+    card_id: int,
+) -> HandFilter:
+    if not isinstance(raw, dict):
+        raise ValueError(
+            f"{source_path} card {card_id}: hand_filter must be an object"
+        )
+    allowed = {
+        "card_type",
+        "class_id",
+        "class_name",
+        "cost_min",
+        "cost_max",
+        "card_id",
+        "card_name",
+        "tribe_id",
+        "tribe_name",
+    }
+    unknown = sorted(set(raw) - allowed)
+    if unknown:
+        raise ValueError(
+            f"{source_path} card {card_id}: hand_filter has unknown fields {unknown}"
+        )
+
+    card_type = raw.get("card_type")
+    if card_type is not None:
+        if not isinstance(card_type, str):
+            raise ValueError(
+                f"{source_path}/card_type card {card_id}: must be a string"
+            )
+        if card_type not in _VALID_CARD_TYPES:
+            raise ValueError(
+                f"{source_path}/card_type card {card_id}: unknown card type "
+                f"{card_type!r}; valid: {sorted(_VALID_CARD_TYPES)}"
+            )
+
+    class_id = raw.get("class_id")
+    if class_id is not None:
+        class_id = _parse_non_negative_int(
+            class_id, f"{source_path}/class_id", card_id
+        )
+    class_name = raw.get("class_name")
+    if class_name is not None and not isinstance(class_name, str):
+        raise ValueError(
+            f"{source_path}/class_name card {card_id}: must be a string"
+        )
+
+    cost_min = raw.get("cost_min")
+    if cost_min is not None:
+        cost_min = _parse_non_negative_int(
+            cost_min, f"{source_path}/cost_min", card_id
+        )
+    cost_max = raw.get("cost_max")
+    if cost_max is not None:
+        cost_max = _parse_non_negative_int(
+            cost_max, f"{source_path}/cost_max", card_id
+        )
+    if cost_min is not None and cost_max is not None and cost_min > cost_max:
+        raise ValueError(
+            f"{source_path} card {card_id}: cost_min ({cost_min}) must not "
+            f"exceed cost_max ({cost_max})"
+        )
+
+    filter_card_id = raw.get("card_id")
+    if filter_card_id is not None:
+        filter_card_id = _parse_non_negative_int(
+            filter_card_id, f"{source_path}/card_id", card_id
+        )
+    card_name = raw.get("card_name")
+    if card_name is not None and not isinstance(card_name, str):
+        raise ValueError(
+            f"{source_path}/card_name card {card_id}: must be a string"
+        )
+
+    tribe_id = raw.get("tribe_id")
+    if tribe_id is not None:
+        tribe_id = _parse_non_negative_int(
+            tribe_id, f"{source_path}/tribe_id", card_id
+        )
+    tribe_name = raw.get("tribe_name")
+    if tribe_name is not None and not isinstance(tribe_name, str):
+        raise ValueError(
+            f"{source_path}/tribe_name card {card_id}: must be a string"
+        )
+
+    return HandFilter(
+        card_type=card_type,
+        class_id=class_id,
+        class_name=class_name,
+        cost_min=cost_min,
+        cost_max=cost_max,
+        card_id=filter_card_id,
+        card_name=card_name,
+        tribe_id=tribe_id,
+        tribe_name=tribe_name,
     )
 
 
@@ -2627,7 +2735,19 @@ def _parse_operation(
     _is_graveyard_kind = kind in _GRAVEYARD_EFFECT_KINDS
     _is_deck_filter_kind = kind is EffectKind.DRAW_FILTERED
     deck_filter: DeckFilter | None = None
+    hand_filter: HandFilter | None = None
     board_filter: BoardFilter | None = None
+    if "hand_filter" in raw:
+        if target not in _HAND_TARGETS:
+            raise ValueError(
+                f"{source_file}/hand_filter card {card_id}: requires a hand "
+                f"target, got {target.value!r}"
+            )
+        hand_filter = _parse_hand_filter(
+            raw["hand_filter"],
+            source_path=f"{source_file}/hand_filter",
+            card_id=card_id,
+        )
     if _is_deck_filter_kind and target not in (TargetKind.OWN_LEADER, TargetKind.ENEMY_LEADER):
         raise ValueError(
             f"{source_file} card {card_id}: draw_filtered requires own_leader "
@@ -3006,6 +3126,7 @@ def _parse_operation(
         graveyard_follower_only=graveyard_follower_only,
         graveyard_card_type=graveyard_card_type,
         deck_filter=deck_filter,
+        hand_filter=hand_filter,
         board_filter=board_filter,
         then_operations=then_ops,
         else_operations=else_ops,
