@@ -38,13 +38,13 @@ covered generic boundary, but that never upgrades a partial or placeholder
 keyword whose full tagged-card semantics still require structured rules.
 
 The [rule coverage report](data/reports/rule_coverage.md) now includes a
-clause-audit layer without changing its legacy coverage categories. Of 100
-exact collectible cards, all 100 have explicit implemented text and named direct
+clause-audit layer without changing its legacy coverage categories. Of 113
+exact collectible cards, all 113 have explicit implemented text and named direct
 test evidence. The sibling `data/audits/rule_clauses.json` registry hashes every
 imported skill and alternate-mode clause, so a database text change or stale
 test reference invalidates the audit instead of silently retaining exact
 status. The current report has no unverified exact entry or missing generic
-schema, primitive, targeting, or timing blocker. Its remaining 617 collectible
+schema, primitive, targeting, or timing blocker. Its remaining 604 collectible
 gaps are missing per-card structured rules, while 18 unclear texts remain
 explicit. Rule metadata also supports version and errata fields, and the report
 records the complete imported source snapshot hash.
@@ -254,6 +254,12 @@ The deterministic rules core supports:
   producer for vanilla Token `90001110`, including board-capacity and Token
   origin tests; `10751310` directly locks command legality, stale target
   revalidation, candidate shortage, and the matching RL action mask;
+- a 13-card exact basic-follower batch covers Fanfare and Last Words destruction,
+  banish, leader healing, source-excluding ally buffs, filtered spell draw,
+  simultaneous enemy-wide damage, and one- or three-card death draws. Direct
+  repository-backed tests also lock each card's normalized Ward, Storm, Rush,
+  Bane, Intimidate, or granted Barrier state and the source-excluding RL choice
+  mask;
 - countdown amulets, explicit last words, fanfare/play rules, attack/clash,
   evolve/super-evolve, turn-start/turn-end triggers, and trigger continuations
   that can pause for choices. Exact `10713110` uses a source-in-play turn-end

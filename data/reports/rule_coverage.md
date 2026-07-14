@@ -8,15 +8,15 @@
 | Metric | Count |
 |---|---|
 | Total cards in DB | 826 |
-| Cards with rules | 132 |
+| Cards with rules | 145 |
 | Test/synthetic IDs with rules | 26 |
 
 ### Coverage Categories
 
 | Category | Count |
 |---|---|
-| covered_exact | 100 |
-| supported_missing_rule | 617 |
+| covered_exact | 113 |
+| supported_missing_rule | 604 |
 | text_unclear | 18 |
 | token_or_non_collectible | 91 |
 
@@ -24,10 +24,10 @@
 
 | Clause status | Count |
 |---|---:|
-| mapped_exact | 100 |
+| mapped_exact | 113 |
 | unverified_exact | 0 |
 | partial | 0 |
-| missing_rule | 617 |
+| missing_rule | 604 |
 | missing_primitive | 0 |
 | text_unclear | 18 |
 | token_separate_audit | 91 |
@@ -36,7 +36,7 @@
 
 | Blocker | Count |
 |---|---:|
-| missing_rule | 617 |
+| missing_rule | 604 |
 | missing_schema | 0 |
 | missing_primitive | 0 |
 | missing_targeting | 0 |

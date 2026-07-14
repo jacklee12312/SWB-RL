@@ -1,0 +1,115 @@
+{
+  "passives": [
+    {
+      "card_id": 10412120,
+      "kind": "non_intrinsic_keyword",
+      "keyword": "屏障",
+      "notes": "屏障由入场曲授予己方全体随从，不是本体初始关键词。"
+    }
+  ],
+  "rules": [
+    {
+      "card_id": 10021120,
+      "trigger": "last_words",
+      "operations": [
+        {"kind": "draw", "target": "own_leader", "amount": 1}
+      ]
+    },
+    {
+      "card_id": 10112110,
+      "trigger": "fanfare",
+      "operations": [
+        {"kind": "destroy", "target": "enemy_unit"},
+        {"kind": "heal_leader", "target": "own_leader", "amount": 2}
+      ]
+    },
+    {
+      "card_id": 10121110,
+      "trigger": "fanfare",
+      "operations": [
+        {
+          "kind": "buff_unit",
+          "target": "own_unit",
+          "amount": 1,
+          "secondary_amount": 1,
+          "exclude_source": true
+        }
+      ]
+    },
+    {
+      "card_id": 10141130,
+      "trigger": "fanfare",
+      "operations": [
+        {"kind": "destroy", "target": "enemy_unit"}
+      ]
+    },
+    {
+      "card_id": 10204110,
+      "trigger": "fanfare",
+      "operations": [
+        {"kind": "banish", "target": "enemy_board"}
+      ]
+    },
+    {
+      "card_id": 10262120,
+      "trigger": "fanfare",
+      "operations": [
+        {"kind": "banish", "target": "enemy_unit"}
+      ]
+    },
+    {
+      "card_id": 10412120,
+      "trigger": "fanfare",
+      "operations": [
+        {"kind": "add_keyword", "target": "all_own_units", "keyword": "屏障"}
+      ]
+    },
+    {
+      "card_id": 10422110,
+      "trigger": "fanfare",
+      "operations": [
+        {"kind": "damage_unit", "target": "all_enemy_units", "amount": 3}
+      ]
+    },
+    {
+      "card_id": 10431110,
+      "trigger": "fanfare",
+      "operations": [
+        {
+          "kind": "draw_filtered",
+          "target": "own_leader",
+          "amount": 1,
+          "card_type_filter": "法术"
+        }
+      ]
+    },
+    {
+      "card_id": 10601120,
+      "trigger": "fanfare",
+      "operations": [
+        {"kind": "destroy", "target": "enemy_unit"}
+      ]
+    },
+    {
+      "card_id": 10742110,
+      "trigger": "fanfare",
+      "operations": [
+        {"kind": "destroy", "target": "enemy_unit"}
+      ]
+    },
+    {
+      "card_id": 10822120,
+      "trigger": "fanfare",
+      "operations": [
+        {"kind": "damage_unit", "target": "all_enemy_units", "amount": 6}
+      ]
+    },
+    {
+      "card_id": 10841120,
+      "trigger": "last_words",
+      "operations": [
+        {"kind": "draw", "target": "own_leader", "amount": 3}
+      ]
+    }
+  ]
+}

@@ -53,6 +53,17 @@
       "notes": "All imported source clauses are mapped to the structured rule and cited behavior tests."
     },
     {
+      "card_id": 10021120,
+      "coverage": "exact",
+      "implemented_text": "【突进】 / 【谢幕曲】抽取1张卡牌。",
+      "rule_version": 1,
+      "source_text_sha256": "35f5130c2627ce726d82b440147781b1ebe017e66cce4f9521c29186ea25b345",
+      "test_evidence": [
+        "tests/test_real_basic_followers_batch.py"
+      ],
+      "notes": "All imported source clauses and normalized static keywords are mapped to structured rules and direct behavior tests."
+    },
+    {
       "card_id": 10021310,
       "coverage": "exact",
       "implemented_text": "选择自己的1张手牌，使其返回牌组。抽取2张皇家护卫·随从。",
@@ -254,6 +265,17 @@
       "notes": "All imported source clauses are mapped to the structured rule and cited behavior tests."
     },
     {
+      "card_id": 10112110,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】选择对手的战场上的1个随从，破坏该随从。回复自己的主战者2点生命值。 / / 【守护】",
+      "rule_version": 1,
+      "source_text_sha256": "52224b469eea0fafe4e4a9421d7c9eb9a13580e1b2b43fc6a8531f83253e2f1c",
+      "test_evidence": [
+        "tests/test_real_basic_followers_batch.py"
+      ],
+      "notes": "All imported source clauses and normalized static keywords are mapped to structured rules and direct behavior tests."
+    },
+    {
       "card_id": 10112120,
       "coverage": "exact",
       "implemented_text": "【谢幕曲】将1张『妖精』加入手牌。",
@@ -263,6 +285,17 @@
         "tests/test_real_card_rules_batch.py"
       ],
       "notes": "All imported source clauses are mapped to the structured rule and cited behavior tests."
+    },
+    {
+      "card_id": 10121110,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】选择自己的战场上的1个其他随从，使其+1/+1。 / / 【守护】",
+      "rule_version": 1,
+      "source_text_sha256": "9df5ae74e8dce3c79c90770649698af59b7016b25c3f729e96399e9e3cca46f3",
+      "test_evidence": [
+        "tests/test_real_basic_followers_batch.py"
+      ],
+      "notes": "All imported source clauses and normalized static keywords are mapped to structured rules and direct behavior tests."
     },
     {
       "card_id": 10121310,
@@ -324,6 +357,17 @@
         "tests/test_exact_rule_audit.py"
       ],
       "notes": "All imported source clauses are mapped to the structured rule and cited behavior tests."
+    },
+    {
+      "card_id": 10141130,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】选择对手的战场上的1个随从，破坏该随从。",
+      "rule_version": 1,
+      "source_text_sha256": "d806e67482ff0b1809437fd803627f2d37c3e0573152436bba6e1fe7d93a8ea6",
+      "test_evidence": [
+        "tests/test_real_basic_followers_batch.py"
+      ],
+      "notes": "All imported source clauses are mapped to structured rules and direct behavior tests."
     },
     {
       "card_id": 10141310,
@@ -456,6 +500,17 @@
       "notes": "All imported source clauses are mapped to the structured rule and cited behavior tests."
     },
     {
+      "card_id": 10204110,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】选择对手的战场上的1张卡牌，使其消失。 / / 【疾驰】",
+      "rule_version": 1,
+      "source_text_sha256": "8c9969a7894f6af5a8b31f50d1d9c0208b4befd27e71b6444a09e6f2bc210f17",
+      "test_evidence": [
+        "tests/test_real_basic_followers_batch.py"
+      ],
+      "notes": "All imported source clauses and normalized static keywords are mapped to structured rules and direct behavior tests."
+    },
+    {
       "card_id": 10213310,
       "coverage": "exact",
       "implemented_text": "【融合】精灵·卡牌 / / 抽取1张卡牌。若已与本卡牌【融合】，则改为抽取2张。",
@@ -539,6 +594,17 @@
         "tests/test_real_card_rules_batch.py"
       ],
       "notes": "All imported source clauses are mapped to the structured rule and cited behavior tests."
+    },
+    {
+      "card_id": 10262120,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】选择对手的战场上的1个随从，使其消失。",
+      "rule_version": 1,
+      "source_text_sha256": "15c10673355df46a26e4a71b45c4e468448457f8c700ffc4f0eb25012872593d",
+      "test_evidence": [
+        "tests/test_real_basic_followers_batch.py"
+      ],
+      "notes": "All imported source clauses are mapped to structured rules and direct behavior tests."
     },
     {
       "card_id": 10301310,
@@ -631,6 +697,39 @@
         "tests/test_real_card_rules_batch.py"
       ],
       "notes": "All imported source clauses are mapped to the structured rule and cited behavior tests."
+    },
+    {
+      "card_id": 10412120,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】使自己的战场上的所有随从获得【屏障】。",
+      "rule_version": 1,
+      "source_text_sha256": "056dddb78ab45eb57cd3ece279b34fa4dd6c803d46de7e3d02416b463adfc845",
+      "test_evidence": [
+        "tests/test_real_basic_followers_batch.py"
+      ],
+      "notes": "All imported source clauses are mapped to the structured rule; non_intrinsic_keyword prevents the granted Barrier mention from becoming an initial keyword."
+    },
+    {
+      "card_id": 10422110,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】对对手的战场上的所有随从造成3点伤害。 / / 【威慑】",
+      "rule_version": 1,
+      "source_text_sha256": "1719f07de3147445e5703de643ae679032abb18f4fb16774b59ddc7a1c937dbe",
+      "test_evidence": [
+        "tests/test_real_basic_followers_batch.py"
+      ],
+      "notes": "All imported source clauses and normalized static keywords are mapped to structured rules and direct behavior tests."
+    },
+    {
+      "card_id": 10431110,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】抽取1张法术。",
+      "rule_version": 1,
+      "source_text_sha256": "f0cac7b14339537904f8f3f04e913856e4b45b7e7ecb8c4d37b15874e93cf40e",
+      "test_evidence": [
+        "tests/test_real_basic_followers_batch.py"
+      ],
+      "notes": "All imported source clauses are mapped to structured rules and direct behavior tests."
     },
     {
       "card_id": 10431120,
@@ -780,6 +879,17 @@
         "tests/test_real_card_rules_batch.py"
       ],
       "notes": "All imported source clauses are mapped to the structured rule and cited behavior tests."
+    },
+    {
+      "card_id": 10601120,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】选择对手的战场上的1个随从，破坏该随从。 / / 【必杀】",
+      "rule_version": 1,
+      "source_text_sha256": "8aff4332fc240cb81cdfbd8b6a4d9a674209db591656aab160f8cb9014506aaf",
+      "test_evidence": [
+        "tests/test_real_basic_followers_batch.py"
+      ],
+      "notes": "All imported source clauses and normalized keyword alias 毁灭 -> 必杀 are mapped to structured rules and direct behavior tests."
     },
     {
       "card_id": 10614120,
@@ -932,6 +1042,17 @@
       "notes": "All imported source clauses are mapped to the structured rule and cited behavior tests."
     },
     {
+      "card_id": 10742110,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】选择对手的战场上的1个随从，破坏该随从。 / / 【守护】",
+      "rule_version": 1,
+      "source_text_sha256": "194f2fff20e8c17b2dd3e74bdb87d33de50c005e8f7fbaffe0bb4f3434da23d2",
+      "test_evidence": [
+        "tests/test_real_basic_followers_batch.py"
+      ],
+      "notes": "All imported source clauses and normalized static keywords are mapped to structured rules and direct behavior tests."
+    },
+    {
       "card_id": 10743310,
       "coverage": "exact",
       "implemented_text": "对对手的战场上的所有随从造成5点伤害。对对手的主战者造成3点伤害。",
@@ -972,6 +1093,17 @@
       "notes": "All imported source clauses are mapped to structured rules and direct behavior tests."
     },
     {
+      "card_id": 10822120,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】对对手的战场上的所有随从造成6点伤害。 / / 【威慑】",
+      "rule_version": 1,
+      "source_text_sha256": "27b76ed0a61629572a51facf183e33762f2ab14f3c7fc86c4f2162e523c34d1c",
+      "test_evidence": [
+        "tests/test_real_basic_followers_batch.py"
+      ],
+      "notes": "All imported source clauses and normalized static keywords are mapped to structured rules and direct behavior tests."
+    },
+    {
       "card_id": 10832310,
       "coverage": "exact",
       "implemented_text": "回复自己的主战者2点生命值。使自己的所有手牌发动1次魔力增幅。",
@@ -981,6 +1113,17 @@
         "tests/test_real_basic_spells_batch.py"
       ],
       "notes": "All imported source clauses are mapped to structured rules and direct behavior tests."
+    },
+    {
+      "card_id": 10841120,
+      "coverage": "exact",
+      "implemented_text": "【守护】 / 【谢幕曲】抽取3张卡牌。",
+      "rule_version": 1,
+      "source_text_sha256": "e1ce76da97b1ab96a44bfdfe9498d022a066b69988c0cf84bcdf13e2bd2870ec",
+      "test_evidence": [
+        "tests/test_real_basic_followers_batch.py"
+      ],
+      "notes": "All imported source clauses and normalized static keywords are mapped to structured rules and direct behavior tests."
     },
     {
       "card_id": 10842310,
