@@ -33,6 +33,17 @@
       "notes": "All imported source clauses are mapped to the structured rule and cited behavior tests."
     },
     {
+      "card_id": 10001210,
+      "coverage": "exact",
+      "implemented_text": "【启动】破坏本卡牌。选择对手的战场上的1个随从，使其失去【守护】。",
+      "rule_version": 1,
+      "source_text_sha256": "9116c2dcde846bbb076fbbace83d6d52e687fc227cbba474215fc6ce5ffcb7f8",
+      "test_evidence": [
+        "tests/test_real_activate_followup_batch.py"
+      ],
+      "notes": "Activation-only normal play, self-destruction, selected Ward removal, and non-intrinsic keyword provenance are directly tested."
+    },
+    {
       "card_id": 10011130,
       "source_text_sha256": "582564fa9e14cfe65ee9f0be149ddd251ea737c7e8775374992e96fe6d9ee6e6",
       "test_evidence": [
@@ -616,6 +627,17 @@
       ]
     },
     {
+      "card_id": 10162210,
+      "coverage": "exact",
+      "implemented_text": "费用1【启动】选择自己的战场上的1个随从，使其+1/+1。回复自己的主战者1点生命值。",
+      "rule_version": 1,
+      "source_text_sha256": "37ebbc146d1ba967e1992bbba79258c7ddde8a59bb36112968aa85045b285ae0",
+      "test_evidence": [
+        "tests/test_real_activate_followup_batch.py"
+      ],
+      "notes": "The repeatable activation pays one PP, buffs a selected ally, heals, and remains once-per-turn."
+    },
+    {
       "card_id": 10163120,
       "coverage": "exact",
       "implemented_text": "【潜行】 / / 【进化时】选择对手的战场上的1个随从，破坏该随从。",
@@ -623,6 +645,17 @@
       "source_text_sha256": "6d0f00187d323b895c73f37707a4746a48f9b4702ac3db614420bb1c4ca90f9b",
       "test_evidence": ["tests/test_real_evolution_batch.py"],
       "notes": "Intrinsic Ambush, selected evolve destruction, and the no-candidate path are covered directly."
+    },
+    {
+      "card_id": 10163220,
+      "coverage": "exact",
+      "implemented_text": "【启动】破坏本卡牌。破坏战场上的所有随从。",
+      "rule_version": 1,
+      "source_text_sha256": "5fe578a1ede9cdd6593a0b6da909ca91b26195ecfdf7ccceb8da4a0c205f2696",
+      "test_evidence": [
+        "tests/test_real_activate_followup_batch.py"
+      ],
+      "notes": "Activation-only normal play and self-destruction followed by simultaneous all-follower destruction are directly tested."
     },
     {
       "card_id": 10164130,
@@ -802,6 +835,17 @@
       "notes": "All imported source clauses are mapped to the structured rule and cited behavior tests."
     },
     {
+      "card_id": 10261210,
+      "coverage": "exact",
+      "implemented_text": "费用1【启动】破坏本卡牌。回复自己的主战者4点生命值。",
+      "rule_version": 1,
+      "source_text_sha256": "68819f595c384f1bf1daae5186043f6df79c8a010ae7288447c2d57d588e3e4b",
+      "test_evidence": [
+        "tests/test_real_activate_followup_batch.py"
+      ],
+      "notes": "Activation-only normal play, one-PP payment, self-destruction, and capped leader healing are directly tested."
+    },
+    {
       "card_id": 10262120,
       "coverage": "exact",
       "implemented_text": "【入场曲】选择对手的战场上的1个随从，使其消失。",
@@ -875,6 +919,17 @@
       "notes": "Enemy-wide health reduction and its Super-Evolve replay are mapped to structured rules and direct behavior tests."
     },
     {
+      "card_id": 10312210,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】选择自己的1张手牌，舍弃该手牌。抽取2张卡牌。 / / 【启动】破坏本卡牌。选择对手的战场上的1个随从，使其-0/-2。",
+      "rule_version": 1,
+      "source_text_sha256": "f3d424aa7580e9281c38b706e6fe362a496b1d2011a98570cb8e3dbf5f4f1da9",
+      "test_evidence": [
+        "tests/test_real_activate_followup_batch.py"
+      ],
+      "notes": "Fanfare discard/draw and activation self-destruction followed by lethal selected health reduction are directly tested."
+    },
+    {
       "card_id": 10321310,
       "coverage": "exact",
       "implemented_text": "选择自己的战场上的1个随从，使其获得【守护】。对对手的战场上的随机1个随从造成4点伤害。",
@@ -895,6 +950,17 @@
         "tests/test_filtered_hand_targets.py"
       ],
       "notes": "All imported source clauses are mapped to the structured rule and direct behavior tests."
+    },
+    {
+      "card_id": 10342210,
+      "coverage": "exact",
+      "implemented_text": "【吟唱_4】 / / 费用1【启动】对战场上的所有随从造成1点伤害。",
+      "rule_version": 1,
+      "source_text_sha256": "877a958ae96eaaefcd29e1f737aaaf8cbd8acfb42d0f1e8f3531ade928c83e0d",
+      "test_evidence": [
+        "tests/test_real_activate_followup_batch.py"
+      ],
+      "notes": "Countdown 4 and the one-PP repeatable simultaneous all-follower damage activation are directly tested."
     },
     {
       "card_id": 10343310,
@@ -1471,6 +1537,28 @@
         "tests/test_real_core_primitives_batch.py"
       ],
       "notes": "Selected destruction precedes Reanimate 2, which still resolves when no enemy target exists."
+    },
+    {
+      "card_id": 10761210,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】选择自己的1张手牌，使其返回牌组。抽取1张卡牌。 / / 【启动】破坏本卡牌。发动与【入场曲】相同的能力。",
+      "rule_version": 1,
+      "source_text_sha256": "ad7d233a382f6874db2b0f4d4143df0ff4d08d1bdd2fe2e2755abf577a6f7e80",
+      "test_evidence": [
+        "tests/test_real_activate_followup_batch.py"
+      ],
+      "notes": "Selected hand cycling resolves on play and repeats after activation self-destruction with stable zone identity."
+    },
+    {
+      "card_id": 10763210,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】选择对手的战场上的1个随从，对其造成4点伤害。 / / 【启动】破坏本卡牌。选择对手的战场上的1个随从，对其造成2点伤害。",
+      "rule_version": 1,
+      "source_text_sha256": "1b6cb47662e78fc84366c164aa19d3f3c4c1fcd011d73d189a28fa5f977c1d37",
+      "test_evidence": [
+        "tests/test_real_activate_followup_batch.py"
+      ],
+      "notes": "Selected four-damage Fanfare and self-destruction followed by selected two-damage activation are directly tested."
     },
     {
       "card_id": 10771110,

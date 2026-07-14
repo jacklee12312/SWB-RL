@@ -3978,7 +3978,9 @@ class GameEngine:
             return False
         operations = self.rulebook.operations_for(card.card_id, Trigger.PLAY)
         if card.card_type == "护符" and (
-            operations or self.rulebook.countdown_for(card.card_id) is not None
+            operations
+            or self.rulebook.countdown_for(card.card_id) is not None
+            or self.rulebook.activation_for(card.card_id) is not None
         ):
             pass
         elif not operations:

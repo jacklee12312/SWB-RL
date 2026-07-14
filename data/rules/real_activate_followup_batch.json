@@ -1,0 +1,115 @@
+{
+  "passives": [
+    {
+      "card_id": 10001210,
+      "kind": "non_intrinsic_keyword",
+      "keyword": "守护",
+      "notes": "守护只出现在策动的移除效果中，不是本体初始关键词。"
+    }
+  ],
+  "activations": [
+    {"card_id": 10001210, "cost": 0},
+    {"card_id": 10162210, "cost": 1},
+    {"card_id": 10163220, "cost": 0},
+    {"card_id": 10261210, "cost": 1},
+    {"card_id": 10312210, "cost": 0},
+    {"card_id": 10342210, "cost": 1},
+    {"card_id": 10761210, "cost": 0},
+    {"card_id": 10763210, "cost": 0}
+  ],
+  "rules": [
+    {
+      "card_id": 10001210,
+      "trigger": "activate",
+      "operations": [
+        {"kind": "destroy", "target": "self"},
+        {"kind": "remove_keyword", "target": "enemy_unit", "keyword": "守护"}
+      ]
+    },
+    {
+      "card_id": 10162210,
+      "trigger": "activate",
+      "operations": [
+        {"kind": "buff_unit", "target": "own_unit", "amount": 1, "secondary_amount": 1},
+        {"kind": "heal_leader", "target": "own_leader", "amount": 1}
+      ]
+    },
+    {
+      "card_id": 10163220,
+      "trigger": "activate",
+      "operations": [
+        {"kind": "destroy", "target": "self"},
+        {"kind": "destroy", "target": "all_units"}
+      ]
+    },
+    {
+      "card_id": 10261210,
+      "trigger": "activate",
+      "operations": [
+        {"kind": "destroy", "target": "self"},
+        {"kind": "heal_leader", "target": "own_leader", "amount": 4}
+      ]
+    },
+    {
+      "card_id": 10312210,
+      "trigger": "play",
+      "operations": [
+        {"kind": "discard", "target": "own_hand"},
+        {"kind": "draw", "target": "own_leader", "amount": 2}
+      ]
+    },
+    {
+      "card_id": 10312210,
+      "trigger": "activate",
+      "operations": [
+        {"kind": "destroy", "target": "self"},
+        {"kind": "buff_unit", "target": "enemy_unit", "amount": 0, "secondary_amount": -2}
+      ]
+    },
+    {
+      "card_id": 10342210,
+      "trigger": "play",
+      "countdown": 4,
+      "operations": []
+    },
+    {
+      "card_id": 10342210,
+      "trigger": "activate",
+      "operations": [
+        {"kind": "damage_unit", "target": "all_units", "amount": 1}
+      ]
+    },
+    {
+      "card_id": 10761210,
+      "trigger": "play",
+      "operations": [
+        {"kind": "return_to_deck", "target": "own_hand"},
+        {"kind": "draw", "target": "own_leader", "amount": 1}
+      ]
+    },
+    {
+      "card_id": 10761210,
+      "trigger": "activate",
+      "operations": [
+        {"kind": "destroy", "target": "self"},
+        {"kind": "return_to_deck", "target": "own_hand"},
+        {"kind": "draw", "target": "own_leader", "amount": 1}
+      ]
+    },
+    {
+      "card_id": 10763210,
+      "trigger": "play",
+      "operations": [
+        {"kind": "damage_unit", "target": "enemy_unit", "amount": 4}
+      ]
+    },
+    {
+      "card_id": 10763210,
+      "trigger": "activate",
+      "operations": [
+        {"kind": "destroy", "target": "self"},
+        {"kind": "damage_unit", "target": "enemy_unit", "amount": 2}
+      ]
+    }
+  ]
+}

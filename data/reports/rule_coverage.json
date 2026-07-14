@@ -12,25 +12,25 @@
   },
   "summary": {
     "total_cards": 826,
-    "total_with_rules": 190,
+    "total_with_rules": 198,
     "test_or_synthetic_ids_with_rules": 26,
     "coverage_counts": {
-      "covered_exact": 158,
+      "covered_exact": 166,
       "text_unclear": 18,
-      "supported_missing_rule": 559,
+      "supported_missing_rule": 551,
       "token_or_non_collectible": 91
     },
     "clause_audit_counts": {
-      "mapped_exact": 158,
+      "mapped_exact": 166,
       "unverified_exact": 0,
       "partial": 0,
-      "missing_rule": 559,
+      "missing_rule": 551,
       "missing_primitive": 0,
       "text_unclear": 18,
       "token_separate_audit": 91
     },
     "blocker_counts": {
-      "missing_rule": 559,
+      "missing_rule": 551,
       "missing_schema": 0,
       "missing_primitive": 0,
       "missing_targeting": 0,
@@ -413,16 +413,13 @@
       "cost": 2,
       "is_collectible": true,
       "card_set_id": 10000,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['策动', '破坏']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['activate', 'activation'], Ops: ['destroy', 'remove_keyword', 'activation']",
       "hit_keywords": [
         "策动",
         "破坏"
       ],
       "missing_primitives": [],
-      "missing_rule_mechanics": [
-        "策动"
-      ],
       "ability_keywords": [
         "守护",
         "策动"
@@ -431,27 +428,46 @@
         "【<color=Keyword>启动</color>】破坏本卡牌。选择对手的战场上的1个随从，使其失去【<color=Keyword>守护</color>】。"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【启动】破坏本卡牌。选择对手的战场上的1个随从，使其失去【守护】。",
+        "notes": "Activation-only normal play, self-destruction, selected Ward removal, and non-intrinsic keyword provenance are directly tested.",
+        "rule_version": 1,
+        "source_text_sha256": "9116c2dcde846bbb076fbbace83d6d52e687fc227cbba474215fc6ce5ffcb7f8",
+        "test_evidence": [
+          "tests/test_real_activate_followup_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10001210:0",
             "source_text": "【<color=Keyword>启动</color>】破坏本卡牌。选择对手的战场上的1个随从，使其失去【<color=Keyword>守护</color>】。",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "【启动】破坏本卡牌。选择对手的战场上的1个随从，使其失去【守护】。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "9116c2dcde846bbb076fbbace83d6d52e687fc227cbba474215fc6ce5ffcb7f8",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "activate",
+            "activation"
+          ],
+          "effect_kinds": [
+            "destroy",
+            "remove_keyword",
+            "activation"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_activate_followup_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10002110": {
@@ -9210,16 +9226,13 @@
       "cost": 2,
       "is_collectible": true,
       "card_set_id": 10001,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['策动', '回复']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['activate', 'activation'], Ops: ['buff_unit', 'heal_leader', 'activation']",
       "hit_keywords": [
         "策动",
         "回复"
       ],
       "missing_primitives": [],
-      "missing_rule_mechanics": [
-        "策动"
-      ],
       "ability_keywords": [
         "策动"
       ],
@@ -9227,27 +9240,46 @@
         "费用1【<color=Keyword>启动</color>】选择自己的战场上的1个随从，使其+1/+1。回复自己的主战者1点生命值。"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "费用1【启动】选择自己的战场上的1个随从，使其+1/+1。回复自己的主战者1点生命值。",
+        "notes": "The repeatable activation pays one PP, buffs a selected ally, heals, and remains once-per-turn.",
+        "rule_version": 1,
+        "source_text_sha256": "37ebbc146d1ba967e1992bbba79258c7ddde8a59bb36112968aa85045b285ae0",
+        "test_evidence": [
+          "tests/test_real_activate_followup_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10162210:0",
             "source_text": "费用1【<color=Keyword>启动</color>】选择自己的战场上的1个随从，使其+1/+1。回复自己的主战者1点生命值。",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "费用1【启动】选择自己的战场上的1个随从，使其+1/+1。回复自己的主战者1点生命值。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "37ebbc146d1ba967e1992bbba79258c7ddde8a59bb36112968aa85045b285ae0",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "activate",
+            "activation"
+          ],
+          "effect_kinds": [
+            "buff_unit",
+            "heal_leader",
+            "activation"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_activate_followup_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10162220": {
@@ -9524,16 +9556,13 @@
       "cost": 6,
       "is_collectible": true,
       "card_set_id": 10001,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['策动', '破坏']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['activate', 'activation'], Ops: ['destroy', 'destroy', 'activation']",
       "hit_keywords": [
         "策动",
         "破坏"
       ],
       "missing_primitives": [],
-      "missing_rule_mechanics": [
-        "策动"
-      ],
       "ability_keywords": [
         "策动"
       ],
@@ -9541,27 +9570,46 @@
         "【<color=Keyword>启动</color>】破坏本卡牌。破坏战场上的所有随从。"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【启动】破坏本卡牌。破坏战场上的所有随从。",
+        "notes": "Activation-only normal play and self-destruction followed by simultaneous all-follower destruction are directly tested.",
+        "rule_version": 1,
+        "source_text_sha256": "5fe578a1ede9cdd6593a0b6da909ca91b26195ecfdf7ccceb8da4a0c205f2696",
+        "test_evidence": [
+          "tests/test_real_activate_followup_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10163220:0",
             "source_text": "【<color=Keyword>启动</color>】破坏本卡牌。破坏战场上的所有随从。",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "【启动】破坏本卡牌。破坏战场上的所有随从。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "5fe578a1ede9cdd6593a0b6da909ca91b26195ecfdf7ccceb8da4a0c205f2696",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "activate",
+            "activation"
+          ],
+          "effect_kinds": [
+            "destroy",
+            "destroy",
+            "activation"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_activate_followup_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10164110": {
@@ -13717,17 +13765,14 @@
       "cost": 2,
       "is_collectible": true,
       "card_set_id": 10002,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['策动', '回复', '破坏']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['activate', 'activation'], Ops: ['destroy', 'heal_leader', 'activation']",
       "hit_keywords": [
         "策动",
         "回复",
         "破坏"
       ],
       "missing_primitives": [],
-      "missing_rule_mechanics": [
-        "策动"
-      ],
       "ability_keywords": [
         "策动"
       ],
@@ -13735,27 +13780,46 @@
         "费用1【<color=Keyword>启动</color>】破坏本卡牌。回复自己的主战者4点生命值。"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "费用1【启动】破坏本卡牌。回复自己的主战者4点生命值。",
+        "notes": "Activation-only normal play, one-PP payment, self-destruction, and capped leader healing are directly tested.",
+        "rule_version": 1,
+        "source_text_sha256": "68819f595c384f1bf1daae5186043f6df79c8a010ae7288447c2d57d588e3e4b",
+        "test_evidence": [
+          "tests/test_real_activate_followup_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10261210:0",
             "source_text": "费用1【<color=Keyword>启动</color>】破坏本卡牌。回复自己的主战者4点生命值。",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "费用1【启动】破坏本卡牌。回复自己的主战者4点生命值。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "68819f595c384f1bf1daae5186043f6df79c8a010ae7288447c2d57d588e3e4b",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "activate",
+            "activation"
+          ],
+          "effect_kinds": [
+            "destroy",
+            "heal_leader",
+            "activation"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_activate_followup_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10262110": {
@@ -15263,8 +15327,8 @@
       "cost": 3,
       "is_collectible": true,
       "card_set_id": 10003,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '策动', '抽取', '破坏', '舍弃']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['play', 'activate', 'activation'], Ops: ['discard', 'draw', 'destroy', 'buff_unit', 'activation']",
       "hit_keywords": [
         "入场曲",
         "策动",
@@ -15273,9 +15337,6 @@
         "舍弃"
       ],
       "missing_primitives": [],
-      "missing_rule_mechanics": [
-        "策动"
-      ],
       "ability_keywords": [
         "入场曲",
         "策动"
@@ -15284,27 +15345,49 @@
         "【<color=Keyword>入场曲</color>】选择自己的1张手牌，舍弃该手牌。抽取2张卡牌。\n<hr>【<color=Keyword>启动</color>】破坏本卡牌。选择对手的战场上的1个随从，使其-0/-2。"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【入场曲】选择自己的1张手牌，舍弃该手牌。抽取2张卡牌。 / / 【启动】破坏本卡牌。选择对手的战场上的1个随从，使其-0/-2。",
+        "notes": "Fanfare discard/draw and activation self-destruction followed by lethal selected health reduction are directly tested.",
+        "rule_version": 1,
+        "source_text_sha256": "f3d424aa7580e9281c38b706e6fe362a496b1d2011a98570cb8e3dbf5f4f1da9",
+        "test_evidence": [
+          "tests/test_real_activate_followup_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10312210:0",
             "source_text": "【<color=Keyword>入场曲</color>】选择自己的1张手牌，舍弃该手牌。抽取2张卡牌。\n<hr>【<color=Keyword>启动</color>】破坏本卡牌。选择对手的战场上的1个随从，使其-0/-2。",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "【入场曲】选择自己的1张手牌，舍弃该手牌。抽取2张卡牌。 / / 【启动】破坏本卡牌。选择对手的战场上的1个随从，使其-0/-2。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "f3d424aa7580e9281c38b706e6fe362a496b1d2011a98570cb8e3dbf5f4f1da9",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "play",
+            "activate",
+            "activation"
+          ],
+          "effect_kinds": [
+            "discard",
+            "draw",
+            "destroy",
+            "buff_unit",
+            "activation"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_activate_followup_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10313110": {
@@ -16733,17 +16816,14 @@
       "cost": 2,
       "is_collectible": true,
       "card_set_id": 10003,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['策动', '倒数', '造成.*伤害']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['play', 'activate', 'activation'], Ops: ['damage_unit', 'activation']",
       "hit_keywords": [
         "策动",
         "倒数",
         "造成.*伤害"
       ],
       "missing_primitives": [],
-      "missing_rule_mechanics": [
-        "策动"
-      ],
       "ability_keywords": [
         "倒数",
         "策动"
@@ -16752,27 +16832,46 @@
         "【<color=Keyword>吟唱</color>_4】\n<hr>费用1【<color=Keyword>启动</color>】对战场上的所有随从造成1点伤害。"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【吟唱_4】 / / 费用1【启动】对战场上的所有随从造成1点伤害。",
+        "notes": "Countdown 4 and the one-PP repeatable simultaneous all-follower damage activation are directly tested.",
+        "rule_version": 1,
+        "source_text_sha256": "877a958ae96eaaefcd29e1f737aaaf8cbd8acfb42d0f1e8f3531ade928c83e0d",
+        "test_evidence": [
+          "tests/test_real_activate_followup_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10342210:0",
             "source_text": "【<color=Keyword>吟唱</color>_4】\n<hr>费用1【<color=Keyword>启动</color>】对战场上的所有随从造成1点伤害。",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "【吟唱_4】 / / 费用1【启动】对战场上的所有随从造成1点伤害。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "877a958ae96eaaefcd29e1f737aaaf8cbd8acfb42d0f1e8f3531ade928c83e0d",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "play",
+            "activate",
+            "activation"
+          ],
+          "effect_kinds": [
+            "damage_unit",
+            "activation"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_activate_followup_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10343110": {
@@ -33405,8 +33504,8 @@
       "cost": 1,
       "is_collectible": true,
       "card_set_id": 10007,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '策动', '抽取', '破坏', '返回牌']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['play', 'activate', 'activation'], Ops: ['return_to_deck', 'draw', 'destroy', 'return_to_deck', 'draw', 'activation']",
       "hit_keywords": [
         "入场曲",
         "策动",
@@ -33415,9 +33514,6 @@
         "返回牌"
       ],
       "missing_primitives": [],
-      "missing_rule_mechanics": [
-        "策动"
-      ],
       "ability_keywords": [
         "入场曲",
         "策动"
@@ -33426,27 +33522,50 @@
         "【<color=Keyword>入场曲</color>】选择自己的1张手牌，使其返回牌组。抽取1张卡牌。\n<hr>【<color=Keyword>启动</color>】破坏本卡牌。发动与【<color=Keyword>入场曲</color>】相同的能力。"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【入场曲】选择自己的1张手牌，使其返回牌组。抽取1张卡牌。 / / 【启动】破坏本卡牌。发动与【入场曲】相同的能力。",
+        "notes": "Selected hand cycling resolves on play and repeats after activation self-destruction with stable zone identity.",
+        "rule_version": 1,
+        "source_text_sha256": "ad7d233a382f6874db2b0f4d4143df0ff4d08d1bdd2fe2e2755abf577a6f7e80",
+        "test_evidence": [
+          "tests/test_real_activate_followup_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10761210:0",
             "source_text": "【<color=Keyword>入场曲</color>】选择自己的1张手牌，使其返回牌组。抽取1张卡牌。\n<hr>【<color=Keyword>启动</color>】破坏本卡牌。发动与【<color=Keyword>入场曲</color>】相同的能力。",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "【入场曲】选择自己的1张手牌，使其返回牌组。抽取1张卡牌。 / / 【启动】破坏本卡牌。发动与【入场曲】相同的能力。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "ad7d233a382f6874db2b0f4d4143df0ff4d08d1bdd2fe2e2755abf577a6f7e80",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "play",
+            "activate",
+            "activation"
+          ],
+          "effect_kinds": [
+            "return_to_deck",
+            "draw",
+            "destroy",
+            "return_to_deck",
+            "draw",
+            "activation"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_activate_followup_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10762110": {
@@ -33650,8 +33769,8 @@
       "cost": 3,
       "is_collectible": true,
       "card_set_id": 10007,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '策动', '造成.*伤害', '破坏']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['play', 'activate', 'activation'], Ops: ['damage_unit', 'destroy', 'damage_unit', 'activation']",
       "hit_keywords": [
         "入场曲",
         "策动",
@@ -33659,9 +33778,6 @@
         "破坏"
       ],
       "missing_primitives": [],
-      "missing_rule_mechanics": [
-        "策动"
-      ],
       "ability_keywords": [
         "入场曲",
         "策动"
@@ -33670,27 +33786,48 @@
         "【<color=Keyword>入场曲</color>】选择对手的战场上的1个随从，对其造成4点伤害。\n<hr>【<color=Keyword>启动</color>】破坏本卡牌。选择对手的战场上的1个随从，对其造成2点伤害。"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【入场曲】选择对手的战场上的1个随从，对其造成4点伤害。 / / 【启动】破坏本卡牌。选择对手的战场上的1个随从，对其造成2点伤害。",
+        "notes": "Selected four-damage Fanfare and self-destruction followed by selected two-damage activation are directly tested.",
+        "rule_version": 1,
+        "source_text_sha256": "1b6cb47662e78fc84366c164aa19d3f3c4c1fcd011d73d189a28fa5f977c1d37",
+        "test_evidence": [
+          "tests/test_real_activate_followup_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10763210:0",
             "source_text": "【<color=Keyword>入场曲</color>】选择对手的战场上的1个随从，对其造成4点伤害。\n<hr>【<color=Keyword>启动</color>】破坏本卡牌。选择对手的战场上的1个随从，对其造成2点伤害。",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "【入场曲】选择对手的战场上的1个随从，对其造成4点伤害。 / / 【启动】破坏本卡牌。选择对手的战场上的1个随从，对其造成2点伤害。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "1b6cb47662e78fc84366c164aa19d3f3c4c1fcd011d73d189a28fa5f977c1d37",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "play",
+            "activate",
+            "activation"
+          ],
+          "effect_kinds": [
+            "damage_unit",
+            "destroy",
+            "damage_unit",
+            "activation"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_activate_followup_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10764110": {

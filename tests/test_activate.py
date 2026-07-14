@@ -114,6 +114,29 @@ def _place_unit(
 
 
 class ActivateCommandTests(unittest.TestCase):
+    def test_activation_only_amulet_can_be_played_without_a_synthetic_play_rule(self):
+        engine = _engine((
+            EffectOperation(EffectKind.HEAL_LEADER, TargetKind.OWN_LEADER, 1),
+        ))
+        engine.players[0].hand.clear()
+        engine.players[0].hand_entity_ids.clear()
+        definition = _activate_amulet()
+        hand_card = HandCard(
+            definition=definition,
+            entity_id=engine.state.allocate_entity_id(),
+            origin=CardOrigin.DECK,
+        )
+        engine.players[0].hand.append(hand_card)
+        engine.players[0].hand_entity_ids.append(hand_card.entity_id)
+        command = PlayCard(0, 0)
+
+        self.assertIn(command, engine.legal_commands())
+        engine.apply(command)
+
+        amulet = next(entity for entity in engine.players[0].board if isinstance(entity, Amulet))
+        self.assertEqual(amulet.definition.card_id, definition.card_id)
+        self.assertIn(ActivateAmulet(0, amulet.entity_id), engine.legal_commands())
+
     def test_reduce_countdown_clamps_at_zero_and_expires_source(self):
         engine = _engine((
             EffectOperation(
@@ -400,6 +423,49 @@ class ActivateRuleSchemaTests(unittest.TestCase):
 
 
 class ActivateEnvironmentTests(unittest.TestCase):
+    def test_rl_mask_exposes_play_then_activation_for_activation_only_amulet(self):
+        amulet_definition = _activate_amulet()
+        rules = RuleBook(
+            rules=(
+                CardRule(
+                    100,
+                    Trigger.ACTIVATE,
+                    (EffectOperation(EffectKind.HEAL_LEADER, TargetKind.OWN_LEADER, 1),),
+                ),
+            ),
+            activation_defs={100: ActivationDefinition(100, 1)},
+        )
+        deck = [_card(1000 + index) for index in range(40)]
+        env = ShadowverseEnv(
+            deck,
+            deck,
+            class_a=1,
+            class_b=1,
+            seed=42,
+            rulebook=rules,
+        )
+        env.reset(seed=42)
+        env.players[0].hand.clear()
+        env.players[0].hand_entity_ids.clear()
+        env.players[0].mana = 2
+        hand_card = HandCard(
+            definition=amulet_definition,
+            entity_id=env.core.state.allocate_entity_id(),
+            origin=CardOrigin.DECK,
+        )
+        env.players[0].hand.append(hand_card)
+        env.players[0].hand_entity_ids.append(hand_card.entity_id)
+
+        self.assertTrue(env.action_mask()[ShadowverseEnv.PLAY_OFFSET])
+        env.step(ShadowverseEnv.PLAY_OFFSET)
+
+        amulet = next(entity for entity in env.players[0].board if isinstance(entity, Amulet))
+        self.assertTrue(env.action_mask()[ShadowverseEnv.EVOLVE_OFFSET])
+        self.assertEqual(
+            env._decode_action(ShadowverseEnv.EVOLVE_OFFSET),
+            ActivateAmulet(0, amulet.entity_id),
+        )
+
     def test_rl_reuses_amulet_evolve_slot_and_exposes_turn_usage(self):
         amulet_definition = _activate_amulet()
         rules = RuleBook(

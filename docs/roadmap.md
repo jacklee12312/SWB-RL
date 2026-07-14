@@ -10,15 +10,15 @@ code and tests as the source of truth when this file drifts.
 - Database: 826 cards, 735 collectible cards, 91 non-collectible/generated
   cards from set `90000`.
 - Latest SVA source: `https://sva.hypd.asia/data/cards.json`.
-- Tests: `python -m unittest discover -s tests -v` currently runs 1290 tests.
+- Tests: `python -m unittest discover -s tests -v` currently runs 1304 tests.
 - RL adapter: fixed 111-action space; the default v1 observation remains 290
   floats, while opt-in v2 provides fixed-shape categorical/public state without
   changing action IDs.
 - Ability registry status: 18 implemented, 5 partial, 11 placeholder.
 - Explicit card and demo rules live in `data/rules/`; the current coverage
-  report classifies 190 card IDs with explicit rules, passives, fusion,
+  report classifies 198 card IDs with explicit rules, passives, fusion,
   invocation, activation, Faith, Union Burst, or listener definitions. Current
-  collectible coverage is 158 exact, 0 partial, 559 supported-but-missing-rule,
+  collectible coverage is 166 exact, 0 partial, 551 supported-but-missing-rule,
   0 missing-primitive, and 18 text-unclear cards.
 - `data/reports/token_audit.{json,md}` audits all 91 non-collectible/generated
   cards independently of collectible coverage. Database `card_references` and
@@ -33,7 +33,7 @@ code and tests as the source of truth when this file drifts.
   separate column and is covered for all 34; it does not automatically promote
   the 5 partial or 11 placeholder keyword statuses.
 - Coverage now has a backward-compatible clause audit. The legacy summary still
-  reports 158 exact collectible cards, and all 158 now have an explicit exact
+  reports 166 exact collectible cards, and all 166 now have an explicit exact
   text mapping plus named direct test evidence. The versioned sibling registry
   at `data/audits/rule_clauses.json` hashes every imported primary and
   alternate-mode clause; changed source text or stale test evidence invalidates
@@ -42,7 +42,7 @@ code and tests as the source of truth when this file drifts.
   rule version and errata metadata, structured trigger/operation evidence,
   explicit unsupported text, and a stable blocker taxonomy. There are zero
   unverified exact entries and no known missing schema, primitive, targeting,
-  or timing blocker among authored rules. The 559 supported-but-missing-rule
+  or timing blocker among authored rules. The 551 supported-but-missing-rule
   cards are now the per-card structured-content backlog; 18 unclear texts
   remain explicit.
 - RL observation v2 is available behind an explicit version switch. A
@@ -216,7 +216,9 @@ slice in this order:
   `策动` to increment that field-backed stack.
 - `ActivateAmulet` exposes `策动` before RL encoding. Structured `activations`
   definitions supply non-negative PP costs and require a paired non-empty
-  `activate` trigger rule. An eligible field amulet can activate once per turn;
+  `activate` trigger rule. Such a definition also makes an otherwise effectless,
+  non-countdown amulet normally playable, with matching command and RL masks.
+  An eligible field amulet can activate once per turn;
   legality checks controller, current entity, cost, and required targets before
   any mutation. The paid continuation reuses normal effects and choices, so
   targets that leave or change controller are revalidated without a second
@@ -230,7 +232,9 @@ slice in this order:
   death batches and Last Words. Exact real rules now cover `10031210` spending
   1 PP to add one Earth Sigil, `10161210` spending 1 PP to reduce its countdown,
   and `10563210` destroying itself before two seeded-random hand-to-deck moves
-  and two draws.
+  and two draws. Exact follow-up rules add eight activation cards spanning
+  activation-only play, self-destruction, targeted buffs/debuffs or keyword
+  removal, healing, hand cycling, Countdown, and all-follower resolution.
 - `BeginFusion` exposes Fusion before RL action encoding. A structured
   `fusions` definition filters eligible hand materials and sets optional
   minimum/maximum counts. The pending choice supports variable-count selection
@@ -476,15 +480,18 @@ slice in this order:
   or discard, source-bound turn-end draw, all-ally unevolved filtering,
   source-excluding cross-controller targets, sufficient/insufficient
   Necromancy, Reanimate after selected destruction, and no-target fallthrough.
+- Exact file `data/rules/real_activate_followup_batch.json` adds 8 audited
+  amulets with no alternate modes or referenced cards. Direct tests cover zero-
+  and one-PP activation, activation-only normal play, once-per-turn legality,
+  source destruction before pending choices, selected Ward removal, buffs and
+  health reduction, healing, repeated hand cycling, Countdown, simultaneous
+  all-follower damage/destruction, and real-card RL mask parity.
 
 ## Known Partial Or Unsupported Areas
 
 - Random board targeting currently resolves one target per operation and does
   not consume `target_count`; `10221110` and `10351310` therefore remain
   unsupported rather than incorrectly allowing one hit or duplicate hits.
-- Normal-play legality for an amulet with only an activation definition and no
-  play operations/countdown is not yet defined. `10163220` remains unsupported
-  instead of receiving a synthetic no-op play effect.
 - `觉醒` has condition/expression support, public observation flags, and one
   real-card rule demo; broader real-card coverage and future max-mana ramp
   interactions remain partial.

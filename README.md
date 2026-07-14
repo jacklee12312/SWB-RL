@@ -38,13 +38,13 @@ covered generic boundary, but that never upgrades a partial or placeholder
 keyword whose full tagged-card semantics still require structured rules.
 
 The [rule coverage report](data/reports/rule_coverage.md) now includes a
-clause-audit layer without changing its legacy coverage categories. Of 158
-exact collectible cards, all 158 have explicit implemented text and named direct
+clause-audit layer without changing its legacy coverage categories. Of 166
+exact collectible cards, all 166 have explicit implemented text and named direct
 test evidence. The sibling `data/audits/rule_clauses.json` registry hashes every
 imported skill and alternate-mode clause, so a database text change or stale
 test reference invalidates the audit instead of silently retaining exact
 status. The current report has no unverified exact entry or missing generic
-schema, primitive, targeting, or timing blocker. Its remaining 559 collectible
+schema, primitive, targeting, or timing blocker. Its remaining 551 collectible
 gaps are missing per-card structured rules, while 18 unclear texts remain
 explicit. Rule metadata also supports version and errata fields, and the report
 records the complete imported source snapshot hash.
@@ -159,11 +159,13 @@ The deterministic rules core supports:
 - command-level `策动` for field amulets, with structured activation costs,
   once-per-amulet-per-turn state, required-target prevalidation, pending-choice
   revalidation, source-leaves-play safety, and explicit `amulet_activated`
-  events that structured emblems can observe. Generic `reduce_countdown` clamps
-  at zero and expires an amulet through the normal death/Last Words pipeline.
-  Exact real rules cover `10031210` adding an Earth Sigil, `10161210` paying 1
-  PP to advance its countdown, and `10563210` destroying itself before cycling
-  two seeded-random hand cards and drawing two;
+  events that structured emblems can observe. An activation definition is also
+  a valid ordinary-play anchor for an otherwise effectless amulet, with matching
+  command and RL masks. Generic `reduce_countdown` clamps at zero and expires an
+  amulet through the normal death/Last Words pipeline. Eight additional exact
+  real rules cover activation-only play, self-destruction, targeted buffs,
+  keyword removal, healing, hand cycling, countdown state, and all-follower or
+  selected damage;
 - structured `信仰` leader-area state created from the initial deck without
   removing physical card copies, with same-name deduplication, stable identity,
   deterministic fingerprints, and public value-change events; the first
@@ -283,6 +285,11 @@ The deterministic rules core supports:
   source-excluding cross-controller targeting, Necromancy healing, and
   destruction followed by Reanimate. Direct tests cover insufficient-resource
   and no-target fallthrough paths plus intrinsic Ambush/Rush provenance;
+- an 8-card exact Activate follow-up batch covers zero- and one-PP activations,
+  activation-only amulet play, self-destruction before queued choices, repeatable
+  once-per-turn effects, selected keyword removal/buffs/debuffs, healing, hand
+  cycling, Countdown, simultaneous all-follower damage/destruction, and matching
+  real-card command/RL masks;
 - countdown amulets, explicit last words, fanfare/play rules, attack/clash,
   evolve/super-evolve, turn-start/turn-end triggers, and trigger continuations
   that can pause for choices. Exact `10713110` uses a source-in-play turn-end
@@ -385,9 +392,7 @@ Known broad gaps include:
 
 - random board operations do not yet consume `target_count`, so cards that say
   “random 2 followers” remain unsupported instead of being approximated by one
-  target or two independently repeatable targets. An activation-only amulet
-  with neither play operations nor countdown is also rejected by normal-play
-  legality; `10163220` remains unsupported until that generic path is defined;
+  target or two independently repeatable targets;
 - exact semantics for many real cards and most generated-card workflows; the
   token audit keeps the remaining 11 partial and 69 unimplemented entries
   explicit instead of treating non-collectible classification as coverage;
