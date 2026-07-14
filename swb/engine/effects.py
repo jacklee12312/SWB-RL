@@ -353,6 +353,21 @@ class BoundTargetSnapshot:
     cost: int
 
 
+@dataclass(frozen=True)
+class SourceStateSnapshot:
+    """Immutable source state retained for effects that fire after it leaves play."""
+
+    entity_id: int
+    controller: int
+    card_id: int
+    card_type: str
+    attack: int | None
+    health: int | None
+    evolved: bool
+    super_evolved: bool
+    effective_keywords: frozenset[str]
+
+
 @dataclass
 class EffectFrame:
     controller: int
@@ -361,6 +376,7 @@ class EffectFrame:
     source_entity_id: int | None
     source_card: CardDefinition
     operations: tuple[EffectOperation, ...]
+    source_snapshot: SourceStateSnapshot | None = None
     fusion_materials: tuple["FusionMaterial", ...] = ()
     label: str = "效果"
     next_index: int = 0

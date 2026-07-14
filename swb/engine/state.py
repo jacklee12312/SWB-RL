@@ -93,6 +93,10 @@ class DeathRecord:
     board_position: int = 0
     allows_last_words: bool = False
     effective_keywords: frozenset[str] = frozenset()
+    attack: int | None = None
+    health: int | None = None
+    evolved: bool = False
+    super_evolved: bool = False
 
 
 @dataclass(frozen=True)

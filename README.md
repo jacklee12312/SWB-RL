@@ -325,6 +325,12 @@ The deterministic rules core supports:
 - death-batch event diagnostics that expose the active-player-first,
   left-to-right order used by destroyed, left-play, and Last Words lifecycle
   events, including follower/amulet composition for mixed death batches;
+- Last Words effect frames retain an immutable death-time source snapshot for
+  evolution state, effective keywords, attack, and health. Source conditions
+  and expressions remain deterministic through nested pending choices after
+  the entity leaves play, while board-mutating `self` targets still require a
+  live source; snapshots participate in event diagnostics, fingerprints, and
+  runtime invariants;
 - `death_batch_end` emblem triggers that fire after a death batch's Last Words
   complete, with any new deaths collected into a later death batch;
 - recursive resolution-loop diagnostics for events, effects, death batches,

@@ -41,6 +41,7 @@ from swb.engine.effects import (
     ExprType,
     HandFilter,
     ModifierDuration,
+    SourceStateSnapshot,
     TargetKind,
     ValueExpression,
 )
@@ -2003,6 +2004,7 @@ class GameEngine:
         move_source_to_graveyard: bool = False,
         label: str = "效果",
         fusion_materials: tuple[FusionMaterial, ...] | None = None,
+        source_snapshot: SourceStateSnapshot | None = None,
     ) -> EffectFrame:
         resolved_controller = self.current_player if controller is None else controller
         if fusion_materials is None:
@@ -2025,6 +2027,7 @@ class GameEngine:
             source_entity_id=source_entity_id,
             source_card=card,
             operations=operations,
+            source_snapshot=source_snapshot,
             fusion_materials=fusion_materials,
             label=label,
             move_source_to_graveyard=move_source_to_graveyard,
@@ -2046,6 +2049,7 @@ class GameEngine:
             controller=parent.controller,
             label=label,
             fusion_materials=parent.fusion_materials,
+            source_snapshot=parent.source_snapshot,
         )
         child.listener_activation_owner = parent.listener_activation_owner
         child.listener_activation_zone = parent.listener_activation_zone
@@ -2069,6 +2073,18 @@ class GameEngine:
                 "card_id": value.card_id,
                 "name": value.name,
                 "card_type": value.card_type,
+            }
+        if isinstance(value, SourceStateSnapshot):
+            return {
+                "entity_id": value.entity_id,
+                "controller": value.controller,
+                "card_id": value.card_id,
+                "card_type": value.card_type,
+                "attack": value.attack,
+                "health": value.health,
+                "evolved": value.evolved,
+                "super_evolved": value.super_evolved,
+                "effective_keywords": tuple(sorted(value.effective_keywords)),
             }
         if isinstance(value, (Unit, Amulet, HandCard, GraveyardCard, FusionMaterial)):
             definition = getattr(value, "definition", None)
@@ -2153,6 +2169,7 @@ class GameEngine:
             "source_card_id": frame.source_card_id,
             "source_name": frame.source_name,
             "source_entity_id": frame.source_entity_id,
+            "source_snapshot": self._debug_value(frame.source_snapshot),
             "label": frame.label,
             "next_index": frame.next_index,
             "operation_count": len(frame.operations),
@@ -2178,6 +2195,11 @@ class GameEngine:
             "source_player": record.source_player,
             "source_entity_id": record.source_entity_id,
             "allows_last_words": record.allows_last_words,
+            "attack": record.attack,
+            "health": record.health,
+            "evolved": record.evolved,
+            "super_evolved": record.super_evolved,
+            "effective_keywords": tuple(sorted(record.effective_keywords)),
         }
 
     def _emblem_batch_debug_summary(
@@ -2798,6 +2820,7 @@ class GameEngine:
             "source_name": frame.source_name,
             "source_entity_id": frame.source_entity_id,
             "source_card": self._card_fingerprint(frame.source_card),
+            "source_snapshot": self._fingerprint_value(frame.source_snapshot),
             "operations": tuple(
                 self._operation_fingerprint(operation)
                 for operation in frame.operations
@@ -3051,6 +3074,10 @@ class GameEngine:
             record.board_position,
             record.allows_last_words,
             tuple(sorted(record.effective_keywords)),
+            record.attack,
+            record.health,
+            record.evolved,
+            record.super_evolved,
         )
 
     def _emblem_instance_fingerprint(
@@ -3235,6 +3262,18 @@ class GameEngine:
                 value.card_type,
                 value.card_name,
                 value.cost,
+            )
+        if isinstance(value, SourceStateSnapshot):
+            return (
+                value.entity_id,
+                value.controller,
+                value.card_id,
+                value.card_type,
+                value.attack,
+                value.health,
+                value.evolved,
+                value.super_evolved,
+                tuple(sorted(value.effective_keywords)),
             )
         if isinstance(value, Condition):
             return self._condition_fingerprint(value)
@@ -5727,6 +5766,7 @@ class GameEngine:
             target_entity_id=target_id,
             source_card_id=frame.source_card_id,
             source_fusion_count=len(frame.fusion_materials),
+            source_snapshot=frame.source_snapshot,
         )
 
     def _resolve_amount(self, operation: EffectOperation, ctx: EvalContext) -> int:
@@ -5763,15 +5803,20 @@ class GameEngine:
         )
 
     @staticmethod
-    def _operation_requires_source_in_play(
+    def _operation_requires_live_source_target(
         operation: EffectOperation,
     ) -> bool:
         return (
-            (
-                operation.target is TargetKind.SELF
-                and operation.kind in _SOURCE_REQUIRED_SELF_TARGET_EFFECTS
-            )
-            or _expression_depends_on_source(operation.amount_expr)
+            operation.target is TargetKind.SELF
+            and operation.kind in _SOURCE_REQUIRED_SELF_TARGET_EFFECTS
+        )
+
+    @staticmethod
+    def _operation_requires_source_state(
+        operation: EffectOperation,
+    ) -> bool:
+        return (
+            _expression_depends_on_source(operation.amount_expr)
             or _expression_depends_on_source(operation.secondary_expr)
             or _expression_depends_on_source(operation.target_count_expr)
             or any(
@@ -5783,9 +5828,13 @@ class GameEngine:
     def _checked_execute(
         self, operation: EffectOperation, frame: EffectFrame, target_id: int | None,
     ) -> None:
+        source_in_play = self._source_entity_in_play(frame)
+        if self._operation_requires_live_source_target(operation) and not source_in_play:
+            return
         if (
-            self._operation_requires_source_in_play(operation)
-            and not self._source_entity_in_play(frame)
+            self._operation_requires_source_state(operation)
+            and not source_in_play
+            and frame.source_snapshot is None
         ):
             return
         if operation.target is TargetKind.SELF:
@@ -8958,6 +9007,10 @@ class GameEngine:
                         board_position=pos,
                         allows_last_words=not entity.printed_abilities_removed,
                         effective_keywords=entity.effective_keywords,
+                        attack=entity.attack,
+                        health=entity.health,
+                        evolved=entity.evolved,
+                        super_evolved=entity.super_evolved,
                     )
                     unit_origin = entity.origin
                     unit_source_origin = entity.source_origin
@@ -8995,6 +9048,10 @@ class GameEngine:
                         board_position=pos,
                         allows_last_words=True,
                         effective_keywords=frozenset(),
+                        attack=None,
+                        health=None,
+                        evolved=False,
+                        super_evolved=False,
                     )
                     amulet_origin = entity.origin
                     amulet_source_origin = entity.source_origin
@@ -9106,6 +9163,10 @@ class GameEngine:
             "card_type": record.card_type,
             "board_position": record.board_position,
             "keywords": tuple(sorted(record.effective_keywords)),
+            "attack": record.attack,
+            "health": record.health,
+            "evolved": record.evolved,
+            "super_evolved": record.super_evolved,
         }
 
     def _last_words_event_metadata(
@@ -9114,6 +9175,22 @@ class GameEngine:
         record: DeathRecord,
     ) -> dict[str, object]:
         return self._death_event_metadata(batch, record)
+
+    @staticmethod
+    def _source_snapshot_from_death_record(
+        record: DeathRecord,
+    ) -> SourceStateSnapshot:
+        return SourceStateSnapshot(
+            entity_id=record.entity_id,
+            controller=record.owner,
+            card_id=record.card_id,
+            card_type=record.card_type,
+            attack=record.attack,
+            health=record.health,
+            evolved=record.evolved,
+            super_evolved=record.super_evolved,
+            effective_keywords=record.effective_keywords,
+        )
 
     def _execute_last_words(self, record: DeathRecord, batch: DeathBatch) -> None:
         self._step()
@@ -9136,6 +9213,7 @@ class GameEngine:
                 operations,
                 controller=record.owner,
                 label="谢幕曲",
+                source_snapshot=self._source_snapshot_from_death_record(record),
             )
 
     def _check_game_over(self) -> None:
@@ -9868,6 +9946,45 @@ class GameEngine:
                 raise IllegalCommand(
                     f"Invariant failed: {zone} source_entity_id must be positive"
                 )
+            snapshot = frame.source_snapshot
+            if snapshot is not None:
+                if not isinstance(snapshot, SourceStateSnapshot):
+                    raise IllegalCommand(
+                        f"Invariant failed: {zone} source_snapshot is invalid"
+                    )
+                if (
+                    snapshot.entity_id != frame.source_entity_id
+                    or snapshot.controller != frame.controller
+                    or snapshot.card_id != frame.source_card_id
+                    or snapshot.card_type != frame.source_card.card_type
+                ):
+                    raise IllegalCommand(
+                        f"Invariant failed: {zone} source_snapshot identity mismatch"
+                    )
+                if any(
+                    value is not None
+                    and (
+                        not isinstance(value, int)
+                        or isinstance(value, bool)
+                    )
+                    for value in (snapshot.attack, snapshot.health)
+                ):
+                    raise IllegalCommand(
+                        f"Invariant failed: {zone} source_snapshot stats are invalid"
+                    )
+                if (
+                    not isinstance(snapshot.evolved, bool)
+                    or not isinstance(snapshot.super_evolved, bool)
+                    or snapshot.super_evolved and not snapshot.evolved
+                    or not isinstance(snapshot.effective_keywords, frozenset)
+                    or any(
+                        not isinstance(keyword, str) or not keyword
+                        for keyword in snapshot.effective_keywords
+                    )
+                ):
+                    raise IllegalCommand(
+                        f"Invariant failed: {zone} source_snapshot state is invalid"
+                    )
             if not isinstance(frame.label, str) or not frame.label:
                 raise IllegalCommand(
                     f"Invariant failed: {zone} label is empty"
@@ -10201,12 +10318,31 @@ class GameEngine:
                 if (
                     not isinstance(record.effective_keywords, frozenset)
                     or any(
-                        not isinstance(keyword, str)
+                        not isinstance(keyword, str) or not keyword
                         for keyword in record.effective_keywords
                     )
                 ):
                     raise IllegalCommand(
                         "Invariant failed: death record keywords are invalid"
+                    )
+                if any(
+                    value is not None
+                    and (
+                        not isinstance(value, int)
+                        or isinstance(value, bool)
+                    )
+                    for value in (record.attack, record.health)
+                ):
+                    raise IllegalCommand(
+                        "Invariant failed: death record source stats are invalid"
+                    )
+                if (
+                    not isinstance(record.evolved, bool)
+                    or not isinstance(record.super_evolved, bool)
+                    or record.super_evolved and not record.evolved
+                ):
+                    raise IllegalCommand(
+                        "Invariant failed: death record evolution state is invalid"
                     )
 
     def _emit(self, event: GameEvent) -> None:

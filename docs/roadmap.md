@@ -10,7 +10,7 @@ code and tests as the source of truth when this file drifts.
 - Database: 826 cards, 735 collectible cards, 91 non-collectible/generated
   cards from set `90000`.
 - Latest SVA source: `https://sva.hypd.asia/data/cards.json`.
-- Tests: `python -m unittest discover -s tests -v` currently runs 1347 tests.
+- Tests: `python -m unittest discover -s tests -v` currently runs 1351 tests.
 - RL adapter: fixed 111-action space; the default v1 observation remains 290
   floats, while opt-in v2 provides fixed-shape categorical/public state without
   changing action IDs.
@@ -372,6 +372,12 @@ slice in this order:
   unit-or-leader paths.
 - Source-dependent effect operations now safely skip if their source board
   entity leaves play before resolution resumes.
+- Last Words are the explicit off-board exception: each death record captures
+  an immutable source-state snapshot (evolution/super-evolution state,
+  effective keywords, attack, and health), which source conditions and
+  expressions can read through nested pending choices. The snapshot never
+  makes the departed entity a valid `self` target, and it is covered by event
+  metadata, deterministic fingerprints, loop diagnostics, and invariants.
 - Generic effects for damage, healing, draw, summon, destroy, banish, return,
   discard, transform, stat changes, keyword changes, cost changes, and attack
   or targeting restrictions.

@@ -3,12 +3,22 @@ from __future__ import annotations
 import json
 import tempfile
 import unittest
+from dataclasses import replace
 from pathlib import Path
 
 from swb.db.repository import CardDefinition
 from swb.engine.card_rules import CardRule, RuleBook, Trigger
 from swb.engine.commands import Choose, PlayCard, EndTurn
-from swb.engine.effects import EffectKind, EffectOperation, TargetKind
+from swb.engine.effects import (
+    ChooseOneOption,
+    Condition,
+    ConditionType,
+    EffectKind,
+    EffectOperation,
+    ExprType,
+    TargetKind,
+    ValueExpression,
+)
 from swb.engine.emblem import EmblemDefinition, EmblemTriggerRule, EventScope
 from swb.engine.events import EventType
 from swb.engine.resolution import GameEngine, IllegalCommand, MAX_RESOLUTION_STEPS, ResolutionLoopError
@@ -457,6 +467,212 @@ class LastWordsTests(unittest.TestCase):
         transition = engine.apply(choice)
         self.assertIn(EventType.LAST_WORDS_START, [e.type for e in transition.events])
         self.assertEqual(len(engine.players[1].hand), hand_before + 1)
+
+    def test_last_words_source_evolved_condition_uses_death_snapshot(self):
+        operation = EffectOperation(
+            kind=EffectKind.DAMAGE_LEADER,
+            target=TargetKind.ENEMY_LEADER,
+            amount=4,
+            conditions=(Condition(ConditionType.SOURCE_EVOLVED),),
+        )
+
+        def resolve(*, evolved: bool):
+            rulebook = RuleBook((
+                CardRule(
+                    card_id=900,
+                    trigger=Trigger.LAST_WORDS,
+                    operations=(operation,),
+                ),
+            ))
+            engine = GameEngine(
+                [card(i) for i in range(100, 140)],
+                [card(i) for i in range(200, 240)],
+                class_a=1,
+                class_b=1,
+                seed=3,
+                rulebook=rulebook,
+            )
+            engine.reset(seed=3)
+            source = Unit.summon(
+                card(900, attack=2, life=2),
+                entity_id=engine.state.allocate_entity_id(),
+            )
+            source.evolved = evolved
+            engine.players[0].board = [source]
+            source.health = 0
+            engine._stabilize()
+            return engine
+
+        normal = resolve(evolved=False)
+        evolved = resolve(evolved=True)
+
+        self.assertEqual(normal.players[1].health, 20)
+        self.assertEqual(evolved.players[1].health, 16)
+        record = evolved.state.death_queue[-1].records[0]
+        self.assertTrue(record.evolved)
+        self.assertEqual((record.attack, record.health), (2, 0))
+        lifecycle = next(
+            event
+            for event in evolved.event_history
+            if event.type is EventType.LAST_WORDS_START
+        )
+        self.assertTrue(lifecycle.metadata["evolved"])
+
+    def test_last_words_source_keyword_and_attack_expression_use_snapshot(self):
+        operation = EffectOperation(
+            kind=EffectKind.DAMAGE_LEADER,
+            target=TargetKind.ENEMY_LEADER,
+            amount_expr=ValueExpression(ExprType.SOURCE_ATTACK),
+            conditions=(
+                Condition(
+                    ConditionType.SOURCE_HAS_KEYWORD,
+                    keyword="守护",
+                ),
+            ),
+        )
+        rulebook = RuleBook((
+            CardRule(
+                card_id=900,
+                trigger=Trigger.LAST_WORDS,
+                operations=(operation,),
+            ),
+        ))
+        engine = GameEngine(
+            [card(i) for i in range(100, 140)],
+            [card(i) for i in range(200, 240)],
+            class_a=1,
+            class_b=1,
+            seed=5,
+            rulebook=rulebook,
+        )
+        engine.reset(seed=5)
+        source = Unit.summon(
+            card(900, attack=3, life=2),
+            entity_id=engine.state.allocate_entity_id(),
+        )
+        source.permanent_keywords.add("守护")
+        engine.players[0].board = [source]
+
+        source.health = 0
+        engine._stabilize()
+
+        self.assertEqual(engine.players[1].health, 17)
+        record = engine.state.death_queue[-1].records[0]
+        self.assertEqual(record.effective_keywords, frozenset({"守护"}))
+        self.assertEqual(record.attack, 3)
+
+    def test_last_words_nested_choice_propagates_source_snapshot(self):
+        rulebook = RuleBook((
+            CardRule(
+                card_id=900,
+                trigger=Trigger.LAST_WORDS,
+                operations=(
+                    EffectOperation(
+                        kind=EffectKind.CHOOSE_ONE,
+                        target=TargetKind.OWN_LEADER,
+                        choose_one_options=(
+                            ChooseOneOption(
+                                option_id="release",
+                                label="release",
+                                operations=(
+                                    EffectOperation(
+                                        kind=EffectKind.DAMAGE_LEADER,
+                                        target=TargetKind.ENEMY_LEADER,
+                                        amount_expr=ValueExpression(
+                                            ExprType.SOURCE_ATTACK
+                                        ),
+                                    ),
+                                ),
+                            ),
+                        ),
+                    ),
+                ),
+            ),
+        ))
+        engine = GameEngine(
+            [card(i) for i in range(100, 140)],
+            [card(i) for i in range(200, 240)],
+            class_a=1,
+            class_b=1,
+            seed=7,
+            rulebook=rulebook,
+        )
+        engine.reset(seed=7)
+        source = Unit.summon(
+            card(900, attack=5, life=1),
+            entity_id=engine.state.allocate_entity_id(),
+        )
+        engine.players[0].board = [source]
+        source.health = 0
+
+        engine._stabilize()
+
+        self.assertIsNotNone(engine.state.pending_choice)
+        frame = engine.state.effect_stack[-1]
+        self.assertEqual(frame.source_snapshot.attack, 5)
+        initial_fingerprint = engine.deterministic_fingerprint()
+        frame.source_snapshot = replace(frame.source_snapshot, attack=6)
+        self.assertNotEqual(engine.deterministic_fingerprint(), initial_fingerprint)
+        frame.source_snapshot = replace(frame.source_snapshot, card_id=999)
+        with self.assertRaisesRegex(IllegalCommand, "source_snapshot identity mismatch"):
+            engine.assert_invariants()
+        frame.source_snapshot = replace(
+            frame.source_snapshot,
+            card_id=900,
+            attack=5,
+        )
+
+        engine.apply(Choose(0, "choose_one:release"))
+
+        self.assertEqual(engine.players[1].health, 15)
+        self.assertIsNone(engine.state.pending_choice)
+
+    def test_last_words_snapshot_does_not_make_dead_self_a_legal_target(self):
+        rulebook = RuleBook((
+            CardRule(
+                card_id=900,
+                trigger=Trigger.LAST_WORDS,
+                operations=(
+                    EffectOperation(
+                        kind=EffectKind.BUFF_UNIT,
+                        target=TargetKind.SELF,
+                        amount=9,
+                        secondary_amount=9,
+                        conditions=(Condition(ConditionType.SOURCE_EVOLVED),),
+                    ),
+                    EffectOperation(
+                        kind=EffectKind.DAMAGE_LEADER,
+                        target=TargetKind.ENEMY_LEADER,
+                        amount=1,
+                        conditions=(Condition(ConditionType.SOURCE_EVOLVED),),
+                    ),
+                ),
+            ),
+        ))
+        engine = GameEngine(
+            [card(i) for i in range(100, 140)],
+            [card(i) for i in range(200, 240)],
+            class_a=1,
+            class_b=1,
+            seed=11,
+            rulebook=rulebook,
+        )
+        engine.reset(seed=11)
+        source = Unit.summon(
+            card(900, attack=2, life=2),
+            entity_id=engine.state.allocate_entity_id(),
+        )
+        source.evolved = True
+        engine.players[0].board = [source]
+
+        source.health = 0
+        engine._stabilize()
+
+        self.assertFalse(any(
+            entity.entity_id == source.entity_id
+            for entity in engine.players[0].board
+        ))
+        self.assertEqual(engine.players[1].health, 19)
 
     def test_last_words_summon_follower(self):
         """Last Words: summon a follower."""

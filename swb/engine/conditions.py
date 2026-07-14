@@ -9,6 +9,7 @@ from swb.engine.effects import (
     Condition,
     ConditionType,
     ExprType,
+    SourceStateSnapshot,
     ValueExpression,
 )
 from swb.engine.state import Unit
@@ -28,6 +29,7 @@ class EvalContext:
     target_entity_id: int | None = None
     source_card_id: int | None = None
     source_fusion_count: int = 0
+    source_snapshot: SourceStateSnapshot | None = None
     target_snapshot: BoundTargetSnapshot | None = None
 
     @property
@@ -245,9 +247,17 @@ def evaluate_condition(cond: Condition | None, ctx: EvalContext | None) -> bool:
     elif t == ConditionType.TARGET_HEALTH_AT_LEAST:
         return isinstance(target, Unit) and target.health >= cond.value
     elif t == ConditionType.SOURCE_EVOLVED:
-        return isinstance(source, Unit) and source.evolved
+        if isinstance(source, Unit):
+            return source.evolved
+        return bool(ctx.source_snapshot and ctx.source_snapshot.evolved)
     elif t == ConditionType.SOURCE_HAS_KEYWORD:
-        return isinstance(source, Unit) and source.has_keyword(cond.keyword or "")
+        keyword = cond.keyword or ""
+        if isinstance(source, Unit):
+            return source.has_keyword(keyword)
+        return bool(
+            ctx.source_snapshot
+            and keyword in ctx.source_snapshot.effective_keywords
+        )
     elif t == ConditionType.TARGET_HAS_KEYWORD:
         return isinstance(target, Unit) and target.has_keyword(cond.keyword or "")
 
@@ -300,9 +310,21 @@ def evaluate_expression(expr: ValueExpression | None, ctx: EvalContext | None) -
     elif t == ExprType.CONTROLLER_HAND_COUNT:
         return len(player.hand) if player else 0
     elif t == ExprType.SOURCE_ATTACK:
-        return source.attack if isinstance(source, Unit) else 0
+        if isinstance(source, Unit):
+            return source.attack
+        return (
+            ctx.source_snapshot.attack
+            if ctx and ctx.source_snapshot and ctx.source_snapshot.attack is not None
+            else 0
+        )
     elif t == ExprType.SOURCE_HEALTH:
-        return source.health if isinstance(source, Unit) else 0
+        if isinstance(source, Unit):
+            return source.health
+        return (
+            ctx.source_snapshot.health
+            if ctx and ctx.source_snapshot and ctx.source_snapshot.health is not None
+            else 0
+        )
     elif t == ExprType.TARGET_ATTACK:
         return target.attack if isinstance(target, Unit) else 0
     elif t == ExprType.TARGET_HEALTH:
