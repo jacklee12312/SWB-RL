@@ -1,0 +1,161 @@
+{
+  "passives": [
+    {
+      "card_id": 10802110,
+      "kind": "non_intrinsic_keyword",
+      "keyword": "疾驰",
+      "notes": "疾驰只由进化时能力授予，不是本体初始关键词。"
+    }
+  ],
+  "rules": [
+    {
+      "card_id": 10222120,
+      "trigger": "fanfare",
+      "operations": [
+        {"kind": "draw_filtered", "target": "own_leader", "amount": 1, "card_type_filter": "法术"}
+      ]
+    },
+    {
+      "card_id": 10222120,
+      "trigger": "evolve",
+      "operations": [
+        {"kind": "restore_mana", "target": "own_leader", "amount": 2}
+      ]
+    },
+    {
+      "card_id": 10311110,
+      "trigger": "fanfare",
+      "operations": [
+        {"kind": "buff_unit", "target": "enemy_unit", "amount": 0, "secondary_amount": -1}
+      ]
+    },
+    {
+      "card_id": 10311110,
+      "trigger": "evolve",
+      "operations": [
+        {"kind": "buff_unit", "target": "enemy_unit", "amount": 0, "secondary_amount": -1}
+      ]
+    },
+    {
+      "card_id": 10312110,
+      "trigger": "fanfare",
+      "operations": [
+        {"kind": "buff_unit", "target": "all_enemy_units", "amount": 0, "secondary_amount": -3}
+      ]
+    },
+    {
+      "card_id": 10312110,
+      "trigger": "super_evolve",
+      "operations": [
+        {"kind": "buff_unit", "target": "all_enemy_units", "amount": 0, "secondary_amount": -3}
+      ]
+    },
+    {
+      "card_id": 10511110,
+      "trigger": "evolve",
+      "operations": [
+        {"kind": "draw", "target": "own_leader", "amount": 1}
+      ]
+    },
+    {
+      "card_id": 10561110,
+      "trigger": "fanfare",
+      "operations": [
+        {"kind": "damage_unit", "target": "enemy_unit", "amount": 2}
+      ]
+    },
+    {
+      "card_id": 10561110,
+      "trigger": "evolve",
+      "operations": [
+        {"kind": "damage_unit", "target": "enemy_unit", "amount": 2}
+      ]
+    },
+    {
+      "card_id": 10701110,
+      "trigger": "evolve",
+      "operations": [
+        {"kind": "draw_filtered", "target": "own_leader", "amount": 1, "class_id_filter": 0}
+      ]
+    },
+    {
+      "card_id": 10712120,
+      "trigger": "fanfare",
+      "operations": [
+        {"kind": "damage_unit", "target": "enemy_unit", "amount": 4},
+        {"kind": "add_combo", "target": "own_leader", "amount": 1}
+      ]
+    },
+    {
+      "card_id": 10712120,
+      "trigger": "evolve",
+      "operations": [
+        {"kind": "damage_unit", "target": "enemy_unit", "amount": 4},
+        {"kind": "add_combo", "target": "own_leader", "amount": 1}
+      ]
+    },
+    {
+      "card_id": 10801110,
+      "trigger": "evolve",
+      "operations": [
+        {"kind": "buff_unit", "target": "self", "amount": 5, "secondary_amount": 5}
+      ]
+    },
+    {
+      "card_id": 10802110,
+      "trigger": "fanfare",
+      "operations": [
+        {"kind": "damage_unit", "target": "enemy_unit", "amount": 4}
+      ]
+    },
+    {
+      "card_id": 10802110,
+      "trigger": "evolve",
+      "operations": [
+        {"kind": "add_keyword", "target": "self", "keyword": "疾驰"}
+      ]
+    },
+    {
+      "card_id": 10821120,
+      "trigger": "evolve",
+      "operations": [
+        {
+          "kind": "add_attack_restriction",
+          "target": "enemy_unit",
+          "restriction": "cannot_attack",
+          "duration": "until_end_of_opponent_turn"
+        }
+      ]
+    },
+    {
+      "card_id": 10831110,
+      "trigger": "fanfare",
+      "operations": [
+        {"kind": "damage_unit", "target": "enemy_unit", "amount": 1},
+        {"kind": "spellboost_hand", "target": "all_own_hand", "amount": 1}
+      ]
+    },
+    {
+      "card_id": 10831110,
+      "trigger": "evolve",
+      "operations": [
+        {"kind": "damage_unit", "target": "enemy_unit", "amount": 1},
+        {"kind": "spellboost_hand", "target": "all_own_hand", "amount": 1}
+      ]
+    },
+    {
+      "card_id": 10861130,
+      "trigger": "fanfare",
+      "operations": [
+        {"kind": "destroy", "target": "enemy_unit"}
+      ]
+    },
+    {
+      "card_id": 10861130,
+      "trigger": "evolve",
+      "operations": [
+        {"kind": "destroy", "target": "enemy_unit"}
+      ]
+    }
+  ]
+}

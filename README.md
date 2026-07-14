@@ -38,13 +38,13 @@ covered generic boundary, but that never upgrades a partial or placeholder
 keyword whose full tagged-card semantics still require structured rules.
 
 The [rule coverage report](data/reports/rule_coverage.md) now includes a
-clause-audit layer without changing its legacy coverage categories. Of 134
-exact collectible cards, all 134 have explicit implemented text and named direct
+clause-audit layer without changing its legacy coverage categories. Of 146
+exact collectible cards, all 146 have explicit implemented text and named direct
 test evidence. The sibling `data/audits/rule_clauses.json` registry hashes every
 imported skill and alternate-mode clause, so a database text change or stale
 test reference invalidates the audit instead of silently retaining exact
 status. The current report has no unverified exact entry or missing generic
-schema, primitive, targeting, or timing blocker. Its remaining 583 collectible
+schema, primitive, targeting, or timing blocker. Its remaining 571 collectible
 gaps are missing per-card structured rules, while 18 unclear texts remain
 explicit. Rule metadata also supports version and errata fields, and the report
 records the complete imported source snapshot hash.
@@ -271,6 +271,12 @@ The deterministic rules core supports:
   self-damage/healing, selected destruction and damage, simultaneous damage and
   health-reduction deaths, and Super-Evolve draws or Storm grants. Static Guard
   and Ambush plus the real Super-Evolve target/RL mask are audited directly;
+- a 12-card exact evolution follow-up batch covers filtered draws, PP recovery,
+  single and enemy-wide health reductions, repeated damage or destruction,
+  explicit Combo gain even without an enemy target, whole-hand Spellboost,
+  normal and Super-Evolve stat/ability triggers, and a temporary attack lock.
+  Direct tests also lock intrinsic Ambush/Guard, evolve-only Storm provenance,
+  lethal state checks, and RL mask parity;
 - countdown amulets, explicit last words, fanfare/play rules, attack/clash,
   evolve/super-evolve, turn-start/turn-end triggers, and trigger continuations
   that can pause for choices. Exact `10713110` uses a source-in-play turn-end
