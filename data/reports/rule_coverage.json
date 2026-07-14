@@ -12,25 +12,25 @@
   },
   "summary": {
     "total_cards": 826,
-    "total_with_rules": 203,
+    "total_with_rules": 210,
     "test_or_synthetic_ids_with_rules": 26,
     "coverage_counts": {
-      "covered_exact": 171,
+      "covered_exact": 177,
       "text_unclear": 18,
-      "supported_missing_rule": 546,
+      "supported_missing_rule": 540,
       "token_or_non_collectible": 91
     },
     "clause_audit_counts": {
-      "mapped_exact": 171,
+      "mapped_exact": 177,
       "unverified_exact": 0,
       "partial": 0,
-      "missing_rule": 546,
+      "missing_rule": 540,
       "missing_primitive": 0,
       "text_unclear": 18,
       "token_separate_audit": 91
     },
     "blocker_counts": {
-      "missing_rule": 546,
+      "missing_rule": 540,
       "missing_schema": 0,
       "missing_primitive": 0,
       "missing_targeting": 0,
@@ -11927,8 +11927,8 @@
       "cost": 2,
       "is_collectible": true,
       "card_set_id": 10002,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['造成.*伤害', '爆能强化']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['play', 'play_modes'], Ops: ['damage_unit', 'play_mode', 'damage_unit']",
       "hit_keywords": [
         "造成.*伤害",
         "爆能强化"
@@ -11941,27 +11941,46 @@
         "对对手的战场上的随机1个随从造成4点伤害。\n【<color=Keyword>爆能强化</color>_4】改为对对手的战场上的随机3个随从造成4点伤害。"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "对对手的战场上的随机1个随从造成4点伤害。 / 【爆能强化_4】改为对随机3个敌方随从造成4点伤害。",
+        "notes": "Enhance explicitly replaces the base random hit with one seeded selection of up to three distinct followers.",
+        "rule_version": 1,
+        "source_text_sha256": "07396be73f8f2b287ceaa990bbcd2cd2d3fc573f719306eb9231a0d720f6c445",
+        "test_evidence": [
+          "tests/test_real_spell_enhance_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10222310:0",
             "source_text": "对对手的战场上的随机1个随从造成4点伤害。\n【<color=Keyword>爆能强化</color>_4】改为对对手的战场上的随机3个随从造成4点伤害。",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "对对手的战场上的随机1个随从造成4点伤害。 / 【爆能强化_4】改为对随机3个敌方随从造成4点伤害。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "07396be73f8f2b287ceaa990bbcd2cd2d3fc573f719306eb9231a0d720f6c445",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "play",
+            "play_modes"
+          ],
+          "effect_kinds": [
+            "damage_unit",
+            "play_mode",
+            "damage_unit"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_spell_enhance_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10223110": {
@@ -17784,8 +17803,8 @@
       "cost": 4,
       "is_collectible": true,
       "card_set_id": 10003,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['抽取', '回复', '造成.*伤害', '爆能强化']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['play', 'play_modes'], Ops: ['damage_unit', 'play_mode', 'draw', 'heal_leader']",
       "hit_keywords": [
         "抽取",
         "回复",
@@ -17800,27 +17819,47 @@
         "对对手的战场上的所有随从造成3点伤害。\n【<color=Keyword>爆能强化</color>_8】抽取3张卡牌。回复自己的主战者3点生命值。"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "对对手的战场上的所有随从造成3点伤害。 / 【爆能强化_8】抽取3张卡牌。回复自己的主战者3点生命值。",
+        "notes": "Enhance appends draw and healing after the base simultaneous enemy-wide damage instead of replacing it.",
+        "rule_version": 1,
+        "source_text_sha256": "1cc1669eb61868493fabf8aae94049c4351a0818657662cd2cd2c9e8ef6f7d0d",
+        "test_evidence": [
+          "tests/test_real_spell_enhance_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10361310:0",
             "source_text": "对对手的战场上的所有随从造成3点伤害。\n【<color=Keyword>爆能强化</color>_8】抽取3张卡牌。回复自己的主战者3点生命值。",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "对对手的战场上的所有随从造成3点伤害。 / 【爆能强化_8】抽取3张卡牌。回复自己的主战者3点生命值。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "1cc1669eb61868493fabf8aae94049c4351a0818657662cd2cd2c9e8ef6f7d0d",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "play",
+            "play_modes"
+          ],
+          "effect_kinds": [
+            "damage_unit",
+            "play_mode",
+            "draw",
+            "heal_leader"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_spell_enhance_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10362110": {
@@ -23722,8 +23761,8 @@
       "cost": 2,
       "is_collectible": true,
       "card_set_id": 10005,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['召唤', '爆能强化']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['play', 'play_modes'], Ops: ['summon', 'summon', 'play_mode', 'summon', 'summon', 'summon', 'summon']",
       "hit_keywords": [
         "召唤",
         "爆能强化"
@@ -23736,27 +23775,50 @@
         "召唤2个『<color=Keyword>骑士</color>』。\n【<color=Keyword>爆能强化</color>_4】改为召唤4个。"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "召唤2个『骑士』。 / 【爆能强化_4】改为召唤4个。",
+        "notes": "Normal and replacement Enhance summon counts are direct, and board-capacity shortage is covered with the exact Knight token.",
+        "rule_version": 1,
+        "source_text_sha256": "5b16460fda43f267a1ed280ac8fdcc5a8e57f50baae73f86f8052f61c76fd854",
+        "test_evidence": [
+          "tests/test_real_spell_enhance_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10522310:0",
             "source_text": "召唤2个『<color=Keyword>骑士</color>』。\n【<color=Keyword>爆能强化</color>_4】改为召唤4个。",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "召唤2个『骑士』。 / 【爆能强化_4】改为召唤4个。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "5b16460fda43f267a1ed280ac8fdcc5a8e57f50baae73f86f8052f61c76fd854",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "play",
+            "play_modes"
+          ],
+          "effect_kinds": [
+            "summon",
+            "summon",
+            "play_mode",
+            "summon",
+            "summon",
+            "summon",
+            "summon"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_spell_enhance_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10523110": {
@@ -23815,8 +23877,8 @@
       "cost": 3,
       "is_collectible": true,
       "card_set_id": 10005,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['将.*加入手牌', '爆能强化']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['play', 'play_modes'], Ops: ['add_card', 'add_card', 'play_mode', 'add_card', 'add_card', 'add_card', 'add_card']",
       "hit_keywords": [
         "将.*加入手牌",
         "爆能强化"
@@ -23829,27 +23891,50 @@
         "将2张『<color=Keyword>闪耀的金币</color>』加入手牌。\n【<color=Keyword>爆能强化</color>_5】改为4张。"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "将2张『闪耀的金币』加入手牌。 / 【爆能强化_5】改为4张。",
+        "notes": "Enhance replaces two generated copies with four; the referenced token now has its own exact structured Mode behavior.",
+        "rule_version": 1,
+        "source_text_sha256": "529265d343d0021fffbfa5931dbccd99f1db38862cf95df617b6f573a11b8c7e",
+        "test_evidence": [
+          "tests/test_real_spell_enhance_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10523310:0",
             "source_text": "将2张『<color=Keyword>闪耀的金币</color>』加入手牌。\n【<color=Keyword>爆能强化</color>_5】改为4张。",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "将2张『闪耀的金币』加入手牌。 / 【爆能强化_5】改为4张。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "529265d343d0021fffbfa5931dbccd99f1db38862cf95df617b6f573a11b8c7e",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "play",
+            "play_modes"
+          ],
+          "effect_kinds": [
+            "add_card",
+            "add_card",
+            "play_mode",
+            "add_card",
+            "add_card",
+            "add_card",
+            "add_card"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_spell_enhance_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10524110": {
@@ -27706,8 +27791,8 @@
       "cost": 1,
       "is_collectible": true,
       "card_set_id": 10006,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['抽取', '造成.*伤害', '爆能强化', '选择一项|模式']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['play', 'play_modes'], Ops: ['choose_one', 'draw', 'damage_unit', 'play_mode', 'draw', 'damage_unit']",
       "hit_keywords": [
         "抽取",
         "造成.*伤害",
@@ -27723,27 +27808,49 @@
         "【<color=Keyword>模式</color>】选择1个能力发动。\n<ridx=0>（1）抽取1张卡牌。</ridx>\n<ridx=1>（2）对对手的战场上的随机1个随从造成3点伤害。</ridx>\n【<color=Keyword>爆能强化</color>_3】改为发动所有能力。"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【模式】选择1个能力发动。（1）抽取1张卡牌。（2）对随机1个敌方随从造成3点伤害。 / 【爆能强化_3】改为发动所有能力。",
+        "notes": "Normal play pauses for one Mode; replacement Enhance executes draw then the seeded random damage without a choice.",
+        "rule_version": 1,
+        "source_text_sha256": "51e4726a2b77d75af0e5b024bc3aff070ec4fb8167b2c1d156ba34ed6af76a3c",
+        "test_evidence": [
+          "tests/test_real_spell_enhance_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10623310:0",
             "source_text": "【<color=Keyword>模式</color>】选择1个能力发动。\n<ridx=0>（1）抽取1张卡牌。</ridx>\n<ridx=1>（2）对对手的战场上的随机1个随从造成3点伤害。</ridx>\n【<color=Keyword>爆能强化</color>_3】改为发动所有能力。",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "【模式】选择1个能力发动。（1）抽取1张卡牌。（2）对随机1个敌方随从造成3点伤害。 / 【爆能强化_3】改为发动所有能力。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "51e4726a2b77d75af0e5b024bc3aff070ec4fb8167b2c1d156ba34ed6af76a3c",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "play",
+            "play_modes"
+          ],
+          "effect_kinds": [
+            "choose_one",
+            "draw",
+            "damage_unit",
+            "play_mode",
+            "draw",
+            "damage_unit"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_spell_enhance_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10624110": {
@@ -37662,8 +37769,8 @@
       "cost": 2,
       "is_collectible": true,
       "card_set_id": 10008,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['消失', '爆能强化']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['play', 'play_modes'], Ops: ['banish', 'play_mode', 'banish']",
       "hit_keywords": [
         "消失",
         "爆能强化"
@@ -37676,27 +37783,46 @@
         "选择对手的战场上的1个生命值为3或以下的随从，使其消失。\n【<color=Keyword>爆能强化</color>_5】改为使对手的战场上的所有生命值为3或以下的随从消失。"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "选择1个生命值为3或以下的敌方随从，使其消失。 / 【爆能强化_5】改为使所有生命值为3或以下的敌方随从消失。",
+        "notes": "Enhance replaces one required filtered selection with simultaneous filtered all-target banishment and no pending choice.",
+        "rule_version": 1,
+        "source_text_sha256": "2f0ed3c85b9ca7b332eae0631b8dc939b3486fb22fb4d1768bfad58229285265",
+        "test_evidence": [
+          "tests/test_real_spell_enhance_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10862310:0",
             "source_text": "选择对手的战场上的1个生命值为3或以下的随从，使其消失。\n【<color=Keyword>爆能强化</color>_5】改为使对手的战场上的所有生命值为3或以下的随从消失。",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "选择1个生命值为3或以下的敌方随从，使其消失。 / 【爆能强化_5】改为使所有生命值为3或以下的敌方随从消失。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "2f0ed3c85b9ca7b332eae0631b8dc939b3486fb22fb4d1768bfad58229285265",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "play",
+            "play_modes"
+          ],
+          "effect_kinds": [
+            "banish",
+            "play_mode",
+            "banish"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_spell_enhance_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10863110": {
@@ -38795,6 +38921,7 @@
         },
         "test_evidence": [
           "tests/test_real_card_rules_batch.py",
+          "tests/test_real_spell_enhance_batch.py",
           "tests/test_royal_trait_listeners.py"
         ],
         "audit_validation_error": null,
@@ -38981,14 +39108,22 @@
         "rule_version": 1,
         "errata": [],
         "source_clauses": [],
-        "implemented_text": null,
+        "implemented_text": "【模式】选择1个能力发动。（1）抽取1张卡牌。（2）对随机1个敌方随从造成2点伤害。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "6453550e81a2ced28060985fdca0331890e4a6c7215af0131d862a6712a8672c",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "play"
+          ],
+          "effect_kinds": [
+            "choose_one",
+            "draw",
+            "damage_unit"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_spell_enhance_batch.py"
+        ],
         "audit_validation_error": null,
         "blocker_type": null
       }

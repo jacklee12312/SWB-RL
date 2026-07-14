@@ -10,9 +10,9 @@ Total audited cards: **91**
 
 | Category | Count |
 |---|---:|
-| entry_behavior_complete | 11 |
+| entry_behavior_complete | 12 |
 | entry_behavior_partial | 11 |
-| database_only_no_entry | 69 |
+| database_only_no_entry | 68 |
 | text_unclear | 0 |
 | external_blocker | 0 |
 
@@ -34,14 +34,14 @@ Total audited cards: **91**
 | 90014310 蔷薇之闪击 | 精灵 / 法术 | database_only_no_entry | 1 | 0 | unsupported |
 | 90014320 绝命的痛击 | 精灵 / 法术 | database_only_no_entry | 1 | 0 | unsupported |
 | 90014330 天枪深渊 | 精灵 / 法术 | entry_behavior_complete | 1 | 1 | exact |
-| 90021110 骑士 | 皇家护卫 / 随从 | entry_behavior_complete | 13 | 3 | basic |
+| 90021110 骑士 | 皇家护卫 / 随从 | entry_behavior_complete | 13 | 4 | basic |
 | 90021120 铁甲骑士 | 皇家护卫 / 随从 | entry_behavior_complete | 12 | 3 | basic |
 | 90021130 娜哈特的私兵 | 皇家护卫 / 随从 | database_only_no_entry | 1 | 0 | basic |
 | 90021310 黄金短剑 | 皇家护卫 / 法术 | database_only_no_entry | 4 | 0 | unsupported |
 | 90021320 黄金之杯 | 皇家护卫 / 法术 | database_only_no_entry | 3 | 0 | unsupported |
 | 90021330 黄金之靴 | 皇家护卫 / 法术 | database_only_no_entry | 3 | 0 | unsupported |
 | 90021340 黄金项链 | 皇家护卫 / 法术 | database_only_no_entry | 3 | 0 | unsupported |
-| 90021350 闪耀的金币 | 皇家护卫 / 法术 | database_only_no_entry | 5 | 0 | unsupported |
+| 90021350 闪耀的金币 | 皇家护卫 / 法术 | entry_behavior_complete | 5 | 1 | exact |
 | 90022110 异形 | 皇家护卫 / 随从 | database_only_no_entry | 1 | 0 | keyword |
 | 90023110 安静的女仆·诺嘉 | 皇家护卫 / 随从 | database_only_no_entry | 1 | 0 | unsupported |
 | 90024310 空绝的残光 | 皇家护卫 / 法术 | database_only_no_entry | 1 | 0 | unsupported |

@@ -161,6 +161,241 @@ class EnhanceTests(unittest.TestCase):
         self.assertEqual(len(played), 1)
 
 
+class SpellEnhanceTests(unittest.TestCase):
+    def _spell_engine(
+        self,
+        base_operations,
+        mode_operations,
+        *,
+        replace_base_operations=False,
+    ):
+        card_id = 999806
+        engine = _engine(
+            _sr(card_id, *base_operations),
+            defs={
+                card_id: _card(
+                    card_id,
+                    cost=2,
+                    card_type="法术",
+                    attack=None,
+                    life=None,
+                )
+            },
+        )
+        engine.reset(seed=42)
+        engine.rulebook._play_modes = {
+            card_id: (
+                PlayModeDefinition(
+                    mode_id="enhance_4",
+                    mode_type="enhance",
+                    cost=4,
+                    operations=mode_operations,
+                    replace_base_operations=replace_base_operations,
+                ),
+            )
+        }
+        definition = _card(
+            card_id,
+            cost=2,
+            card_type="法术",
+            attack=None,
+            life=None,
+        )
+        hand_card = HandCard(definition=definition, entity_id=999806)
+        engine.players[0].hand.insert(0, hand_card)
+        engine.players[0].hand_entity_ids.insert(0, hand_card.entity_id)
+        engine.players[0].mana = 10
+        return engine
+
+    def test_spell_enhance_appends_mode_operations_and_enters_graveyard(self):
+        engine = self._spell_engine(
+            (
+                EffectOperation(
+                    EffectKind.DAMAGE_LEADER,
+                    TargetKind.ENEMY_LEADER,
+                    2,
+                ),
+            ),
+            (
+                EffectOperation(
+                    EffectKind.HEAL_LEADER,
+                    TargetKind.OWN_LEADER,
+                    3,
+                ),
+            ),
+        )
+        engine.players[0].health = 15
+
+        engine.apply(PlayCard(0, 0, "enhance_4"))
+
+        self.assertEqual(engine.players[1].health, 18)
+        self.assertEqual(engine.players[0].health, 18)
+        self.assertEqual(engine.players[0].board, [])
+        self.assertEqual(
+            engine.players[0].graveyard[-1].definition.card_id,
+            999806,
+        )
+        self.assertEqual(engine.players[0].mana, 6)
+        played = [
+            event
+            for event in engine.event_history
+            if event.type is EventType.CARD_PLAYED
+            and event.metadata.get("card_id") == 999806
+        ]
+        self.assertEqual(played[-1].metadata["mode_id"], "enhance_4")
+
+    def test_spell_enhance_can_explicitly_replace_base_operations(self):
+        engine = self._spell_engine(
+            (
+                EffectOperation(
+                    EffectKind.DAMAGE_LEADER,
+                    TargetKind.ENEMY_LEADER,
+                    2,
+                ),
+            ),
+            (
+                EffectOperation(
+                    EffectKind.DAMAGE_LEADER,
+                    TargetKind.ENEMY_LEADER,
+                    5,
+                ),
+            ),
+            replace_base_operations=True,
+        )
+
+        engine.apply(PlayCard(0, 0, "enhance_4"))
+
+        self.assertEqual(engine.players[1].health, 15)
+
+    def test_replacement_legality_ignores_replaced_required_target(self):
+        engine = self._spell_engine(
+            (
+                EffectOperation(
+                    EffectKind.BANISH,
+                    TargetKind.ENEMY_UNIT,
+                    requires_target=True,
+                ),
+            ),
+            (
+                EffectOperation(
+                    EffectKind.DRAW,
+                    TargetKind.OWN_LEADER,
+                    1,
+                ),
+            ),
+            replace_base_operations=True,
+        )
+        engine.players[1].board.clear()
+        engine.players[0].deck = [_card(999807)]
+
+        legal = engine.legal_commands()
+
+        self.assertNotIn(PlayCard(0, 0, "normal"), legal)
+        self.assertIn(PlayCard(0, 0, "enhance_4"), legal)
+        engine.apply(PlayCard(0, 0, "enhance_4"))
+        self.assertIsNone(engine.state.pending_choice)
+        self.assertTrue(any(card.card_id == 999807 for card in engine.players[0].hand))
+
+    def test_follower_enhance_replacement_skips_fanfare(self):
+        card_id = 999807
+        engine = _engine(
+            _fanfare_rule(
+                card_id,
+                EffectOperation(
+                    EffectKind.DAMAGE_LEADER,
+                    TargetKind.ENEMY_LEADER,
+                    2,
+                ),
+            ),
+            defs={card_id: _card(card_id, cost=2)},
+        )
+        engine.reset(seed=42)
+        engine.rulebook._play_modes = {
+            card_id: (
+                PlayModeDefinition(
+                    mode_id="enhance_4",
+                    mode_type="enhance",
+                    cost=4,
+                    operations=(
+                        EffectOperation(
+                            EffectKind.DAMAGE_LEADER,
+                            TargetKind.ENEMY_LEADER,
+                            5,
+                        ),
+                    ),
+                    replace_base_operations=True,
+                ),
+            )
+        }
+        hand_card = HandCard(_card(card_id, cost=2), entity_id=999807)
+        engine.players[0].hand.insert(0, hand_card)
+        engine.players[0].hand_entity_ids.insert(0, hand_card.entity_id)
+        engine.players[0].mana = 10
+
+        engine.apply(PlayCard(0, 0, "enhance_4"))
+
+        self.assertEqual(engine.players[1].health, 15)
+        self.assertEqual(
+            engine.players[0].board[-1].definition.card_id,
+            card_id,
+        )
+
+    def test_amulet_enhance_replacement_keeps_amulet_route(self):
+        card_id = 999808
+        definition = _card(
+            card_id,
+            cost=2,
+            card_type="护符",
+            attack=None,
+            life=None,
+        )
+        engine = _engine(
+            _sr(
+                card_id,
+                EffectOperation(
+                    EffectKind.DAMAGE_LEADER,
+                    TargetKind.ENEMY_LEADER,
+                    2,
+                ),
+            ),
+            defs={card_id: definition},
+        )
+        engine.reset(seed=42)
+        engine.rulebook._play_modes = {
+            card_id: (
+                PlayModeDefinition(
+                    mode_id="enhance_4",
+                    mode_type="enhance",
+                    cost=4,
+                    operations=(
+                        EffectOperation(
+                            EffectKind.DAMAGE_LEADER,
+                            TargetKind.ENEMY_LEADER,
+                            5,
+                        ),
+                    ),
+                    replace_base_operations=True,
+                ),
+            )
+        }
+        hand_card = HandCard(definition, entity_id=999808)
+        engine.players[0].hand.insert(0, hand_card)
+        engine.players[0].hand_entity_ids.insert(0, hand_card.entity_id)
+        engine.players[0].mana = 10
+
+        engine.apply(PlayCard(0, 0, "enhance_4"))
+
+        self.assertEqual(engine.players[1].health, 15)
+        self.assertIsInstance(engine.players[0].board[-1], Amulet)
+        played = [
+            event
+            for event in engine.event_history
+            if event.type is EventType.CARD_PLAYED
+            and event.metadata.get("card_id") == card_id
+        ]
+        self.assertEqual(played[-1].metadata["mode_id"], "enhance_4")
+
+
 # ---------------------------------------------------------------------------
 # Accelerate
 # ---------------------------------------------------------------------------

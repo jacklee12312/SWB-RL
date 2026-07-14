@@ -287,6 +287,55 @@ class SchemaValidationTests(unittest.TestCase):
         self.assertIn("conditions", str(cm.exception))
         self.assertIn("target_health_at_most", str(cm.exception))
 
+    def test_schema_accepts_explicit_enhance_operation_replacement(self):
+        from swb.engine.card_rules import _parse_operation
+        from swb.engine.play_modes import validate_play_mode_definition
+
+        mode = validate_play_mode_definition(
+            {
+                "id": "enhance_4",
+                "type": "enhance",
+                "cost": 4,
+                "replace_base_operations": True,
+                "operations": [
+                    {
+                        "kind": "draw",
+                        "target": "own_leader",
+                        "amount": 1,
+                    }
+                ],
+            },
+            "test.json",
+            1,
+            _parse_operation,
+        )
+
+        self.assertTrue(mode.replace_base_operations)
+
+    def test_schema_rejects_invalid_operation_replacement_policy(self):
+        from swb.engine.card_rules import _parse_operation
+        from swb.engine.play_modes import validate_play_mode_definition
+
+        cases = (
+            ("enhance", "yes", "must be boolean"),
+            ("accelerate", True, "only valid for enhance"),
+        )
+        for mode_type, value, message in cases:
+            with self.subTest(mode_type=mode_type, value=value):
+                with self.assertRaisesRegex(ValueError, message):
+                    validate_play_mode_definition(
+                        {
+                            "id": f"{mode_type}_4",
+                            "type": mode_type,
+                            "cost": 4,
+                            "replace_base_operations": value,
+                            "operations": [],
+                        },
+                        "test.json",
+                        1,
+                        _parse_operation,
+                    )
+
 
 # ---------------------------------------------------------------------------
 # 4. RuleBook manual construction also validates
@@ -315,6 +364,16 @@ class RuleBookValidationTests(unittest.TestCase):
     def test_manual_unknown_mode_type_rejected(self):
         mode = PlayModeDefinition(mode_id="bad", mode_type="bogus", cost=1)
         with self.assertRaises(ValueError):
+            RuleBook(rules=(), play_modes={1: (mode,)})
+
+    def test_manual_replacement_policy_is_enhance_only(self):
+        mode = PlayModeDefinition(
+            mode_id="bad",
+            mode_type="accelerate",
+            cost=1,
+            replace_base_operations=True,
+        )
+        with self.assertRaisesRegex(ValueError, "only valid for enhance"):
             RuleBook(rules=(), play_modes={1: (mode,)})
 
     def test_manual_accelerate_wrong_result_type_rejected(self):

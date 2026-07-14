@@ -13,7 +13,14 @@ _IMPLEMENTED_MODE_TYPES = frozenset({"enhance", "accelerate", "crystallize"})
 _VALID_RESULTING_CARD_TYPES = frozenset({"法术", "护符"})
 MAX_SPECIAL_MODES_PER_CARD = 3
 
-_KNOWN_KEYS_ENHANCE = frozenset({"id", "type", "cost", "operations", "conditions"})
+_KNOWN_KEYS_ENHANCE = frozenset({
+    "id",
+    "type",
+    "cost",
+    "operations",
+    "conditions",
+    "replace_base_operations",
+})
 _KNOWN_KEYS_ACCELERATE = frozenset({"id", "type", "cost", "resulting_card_type", "operations", "conditions"})
 _KNOWN_KEYS_CRYSTALLIZE = frozenset({"id", "type", "cost", "resulting_card_type", "countdown", "operations", "conditions"})
 _TARGET_DEPENDENT_CONDITIONS = frozenset({
@@ -106,6 +113,18 @@ def validate_play_mode_definition(
 
     cost = _validate_cost(raw, mode_id, error_prefix)
 
+    replace_base_operations = raw.get("replace_base_operations", False)
+    if not isinstance(replace_base_operations, bool):
+        raise ValueError(
+            f"{error_prefix}/play_modes/{mode_id}/replace_base_operations: "
+            "must be boolean"
+        )
+    if replace_base_operations and mode_type != "enhance":
+        raise ValueError(
+            f"{error_prefix}/play_modes/{mode_id}/replace_base_operations: "
+            "is only valid for enhance"
+        )
+
     resulting_card_type = raw.get("resulting_card_type")
     if mode_type == "enhance":
         _check_unknown_keys(raw, _KNOWN_KEYS_ENHANCE, f"{error_prefix}/play_modes/{mode_id}")
@@ -181,6 +200,7 @@ def validate_play_mode_definition(
         operations=operations,
         countdown=countdown_val,
         conditions=conditions,
+        replace_base_operations=replace_base_operations,
     )
     validate_runtime_play_mode(mode, f"{error_prefix}/play_modes/{mode_id}")
     return mode
@@ -195,6 +215,7 @@ class PlayModeDefinition:
     operations: tuple["EffectOperation", ...] = ()
     countdown: int | None = None
     conditions: tuple["Condition", ...] = ()
+    replace_base_operations: bool = False
 
     @property
     def is_normal(self) -> bool:
@@ -232,6 +253,12 @@ def validate_runtime_play_mode(
         raise ValueError(f"{source}/cost: must be an integer")
     if mode.cost < 0:
         raise ValueError(f"{source}/cost: must be non-negative")
+    if not isinstance(mode.replace_base_operations, bool):
+        raise ValueError(f"{source}/replace_base_operations: must be boolean")
+    if mode.replace_base_operations and mode.mode_type != "enhance":
+        raise ValueError(
+            f"{source}/replace_base_operations: is only valid for enhance"
+        )
 
     if mode.mode_type == "enhance":
         if mode.resulting_card_type is not None:

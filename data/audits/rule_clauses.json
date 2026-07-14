@@ -804,6 +804,17 @@
       "notes": "Filtered spell draw and capped evolve-time PP restoration are mapped to structured rules and direct behavior tests."
     },
     {
+      "card_id": 10222310,
+      "coverage": "exact",
+      "implemented_text": "对对手的战场上的随机1个随从造成4点伤害。 / 【爆能强化_4】改为对随机3个敌方随从造成4点伤害。",
+      "rule_version": 1,
+      "source_text_sha256": "07396be73f8f2b287ceaa990bbcd2cd2d3fc573f719306eb9231a0d720f6c445",
+      "test_evidence": [
+        "tests/test_real_spell_enhance_batch.py"
+      ],
+      "notes": "Enhance explicitly replaces the base random hit with one seeded selection of up to three distinct followers."
+    },
+    {
       "card_id": 10231120,
       "coverage": "exact",
       "implemented_text": "【入场曲】选择自己的1张手牌，使其返回牌组。抽取1张法术。",
@@ -1027,6 +1038,17 @@
       "notes": "Up to two distinct enemy followers are damaged as one batch, then leader damage resolves even when follower candidates are short or absent."
     },
     {
+      "card_id": 10361310,
+      "coverage": "exact",
+      "implemented_text": "对对手的战场上的所有随从造成3点伤害。 / 【爆能强化_8】抽取3张卡牌。回复自己的主战者3点生命值。",
+      "rule_version": 1,
+      "source_text_sha256": "1cc1669eb61868493fabf8aae94049c4351a0818657662cd2cd2c9e8ef6f7d0d",
+      "test_evidence": [
+        "tests/test_real_spell_enhance_batch.py"
+      ],
+      "notes": "Enhance appends draw and healing after the base simultaneous enemy-wide damage instead of replacing it."
+    },
+    {
       "card_id": 10372120,
       "coverage": "exact",
       "implemented_text": "【入场曲】选择自己的1张手牌，舍弃该手牌。抽取3张卡牌。",
@@ -1214,6 +1236,28 @@
       "notes": "All imported source clauses are mapped to the structured rule and cited behavior tests."
     },
     {
+      "card_id": 10522310,
+      "coverage": "exact",
+      "implemented_text": "召唤2个『骑士』。 / 【爆能强化_4】改为召唤4个。",
+      "rule_version": 1,
+      "source_text_sha256": "5b16460fda43f267a1ed280ac8fdcc5a8e57f50baae73f86f8052f61c76fd854",
+      "test_evidence": [
+        "tests/test_real_spell_enhance_batch.py"
+      ],
+      "notes": "Normal and replacement Enhance summon counts are direct, and board-capacity shortage is covered with the exact Knight token."
+    },
+    {
+      "card_id": 10523310,
+      "coverage": "exact",
+      "implemented_text": "将2张『闪耀的金币』加入手牌。 / 【爆能强化_5】改为4张。",
+      "rule_version": 1,
+      "source_text_sha256": "529265d343d0021fffbfa5931dbccd99f1db38862cf95df617b6f573a11b8c7e",
+      "test_evidence": [
+        "tests/test_real_spell_enhance_batch.py"
+      ],
+      "notes": "Enhance replaces two generated copies with four; the referenced token now has its own exact structured Mode behavior."
+    },
+    {
       "card_id": 10531120,
       "coverage": "exact",
       "implemented_text": "【入场曲】对对手的战场上的随机3个随从造成3点伤害。使自己的所有手牌发动3次魔力增幅。",
@@ -1352,6 +1396,17 @@
         "tests/test_real_core_primitives_batch.py"
       ],
       "notes": "Enhance 3 adds +1/+1 while the normalized intrinsic Rush remains active and directly tested."
+    },
+    {
+      "card_id": 10623310,
+      "coverage": "exact",
+      "implemented_text": "【模式】选择1个能力发动。（1）抽取1张卡牌。（2）对随机1个敌方随从造成3点伤害。 / 【爆能强化_3】改为发动所有能力。",
+      "rule_version": 1,
+      "source_text_sha256": "51e4726a2b77d75af0e5b024bc3aff070ec4fb8167b2c1d156ba34ed6af76a3c",
+      "test_evidence": [
+        "tests/test_real_spell_enhance_batch.py"
+      ],
+      "notes": "Normal play pauses for one Mode; replacement Enhance executes draw then the seeded random damage without a choice."
     },
     {
       "card_id": 10631310,
@@ -1731,6 +1786,28 @@
         "tests/test_real_evolution_followup_batch.py"
       ],
       "notes": "Selected destruction repeats on evolve with a fresh legal target and is covered by direct behavior tests."
+    },
+    {
+      "card_id": 10862310,
+      "coverage": "exact",
+      "implemented_text": "选择1个生命值为3或以下的敌方随从，使其消失。 / 【爆能强化_5】改为使所有生命值为3或以下的敌方随从消失。",
+      "rule_version": 1,
+      "source_text_sha256": "2f0ed3c85b9ca7b332eae0631b8dc939b3486fb22fb4d1768bfad58229285265",
+      "test_evidence": [
+        "tests/test_real_spell_enhance_batch.py"
+      ],
+      "notes": "Enhance replaces one required filtered selection with simultaneous filtered all-target banishment and no pending choice."
+    },
+    {
+      "card_id": 90021350,
+      "coverage": "exact",
+      "implemented_text": "【模式】选择1个能力发动。（1）抽取1张卡牌。（2）对随机1个敌方随从造成2点伤害。",
+      "rule_version": 1,
+      "source_text_sha256": "6453550e81a2ced28060985fdca0331890e4a6c7215af0131d862a6712a8672c",
+      "test_evidence": [
+        "tests/test_real_spell_enhance_batch.py"
+      ],
+      "notes": "The generated zero-cost spell exposes both printed Mode branches through deterministic Choose commands and direct behavior tests."
     }
   ]
 }

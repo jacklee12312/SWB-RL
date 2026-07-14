@@ -10,21 +10,21 @@ code and tests as the source of truth when this file drifts.
 - Database: 826 cards, 735 collectible cards, 91 non-collectible/generated
   cards from set `90000`.
 - Latest SVA source: `https://sva.hypd.asia/data/cards.json`.
-- Tests: `python -m unittest discover -s tests -v` currently runs 1317 tests.
+- Tests: `python -m unittest discover -s tests -v` currently runs 1336 tests.
 - RL adapter: fixed 111-action space; the default v1 observation remains 290
   floats, while opt-in v2 provides fixed-shape categorical/public state without
   changing action IDs.
 - Ability registry status: 18 implemented, 5 partial, 11 placeholder.
 - Explicit card and demo rules live in `data/rules/`; the current coverage
-  report classifies 203 card IDs with explicit rules, passives, fusion,
+  report classifies 210 card IDs with explicit rules, passives, fusion,
   invocation, activation, Faith, Union Burst, or listener definitions. Current
-  collectible coverage is 171 exact, 0 partial, 546 supported-but-missing-rule,
+  collectible coverage is 177 exact, 0 partial, 540 supported-but-missing-rule,
   0 missing-primitive, and 18 text-unclear cards.
 - `data/reports/token_audit.{json,md}` audits all 91 non-collectible/generated
   cards independently of collectible coverage. Database `card_references` and
-  executable structured producers are reported separately: 11 tokens have a
+  executable structured producers are reported separately: 12 tokens have a
   complete executable entry/behavior path, 11 have an executable entry but
-  partial behavior, and 69 have no authored producer. No token is currently
+  partial behavior, and 68 have no authored producer. No token is currently
   classified text-unclear or externally blocked; those categories remain
   explicit and can be assigned through `data/audits/token_overrides.json`.
 - `data/reports/ability_audit.{json,md}` validates all 34 runtime/database
@@ -33,7 +33,7 @@ code and tests as the source of truth when this file drifts.
   separate column and is covered for all 34; it does not automatically promote
   the 5 partial or 11 placeholder keyword statuses.
 - Coverage now has a backward-compatible clause audit. The legacy summary still
-  reports 171 exact collectible cards, and all 171 now have an explicit exact
+  reports 177 exact collectible cards, and all 177 now have an explicit exact
   text mapping plus named direct test evidence. The versioned sibling registry
   at `data/audits/rule_clauses.json` hashes every imported primary and
   alternate-mode clause; changed source text or stale test evidence invalidates
@@ -42,7 +42,7 @@ code and tests as the source of truth when this file drifts.
   rule version and errata metadata, structured trigger/operation evidence,
   explicit unsupported text, and a stable blocker taxonomy. There are zero
   unverified exact entries and no known missing schema, primitive, targeting,
-  or timing blocker among authored rules. The 546 supported-but-missing-rule
+  or timing blocker among authored rules. The 540 supported-but-missing-rule
   cards are now the per-card structured-content backlog; 18 unclear texts
   remain explicit.
 - RL observation v2 is available behind an explicit version switch. A
@@ -419,7 +419,12 @@ slice in this order:
 - Illegal-command no-mutation coverage uses the full-state fingerprint,
   including a real-card pending-choice path, so invalid commands preserve
   suspended effects, RNG, hidden zones, and diagnostics.
-- Special play modes: `爆能强化`, `激奏`, and `结晶`.
+- Special play modes: `爆能强化`, `激奏`, and `结晶`. Enhance preserves the
+  card's original follower/spell/amulet route, appends mode operations by
+  default, and supports explicit `replace_base_operations` for printed
+  replacement clauses. Legality evaluates only the effective operation set;
+  enhanced spells still resolve once into the graveyard and emit the selected
+  mode ID without adding RL actions.
 - Partial primitives and demos for cooperation, `觉醒`, `连击`, necromancy, reanimate,
   spellboost-style costs, emblems, optional decisions, and choose-one decisions.
 - RL action mask, action decoding, public observation, terminal reward, pending
@@ -498,6 +503,14 @@ slice in this order:
   reselection, Combo replacement, candidate shortage, one simultaneous death
   batch, leader damage, whole-hand Spellboost, replay determinism, and RL mask
   parity without exposing an automatic random choice.
+- Exact file `data/rules/real_spell_enhance_batch.json` adds 6 audited
+  collectible spells and generated spell `90021350`. Direct tests cover normal
+  versus enhanced costs and effects, append/replacement provenance, random
+  target-count replacement, simultaneous damage, draw/heal order, board and
+  hand capacity, Token origin, normal Mode choices, Enhance-all execution,
+  filtered selected/all banishment, spell graveyard identity, and RL mask
+  parity. The Token audit now recognizes Glittering Gold as an exact generated
+  card with an executable producer and both printed branches.
 
 ## Known Partial Or Unsupported Areas
 
@@ -538,8 +551,8 @@ slice in this order:
 - The generated-card audit is deterministic and covers all 91 database tokens.
   It does not equate a database reference with an executable entry, and it only
   marks behavior complete for vanilla cards, fully implemented keyword-only
-  cards, or explicitly exact structured rules. Current output is 11 complete,
-  11 partial, and 69 database-only/no-entry; this is the content backlog for
+  cards, or explicitly exact structured rules. Current output is 12 complete,
+  11 partial, and 68 database-only/no-entry; this is the content backlog for
   later card-rule entry, not a claim of broad generated-card support.
 - The ability registry is conservative and fully audited: all 34 entries have
   a reason and test evidence, and a covered generic primitive does not promote

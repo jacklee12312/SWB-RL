@@ -1,0 +1,204 @@
+{
+  "rules": [
+    {
+      "card_id": 10222310,
+      "trigger": "play",
+      "operations": [
+        {
+          "kind": "damage_unit",
+          "target": "random_enemy_unit",
+          "amount": 4
+        }
+      ],
+      "play_modes": [
+        {
+          "id": "enhance_4",
+          "type": "enhance",
+          "cost": 4,
+          "replace_base_operations": true,
+          "operations": [
+            {
+              "kind": "damage_unit",
+              "target": "random_enemy_unit",
+              "amount": 4,
+              "target_count": 3
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "card_id": 10361310,
+      "trigger": "play",
+      "operations": [
+        {
+          "kind": "damage_unit",
+          "target": "all_enemy_units",
+          "amount": 3
+        }
+      ],
+      "play_modes": [
+        {
+          "id": "enhance_8",
+          "type": "enhance",
+          "cost": 8,
+          "operations": [
+            {"kind": "draw", "target": "own_leader", "amount": 3},
+            {"kind": "heal_leader", "target": "own_leader", "amount": 3}
+          ]
+        }
+      ]
+    },
+    {
+      "card_id": 10522310,
+      "trigger": "play",
+      "operations": [
+        {"kind": "summon", "target": "own_leader", "card_id": 90021110},
+        {"kind": "summon", "target": "own_leader", "card_id": 90021110}
+      ],
+      "play_modes": [
+        {
+          "id": "enhance_4",
+          "type": "enhance",
+          "cost": 4,
+          "replace_base_operations": true,
+          "operations": [
+            {"kind": "summon", "target": "own_leader", "card_id": 90021110},
+            {"kind": "summon", "target": "own_leader", "card_id": 90021110},
+            {"kind": "summon", "target": "own_leader", "card_id": 90021110},
+            {"kind": "summon", "target": "own_leader", "card_id": 90021110}
+          ]
+        }
+      ]
+    },
+    {
+      "card_id": 10523310,
+      "trigger": "play",
+      "operations": [
+        {"kind": "add_card", "target": "own_leader", "card_id": 90021350},
+        {"kind": "add_card", "target": "own_leader", "card_id": 90021350}
+      ],
+      "play_modes": [
+        {
+          "id": "enhance_5",
+          "type": "enhance",
+          "cost": 5,
+          "replace_base_operations": true,
+          "operations": [
+            {"kind": "add_card", "target": "own_leader", "card_id": 90021350},
+            {"kind": "add_card", "target": "own_leader", "card_id": 90021350},
+            {"kind": "add_card", "target": "own_leader", "card_id": 90021350},
+            {"kind": "add_card", "target": "own_leader", "card_id": 90021350}
+          ]
+        }
+      ]
+    },
+    {
+      "card_id": 10623310,
+      "trigger": "play",
+      "operations": [
+        {
+          "kind": "choose_one",
+          "target": "own_leader",
+          "options": [
+            {
+              "id": "draw",
+              "label": "抽取1张卡牌",
+              "operations": [
+                {"kind": "draw", "target": "own_leader", "amount": 1}
+              ]
+            },
+            {
+              "id": "damage",
+              "label": "对随机敌方随从造成3点伤害",
+              "operations": [
+                {
+                  "kind": "damage_unit",
+                  "target": "random_enemy_unit",
+                  "amount": 3
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "play_modes": [
+        {
+          "id": "enhance_3",
+          "type": "enhance",
+          "cost": 3,
+          "replace_base_operations": true,
+          "operations": [
+            {"kind": "draw", "target": "own_leader", "amount": 1},
+            {
+              "kind": "damage_unit",
+              "target": "random_enemy_unit",
+              "amount": 3
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "card_id": 10862310,
+      "trigger": "play",
+      "operations": [
+        {
+          "kind": "banish",
+          "target": "enemy_unit",
+          "requires_target": true,
+          "conditions": [
+            {"type": "target_health_at_most", "value": 3}
+          ]
+        }
+      ],
+      "play_modes": [
+        {
+          "id": "enhance_5",
+          "type": "enhance",
+          "cost": 5,
+          "replace_base_operations": true,
+          "operations": [
+            {
+              "kind": "banish",
+              "target": "all_enemy_units",
+              "conditions": [
+                {"type": "target_health_at_most", "value": 3}
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "card_id": 90021350,
+      "trigger": "play",
+      "operations": [
+        {
+          "kind": "choose_one",
+          "target": "own_leader",
+          "options": [
+            {
+              "id": "draw",
+              "label": "抽取1张卡牌",
+              "operations": [
+                {"kind": "draw", "target": "own_leader", "amount": 1}
+              ]
+            },
+            {
+              "id": "damage",
+              "label": "对随机敌方随从造成2点伤害",
+              "operations": [
+                {
+                  "kind": "damage_unit",
+                  "target": "random_enemy_unit",
+                  "amount": 2
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

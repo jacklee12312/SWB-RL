@@ -67,7 +67,7 @@ from swb.engine.origin import (
     origin_for_added_card,
     origin_for_summoned_card,
 )
-from swb.engine.play_modes import validate_runtime_play_mode
+from swb.engine.play_modes import PlayModeDefinition, validate_runtime_play_mode
 from swb.engine.state import (
     Amulet,
     BoardCard,
@@ -792,6 +792,7 @@ class GameEngine:
                 self._finish_follower_play(
                     state["unit_id"],
                     state["mode_operations"],
+                    state["replace_base_operations"],
                     state["burst_operations"],
                     state["burst_metadata"],
                     state["burst_gauge"],
@@ -1030,6 +1031,13 @@ class GameEngine:
             if result is not PartialConditionResult.TRUE:
                 return False
         ops = mode_def.operations if mode_def.operations else ()
+        if mode_def.is_enhance and not mode_def.replace_base_operations:
+            trigger = (
+                Trigger.FANFARE
+                if card.card_type == "随从"
+                else Trigger.PLAY
+            )
+            ops = self.rulebook.operations_for(card.card_id, trigger) + ops
         if ops:
             source_entity_id = (
                 card.entity_id if isinstance(card, HandCard) else None
@@ -1627,17 +1635,23 @@ class GameEngine:
                 hand_source_origin, mode_def, fused_material_ids,
             )
             return
-        if card.card_type == "法术" and mode_id == "normal":
+        if card.card_type == "法术" and (
+            mode_def is None or mode_def.is_enhance
+        ):
             self._play_spell(
                 card, play_cost, hand_entity_id, origin=hand_origin,
                 source_origin=hand_source_origin,
                 fusion_materials=fusion_materials,
+                mode_def=mode_def,
             )
             return
-        if card.card_type == "护符" and mode_id == "normal":
+        if card.card_type == "护符" and (
+            mode_def is None or mode_def.is_enhance
+        ):
             self._play_amulet(
                 card, play_cost, origin=hand_origin,
                 fused_material_ids=fused_material_ids,
+                mode_def=mode_def,
             )
             return
 
@@ -1686,11 +1700,17 @@ class GameEngine:
         )
         self._resolve_event_queue()
         mode_operations = mode_def.operations if mode_def is not None else ()
+        replace_base_operations = (
+            mode_def.replace_base_operations
+            if mode_def is not None
+            else False
+        )
         if self.state.pending_choice is not None:
             self._suspended_action = "play_follower"
             self._suspended_action_state = {
                 "unit_id": unit.entity_id,
                 "mode_operations": mode_operations,
+                "replace_base_operations": replace_base_operations,
                 "burst_operations": burst_operations,
                 "burst_metadata": burst_metadata,
                 "burst_gauge": burst_gauge,
@@ -1699,6 +1719,7 @@ class GameEngine:
         self._finish_follower_play(
             unit.entity_id,
             mode_operations,
+            replace_base_operations,
             burst_operations,
             burst_metadata,
             burst_gauge,
@@ -1708,6 +1729,7 @@ class GameEngine:
         self,
         unit_id: int,
         mode_operations: tuple[EffectOperation, ...],
+        replace_base_operations: bool = False,
         burst_operations: tuple[EffectOperation, ...] = (),
         burst_metadata: tuple[tuple[str, int], ...] = (),
         burst_gauge: int = 0,
@@ -1735,12 +1757,15 @@ class GameEngine:
                     },
                 )
             )
-        operations = fanfare_operations + burst_operations + mode_operations
+        base_operations = (
+            () if replace_base_operations else fanfare_operations
+        )
+        operations = base_operations + burst_operations + mode_operations
         if operations:
             label = "入场曲"
             if burst_operations:
                 label = "入场曲/奥义"
-            if mode_operations and (fanfare_operations or burst_operations):
+            if mode_operations and (base_operations or burst_operations):
                 label = "入场曲/强化"
             elif mode_operations:
                 label = "强化"
@@ -1760,24 +1785,34 @@ class GameEngine:
         origin: CardOrigin,
         source_origin: CardOrigin | None,
         fusion_materials: tuple[FusionMaterial, ...] = (),
+        mode_def: PlayModeDefinition | None = None,
     ) -> None:
         self._log(self.current_player, f"使用法术 {card.name}（{play_cost}费）")
         self._dispatch_card_ability(AbilityEvent.CARD_PLAYED, card)
+        played_metadata = {"card_id": card.card_id, "card": card}
+        if mode_def is not None:
+            played_metadata["mode_id"] = mode_def.mode_id
         self._emit(
             GameEvent(
                 EventType.CARD_PLAYED,
                 self.current_player,
                 source_id=source_entity_id,
-                metadata={"card_id": card.card_id, "card": card},
+                metadata=played_metadata,
             )
         )
-        operations = self.rulebook.operations_for(card.card_id, Trigger.PLAY)
+        base_operations = self.rulebook.operations_for(card.card_id, Trigger.PLAY)
+        mode_operations = mode_def.operations if mode_def is not None else ()
+        operations = (
+            mode_operations
+            if mode_def is not None and mode_def.replace_base_operations
+            else base_operations + mode_operations
+        )
         frame = self._queue_effects(
             card,
             None,
             operations,
             move_source_to_graveyard=True,
-            label="法术",
+            label="法术/强化" if mode_def is not None else "法术",
             fusion_materials=fusion_materials,
         )
         frame._hand_source_entity_id = source_entity_id
@@ -1797,6 +1832,7 @@ class GameEngine:
         *,
         origin: CardOrigin = CardOrigin.DECK,
         fused_material_ids: tuple[int, ...] = (),
+        mode_def: PlayModeDefinition | None = None,
     ) -> None:
         amulet = Amulet(
             definition=card,
@@ -1815,12 +1851,17 @@ class GameEngine:
             f"打出护符 {card.name}（{play_cost}费{countdown}）",
         )
         self._dispatch_card_ability(AbilityEvent.CARD_PLAYED, card)
+        played_metadata = {"card_id": card.card_id, "source": amulet}
+        entered_metadata = {"source": amulet}
+        if mode_def is not None:
+            played_metadata["mode_id"] = mode_def.mode_id
+            entered_metadata["mode_id"] = mode_def.mode_id
         self._emit(
             GameEvent(
                 EventType.CARD_PLAYED,
                 self.current_player,
                 source_id=amulet.entity_id,
-                metadata={"card_id": card.card_id, "source": amulet},
+                metadata=played_metadata,
             )
         )
         self._emit(
@@ -1828,12 +1869,23 @@ class GameEngine:
                 EventType.AMULET_ENTERED,
                 self.current_player,
                 source_id=amulet.entity_id,
-                metadata={"source": amulet},
+                metadata=entered_metadata,
             )
         )
         self._initialize_earth_sigil(amulet, self.current_player)
-        operations = self.rulebook.operations_for(card.card_id, Trigger.PLAY)
-        self._start_effects(card, amulet.entity_id, operations, label="入场曲")
+        base_operations = self.rulebook.operations_for(card.card_id, Trigger.PLAY)
+        mode_operations = mode_def.operations if mode_def is not None else ()
+        operations = (
+            mode_operations
+            if mode_def is not None and mode_def.replace_base_operations
+            else base_operations + mode_operations
+        )
+        self._start_effects(
+            card,
+            amulet.entity_id,
+            operations,
+            label="入场曲/强化" if mode_def is not None else "入场曲",
+        )
 
     def _play_accelerate(
         self,

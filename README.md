@@ -20,7 +20,7 @@ rejected if passed directly in an initial deck. Deck validation requires
 exactly 40 collectible cards from the selected class and/or neutral. The
 auditable [token report](data/reports/token_audit.md) distinguishes database
 references from executable producer paths and behavior completeness for all 91
-cards: 11 complete entries, 11 partial entries, and 69 with no authored entry.
+cards: 12 complete entries, 11 partial entries, and 68 with no authored entry.
 
 Abilities are normalized in two relational tables:
 
@@ -38,13 +38,13 @@ covered generic boundary, but that never upgrades a partial or placeholder
 keyword whose full tagged-card semantics still require structured rules.
 
 The [rule coverage report](data/reports/rule_coverage.md) now includes a
-clause-audit layer without changing its legacy coverage categories. Of 171
-exact collectible cards, all 171 have explicit implemented text and named direct
+clause-audit layer without changing its legacy coverage categories. Of 177
+exact collectible cards, all 177 have explicit implemented text and named direct
 test evidence. The sibling `data/audits/rule_clauses.json` registry hashes every
 imported skill and alternate-mode clause, so a database text change or stale
 test reference invalidates the audit instead of silently retaining exact
 status. The current report has no unverified exact entry or missing generic
-schema, primitive, targeting, or timing blocker. Its remaining 546 collectible
+schema, primitive, targeting, or timing blocker. Its remaining 540 collectible
 gaps are missing per-card structured rules, while 18 unclear texts remain
 explicit. Rule metadata also supports version and errata fields, and the report
 records the complete imported source snapshot hash.
@@ -301,6 +301,17 @@ The deterministic rules core supports:
   three-follower damage, candidate shortage, simultaneous deaths, subsequent
   leader damage, whole-hand Spellboost, deterministic replay, and automatic RL
   resolution without adding a target-selection action;
+- Enhance keeps the original card type: enhanced spells resolve as spells and
+  enhanced amulets enter as amulets. Mode operations append to base operations
+  by default, while explicit `replace_base_operations` models printed “instead”
+  clauses without text inference. Replacement legality, origin/graveyard flow,
+  event metadata, and the unchanged special-mode RL action slots are tested;
+- a 6-card exact spell-Enhance batch covers append versus replacement modes,
+  random one-to-three target replacement, all-follower damage followed by draw
+  and heal, Token summoning with board shortage, generated hand cards, Mode-to-
+  all-abilities replacement, and selected-to-all filtered banishment. It also
+  promotes generated spell `90021350` to an exact executable Token with both
+  printed Mode branches;
 - countdown amulets, explicit last words, fanfare/play rules, attack/clash,
   evolve/super-evolve, turn-start/turn-end triggers, and trigger continuations
   that can pause for choices. Exact `10713110` uses a source-in-play turn-end
@@ -405,7 +416,7 @@ Known broad gaps include:
   graveyard, and follower-or-leader targets; the rule loader rejects those
   combinations instead of silently applying single-target semantics;
 - exact semantics for many real cards and most generated-card workflows; the
-  token audit keeps the remaining 11 partial and 69 unimplemented entries
+  token audit keeps the remaining 11 partial and 68 unimplemented entries
   explicit instead of treating non-collectible classification as coverage;
 - remaining `信仰` progression/payoff semantics, plus broader real-card coverage for `策动`,
   `土之秘术`, `觉醒`, and `连击` beyond the currently authored examples;
