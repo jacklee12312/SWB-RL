@@ -8,26 +8,26 @@
 | Metric | Count |
 |---|---|
 | Total cards in DB | 826 |
-| Cards with rules | 198 |
+| Cards with rules | 203 |
 | Test/synthetic IDs with rules | 26 |
 
 ### Coverage Categories
 
 | Category | Count |
 |---|---|
-| covered_exact | 166 |
+| covered_exact | 171 |
 | text_unclear | 18 |
-| supported_missing_rule | 551 |
+| supported_missing_rule | 546 |
 | token_or_non_collectible | 91 |
 
 ### Clause Audit
 
 | Clause status | Count |
 |---|---:|
-| mapped_exact | 166 |
+| mapped_exact | 171 |
 | unverified_exact | 0 |
 | partial | 0 |
-| missing_rule | 551 |
+| missing_rule | 546 |
 | missing_primitive | 0 |
 | text_unclear | 18 |
 | token_separate_audit | 91 |
@@ -36,7 +36,7 @@
 
 | Blocker | Count |
 |---|---:|
-| missing_rule | 551 |
+| missing_rule | 546 |
 | missing_schema | 0 |
 | missing_primitive | 0 |
 | missing_targeting | 0 |
@@ -120,4 +120,4 @@
 | 17 | 10071310 | 来自异次元的枪击 | 超越者 | 4 | 法术 | high | Covered keywords: 将.*加入手牌, 破坏 |
 | 18 | 10103310 | 神之雷霆 | 中立 | 4 | 法术 | high | Covered keywords: 造成.*伤害, 破坏 |
 | 19 | 10332310 | 双重创造 | 巫师 | 4 | 法术 | high | Covered keywords: 召唤 |
-| 20 | 10351310 | 前进的暴虐 | 梦魇 | 4 | 法术 | high | Covered keywords: 造成.*伤害 |
+| 20 | 10371310 | 丝线突袭 | 超越者 | 4 | 法术 | high | Covered keywords: 将.*加入手牌, 破坏 |

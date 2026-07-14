@@ -1,0 +1,110 @@
+{
+  "rules": [
+    {
+      "card_id": 10111150,
+      "trigger": "fanfare",
+      "operations": [
+        {
+          "kind": "conditional",
+          "target": "own_leader",
+          "conditions": [
+            {"type": "controller_combo_at_least", "value": 3}
+          ],
+          "then": [
+            {
+              "kind": "damage_unit",
+              "target": "random_enemy_unit",
+              "amount": 3,
+              "target_count": 3
+            }
+          ],
+          "else": [
+            {
+              "kind": "damage_unit",
+              "target": "random_enemy_unit",
+              "amount": 3
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "card_id": 10212310,
+      "trigger": "play",
+      "operations": [
+        {
+          "kind": "conditional",
+          "target": "own_leader",
+          "conditions": [
+            {"type": "controller_combo_at_least", "value": 3}
+          ],
+          "then": [
+            {
+              "kind": "damage_unit",
+              "target": "random_enemy_unit",
+              "amount": 2
+            },
+            {
+              "kind": "damage_unit",
+              "target": "random_enemy_unit",
+              "amount": 2
+            }
+          ],
+          "else": [
+            {
+              "kind": "damage_unit",
+              "target": "random_enemy_unit",
+              "amount": 2
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "card_id": 10221110,
+      "trigger": "fanfare",
+      "operations": [
+        {
+          "kind": "damage_unit",
+          "target": "random_enemy_unit",
+          "amount": 1,
+          "target_count": 2
+        }
+      ]
+    },
+    {
+      "card_id": 10351310,
+      "trigger": "play",
+      "operations": [
+        {
+          "kind": "damage_unit",
+          "target": "random_enemy_unit",
+          "amount": 2,
+          "target_count": 2
+        },
+        {
+          "kind": "damage_leader",
+          "target": "enemy_leader",
+          "amount": 2
+        }
+      ]
+    },
+    {
+      "card_id": 10531120,
+      "trigger": "fanfare",
+      "operations": [
+        {
+          "kind": "damage_unit",
+          "target": "random_enemy_unit",
+          "amount": 3,
+          "target_count": 3
+        },
+        {
+          "kind": "spellboost_hand",
+          "target": "all_own_hand",
+          "amount": 3
+        }
+      ]
+    }
+  ]
+}

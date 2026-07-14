@@ -99,7 +99,6 @@ from swb.engine.targeting import (
     is_graveyard_target,
     is_random_target,
     leader_choice_options,
-    pick_random,
     pick_random_graveyard,
     target_candidates,
 )
@@ -3901,13 +3900,58 @@ class GameEngine:
                 if operation.target is TargetKind.RANDOM_ENEMY_UNIT_OR_LEADER:
                     target_ids = [entity.entity_id for entity in candidates]
                     target_ids.append(_leader_target_id(1 - frame.controller))
-                    target_id = self.random.choice(target_ids)
                 else:
-                    chosen = pick_random(candidates, self.random) if candidates else None
-                    if chosen is None:
-                        frame.next_index += 1
-                        continue
-                    target_id = chosen.entity_id
+                    target_ids = [entity.entity_id for entity in candidates]
+                target_count = self._resolved_target_count(operation, frame)
+                if target_count <= 0 or not target_ids:
+                    frame.next_index += 1
+                    continue
+                if not operation.allow_duplicate_targets:
+                    target_count = min(target_count, len(target_ids))
+                if target_count == 1:
+                    target_id = self.random.choice(target_ids)
+                elif operation.allow_duplicate_targets:
+                    selected_target_ids = tuple(
+                        self.random.choice(target_ids)
+                        for _ in range(target_count)
+                    )
+                else:
+                    selected_target_ids = tuple(
+                        self.random.sample(target_ids, target_count)
+                    )
+                if target_count > 1:
+                    if operation.target_key:
+                        self._bind_targets(
+                            frame,
+                            operation.target_key,
+                            selected_target_ids,
+                            operation,
+                        )
+                    frame.defer_stabilize = True
+                    for selected_target_id in selected_target_ids:
+                        if (
+                            not _is_leader_target_id(selected_target_id)
+                            and not any(
+                                entity.entity_id == selected_target_id
+                                for player in self.players
+                                for entity in player.board
+                            )
+                        ):
+                            self._log(
+                                frame.controller,
+                                f"随机目标 {selected_target_id} 已离场，跳过",
+                            )
+                            continue
+                        self._checked_execute(
+                            operation,
+                            frame,
+                            selected_target_id,
+                        )
+                    frame.defer_stabilize = False
+                    frame.next_index += 1
+                    self._resolve_event_queue()
+                    self._stabilize()
+                    continue
             else:
                 target_id = frame.pending_target_id
                 frame.pending_target_id = None

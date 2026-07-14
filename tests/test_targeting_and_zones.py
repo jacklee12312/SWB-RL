@@ -456,6 +456,49 @@ class TargetingTests(unittest.TestCase):
                     allow_duplicates,
                 )
 
+    def test_random_board_multi_target_schema_is_explicitly_supported(self):
+        from swb.engine.card_rules import _parse_operation
+
+        for target in (
+            "random_own_unit",
+            "random_enemy_unit",
+            "random_own_board",
+            "random_enemy_board",
+        ):
+            with self.subTest(target=target):
+                operation = _parse_operation(
+                    {
+                        "kind": "damage_unit",
+                        "target": target,
+                        "amount": 1,
+                        "target_count": 2,
+                    },
+                    "test.json/operations[0]",
+                    1,
+                )
+                self.assertEqual(operation.target_count, 2)
+
+        for target in (
+            "random_own_hand",
+            "random_own_graveyard_card",
+            "random_enemy_unit_or_leader",
+        ):
+            with self.subTest(target=target):
+                with self.assertRaisesRegex(
+                    ValueError,
+                    "selected or random board target",
+                ):
+                    _parse_operation(
+                        {
+                            "kind": "damage_unit",
+                            "target": target,
+                            "amount": 1,
+                            "target_count": 2,
+                        },
+                        "test.json/operations[0]",
+                        1,
+                    )
+
     def test_source_exclusion_schema_is_explicit_and_board_only(self):
         from swb.engine.card_rules import _parse_operation
 
@@ -1445,6 +1488,173 @@ class TargetingTests(unittest.TestCase):
             results.append([u.health for u in engine.players[1].board])
         self.assertEqual(results[0], results[1])
         self.assertEqual(results[0], results[2])
+
+    def test_random_multi_target_is_distinct_seeded_and_caps_to_candidates(self):
+        rulebook = RuleBook((
+            spell_rule(
+                1,
+                EffectKind.DAMAGE_UNIT,
+                TargetKind.RANDOM_ENEMY_UNIT,
+                amount=2,
+                target_count=2,
+            ),
+        ))
+        results = []
+        for _ in range(3):
+            engine = GameEngine(
+                [card(i) for i in range(100, 140)],
+                [card(i) for i in range(200, 240)],
+                class_a=1,
+                class_b=1,
+                seed=43,
+                rulebook=rulebook,
+            )
+            engine.reset(seed=43)
+            targets = [
+                Unit.summon(
+                    card(910 + index, life=5),
+                    entity_id=engine.state.allocate_entity_id(),
+                )
+                for index in range(3)
+            ]
+            engine.players[1].board = list(targets)
+            engine.players[0].mana = 10
+            engine.players[0].hand[0] = card(
+                1,
+                card_type="法术",
+                attack=None,
+                life=None,
+            )
+
+            engine.apply(PlayCard(0, 0))
+
+            results.append([target.health for target in targets])
+            self.assertEqual(
+                sorted(target.health for target in targets),
+                [3, 3, 5],
+            )
+        self.assertEqual(results[0], results[1])
+        self.assertEqual(results[0], results[2])
+
+        short_engine = GameEngine(
+            [card(i) for i in range(100, 140)],
+            [card(i) for i in range(200, 240)],
+            class_a=1,
+            class_b=1,
+            seed=43,
+            rulebook=RuleBook((
+                spell_rule(
+                    1,
+                    EffectKind.DAMAGE_UNIT,
+                    TargetKind.RANDOM_ENEMY_UNIT,
+                    amount=2,
+                    target_count=3,
+                ),
+            )),
+        )
+        short_engine.reset(seed=43)
+        only_target = Unit.summon(
+            card(920, life=5),
+            entity_id=short_engine.state.allocate_entity_id(),
+        )
+        short_engine.players[1].board = [only_target]
+        short_engine.players[0].mana = 10
+        short_engine.players[0].hand[0] = card(
+            1,
+            card_type="法术",
+            attack=None,
+            life=None,
+        )
+
+        short_engine.apply(PlayCard(0, 0))
+
+        self.assertEqual(only_target.health, 3)
+
+    def test_random_multi_target_deaths_share_one_state_based_batch(self):
+        rulebook = RuleBook((
+            spell_rule(
+                1,
+                EffectKind.DAMAGE_UNIT,
+                TargetKind.RANDOM_ENEMY_UNIT,
+                amount=1,
+                target_count=2,
+            ),
+        ))
+        engine = GameEngine(
+            [card(i) for i in range(100, 140)],
+            [card(i) for i in range(200, 240)],
+            class_a=1,
+            class_b=1,
+            seed=47,
+            rulebook=rulebook,
+        )
+        engine.reset(seed=47)
+        targets = [
+            Unit.summon(
+                card(930 + index, life=1),
+                entity_id=engine.state.allocate_entity_id(),
+            )
+            for index in range(2)
+        ]
+        engine.players[1].board = list(targets)
+        engine.players[0].mana = 10
+        engine.players[0].hand[0] = card(
+            1,
+            card_type="法术",
+            attack=None,
+            life=None,
+        )
+
+        engine.apply(PlayCard(0, 0))
+
+        self.assertEqual(engine.players[1].board, [])
+        self.assertEqual(
+            [[record.card_id for record in batch.records]
+             for batch in engine.state.death_queue],
+            [[930, 931]],
+        )
+
+    def test_random_multi_target_count_expression_can_repeat_targets(self):
+        rulebook = RuleBook((
+            spell_rule(
+                1,
+                EffectKind.DAMAGE_UNIT,
+                TargetKind.RANDOM_ENEMY_UNIT,
+                amount=1,
+                target_count_expr=ValueExpression.constant(2),
+                allow_duplicate_targets=True,
+            ),
+        ))
+        engine = GameEngine(
+            [card(i) for i in range(100, 140)],
+            [card(i) for i in range(200, 240)],
+            class_a=1,
+            class_b=1,
+            seed=53,
+            rulebook=rulebook,
+        )
+        engine.reset(seed=53)
+        target = Unit.summon(
+            card(940, life=2),
+            entity_id=engine.state.allocate_entity_id(),
+        )
+        engine.players[1].board = [target]
+        engine.players[0].mana = 10
+        engine.players[0].hand[0] = card(
+            1,
+            card_type="法术",
+            attack=None,
+            life=None,
+        )
+
+        engine.apply(PlayCard(0, 0))
+
+        self.assertEqual(engine.players[1].board, [])
+        self.assertEqual(
+            [[record.card_id for record in batch.records]
+             for batch in engine.state.death_queue],
+            [[940]],
+        )
 
     def test_all_enemy_units_hits_all_targets(self):
         rulebook = RuleBook((

@@ -38,13 +38,13 @@ covered generic boundary, but that never upgrades a partial or placeholder
 keyword whose full tagged-card semantics still require structured rules.
 
 The [rule coverage report](data/reports/rule_coverage.md) now includes a
-clause-audit layer without changing its legacy coverage categories. Of 166
-exact collectible cards, all 166 have explicit implemented text and named direct
+clause-audit layer without changing its legacy coverage categories. Of 171
+exact collectible cards, all 171 have explicit implemented text and named direct
 test evidence. The sibling `data/audits/rule_clauses.json` registry hashes every
 imported skill and alternate-mode clause, so a database text change or stale
 test reference invalidates the audit instead of silently retaining exact
 status. The current report has no unverified exact entry or missing generic
-schema, primitive, targeting, or timing blocker. Its remaining 551 collectible
+schema, primitive, targeting, or timing blocker. Its remaining 546 collectible
 gaps are missing per-card structured rules, while 18 unclear texts remain
 explicit. Rule metadata also supports version and errata fields, and the report
 records the complete imported source snapshot hash.
@@ -108,7 +108,7 @@ The deterministic rules core supports:
   candidates with play legality, stale-choice revalidation, and RL masks.
   Exact `10333310` uses the type filter to expose only followers before adding
   1 to the selected card's cost and destroying a seeded-random enemy follower;
-- true multi-target pending choices through `target_count` or
+- selected multi-target pending choices through `target_count` or
   `target_count_expr`, with explicit `allow_duplicate_targets` /
   `allow_duplicates` policy, candidate-shortage handling, command-level
   selection progress, ordered multi-target `target_key` bindings, and
@@ -116,6 +116,12 @@ The deterministic rules core supports:
   selecting and destroying two enemy followers. Exact `10474120` reuses the
   same selected set for ability removal followed by damage, including
   candidate shortage and targets leaving before resolution;
+- random board operations also consume `target_count` or a dynamic
+  `target_count_expr`. They select one seeded batch before execution, default to
+  distinct targets, cap to available candidates, and defer state-based checks
+  until the batch completes. Explicit duplicate selection remains available;
+  repeated printed effects stay separate operations and therefore reselect and
+  stabilize between hits;
 - structured `remove_all_abilities` suppresses a follower's printed keywords,
   future printed triggers, Last Words, and board listeners while clearing
   runtime-granted keywords and ability restrictions without changing identity,
@@ -290,6 +296,11 @@ The deterministic rules core supports:
   once-per-turn effects, selected keyword removal/buffs/debuffs, healing, hand
   cycling, Countdown, simultaneous all-follower damage/destruction, and matching
   real-card command/RL masks;
+- a 5-card exact random multi-target batch covers Combo replacement of one
+  target by three distinct targets, two independent Combo hits, random two- and
+  three-follower damage, candidate shortage, simultaneous deaths, subsequent
+  leader damage, whole-hand Spellboost, deterministic replay, and automatic RL
+  resolution without adding a target-selection action;
 - countdown amulets, explicit last words, fanfare/play rules, attack/clash,
   evolve/super-evolve, turn-start/turn-end triggers, and trigger continuations
   that can pause for choices. Exact `10713110` uses a source-in-play turn-end
@@ -390,9 +401,9 @@ remain visible instead of silently behaving as implemented.
 
 Known broad gaps include:
 
-- random board operations do not yet consume `target_count`, so cards that say
-  “random 2 followers” remain unsupported instead of being approximated by one
-  target or two independently repeatable targets;
+- multi-target count fields remain intentionally unsupported for random hand,
+  graveyard, and follower-or-leader targets; the rule loader rejects those
+  combinations instead of silently applying single-target semantics;
 - exact semantics for many real cards and most generated-card workflows; the
   token audit keeps the remaining 11 partial and 69 unimplemented entries
   explicit instead of treating non-collectible classification as coverage;

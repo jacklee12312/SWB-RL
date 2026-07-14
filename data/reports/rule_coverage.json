@@ -12,25 +12,25 @@
   },
   "summary": {
     "total_cards": 826,
-    "total_with_rules": 198,
+    "total_with_rules": 203,
     "test_or_synthetic_ids_with_rules": 26,
     "coverage_counts": {
-      "covered_exact": 166,
+      "covered_exact": 171,
       "text_unclear": 18,
-      "supported_missing_rule": 551,
+      "supported_missing_rule": 546,
       "token_or_non_collectible": 91
     },
     "clause_audit_counts": {
-      "mapped_exact": 166,
+      "mapped_exact": 171,
       "unverified_exact": 0,
       "partial": 0,
-      "missing_rule": 551,
+      "missing_rule": 546,
       "missing_primitive": 0,
       "text_unclear": 18,
       "token_separate_audit": 91
     },
     "blocker_counts": {
-      "missing_rule": 551,
+      "missing_rule": 546,
       "missing_schema": 0,
       "missing_primitive": 0,
       "missing_targeting": 0,
@@ -3911,8 +3911,8 @@
       "cost": 4,
       "is_collectible": true,
       "card_set_id": 10001,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '连击', '造成.*伤害']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['fanfare'], Ops: ['conditional', 'damage_unit', 'damage_unit']",
       "hit_keywords": [
         "入场曲",
         "连击",
@@ -3927,27 +3927,45 @@
         "【<color=Keyword>入场曲</color>】对对手的战场上的随机1个随从造成3点伤害。【<color=Keyword>连击</color>_3】改为3个。"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【入场曲】对对手的战场上的随机1个随从造成3点伤害。【连击_3】改为3个。",
+        "notes": "Combo 3 replaces the single random hit with one seeded selection of up to three distinct enemy followers.",
+        "rule_version": 1,
+        "source_text_sha256": "06ae02651a22658dadc21a058d0248e74af9eb82b7a336b31885db20f10f7480",
+        "test_evidence": [
+          "tests/test_real_random_multi_target_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10111150:0",
             "source_text": "【<color=Keyword>入场曲</color>】对对手的战场上的随机1个随从造成3点伤害。【<color=Keyword>连击</color>_3】改为3个。",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "【入场曲】对对手的战场上的随机1个随从造成3点伤害。【连击_3】改为3个。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "06ae02651a22658dadc21a058d0248e74af9eb82b7a336b31885db20f10f7480",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "fanfare"
+          ],
+          "effect_kinds": [
+            "conditional",
+            "damage_unit",
+            "damage_unit"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_random_multi_target_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10111310": {
@@ -11333,8 +11351,8 @@
       "cost": 1,
       "is_collectible": true,
       "card_set_id": 10002,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['连击', '造成.*伤害']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['play'], Ops: ['conditional', 'damage_unit', 'damage_unit', 'damage_unit']",
       "hit_keywords": [
         "连击",
         "造成.*伤害"
@@ -11347,27 +11365,46 @@
         "发动1次「对对手的战场上的随机1个随从造成2点伤害」。【<color=Keyword>连击</color>_3】改为发动2次。"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "发动1次「对对手的战场上的随机1个随从造成2点伤害」。【连击_3】改为发动2次。",
+        "notes": "Combo 3 uses two independent seeded random operations, preserving repeat-target and between-hit stabilization semantics.",
+        "rule_version": 1,
+        "source_text_sha256": "3acc02254f53b110d32a122ed04c08abd4719fd8ff381d4e41ef9381fffddab8",
+        "test_evidence": [
+          "tests/test_real_random_multi_target_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10212310:0",
             "source_text": "发动1次「对对手的战场上的随机1个随从造成2点伤害」。【<color=Keyword>连击</color>_3】改为发动2次。",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "发动1次「对对手的战场上的随机1个随从造成2点伤害」。【连击_3】改为发动2次。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "3acc02254f53b110d32a122ed04c08abd4719fd8ff381d4e41ef9381fffddab8",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "play"
+          ],
+          "effect_kinds": [
+            "conditional",
+            "damage_unit",
+            "damage_unit",
+            "damage_unit"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_random_multi_target_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10213110": {
@@ -11617,8 +11654,8 @@
       "cost": 2,
       "is_collectible": true,
       "card_set_id": 10002,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '造成.*伤害']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['fanfare'], Ops: ['damage_unit']",
       "hit_keywords": [
         "入场曲",
         "造成.*伤害"
@@ -11631,27 +11668,43 @@
         "【<color=Keyword>入场曲</color>】对对手的战场上的随机2个随从造成1点伤害。"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【入场曲】对对手的战场上的随机2个随从造成1点伤害。",
+        "notes": "The Fanfare selects up to two distinct enemy followers before damage and collects lethal targets into one death batch.",
+        "rule_version": 1,
+        "source_text_sha256": "b981710b3d3c6e2e0c0b7e31e91ae0124f6b840a339f7459f3507eb42f9ad8e6",
+        "test_evidence": [
+          "tests/test_real_random_multi_target_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10221110:0",
             "source_text": "【<color=Keyword>入场曲</color>】对对手的战场上的随机2个随从造成1点伤害。",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "【入场曲】对对手的战场上的随机2个随从造成1点伤害。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "b981710b3d3c6e2e0c0b7e31e91ae0124f6b840a339f7459f3507eb42f9ad8e6",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "fanfare"
+          ],
+          "effect_kinds": [
+            "damage_unit"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_random_multi_target_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10221120": {
@@ -17214,8 +17267,8 @@
       "cost": 4,
       "is_collectible": true,
       "card_set_id": 10003,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['造成.*伤害']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['play'], Ops: ['damage_unit', 'damage_leader']",
       "hit_keywords": [
         "造成.*伤害"
       ],
@@ -17225,27 +17278,44 @@
         "对对手的战场上的随机2个随从和对手的主战者造成2点伤害。"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "对对手的战场上的随机2个随从和对手的主战者造成2点伤害。",
+        "notes": "Up to two distinct enemy followers are damaged as one batch, then leader damage resolves even when follower candidates are short or absent.",
+        "rule_version": 1,
+        "source_text_sha256": "4f3e6533264f018e768ce9ffa8cddc87bfecc82b5dbe536372972b5fe3d7bdd1",
+        "test_evidence": [
+          "tests/test_real_random_multi_target_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10351310:0",
             "source_text": "对对手的战场上的随机2个随从和对手的主战者造成2点伤害。",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "对对手的战场上的随机2个随从和对手的主战者造成2点伤害。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "4f3e6533264f018e768ce9ffa8cddc87bfecc82b5dbe536372972b5fe3d7bdd1",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "play"
+          ],
+          "effect_kinds": [
+            "damage_unit",
+            "damage_leader"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_random_multi_target_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10352110": {
@@ -23942,8 +24012,8 @@
       "cost": 6,
       "is_collectible": true,
       "card_set_id": 10005,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '造成.*伤害', '魔力增幅']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['fanfare'], Ops: ['damage_unit', 'spellboost_hand']",
       "hit_keywords": [
         "入场曲",
         "造成.*伤害",
@@ -23957,27 +24027,44 @@
         "【<color=Keyword>入场曲</color>】对对手的战场上的随机3个随从造成3点伤害。使自己的所有手牌发动3次魔力增幅。"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【入场曲】对对手的战场上的随机3个随从造成3点伤害。使自己的所有手牌发动3次魔力增幅。",
+        "notes": "The Fanfare damages up to three distinct random followers as one batch before Spellboosting every remaining hand card three times.",
+        "rule_version": 1,
+        "source_text_sha256": "cf4070dc4aba3c5876c6f5ce9330cdf7d26e97864e1bd75ee39776eb5dfa0335",
+        "test_evidence": [
+          "tests/test_real_random_multi_target_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10531120:0",
             "source_text": "【<color=Keyword>入场曲</color>】对对手的战场上的随机3个随从造成3点伤害。使自己的所有手牌发动3次魔力增幅。",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "【入场曲】对对手的战场上的随机3个随从造成3点伤害。使自己的所有手牌发动3次魔力增幅。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "cf4070dc4aba3c5876c6f5ce9330cdf7d26e97864e1bd75ee39776eb5dfa0335",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "fanfare"
+          ],
+          "effect_kinds": [
+            "damage_unit",
+            "spellboost_hand"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_random_multi_target_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10531310": {
@@ -41194,21 +41281,23 @@
       "suggested_rule_file": "batch_巫师.json"
     },
     {
-      "card_id": 10351310,
-      "name": "前进的暴虐",
-      "class_name": "梦魇",
+      "card_id": 10371310,
+      "name": "丝线突袭",
+      "class_name": "超越者",
       "card_type": "法术",
       "cost": 4,
       "ability_keywords": [],
       "hit_keywords": [
-        "造成.*伤害"
+        "将.*加入手牌",
+        "破坏"
       ],
       "confidence": "high",
-      "why_recommended": "Covered keywords: 造成.*伤害",
+      "why_recommended": "Covered keywords: 将.*加入手牌, 破坏",
       "required_primitives": [
-        "造成.*伤害"
+        "将.*加入手牌",
+        "破坏"
       ],
-      "suggested_rule_file": "batch_梦魇.json"
+      "suggested_rule_file": "batch_超越者.json"
     }
   ]
 }

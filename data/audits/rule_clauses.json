@@ -323,6 +323,17 @@
       "notes": "Selected evolve destruction and the no-candidate path are covered directly."
     },
     {
+      "card_id": 10111150,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】对对手的战场上的随机1个随从造成3点伤害。【连击_3】改为3个。",
+      "rule_version": 1,
+      "source_text_sha256": "06ae02651a22658dadc21a058d0248e74af9eb82b7a336b31885db20f10f7480",
+      "test_evidence": [
+        "tests/test_real_random_multi_target_batch.py"
+      ],
+      "notes": "Combo 3 replaces the single random hit with one seeded selection of up to three distinct enemy followers."
+    },
+    {
       "card_id": 10111310,
       "coverage": "exact",
       "implemented_text": "将2张『妖精』加入手牌。",
@@ -730,6 +741,17 @@
       "notes": "All imported source clauses and normalized static keywords are mapped to structured rules and direct behavior tests."
     },
     {
+      "card_id": 10212310,
+      "coverage": "exact",
+      "implemented_text": "发动1次「对对手的战场上的随机1个随从造成2点伤害」。【连击_3】改为发动2次。",
+      "rule_version": 1,
+      "source_text_sha256": "3acc02254f53b110d32a122ed04c08abd4719fd8ff381d4e41ef9381fffddab8",
+      "test_evidence": [
+        "tests/test_real_random_multi_target_batch.py"
+      ],
+      "notes": "Combo 3 uses two independent seeded random operations, preserving repeat-target and between-hit stabilization semantics."
+    },
+    {
       "card_id": 10213310,
       "coverage": "exact",
       "implemented_text": "【融合】精灵·卡牌 / / 抽取1张卡牌。若已与本卡牌【融合】，则改为抽取2张。",
@@ -747,6 +769,17 @@
         "tests/test_emblems.py",
         "tests/test_rule_coverage_report.py"
       ]
+    },
+    {
+      "card_id": 10221110,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】对对手的战场上的随机2个随从造成1点伤害。",
+      "rule_version": 1,
+      "source_text_sha256": "b981710b3d3c6e2e0c0b7e31e91ae0124f6b840a339f7459f3507eb42f9ad8e6",
+      "test_evidence": [
+        "tests/test_real_random_multi_target_batch.py"
+      ],
+      "notes": "The Fanfare selects up to two distinct enemy followers before damage and collects lethal targets into one death batch."
     },
     {
       "card_id": 10221310,
@@ -983,6 +1016,17 @@
       "notes": "All imported source clauses are mapped to the structured rule and cited behavior tests."
     },
     {
+      "card_id": 10351310,
+      "coverage": "exact",
+      "implemented_text": "对对手的战场上的随机2个随从和对手的主战者造成2点伤害。",
+      "rule_version": 1,
+      "source_text_sha256": "4f3e6533264f018e768ce9ffa8cddc87bfecc82b5dbe536372972b5fe3d7bdd1",
+      "test_evidence": [
+        "tests/test_real_random_multi_target_batch.py"
+      ],
+      "notes": "Up to two distinct enemy followers are damaged as one batch, then leader damage resolves even when follower candidates are short or absent."
+    },
+    {
       "card_id": 10372120,
       "coverage": "exact",
       "implemented_text": "【入场曲】选择自己的1张手牌，舍弃该手牌。抽取3张卡牌。",
@@ -1168,6 +1212,17 @@
         "tests/test_real_card_rules_batch.py"
       ],
       "notes": "All imported source clauses are mapped to the structured rule and cited behavior tests."
+    },
+    {
+      "card_id": 10531120,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】对对手的战场上的随机3个随从造成3点伤害。使自己的所有手牌发动3次魔力增幅。",
+      "rule_version": 1,
+      "source_text_sha256": "cf4070dc4aba3c5876c6f5ce9330cdf7d26e97864e1bd75ee39776eb5dfa0335",
+      "test_evidence": [
+        "tests/test_real_random_multi_target_batch.py"
+      ],
+      "notes": "The Fanfare damages up to three distinct random followers as one batch before Spellboosting every remaining hand card three times."
     },
     {
       "card_id": 10531310,

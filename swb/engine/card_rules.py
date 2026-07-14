@@ -1872,6 +1872,10 @@ _MULTI_TARGET_TARGETS = frozenset({
     TargetKind.ANY_BOARD,
     TargetKind.OWN_HAND,
     TargetKind.OWN_GRAVEYARD_CARD,
+    TargetKind.RANDOM_OWN_UNIT,
+    TargetKind.RANDOM_ENEMY_UNIT,
+    TargetKind.RANDOM_OWN_BOARD,
+    TargetKind.RANDOM_ENEMY_BOARD,
 })
 
 _SOURCE_EXCLUDABLE_TARGETS = _MULTI_TARGET_TARGETS | frozenset({
@@ -2194,7 +2198,8 @@ def _parse_operation(
     )
     if has_multi_target_fields and target not in _MULTI_TARGET_TARGETS:
         raise ValueError(
-            f"{error_prefix}: multi-target fields require a selected target, "
+            f"{error_prefix}: multi-target fields require a selected or "
+            "random board target, "
             f"got {target.value!r}"
         )
 

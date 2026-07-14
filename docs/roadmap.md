@@ -10,15 +10,15 @@ code and tests as the source of truth when this file drifts.
 - Database: 826 cards, 735 collectible cards, 91 non-collectible/generated
   cards from set `90000`.
 - Latest SVA source: `https://sva.hypd.asia/data/cards.json`.
-- Tests: `python -m unittest discover -s tests -v` currently runs 1304 tests.
+- Tests: `python -m unittest discover -s tests -v` currently runs 1317 tests.
 - RL adapter: fixed 111-action space; the default v1 observation remains 290
   floats, while opt-in v2 provides fixed-shape categorical/public state without
   changing action IDs.
 - Ability registry status: 18 implemented, 5 partial, 11 placeholder.
 - Explicit card and demo rules live in `data/rules/`; the current coverage
-  report classifies 198 card IDs with explicit rules, passives, fusion,
+  report classifies 203 card IDs with explicit rules, passives, fusion,
   invocation, activation, Faith, Union Burst, or listener definitions. Current
-  collectible coverage is 166 exact, 0 partial, 551 supported-but-missing-rule,
+  collectible coverage is 171 exact, 0 partial, 546 supported-but-missing-rule,
   0 missing-primitive, and 18 text-unclear cards.
 - `data/reports/token_audit.{json,md}` audits all 91 non-collectible/generated
   cards independently of collectible coverage. Database `card_references` and
@@ -33,7 +33,7 @@ code and tests as the source of truth when this file drifts.
   separate column and is covered for all 34; it does not automatically promote
   the 5 partial or 11 placeholder keyword statuses.
 - Coverage now has a backward-compatible clause audit. The legacy summary still
-  reports 166 exact collectible cards, and all 166 now have an explicit exact
+  reports 171 exact collectible cards, and all 171 now have an explicit exact
   text mapping plus named direct test evidence. The versioned sibling registry
   at `data/audits/rule_clauses.json` hashes every imported primary and
   alternate-mode clause; changed source text or stale test evidence invalidates
@@ -42,7 +42,7 @@ code and tests as the source of truth when this file drifts.
   rule version and errata metadata, structured trigger/operation evidence,
   explicit unsupported text, and a stable blocker taxonomy. There are zero
   unverified exact entries and no known missing schema, primitive, targeting,
-  or timing blocker among authored rules. The 551 supported-but-missing-rule
+  or timing blocker among authored rules. The 546 supported-but-missing-rule
   cards are now the per-card structured-content backlog; 18 unclear texts
   remain explicit.
 - RL observation v2 is available behind an explicit version switch. A
@@ -157,6 +157,12 @@ slice in this order:
   through the existing choice actions and adds public count/progress features.
   Real card `10351120` demonstrates selecting and destroying two enemy
   followers before its self-damage resolves.
+- Random own/enemy follower and board targets consume the same count fields
+  automatically. Default selection is seeded and distinct, candidate shortage
+  uses every available target, explicit duplicates use selection with
+  replacement, and the selected batch resolves before one state-based check.
+  Printed repeated random effects remain separate operations with independent
+  reselection and stabilization.
 - `CardListenerDefinition` provides ordinary board, hand, and leader-area event
   listeners for amulet activation, Fusion, follower summon/evolution/
   destruction, amulet destruction, entity leave-play, card play, and turn
@@ -486,12 +492,19 @@ slice in this order:
   source destruction before pending choices, selected Ward removal, buffs and
   health reduction, healing, repeated hand cycling, Countdown, simultaneous
   all-follower damage/destruction, and real-card RL mask parity.
+- Exact file `data/rules/real_random_multi_target_batch.json` adds 5 audited
+  cards with complete localized-text, keyword, alternate-mode, reference, and
+  source-hash evidence. Direct tests cover seeded distinct selection, two-hit
+  reselection, Combo replacement, candidate shortage, one simultaneous death
+  batch, leader damage, whole-hand Spellboost, replay determinism, and RL mask
+  parity without exposing an automatic random choice.
 
 ## Known Partial Or Unsupported Areas
 
-- Random board targeting currently resolves one target per operation and does
-  not consume `target_count`; `10221110` and `10351310` therefore remain
-  unsupported rather than incorrectly allowing one hit or duplicate hits.
+- Random hand, graveyard, and follower-or-leader targets remain single-target
+  operations. Multi-target count fields are schema-rejected for those target
+  kinds until a verified real rule requires explicit zone or mixed leader
+  selection semantics.
 - `觉醒` has condition/expression support, public observation flags, and one
   real-card rule demo; broader real-card coverage and future max-mana ramp
   interactions remain partial.
