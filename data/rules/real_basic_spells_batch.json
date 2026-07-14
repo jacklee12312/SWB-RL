@@ -1,0 +1,107 @@
+{
+  "rules": [
+    {
+      "card_id": 10101310,
+      "trigger": "play",
+      "operations": [
+        {"kind": "summon", "target": "own_leader", "card_id": 90001110},
+        {"kind": "summon", "target": "own_leader", "card_id": 90001110},
+        {"kind": "summon", "target": "own_leader", "card_id": 90001110},
+        {"kind": "summon", "target": "own_leader", "card_id": 90001110},
+        {"kind": "summon", "target": "own_leader", "card_id": 90001110}
+      ]
+    },
+    {
+      "card_id": 10102310,
+      "trigger": "play",
+      "operations": [
+        {"kind": "draw", "target": "own_leader", "amount": 2}
+      ]
+    },
+    {
+      "card_id": 10123310,
+      "trigger": "play",
+      "operations": [
+        {"kind": "damage_unit", "target": "enemy_unit_or_leader", "amount": 5},
+        {"kind": "heal_leader", "target": "own_leader", "amount": 5}
+      ]
+    },
+    {
+      "card_id": 10141310,
+      "trigger": "play",
+      "operations": [
+        {"kind": "damage_unit", "target": "all_units", "amount": 5}
+      ]
+    },
+    {
+      "card_id": 10431310,
+      "trigger": "play",
+      "operations": [
+        {"kind": "damage_unit", "target": "all_enemy_units", "amount": 6},
+        {"kind": "heal_leader", "target": "own_leader", "amount": 3}
+      ]
+    },
+    {
+      "card_id": 10561310,
+      "trigger": "play",
+      "operations": [
+        {"kind": "return_to_deck", "target": "random_own_hand"},
+        {"kind": "draw", "target": "own_leader", "amount": 3}
+      ]
+    },
+    {
+      "card_id": 10701310,
+      "trigger": "play",
+      "operations": [
+        {"kind": "banish", "target": "enemy_board", "requires_target": true}
+      ]
+    },
+    {
+      "card_id": 10743310,
+      "trigger": "play",
+      "operations": [
+        {"kind": "damage_unit", "target": "all_enemy_units", "amount": 5},
+        {"kind": "damage_leader", "target": "enemy_leader", "amount": 3}
+      ]
+    },
+    {
+      "card_id": 10751310,
+      "trigger": "play",
+      "operations": [
+        {
+          "kind": "buff_unit",
+          "target": "own_unit",
+          "amount": 0,
+          "secondary_amount": 1,
+          "target_count": 2,
+          "requires_target": true
+        },
+        {"kind": "draw", "target": "own_leader", "amount": 1}
+      ]
+    },
+    {
+      "card_id": 10812310,
+      "trigger": "play",
+      "operations": [
+        {"kind": "destroy", "target": "enemy_unit", "requires_target": true},
+        {"kind": "heal_leader", "target": "own_leader", "amount": 2}
+      ]
+    },
+    {
+      "card_id": 10832310,
+      "trigger": "play",
+      "operations": [
+        {"kind": "heal_leader", "target": "own_leader", "amount": 2},
+        {"kind": "spellboost_hand", "target": "all_own_hand", "amount": 1}
+      ]
+    },
+    {
+      "card_id": 10842310,
+      "trigger": "play",
+      "operations": [
+        {"kind": "damage_unit", "target": "random_enemy_unit", "amount": 4},
+        {"kind": "damage_leader", "target": "enemy_leader", "amount": 4}
+      ]
+    }
+  ]
+}

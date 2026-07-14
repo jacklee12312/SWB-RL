@@ -1,6 +1,6 @@
 # SWB Engine Roadmap
 
-Last refreshed: 2026-07-13.
+Last refreshed: 2026-07-14.
 
 This file tracks implementation priorities and known gaps. Treat executable
 code and tests as the source of truth when this file drifts.
@@ -10,21 +10,21 @@ code and tests as the source of truth when this file drifts.
 - Database: 826 cards, 735 collectible cards, 91 non-collectible/generated
   cards from set `90000`.
 - Latest SVA source: `https://sva.hypd.asia/data/cards.json`.
-- Tests: `python -m unittest discover -s tests -v` currently runs 1184 tests.
+- Tests: `python -m unittest discover -s tests -v` currently runs 1207 tests.
 - RL adapter: fixed 111-action space; the default v1 observation remains 290
   floats, while opt-in v2 provides fixed-shape categorical/public state without
   changing action IDs.
 - Ability registry status: 18 implemented, 5 partial, 11 placeholder.
 - Explicit card and demo rules live in `data/rules/`; the current coverage
-  report classifies 119 card IDs with explicit rules, passives, fusion,
+  report classifies 131 card IDs with explicit rules, passives, fusion,
   invocation, activation, Faith, Union Burst, or listener definitions. Current
-  collectible coverage is 87 exact, 0 partial, 630 supported-but-missing-rule,
+  collectible coverage is 99 exact, 0 partial, 618 supported-but-missing-rule,
   0 missing-primitive, and 18 text-unclear cards.
 - `data/reports/token_audit.{json,md}` audits all 91 non-collectible/generated
   cards independently of collectible coverage. Database `card_references` and
-  executable structured producers are reported separately: 10 tokens have a
+  executable structured producers are reported separately: 11 tokens have a
   complete executable entry/behavior path, 11 have an executable entry but
-  partial behavior, and 70 have no authored producer. No token is currently
+  partial behavior, and 69 have no authored producer. No token is currently
   classified text-unclear or externally blocked; those categories remain
   explicit and can be assigned through `data/audits/token_overrides.json`.
 - `data/reports/ability_audit.{json,md}` validates all 34 runtime/database
@@ -33,7 +33,7 @@ code and tests as the source of truth when this file drifts.
   separate column and is covered for all 34; it does not automatically promote
   the 5 partial or 11 placeholder keyword statuses.
 - Coverage now has a backward-compatible clause audit. The legacy summary still
-  reports 87 exact collectible cards, and all 87 now have an explicit exact
+  reports 99 exact collectible cards, and all 99 now have an explicit exact
   text mapping plus named direct test evidence. The versioned sibling registry
   at `data/audits/rule_clauses.json` hashes every imported primary and
   alternate-mode clause; changed source text or stale test evidence invalidates
@@ -42,8 +42,9 @@ code and tests as the source of truth when this file drifts.
   rule version and errata metadata, structured trigger/operation evidence,
   explicit unsupported text, and a stable blocker taxonomy. There are zero
   unverified exact entries and no known missing schema, primitive, targeting,
-  or timing blocker. The 630 supported-but-missing-rule cards are now the
-  per-card structured-content backlog; 18 unclear texts remain explicit.
+  or timing blocker among authored rules. The 618 supported-but-missing-rule
+  cards are now the per-card structured-content backlog; 18 unclear texts
+  remain explicit.
 - RL observation v2 is available behind an explicit version switch. A
   configured card vocabulary supplies stable categorical indices for own-hand,
   public-board, initial-deck composition, and public graveyard/banished state;
@@ -422,6 +423,15 @@ slice in this order:
   redacts option labels/entity IDs.
 - Illegal RL actions restore environment choice-page bookkeeping as well as
   preserving core state, logs, events, RNG, and suspended engine internals.
+- Exact file `data/rules/real_basic_spells_batch.json` adds 12 audited real
+  spells across Neutral, Forestcraft, Swordcraft, Runecraft, Dragoncraft,
+  Abysscraft, and Havencraft. Direct tests cover repeated Token summoning and
+  board capacity, draw, unit-or-leader targets, simultaneous all-follower
+  deaths, ally/enemy-wide damage, seeded hand cycling and random damage,
+  follower/amulet banish, multi-target shortage and stale-target revalidation,
+  illegal no-target fingerprints, whole-hand Spellboost, and RL mask parity.
+  `10101310` is now an executable producer for vanilla Token `90001110`, which
+  moves that Token from database-only to behavior-complete without an override.
 
 ## Known Partial Or Unsupported Areas
 
@@ -458,8 +468,8 @@ slice in this order:
 - The generated-card audit is deterministic and covers all 91 database tokens.
   It does not equate a database reference with an executable entry, and it only
   marks behavior complete for vanilla cards, fully implemented keyword-only
-  cards, or explicitly exact structured rules. Current output is 10 complete,
-  11 partial, and 70 database-only/no-entry; this is the content backlog for
+  cards, or explicitly exact structured rules. Current output is 11 complete,
+  11 partial, and 69 database-only/no-entry; this is the content backlog for
   later card-rule entry, not a claim of broad generated-card support.
 - The ability registry is conservative and fully audited: all 34 entries have
   a reason and test evidence, and a covered generic primitive does not promote
@@ -503,32 +513,48 @@ slice in this order:
 
 ## Next Coherent Slices
 
-### 1. Source-Backed Continuous Modifiers
+### 1. Filtered Hand Targeting
+
+- Add a generic hand-card filter shared by play prevalidation, pending-choice
+  options, stale-choice revalidation, command legality, and RL masks. Cover
+  card type first because verified real `10333310` must select a follower in
+  hand before increasing its cost; do not expose unrelated hand cards.
+- Lock no-candidate illegality, a selected card leaving hand, deterministic
+  fingerprint preservation, and the later random enemy-follower destruction,
+  then promote `10333310` in the same vertical slice.
+
+### 2. Further Basic Real-Card Batches
+
+- Continue 5–15 card batches whose complete primary/alternate/reference text
+  fits existing primitives. Audit every referenced Token with its producer;
+  do not select `10373310` until generated amulet `90074210` is itself exact.
+
+### 3. Source-Backed Continuous Modifiers
 
 - Add source-backed derived modifiers with deterministic stacking and automatic
   recomputation for entry, leave-play, transform, return, banish, and control
   changes when a verified real card requires them. This is not the official
   `灵气` keyword, whose manual-target protection is implemented.
 
-### 2. Targeting Edge Cases
+### 4. Targeting Edge Cases
 
 - Extend no-target branch coverage only when real cards need graveyard/hand
   target-dependent filters or additional fallback target semantics.
 - Audit real rules that combine selected hand/graveyard sets with later
   operations before expanding `target_key` beyond board-entity tuples.
 
-### 3. Trigger Loop Diagnostics
+### 5. Trigger Loop Diagnostics
 
 - Add broader trigger ordering tests around any future `death_batch_start`
   boundary semantics and real-card recursive trigger combinations as coverage
   expands.
 
-### 4. Incremental Real-Card Coverage
+### 6. Incremental Real-Card Coverage
 
 - Add further Faith progression/payoff and Union Burst cards only when their
   complete generic operations can be represented without card-ID branches.
 
-### 5. Coverage Reporting
+### 7. Coverage Reporting
 
 - Refresh rule coverage reports after database updates.
 - Make reports surface newly added cards and newly unsupported keyword text.

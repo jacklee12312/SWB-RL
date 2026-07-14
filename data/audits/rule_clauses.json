@@ -221,6 +221,28 @@
       ]
     },
     {
+      "card_id": 10101310,
+      "coverage": "exact",
+      "implemented_text": "召唤5个『<color=Keyword>哥布林</color>』。",
+      "rule_version": 1,
+      "source_text_sha256": "4187734dd628c76342265baa520d6481f98b0d512eaf58203103e8dd3dafcb95",
+      "test_evidence": [
+        "tests/test_real_basic_spells_batch.py"
+      ],
+      "notes": "All imported source clauses are mapped to structured rules and direct behavior tests."
+    },
+    {
+      "card_id": 10102310,
+      "coverage": "exact",
+      "implemented_text": "抽取2张卡牌。",
+      "rule_version": 1,
+      "source_text_sha256": "b19dd5e5718f692fb1413eff1bf9d6eafc40bce626a4cb13da5cd7c079c003db",
+      "test_evidence": [
+        "tests/test_real_basic_spells_batch.py"
+      ],
+      "notes": "All imported source clauses are mapped to structured rules and direct behavior tests."
+    },
+    {
       "card_id": 10111310,
       "coverage": "exact",
       "implemented_text": "将2张『妖精』加入手牌。",
@@ -282,6 +304,17 @@
       ]
     },
     {
+      "card_id": 10123310,
+      "coverage": "exact",
+      "implemented_text": "选择对手的战场上的1个随从或对手的主战者，对其造成5点伤害。回复自己的主战者5点生命值。",
+      "rule_version": 1,
+      "source_text_sha256": "252c23410e3a5a2ed08065acf1160b1119e3ec337d9af3ddf4ac4346142ff199",
+      "test_evidence": [
+        "tests/test_real_basic_spells_batch.py"
+      ],
+      "notes": "All imported source clauses are mapped to structured rules and direct behavior tests."
+    },
+    {
       "card_id": 10132320,
       "coverage": "exact",
       "implemented_text": "【魔力增幅时】使本卡牌的费用-1。 / / 选择对手的战场上的1个随从，使其生命值变为1。对手的回合结束前，使其获得「无法攻击随从或主战者」。",
@@ -291,6 +324,17 @@
         "tests/test_exact_rule_audit.py"
       ],
       "notes": "All imported source clauses are mapped to the structured rule and cited behavior tests."
+    },
+    {
+      "card_id": 10141310,
+      "coverage": "exact",
+      "implemented_text": "对战场上的所有随从造成5点伤害。",
+      "rule_version": 1,
+      "source_text_sha256": "3c623d88f752e63f4294449a966b3e45345e76b80cb4fd9a1fc36d91ad874261",
+      "test_evidence": [
+        "tests/test_real_basic_spells_batch.py"
+      ],
+      "notes": "All imported source clauses are mapped to structured rules and direct behavior tests."
     },
     {
       "card_id": 10143120,
@@ -585,6 +629,17 @@
       ]
     },
     {
+      "card_id": 10431310,
+      "coverage": "exact",
+      "implemented_text": "对对手的战场上的所有随从造成6点伤害。回复自己的主战者3点生命值。",
+      "rule_version": 1,
+      "source_text_sha256": "36738e094fb81e0eb3d3b96401e30f2ec48674996ced8469bbdd19cac95e9e12",
+      "test_evidence": [
+        "tests/test_real_basic_spells_batch.py"
+      ],
+      "notes": "All imported source clauses are mapped to structured rules and direct behavior tests."
+    },
+    {
       "card_id": 10442310,
       "coverage": "exact",
       "implemented_text": "选择对手的战场上的1个随从，对其造成3点伤害，对手的回合结束前，使其获得「无法攻击随从或主战者」。",
@@ -674,6 +729,17 @@
         "tests/test_exact_rule_audit.py"
       ],
       "notes": "All imported source clauses are mapped to the structured rule and cited behavior tests."
+    },
+    {
+      "card_id": 10561310,
+      "coverage": "exact",
+      "implemented_text": "使自己的随机1张手牌返回牌组。抽取3张卡牌。",
+      "rule_version": 1,
+      "source_text_sha256": "f04e09c0a5dff3d4bbec12b735dc232bd7f7f6c7b3b14c7153dcb8ba28740a2a",
+      "test_evidence": [
+        "tests/test_real_basic_spells_batch.py"
+      ],
+      "notes": "All imported source clauses are mapped to structured rules and direct behavior tests."
     },
     {
       "card_id": 10563210,
@@ -804,6 +870,17 @@
       "notes": "All imported source clauses are mapped to the structured rule and cited behavior tests."
     },
     {
+      "card_id": 10701310,
+      "coverage": "exact",
+      "implemented_text": "选择对手的战场上的1张卡牌，使其消失。",
+      "rule_version": 1,
+      "source_text_sha256": "f84c4369c426c1f896dd50e4d1709d553b2a489b55e9fd245405406edd4f1e88",
+      "test_evidence": [
+        "tests/test_real_basic_spells_batch.py"
+      ],
+      "notes": "All imported source clauses are mapped to structured rules and direct behavior tests."
+    },
+    {
       "card_id": 10711310,
       "coverage": "exact",
       "implemented_text": "选择自己的2张手牌，使其返回牌组。抽取2张卡牌。",
@@ -844,11 +921,66 @@
       "notes": "All imported source clauses are mapped to the structured rule and cited behavior tests."
     },
     {
+      "card_id": 10743310,
+      "coverage": "exact",
+      "implemented_text": "对对手的战场上的所有随从造成5点伤害。对对手的主战者造成3点伤害。",
+      "rule_version": 1,
+      "source_text_sha256": "93c4ac251ab6a11bea6f4d834b80dabb0b1e4311d40d64c8801a25dbbef32d48",
+      "test_evidence": [
+        "tests/test_real_basic_spells_batch.py"
+      ],
+      "notes": "All imported source clauses are mapped to structured rules and direct behavior tests."
+    },
+    {
+      "card_id": 10751310,
+      "coverage": "exact",
+      "implemented_text": "选择自己的战场上的2个随从，使其+0/+1。抽取1张卡牌。",
+      "rule_version": 1,
+      "source_text_sha256": "267fb147a13cd01ef015543ce69d59df175b16572e60c8b89d2dedbd3686eb12",
+      "test_evidence": [
+        "tests/test_real_basic_spells_batch.py"
+      ],
+      "notes": "All imported source clauses are mapped to structured rules and direct behavior tests."
+    },
+    {
       "card_id": 10771110,
       "source_text_sha256": "162ff2f0d07b6f3680a86f4191ec4446147e2114b33ef38a179e2e3d704f805b",
       "test_evidence": [
         "tests/test_cross_class_trait_listeners.py"
       ]
+    },
+    {
+      "card_id": 10812310,
+      "coverage": "exact",
+      "implemented_text": "选择对手的战场上的1个随从，破坏该随从。回复自己的主战者2点生命值。",
+      "rule_version": 1,
+      "source_text_sha256": "054d4a29268d09086dfcc328ff0b806b282e830d43d14ef94659e8e4e35aea4a",
+      "test_evidence": [
+        "tests/test_real_basic_spells_batch.py"
+      ],
+      "notes": "All imported source clauses are mapped to structured rules and direct behavior tests."
+    },
+    {
+      "card_id": 10832310,
+      "coverage": "exact",
+      "implemented_text": "回复自己的主战者2点生命值。使自己的所有手牌发动1次魔力增幅。",
+      "rule_version": 1,
+      "source_text_sha256": "7571915c25399d239b4ff05fad58ed31ccd7aafc2b4763347ad59081f12d9ee6",
+      "test_evidence": [
+        "tests/test_real_basic_spells_batch.py"
+      ],
+      "notes": "All imported source clauses are mapped to structured rules and direct behavior tests."
+    },
+    {
+      "card_id": 10842310,
+      "coverage": "exact",
+      "implemented_text": "对对手的战场上的随机1个随从造成4点伤害。对对手的主战者造成4点伤害。",
+      "rule_version": 1,
+      "source_text_sha256": "033eca9775d4d0ae9490079373f5600a84f3b197226df37bb50f09a74b2e74a4",
+      "test_evidence": [
+        "tests/test_real_basic_spells_batch.py"
+      ],
+      "notes": "All imported source clauses are mapped to structured rules and direct behavior tests."
     }
   ]
 }

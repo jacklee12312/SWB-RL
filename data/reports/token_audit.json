@@ -7,9 +7,9 @@
   "summary": {
     "total": 91,
     "categories": {
-      "entry_behavior_complete": 10,
+      "entry_behavior_complete": 11,
       "entry_behavior_partial": 11,
-      "database_only_no_entry": 70,
+      "database_only_no_entry": 69,
       "text_unclear": 0,
       "external_blocker": 0
     }
@@ -23,8 +23,8 @@
       "card_set_id": 90000,
       "is_collectible": false,
       "support_level": "basic",
-      "category": "database_only_no_entry",
-      "reason": "Database source references exist, but no executable producer is authored.",
+      "category": "entry_behavior_complete",
+      "reason": "Executable entry exists and behavior is vanilla, fully implemented keyword-only, or explicitly audited exact.",
       "database_sources": [
         {
           "source_card_id": 10101310,
@@ -32,7 +32,14 @@
           "referenced_name": "哥布林"
         }
       ],
-      "authored_producers": [],
+      "authored_producers": [
+        {
+          "source_card_id": 10101310,
+          "entry_kind": "summon",
+          "rule_file": "real_basic_spells_batch.json",
+          "rule_group": "rules"
+        }
+      ],
       "has_authored_behavior": false,
       "explicit_coverage": null,
       "keyword_only_text": false,
@@ -303,6 +310,12 @@
         {
           "source_card_id": 10214110,
           "entry_kind": "summon",
+          "rule_file": "emblems_demo.json",
+          "rule_group": "rules"
+        },
+        {
+          "source_card_id": 10214110,
+          "entry_kind": "transform",
           "rule_file": "emblems_demo.json",
           "rule_group": "rules"
         },

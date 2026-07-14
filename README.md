@@ -20,7 +20,7 @@ rejected if passed directly in an initial deck. Deck validation requires
 exactly 40 collectible cards from the selected class and/or neutral. The
 auditable [token report](data/reports/token_audit.md) distinguishes database
 references from executable producer paths and behavior completeness for all 91
-cards: 10 complete entries, 11 partial entries, and 70 with no authored entry.
+cards: 11 complete entries, 11 partial entries, and 69 with no authored entry.
 
 Abilities are normalized in two relational tables:
 
@@ -38,13 +38,13 @@ covered generic boundary, but that never upgrades a partial or placeholder
 keyword whose full tagged-card semantics still require structured rules.
 
 The [rule coverage report](data/reports/rule_coverage.md) now includes a
-clause-audit layer without changing its legacy coverage categories. Of 87
-exact collectible cards, all 87 have explicit implemented text and named direct
+clause-audit layer without changing its legacy coverage categories. Of 99
+exact collectible cards, all 99 have explicit implemented text and named direct
 test evidence. The sibling `data/audits/rule_clauses.json` registry hashes every
 imported skill and alternate-mode clause, so a database text change or stale
 test reference invalidates the audit instead of silently retaining exact
 status. The current report has no unverified exact entry or missing generic
-schema, primitive, targeting, or timing blocker. Its remaining 630 collectible
+schema, primitive, targeting, or timing blocker. Its remaining 618 collectible
 gaps are missing per-card structured rules, while 18 unclear texts remain
 explicit. Rule metadata also supports version and errata fields, and the report
 records the complete imported source snapshot hash.
@@ -242,6 +242,13 @@ The deterministic rules core supports:
   restriction, `10161130` draw-plus-heal, `10431120` source-Attack-scaled
   whole-hand Spellboost plus its permanent post-Evolve attack restriction,
   `10551120` Reanimate, and `10642310` staged discard/destroy choices;
+- a 12-card exact basic-spell batch covers repeated Token summons, plain and
+  filtered target damage, leader healing, simultaneous all-follower damage,
+  selected destruction/banish, seeded random hand cycling, multi-target buffs,
+  and explicit whole-hand Spellboost. `10101310` now supplies the executable
+  producer for vanilla Token `90001110`, including board-capacity and Token
+  origin tests; `10751310` directly locks command legality, stale target
+  revalidation, candidate shortage, and the matching RL action mask;
 - countdown amulets, explicit last words, fanfare/play rules, attack/clash,
   evolve/super-evolve, turn-start/turn-end triggers, and trigger continuations
   that can pause for choices. Exact `10713110` uses a source-in-play turn-end
@@ -343,7 +350,7 @@ remain visible instead of silently behaving as implemented.
 Known broad gaps include:
 
 - exact semantics for many real cards and most generated-card workflows; the
-  token audit keeps the remaining 11 partial and 70 unimplemented entries
+  token audit keeps the remaining 11 partial and 69 unimplemented entries
   explicit instead of treating non-collectible classification as coverage;
 - remaining `信仰` progression/payoff semantics, plus broader real-card coverage for `策动`,
   `土之秘术`, `觉醒`, and `连击` beyond the currently authored examples;

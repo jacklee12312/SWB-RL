@@ -39,10 +39,25 @@ class TokenAuditTests(unittest.TestCase):
                 self.assertTrue(card["authored_producers"])
 
     def test_database_reference_is_not_mistaken_for_executable_entry(self):
+        proof = self.cards[90004320]
+        self.assertTrue(proof["database_sources"])
+        self.assertFalse(proof["authored_producers"])
+        self.assertEqual(proof["category"], "database_only_no_entry")
+
+    def test_goblin_has_a_complete_executable_producer(self):
         goblin = self.cards[90001110]
-        self.assertTrue(goblin["database_sources"])
-        self.assertFalse(goblin["authored_producers"])
-        self.assertEqual(goblin["category"], "database_only_no_entry")
+        self.assertEqual(goblin["category"], "entry_behavior_complete")
+        self.assertEqual(
+            goblin["authored_producers"],
+            [
+                {
+                    "source_card_id": 10101310,
+                    "entry_kind": "summon",
+                    "rule_file": "real_basic_spells_batch.json",
+                    "rule_group": "rules",
+                }
+            ],
+        )
 
     def test_generic_earth_sigil_entry_is_explicitly_audited(self):
         sigil = self.cards[90031210]

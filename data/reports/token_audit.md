@@ -10,9 +10,9 @@ Total audited cards: **91**
 
 | Category | Count |
 |---|---:|
-| entry_behavior_complete | 10 |
+| entry_behavior_complete | 11 |
 | entry_behavior_partial | 11 |
-| database_only_no_entry | 70 |
+| database_only_no_entry | 69 |
 | text_unclear | 0 |
 | external_blocker | 0 |
 
@@ -20,14 +20,14 @@ Total audited cards: **91**
 
 | Card | Class / Type | Category | DB sources | Executable producers | Behavior |
 |---|---|---|---:|---:|---|
-| 90001110 哥布林 | 中立 / 随从 | database_only_no_entry | 1 | 0 | basic |
+| 90001110 哥布林 | 中立 / 随从 | entry_behavior_complete | 1 | 1 | basic |
 | 90004110 沉默的魔将 | 中立 / 随从 | database_only_no_entry | 0 | 0 | keyword |
 | 90004120 深渊之主的仆从 | 中立 / 随从 | database_only_no_entry | 0 | 0 | basic |
 | 90004130 边狱的邪祟 | 中立 / 随从 | database_only_no_entry | 0 | 0 | unsupported |
 | 90004310 阿斯塔罗特的宣判 | 中立 / 法术 | database_only_no_entry | 0 | 0 | unsupported |
 | 90004320 绝大的证明 | 中立 / 法术 | database_only_no_entry | 1 | 0 | unsupported |
 | 90004330 涸绝的甘露 | 中立 / 法术 | database_only_no_entry | 1 | 0 | unsupported |
-| 90011110 妖精 | 精灵 / 随从 | entry_behavior_complete | 18 | 5 | keyword |
+| 90011110 妖精 | 精灵 / 随从 | entry_behavior_complete | 18 | 6 | keyword |
 | 90011120 新绿的妖精 | 精灵 / 随从 | database_only_no_entry | 6 | 0 | unsupported |
 | 90011310 森林的奥秘 | 精灵 / 法术 | database_only_no_entry | 4 | 0 | unsupported |
 | 90014110 冰晶剑士·伊芙 | 精灵 / 随从 | database_only_no_entry | 1 | 0 | keyword |

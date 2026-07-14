@@ -12,25 +12,25 @@
   },
   "summary": {
     "total_cards": 826,
-    "total_with_rules": 119,
+    "total_with_rules": 131,
     "test_or_synthetic_ids_with_rules": 26,
     "coverage_counts": {
-      "covered_exact": 87,
-      "supported_missing_rule": 630,
+      "covered_exact": 99,
+      "supported_missing_rule": 618,
       "text_unclear": 18,
       "token_or_non_collectible": 91
     },
     "clause_audit_counts": {
-      "mapped_exact": 87,
+      "mapped_exact": 99,
       "unverified_exact": 0,
       "partial": 0,
-      "missing_rule": 630,
+      "missing_rule": 618,
       "missing_primitive": 0,
       "text_unclear": 18,
       "token_separate_audit": 91
     },
     "blocker_counts": {
-      "missing_rule": 630,
+      "missing_rule": 618,
       "missing_schema": 0,
       "missing_primitive": 0,
       "missing_targeting": 0,
@@ -3241,8 +3241,8 @@
       "cost": 5,
       "is_collectible": true,
       "card_set_id": 10001,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['召唤']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['play'], Ops: ['summon', 'summon', 'summon', 'summon', 'summon']",
       "hit_keywords": [
         "召唤"
       ],
@@ -3252,27 +3252,47 @@
         "召唤5个『<color=Keyword>哥布林</color>』。"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "召唤5个『<color=Keyword>哥布林</color>』。",
+        "notes": "All imported source clauses are mapped to structured rules and direct behavior tests.",
+        "rule_version": 1,
+        "source_text_sha256": "4187734dd628c76342265baa520d6481f98b0d512eaf58203103e8dd3dafcb95",
+        "test_evidence": [
+          "tests/test_real_basic_spells_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10101310:0",
             "source_text": "召唤5个『<color=Keyword>哥布林</color>』。",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "召唤5个『<color=Keyword>哥布林</color>』。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "4187734dd628c76342265baa520d6481f98b0d512eaf58203103e8dd3dafcb95",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "play"
+          ],
+          "effect_kinds": [
+            "summon",
+            "summon",
+            "summon",
+            "summon",
+            "summon"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_basic_spells_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10102110": {
@@ -3330,8 +3350,8 @@
       "cost": 3,
       "is_collectible": true,
       "card_set_id": 10001,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['抽取']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['play'], Ops: ['draw']",
       "hit_keywords": [
         "抽取"
       ],
@@ -3341,27 +3361,43 @@
         "抽取2张卡牌。"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "抽取2张卡牌。",
+        "notes": "All imported source clauses are mapped to structured rules and direct behavior tests.",
+        "rule_version": 1,
+        "source_text_sha256": "b19dd5e5718f692fb1413eff1bf9d6eafc40bce626a4cb13da5cd7c079c003db",
+        "test_evidence": [
+          "tests/test_real_basic_spells_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10102310:0",
             "source_text": "抽取2张卡牌。",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "抽取2张卡牌。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "b19dd5e5718f692fb1413eff1bf9d6eafc40bce626a4cb13da5cd7c079c003db",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "play"
+          ],
+          "effect_kinds": [
+            "draw"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_basic_spells_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10103110": {
@@ -5272,8 +5308,8 @@
       "cost": 7,
       "is_collectible": true,
       "card_set_id": 10001,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['回复', '造成.*伤害']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['play'], Ops: ['damage_unit', 'heal_leader']",
       "hit_keywords": [
         "回复",
         "造成.*伤害"
@@ -5284,27 +5320,44 @@
         "选择对手的战场上的1个随从或对手的主战者，对其造成5点伤害。回复自己的主战者5点生命值。"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "选择对手的战场上的1个随从或对手的主战者，对其造成5点伤害。回复自己的主战者5点生命值。",
+        "notes": "All imported source clauses are mapped to structured rules and direct behavior tests.",
+        "rule_version": 1,
+        "source_text_sha256": "252c23410e3a5a2ed08065acf1160b1119e3ec337d9af3ddf4ac4346142ff199",
+        "test_evidence": [
+          "tests/test_real_basic_spells_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10123310:0",
             "source_text": "选择对手的战场上的1个随从或对手的主战者，对其造成5点伤害。回复自己的主战者5点生命值。",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "选择对手的战场上的1个随从或对手的主战者，对其造成5点伤害。回复自己的主战者5点生命值。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "252c23410e3a5a2ed08065acf1160b1119e3ec337d9af3ddf4ac4346142ff199",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "play"
+          ],
+          "effect_kinds": [
+            "damage_unit",
+            "heal_leader"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_basic_spells_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10124110": {
@@ -6639,8 +6692,8 @@
       "cost": 6,
       "is_collectible": true,
       "card_set_id": 10001,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['造成.*伤害']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['play'], Ops: ['damage_unit']",
       "hit_keywords": [
         "造成.*伤害"
       ],
@@ -6650,27 +6703,43 @@
         "对战场上的所有随从造成5点伤害。"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "对战场上的所有随从造成5点伤害。",
+        "notes": "All imported source clauses are mapped to structured rules and direct behavior tests.",
+        "rule_version": 1,
+        "source_text_sha256": "3c623d88f752e63f4294449a966b3e45345e76b80cb4fd9a1fc36d91ad874261",
+        "test_evidence": [
+          "tests/test_real_basic_spells_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10141310:0",
             "source_text": "对战场上的所有随从造成5点伤害。",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "对战场上的所有随从造成5点伤害。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "3c623d88f752e63f4294449a966b3e45345e76b80cb4fd9a1fc36d91ad874261",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "play"
+          ],
+          "effect_kinds": [
+            "damage_unit"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_basic_spells_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10142110": {
@@ -19323,8 +19392,8 @@
       "cost": 7,
       "is_collectible": true,
       "card_set_id": 10004,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['回复', '造成.*伤害']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['play'], Ops: ['damage_unit', 'heal_leader']",
       "hit_keywords": [
         "回复",
         "造成.*伤害"
@@ -19335,27 +19404,44 @@
         "对对手的战场上的所有随从造成6点伤害。回复自己的主战者3点生命值。"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "对对手的战场上的所有随从造成6点伤害。回复自己的主战者3点生命值。",
+        "notes": "All imported source clauses are mapped to structured rules and direct behavior tests.",
+        "rule_version": 1,
+        "source_text_sha256": "36738e094fb81e0eb3d3b96401e30f2ec48674996ced8469bbdd19cac95e9e12",
+        "test_evidence": [
+          "tests/test_real_basic_spells_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10431310:0",
             "source_text": "对对手的战场上的所有随从造成6点伤害。回复自己的主战者3点生命值。",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "对对手的战场上的所有随从造成6点伤害。回复自己的主战者3点生命值。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "36738e094fb81e0eb3d3b96401e30f2ec48674996ced8469bbdd19cac95e9e12",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "play"
+          ],
+          "effect_kinds": [
+            "damage_unit",
+            "heal_leader"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_basic_spells_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10432110": {
@@ -24632,8 +24718,8 @@
       "cost": 3,
       "is_collectible": true,
       "card_set_id": 10005,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['抽取', '返回牌']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['play'], Ops: ['return_to_deck', 'draw']",
       "hit_keywords": [
         "抽取",
         "返回牌"
@@ -24644,27 +24730,44 @@
         "使自己的随机1张手牌返回牌组。抽取3张卡牌。"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "使自己的随机1张手牌返回牌组。抽取3张卡牌。",
+        "notes": "All imported source clauses are mapped to structured rules and direct behavior tests.",
+        "rule_version": 1,
+        "source_text_sha256": "f04e09c0a5dff3d4bbec12b735dc232bd7f7f6c7b3b14c7153dcb8ba28740a2a",
+        "test_evidence": [
+          "tests/test_real_basic_spells_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10561310:0",
             "source_text": "使自己的随机1张手牌返回牌组。抽取3张卡牌。",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "使自己的随机1张手牌返回牌组。抽取3张卡牌。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "f04e09c0a5dff3d4bbec12b735dc232bd7f7f6c7b3b14c7153dcb8ba28740a2a",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "play"
+          ],
+          "effect_kinds": [
+            "return_to_deck",
+            "draw"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_basic_spells_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10562110": {
@@ -29461,8 +29564,8 @@
       "cost": 4,
       "is_collectible": true,
       "card_set_id": 10007,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['消失']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['play'], Ops: ['banish']",
       "hit_keywords": [
         "消失"
       ],
@@ -29472,27 +29575,43 @@
         "选择对手的战场上的1张卡牌，使其消失。"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "选择对手的战场上的1张卡牌，使其消失。",
+        "notes": "All imported source clauses are mapped to structured rules and direct behavior tests.",
+        "rule_version": 1,
+        "source_text_sha256": "f84c4369c426c1f896dd50e4d1709d553b2a489b55e9fd245405406edd4f1e88",
+        "test_evidence": [
+          "tests/test_real_basic_spells_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10701310:0",
             "source_text": "选择对手的战场上的1张卡牌，使其消失。",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "选择对手的战场上的1张卡牌，使其消失。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "f84c4369c426c1f896dd50e4d1709d553b2a489b55e9fd245405406edd4f1e88",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "play"
+          ],
+          "effect_kinds": [
+            "banish"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_basic_spells_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10702110": {
@@ -31648,8 +31767,8 @@
       "cost": 7,
       "is_collectible": true,
       "card_set_id": 10007,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['造成.*伤害']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['play'], Ops: ['damage_unit', 'damage_leader']",
       "hit_keywords": [
         "造成.*伤害"
       ],
@@ -31659,27 +31778,44 @@
         "对对手的战场上的所有随从造成5点伤害。对对手的主战者造成3点伤害。"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "对对手的战场上的所有随从造成5点伤害。对对手的主战者造成3点伤害。",
+        "notes": "All imported source clauses are mapped to structured rules and direct behavior tests.",
+        "rule_version": 1,
+        "source_text_sha256": "93c4ac251ab6a11bea6f4d834b80dabb0b1e4311d40d64c8801a25dbbef32d48",
+        "test_evidence": [
+          "tests/test_real_basic_spells_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10743310:0",
             "source_text": "对对手的战场上的所有随从造成5点伤害。对对手的主战者造成3点伤害。",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "对对手的战场上的所有随从造成5点伤害。对对手的主战者造成3点伤害。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "93c4ac251ab6a11bea6f4d834b80dabb0b1e4311d40d64c8801a25dbbef32d48",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "play"
+          ],
+          "effect_kinds": [
+            "damage_unit",
+            "damage_leader"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_basic_spells_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10744110": {
@@ -31902,8 +32038,8 @@
       "cost": 1,
       "is_collectible": true,
       "card_set_id": 10007,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['抽取']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['play'], Ops: ['buff_unit', 'draw']",
       "hit_keywords": [
         "抽取"
       ],
@@ -31913,27 +32049,44 @@
         "选择自己的战场上的2个随从，使其+0/+1。抽取1张卡牌。"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "选择自己的战场上的2个随从，使其+0/+1。抽取1张卡牌。",
+        "notes": "All imported source clauses are mapped to structured rules and direct behavior tests.",
+        "rule_version": 1,
+        "source_text_sha256": "267fb147a13cd01ef015543ce69d59df175b16572e60c8b89d2dedbd3686eb12",
+        "test_evidence": [
+          "tests/test_real_basic_spells_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10751310:0",
             "source_text": "选择自己的战场上的2个随从，使其+0/+1。抽取1张卡牌。",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "选择自己的战场上的2个随从，使其+0/+1。抽取1张卡牌。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "267fb147a13cd01ef015543ce69d59df175b16572e60c8b89d2dedbd3686eb12",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "play"
+          ],
+          "effect_kinds": [
+            "buff_unit",
+            "draw"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_basic_spells_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10752110": {
@@ -33843,8 +33996,8 @@
       "cost": 4,
       "is_collectible": true,
       "card_set_id": 10008,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['回复', '破坏']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['play'], Ops: ['destroy', 'heal_leader']",
       "hit_keywords": [
         "回复",
         "破坏"
@@ -33855,27 +34008,44 @@
         "选择对手的战场上的1个随从，破坏该随从。回复自己的主战者2点生命值。"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "选择对手的战场上的1个随从，破坏该随从。回复自己的主战者2点生命值。",
+        "notes": "All imported source clauses are mapped to structured rules and direct behavior tests.",
+        "rule_version": 1,
+        "source_text_sha256": "054d4a29268d09086dfcc328ff0b806b282e830d43d14ef94659e8e4e35aea4a",
+        "test_evidence": [
+          "tests/test_real_basic_spells_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10812310:0",
             "source_text": "选择对手的战场上的1个随从，破坏该随从。回复自己的主战者2点生命值。",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "选择对手的战场上的1个随从，破坏该随从。回复自己的主战者2点生命值。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "054d4a29268d09086dfcc328ff0b806b282e830d43d14ef94659e8e4e35aea4a",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "play"
+          ],
+          "effect_kinds": [
+            "destroy",
+            "heal_leader"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_basic_spells_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10813110": {
@@ -34736,8 +34906,8 @@
       "cost": 2,
       "is_collectible": true,
       "card_set_id": 10008,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['回复', '魔力增幅']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['play'], Ops: ['heal_leader', 'spellboost_hand']",
       "hit_keywords": [
         "回复",
         "魔力增幅"
@@ -34748,27 +34918,44 @@
         "回复自己的主战者2点生命值。使自己的所有手牌发动1次魔力增幅。"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "回复自己的主战者2点生命值。使自己的所有手牌发动1次魔力增幅。",
+        "notes": "All imported source clauses are mapped to structured rules and direct behavior tests.",
+        "rule_version": 1,
+        "source_text_sha256": "7571915c25399d239b4ff05fad58ed31ccd7aafc2b4763347ad59081f12d9ee6",
+        "test_evidence": [
+          "tests/test_real_basic_spells_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10832310:0",
             "source_text": "回复自己的主战者2点生命值。使自己的所有手牌发动1次魔力增幅。",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "回复自己的主战者2点生命值。使自己的所有手牌发动1次魔力增幅。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "7571915c25399d239b4ff05fad58ed31ccd7aafc2b4763347ad59081f12d9ee6",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "play"
+          ],
+          "effect_kinds": [
+            "heal_leader",
+            "spellboost_hand"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_basic_spells_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10832320": {
@@ -35271,8 +35458,8 @@
       "cost": 6,
       "is_collectible": true,
       "card_set_id": 10008,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['造成.*伤害']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['play'], Ops: ['damage_unit', 'damage_leader']",
       "hit_keywords": [
         "造成.*伤害"
       ],
@@ -35282,27 +35469,44 @@
         "对对手的战场上的随机1个随从造成4点伤害。对对手的主战者造成4点伤害。"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "对对手的战场上的随机1个随从造成4点伤害。对对手的主战者造成4点伤害。",
+        "notes": "All imported source clauses are mapped to structured rules and direct behavior tests.",
+        "rule_version": 1,
+        "source_text_sha256": "033eca9775d4d0ae9490079373f5600a84f3b197226df37bb50f09a74b2e74a4",
+        "test_evidence": [
+          "tests/test_real_basic_spells_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10842310:0",
             "source_text": "对对手的战场上的随机1个随从造成4点伤害。对对手的主战者造成4点伤害。",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "对对手的战场上的随机1个随从造成4点伤害。对对手的主战者造成4点伤害。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "033eca9775d4d0ae9490079373f5600a84f3b197226df37bb50f09a74b2e74a4",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "play"
+          ],
+          "effect_kinds": [
+            "damage_unit",
+            "damage_leader"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_basic_spells_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10843110": {
@@ -36969,6 +37173,7 @@
           "effect_kinds": []
         },
         "test_evidence": [
+          "tests/test_real_basic_spells_batch.py",
           "tests/test_token_audit.py"
         ],
         "audit_validation_error": null,
@@ -37105,7 +37310,9 @@
           "triggers": [],
           "effect_kinds": []
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_token_audit.py"
+        ],
         "audit_validation_error": null,
         "blocker_type": null
       }
@@ -39516,23 +39723,6 @@
       "suggested_rule_file": "batch_超越者.json"
     },
     {
-      "card_id": 10751310,
-      "name": "灵魂调律",
-      "class_name": "梦魇",
-      "card_type": "法术",
-      "cost": 1,
-      "ability_keywords": [],
-      "hit_keywords": [
-        "抽取"
-      ],
-      "confidence": "high",
-      "why_recommended": "Covered keywords: 抽取",
-      "required_primitives": [
-        "抽取"
-      ],
-      "suggested_rule_file": "batch_梦魇.json"
-    },
-    {
       "card_id": 10333310,
       "name": "虚假的术式",
       "class_name": "巫师",
@@ -39677,25 +39867,6 @@
       "suggested_rule_file": "batch_超越者.json"
     },
     {
-      "card_id": 10832310,
-      "name": "其乐融融的团聚",
-      "class_name": "巫师",
-      "card_type": "法术",
-      "cost": 2,
-      "ability_keywords": [],
-      "hit_keywords": [
-        "回复",
-        "魔力增幅"
-      ],
-      "confidence": "high",
-      "why_recommended": "Covered keywords: 回复, 魔力增幅",
-      "required_primitives": [
-        "回复",
-        "魔力增幅"
-      ],
-      "suggested_rule_file": "batch_巫师.json"
-    },
-    {
       "card_id": 10853310,
       "name": "改变的流向",
       "class_name": "梦魇",
@@ -39715,23 +39886,6 @@
         "返回牌"
       ],
       "suggested_rule_file": "batch_梦魇.json"
-    },
-    {
-      "card_id": 10102310,
-      "name": "炽天使的福音",
-      "class_name": "中立",
-      "card_type": "法术",
-      "cost": 3,
-      "ability_keywords": [],
-      "hit_keywords": [
-        "抽取"
-      ],
-      "confidence": "high",
-      "why_recommended": "Covered keywords: 抽取",
-      "required_primitives": [
-        "抽取"
-      ],
-      "suggested_rule_file": "batch_中立.json"
     },
     {
       "card_id": 10112310,
@@ -39770,25 +39924,6 @@
         "造成.*伤害"
       ],
       "suggested_rule_file": "batch_龙族.json"
-    },
-    {
-      "card_id": 10561310,
-      "name": "雾卷花的激愤",
-      "class_name": "主教",
-      "card_type": "法术",
-      "cost": 3,
-      "ability_keywords": [],
-      "hit_keywords": [
-        "抽取",
-        "返回牌"
-      ],
-      "confidence": "high",
-      "why_recommended": "Covered keywords: 抽取, 返回牌",
-      "required_primitives": [
-        "抽取",
-        "返回牌"
-      ],
-      "suggested_rule_file": "batch_主教.json"
     },
     {
       "card_id": 10673310,
@@ -39863,6 +39998,80 @@
         "回复"
       ],
       "suggested_rule_file": "batch_超越者.json"
+    },
+    {
+      "card_id": 10873310,
+      "name": "开辟未来",
+      "class_name": "超越者",
+      "card_type": "法术",
+      "cost": 3,
+      "ability_keywords": [],
+      "hit_keywords": [
+        "回复",
+        "造成.*伤害"
+      ],
+      "confidence": "high",
+      "why_recommended": "Covered keywords: 回复, 造成.*伤害",
+      "required_primitives": [
+        "回复",
+        "造成.*伤害"
+      ],
+      "suggested_rule_file": "batch_超越者.json"
+    },
+    {
+      "card_id": 10071310,
+      "name": "来自异次元的枪击",
+      "class_name": "超越者",
+      "card_type": "法术",
+      "cost": 4,
+      "ability_keywords": [],
+      "hit_keywords": [
+        "将.*加入手牌",
+        "破坏"
+      ],
+      "confidence": "high",
+      "why_recommended": "Covered keywords: 将.*加入手牌, 破坏",
+      "required_primitives": [
+        "将.*加入手牌",
+        "破坏"
+      ],
+      "suggested_rule_file": "batch_超越者.json"
+    },
+    {
+      "card_id": 10103310,
+      "name": "神之雷霆",
+      "class_name": "中立",
+      "card_type": "法术",
+      "cost": 4,
+      "ability_keywords": [],
+      "hit_keywords": [
+        "造成.*伤害",
+        "破坏"
+      ],
+      "confidence": "high",
+      "why_recommended": "Covered keywords: 造成.*伤害, 破坏",
+      "required_primitives": [
+        "造成.*伤害",
+        "破坏"
+      ],
+      "suggested_rule_file": "batch_中立.json"
+    },
+    {
+      "card_id": 10332310,
+      "name": "双重创造",
+      "class_name": "巫师",
+      "card_type": "法术",
+      "cost": 4,
+      "ability_keywords": [],
+      "hit_keywords": [
+        "召唤"
+      ],
+      "confidence": "high",
+      "why_recommended": "Covered keywords: 召唤",
+      "required_primitives": [
+        "召唤"
+      ],
+      "suggested_rule_file": "batch_巫师.json"
     }
   ]
 }
