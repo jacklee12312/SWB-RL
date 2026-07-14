@@ -974,6 +974,17 @@
       "notes": "Fanfare discard/draw and activation self-destruction followed by lethal selected health reduction are directly tested."
     },
     {
+      "card_id": 10321110,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】将1张『黄金之靴』加入手牌。【谢幕曲】将1张『黄金之杯』加入手牌。",
+      "rule_version": 1,
+      "source_text_sha256": "938a2826937cd3f9430d16857a6337611cd699891dc3395edfd668e6442efc76",
+      "test_evidence": [
+        "tests/test_real_royal_gilded_last_words_batch.py"
+      ],
+      "notes": "Fanfare and Last Words generate the two exact gilded spells with token origin; hand-cap overflow is directly tested."
+    },
+    {
       "card_id": 10321310,
       "coverage": "exact",
       "implemented_text": "选择自己的战场上的1个随从，使其获得【守护】。对对手的战场上的随机1个随从造成4点伤害。",
@@ -983,6 +994,17 @@
         "tests/test_runtime_modifiers.py"
       ],
       "notes": "All imported source clauses are mapped to the structured rule and cited behavior tests."
+    },
+    {
+      "card_id": 10322110,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】将1张『黄金项链』加入手牌。【谢幕曲】将1张『黄金短剑』加入手牌。",
+      "rule_version": 1,
+      "source_text_sha256": "9fefb9d5d824d5ae82ce3e9a50c8487302930afe6810b8cc106727f2ce325a24",
+      "test_evidence": [
+        "tests/test_real_royal_gilded_last_words_batch.py"
+      ],
+      "notes": "Fanfare and Last Words generate the two exact gilded spells with token origin; both generated play paths are directly tested."
     },
     {
       "card_id": 10333310,
@@ -1885,6 +1907,50 @@
         "tests/test_real_random_effect_followup_batch.py"
       ],
       "notes": "The generated follower retains intrinsic Rush and Ward; its Last Words uses an exact card-ID filter and is tested after token death."
+    },
+    {
+      "card_id": 90021310,
+      "coverage": "exact",
+      "implemented_text": "选择对手的战场上的1个随从或对手的主战者，对其造成1点伤害。",
+      "rule_version": 1,
+      "source_text_sha256": "a6dda36f4ef0cf417b153a6392a0ee3a9610cc31b866730262b989cfa0adda5d",
+      "test_evidence": [
+        "tests/test_real_royal_gilded_last_words_batch.py"
+      ],
+      "notes": "The generated spell requires an explicit enemy follower-or-leader choice and both target kinds are directly tested."
+    },
+    {
+      "card_id": 90021320,
+      "coverage": "exact",
+      "implemented_text": "回复自己的主战者2点生命值。",
+      "rule_version": 1,
+      "source_text_sha256": "4174c9f39a8f729a0f798642a58df774b37299ad5d0a9b5a1c156a8d3ba562a4",
+      "test_evidence": [
+        "tests/test_real_royal_gilded_last_words_batch.py"
+      ],
+      "notes": "The generated spell uses the standard capped leader-heal path and is directly tested."
+    },
+    {
+      "card_id": 90021330,
+      "coverage": "exact",
+      "implemented_text": "选择自己的战场上的1个随从，使其+1/+0且获得【突进】。",
+      "rule_version": 1,
+      "source_text_sha256": "6c029362b5d9005bef026b5c53f9e0399e07b5bdec7457ccb858b2c36d765ee9",
+      "test_evidence": [
+        "tests/test_real_royal_gilded_last_words_batch.py"
+      ],
+      "notes": "A required own-follower target is bound once for the permanent attack buff and Rush grant; no-target legality and target departure are tested."
+    },
+    {
+      "card_id": 90021340,
+      "coverage": "exact",
+      "implemented_text": "选择自己的战场上的1个随从，使其+0/+1且获得【守护】。",
+      "rule_version": 1,
+      "source_text_sha256": "e0781287b6536cd321dba5f9572ed78d7e7067dd653209df36a209142130aa09",
+      "test_evidence": [
+        "tests/test_real_royal_gilded_last_words_batch.py"
+      ],
+      "notes": "A required own-follower target is bound once for the permanent health buff and Ward grant; direct behavior is tested."
     },
     {
       "card_id": 90021350,

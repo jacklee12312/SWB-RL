@@ -7,9 +7,9 @@
   "summary": {
     "total": 91,
     "categories": {
-      "entry_behavior_complete": 13,
+      "entry_behavior_complete": 17,
       "entry_behavior_partial": 11,
-      "database_only_no_entry": 67,
+      "database_only_no_entry": 63,
       "text_unclear": 0,
       "external_blocker": 0
     }
@@ -795,8 +795,8 @@
       "card_set_id": 90000,
       "is_collectible": false,
       "support_level": "unsupported",
-      "category": "database_only_no_entry",
-      "reason": "Database source references exist, but no executable producer is authored.",
+      "category": "entry_behavior_complete",
+      "reason": "Executable entry exists and behavior is vanilla, fully implemented keyword-only, or explicitly audited exact.",
       "database_sources": [
         {
           "source_card_id": 10322110,
@@ -819,9 +819,16 @@
           "referenced_name": "黄金短剑"
         }
       ],
-      "authored_producers": [],
-      "has_authored_behavior": false,
-      "explicit_coverage": null,
+      "authored_producers": [
+        {
+          "source_card_id": 10322110,
+          "entry_kind": "add_card",
+          "rule_file": "real_royal_gilded_last_words_batch.json",
+          "rule_group": "rules"
+        }
+      ],
+      "has_authored_behavior": true,
+      "explicit_coverage": "exact",
       "keyword_only_text": false,
       "abilities": [],
       "skill_texts": [
@@ -836,8 +843,8 @@
       "card_set_id": 90000,
       "is_collectible": false,
       "support_level": "unsupported",
-      "category": "database_only_no_entry",
-      "reason": "Database source references exist, but no executable producer is authored.",
+      "category": "entry_behavior_complete",
+      "reason": "Executable entry exists and behavior is vanilla, fully implemented keyword-only, or explicitly audited exact.",
       "database_sources": [
         {
           "source_card_id": 10321110,
@@ -855,9 +862,16 @@
           "referenced_name": "黄金之杯"
         }
       ],
-      "authored_producers": [],
-      "has_authored_behavior": false,
-      "explicit_coverage": null,
+      "authored_producers": [
+        {
+          "source_card_id": 10321110,
+          "entry_kind": "add_card",
+          "rule_file": "real_royal_gilded_last_words_batch.json",
+          "rule_group": "rules"
+        }
+      ],
+      "has_authored_behavior": true,
+      "explicit_coverage": "exact",
       "keyword_only_text": false,
       "abilities": [],
       "skill_texts": [
@@ -872,8 +886,8 @@
       "card_set_id": 90000,
       "is_collectible": false,
       "support_level": "unsupported",
-      "category": "database_only_no_entry",
-      "reason": "Database source references exist, but no executable producer is authored.",
+      "category": "entry_behavior_complete",
+      "reason": "Executable entry exists and behavior is vanilla, fully implemented keyword-only, or explicitly audited exact.",
       "database_sources": [
         {
           "source_card_id": 10321110,
@@ -891,9 +905,16 @@
           "referenced_name": "黄金之靴"
         }
       ],
-      "authored_producers": [],
-      "has_authored_behavior": false,
-      "explicit_coverage": null,
+      "authored_producers": [
+        {
+          "source_card_id": 10321110,
+          "entry_kind": "add_card",
+          "rule_file": "real_royal_gilded_last_words_batch.json",
+          "rule_group": "rules"
+        }
+      ],
+      "has_authored_behavior": true,
+      "explicit_coverage": "exact",
       "keyword_only_text": false,
       "abilities": [
         {
@@ -913,8 +934,8 @@
       "card_set_id": 90000,
       "is_collectible": false,
       "support_level": "unsupported",
-      "category": "database_only_no_entry",
-      "reason": "Database source references exist, but no executable producer is authored.",
+      "category": "entry_behavior_complete",
+      "reason": "Executable entry exists and behavior is vanilla, fully implemented keyword-only, or explicitly audited exact.",
       "database_sources": [
         {
           "source_card_id": 10322110,
@@ -932,9 +953,16 @@
           "referenced_name": "黄金项链"
         }
       ],
-      "authored_producers": [],
-      "has_authored_behavior": false,
-      "explicit_coverage": null,
+      "authored_producers": [
+        {
+          "source_card_id": 10322110,
+          "entry_kind": "add_card",
+          "rule_file": "real_royal_gilded_last_words_batch.json",
+          "rule_group": "rules"
+        }
+      ],
+      "has_authored_behavior": true,
+      "explicit_coverage": "exact",
       "keyword_only_text": false,
       "abilities": [
         {

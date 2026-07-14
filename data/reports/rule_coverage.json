@@ -12,25 +12,25 @@
   },
   "summary": {
     "total_cards": 826,
-    "total_with_rules": 218,
+    "total_with_rules": 224,
     "test_or_synthetic_ids_with_rules": 26,
     "coverage_counts": {
-      "covered_exact": 184,
+      "covered_exact": 186,
       "text_unclear": 18,
-      "supported_missing_rule": 533,
+      "supported_missing_rule": 531,
       "token_or_non_collectible": 91
     },
     "clause_audit_counts": {
-      "mapped_exact": 184,
+      "mapped_exact": 186,
       "unverified_exact": 0,
       "partial": 0,
-      "missing_rule": 533,
+      "missing_rule": 531,
       "missing_primitive": 0,
       "text_unclear": 18,
       "token_separate_audit": 91
     },
     "blocker_counts": {
-      "missing_rule": 533,
+      "missing_rule": 531,
       "missing_schema": 0,
       "missing_primitive": 0,
       "missing_targeting": 0,
@@ -15723,8 +15723,8 @@
       "cost": 2,
       "is_collectible": true,
       "card_set_id": 10003,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '谢幕曲', '将.*加入手牌']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['fanfare', 'last_words'], Ops: ['add_card', 'add_card']",
       "hit_keywords": [
         "入场曲",
         "谢幕曲",
@@ -15739,27 +15739,45 @@
         "【<color=Keyword>入场曲</color>】将1张『<color=Keyword>黄金之靴</color>』加入手牌。\n<hr>【<color=Keyword>谢幕曲</color>】将1张『<color=Keyword>黄金之杯</color>』加入手牌。"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【入场曲】将1张『黄金之靴』加入手牌。【谢幕曲】将1张『黄金之杯』加入手牌。",
+        "notes": "Fanfare and Last Words generate the two exact gilded spells with token origin; hand-cap overflow is directly tested.",
+        "rule_version": 1,
+        "source_text_sha256": "938a2826937cd3f9430d16857a6337611cd699891dc3395edfd668e6442efc76",
+        "test_evidence": [
+          "tests/test_real_royal_gilded_last_words_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10321110:0",
             "source_text": "【<color=Keyword>入场曲</color>】将1张『<color=Keyword>黄金之靴</color>』加入手牌。\n<hr>【<color=Keyword>谢幕曲</color>】将1张『<color=Keyword>黄金之杯</color>』加入手牌。",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "【入场曲】将1张『黄金之靴』加入手牌。【谢幕曲】将1张『黄金之杯』加入手牌。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "938a2826937cd3f9430d16857a6337611cd699891dc3395edfd668e6442efc76",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "fanfare",
+            "last_words"
+          ],
+          "effect_kinds": [
+            "add_card",
+            "add_card"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_royal_gilded_last_words_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10321120": {
@@ -15876,8 +15894,8 @@
       "cost": 2,
       "is_collectible": true,
       "card_set_id": 10003,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '谢幕曲', '将.*加入手牌']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['fanfare', 'last_words'], Ops: ['add_card', 'add_card']",
       "hit_keywords": [
         "入场曲",
         "谢幕曲",
@@ -15892,27 +15910,45 @@
         "【<color=Keyword>入场曲</color>】将1张『<color=Keyword>黄金项链</color>』加入手牌。\n<hr>【<color=Keyword>谢幕曲</color>】将1张『<color=Keyword>黄金短剑</color>』加入手牌。"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【入场曲】将1张『黄金项链』加入手牌。【谢幕曲】将1张『黄金短剑』加入手牌。",
+        "notes": "Fanfare and Last Words generate the two exact gilded spells with token origin; both generated play paths are directly tested.",
+        "rule_version": 1,
+        "source_text_sha256": "9fefb9d5d824d5ae82ce3e9a50c8487302930afe6810b8cc106727f2ce325a24",
+        "test_evidence": [
+          "tests/test_real_royal_gilded_last_words_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10322110:0",
             "source_text": "【<color=Keyword>入场曲</color>】将1张『<color=Keyword>黄金项链</color>』加入手牌。\n<hr>【<color=Keyword>谢幕曲</color>】将1张『<color=Keyword>黄金短剑</color>』加入手牌。",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "【入场曲】将1张『黄金项链』加入手牌。【谢幕曲】将1张『黄金短剑』加入手牌。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "9fefb9d5d824d5ae82ce3e9a50c8487302930afe6810b8cc106727f2ce325a24",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "fanfare",
+            "last_words"
+          ],
+          "effect_kinds": [
+            "add_card",
+            "add_card"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_royal_gilded_last_words_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10322120": {
@@ -39131,14 +39167,20 @@
         "rule_version": 1,
         "errata": [],
         "source_clauses": [],
-        "implemented_text": null,
+        "implemented_text": "选择对手的战场上的1个随从或对手的主战者，对其造成1点伤害。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "a6dda36f4ef0cf417b153a6392a0ee3a9610cc31b866730262b989cfa0adda5d",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "play"
+          ],
+          "effect_kinds": [
+            "damage_unit"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_royal_gilded_last_words_batch.py"
+        ],
         "audit_validation_error": null,
         "blocker_type": null
       }
@@ -39158,14 +39200,20 @@
         "rule_version": 1,
         "errata": [],
         "source_clauses": [],
-        "implemented_text": null,
+        "implemented_text": "回复自己的主战者2点生命值。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "4174c9f39a8f729a0f798642a58df774b37299ad5d0a9b5a1c156a8d3ba562a4",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "play"
+          ],
+          "effect_kinds": [
+            "heal_leader"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_royal_gilded_last_words_batch.py"
+        ],
         "audit_validation_error": null,
         "blocker_type": null
       }
@@ -39185,14 +39233,21 @@
         "rule_version": 1,
         "errata": [],
         "source_clauses": [],
-        "implemented_text": null,
+        "implemented_text": "选择自己的战场上的1个随从，使其+1/+0且获得【突进】。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "6c029362b5d9005bef026b5c53f9e0399e07b5bdec7457ccb858b2c36d765ee9",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "play"
+          ],
+          "effect_kinds": [
+            "buff_unit",
+            "add_keyword"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_royal_gilded_last_words_batch.py"
+        ],
         "audit_validation_error": null,
         "blocker_type": null
       }
@@ -39212,14 +39267,21 @@
         "rule_version": 1,
         "errata": [],
         "source_clauses": [],
-        "implemented_text": null,
+        "implemented_text": "选择自己的战场上的1个随从，使其+0/+1且获得【守护】。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "e0781287b6536cd321dba5f9572ed78d7e7067dd653209df36a209142130aa09",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "play"
+          ],
+          "effect_kinds": [
+            "buff_unit",
+            "add_keyword"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_royal_gilded_last_words_batch.py"
+        ],
         "audit_validation_error": null,
         "blocker_type": null
       }
