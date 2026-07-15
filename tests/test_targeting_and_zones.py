@@ -8,6 +8,7 @@ from swb.engine.card_rules import CardRule, RuleBook, Trigger
 from swb.engine.commands import Choose, PlayCard, EndTurn
 from swb.engine.effects import (
     BoardFilter,
+    CandidateExtreme,
     Condition,
     ConditionType,
     EffectKind,
@@ -64,6 +65,140 @@ def spell_rule(card_id: int, kind: EffectKind, target: TargetKind, **kwargs) -> 
 
 class TargetingTests(unittest.TestCase):
     """Tests for the unified targeting system."""
+
+    def test_candidate_extreme_schema_and_leader_boundaries(self):
+        from swb.engine.card_rules import _parse_operation
+
+        operation = _parse_operation(
+            {
+                "kind": "destroy",
+                "target": "random_enemy_unit",
+                "candidate_extreme": "highest_attack",
+            },
+            "extreme.json",
+            77,
+        )
+        self.assertIs(operation.candidate_extreme, CandidateExtreme.HIGHEST_ATTACK)
+
+        invalid = (
+            {
+                "kind": "destroy",
+                "target": "random_enemy_unit",
+                "candidate_extreme": "largest_attack",
+            },
+            {
+                "kind": "damage_leader",
+                "target": "own_leader",
+                "candidate_extreme": "lowest_health",
+            },
+            {
+                "kind": "damage_leader",
+                "target": "all_leaders",
+                "candidate_extreme": "highest_attack",
+            },
+            {
+                "kind": "damage_unit",
+                "target": "all_leaders",
+                "candidate_extreme": "highest_health",
+            },
+        )
+        for raw in invalid:
+            with self.subTest(raw=raw):
+                with self.assertRaises(ValueError):
+                    _parse_operation(raw, "extreme.json", 77)
+
+    def test_random_extreme_selects_seeded_tie_only(self):
+        fingerprints = []
+        for _ in range(2):
+            operation = EffectOperation(
+                EffectKind.DESTROY,
+                TargetKind.RANDOM_ENEMY_UNIT,
+                candidate_extreme=CandidateExtreme.HIGHEST_ATTACK,
+            )
+            engine = GameEngine(
+                [card(i) for i in range(100, 140)],
+                [card(i) for i in range(200, 240)],
+                class_a=1,
+                class_b=1,
+                seed=29,
+                rulebook=RuleBook((CardRule(1, Trigger.PLAY, (operation,)),)),
+            )
+            engine.reset(seed=29)
+            low = Unit.summon(card(900, attack=3, life=5), entity_id=900)
+            high_a = Unit.summon(card(901, attack=6, life=5), entity_id=901)
+            high_b = Unit.summon(card(902, attack=6, life=5), entity_id=902)
+            engine.players[1].board = [low, high_a, high_b]
+            engine.players[0].mana = 10
+            engine.players[0].hand[0] = card(
+                1, card_type="法术", attack=None, life=None
+            )
+
+            engine.apply(PlayCard(0, 0))
+
+            self.assertIn(low, engine.players[1].board)
+            self.assertEqual(
+                sum(unit in engine.players[1].board for unit in (high_a, high_b)),
+                1,
+            )
+            fingerprints.append(engine.deterministic_fingerprint())
+        self.assertEqual(fingerprints[0], fingerprints[1])
+
+    def test_all_extreme_snapshots_every_tied_follower(self):
+        operation = EffectOperation(
+            EffectKind.DAMAGE_UNIT,
+            TargetKind.ALL_UNITS,
+            amount=2,
+            candidate_extreme=CandidateExtreme.HIGHEST_HEALTH,
+        )
+        engine = GameEngine(
+            [card(i) for i in range(100, 140)],
+            [card(i) for i in range(200, 240)],
+            class_a=1,
+            class_b=1,
+            seed=31,
+            rulebook=RuleBook((CardRule(1, Trigger.PLAY, (operation,)),)),
+        )
+        engine.reset(seed=31)
+        own = Unit.summon(card(910, life=5), entity_id=910)
+        tied = Unit.summon(card(911, life=5), entity_id=911)
+        lower = Unit.summon(card(912, life=4), entity_id=912)
+        engine.players[0].board = [own]
+        engine.players[1].board = [tied, lower]
+        engine.players[0].mana = 10
+        engine.players[0].hand[0] = card(1, card_type="法术", attack=None, life=None)
+
+        engine.apply(PlayCard(0, 0))
+
+        self.assertEqual((own.health, tied.health, lower.health), (3, 3, 4))
+
+    def test_all_leaders_extreme_keeps_ties_and_targets_current_health(self):
+        def run(own_health: int, enemy_health: int) -> tuple[int, int]:
+            operation = EffectOperation(
+                EffectKind.DAMAGE_LEADER,
+                TargetKind.ALL_LEADERS,
+                amount=3,
+                candidate_extreme=CandidateExtreme.LOWEST_HEALTH,
+            )
+            engine = GameEngine(
+                [card(i) for i in range(100, 140)],
+                [card(i) for i in range(200, 240)],
+                class_a=1,
+                class_b=1,
+                seed=37,
+                rulebook=RuleBook((CardRule(1, Trigger.PLAY, (operation,)),)),
+            )
+            engine.reset(seed=37)
+            engine.players[0].health = own_health
+            engine.players[1].health = enemy_health
+            engine.players[0].mana = 10
+            engine.players[0].hand[0] = card(
+                1, card_type="法术", attack=None, life=None
+            )
+            engine.apply(PlayCard(0, 0))
+            return engine.players[0].health, engine.players[1].health
+
+        self.assertEqual(run(10, 15), (7, 15))
+        self.assertEqual(run(10, 10), (7, 7))
 
     def _real_pending_target_moved_to_graveyard(self):
         rulebook = RuleBook.from_directory("data/rules")
@@ -1744,6 +1879,43 @@ class TargetingTests(unittest.TestCase):
         engine.players[0].hand[0] = card(1, card_type="法术", attack=None, life=None)
         engine.apply(PlayCard(0, 0))
         self.assertIsNone(engine.state.pending_choice)
+
+    def test_random_and_all_only_operations_are_playable_without_candidates(self):
+        for target in (
+            TargetKind.RANDOM_ENEMY_UNIT,
+            TargetKind.ALL_ENEMY_UNITS,
+        ):
+            with self.subTest(target=target):
+                rulebook = RuleBook((
+                    CardRule(
+                        card_id=1,
+                        trigger=Trigger.PLAY,
+                        operations=(EffectOperation(
+                            kind=EffectKind.DAMAGE_UNIT,
+                            target=target,
+                            amount=2,
+                        ),),
+                    ),
+                ))
+                engine = GameEngine(
+                    [card(i) for i in range(100, 140)],
+                    [card(i) for i in range(200, 240)],
+                    class_a=1,
+                    class_b=1,
+                    seed=1,
+                    rulebook=rulebook,
+                )
+                engine.reset(seed=1)
+                engine.players[1].board = []
+                engine.players[0].mana = 10
+                engine.players[0].hand[0] = card(
+                    1, card_type="法术", attack=None, life=None
+                )
+
+                command = PlayCard(0, 0)
+                self.assertIn(command, engine.legal_commands())
+                engine.apply(command)
+                self.assertIsNone(engine.state.pending_choice)
 
     def test_card_unplayable_when_all_choice_ops_have_no_targets(self):
         rulebook = RuleBook((

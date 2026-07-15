@@ -7,9 +7,9 @@
   "summary": {
     "total": 91,
     "categories": {
-      "entry_behavior_complete": 17,
-      "entry_behavior_partial": 11,
-      "database_only_no_entry": 63,
+      "entry_behavior_complete": 57,
+      "entry_behavior_partial": 0,
+      "database_only_no_entry": 34,
       "text_unclear": 0,
       "external_blocker": 0
     }
@@ -290,6 +290,24 @@
       ],
       "authored_producers": [
         {
+          "source_card_id": 10011110,
+          "entry_kind": "add_card",
+          "rule_file": "real_exact_token_followup_batch.json",
+          "rule_group": "rules"
+        },
+        {
+          "source_card_id": 10111120,
+          "entry_kind": "add_card",
+          "rule_file": "real_complete_token_board_batch.json",
+          "rule_group": "rules"
+        },
+        {
+          "source_card_id": 10111120,
+          "entry_kind": "summon",
+          "rule_file": "real_complete_token_board_batch.json",
+          "rule_group": "rules"
+        },
+        {
           "source_card_id": 10111310,
           "entry_kind": "add_card",
           "rule_file": "batch_basic_real_cards.json",
@@ -320,14 +338,32 @@
           "rule_group": "rules"
         },
         {
+          "source_card_id": 10312120,
+          "entry_kind": "add_card",
+          "rule_file": "real_generated_hand_last_words_batch.json",
+          "rule_group": "rules"
+        },
+        {
           "source_card_id": 10511120,
           "entry_kind": "summon",
           "rule_file": "real_listener_batch.json",
           "rule_group": "rules"
+        },
+        {
+          "source_card_id": 10711120,
+          "entry_kind": "add_card",
+          "rule_file": "real_selected_hand_exchange_batch.json",
+          "rule_group": "rules"
+        },
+        {
+          "source_card_id": 10811120,
+          "entry_kind": "summon",
+          "rule_file": "real_complete_token_board_batch.json",
+          "rule_group": "rules"
         }
       ],
       "has_authored_behavior": false,
-      "explicit_coverage": null,
+      "explicit_coverage": "exact",
       "keyword_only_text": true,
       "abilities": [
         {
@@ -347,8 +383,8 @@
       "card_set_id": 90000,
       "is_collectible": false,
       "support_level": "unsupported",
-      "category": "database_only_no_entry",
-      "reason": "Database source references exist, but no executable producer is authored.",
+      "category": "entry_behavior_complete",
+      "reason": "Executable entry exists and behavior is vanilla, fully implemented keyword-only, or explicitly audited exact.",
       "database_sources": [
         {
           "source_card_id": 10611110,
@@ -381,9 +417,22 @@
           "referenced_name": "新绿的妖精"
         }
       ],
-      "authored_producers": [],
-      "has_authored_behavior": false,
-      "explicit_coverage": null,
+      "authored_producers": [
+        {
+          "source_card_id": 10611310,
+          "entry_kind": "summon",
+          "rule_file": "real_spell_modes_and_earth_listener_batch.json",
+          "rule_group": "rules"
+        },
+        {
+          "source_card_id": 10613310,
+          "entry_kind": "summon",
+          "rule_file": "real_extreme_candidate_batch.json",
+          "rule_group": "rules"
+        }
+      ],
+      "has_authored_behavior": true,
+      "explicit_coverage": "exact",
       "keyword_only_text": false,
       "abilities": [
         {
@@ -403,8 +452,8 @@
       "card_set_id": 90000,
       "is_collectible": false,
       "support_level": "unsupported",
-      "category": "database_only_no_entry",
-      "reason": "Database source references exist, but no executable producer is authored.",
+      "category": "entry_behavior_complete",
+      "reason": "Executable entry exists and behavior is vanilla, fully implemented keyword-only, or explicitly audited exact.",
       "database_sources": [
         {
           "source_card_id": 10112210,
@@ -427,9 +476,22 @@
           "referenced_name": "森林的奥秘"
         }
       ],
-      "authored_producers": [],
-      "has_authored_behavior": false,
-      "explicit_coverage": null,
+      "authored_producers": [
+        {
+          "source_card_id": 10112310,
+          "entry_kind": "add_card",
+          "rule_file": "real_exact_token_followup_batch.json",
+          "rule_group": "rules"
+        },
+        {
+          "source_card_id": 10312120,
+          "entry_kind": "add_card",
+          "rule_file": "real_generated_hand_last_words_batch.json",
+          "rule_group": "rules"
+        }
+      ],
+      "has_authored_behavior": true,
+      "explicit_coverage": "exact",
       "keyword_only_text": false,
       "abilities": [],
       "skill_texts": [
@@ -653,9 +715,39 @@
           "rule_group": "rules"
         },
         {
+          "source_card_id": 10122310,
+          "entry_kind": "summon",
+          "rule_file": "real_spell_modes_and_earth_listener_batch.json",
+          "rule_group": "rules"
+        },
+        {
+          "source_card_id": 10123130,
+          "entry_kind": "summon",
+          "rule_file": "real_complete_token_board_batch.json",
+          "rule_group": "rules"
+        },
+        {
           "source_card_id": 10522310,
           "entry_kind": "summon",
           "rule_file": "real_spell_enhance_batch.json",
+          "rule_group": "rules"
+        },
+        {
+          "source_card_id": 10721120,
+          "entry_kind": "summon",
+          "rule_file": "real_complete_token_board_batch.json",
+          "rule_group": "rules"
+        },
+        {
+          "source_card_id": 10722110,
+          "entry_kind": "summon",
+          "rule_file": "real_complete_token_board_batch.json",
+          "rule_group": "rules"
+        },
+        {
+          "source_card_id": 10722120,
+          "entry_kind": "summon",
+          "rule_file": "real_complete_token_board_batch.json",
           "rule_group": "rules"
         }
       ],
@@ -751,14 +843,38 @@
           "rule_group": "rules"
         },
         {
+          "source_card_id": 10122310,
+          "entry_kind": "summon",
+          "rule_file": "real_spell_modes_and_earth_listener_batch.json",
+          "rule_group": "rules"
+        },
+        {
           "source_card_id": 10123140,
           "entry_kind": "summon",
           "rule_file": "royal_trait_listeners.json",
           "rule_group": "rules"
+        },
+        {
+          "source_card_id": 10224110,
+          "entry_kind": "summon",
+          "rule_file": "real_summon_output_trait_batch.json",
+          "rule_group": "rules"
+        },
+        {
+          "source_card_id": 10721120,
+          "entry_kind": "add_card",
+          "rule_file": "real_complete_token_board_batch.json",
+          "rule_group": "rules"
+        },
+        {
+          "source_card_id": 10724120,
+          "entry_kind": "summon",
+          "rule_file": "real_summon_output_trait_batch.json",
+          "rule_group": "rules"
         }
       ],
       "has_authored_behavior": false,
-      "explicit_coverage": null,
+      "explicit_coverage": "exact",
       "keyword_only_text": false,
       "abilities": [],
       "skill_texts": []
@@ -771,8 +887,8 @@
       "card_set_id": 90000,
       "is_collectible": false,
       "support_level": "basic",
-      "category": "database_only_no_entry",
-      "reason": "Database source references exist, but no executable producer is authored.",
+      "category": "entry_behavior_complete",
+      "reason": "Executable entry exists and behavior is vanilla, fully implemented keyword-only, or explicitly audited exact.",
       "database_sources": [
         {
           "source_card_id": 10821110,
@@ -780,9 +896,16 @@
           "referenced_name": "娜哈特的私兵"
         }
       ],
-      "authored_producers": [],
+      "authored_producers": [
+        {
+          "source_card_id": 10821110,
+          "entry_kind": "summon",
+          "rule_file": "real_token_producer_modes_activation_batch.json",
+          "rule_group": "rules"
+        }
+      ],
       "has_authored_behavior": false,
-      "explicit_coverage": null,
+      "explicit_coverage": "exact",
       "keyword_only_text": false,
       "abilities": [],
       "skill_texts": []
@@ -824,6 +947,12 @@
           "source_card_id": 10322110,
           "entry_kind": "add_card",
           "rule_file": "real_royal_gilded_last_words_batch.json",
+          "rule_group": "rules"
+        },
+        {
+          "source_card_id": 10323310,
+          "entry_kind": "add_card",
+          "rule_file": "real_spell_modes_and_earth_listener_batch.json",
           "rule_group": "rules"
         }
       ],
@@ -1040,8 +1169,8 @@
       "card_set_id": 90000,
       "is_collectible": false,
       "support_level": "keyword",
-      "category": "database_only_no_entry",
-      "reason": "Database source references exist, but no executable producer is authored.",
+      "category": "entry_behavior_complete",
+      "reason": "Executable entry exists and behavior is vanilla, fully implemented keyword-only, or explicitly audited exact.",
       "database_sources": [
         {
           "source_card_id": 10822310,
@@ -1049,9 +1178,16 @@
           "referenced_name": "异形"
         }
       ],
-      "authored_producers": [],
-      "has_authored_behavior": false,
-      "explicit_coverage": null,
+      "authored_producers": [
+        {
+          "source_card_id": 10822310,
+          "entry_kind": "summon",
+          "rule_file": "real_extreme_candidate_batch.json",
+          "rule_group": "rules"
+        }
+      ],
+      "has_authored_behavior": true,
+      "explicit_coverage": "exact",
       "keyword_only_text": true,
       "abilities": [
         {
@@ -1071,8 +1207,8 @@
       "card_set_id": 90000,
       "is_collectible": false,
       "support_level": "unsupported",
-      "category": "database_only_no_entry",
-      "reason": "Database source references exist, but no executable producer is authored.",
+      "category": "entry_behavior_complete",
+      "reason": "Executable entry exists and behavior is vanilla, fully implemented keyword-only, or explicitly audited exact.",
       "database_sources": [
         {
           "source_card_id": 10223120,
@@ -1080,9 +1216,16 @@
           "referenced_name": "安静的女仆·诺嘉"
         }
       ],
-      "authored_producers": [],
-      "has_authored_behavior": false,
-      "explicit_coverage": null,
+      "authored_producers": [
+        {
+          "source_card_id": 10223120,
+          "entry_kind": "add_card",
+          "rule_file": "real_generated_spell_and_follower_chain_batch.json",
+          "rule_group": "rules"
+        }
+      ],
+      "has_authored_behavior": true,
+      "explicit_coverage": "exact",
       "keyword_only_text": false,
       "abilities": [
         {
@@ -1223,6 +1366,12 @@
           "entry_kind": "summon",
           "rule_file": "batch_basic_real_cards.json",
           "rule_group": "rules"
+        },
+        {
+          "source_card_id": 10332310,
+          "entry_kind": "summon",
+          "rule_file": "real_spell_modes_and_earth_listener_batch.json",
+          "rule_group": "rules"
         }
       ],
       "has_authored_behavior": false,
@@ -1239,8 +1388,8 @@
       "card_set_id": 90000,
       "is_collectible": false,
       "support_level": "keyword",
-      "category": "database_only_no_entry",
-      "reason": "Database source references exist, but no executable producer is authored.",
+      "category": "entry_behavior_complete",
+      "reason": "Executable entry exists and behavior is vanilla, fully implemented keyword-only, or explicitly audited exact.",
       "database_sources": [
         {
           "source_card_id": 10032110,
@@ -1278,9 +1427,22 @@
           "referenced_name": "守护者巨像"
         }
       ],
-      "authored_producers": [],
-      "has_authored_behavior": false,
-      "explicit_coverage": null,
+      "authored_producers": [
+        {
+          "source_card_id": 10332310,
+          "entry_kind": "summon",
+          "rule_file": "real_spell_modes_and_earth_listener_batch.json",
+          "rule_group": "rules"
+        },
+        {
+          "source_card_id": 10834120,
+          "entry_kind": "summon",
+          "rule_file": "real_summon_output_trait_batch.json",
+          "rule_group": "rules"
+        }
+      ],
+      "has_authored_behavior": true,
+      "explicit_coverage": "exact",
       "keyword_only_text": true,
       "abilities": [
         {
@@ -1300,8 +1462,8 @@
       "card_set_id": 90000,
       "is_collectible": false,
       "support_level": "unsupported",
-      "category": "database_only_no_entry",
-      "reason": "Database source references exist, but no executable producer is authored.",
+      "category": "entry_behavior_complete",
+      "reason": "Executable entry exists and behavior is vanilla, fully implemented keyword-only, or explicitly audited exact.",
       "database_sources": [
         {
           "source_card_id": 10134110,
@@ -1314,9 +1476,16 @@
           "referenced_name": "式神·小纸人"
         }
       ],
-      "authored_producers": [],
-      "has_authored_behavior": false,
-      "explicit_coverage": null,
+      "authored_producers": [
+        {
+          "source_card_id": 10331120,
+          "entry_kind": "summon",
+          "rule_file": "real_token_producer_completion_batch.json",
+          "rule_group": "rules"
+        }
+      ],
+      "has_authored_behavior": true,
+      "explicit_coverage": "exact",
       "keyword_only_text": false,
       "abilities": [
         {
@@ -1340,8 +1509,8 @@
       "card_set_id": 90000,
       "is_collectible": false,
       "support_level": "unsupported",
-      "category": "database_only_no_entry",
-      "reason": "Database source references exist, but no executable producer is authored.",
+      "category": "entry_behavior_complete",
+      "reason": "Executable entry exists and behavior is vanilla, fully implemented keyword-only, or explicitly audited exact.",
       "database_sources": [
         {
           "source_card_id": 10133320,
@@ -1354,9 +1523,16 @@
           "referenced_name": "式神·暴鬼"
         }
       ],
-      "authored_producers": [],
-      "has_authored_behavior": false,
-      "explicit_coverage": null,
+      "authored_producers": [
+        {
+          "source_card_id": 10133320,
+          "entry_kind": "summon",
+          "rule_file": "real_token_producer_completion_batch.json",
+          "rule_group": "rules"
+        }
+      ],
+      "has_authored_behavior": true,
+      "explicit_coverage": "exact",
       "keyword_only_text": false,
       "abilities": [
         {
@@ -1380,8 +1556,8 @@
       "card_set_id": 90000,
       "is_collectible": false,
       "support_level": "unsupported",
-      "category": "entry_behavior_partial",
-      "reason": "Executable entry exists, but nontrivial token text lacks an exact audit.",
+      "category": "entry_behavior_complete",
+      "reason": "Executable entry exists and behavior is vanilla, fully implemented keyword-only, or explicitly audited exact.",
       "database_sources": [],
       "authored_producers": [
         {
@@ -1392,8 +1568,8 @@
           "notes": "ADD_EARTH_SIGILS creates or stacks the canonical Earth Sigil token."
         }
       ],
-      "has_authored_behavior": false,
-      "explicit_coverage": null,
+      "has_authored_behavior": true,
+      "explicit_coverage": "exact",
       "keyword_only_text": false,
       "abilities": [
         {
@@ -1417,8 +1593,8 @@
       "card_set_id": 90000,
       "is_collectible": false,
       "support_level": "unsupported",
-      "category": "database_only_no_entry",
-      "reason": "Database source references exist, but no executable producer is authored.",
+      "category": "entry_behavior_complete",
+      "reason": "Executable entry exists and behavior is vanilla, fully implemented keyword-only, or explicitly audited exact.",
       "database_sources": [
         {
           "source_card_id": 10831120,
@@ -1431,9 +1607,16 @@
           "referenced_name": "玛纳利亚魔弹"
         }
       ],
-      "authored_producers": [],
-      "has_authored_behavior": false,
-      "explicit_coverage": null,
+      "authored_producers": [
+        {
+          "source_card_id": 10831120,
+          "entry_kind": "add_card",
+          "rule_file": "real_token_producer_completion_batch.json",
+          "rule_group": "rules"
+        }
+      ],
+      "has_authored_behavior": true,
+      "explicit_coverage": "exact",
       "keyword_only_text": false,
       "abilities": [],
       "skill_texts": [
@@ -1579,8 +1762,8 @@
       "card_set_id": 90000,
       "is_collectible": false,
       "support_level": "unsupported",
-      "category": "database_only_no_entry",
-      "reason": "Database source references exist, but no executable producer is authored.",
+      "category": "entry_behavior_complete",
+      "reason": "Executable entry exists and behavior is vanilla, fully implemented keyword-only, or explicitly audited exact.",
       "database_sources": [
         {
           "source_card_id": 10134120,
@@ -1588,9 +1771,16 @@
           "referenced_name": "安的巨大英灵"
         }
       ],
-      "authored_producers": [],
-      "has_authored_behavior": false,
-      "explicit_coverage": null,
+      "authored_producers": [
+        {
+          "source_card_id": 10134120,
+          "entry_kind": "summon",
+          "rule_file": "real_generated_spell_and_follower_chain_batch.json",
+          "rule_group": "rules"
+        }
+      ],
+      "has_authored_behavior": true,
+      "explicit_coverage": "exact",
       "keyword_only_text": false,
       "abilities": [
         {
@@ -1749,8 +1939,8 @@
       "card_set_id": 90000,
       "is_collectible": false,
       "support_level": "unsupported",
-      "category": "database_only_no_entry",
-      "reason": "Database source references exist, but no executable producer is authored.",
+      "category": "entry_behavior_complete",
+      "reason": "Executable entry exists and behavior is vanilla, fully implemented keyword-only, or explicitly audited exact.",
       "database_sources": [
         {
           "source_card_id": 10141140,
@@ -1758,9 +1948,16 @@
           "referenced_name": "炽炎幼龙"
         }
       ],
-      "authored_producers": [],
-      "has_authored_behavior": false,
-      "explicit_coverage": null,
+      "authored_producers": [
+        {
+          "source_card_id": 10141140,
+          "entry_kind": "summon",
+          "rule_file": "real_token_producer_completion_batch.json",
+          "rule_group": "rules"
+        }
+      ],
+      "has_authored_behavior": true,
+      "explicit_coverage": "exact",
       "keyword_only_text": true,
       "abilities": [
         {
@@ -1780,8 +1977,8 @@
       "card_set_id": 90000,
       "is_collectible": false,
       "support_level": "unsupported",
-      "category": "database_only_no_entry",
-      "reason": "Database source references exist, but no executable producer is authored.",
+      "category": "entry_behavior_complete",
+      "reason": "Executable entry exists and behavior is vanilla, fully implemented keyword-only, or explicitly audited exact.",
       "database_sources": [
         {
           "source_card_id": 10042120,
@@ -1814,9 +2011,22 @@
           "referenced_name": "巨翼飞龙"
         }
       ],
-      "authored_producers": [],
-      "has_authored_behavior": false,
-      "explicit_coverage": null,
+      "authored_producers": [
+        {
+          "source_card_id": 10042120,
+          "entry_kind": "summon",
+          "rule_file": "real_token_producer_modes_activation_batch.json",
+          "rule_group": "rules"
+        },
+        {
+          "source_card_id": 10141110,
+          "entry_kind": "summon",
+          "rule_file": "real_token_producer_modes_activation_batch.json",
+          "rule_group": "rules"
+        }
+      ],
+      "has_authored_behavior": true,
+      "explicit_coverage": "exact",
       "keyword_only_text": true,
       "abilities": [
         {
@@ -1887,6 +2097,18 @@
       ],
       "authored_producers": [
         {
+          "source_card_id": 10241310,
+          "entry_kind": "summon",
+          "rule_file": "real_spell_modes_and_earth_listener_batch.json",
+          "rule_group": "rules"
+        },
+        {
+          "source_card_id": 10242120,
+          "entry_kind": "summon",
+          "rule_file": "real_complete_token_board_batch.json",
+          "rule_group": "rules"
+        },
+        {
           "source_card_id": 10541120,
           "entry_kind": "summon",
           "rule_file": "cross_class_trait_listeners.json",
@@ -1914,8 +2136,8 @@
       "card_set_id": 90000,
       "is_collectible": false,
       "support_level": "keyword",
-      "category": "database_only_no_entry",
-      "reason": "Database source references exist, but no executable producer is authored.",
+      "category": "entry_behavior_complete",
+      "reason": "Executable entry exists and behavior is vanilla, fully implemented keyword-only, or explicitly audited exact.",
       "database_sources": [
         {
           "source_card_id": 10143210,
@@ -1923,9 +2145,16 @@
           "referenced_name": "乙姬近卫队"
         }
       ],
-      "authored_producers": [],
-      "has_authored_behavior": false,
-      "explicit_coverage": null,
+      "authored_producers": [
+        {
+          "source_card_id": 10143210,
+          "entry_kind": "summon",
+          "rule_file": "real_token_producer_modes_activation_batch.json",
+          "rule_group": "rules"
+        }
+      ],
+      "has_authored_behavior": true,
+      "explicit_coverage": "exact",
       "keyword_only_text": true,
       "abilities": [
         {
@@ -1949,8 +2178,8 @@
       "card_set_id": 90000,
       "is_collectible": false,
       "support_level": "keyword",
-      "category": "database_only_no_entry",
-      "reason": "Database source references exist, but no executable producer is authored.",
+      "category": "entry_behavior_complete",
+      "reason": "Executable entry exists and behavior is vanilla, fully implemented keyword-only, or explicitly audited exact.",
       "database_sources": [
         {
           "source_card_id": 10144130,
@@ -1958,9 +2187,16 @@
           "referenced_name": "霸道之金龙"
         }
       ],
-      "authored_producers": [],
-      "has_authored_behavior": false,
-      "explicit_coverage": null,
+      "authored_producers": [
+        {
+          "source_card_id": 10144130,
+          "entry_kind": "summon",
+          "rule_file": "real_token_producer_modes_activation_batch.json",
+          "rule_group": "rules"
+        }
+      ],
+      "has_authored_behavior": true,
+      "explicit_coverage": "exact",
       "keyword_only_text": true,
       "abilities": [
         {
@@ -1980,8 +2216,8 @@
       "card_set_id": 90000,
       "is_collectible": false,
       "support_level": "keyword",
-      "category": "database_only_no_entry",
-      "reason": "Database source references exist, but no executable producer is authored.",
+      "category": "entry_behavior_complete",
+      "reason": "Executable entry exists and behavior is vanilla, fully implemented keyword-only, or explicitly audited exact.",
       "database_sources": [
         {
           "source_card_id": 10144130,
@@ -1989,9 +2225,16 @@
           "referenced_name": "霸道之银龙"
         }
       ],
-      "authored_producers": [],
-      "has_authored_behavior": false,
-      "explicit_coverage": null,
+      "authored_producers": [
+        {
+          "source_card_id": 10144130,
+          "entry_kind": "summon",
+          "rule_file": "real_token_producer_modes_activation_batch.json",
+          "rule_group": "rules"
+        }
+      ],
+      "has_authored_behavior": true,
+      "explicit_coverage": "exact",
       "keyword_only_text": true,
       "abilities": [
         {
@@ -2150,14 +2393,38 @@
       ],
       "authored_producers": [
         {
+          "source_card_id": 10151130,
+          "entry_kind": "summon",
+          "rule_file": "real_exact_token_followup_batch.json",
+          "rule_group": "rules"
+        },
+        {
+          "source_card_id": 10152110,
+          "entry_kind": "add_card",
+          "rule_file": "real_generated_hand_last_words_batch.json",
+          "rule_group": "rules"
+        },
+        {
           "source_card_id": 10251310,
           "entry_kind": "add_card",
           "rule_file": "batch_basic_real_cards.json",
           "rule_group": "rules"
+        },
+        {
+          "source_card_id": 10751120,
+          "entry_kind": "summon",
+          "rule_file": "real_complete_token_board_batch.json",
+          "rule_group": "rules"
+        },
+        {
+          "source_card_id": 10753110,
+          "entry_kind": "summon",
+          "rule_file": "real_summon_output_trait_batch.json",
+          "rule_group": "rules"
         }
       ],
       "has_authored_behavior": false,
-      "explicit_coverage": null,
+      "explicit_coverage": "exact",
       "keyword_only_text": false,
       "abilities": [],
       "skill_texts": []
@@ -2243,14 +2510,32 @@
           "rule_group": "rules"
         },
         {
+          "source_card_id": 10151120,
+          "entry_kind": "summon",
+          "rule_file": "real_exact_token_followup_batch.json",
+          "rule_group": "rules"
+        },
+        {
           "source_card_id": 10252310,
           "entry_kind": "summon",
           "rule_file": "batch_basic_real_cards.json",
           "rule_group": "rules"
+        },
+        {
+          "source_card_id": 10653110,
+          "entry_kind": "summon",
+          "rule_file": "real_summon_output_trait_batch.json",
+          "rule_group": "rules"
+        },
+        {
+          "source_card_id": 10751110,
+          "entry_kind": "add_card",
+          "rule_file": "real_generated_hand_last_words_batch.json",
+          "rule_group": "rules"
         }
       ],
       "has_authored_behavior": false,
-      "explicit_coverage": null,
+      "explicit_coverage": "exact",
       "keyword_only_text": true,
       "abilities": [
         {
@@ -2270,8 +2555,8 @@
       "card_set_id": 90000,
       "is_collectible": false,
       "support_level": "unsupported",
-      "category": "entry_behavior_partial",
-      "reason": "Executable entry exists, but nontrivial token text lacks an exact audit.",
+      "category": "entry_behavior_complete",
+      "reason": "Executable entry exists and behavior is vanilla, fully implemented keyword-only, or explicitly audited exact.",
       "database_sources": [
         {
           "source_card_id": 10052120,
@@ -2333,8 +2618,8 @@
           "rule_group": "rules"
         }
       ],
-      "has_authored_behavior": false,
-      "explicit_coverage": null,
+      "has_authored_behavior": true,
+      "explicit_coverage": "exact",
       "keyword_only_text": false,
       "abilities": [
         {
@@ -2354,8 +2639,8 @@
       "card_set_id": 90000,
       "is_collectible": false,
       "support_level": "unsupported",
-      "category": "entry_behavior_partial",
-      "reason": "Executable entry exists, but nontrivial token text lacks an exact audit.",
+      "category": "entry_behavior_complete",
+      "reason": "Executable entry exists and behavior is vanilla, fully implemented keyword-only, or explicitly audited exact.",
       "database_sources": [
         {
           "source_card_id": 10251310,
@@ -2394,10 +2679,22 @@
           "entry_kind": "add_card",
           "rule_file": "batch_basic_real_cards.json",
           "rule_group": "rules"
+        },
+        {
+          "source_card_id": 10753110,
+          "entry_kind": "summon",
+          "rule_file": "real_summon_output_trait_batch.json",
+          "rule_group": "rules"
+        },
+        {
+          "source_card_id": 90051140,
+          "entry_kind": "summon",
+          "rule_file": "real_summon_output_trait_batch.json",
+          "rule_group": "rules"
         }
       ],
-      "has_authored_behavior": false,
-      "explicit_coverage": null,
+      "has_authored_behavior": true,
+      "explicit_coverage": "exact",
       "keyword_only_text": false,
       "abilities": [
         {
@@ -2417,8 +2714,8 @@
       "card_set_id": 90000,
       "is_collectible": false,
       "support_level": "unsupported",
-      "category": "database_only_no_entry",
-      "reason": "Database source references exist, but no executable producer is authored.",
+      "category": "entry_behavior_complete",
+      "reason": "Executable entry exists and behavior is vanilla, fully implemented keyword-only, or explicitly audited exact.",
       "database_sources": [
         {
           "source_card_id": 10154110,
@@ -2426,9 +2723,16 @@
           "referenced_name": "守卫犬的右腕·米米"
         }
       ],
-      "authored_producers": [],
-      "has_authored_behavior": false,
-      "explicit_coverage": null,
+      "authored_producers": [
+        {
+          "source_card_id": 10154110,
+          "entry_kind": "summon",
+          "rule_file": "real_token_producer_completion_batch.json",
+          "rule_group": "rules"
+        }
+      ],
+      "has_authored_behavior": true,
+      "explicit_coverage": "exact",
       "keyword_only_text": false,
       "abilities": [
         {
@@ -2452,8 +2756,8 @@
       "card_set_id": 90000,
       "is_collectible": false,
       "support_level": "unsupported",
-      "category": "database_only_no_entry",
-      "reason": "Database source references exist, but no executable producer is authored.",
+      "category": "entry_behavior_complete",
+      "reason": "Executable entry exists and behavior is vanilla, fully implemented keyword-only, or explicitly audited exact.",
       "database_sources": [
         {
           "source_card_id": 10154110,
@@ -2461,9 +2765,16 @@
           "referenced_name": "守卫犬的左腕·可可"
         }
       ],
-      "authored_producers": [],
-      "has_authored_behavior": false,
-      "explicit_coverage": null,
+      "authored_producers": [
+        {
+          "source_card_id": 10154110,
+          "entry_kind": "summon",
+          "rule_file": "real_token_producer_completion_batch.json",
+          "rule_group": "rules"
+        }
+      ],
+      "has_authored_behavior": true,
+      "explicit_coverage": "exact",
       "keyword_only_text": false,
       "abilities": [
         {
@@ -2533,8 +2844,8 @@
       "card_set_id": 90000,
       "is_collectible": false,
       "support_level": "unsupported",
-      "category": "database_only_no_entry",
-      "reason": "Database source references exist, but no executable producer is authored.",
+      "category": "entry_behavior_complete",
+      "reason": "Executable entry exists and behavior is vanilla, fully implemented keyword-only, or explicitly audited exact.",
       "database_sources": [
         {
           "source_card_id": 10354120,
@@ -2542,9 +2853,16 @@
           "referenced_name": "绝叫的扩散"
         }
       ],
-      "authored_producers": [],
-      "has_authored_behavior": false,
-      "explicit_coverage": null,
+      "authored_producers": [
+        {
+          "source_card_id": 10354120,
+          "entry_kind": "add_card",
+          "rule_file": "real_generated_spell_and_follower_chain_batch.json",
+          "rule_group": "rules"
+        }
+      ],
+      "has_authored_behavior": true,
+      "explicit_coverage": "exact",
       "keyword_only_text": false,
       "abilities": [
         {
@@ -2564,8 +2882,8 @@
       "card_set_id": 90000,
       "is_collectible": false,
       "support_level": "unsupported",
-      "category": "database_only_no_entry",
-      "reason": "Database source references exist, but no executable producer is authored.",
+      "category": "entry_behavior_complete",
+      "reason": "Executable entry exists and behavior is vanilla, fully implemented keyword-only, or explicitly audited exact.",
       "database_sources": [
         {
           "source_card_id": 10354120,
@@ -2573,9 +2891,16 @@
           "referenced_name": "爱绝的飞翔"
         }
       ],
-      "authored_producers": [],
-      "has_authored_behavior": false,
-      "explicit_coverage": null,
+      "authored_producers": [
+        {
+          "source_card_id": 10354120,
+          "entry_kind": "add_card",
+          "rule_file": "real_generated_spell_and_follower_chain_batch.json",
+          "rule_group": "rules"
+        }
+      ],
+      "has_authored_behavior": true,
+      "explicit_coverage": "exact",
       "keyword_only_text": false,
       "abilities": [
         {
@@ -2621,8 +2946,8 @@
       "card_set_id": 90000,
       "is_collectible": false,
       "support_level": "keyword",
-      "category": "database_only_no_entry",
-      "reason": "Database source references exist, but no executable producer is authored.",
+      "category": "entry_behavior_complete",
+      "reason": "Executable entry exists and behavior is vanilla, fully implemented keyword-only, or explicitly audited exact.",
       "database_sources": [
         {
           "source_card_id": 10062210,
@@ -2650,9 +2975,16 @@
           "referenced_name": "神圣猎鹰"
         }
       ],
-      "authored_producers": [],
-      "has_authored_behavior": false,
-      "explicit_coverage": null,
+      "authored_producers": [
+        {
+          "source_card_id": 10161310,
+          "entry_kind": "summon",
+          "rule_file": "real_token_producer_completion_batch.json",
+          "rule_group": "rules"
+        }
+      ],
+      "has_authored_behavior": true,
+      "explicit_coverage": "exact",
       "keyword_only_text": true,
       "abilities": [
         {
@@ -2672,8 +3004,8 @@
       "card_set_id": 90000,
       "is_collectible": false,
       "support_level": "keyword",
-      "category": "database_only_no_entry",
-      "reason": "Database source references exist, but no executable producer is authored.",
+      "category": "entry_behavior_complete",
+      "reason": "Executable entry exists and behavior is vanilla, fully implemented keyword-only, or explicitly audited exact.",
       "database_sources": [
         {
           "source_card_id": 10163210,
@@ -2686,9 +3018,16 @@
           "referenced_name": "圣炎猛虎"
         }
       ],
-      "authored_producers": [],
-      "has_authored_behavior": false,
-      "explicit_coverage": null,
+      "authored_producers": [
+        {
+          "source_card_id": 10163210,
+          "entry_kind": "summon",
+          "rule_file": "real_token_producer_completion_batch.json",
+          "rule_group": "rules"
+        }
+      ],
+      "has_authored_behavior": true,
+      "explicit_coverage": "exact",
       "keyword_only_text": true,
       "abilities": [
         {
@@ -2708,8 +3047,8 @@
       "card_set_id": 90000,
       "is_collectible": false,
       "support_level": "keyword",
-      "category": "database_only_no_entry",
-      "reason": "Database source references exist, but no executable producer is authored.",
+      "category": "entry_behavior_complete",
+      "reason": "Executable entry exists and behavior is vanilla, fully implemented keyword-only, or explicitly audited exact.",
       "database_sources": [
         {
           "source_card_id": 10061210,
@@ -2722,9 +3061,16 @@
           "referenced_name": "壮丽大神隼"
         }
       ],
-      "authored_producers": [],
-      "has_authored_behavior": false,
-      "explicit_coverage": null,
+      "authored_producers": [
+        {
+          "source_card_id": 10061210,
+          "entry_kind": "summon",
+          "rule_file": "real_token_producer_modes_activation_batch.json",
+          "rule_group": "rules"
+        }
+      ],
+      "has_authored_behavior": true,
+      "explicit_coverage": "exact",
       "keyword_only_text": true,
       "abilities": [
         {
@@ -2880,8 +3226,8 @@
       "card_set_id": 90000,
       "is_collectible": false,
       "support_level": "unsupported",
-      "category": "database_only_no_entry",
-      "reason": "Database source references exist, but no executable producer is authored.",
+      "category": "entry_behavior_complete",
+      "reason": "Executable entry exists and behavior is vanilla, fully implemented keyword-only, or explicitly audited exact.",
       "database_sources": [
         {
           "source_card_id": 10072210,
@@ -2914,9 +3260,16 @@
           "referenced_name": "悬丝傀儡"
         }
       ],
-      "authored_producers": [],
-      "has_authored_behavior": false,
-      "explicit_coverage": null,
+      "authored_producers": [
+        {
+          "source_card_id": 10371310,
+          "entry_kind": "add_card",
+          "rule_file": "real_token_producer_completion_batch.json",
+          "rule_group": "rules"
+        }
+      ],
+      "has_authored_behavior": true,
+      "explicit_coverage": "exact",
       "keyword_only_text": false,
       "abilities": [
         {
@@ -2936,8 +3289,8 @@
       "card_set_id": 90000,
       "is_collectible": false,
       "support_level": "unsupported",
-      "category": "entry_behavior_partial",
-      "reason": "Executable entry exists, but nontrivial token text lacks an exact audit.",
+      "category": "entry_behavior_complete",
+      "reason": "Executable entry exists and behavior is vanilla, fully implemented keyword-only, or explicitly audited exact.",
       "database_sources": [
         {
           "source_card_id": 10071120,
@@ -2983,8 +3336,8 @@
           "rule_group": "rules"
         }
       ],
-      "has_authored_behavior": false,
-      "explicit_coverage": null,
+      "has_authored_behavior": true,
+      "explicit_coverage": "exact",
       "keyword_only_text": false,
       "abilities": [
         {
@@ -3040,8 +3393,8 @@
       "card_set_id": 90000,
       "is_collectible": false,
       "support_level": "keyword",
-      "category": "database_only_no_entry",
-      "reason": "Database source references exist, but no executable producer is authored.",
+      "category": "entry_behavior_complete",
+      "reason": "Executable entry exists and behavior is vanilla, fully implemented keyword-only, or explicitly audited exact.",
       "database_sources": [
         {
           "source_card_id": 10771310,
@@ -3069,9 +3422,22 @@
           "referenced_name": "古老的创造物"
         }
       ],
-      "authored_producers": [],
+      "authored_producers": [
+        {
+          "source_card_id": 10772110,
+          "entry_kind": "add_card",
+          "rule_file": "real_complete_token_board_batch.json",
+          "rule_group": "rules"
+        },
+        {
+          "source_card_id": 10872110,
+          "entry_kind": "add_card",
+          "rule_file": "real_generated_hand_last_words_batch.json",
+          "rule_group": "rules"
+        }
+      ],
       "has_authored_behavior": false,
-      "explicit_coverage": null,
+      "explicit_coverage": "exact",
       "keyword_only_text": true,
       "abilities": [
         {
@@ -3139,8 +3505,8 @@
       "card_set_id": 90000,
       "is_collectible": false,
       "support_level": "keyword",
-      "category": "database_only_no_entry",
-      "reason": "Database source references exist, but no executable producer is authored.",
+      "category": "entry_behavior_complete",
+      "reason": "Executable entry exists and behavior is vanilla, fully implemented keyword-only, or explicitly audited exact.",
       "database_sources": [
         {
           "source_card_id": 10872120,
@@ -3153,9 +3519,22 @@
           "referenced_name": "绚烂的创造物"
         }
       ],
-      "authored_producers": [],
-      "has_authored_behavior": false,
-      "explicit_coverage": null,
+      "authored_producers": [
+        {
+          "source_card_id": 10872120,
+          "entry_kind": "add_card",
+          "rule_file": "real_generated_spell_and_follower_chain_batch.json",
+          "rule_group": "rules"
+        },
+        {
+          "source_card_id": 10873110,
+          "entry_kind": "summon",
+          "rule_file": "real_generated_spell_and_follower_chain_batch.json",
+          "rule_group": "rules"
+        }
+      ],
+      "has_authored_behavior": true,
+      "explicit_coverage": "exact",
       "keyword_only_text": true,
       "abilities": [
         {
@@ -3175,8 +3554,8 @@
       "card_set_id": 90000,
       "is_collectible": false,
       "support_level": "unsupported",
-      "category": "entry_behavior_partial",
-      "reason": "Executable entry exists, but nontrivial token text lacks an exact audit.",
+      "category": "entry_behavior_complete",
+      "reason": "Executable entry exists and behavior is vanilla, fully implemented keyword-only, or explicitly audited exact.",
       "database_sources": [
         {
           "source_card_id": 10071110,
@@ -3233,7 +3612,7 @@
         }
       ],
       "has_authored_behavior": true,
-      "explicit_coverage": null,
+      "explicit_coverage": "exact",
       "keyword_only_text": false,
       "abilities": [
         {
@@ -3253,8 +3632,8 @@
       "card_set_id": 90000,
       "is_collectible": false,
       "support_level": "unsupported",
-      "category": "entry_behavior_partial",
-      "reason": "Executable entry exists, but nontrivial token text lacks an exact audit.",
+      "category": "entry_behavior_complete",
+      "reason": "Executable entry exists and behavior is vanilla, fully implemented keyword-only, or explicitly audited exact.",
       "database_sources": [
         {
           "source_card_id": 10071310,
@@ -3333,7 +3712,7 @@
         }
       ],
       "has_authored_behavior": true,
-      "explicit_coverage": null,
+      "explicit_coverage": "exact",
       "keyword_only_text": false,
       "abilities": [
         {
@@ -3353,8 +3732,8 @@
       "card_set_id": 90000,
       "is_collectible": false,
       "support_level": "unsupported",
-      "category": "entry_behavior_partial",
-      "reason": "Executable entry exists, but nontrivial token text lacks an exact audit.",
+      "category": "entry_behavior_complete",
+      "reason": "Executable entry exists and behavior is vanilla, fully implemented keyword-only, or explicitly audited exact.",
       "database_sources": [
         {
           "source_card_id": 10172110,
@@ -3386,7 +3765,7 @@
         }
       ],
       "has_authored_behavior": true,
-      "explicit_coverage": null,
+      "explicit_coverage": "exact",
       "keyword_only_text": false,
       "abilities": [
         {
@@ -3410,8 +3789,8 @@
       "card_set_id": 90000,
       "is_collectible": false,
       "support_level": "unsupported",
-      "category": "entry_behavior_partial",
-      "reason": "Executable entry exists, but nontrivial token text lacks an exact audit.",
+      "category": "entry_behavior_complete",
+      "reason": "Executable entry exists and behavior is vanilla, fully implemented keyword-only, or explicitly audited exact.",
       "database_sources": [
         {
           "source_card_id": 10171120,
@@ -3438,7 +3817,7 @@
         }
       ],
       "has_authored_behavior": true,
-      "explicit_coverage": null,
+      "explicit_coverage": "exact",
       "keyword_only_text": false,
       "abilities": [
         {
@@ -3497,8 +3876,8 @@
       "card_set_id": 90000,
       "is_collectible": false,
       "support_level": "unsupported",
-      "category": "entry_behavior_partial",
-      "reason": "Executable entry exists, but nontrivial token text lacks an exact audit.",
+      "category": "entry_behavior_complete",
+      "reason": "Executable entry exists and behavior is vanilla, fully implemented keyword-only, or explicitly audited exact.",
       "database_sources": [
         {
           "source_card_id": 10671120,
@@ -3530,8 +3909,8 @@
           "rule_group": "fusions"
         }
       ],
-      "has_authored_behavior": false,
-      "explicit_coverage": null,
+      "has_authored_behavior": true,
+      "explicit_coverage": "exact",
       "keyword_only_text": false,
       "abilities": [
         {
@@ -3551,8 +3930,8 @@
       "card_set_id": 90000,
       "is_collectible": false,
       "support_level": "unsupported",
-      "category": "entry_behavior_partial",
-      "reason": "Executable entry exists, but nontrivial token text lacks an exact audit.",
+      "category": "entry_behavior_complete",
+      "reason": "Executable entry exists and behavior is vanilla, fully implemented keyword-only, or explicitly audited exact.",
       "database_sources": [
         {
           "source_card_id": 10572110,
@@ -3589,8 +3968,8 @@
           "rule_group": "fusions"
         }
       ],
-      "has_authored_behavior": false,
-      "explicit_coverage": null,
+      "has_authored_behavior": true,
+      "explicit_coverage": "exact",
       "keyword_only_text": false,
       "abilities": [],
       "skill_texts": [
@@ -3605,8 +3984,8 @@
       "card_set_id": 90000,
       "is_collectible": false,
       "support_level": "unsupported",
-      "category": "entry_behavior_partial",
-      "reason": "Executable entry exists, but nontrivial token text lacks an exact audit.",
+      "category": "entry_behavior_complete",
+      "reason": "Executable entry exists and behavior is vanilla, fully implemented keyword-only, or explicitly audited exact.",
       "database_sources": [
         {
           "source_card_id": 10371120,
@@ -3643,8 +4022,8 @@
           "rule_group": "fusions"
         }
       ],
-      "has_authored_behavior": false,
-      "explicit_coverage": null,
+      "has_authored_behavior": true,
+      "explicit_coverage": "exact",
       "keyword_only_text": false,
       "abilities": [],
       "skill_texts": [
@@ -3659,8 +4038,8 @@
       "card_set_id": 90000,
       "is_collectible": false,
       "support_level": "unsupported",
-      "category": "database_only_no_entry",
-      "reason": "Database source references exist, but no executable producer is authored.",
+      "category": "entry_behavior_complete",
+      "reason": "Executable entry exists and behavior is vanilla, fully implemented keyword-only, or explicitly audited exact.",
       "database_sources": [
         {
           "source_card_id": 90073110,
@@ -3668,9 +4047,16 @@
           "referenced_name": "卓越创造物Ω"
         }
       ],
-      "authored_producers": [],
-      "has_authored_behavior": false,
-      "explicit_coverage": null,
+      "authored_producers": [
+        {
+          "source_card_id": 90073110,
+          "entry_kind": "fusion_transform",
+          "rule_file": "fusion.json",
+          "rule_group": "fusions"
+        }
+      ],
+      "has_authored_behavior": true,
+      "explicit_coverage": "exact",
       "keyword_only_text": false,
       "abilities": [
         {
@@ -3814,8 +4200,8 @@
       "card_set_id": 90000,
       "is_collectible": false,
       "support_level": "unsupported",
-      "category": "database_only_no_entry",
-      "reason": "Database source references exist, but no executable producer is authored.",
+      "category": "entry_behavior_complete",
+      "reason": "Executable entry exists and behavior is vanilla, fully implemented keyword-only, or explicitly audited exact.",
       "database_sources": [
         {
           "source_card_id": 10373310,
@@ -3833,9 +4219,28 @@
           "referenced_name": "新约·白之章"
         }
       ],
-      "authored_producers": [],
-      "has_authored_behavior": false,
-      "explicit_coverage": null,
+      "authored_producers": [
+        {
+          "source_card_id": 10373310,
+          "entry_kind": "summon",
+          "rule_file": "real_token_producer_completion_batch.json",
+          "rule_group": "rules"
+        },
+        {
+          "source_card_id": 10374120,
+          "entry_kind": "summon",
+          "rule_file": "real_generated_spell_and_follower_chain_batch.json",
+          "rule_group": "rules"
+        },
+        {
+          "source_card_id": 90074220,
+          "entry_kind": "summon",
+          "rule_file": "real_token_producer_completion_batch.json",
+          "rule_group": "rules"
+        }
+      ],
+      "has_authored_behavior": true,
+      "explicit_coverage": "exact",
       "keyword_only_text": false,
       "abilities": [
         {
@@ -3859,8 +4264,8 @@
       "card_set_id": 90000,
       "is_collectible": false,
       "support_level": "unsupported",
-      "category": "database_only_no_entry",
-      "reason": "Database source references exist, but no executable producer is authored.",
+      "category": "entry_behavior_complete",
+      "reason": "Executable entry exists and behavior is vanilla, fully implemented keyword-only, or explicitly audited exact.",
       "database_sources": [
         {
           "source_card_id": 90074210,
@@ -3868,9 +4273,16 @@
           "referenced_name": "新约·黑之章"
         }
       ],
-      "authored_producers": [],
-      "has_authored_behavior": false,
-      "explicit_coverage": null,
+      "authored_producers": [
+        {
+          "source_card_id": 90074210,
+          "entry_kind": "summon",
+          "rule_file": "real_token_producer_completion_batch.json",
+          "rule_group": "rules"
+        }
+      ],
+      "has_authored_behavior": true,
+      "explicit_coverage": "exact",
       "keyword_only_text": false,
       "abilities": [
         {
@@ -3894,8 +4306,8 @@
       "card_set_id": 90000,
       "is_collectible": false,
       "support_level": "unsupported",
-      "category": "database_only_no_entry",
-      "reason": "Database source references exist, but no executable producer is authored.",
+      "category": "entry_behavior_complete",
+      "reason": "Executable entry exists and behavior is vanilla, fully implemented keyword-only, or explicitly audited exact.",
       "database_sources": [
         {
           "source_card_id": 10374120,
@@ -3903,9 +4315,16 @@
           "referenced_name": "奏绝的独唱"
         }
       ],
-      "authored_producers": [],
-      "has_authored_behavior": false,
-      "explicit_coverage": null,
+      "authored_producers": [
+        {
+          "source_card_id": 10374120,
+          "entry_kind": "add_card",
+          "rule_file": "real_generated_spell_and_follower_chain_batch.json",
+          "rule_group": "rules"
+        }
+      ],
+      "has_authored_behavior": true,
+      "explicit_coverage": "exact",
       "keyword_only_text": false,
       "abilities": [],
       "skill_texts": [

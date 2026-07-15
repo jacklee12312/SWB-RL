@@ -1,0 +1,207 @@
+{
+  "passives": [
+    {
+      "card_id": 10743110,
+      "kind": "non_intrinsic_keyword",
+      "keyword": "潜行",
+      "notes": "潜行仅由入场曲的模式（2）获得，不是本体初始关键词。"
+    }
+  ],
+  "intrinsic_keywords": [
+    {"card_id": 90011120, "keywords": ["守护"]},
+    {"card_id": 90022110, "keywords": ["突进"]}
+  ],
+  "rules": [
+    {
+      "card_id": 10103310,
+      "trigger": "play",
+      "operations": [
+        {
+          "kind": "destroy",
+          "target": "random_enemy_unit",
+          "candidate_extreme": "highest_attack"
+        },
+        {"kind": "damage_unit", "target": "all_enemy_units", "amount": 1}
+      ]
+    },
+    {
+      "card_id": 10341310,
+      "trigger": "play",
+      "operations": [
+        {
+          "kind": "damage_unit",
+          "target": "all_units",
+          "amount": 5,
+          "candidate_extreme": "highest_health"
+        },
+        {
+          "kind": "conditional",
+          "target": "own_leader",
+          "conditions": [{"type": "controller_overflow"}],
+          "then": [
+            {
+              "kind": "damage_leader",
+              "target": "all_leaders",
+              "amount": 3,
+              "candidate_extreme": "highest_health"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "card_id": 10503310,
+      "trigger": "play",
+      "operations": [
+        {"kind": "draw", "target": "own_leader", "amount": 2},
+        {
+          "kind": "destroy",
+          "target": "random_enemy_unit",
+          "candidate_extreme": "highest_attack"
+        }
+      ],
+      "play_modes": [
+        {
+          "id": "enhance_10",
+          "type": "enhance",
+          "cost": 10,
+          "operations": [
+            {"kind": "damage_unit", "target": "all_enemy_units", "amount": 4},
+            {"kind": "damage_leader", "target": "enemy_leader", "amount": 4}
+          ]
+        }
+      ]
+    },
+    {
+      "card_id": 10552310,
+      "trigger": "play",
+      "operations": [
+        {
+          "kind": "damage_leader",
+          "target": "all_leaders",
+          "amount": 3,
+          "candidate_extreme": "lowest_health"
+        }
+      ]
+    },
+    {
+      "card_id": 10613310,
+      "trigger": "play",
+      "operations": [
+        {
+          "kind": "choose_one",
+          "target": "own_leader",
+          "options": [
+            {
+              "id": "destroy",
+              "label": "破坏随机1个攻击力最大的敌方随从",
+              "operations": [
+                {
+                  "kind": "destroy",
+                  "target": "random_enemy_unit",
+                  "candidate_extreme": "highest_attack"
+                }
+              ]
+            },
+            {
+              "id": "summon",
+              "label": "召唤1个新绿的妖精",
+              "operations": [
+                {"kind": "summon", "target": "own_leader", "card_id": 90011120}
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "card_id": 10743110,
+      "trigger": "fanfare",
+      "operations": [
+        {
+          "kind": "choose_one",
+          "target": "own_leader",
+          "options": [
+            {
+              "id": "evolve",
+              "label": "本随从进化",
+              "operations": [
+                {
+                  "kind": "destroy",
+                  "target": "random_enemy_unit",
+                  "candidate_extreme": "highest_attack"
+                },
+                {"kind": "evolve_unit", "target": "self"}
+              ]
+            },
+            {
+              "id": "ambush",
+              "label": "本随从获得潜行",
+              "operations": [
+                {
+                  "kind": "destroy",
+                  "target": "random_enemy_unit",
+                  "candidate_extreme": "highest_attack"
+                },
+                {"kind": "add_keyword", "target": "self", "keyword": "潜行"}
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "card_id": 10822310,
+      "trigger": "play",
+      "operations": [
+        {
+          "kind": "buff_unit",
+          "target": "random_enemy_unit",
+          "amount": -10,
+          "secondary_amount": -10,
+          "candidate_extreme": "highest_attack"
+        }
+      ],
+      "play_modes": [
+        {
+          "id": "enhance_6",
+          "type": "enhance",
+          "cost": 6,
+          "operations": [
+            {"kind": "summon", "target": "own_leader", "card_id": 90022110},
+            {"kind": "summon", "target": "own_leader", "card_id": 90022110},
+            {"kind": "summon", "target": "own_leader", "card_id": 90022110}
+          ]
+        }
+      ]
+    },
+    {
+      "card_id": 10832320,
+      "trigger": "play",
+      "operations": [
+        {
+          "kind": "damage_unit",
+          "target": "random_enemy_unit",
+          "amount": 8,
+          "candidate_extreme": "highest_attack"
+        },
+        {"kind": "damage_leader", "target": "enemy_leader", "amount": 2},
+        {
+          "kind": "earth_rite",
+          "target": "own_leader",
+          "amount": 2,
+          "operations": [
+            {"kind": "add_card", "target": "own_leader", "card_id": 10832320}
+          ]
+        }
+      ]
+    },
+    {
+      "card_id": 90011120,
+      "trigger": "turn_end",
+      "operations": [
+        {"kind": "evolve_unit", "target": "self"}
+      ]
+    }
+  ]
+}

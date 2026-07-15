@@ -1,0 +1,169 @@
+{
+  "intrinsic_keywords": [
+    {"card_id": 10451110, "keywords": ["突进"]},
+    {"card_id": 10452120, "keywords": ["灵气"]},
+    {"card_id": 10672120, "keywords": ["潜行"]}
+  ],
+  "union_bursts": [
+    {
+      "card_id": 10433310,
+      "kind": "union_burst",
+      "operations": [
+        {"kind": "damage_leader", "target": "enemy_leader", "amount": 2}
+      ]
+    }
+  ],
+  "rules": [
+    {
+      "card_id": 10012110,
+      "trigger": "fanfare",
+      "operations": [
+        {
+          "kind": "damage_unit",
+          "target": "enemy_unit",
+          "amount": 3,
+          "conditions": [
+            {"type": "controller_combo_at_least", "value": 3}
+          ]
+        }
+      ]
+    },
+    {
+      "card_id": 10111110,
+      "trigger": "fanfare",
+      "operations": [
+        {
+          "kind": "buff_unit",
+          "target": "all_own_units",
+          "amount": 1,
+          "secondary_amount": 1,
+          "exclude_source": true,
+          "conditions": [
+            {"type": "controller_combo_at_least", "value": 3}
+          ]
+        }
+      ]
+    },
+    {
+      "card_id": 10111130,
+      "trigger": "fanfare",
+      "operations": [
+        {"kind": "draw", "target": "own_leader", "amount": 1},
+        {
+          "kind": "heal_leader",
+          "target": "own_leader",
+          "amount": {"type": "controller_hand_count"}
+        }
+      ]
+    },
+    {
+      "card_id": 10152140,
+      "trigger": "fanfare",
+      "operations": [
+        {"kind": "damage_unit", "target": "enemy_unit", "amount": 5},
+        {"kind": "heal_leader", "target": "own_leader", "amount": 5}
+      ]
+    },
+    {
+      "card_id": 10433310,
+      "trigger": "play",
+      "operations": [
+        {"kind": "damage_unit", "target": "enemy_unit", "amount": 4},
+        {"kind": "add_earth_sigils", "target": "own_leader", "amount": 1}
+      ]
+    },
+    {
+      "card_id": 10451110,
+      "trigger": "fanfare",
+      "operations": [],
+      "play_modes": [
+        {
+          "id": "enhance_4",
+          "type": "enhance",
+          "cost": 4,
+          "operations": [
+            {"kind": "evolve_unit", "target": "self"},
+            {
+              "kind": "buff_unit",
+              "target": "self",
+              "amount": 1,
+              "secondary_amount": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "card_id": 10452120,
+      "trigger": "fanfare",
+      "operations": [
+        {
+          "kind": "conditional",
+          "target": "own_leader",
+          "conditions": [
+            {
+              "type": "controller_board_has",
+              "card_type_filter": "随从",
+              "evolved_filter": true
+            }
+          ],
+          "then": [
+            {"kind": "evolve_unit", "target": "self"}
+          ]
+        }
+      ]
+    },
+    {
+      "card_id": 10512310,
+      "trigger": "play",
+      "operations": [
+        {
+          "kind": "conditional",
+          "target": "own_leader",
+          "conditions": [
+            {"type": "controller_combo_at_least", "value": 3}
+          ],
+          "then": [
+            {"kind": "damage_unit", "target": "all_enemy_units", "amount": 2},
+            {"kind": "damage_leader", "target": "enemy_leader", "amount": 2}
+          ],
+          "else": [
+            {"kind": "damage_unit", "target": "all_enemy_units", "amount": 1},
+            {"kind": "damage_leader", "target": "enemy_leader", "amount": 1}
+          ]
+        }
+      ]
+    },
+    {
+      "card_id": 10672120,
+      "trigger": "fanfare",
+      "operations": [
+        {
+          "kind": "banish",
+          "target": "enemy_unit",
+          "conditions": [
+            {"type": "target_health_at_most", "value": 3}
+          ]
+        }
+      ]
+    },
+    {
+      "card_id": 10762110,
+      "trigger": "fanfare",
+      "operations": [
+        {
+          "kind": "damage_unit",
+          "target": "enemy_unit",
+          "amount": 5,
+          "conditions": [
+            {
+              "type": "controller_board_has",
+              "value": 3,
+              "card_type_filter": "护符"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

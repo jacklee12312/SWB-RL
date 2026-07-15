@@ -1,0 +1,109 @@
+{
+  "intrinsic_keywords": [
+    {"card_id": 10141110, "keywords": ["守护"]},
+    {"card_id": 10144130, "keywords": ["疾驰", "屏障"]},
+    {"card_id": 90041120, "keywords": ["威慑"]},
+    {"card_id": 90043110, "keywords": ["疾驰", "守护"]},
+    {"card_id": 90044110, "keywords": ["守护"]},
+    {"card_id": 90044120, "keywords": ["突进"]},
+    {"card_id": 90061130, "keywords": ["疾驰"]}
+  ],
+  "activations": [
+    {"card_id": 10143210, "cost": 3},
+    {"card_id": 10061210, "cost": 2}
+  ],
+  "rules": [
+    {
+      "card_id": 10042120,
+      "trigger": "fanfare",
+      "operations": [],
+      "play_modes": [
+        {
+          "id": "enhance_7",
+          "type": "enhance",
+          "cost": 7,
+          "operations": [
+            {"kind": "summon", "target": "own_leader", "card_id": 90041120}
+          ]
+        }
+      ]
+    },
+    {
+      "card_id": 10141110,
+      "trigger": "last_words",
+      "operations": [
+        {"kind": "summon", "target": "own_leader", "card_id": 90041120}
+      ]
+    },
+    {
+      "card_id": 10143210,
+      "trigger": "activate",
+      "operations": [
+        {"kind": "summon", "target": "own_leader", "card_id": 90043110},
+        {"kind": "discard", "target": "own_hand"}
+      ]
+    },
+    {
+      "card_id": 10144130,
+      "trigger": "fanfare",
+      "operations": [
+        {"kind": "summon", "target": "own_leader", "card_id": 90044110},
+        {"kind": "summon", "target": "own_leader", "card_id": 90044120}
+      ]
+    },
+    {
+      "card_id": 10144130,
+      "trigger": "super_evolve",
+      "operations": [
+        {
+          "kind": "add_keyword",
+          "target": "all_own_units",
+          "keyword": "疾驰",
+          "target_card_id_filter": 90044110
+        },
+        {
+          "kind": "add_keyword",
+          "target": "all_own_units",
+          "keyword": "屏障",
+          "target_card_id_filter": 90044120
+        }
+      ]
+    },
+    {
+      "card_id": 10061210,
+      "trigger": "play",
+      "countdown": 2,
+      "operations": []
+    },
+    {
+      "card_id": 10061210,
+      "trigger": "last_words",
+      "operations": [
+        {"kind": "summon", "target": "own_leader", "card_id": 90061130}
+      ]
+    },
+    {
+      "card_id": 10061210,
+      "trigger": "activate",
+      "operations": [
+        {"kind": "reduce_countdown", "target": "self", "amount": 2}
+      ]
+    },
+    {
+      "card_id": 10821110,
+      "trigger": "fanfare",
+      "operations": [
+        {"kind": "summon", "target": "own_leader", "card_id": 90021130},
+        {"kind": "damage_unit", "target": "all_enemy_units", "amount": 3}
+      ]
+    },
+    {
+      "card_id": 10821110,
+      "trigger": "super_evolve",
+      "operations": [
+        {"kind": "summon", "target": "own_leader", "card_id": 90021130},
+        {"kind": "damage_unit", "target": "all_enemy_units", "amount": 3}
+      ]
+    }
+  ]
+}

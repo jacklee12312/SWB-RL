@@ -99,6 +99,7 @@ from swb.engine.targeting import (
     is_choice_target,
     is_graveyard_target,
     is_random_target,
+    leader_target_ids,
     leader_choice_options,
     pick_random_graveyard,
     target_candidates,
@@ -110,7 +111,6 @@ from swb.engine.conditions import (
     evaluate_condition,
     evaluate_conditions_without_target,
     evaluate_expression,
-    evaluate_target_conditions,
 )
 
 
@@ -797,6 +797,7 @@ class GameEngine:
                     state["burst_operations"],
                     state["burst_metadata"],
                     state["burst_gauge"],
+                    state["burst_replaces_base_operations"],
                 )
             else:
                 self._suspended_action = None
@@ -989,6 +990,57 @@ class GameEngine:
             return self.config.first_player_super_evolution_unlock_turn
         return self.config.second_player_super_evolution_unlock_turn
 
+    def _super_evolution_is_unlocked(self, player_index: int) -> bool:
+        return (
+            self.players[player_index].turns_started
+            >= self._super_evolution_unlock_turn(player_index)
+        )
+
+    def _eval_context(
+        self,
+        controller: int,
+        *,
+        source_entity_id: int | None = None,
+        target_entity_id: int | None = None,
+        source_card_id: int | None = None,
+        source_fusion_count: int = 0,
+        source_snapshot: SourceStateSnapshot | None = None,
+        target_snapshot: BoundTargetSnapshot | None = None,
+    ) -> EvalContext:
+        return EvalContext(
+            controller=controller,
+            players=self.players,
+            controller_super_evolution_unlocked=(
+                self._super_evolution_is_unlocked(controller)
+            ),
+            opponent_super_evolution_unlocked=(
+                self._super_evolution_is_unlocked(1 - controller)
+            ),
+            source_entity_id=source_entity_id,
+            target_entity_id=target_entity_id,
+            source_card_id=source_card_id,
+            source_fusion_count=source_fusion_count,
+            source_snapshot=source_snapshot,
+            target_snapshot=target_snapshot,
+        )
+
+    def _target_conditions_met(
+        self,
+        conditions: tuple[Condition, ...],
+        entity: BoardCard,
+        controller: int,
+        *,
+        source_entity_id: int | None = None,
+        source_fusion_count: int = 0,
+    ) -> bool:
+        context = self._eval_context(
+            controller,
+            source_entity_id=source_entity_id,
+            target_entity_id=entity.entity_id,
+            source_fusion_count=source_fusion_count,
+        )
+        return all(evaluate_condition(condition, context) for condition in conditions)
+
     def effective_play_cost(self, hand_card, mode_def) -> int:
         """Compute the effective play cost for a hand card with optional mode."""
         if mode_def is not None:
@@ -1023,10 +1075,7 @@ class GameEngine:
         if mode_def is None:
             return self._is_card_playable(card, player)
         if mode_def.conditions:
-            ctx = EvalContext(
-                controller=self.current_player,
-                players=self.players,
-            )
+            ctx = self._eval_context(self.current_player)
             from swb.engine.conditions import evaluate_conditions_without_target, PartialConditionResult
             result = evaluate_conditions_without_target(mode_def.conditions, ctx)
             if result is not PartialConditionResult.TRUE:
@@ -1611,6 +1660,10 @@ class GameEngine:
             (definition.kind.value, definition.threshold)
             for definition in active_bursts
         )
+        burst_replaces_base_operations = any(
+            definition.replace_base_operations
+            for definition in active_bursts
+        )
 
         self._dispatch_card_ability(AbilityEvent.CHECK_PLAY, card)
         player.hand.pop(command.hand_index)
@@ -1644,6 +1697,12 @@ class GameEngine:
                 source_origin=hand_source_origin,
                 fusion_materials=fusion_materials,
                 mode_def=mode_def,
+                burst_operations=burst_operations,
+                burst_metadata=burst_metadata,
+                burst_gauge=burst_gauge,
+                burst_replaces_base_operations=(
+                    burst_replaces_base_operations
+                ),
             )
             return
         if card.card_type == "护符" and (
@@ -1653,6 +1712,12 @@ class GameEngine:
                 card, play_cost, origin=hand_origin,
                 fused_material_ids=fused_material_ids,
                 mode_def=mode_def,
+                burst_operations=burst_operations,
+                burst_metadata=burst_metadata,
+                burst_gauge=burst_gauge,
+                burst_replaces_base_operations=(
+                    burst_replaces_base_operations
+                ),
             )
             return
 
@@ -1715,6 +1780,9 @@ class GameEngine:
                 "burst_operations": burst_operations,
                 "burst_metadata": burst_metadata,
                 "burst_gauge": burst_gauge,
+                "burst_replaces_base_operations": (
+                    burst_replaces_base_operations
+                ),
             }
             return
         self._finish_follower_play(
@@ -1724,6 +1792,7 @@ class GameEngine:
             burst_operations,
             burst_metadata,
             burst_gauge,
+            burst_replaces_base_operations,
         )
 
     def _finish_follower_play(
@@ -1734,6 +1803,7 @@ class GameEngine:
         burst_operations: tuple[EffectOperation, ...] = (),
         burst_metadata: tuple[tuple[str, int], ...] = (),
         burst_gauge: int = 0,
+        burst_replaces_base_operations: bool = False,
     ) -> None:
         try:
             unit = self._find_board_entity(unit_id)
@@ -1759,7 +1829,9 @@ class GameEngine:
                 )
             )
         base_operations = (
-            () if replace_base_operations else fanfare_operations
+            ()
+            if replace_base_operations or burst_replaces_base_operations
+            else fanfare_operations
         )
         operations = base_operations + burst_operations + mode_operations
         if operations:
@@ -1787,6 +1859,10 @@ class GameEngine:
         source_origin: CardOrigin | None,
         fusion_materials: tuple[FusionMaterial, ...] = (),
         mode_def: PlayModeDefinition | None = None,
+        burst_operations: tuple[EffectOperation, ...] = (),
+        burst_metadata: tuple[tuple[str, int], ...] = (),
+        burst_gauge: int = 0,
+        burst_replaces_base_operations: bool = False,
     ) -> None:
         self._log(self.current_player, f"使用法术 {card.name}（{play_cost}费）")
         self._dispatch_card_ability(AbilityEvent.CARD_PLAYED, card)
@@ -1803,17 +1879,39 @@ class GameEngine:
         )
         base_operations = self.rulebook.operations_for(card.card_id, Trigger.PLAY)
         mode_operations = mode_def.operations if mode_def is not None else ()
-        operations = (
-            mode_operations
-            if mode_def is not None and mode_def.replace_base_operations
-            else base_operations + mode_operations
+        resolved_base_operations = (
+            ()
+            if (
+                burst_replaces_base_operations
+                or (
+                    mode_def is not None
+                    and mode_def.replace_base_operations
+                )
+            )
+            else base_operations
+        )
+        operations = resolved_base_operations + burst_operations + mode_operations
+        self._emit_union_burst_activations(
+            card,
+            source_entity_id,
+            card,
+            burst_metadata,
+            burst_gauge,
         )
         frame = self._queue_effects(
             card,
             None,
             operations,
             move_source_to_graveyard=True,
-            label="法术/强化" if mode_def is not None else "法术",
+            label=(
+                "法术/奥义/强化"
+                if burst_operations and mode_def is not None
+                else "法术/奥义"
+                if burst_operations
+                else "法术/强化"
+                if mode_def is not None
+                else "法术"
+            ),
             fusion_materials=fusion_materials,
         )
         frame._hand_source_entity_id = source_entity_id
@@ -1834,6 +1932,10 @@ class GameEngine:
         origin: CardOrigin = CardOrigin.DECK,
         fused_material_ids: tuple[int, ...] = (),
         mode_def: PlayModeDefinition | None = None,
+        burst_operations: tuple[EffectOperation, ...] = (),
+        burst_metadata: tuple[tuple[str, int], ...] = (),
+        burst_gauge: int = 0,
+        burst_replaces_base_operations: bool = False,
     ) -> None:
         amulet = Amulet(
             definition=card,
@@ -1876,17 +1978,64 @@ class GameEngine:
         self._initialize_earth_sigil(amulet, self.current_player)
         base_operations = self.rulebook.operations_for(card.card_id, Trigger.PLAY)
         mode_operations = mode_def.operations if mode_def is not None else ()
-        operations = (
-            mode_operations
-            if mode_def is not None and mode_def.replace_base_operations
-            else base_operations + mode_operations
+        resolved_base_operations = (
+            ()
+            if (
+                burst_replaces_base_operations
+                or (
+                    mode_def is not None
+                    and mode_def.replace_base_operations
+                )
+            )
+            else base_operations
+        )
+        operations = resolved_base_operations + burst_operations + mode_operations
+        self._emit_union_burst_activations(
+            card,
+            amulet.entity_id,
+            amulet,
+            burst_metadata,
+            burst_gauge,
         )
         self._start_effects(
             card,
             amulet.entity_id,
             operations,
-            label="入场曲/强化" if mode_def is not None else "入场曲",
+            label=(
+                "入场曲/奥义/强化"
+                if burst_operations and mode_def is not None
+                else "入场曲/奥义"
+                if burst_operations
+                else "入场曲/强化"
+                if mode_def is not None
+                else "入场曲"
+            ),
         )
+
+    def _emit_union_burst_activations(
+        self,
+        card: CardDefinition,
+        source_entity_id: int,
+        source: object,
+        burst_metadata: tuple[tuple[str, int], ...],
+        burst_gauge: int,
+    ) -> None:
+        for kind, threshold in burst_metadata:
+            self._emit(
+                GameEvent(
+                    EventType.UNION_BURST_ACTIVATED,
+                    self.current_player,
+                    source_id=source_entity_id,
+                    amount=burst_gauge,
+                    metadata={
+                        "source": source,
+                        "card_id": card.card_id,
+                        "kind": kind,
+                        "threshold": threshold,
+                        "gauge": burst_gauge,
+                    },
+                )
+            )
 
     def _play_accelerate(
         self,
@@ -3003,6 +3152,7 @@ class GameEngine:
             deck_filter.cost_min,
             deck_filter.cost_max,
             deck_filter.card_id,
+            deck_filter.card_ids,
             deck_filter.card_name,
             deck_filter.tribe_id,
             deck_filter.tribe_name,
@@ -3016,11 +3166,17 @@ class GameEngine:
             return None
         return (
             board_filter.card_type,
+            board_filter.class_id,
+            board_filter.class_name,
             board_filter.cost_min,
             board_filter.cost_max,
             board_filter.card_id,
             board_filter.card_name,
+            board_filter.tribe_id,
+            board_filter.tribe_name,
             board_filter.evolved,
+            board_filter.super_evolved,
+            board_filter.damaged,
         )
 
     def _hand_filter_fingerprint(
@@ -3380,6 +3536,14 @@ class GameEngine:
 
     def _super_evolution_prevents_effect_destroy(self, target: Unit) -> bool:
         return self._super_evolution_protection_active(target)
+
+    def _printed_effect_destroy_immunity_active(self, target: Unit) -> bool:
+        return (
+            not target.printed_abilities_removed
+            and self.rulebook.cannot_be_destroyed_by_effects(
+                target.definition.card_id
+            )
+        )
 
     def _super_evolution_protection_active(self, target: Unit) -> bool:
         return (
@@ -3891,6 +4055,22 @@ class GameEngine:
                 continue
 
             if is_all_target(operation.target) and not frame.defer_stabilize:
+                if operation.target is TargetKind.ALL_LEADERS:
+                    target_ids = leader_target_ids(
+                        operation,
+                        frame.controller,
+                        self.players,
+                    )
+                    frame.defer_stabilize = True
+                    for leader_target_id in target_ids:
+                        self._checked_execute(
+                            operation, frame, leader_target_id
+                        )
+                    frame.defer_stabilize = False
+                    frame.next_index += 1
+                    self._resolve_event_queue()
+                    self._stabilize()
+                    continue
                 if operation.target is TargetKind.ALL_OWN_HAND:
                     target_ids = [
                         card.entity_id
@@ -3924,11 +4104,10 @@ class GameEngine:
                     candidates = [
                         entity
                         for entity in candidates
-                        if evaluate_target_conditions(
+                        if self._target_conditions_met(
                             operation.conditions,
                             entity,
                             frame.controller,
-                            self.players,
                             source_entity_id=frame.source_entity_id,
                             source_fusion_count=len(frame.fusion_materials),
                         )
@@ -3979,11 +4158,10 @@ class GameEngine:
                     candidates = [
                         entity
                         for entity in candidates
-                        if evaluate_target_conditions(
+                        if self._target_conditions_met(
                             operation.conditions,
                             entity,
                             frame.controller,
-                            self.players,
                             source_entity_id=frame.source_entity_id,
                             source_fusion_count=len(frame.fusion_materials),
                         )
@@ -4047,7 +4225,11 @@ class GameEngine:
                 target_id = frame.pending_target_id
                 frame.pending_target_id = None
 
-            if operation.target_key:
+            if (
+                operation.target_key
+                and operation.kind
+                not in {EffectKind.SUMMON, EffectKind.SUMMON_FROM_DECK}
+            ):
                 if target_id is None:
                     raise IllegalCommand(
                         "target_key requires a resolved board entity"
@@ -4112,13 +4294,17 @@ class GameEngine:
         if card.card_type == "护符" and len(player.board) >= self.config.max_board:
             return False
         operations = self.rulebook.operations_for(card.card_id, Trigger.PLAY)
+        has_union_burst = bool(
+            self.rulebook.union_bursts_for(card.card_id)
+        )
         if card.card_type == "护符" and (
             operations
+            or has_union_burst
             or self.rulebook.countdown_for(card.card_id) is not None
             or self.rulebook.activation_for(card.card_id) is not None
         ):
             pass
-        elif not operations:
+        elif not operations and not has_union_burst:
             return False
 
         if not operations:
@@ -4199,6 +4385,8 @@ class GameEngine:
                     source_entity_id=source_entity_id,
                 )
             )
+        if operation.target is TargetKind.ALL_LEADERS:
+            return bool(leader_target_ids(operation, controller, self.players))
         if operation.target == TargetKind.RANDOM_ENEMY_UNIT_OR_LEADER:
             return True
         if is_graveyard_target(operation.target):
@@ -4206,9 +4394,8 @@ class GameEngine:
             return bool(candidates)
         condition_state = evaluate_conditions_without_target(
             operation.conditions,
-            EvalContext(
-                controller=controller,
-                players=self.players,
+            self._eval_context(
+                controller,
                 source_entity_id=source_entity_id,
                 source_fusion_count=source_fusion_count,
             ),
@@ -4234,11 +4421,10 @@ class GameEngine:
             candidates = [
                 entity
                 for entity in candidates
-                if evaluate_target_conditions(
+                if self._target_conditions_met(
                     operation.conditions,
                     entity,
                     controller,
-                    self.players,
                     source_entity_id=source_entity_id,
                     source_fusion_count=source_fusion_count,
                 )
@@ -4261,9 +4447,8 @@ class GameEngine:
             0,
             evaluate_expression(
                 operation.target_count_expr,
-                EvalContext(
-                    controller=controller,
-                    players=self.players,
+                self._eval_context(
+                    controller,
                     source_entity_id=source_entity_id,
                 ),
             ),
@@ -4282,11 +4467,12 @@ class GameEngine:
             EffectKind.TARGET_EXISTS,
         }:
             return False
-        return (
-            is_choice_target(operation.target)
-            or is_random_target(operation.target)
-            or is_all_target(operation.target)
-        )
+        # Selected targets require at least one legal candidate unless the
+        # operation is paired with another independently-resolving effect.
+        # Random and all-target effects instead resolve as safe no-ops when
+        # their candidate set is empty; `requires_target` remains the explicit
+        # schema switch for cards whose text prohibits that path.
+        return is_choice_target(operation.target)
 
     def _target_exists_for(
         self,
@@ -4298,9 +4484,8 @@ class GameEngine:
     ) -> bool:
         condition_state = evaluate_conditions_without_target(
             operation.conditions,
-            EvalContext(
-                controller=controller,
-                players=self.players,
+            self._eval_context(
+                controller,
                 source_entity_id=source_entity_id,
                 source_fusion_count=source_fusion_count,
             ),
@@ -4320,6 +4505,8 @@ class GameEngine:
                     source_entity_id=source_entity_id,
                 )
             )
+        if operation.target is TargetKind.ALL_LEADERS:
+            return bool(leader_target_ids(operation, controller, self.players))
         if is_graveyard_target(operation.target):
             return bool(graveyard_candidates(operation, controller, self.players))
         candidates = target_candidates(
@@ -4341,11 +4528,10 @@ class GameEngine:
             candidates = [
                 entity
                 for entity in candidates
-                if evaluate_target_conditions(
+                if self._target_conditions_met(
                     operation.conditions,
                     entity,
                     controller,
-                    self.players,
                     source_entity_id=source_entity_id,
                     source_fusion_count=source_fusion_count,
                 )
@@ -4422,11 +4608,10 @@ class GameEngine:
             ]
             candidates = [
                 e for e in candidates
-                if evaluate_target_conditions(
+                if self._target_conditions_met(
                     operation.conditions,
                     e,
                     frame.controller,
-                    self.players,
                     source_entity_id=frame.source_entity_id,
                     source_fusion_count=len(frame.fusion_materials),
                 )
@@ -4595,6 +4780,11 @@ class GameEngine:
             return False
         binding_operation = frame._target_binding_operations.get(target_key)
         if binding_operation is None:
+            return True
+        if binding_operation.kind in {
+            EffectKind.SUMMON,
+            EffectKind.SUMMON_FROM_DECK,
+        }:
             return True
         return f"entity:{target_id}" in {
             option.option_id
@@ -5404,7 +5594,7 @@ class GameEngine:
             return False
         result = evaluate_conditions_without_target(
             definition.conditions,
-            EvalContext(controller=player_index, players=self.players),
+            self._eval_context(player_index),
         )
         return result is PartialConditionResult.TRUE
 
@@ -5646,12 +5836,18 @@ class GameEngine:
         if player.deck:
             card = player.deck.pop()
             if len(player.hand) < self.config.max_hand:
-                self._append_hand_card(player, card, origin=CardOrigin.DECK)
+                hand_card = self._append_hand_card(
+                    player, card, origin=CardOrigin.DECK
+                )
                 self._emit(
                     GameEvent(
                         EventType.CARD_DRAWN,
                         player_index,
-                        metadata={"card_id": card.card_id},
+                        source_id=hand_card.entity_id,
+                        metadata={
+                            "card_id": card.card_id,
+                            "source": hand_card,
+                        },
                     )
                 )
                 self._log(player_index, f"{reason}：{card.name}")
@@ -5688,13 +5884,17 @@ class GameEngine:
         index = self.random.choice(candidates)
         card = player.deck.pop(index)
         if len(player.hand) < self.config.max_hand:
-            self._append_hand_card(player, card, origin=CardOrigin.DECK)
+            hand_card = self._append_hand_card(
+                player, card, origin=CardOrigin.DECK
+            )
             self._emit(
                 GameEvent(
                     EventType.CARD_DRAWN,
                     player_index,
+                    source_id=hand_card.entity_id,
                     metadata={
                         "card_id": card.card_id,
+                        "source": hand_card,
                         "filtered": True,
                         "card_type_filter": None if deck_filter is None else deck_filter.card_type,
                         "class_id_filter": None if deck_filter is None else deck_filter.class_id,
@@ -5759,9 +5959,8 @@ class GameEngine:
             )
 
     def _build_eval_context(self, frame: EffectFrame, target_id: int | None) -> EvalContext:
-        return EvalContext(
-            controller=frame.controller,
-            players=self.players,
+        return self._eval_context(
+            frame.controller,
             source_entity_id=frame.source_entity_id,
             target_entity_id=target_id,
             source_card_id=frame.source_card_id,
@@ -5910,18 +6109,27 @@ class GameEngine:
                     reason=f"{name} {frame.label}抽牌",
                 )
         elif effect.kind is EffectKind.HEAL_LEADER:
-            before = player.health
-            player.health = min(self.config.starting_health, player.health + effect.amount)
-            actual_heal = player.health - before
+            target_idx = (
+                _leader_index_from_target_id(target_id)
+                if _is_leader_target_id(target_id)
+                else frame.controller
+            )
+            target_player = self.players[target_idx]
+            before = target_player.health
+            target_player.health = min(
+                self.config.starting_health,
+                target_player.health + effect.amount,
+            )
+            actual_heal = target_player.health - before
             self._log(
                 frame.controller,
                 f"{name} {frame.label}回复 {actual_heal} 点生命"
-                f"（生命 {player.health}）",
+                f"（生命 {target_player.health}）",
             )
             if actual_heal > 0:
                 self._emit(GameEvent(
                     EventType.LEADER_HEALED,
-                    frame.controller,
+                    target_idx,
                     source_id=frame.source_entity_id,
                     amount=actual_heal,
                     metadata={"card_id": frame.source_card_id},
@@ -5953,8 +6161,16 @@ class GameEngine:
                     )
                 )
         elif effect.kind is EffectKind.DAMAGE_LEADER:
-            is_enemy = effect.target is TargetKind.ENEMY_LEADER
-            target_idx = 1 - frame.controller if is_enemy else frame.controller
+            target_idx = (
+                _leader_index_from_target_id(target_id)
+                if _is_leader_target_id(target_id)
+                else (
+                    1 - frame.controller
+                    if effect.target is TargetKind.ENEMY_LEADER
+                    else frame.controller
+                )
+            )
+            is_enemy = target_idx != frame.controller
             self.apply_damage(None, None, effect.amount,
                              DamageType.EFFECT if is_enemy else DamageType.ABILITY,
                              frame.controller, target_player_index=target_idx)
@@ -5994,6 +6210,45 @@ class GameEngine:
             self._log(
                 frame.controller,
                 f"{name} {frame.label}回复 {restored} 点能量",
+            )
+        elif effect.kind in {
+            EffectKind.RESTORE_EVOLUTION_POINTS,
+            EffectKind.RESTORE_SUPER_EVOLUTION_POINTS,
+        }:
+            is_super = effect.kind is EffectKind.RESTORE_SUPER_EVOLUTION_POINTS
+            attribute = (
+                "super_evolution_points" if is_super else "evolution_points"
+            )
+            maximum = (
+                self.config.starting_super_evolution_points
+                if is_super
+                else self.config.starting_evolution_points
+            )
+            before = getattr(player, attribute)
+            after = min(maximum, before + effect.amount)
+            restored = after - before
+            setattr(player, attribute, after)
+            self._emit(GameEvent(
+                (
+                    EventType.SUPER_EVOLUTION_POINTS_RESTORED
+                    if is_super
+                    else EventType.EVOLUTION_POINTS_RESTORED
+                ),
+                frame.controller,
+                source_id=frame.source_entity_id,
+                amount=restored,
+                metadata={
+                    "source_card_id": frame.source_card_id,
+                    "requested_amount": effect.amount,
+                    "before": before,
+                    "after": after,
+                    "maximum": maximum,
+                },
+            ))
+            resource_name = "超进化点" if is_super else "进化点"
+            self._log(
+                frame.controller,
+                f"{name} {frame.label}回复 {restored} 点{resource_name}",
             )
         elif effect.kind is EffectKind.CHANGE_MAX_MANA:
             target_player_index = (
@@ -6059,6 +6314,23 @@ class GameEngine:
         elif effect.kind is EffectKind.DESTROY:
             target = self._find_board_entity(target_id)
             if isinstance(target, Unit):
+                if self._printed_effect_destroy_immunity_active(target):
+                    self._emit(GameEvent(
+                        EventType.EFFECT_DESTROY_PREVENTED,
+                        frame.controller,
+                        source_id=frame.source_entity_id,
+                        target_id=target.entity_id,
+                        metadata={
+                            "source_card_id": frame.source_card_id,
+                            "protected_card_id": target.definition.card_id,
+                            "printed_ability": True,
+                        },
+                    ))
+                    self._log(
+                        frame.controller,
+                        f"{target.definition.name} 的能力阻止了效果破坏",
+                    )
+                    return
                 if self._super_evolution_prevents_effect_destroy(target):
                     self._log(
                         frame.controller,
@@ -6086,6 +6358,8 @@ class GameEngine:
                 target.pending_destroy = True
         elif effect.kind is EffectKind.SUMMON:
             self._execute_summon(effect, frame)
+        elif effect.kind is EffectKind.SUMMON_FROM_DECK:
+            self._execute_summon_from_deck(effect, frame)
         elif effect.kind is EffectKind.BANISH:
             self._execute_banish(target_id, frame)
         elif effect.kind is EffectKind.ADD_CARD:
@@ -6918,9 +7192,8 @@ class GameEngine:
             return bool(branch_ops)
         condition_state = evaluate_conditions_without_target(
             operation.conditions,
-            EvalContext(
-                controller=controller,
-                players=self.players,
+            self._eval_context(
+                controller,
                 source_entity_id=source_entity_id,
             ),
         )
@@ -6954,6 +7227,8 @@ class GameEngine:
                     source_entity_id=source_entity_id,
                 )
             )
+        if operation.target is TargetKind.ALL_LEADERS:
+            return bool(leader_target_ids(operation, controller, self.players))
         if is_graveyard_target(operation.target):
             return bool(graveyard_candidates(operation, controller, self.players))
         if (
@@ -6979,11 +7254,10 @@ class GameEngine:
             if condition_state is PartialConditionResult.DEPENDS_ON_TARGET:
                 candidates = [
                     entity for entity in candidates
-                    if evaluate_target_conditions(
+                    if self._target_conditions_met(
                         operation.conditions,
                         entity,
                         controller,
-                        self.players,
                         source_entity_id=source_entity_id,
                     )
                 ]
@@ -7317,9 +7591,8 @@ class GameEngine:
             if definition.conditions:
                 result = evaluate_conditions_without_target(
                     definition.conditions,
-                    EvalContext(
-                        controller=owner,
-                        players=self.players,
+                    self._eval_context(
+                        owner,
                         source_entity_id=entity_id,
                     ),
                 )
@@ -7467,9 +7740,8 @@ class GameEngine:
             if not ei.can_activate(trigger_index):
                 continue
             if tr.conditions:
-                ctx = EvalContext(
-                    controller=player_index,
-                    players=self.players,
+                ctx = self._eval_context(
+                    player_index,
                     source_entity_id=batch.get("source_id"),
                 )
                 result = evaluate_conditions_without_target(
@@ -7593,9 +7865,8 @@ class GameEngine:
                     "condition_target_key requires exactly one bound target snapshot"
                 )
             target_snapshot = snapshots[0]
-        ctx = EvalContext(
-            controller=frame.controller,
-            players=self.players,
+        ctx = self._eval_context(
+            frame.controller,
             source_entity_id=frame.source_entity_id,
             source_fusion_count=len(frame.fusion_materials),
             target_snapshot=target_snapshot,
@@ -7640,9 +7911,8 @@ class GameEngine:
         legal_options = []
         for opt in effect.choose_one_options:
             if opt.conditions:
-                ctx = EvalContext(
-                    controller=frame.controller,
-                    players=self.players,
+                ctx = self._eval_context(
+                    frame.controller,
                     source_entity_id=frame.source_entity_id,
                     source_fusion_count=len(frame.fusion_materials),
                 )
@@ -7893,6 +8163,8 @@ class GameEngine:
             )
         player = self.players[frame.controller]
         if len(player.board) >= self.config.max_board:
+            if effect.target_key:
+                self._bind_targets(frame, effect.target_key, (), effect)
             self._log(frame.controller, f"{frame.source_name} 召唤失败：场地已满")
             return
         if card_def.card_type == "随从":
@@ -7904,11 +8176,17 @@ class GameEngine:
                 origin=origin,
             )
             if unit is None:
+                if effect.target_key:
+                    self._bind_targets(frame, effect.target_key, (), effect)
                 self._log(
                     frame.controller,
                     f"{frame.source_name} 召唤失败：场地已满",
                 )
                 return
+            if effect.target_key:
+                self._bind_targets(
+                    frame, effect.target_key, (unit.entity_id,), effect
+                )
             self._log(
                 frame.controller,
                 f"{frame.source_name} 召唤 {card_def.name} ({unit.attack}/{unit.health})",
@@ -7938,6 +8216,10 @@ class GameEngine:
                 origin=origin,
             )
             player.board.append(amulet)
+            if effect.target_key:
+                self._bind_targets(
+                    frame, effect.target_key, (amulet.entity_id,), effect
+                )
             self._log(
                 frame.controller,
                 f"{frame.source_name} 召唤护符 {card_def.name}",
@@ -7952,9 +8234,138 @@ class GameEngine:
             )
             self._initialize_earth_sigil(amulet, frame.controller)
         else:
+            if effect.target_key:
+                self._bind_targets(frame, effect.target_key, (), effect)
             self._log(
                 frame.controller,
                 f"{frame.source_name} 召唤失败：{card_def.card_type} 类型不可召唤",
+            )
+
+    def _execute_summon_from_deck(
+        self,
+        effect: EffectOperation,
+        frame: EffectFrame,
+    ) -> None:
+        """Summon copy-weighted, distinct card names from the controller's deck."""
+
+        if effect.amount <= 0:
+            raise IllegalCommand("SUMMON_FROM_DECK requires a positive amount")
+        if effect.deck_filter is None or effect.deck_filter.card_type not in {
+            "随从",
+            "护符",
+        }:
+            raise IllegalCommand(
+                "SUMMON_FROM_DECK requires a follower or amulet deck filter"
+            )
+
+        player = self.players[frame.controller]
+        available_slots = self.config.max_board - len(player.board)
+        if available_slots <= 0:
+            if effect.target_key:
+                self._bind_targets(frame, effect.target_key, (), effect)
+            self._log(frame.controller, f"{frame.source_name} 牌组召唤失败：场地已满")
+            return
+
+        candidates = [
+            (index, card)
+            for index, card in enumerate(player.deck)
+            if effect.deck_filter.matches(card)
+        ]
+        selected: list[tuple[int, CardDefinition]] = []
+        while candidates and len(selected) < min(effect.amount, available_slots):
+            chosen = self.random.choice(candidates)
+            selected.append(chosen)
+            chosen_card_name = chosen[1].name
+            candidates = [
+                candidate
+                for candidate in candidates
+                if candidate[1].name != chosen_card_name
+            ]
+
+        if not selected:
+            if effect.target_key:
+                self._bind_targets(frame, effect.target_key, (), effect)
+            self._log(frame.controller, f"{frame.source_name} 牌组中没有符合条件的卡牌")
+            return
+
+        # Remove every chosen physical copy before emitting entry events.  This
+        # snapshots one direct-summon timing while leaving same-name copies in deck.
+        for deck_index, card in sorted(selected, key=lambda item: item[0], reverse=True):
+            removed = player.deck.pop(deck_index)
+            if removed is not card:
+                raise IllegalCommand("Deck changed during direct-summon selection")
+
+        summon_count = len(selected)
+        summoned_entity_ids: list[int] = []
+        for summon_index, (_, card_def) in enumerate(selected):
+            metadata = {
+                "card_id": card_def.card_id,
+                "origin": CardOrigin.DECK.value,
+                "derived": False,
+                "token": is_token_definition(card_def),
+                "via": "deck_summon",
+                "source_card_id": frame.source_card_id,
+                "deck_summon_index": summon_index,
+                "deck_summon_count": summon_count,
+            }
+            if card_def.card_type == "随从":
+                unit = self._summon_follower_to_board(
+                    frame.controller,
+                    card_def,
+                    summon_cause="deck_summon",
+                    origin=CardOrigin.DECK,
+                )
+                if unit is None:
+                    raise IllegalCommand(
+                        "Board capacity changed during direct-summon resolution"
+                    )
+                metadata["source"] = unit
+                summoned_entity_ids.append(unit.entity_id)
+                self._log(
+                    frame.controller,
+                    f"{frame.source_name} 从牌组召唤 {card_def.name} "
+                    f"({unit.attack}/{unit.health})",
+                )
+                self._emit(
+                    GameEvent(
+                        EventType.FOLLOWER_SUMMONED,
+                        frame.controller,
+                        source_id=unit.entity_id,
+                        metadata=metadata,
+                    )
+                )
+                continue
+
+            amulet = Amulet(
+                definition=card_def,
+                entity_id=self.state.allocate_entity_id(),
+                countdown=self.rulebook.countdown_for(card_def.card_id),
+                entered_turn=self.turn,
+                origin=CardOrigin.DECK,
+            )
+            player.board.append(amulet)
+            summoned_entity_ids.append(amulet.entity_id)
+            metadata["source"] = amulet
+            self._log(
+                frame.controller,
+                f"{frame.source_name} 从牌组召唤护符 {card_def.name}",
+            )
+            self._emit(
+                GameEvent(
+                    EventType.AMULET_ENTERED,
+                    frame.controller,
+                    source_id=amulet.entity_id,
+                    metadata=metadata,
+                )
+            )
+            self._initialize_earth_sigil(amulet, frame.controller)
+
+        if effect.target_key:
+            self._bind_targets(
+                frame,
+                effect.target_key,
+                tuple(summoned_entity_ids),
+                effect,
             )
 
     @staticmethod
@@ -8326,6 +8737,24 @@ class GameEngine:
     def _execute_banish(self, target_id: int | None, frame: EffectFrame) -> None:
         entity = self._find_board_entity(target_id)
         owner = self._entity_owner(entity.entity_id)
+        self._banish_board_entity(entity, owner)
+
+    def _banishes_on_leave(self, entity: BoardCard) -> bool:
+        return (
+            self.rulebook.banish_on_leave(entity.definition.card_id)
+            and not (
+                isinstance(entity, Unit)
+                and entity.printed_abilities_removed
+            )
+        )
+
+    def _banish_board_entity(
+        self,
+        entity: BoardCard,
+        owner: int,
+        *,
+        replaced_leave_cause: DeathCause | None = None,
+    ) -> None:
         player = self.players[owner]
         if entity not in player.board:
             return
@@ -8335,27 +8764,33 @@ class GameEngine:
             owner,
             f"{entity.definition.name} 被消失",
         )
+        banish_metadata = {"source": entity}
+        if replaced_leave_cause is not None:
+            banish_metadata["replaced_leave_cause"] = replaced_leave_cause.value
         self._emit(
             GameEvent(
                 EventType.CARD_BANISHED,
                 owner,
                 source_id=entity.entity_id,
-                metadata={"source": entity},
+                metadata=banish_metadata,
             )
         )
+        leave_metadata = {
+            "source": entity,
+            "definition": entity.definition,
+            "card_id": entity.definition.card_id,
+            "card_type": entity.definition.card_type,
+            "owner": owner,
+            "cause": DeathCause.BANISH.value,
+        }
+        if replaced_leave_cause is not None:
+            leave_metadata["replaced_leave_cause"] = replaced_leave_cause.value
         self._emit(
             GameEvent(
                 EventType.ENTITY_LEFT_PLAY,
                 owner,
                 source_id=entity.entity_id,
-                metadata={
-                    "source": entity,
-                    "definition": entity.definition,
-                    "card_id": entity.definition.card_id,
-                    "card_type": entity.definition.card_type,
-                    "owner": owner,
-                    "cause": DeathCause.BANISH.value,
-                },
+                metadata=leave_metadata,
             )
         )
 
@@ -8409,6 +8844,13 @@ class GameEngine:
         owner_index = self._entity_owner(entity.entity_id)
         owner = self.players[owner_index]
         if entity not in owner.board:
+            return
+        if self._banishes_on_leave(entity):
+            self._banish_board_entity(
+                entity,
+                owner_index,
+                replaced_leave_cause=DeathCause.RETURN_TO_HAND,
+            )
             return
         owner.board.remove(entity)
         card_def = entity.definition
@@ -8498,6 +8940,13 @@ class GameEngine:
         owner_index = self._entity_owner(entity.entity_id)
         owner = self.players[owner_index]
         if entity not in owner.board:
+            return
+        if self._banishes_on_leave(entity):
+            self._banish_board_entity(
+                entity,
+                owner_index,
+                replaced_leave_cause=DeathCause.RETURN_TO_DECK,
+            )
             return
         owner.board.remove(entity)
         card_def = entity.definition
@@ -8929,8 +9378,13 @@ class GameEngine:
     def _do_stabilize(self) -> None:
         while True:
             self._step()
-            batch = self._collect_death_batch()
+            batch, banish_replacements = self._collect_death_batch()
             if not batch.records:
+                if banish_replacements:
+                    self._resolve_event_queue()
+                    if self.state.pending_choice is not None:
+                        return
+                    continue
                 break
             self.state.death_queue.append(batch)
             self._emit(
@@ -8988,14 +9442,23 @@ class GameEngine:
 
         self._check_game_over()
 
-    def _collect_death_batch(self) -> DeathBatch:
+    def _collect_death_batch(self) -> tuple[DeathBatch, int]:
         records: list[DeathRecord] = []
+        banish_replacements = 0
         batch_id = len(self.state.death_queue) + 1
 
         for player_index, player in enumerate(self.players):
             for pos, entity in enumerate(tuple(player.board)):
                 if isinstance(entity, Unit) and entity.health <= 0:
                     cause = self._death_causes.pop(entity.entity_id, DeathCause.ZERO_HEALTH)
+                    if self._banishes_on_leave(entity):
+                        self._banish_board_entity(
+                            entity,
+                            player_index,
+                            replaced_leave_cause=cause,
+                        )
+                        banish_replacements += 1
+                        continue
                     record = DeathRecord(
                         owner=player_index,
                         entity_id=entity.entity_id,
@@ -9068,7 +9531,7 @@ class GameEngine:
                     )
                     records.append(record)
 
-        return DeathBatch(records=records, batch_id=batch_id)
+        return DeathBatch(records=records, batch_id=batch_id), banish_replacements
 
     def _last_words_order_key(self, record: DeathRecord) -> tuple[int, int, int]:
         active = self.state.active_player

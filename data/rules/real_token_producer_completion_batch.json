@@ -1,0 +1,213 @@
+{
+  "passives": [
+    {"card_id": 10133320, "kind": "spellboost_cost_reduction", "amount": 1}
+  ],
+  "intrinsic_keywords": [
+    {"card_id": 90031130, "keywords": ["突进"]},
+    {"card_id": 90031140, "keywords": ["突进"]},
+    {"card_id": 90041110, "keywords": ["威慑"]},
+    {"card_id": 90054110, "keywords": ["突进"]},
+    {"card_id": 90054120, "keywords": ["突进"]},
+    {"card_id": 90061110, "keywords": ["疾驰"]},
+    {"card_id": 90061120, "keywords": ["突进"]},
+    {"card_id": 90071110, "keywords": ["突进"]}
+  ],
+  "activations": [
+    {"card_id": 90031210, "cost": 1},
+    {"card_id": 10163210, "cost": 1}
+  ],
+  "rules": [
+    {
+      "card_id": 10133320,
+      "trigger": "play",
+      "operations": [
+        {"kind": "summon", "target": "own_leader", "card_id": 90031140}
+      ]
+    },
+    {
+      "card_id": 10331120,
+      "trigger": "fanfare",
+      "operations": [
+        {"kind": "summon", "target": "own_leader", "card_id": 90031130}
+      ]
+    },
+    {
+      "card_id": 10331120,
+      "trigger": "evolve",
+      "operations": [
+        {"kind": "summon", "target": "own_leader", "card_id": 90031130}
+      ]
+    },
+    {
+      "card_id": 10154110,
+      "trigger": "fanfare",
+      "operations": [
+        {"kind": "summon", "target": "own_leader", "card_id": 90054110},
+        {"kind": "summon", "target": "own_leader", "card_id": 90054120},
+        {
+          "kind": "necromancy",
+          "target": "own_leader",
+          "amount": 6,
+          "operations": [
+            {"kind": "buff_unit", "target": "all_own_units", "exclude_source": true, "amount": 2, "secondary_amount": 0}
+          ]
+        }
+      ]
+    },
+    {
+      "card_id": 10154110,
+      "trigger": "super_evolve",
+      "operations": [
+        {"kind": "reanimate", "target": "own_leader", "amount": 1},
+        {"kind": "reanimate", "target": "own_leader", "amount": 1}
+      ]
+    },
+    {
+      "card_id": 10161310,
+      "trigger": "play",
+      "operations": [
+        {"kind": "damage_unit", "target": "all_enemy_units", "amount": 3},
+        {"kind": "summon", "target": "own_leader", "card_id": 90061110}
+      ]
+    },
+    {
+      "card_id": 10163210,
+      "trigger": "play",
+      "countdown": 2,
+      "operations": []
+    },
+    {
+      "card_id": 10163210,
+      "trigger": "last_words",
+      "operations": [
+        {"kind": "summon", "target": "own_leader", "card_id": 90061120}
+      ]
+    },
+    {
+      "card_id": 10163210,
+      "trigger": "activate",
+      "operations": [
+        {"kind": "reduce_countdown", "target": "self", "amount": 1}
+      ]
+    },
+    {
+      "card_id": 10371310,
+      "trigger": "play",
+      "operations": [
+        {"kind": "destroy", "target": "enemy_unit"},
+        {"kind": "add_card", "target": "own_leader", "card_id": 90071110},
+        {"kind": "add_card", "target": "own_leader", "card_id": 90071110}
+      ]
+    },
+    {
+      "card_id": 10373310,
+      "trigger": "play",
+      "operations": [
+        {"kind": "destroy", "target": "own_board"},
+        {"kind": "summon", "target": "own_leader", "card_id": 90074210}
+      ]
+    },
+    {
+      "card_id": 10831120,
+      "trigger": "fanfare",
+      "operations": [
+        {"kind": "add_card", "target": "own_leader", "card_id": 90031310}
+      ]
+    },
+    {
+      "card_id": 10141140,
+      "trigger": "fanfare",
+      "operations": [
+        {"kind": "summon", "target": "own_leader", "card_id": 90041110}
+      ]
+    },
+    {
+      "card_id": 10141140,
+      "trigger": "evolve",
+      "operations": [
+        {"kind": "summon", "target": "own_leader", "card_id": 90041110}
+      ]
+    },
+    {
+      "card_id": 90031130,
+      "trigger": "last_words",
+      "operations": [
+        {"kind": "spellboost_hand", "target": "all_own_hand", "amount": 1}
+      ]
+    },
+    {
+      "card_id": 90031140,
+      "trigger": "last_words",
+      "operations": [
+        {"kind": "spellboost_hand", "target": "all_own_hand", "amount": 1}
+      ]
+    },
+    {
+      "card_id": 90031210,
+      "trigger": "activate",
+      "operations": [
+        {"kind": "add_earth_sigils", "target": "own_leader", "amount": 1}
+      ]
+    },
+    {
+      "card_id": 90031310,
+      "trigger": "play",
+      "operations": [
+        {"kind": "damage_unit", "target": "random_enemy_unit", "amount": 3}
+      ]
+    },
+    {
+      "card_id": 90054110,
+      "trigger": "last_words",
+      "operations": [
+        {"kind": "damage_leader", "target": "enemy_leader", "amount": 2}
+      ]
+    },
+    {
+      "card_id": 90054120,
+      "trigger": "last_words",
+      "operations": [
+        {"kind": "heal_leader", "target": "own_leader", "amount": 2}
+      ]
+    },
+    {
+      "card_id": 90074210,
+      "trigger": "play",
+      "countdown": 1,
+      "operations": []
+    },
+    {
+      "card_id": 90074210,
+      "trigger": "last_words",
+      "operations": [
+        {"kind": "heal_leader", "target": "own_leader", "amount": 1},
+        {"kind": "summon", "target": "own_leader", "card_id": 90074220}
+      ]
+    },
+    {
+      "card_id": 90074220,
+      "trigger": "play",
+      "countdown": 1,
+      "operations": []
+    },
+    {
+      "card_id": 90074220,
+      "trigger": "last_words",
+      "operations": [
+        {"kind": "damage_leader", "target": "enemy_leader", "amount": 1},
+        {"kind": "summon", "target": "own_leader", "card_id": 90074210}
+      ]
+    }
+  ],
+  "listeners": [
+    {
+      "card_id": 90071110,
+      "zone": "board",
+      "event": "turn_ended",
+      "event_scope": "opponent_event",
+      "operations": [
+        {"kind": "destroy", "target": "self"}
+      ]
+    }
+  ]
+}

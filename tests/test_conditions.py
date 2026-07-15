@@ -102,6 +102,31 @@ class ConditionEvalTests(unittest.TestCase):
             ctx,
         ))
 
+    def test_board_filter_distinguishes_evolved_super_evolved_and_damaged(self):
+        normal = Unit.summon(card(20, life=5), entity_id=20)
+        evolved = Unit.summon(card(21, life=5), entity_id=21)
+        evolved.evolved = True
+        super_evolved = Unit.summon(card(22, life=5), entity_id=22)
+        super_evolved.evolved = True
+        super_evolved.super_evolved = True
+        damaged = Unit.summon(card(23, life=5), entity_id=23)
+        damaged.health = 3
+
+        self.assertFalse(BoardFilter(super_evolved=True).matches_entity(evolved))
+        self.assertTrue(
+            BoardFilter(evolved=True, super_evolved=True).matches_entity(
+                super_evolved
+            )
+        )
+        self.assertTrue(BoardFilter(damaged=True).matches_entity(damaged))
+        self.assertFalse(BoardFilter(damaged=True).matches_entity(normal))
+        self.assertTrue(BoardFilter(damaged=False).matches_entity(normal))
+        self.assertFalse(
+            BoardFilter(damaged=True).matches_entity(
+                Amulet(definition=card(24, card_type="护符", attack=None, life=None), entity_id=24)
+            )
+        )
+
     def test_controller_deck_has_no_duplicates(self):
         own = _player()
         own.deck = [card(10), card(11), card(12)]
@@ -446,6 +471,8 @@ class ConditionOperationTests(unittest.TestCase):
                 "card_type_filter": "随从",
                 "cost_min": 5,
                 "evolved_filter": True,
+                "super_evolved_filter": True,
+                "damaged_filter": False,
             },
             "test.json",
             77,
@@ -456,6 +483,37 @@ class ConditionOperationTests(unittest.TestCase):
         self.assertEqual(cond.board_filter.card_type, "随从")
         self.assertEqual(cond.board_filter.cost_min, 5)
         self.assertTrue(cond.board_filter.evolved)
+        self.assertTrue(cond.board_filter.super_evolved)
+        self.assertFalse(cond.board_filter.damaged)
+
+    def test_board_state_filter_schema_rejects_bad_booleans_and_conflicts(self):
+        from swb.engine.card_rules import _parse_condition, _parse_operation
+
+        invalid_conditions = (
+            {"type": "controller_board_has", "super_evolved_filter": 1},
+            {"type": "controller_board_has", "damaged_filter": "yes"},
+            {
+                "type": "controller_board_has",
+                "evolved_filter": False,
+                "super_evolved_filter": True,
+            },
+        )
+        for raw in invalid_conditions:
+            with self.subTest(raw=raw):
+                with self.assertRaises(ValueError):
+                    _parse_condition(raw, "bad.json", 77)
+
+        with self.assertRaisesRegex(ValueError, "board target"):
+            _parse_operation(
+                {
+                    "kind": "draw",
+                    "target": "own_leader",
+                    "amount": 1,
+                    "target_super_evolved_filter": True,
+                },
+                "bad.json",
+                77,
+            )
 
 
 def _engine_with_spell(

@@ -1,0 +1,132 @@
+{
+  "rules": [
+    {
+      "card_id": 10111120,
+      "trigger": "fanfare",
+      "operations": [
+        {"kind": "summon", "target": "own_leader", "card_id": 90011110},
+        {"kind": "add_card", "target": "own_leader", "card_id": 90011110}
+      ]
+    },
+    {
+      "card_id": 10111120,
+      "trigger": "evolve",
+      "operations": [
+        {"kind": "summon", "target": "own_leader", "card_id": 90011110},
+        {"kind": "add_card", "target": "own_leader", "card_id": 90011110}
+      ]
+    },
+    {
+      "card_id": 10123130,
+      "trigger": "evolve",
+      "operations": [
+        {"kind": "summon", "target": "own_leader", "card_id": 90021110},
+        {"kind": "summon", "target": "own_leader", "card_id": 90021110},
+        {
+          "kind": "buff_unit",
+          "target": "all_own_units",
+          "amount": 1,
+          "secondary_amount": 1,
+          "exclude_source": true
+        }
+      ]
+    },
+    {
+      "card_id": 10242120,
+      "trigger": "fanfare",
+      "operations": [
+        {"kind": "summon", "target": "own_leader", "card_id": 90041130},
+        {"kind": "summon", "target": "own_leader", "card_id": 90041130}
+      ]
+    },
+    {
+      "card_id": 10242120,
+      "trigger": "evolve",
+      "operations": [
+        {"kind": "summon", "target": "own_leader", "card_id": 90041130}
+      ]
+    },
+    {
+      "card_id": 10721120,
+      "trigger": "fanfare",
+      "operations": [
+        {"kind": "summon", "target": "own_leader", "card_id": 90021110},
+        {"kind": "add_card", "target": "own_leader", "card_id": 90021120}
+      ]
+    },
+    {
+      "card_id": 10722110,
+      "trigger": "last_words",
+      "operations": [
+        {"kind": "summon", "target": "own_leader", "card_id": 90021110}
+      ]
+    },
+    {
+      "card_id": 10722110,
+      "trigger": "evolve",
+      "operations": [
+        {"kind": "damage_unit", "target": "enemy_unit", "amount": 3}
+      ]
+    },
+    {
+      "card_id": 10722120,
+      "trigger": "fanfare",
+      "operations": [
+        {"kind": "draw", "target": "own_leader", "amount": 2},
+        {"kind": "summon", "target": "own_leader", "card_id": 90021110},
+        {"kind": "summon", "target": "own_leader", "card_id": 90021110}
+      ]
+    },
+    {
+      "card_id": 10722120,
+      "trigger": "evolve",
+      "operations": [
+        {"kind": "damage_unit", "target": "enemy_unit", "amount": 3}
+      ]
+    },
+    {
+      "card_id": 10751120,
+      "trigger": "last_words",
+      "operations": [
+        {"kind": "summon", "target": "own_leader", "card_id": 90051110}
+      ]
+    },
+    {
+      "card_id": 10751120,
+      "trigger": "evolve",
+      "operations": [
+        {"kind": "damage_unit", "target": "enemy_unit", "amount": 3}
+      ]
+    },
+    {
+      "card_id": 10772110,
+      "trigger": "fanfare",
+      "operations": [
+        {"kind": "add_card", "target": "own_leader", "card_id": 90071140}
+      ]
+    },
+    {
+      "card_id": 10772110,
+      "trigger": "evolve",
+      "operations": [
+        {"kind": "add_card", "target": "own_leader", "card_id": 90071140}
+      ]
+    },
+    {
+      "card_id": 10811120,
+      "trigger": "fanfare",
+      "operations": [
+        {"kind": "summon", "target": "own_leader", "card_id": 90011110},
+        {"kind": "summon", "target": "own_leader", "card_id": 90011110}
+      ]
+    },
+    {
+      "card_id": 10811120,
+      "trigger": "evolve",
+      "operations": [
+        {"kind": "summon", "target": "own_leader", "card_id": 90011110},
+        {"kind": "summon", "target": "own_leader", "card_id": 90011110}
+      ]
+    }
+  ]
+}

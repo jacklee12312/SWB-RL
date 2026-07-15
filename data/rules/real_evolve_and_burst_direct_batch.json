@@ -1,0 +1,206 @@
+{
+  "passives": [
+    {
+      "card_id": 10832110,
+      "kind": "spellboost_cost_reduction",
+      "amount": 1
+    }
+  ],
+  "intrinsic_keywords": [
+    {"card_id": 10453110, "keywords": ["吸血"]},
+    {"card_id": 10622120, "keywords": ["疾驰"]}
+  ],
+  "union_bursts": [
+    {
+      "card_id": 10473310,
+      "kind": "super_skybound_art",
+      "replace_base_operations": true,
+      "operations": [
+        {"kind": "damage_unit", "target": "all_enemy_units", "amount": 6},
+        {"kind": "damage_leader", "target": "enemy_leader", "amount": 6}
+      ]
+    }
+  ],
+  "listeners": [
+    {
+      "card_id": 10571120,
+      "zone": "board",
+      "event": "card_played",
+      "event_scope": "owner_event",
+      "source_relation": "other",
+      "event_filter": {"card_type": "法术"},
+      "operations": [
+        {"kind": "damage_unit", "target": "all_enemy_units", "amount": 3}
+      ]
+    }
+  ],
+  "rules": [
+    {
+      "card_id": 10231310,
+      "trigger": "play",
+      "operations": [
+        {"kind": "destroy", "target": "enemy_unit"},
+        {
+          "kind": "earth_rite",
+          "target": "own_leader",
+          "amount": 1,
+          "operations": [
+            {"kind": "damage_leader", "target": "enemy_leader", "amount": 2}
+          ]
+        }
+      ]
+    },
+    {
+      "card_id": 10411120,
+      "trigger": "turn_end",
+      "operations": [
+        {"kind": "evolve_unit", "target": "self"}
+      ]
+    },
+    {
+      "card_id": 10411120,
+      "trigger": "evolve",
+      "operations": [
+        {"kind": "damage_unit", "target": "all_enemy_units", "amount": 1}
+      ]
+    },
+    {
+      "card_id": 10432110,
+      "trigger": "fanfare",
+      "operations": [
+        {
+          "kind": "damage_unit",
+          "target": "enemy_unit",
+          "amount": 4,
+          "target_count": 2
+        },
+        {"kind": "add_earth_sigils", "target": "own_leader", "amount": 2}
+      ]
+    },
+    {
+      "card_id": 10442110,
+      "trigger": "fanfare",
+      "operations": [
+        {
+          "kind": "conditional",
+          "target": "own_leader",
+          "conditions": [
+            {"type": "controller_max_mana_at_least", "value": 10}
+          ],
+          "then": [
+            {"kind": "evolve_unit", "target": "self"}
+          ]
+        }
+      ]
+    },
+    {
+      "card_id": 10442110,
+      "trigger": "evolve",
+      "operations": [
+        {"kind": "damage_unit", "target": "all_enemy_units", "amount": 3}
+      ]
+    },
+    {
+      "card_id": 10453110,
+      "trigger": "fanfare",
+      "operations": [
+        {
+          "kind": "evolve_unit",
+          "target": "all_own_units",
+          "target_evolved_filter": false
+        },
+        {"kind": "damage_leader", "target": "own_leader", "amount": 2}
+      ]
+    },
+    {
+      "card_id": 10473310,
+      "trigger": "play",
+      "operations": [
+        {"kind": "damage_unit", "target": "all_enemy_units", "amount": 3},
+        {"kind": "damage_leader", "target": "enemy_leader", "amount": 3}
+      ]
+    },
+    {
+      "card_id": 10571120,
+      "trigger": "fanfare",
+      "operations": [
+        {
+          "kind": "draw_filtered",
+          "target": "own_leader",
+          "amount": 1,
+          "card_type_filter": "法术"
+        }
+      ]
+    },
+    {
+      "card_id": 10622120,
+      "trigger": "fanfare",
+      "operations": [
+        {
+          "kind": "destroy",
+          "target": "all_enemy_units",
+          "conditions": [
+            {"type": "target_health_at_least", "value": 1},
+            {"type": "target_health_at_most", "value": 1}
+          ]
+        }
+      ]
+    },
+    {
+      "card_id": 10642120,
+      "trigger": "turn_end",
+      "operations": [
+        {"kind": "evolve_unit", "target": "self"}
+      ]
+    },
+    {
+      "card_id": 10642120,
+      "trigger": "evolve",
+      "operations": [
+        {"kind": "damage_unit", "target": "all_enemy_units", "amount": 3},
+        {"kind": "damage_leader", "target": "enemy_leader", "amount": 3}
+      ]
+    },
+    {
+      "card_id": 10742120,
+      "trigger": "fanfare",
+      "operations": [
+        {
+          "kind": "conditional",
+          "target": "own_leader",
+          "conditions": [
+            {"type": "controller_max_mana_at_least", "value": 10}
+          ],
+          "then": [
+            {"kind": "evolve_unit", "target": "self"}
+          ]
+        }
+      ]
+    },
+    {
+      "card_id": 10742120,
+      "trigger": "turn_end",
+      "operations": [
+        {
+          "kind": "conditional",
+          "target": "own_leader",
+          "conditions": [{"type": "source_evolved"}],
+          "then": [
+            {"kind": "heal_leader", "target": "own_leader", "amount": 2}
+          ],
+          "else": [
+            {"kind": "heal_leader", "target": "own_leader", "amount": 1}
+          ]
+        }
+      ]
+    },
+    {
+      "card_id": 10832110,
+      "trigger": "fanfare",
+      "operations": [
+        {"kind": "draw", "target": "own_leader", "amount": 2},
+        {"kind": "draw", "target": "enemy_leader", "amount": 1}
+      ]
+    }
+  ]
+}

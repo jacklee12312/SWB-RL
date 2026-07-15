@@ -1,0 +1,337 @@
+{
+  "fusions": [
+    {
+      "card_id": 10323310,
+      "material_filter": {"tribe_id": 18}
+    }
+  ],
+  "rules": [
+    {
+      "card_id": 10122310,
+      "trigger": "play",
+      "operations": [
+        {
+          "kind": "choose_one",
+          "target": "own_leader",
+          "options": [
+            {
+              "id": "summon_knights",
+              "label": "召唤铁甲骑士和骑士",
+              "operations": [
+                {"kind": "summon", "target": "own_leader", "card_id": 90021120},
+                {"kind": "summon", "target": "own_leader", "card_id": 90021110}
+              ]
+            },
+            {
+              "id": "buff_followers",
+              "label": "己方所有随从+1/+1",
+              "operations": [
+                {"kind": "buff_unit", "target": "all_own_units", "amount": 1, "secondary_amount": 1}
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "card_id": 10132310,
+      "trigger": "play",
+      "operations": [
+        {
+          "kind": "choose_one",
+          "target": "own_leader",
+          "options": [
+            {
+              "id": "earth_sigils",
+              "label": "土之印+4",
+              "operations": [
+                {"kind": "add_earth_sigils", "target": "own_leader", "amount": 4}
+              ]
+            },
+            {
+              "id": "heal",
+              "label": "回复4点生命",
+              "operations": [
+                {"kind": "heal_leader", "target": "own_leader", "amount": 4}
+              ]
+            },
+            {
+              "id": "earth_rite_damage",
+              "label": "土之秘术3：敌方全体4点伤害",
+              "operations": [
+                {
+                  "kind": "earth_rite",
+                  "target": "own_leader",
+                  "amount": 3,
+                  "operations": [
+                    {"kind": "damage_unit", "target": "all_enemy_units", "amount": 4}
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "card_id": 10211310,
+      "trigger": "play",
+      "operations": [
+        {"kind": "summon", "target": "own_leader", "card_id": 10011130},
+        {"kind": "summon", "target": "own_leader", "card_id": 10011130},
+        {"kind": "summon", "target": "own_leader", "card_id": 10011130}
+      ]
+    },
+    {
+      "card_id": 10241310,
+      "trigger": "play",
+      "operations": [
+        {"kind": "summon", "target": "own_leader", "card_id": 90041130},
+        {
+          "kind": "draw_filtered",
+          "target": "own_leader",
+          "amount": 1,
+          "deck_card_id_filter": 10241310,
+          "conditions": [{"type": "controller_overflow"}]
+        }
+      ]
+    },
+    {
+      "card_id": 10323310,
+      "trigger": "play",
+      "operations": [
+        {"kind": "damage_unit", "target": "random_enemy_unit", "amount": 2},
+        {"kind": "add_card", "target": "own_leader", "card_id": 90021310},
+        {
+          "kind": "draw",
+          "target": "own_leader",
+          "amount": 1,
+          "conditions": [{"type": "source_fusion_count_at_least", "value": 1}]
+        }
+      ]
+    },
+    {
+      "card_id": 10332310,
+      "trigger": "play",
+      "operations": [
+        {"kind": "summon", "target": "own_leader", "card_id": 90031120},
+        {"kind": "summon", "target": "own_leader", "card_id": 90031110}
+      ]
+    },
+    {
+      "card_id": 10432310,
+      "trigger": "play",
+      "operations": [
+        {
+          "kind": "choose_one",
+          "target": "own_leader",
+          "options": [
+            {
+              "id": "single",
+              "label": "抽1张并对随机敌方随从造成4点伤害",
+              "operations": [
+                {"kind": "draw", "target": "own_leader", "amount": 1},
+                {"kind": "damage_unit", "target": "random_enemy_unit", "amount": 4}
+              ]
+            },
+            {
+              "id": "double",
+              "label": "抽2张、随机2个敌方随从4点伤害并自伤2",
+              "operations": [
+                {"kind": "draw", "target": "own_leader", "amount": 2},
+                {"kind": "damage_unit", "target": "random_enemy_unit", "amount": 4, "target_count": 2},
+                {"kind": "damage_leader", "target": "own_leader", "amount": 2}
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "card_id": 10542310,
+      "trigger": "play",
+      "operations": [
+        {
+          "kind": "damage_unit",
+          "target": "all_units",
+          "amount": {
+            "type": "add",
+            "values": [
+              {"type": "controller_board_count"},
+              {"type": "opponent_board_count"}
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "card_id": 10611310,
+      "trigger": "play",
+      "operations": [
+        {"kind": "damage_unit", "target": "all_enemy_units", "amount": 4},
+        {"kind": "summon", "target": "own_leader", "card_id": 90011120},
+        {"kind": "summon", "target": "own_leader", "card_id": 90011120}
+      ]
+    },
+    {
+      "card_id": 10621310,
+      "trigger": "play",
+      "operations": [
+        {"kind": "summon", "target": "own_leader", "card_id": 10621110, "target_key": "soldier_1"},
+        {"kind": "summon", "target": "own_leader", "card_id": 10621110, "target_key": "soldier_2"},
+        {"kind": "summon", "target": "own_leader", "card_id": 10621110, "target_key": "soldier_3"}
+      ],
+      "play_modes": [
+        {
+          "id": "enhance_7",
+          "type": "enhance",
+          "cost": 7,
+          "operations": [
+            {"kind": "buff_unit", "target": "previous_target", "target_key": "soldier_1", "amount": 2, "secondary_amount": 2},
+            {"kind": "buff_unit", "target": "previous_target", "target_key": "soldier_2", "amount": 2, "secondary_amount": 2},
+            {"kind": "buff_unit", "target": "previous_target", "target_key": "soldier_3", "amount": 2, "secondary_amount": 2}
+          ]
+        }
+      ]
+    },
+    {
+      "card_id": 10732310,
+      "trigger": "play",
+      "operations": [
+        {
+          "kind": "choose_one",
+          "target": "own_leader",
+          "options": [
+            {
+              "id": "earth_sigils",
+              "label": "土之印+4",
+              "operations": [
+                {"kind": "add_earth_sigils", "target": "own_leader", "amount": 4}
+              ]
+            },
+            {
+              "id": "earth_rite_damage",
+              "label": "土之秘术2：敌方全体2点伤害",
+              "operations": [
+                {
+                  "kind": "earth_rite",
+                  "target": "own_leader",
+                  "amount": 2,
+                  "operations": [
+                    {"kind": "damage_unit", "target": "all_enemy_units", "amount": 2}
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "card_id": 10731310,
+      "trigger": "play",
+      "operations": [
+        {"kind": "draw", "target": "own_leader", "amount": 2},
+        {"kind": "add_earth_sigils", "target": "own_leader", "amount": 1}
+      ]
+    },
+    {
+      "card_id": 10733310,
+      "trigger": "play",
+      "operations": [
+        {"kind": "destroy", "target": "enemy_unit"},
+        {"kind": "add_earth_sigils", "target": "own_leader", "amount": 2}
+      ]
+    },
+    {
+      "card_id": 10803310,
+      "trigger": "play",
+      "operations": [
+        {
+          "kind": "choose_one",
+          "target": "own_leader",
+          "options": [
+            {
+              "id": "damage",
+              "label": "随机敌方随从3点伤害",
+              "operations": [
+                {"kind": "damage_unit", "target": "random_enemy_unit", "amount": 3}
+              ]
+            },
+            {
+              "id": "reanimate",
+              "label": "亡者召还2",
+              "operations": [
+                {"kind": "reanimate", "target": "own_leader", "amount": 2}
+              ]
+            },
+            {
+              "id": "buff",
+              "label": "己方所有随从+1/+0",
+              "operations": [
+                {"kind": "buff_unit", "target": "all_own_units", "amount": 1, "secondary_amount": 0}
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "card_id": 10823310,
+      "trigger": "play",
+      "operations": [
+        {
+          "kind": "conditional",
+          "target": "own_leader",
+          "conditions": [{"type": "controller_board_count_at_least", "value": 2}],
+          "then": [
+            {"kind": "damage_unit", "target": "random_enemy_unit", "amount": 4},
+            {"kind": "heal_leader", "target": "own_leader", "amount": 2}
+          ],
+          "else": [
+            {
+              "kind": "choose_one",
+              "target": "own_leader",
+              "options": [
+                {
+                  "id": "damage",
+                  "label": "随机敌方随从4点伤害",
+                  "operations": [
+                    {"kind": "damage_unit", "target": "random_enemy_unit", "amount": 4}
+                  ]
+                },
+                {
+                  "id": "heal",
+                  "label": "回复2点生命",
+                  "operations": [
+                    {"kind": "heal_leader", "target": "own_leader", "amount": 2}
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "listeners": [
+    {
+      "card_id": 10731310,
+      "zone": "hand",
+      "event": "earth_rite_activated",
+      "event_scope": "owner_event",
+      "operations": [
+        {"kind": "change_cost", "target": "self", "mode": "add", "amount": -1, "duration": "until_end_of_turn"}
+      ]
+    },
+    {
+      "card_id": 10733310,
+      "zone": "hand",
+      "event": "earth_rite_activated",
+      "event_scope": "owner_event",
+      "operations": [
+        {"kind": "change_cost", "target": "self", "mode": "add", "amount": -1, "duration": "until_end_of_turn"}
+      ]
+    }
+  ]
+}

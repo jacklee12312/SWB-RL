@@ -1866,6 +1866,9 @@ class BehaviorBatch4Tests(unittest.TestCase):
     def test_10472310_no_enemy_target_is_unplayable(self):
         engine = self._make_engine()
         engine.reset(seed=42)
+        operations = engine.rulebook.operations_for(10472310, Trigger.PLAY)
+        self.assertTrue(operations[0].requires_target)
+        self.assertTrue(all(not op.requires_target for op in operations[1:]))
         _insert_card(engine, _card(10472310, card_type="\u6cd5\u672f", cost=3, attack=None, life=None))
         engine.players[0].mana = 10
 

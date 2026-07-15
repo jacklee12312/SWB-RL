@@ -1,0 +1,324 @@
+{
+  "passives": [
+    {
+      "card_id": 10124120,
+      "kind": "non_intrinsic_keyword",
+      "keyword": "屏障",
+      "notes": "屏障只授予超进化时的其他皇家护卫随从。"
+    },
+    {
+      "card_id": 10224110,
+      "kind": "non_intrinsic_keyword",
+      "keyword": "突进",
+      "notes": "突进只授予进化时召唤的铁甲骑士。"
+    },
+    {
+      "card_id": 10753110,
+      "kind": "non_intrinsic_keyword",
+      "keyword": "疾驰",
+      "notes": "疾驰只授予进入自己战场的亡者随从。"
+    },
+    {
+      "card_id": 10754110,
+      "kind": "non_intrinsic_keyword",
+      "keyword": "突进",
+      "notes": "突进只授予进入自己战场的其他梦魇随从。"
+    },
+    {
+      "card_id": 10834120,
+      "kind": "non_intrinsic_keyword",
+      "keyword": "突进",
+      "notes": "突进只授予进入自己战场的其他随从。"
+    }
+  ],
+  "intrinsic_keywords": [
+    {"card_id": 10724120, "keywords": ["守护"]},
+    {"card_id": 90031120, "keywords": ["守护"]}
+  ],
+  "rules": [
+    {
+      "card_id": 10124120,
+      "trigger": "fanfare",
+      "operations": [
+        {
+          "kind": "draw_filtered",
+          "target": "own_leader",
+          "amount": 2,
+          "card_type_filter": "随从",
+          "class_id_filter": 2
+        },
+        {"kind": "restore_mana", "target": "own_leader", "amount": 3}
+      ]
+    },
+    {
+      "card_id": 10124120,
+      "trigger": "super_evolve",
+      "operations": [
+        {
+          "kind": "add_keyword",
+          "target": "all_own_units",
+          "keyword": "屏障",
+          "target_class_id_filter": 2,
+          "exclude_source": true
+        }
+      ]
+    },
+    {
+      "card_id": 10224110,
+      "trigger": "fanfare",
+      "operations": [
+        {
+          "kind": "super_evolve_unit",
+          "target": "self",
+          "conditions": [
+            {"type": "controller_cooperation_at_least", "value": 20}
+          ]
+        },
+        {
+          "kind": "summon",
+          "target": "own_leader",
+          "card_id": 90021120,
+          "target_key": "fanfare_first_knight",
+          "conditions": [
+            {"type": "controller_cooperation_at_least", "value": 20}
+          ]
+        },
+        {
+          "kind": "summon",
+          "target": "own_leader",
+          "card_id": 90021120,
+          "target_key": "fanfare_second_knight",
+          "conditions": [
+            {"type": "controller_cooperation_at_least", "value": 20}
+          ]
+        },
+        {
+          "kind": "add_keyword",
+          "target": "previous_target",
+          "target_key": "fanfare_first_knight",
+          "keyword": "突进",
+          "conditions": [
+            {"type": "controller_cooperation_at_least", "value": 20}
+          ]
+        },
+        {
+          "kind": "add_keyword",
+          "target": "previous_target",
+          "target_key": "fanfare_second_knight",
+          "keyword": "突进",
+          "conditions": [
+            {"type": "controller_cooperation_at_least", "value": 20}
+          ]
+        }
+      ]
+    },
+    {
+      "card_id": 10224110,
+      "trigger": "evolve",
+      "operations": [
+        {
+          "kind": "summon",
+          "target": "own_leader",
+          "card_id": 90021120,
+          "target_key": "first_knight"
+        },
+        {
+          "kind": "summon",
+          "target": "own_leader",
+          "card_id": 90021120,
+          "target_key": "second_knight"
+        },
+        {
+          "kind": "add_keyword",
+          "target": "previous_target",
+          "target_key": "first_knight",
+          "keyword": "突进"
+        },
+        {
+          "kind": "add_keyword",
+          "target": "previous_target",
+          "target_key": "second_knight",
+          "keyword": "突进"
+        }
+      ]
+    },
+    {
+      "card_id": 10653110,
+      "trigger": "fanfare",
+      "operations": [
+        {"kind": "destroy", "target": "own_unit", "exclude_source": true},
+        {"kind": "evolve_unit", "target": "self"}
+      ]
+    },
+    {
+      "card_id": 10653110,
+      "trigger": "evolve",
+      "operations": [
+        {
+          "kind": "summon",
+          "target": "own_leader",
+          "card_id": 90051120,
+          "target_key": "summoned_bat"
+        },
+        {
+          "kind": "evolve_unit",
+          "target": "previous_target",
+          "target_key": "summoned_bat"
+        }
+      ]
+    },
+    {
+      "card_id": 10724120,
+      "trigger": "fanfare",
+      "operations": [
+        {"kind": "summon", "target": "own_leader", "card_id": 90021120},
+        {"kind": "summon", "target": "own_leader", "card_id": 90021120},
+        {
+          "kind": "buff_unit",
+          "target": "all_own_units",
+          "amount": 1,
+          "secondary_amount": 3,
+          "target_class_id_filter": 2,
+          "exclude_source": true
+        },
+        {
+          "kind": "add_keyword",
+          "target": "all_own_units",
+          "keyword": "守护",
+          "target_class_id_filter": 2,
+          "exclude_source": true
+        }
+      ]
+    },
+    {
+      "card_id": 10724120,
+      "trigger": "super_evolve",
+      "operations": [
+        {"kind": "destroy", "target": "enemy_unit"}
+      ]
+    },
+    {
+      "card_id": 10753110,
+      "trigger": "fanfare",
+      "operations": [
+        {"kind": "summon", "target": "own_leader", "card_id": 90051140},
+        {"kind": "summon", "target": "own_leader", "card_id": 90051110}
+      ]
+    },
+    {
+      "card_id": 10753110,
+      "trigger": "super_evolve",
+      "operations": [
+        {"kind": "destroy", "target": "own_unit", "exclude_source": true},
+        {"kind": "destroy", "target": "random_enemy_unit"}
+      ]
+    },
+    {
+      "card_id": 10754110,
+      "trigger": "fanfare",
+      "operations": [
+        {
+          "kind": "summon_from_deck",
+          "target": "own_leader",
+          "amount": 2,
+          "card_type_filter": "随从",
+          "class_id_filter": 5,
+          "cost_max": 2
+        }
+      ]
+    },
+    {
+      "card_id": 10754110,
+      "trigger": "super_evolve",
+      "operations": [
+        {
+          "kind": "buff_unit",
+          "target": "all_own_units",
+          "amount": 2,
+          "secondary_amount": 2,
+          "target_class_id_filter": 5,
+          "exclude_source": true
+        }
+      ]
+    },
+    {
+      "card_id": 10834120,
+      "trigger": "fanfare",
+      "operations": [
+        {"kind": "summon", "target": "own_leader", "card_id": 90031120},
+        {"kind": "summon", "target": "own_leader", "card_id": 90031120}
+      ]
+    },
+    {
+      "card_id": 10834120,
+      "trigger": "evolve",
+      "operations": [
+        {"kind": "summon", "target": "own_leader", "card_id": 90031120}
+      ]
+    },
+    {
+      "card_id": 90051140,
+      "trigger": "last_words",
+      "operations": [
+        {
+          "kind": "summon",
+          "target": "own_leader",
+          "card_id": 90051140,
+          "target_key": "replacement_zombie"
+        },
+        {
+          "kind": "remove_all_abilities",
+          "target": "previous_target",
+          "target_key": "replacement_zombie"
+        }
+      ]
+    }
+  ],
+  "listeners": [
+    {
+      "card_id": 10224110,
+      "zone": "board",
+      "event": "follower_summoned",
+      "event_scope": "owner_event",
+      "source_relation": "other",
+      "event_filter": {"card_type": "随从"},
+      "operations": [
+        {"kind": "damage_unit", "target": "all_enemy_units", "amount": 1}
+      ]
+    },
+    {
+      "card_id": 10753110,
+      "zone": "board",
+      "event": "follower_summoned",
+      "event_scope": "owner_event",
+      "source_relation": "any",
+      "event_filter": {"card_type": "随从", "tribe_name": "亡者"},
+      "operations": [
+        {"kind": "add_keyword", "target": "event_source", "keyword": "疾驰"}
+      ]
+    },
+    {
+      "card_id": 10754110,
+      "zone": "board",
+      "event": "follower_summoned",
+      "event_scope": "owner_event",
+      "source_relation": "other",
+      "event_filter": {"card_type": "随从", "class_id": 5},
+      "operations": [
+        {"kind": "add_keyword", "target": "event_source", "keyword": "突进"}
+      ]
+    },
+    {
+      "card_id": 10834120,
+      "zone": "board",
+      "event": "follower_summoned",
+      "event_scope": "owner_event",
+      "source_relation": "other",
+      "event_filter": {"card_type": "随从"},
+      "operations": [
+        {"kind": "add_keyword", "target": "event_source", "keyword": "突进"},
+        {"kind": "spellboost_hand", "target": "all_own_hand", "amount": 1}
+      ]
+    }
+  ]
+}

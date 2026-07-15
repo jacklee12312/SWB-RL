@@ -8,26 +8,26 @@
 | Metric | Count |
 |---|---|
 | Total cards in DB | 826 |
-| Cards with rules | 224 |
+| Cards with rules | 433 |
 | Test/synthetic IDs with rules | 26 |
 
 ### Coverage Categories
 
 | Category | Count |
 |---|---|
-| covered_exact | 186 |
+| covered_exact | 361 |
 | text_unclear | 18 |
-| supported_missing_rule | 531 |
+| supported_missing_rule | 356 |
 | token_or_non_collectible | 91 |
 
 ### Clause Audit
 
 | Clause status | Count |
 |---|---:|
-| mapped_exact | 186 |
+| mapped_exact | 361 |
 | unverified_exact | 0 |
 | partial | 0 |
-| missing_rule | 531 |
+| missing_rule | 356 |
 | missing_primitive | 0 |
 | text_unclear | 18 |
 | token_separate_audit | 91 |
@@ -36,7 +36,7 @@
 
 | Blocker | Count |
 |---|---:|
-| missing_rule | 531 |
+| missing_rule | 356 |
 | missing_schema | 0 |
 | missing_primitive | 0 |
 | missing_targeting | 0 |
@@ -67,7 +67,10 @@
 | 倒数 | COUNTDOWN / countdown | True |
 | 抽取 | DRAW / DRAW_FILTERED | True |
 | 将.*加入手牌 | ADD_CARD | True |
-| 回复 | HEAL_LEADER / HEAL_UNIT | True |
+| 回复自己\d+点超进化点 | RESTORE_SUPER_EVOLUTION_POINTS | True |
+| 回复自己\d+点进化点 | RESTORE_EVOLUTION_POINTS | True |
+| 回复自己\d+点能量点 | RESTORE_MANA | True |
+| 回复(?!自己\d+点(?:超进化点|进化点|能量点)) | HEAL_LEADER / HEAL_UNIT | True |
 | 造成.*伤害 | DAMAGE_LEADER / DAMAGE_UNIT | True |
 | 失去所有能力 | REMOVE_ALL_ABILITIES | True |
 | 受到的伤害[+＋] | ADD_LEADER_DAMAGE_MODIFIER | True |
@@ -103,21 +106,21 @@
 |---|---|---|---|---|---|---|---|
 | 1 | 10572310 | 苏生调律 | 超越者 | 1 | 法术 | high | Covered keywords: 将.*加入手牌, 破坏, 舍弃 |
 | 2 | 10341110 | 侮蔑的肯定者 | 龙族 | 2 | 随从 | high | Covered keywords: 抽取, 破坏 |
-| 3 | 10373310 | 歼灭的歌声 | 超越者 | 2 | 法术 | high | Covered keywords: 破坏, 召唤 |
-| 4 | 10441120 | 梅格的挚友·玛丽亲 | 龙族 | 2 | 随从 | high | Covered keywords: 进化时, 超进化, 回合结束 |
-| 5 | 10511310 | 虫风花的飞翔 | 精灵 | 2 | 法术 | high | Covered keywords: 将.*加入手牌 |
-| 6 | 10551310 | 奥夜花的开战 | 梦魇 | 2 | 法术 | high | Covered keywords: 造成.*伤害 |
-| 7 | 10552310 | 残虐的炸裂 | 梦魇 | 2 | 法术 | high | Covered keywords: 造成.*伤害 |
-| 8 | 10772310 | 闪光一瞬 | 超越者 | 2 | 法术 | high | Covered keywords: 超进化 |
-| 9 | 10853310 | 改变的流向 | 梦魇 | 2 | 法术 | high | Covered keywords: 超进化, 抽取, 返回牌 |
-| 10 | 10112310 | 薰交的思慕 | 精灵 | 3 | 法术 | high | Covered keywords: 抽取, 将.*加入手牌 |
-| 11 | 10541310 | 波摇花的裁决 | 龙族 | 3 | 法术 | high | Covered keywords: 抽取, 造成.*伤害 |
-| 12 | 10673310 | 恶劣的天斧 | 超越者 | 3 | 法术 | high | Covered keywords: 回合结束, 造成.*伤害 |
-| 13 | 10773310 | 瞬移斩击 | 超越者 | 3 | 法术 | high | Covered keywords: 造成.*伤害 |
-| 14 | 10802310 | 救世的英姿 | 中立 | 3 | 法术 | high | Covered keywords: 抽取 |
-| 15 | 10872310 | 纯净无垢的日常 | 超越者 | 3 | 法术 | high | Covered keywords: 超进化, 抽取, 回复 |
-| 16 | 10873310 | 开辟未来 | 超越者 | 3 | 法术 | high | Covered keywords: 回复, 造成.*伤害 |
-| 17 | 10071310 | 来自异次元的枪击 | 超越者 | 4 | 法术 | high | Covered keywords: 将.*加入手牌, 破坏 |
-| 18 | 10103310 | 神之雷霆 | 中立 | 4 | 法术 | high | Covered keywords: 造成.*伤害, 破坏 |
-| 19 | 10332310 | 双重创造 | 巫师 | 4 | 法术 | high | Covered keywords: 召唤 |
-| 20 | 10371310 | 丝线突袭 | 超越者 | 4 | 法术 | high | Covered keywords: 将.*加入手牌, 破坏 |
+| 3 | 10511310 | 虫风花的飞翔 | 精灵 | 2 | 法术 | high | Covered keywords: 将.*加入手牌 |
+| 4 | 10551310 | 奥夜花的开战 | 梦魇 | 2 | 法术 | high | Covered keywords: 造成.*伤害 |
+| 5 | 10772310 | 闪光一瞬 | 超越者 | 2 | 法术 | high | Covered keywords: 超进化 |
+| 6 | 10853310 | 改变的流向 | 梦魇 | 2 | 法术 | high | Covered keywords: 超进化, 抽取, 返回牌 |
+| 7 | 10541310 | 波摇花的裁决 | 龙族 | 3 | 法术 | high | Covered keywords: 抽取, 造成.*伤害 |
+| 8 | 10673310 | 恶劣的天斧 | 超越者 | 3 | 法术 | high | Covered keywords: 回合结束, 造成.*伤害 |
+| 9 | 10773310 | 瞬移斩击 | 超越者 | 3 | 法术 | high | Covered keywords: 造成.*伤害 |
+| 10 | 10802310 | 救世的英姿 | 中立 | 3 | 法术 | high | Covered keywords: 抽取 |
+| 11 | 10873310 | 开辟未来 | 超越者 | 3 | 法术 | high | Covered keywords: 回复自己\d+点进化点, 造成.*伤害 |
+| 12 | 10071310 | 来自异次元的枪击 | 超越者 | 4 | 法术 | high | Covered keywords: 将.*加入手牌, 破坏 |
+| 13 | 10641310 | 天刀授予 | 龙族 | 4 | 法术 | high | Covered keywords: 将.*加入手牌, 舍弃 |
+| 14 | 10172320 | 改境的重启 | 超越者 | 5 | 法术 | high | Covered keywords: 回合结束, 破坏, 召唤 |
+| 15 | 10443310 | 星晶兽吸收之力 | 龙族 | 5 | 法术 | high | Covered keywords: 消失 |
+| 16 | 10273310 | 心有灵犀的共斗 | 超越者 | 6 | 法术 | high | Covered keywords: 召唤 |
+| 17 | 10672310 | 平庸的制图 | 超越者 | 6 | 法术 | high | Covered keywords: 召唤 |
+| 18 | 10643310 | 断头的天刀 | 龙族 | 7 | 法术 | high | Covered keywords: 将.*加入手牌, 造成.*伤害, 舍弃 |
+| 19 | 10652310 | “最强”的诱惑 | 梦魇 | 7 | 法术 | high | Covered keywords: 消失, 召唤 |
+| 20 | 10752310 | 讴歌青春 | 梦魇 | 7 | 法术 | high | Covered keywords: 召唤 |

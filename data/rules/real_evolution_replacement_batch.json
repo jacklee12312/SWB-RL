@@ -1,0 +1,142 @@
+{
+  "intrinsic_keywords": [
+    {
+      "card_id": 10072120,
+      "keywords": ["守护"]
+    }
+  ],
+  "rules": [
+    {
+      "card_id": 10002110,
+      "trigger": "evolve",
+      "operations": [
+        {
+          "kind": "heal_leader",
+          "target": "own_leader",
+          "amount": 2,
+          "conditions": [
+            {
+              "type": "not",
+              "conditions": [{"type": "source_super_evolved"}]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "card_id": 10002110,
+      "trigger": "super_evolve",
+      "operations": [
+        {"kind": "heal_leader", "target": "own_leader", "amount": 4}
+      ]
+    },
+    {
+      "card_id": 10042110,
+      "trigger": "evolve",
+      "operations": [
+        {
+          "kind": "damage_unit",
+          "target": "enemy_unit",
+          "amount": 4,
+          "conditions": [
+            {
+              "type": "not",
+              "conditions": [{"type": "source_super_evolved"}]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "card_id": 10042110,
+      "trigger": "super_evolve",
+      "operations": [
+        {"kind": "damage_unit", "target": "all_enemy_units", "amount": 4}
+      ]
+    },
+    {
+      "card_id": 10062110,
+      "trigger": "evolve",
+      "operations": [
+        {
+          "kind": "banish",
+          "target": "enemy_unit",
+          "conditions": [
+            {
+              "type": "not",
+              "conditions": [{"type": "source_super_evolved"}]
+            },
+            {"type": "target_health_at_most", "value": 3}
+          ]
+        }
+      ]
+    },
+    {
+      "card_id": 10062110,
+      "trigger": "super_evolve",
+      "operations": [
+        {
+          "kind": "banish",
+          "target": "all_enemy_units",
+          "conditions": [
+            {"type": "target_health_at_most", "value": 3}
+          ]
+        }
+      ]
+    },
+    {
+      "card_id": 10072120,
+      "trigger": "evolve",
+      "operations": [
+        {
+          "kind": "summon",
+          "target": "own_leader",
+          "card_id": 10072120,
+          "conditions": [
+            {
+              "type": "not",
+              "conditions": [{"type": "source_super_evolved"}]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "card_id": 10072120,
+      "trigger": "super_evolve",
+      "operations": [
+        {"kind": "summon", "target": "own_leader", "card_id": 10072120},
+        {"kind": "summon", "target": "own_leader", "card_id": 10072120}
+      ]
+    },
+    {
+      "card_id": 10541110,
+      "trigger": "evolve",
+      "operations": [
+        {
+          "kind": "damage_unit",
+          "target": "enemy_unit",
+          "amount": 5,
+          "conditions": [
+            {
+              "type": "not",
+              "conditions": [{"type": "source_super_evolved"}]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "card_id": 10541110,
+      "trigger": "super_evolve",
+      "operations": [
+        {
+          "kind": "damage_unit",
+          "target": "enemy_unit",
+          "amount": 5,
+          "target_count": 2
+        }
+      ]
+    }
+  ]
+}

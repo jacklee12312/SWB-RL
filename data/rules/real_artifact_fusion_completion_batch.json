@@ -1,0 +1,38 @@
+{
+  "intrinsic_keywords": [
+    {"card_id": 90072110, "keywords": ["突进"]},
+    {"card_id": 90072120, "keywords": ["守护"]},
+    {"card_id": 90074110, "keywords": ["疾驰", "守护", "灵气"]}
+  ],
+  "rules": [
+    {
+      "card_id": 90073110,
+      "trigger": "turn_end",
+      "operations": [
+        {"kind": "heal_leader", "target": "own_leader", "amount": 3}
+      ]
+    },
+    {
+      "card_id": 90073120,
+      "trigger": "turn_end",
+      "operations": [
+        {"kind": "damage_leader", "target": "enemy_leader", "amount": 3}
+      ]
+    },
+    {
+      "card_id": 90073130,
+      "trigger": "turn_end",
+      "operations": [
+        {"kind": "damage_unit", "target": "all_enemy_units", "amount": 3}
+      ]
+    },
+    {
+      "card_id": 90074110,
+      "trigger": "fanfare",
+      "operations": [
+        {"kind": "damage_unit", "target": "all_enemy_units", "amount": 5},
+        {"kind": "heal_leader", "target": "own_leader", "amount": 5}
+      ]
+    }
+  ]
+}

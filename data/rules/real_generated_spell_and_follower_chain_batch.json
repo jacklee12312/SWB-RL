@@ -1,0 +1,197 @@
+{
+  "passives": [
+    {
+      "card_id": 90023110,
+      "kind": "non_intrinsic_keyword",
+      "keyword": "必杀",
+      "notes": "毁灭仅在入场曲检测到假日中的王女·普莉姆时获得。"
+    },
+    {
+      "card_id": 10374120,
+      "kind": "cannot_be_destroyed_by_effects"
+    }
+  ],
+  "intrinsic_keywords": [
+    {"card_id": 10223120, "keywords": ["潜行"]},
+    {"card_id": 90023110, "keywords": ["守护"]},
+    {"card_id": 90034130, "keywords": ["突进", "守护"]},
+    {"card_id": 90071160, "keywords": ["疾驰"]}
+  ],
+  "rules": [
+    {
+      "card_id": 10223120,
+      "trigger": "fanfare",
+      "operations": [
+        {"kind": "add_card", "target": "own_leader", "card_id": 90023110}
+      ]
+    },
+    {
+      "card_id": 10223120,
+      "trigger": "super_evolve",
+      "operations": [
+        {
+          "kind": "buff_unit",
+          "target": "all_own_units",
+          "exclude_source": true,
+          "amount": 1,
+          "secondary_amount": 1
+        }
+      ]
+    },
+    {
+      "card_id": 90023110,
+      "trigger": "fanfare",
+      "operations": [
+        {
+          "kind": "buff_unit",
+          "target": "self",
+          "amount": 1,
+          "secondary_amount": 1,
+          "conditions": [
+            {"type": "controller_board_has", "card_id_filter": 10223120}
+          ]
+        },
+        {
+          "kind": "add_keyword",
+          "target": "self",
+          "keyword": "必杀",
+          "conditions": [
+            {"type": "controller_board_has", "card_id_filter": 10223120}
+          ]
+        }
+      ]
+    },
+    {
+      "card_id": 10134120,
+      "trigger": "fanfare",
+      "operations": [
+        {"kind": "summon", "target": "own_leader", "card_id": 90034130},
+        {"kind": "spellboost_hand", "target": "all_own_hand", "amount": 3}
+      ]
+    },
+    {
+      "card_id": 10134120,
+      "trigger": "evolve",
+      "operations": [
+        {"kind": "damage_unit", "target": "enemy_unit", "amount": 3}
+      ]
+    },
+    {
+      "card_id": 10872120,
+      "trigger": "fanfare",
+      "operations": [
+        {"kind": "add_card", "target": "own_leader", "card_id": 90071160}
+      ]
+    },
+    {
+      "card_id": 10873110,
+      "trigger": "fanfare",
+      "operations": [
+        {"kind": "destroy", "target": "enemy_unit"},
+        {"kind": "summon", "target": "own_leader", "card_id": 90071160}
+      ]
+    },
+    {
+      "card_id": 10354120,
+      "trigger": "fanfare",
+      "operations": [
+        {
+          "kind": "choose_one",
+          "target": "own_leader",
+          "options": [
+            {
+              "id": "scream_spread",
+              "label": "将绝叫的扩散加入手牌",
+              "operations": [
+                {"kind": "add_card", "target": "own_leader", "card_id": 90054310}
+              ]
+            },
+            {
+              "id": "love_flight",
+              "label": "将爱绝的飞翔加入手牌",
+              "operations": [
+                {"kind": "add_card", "target": "own_leader", "card_id": 90054320}
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "card_id": 90054310,
+      "trigger": "play",
+      "operations": [
+        {
+          "kind": "summon",
+          "target": "own_leader",
+          "card_id": 10354120,
+          "target_key": "manifestation_1"
+        },
+        {
+          "kind": "summon",
+          "target": "own_leader",
+          "card_id": 10354120,
+          "target_key": "manifestation_2"
+        },
+        {
+          "kind": "add_keyword",
+          "target": "previous_target",
+          "target_key": "manifestation_1",
+          "keyword": "突进"
+        },
+        {
+          "kind": "add_keyword",
+          "target": "previous_target",
+          "target_key": "manifestation_2",
+          "keyword": "突进"
+        }
+      ]
+    },
+    {
+      "card_id": 90054320,
+      "trigger": "play",
+      "operations": [
+        {
+          "kind": "add_keyword",
+          "target": "own_unit",
+          "target_card_id_filter": 10354120,
+          "keyword": "疾驰",
+          "requires_target": true
+        }
+      ]
+    },
+    {
+      "card_id": 10374120,
+      "trigger": "fanfare",
+      "operations": [
+        {"kind": "add_card", "target": "own_leader", "card_id": 90074310}
+      ]
+    },
+    {
+      "card_id": 10374120,
+      "trigger": "evolve",
+      "operations": [
+        {"kind": "summon", "target": "own_leader", "card_id": 90074210}
+      ]
+    },
+    {
+      "card_id": 90074310,
+      "trigger": "play",
+      "operations": [
+        {"kind": "destroy", "target": "own_board", "requires_target": true},
+        {"kind": "damage_unit", "target": "random_enemy_unit", "amount": 4}
+      ]
+    }
+  ],
+  "listeners": [
+    {
+      "card_id": 90034130,
+      "zone": "board",
+      "event": "turn_ended",
+      "event_scope": "opponent_event",
+      "operations": [
+        {"kind": "destroy", "target": "self"}
+      ]
+    }
+  ]
+}

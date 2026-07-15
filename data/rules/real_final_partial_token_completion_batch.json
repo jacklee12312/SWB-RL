@@ -1,0 +1,29 @@
+{
+  "passives": [
+    {"card_id": 90051130, "kind": "banish_on_leave"}
+  ],
+  "intrinsic_keywords": [
+    {"card_id": 90051130, "keywords": ["疾驰"]},
+    {"card_id": 90071120, "keywords": ["突进"]}
+  ],
+  "rules": [
+    {
+      "card_id": 90051130,
+      "trigger": "turn_end",
+      "operations": [
+        {"kind": "banish", "target": "self"}
+      ]
+    }
+  ],
+  "listeners": [
+    {
+      "card_id": 90071120,
+      "zone": "board",
+      "event": "turn_ended",
+      "event_scope": "opponent_event",
+      "operations": [
+        {"kind": "destroy", "target": "self"}
+      ]
+    }
+  ]
+}

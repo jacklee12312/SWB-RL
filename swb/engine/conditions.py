@@ -31,6 +31,8 @@ class EvalContext:
     source_fusion_count: int = 0
     source_snapshot: SourceStateSnapshot | None = None
     target_snapshot: BoundTargetSnapshot | None = None
+    controller_super_evolution_unlocked: bool = False
+    opponent_super_evolution_unlocked: bool = False
 
     @property
     def controller_player(self) -> PlayerState:
@@ -138,10 +140,18 @@ def evaluate_target_conditions(
     players,
     source_entity_id: int | None = None,
     source_fusion_count: int = 0,
+    controller_super_evolution_unlocked: bool = False,
+    opponent_super_evolution_unlocked: bool = False,
 ) -> bool:
     ctx = EvalContext(
         controller=controller,
         players=players,
+        controller_super_evolution_unlocked=(
+            controller_super_evolution_unlocked
+        ),
+        opponent_super_evolution_unlocked=(
+            opponent_super_evolution_unlocked
+        ),
         target_entity_id=entity.entity_id,
         source_entity_id=source_entity_id,
         source_fusion_count=source_fusion_count,
@@ -236,6 +246,10 @@ def evaluate_condition(cond: Condition | None, ctx: EvalContext | None) -> bool:
         return player.followers_evolved_this_match >= cond.value
     elif t == ConditionType.OPPONENT_EVOLUTIONS_THIS_MATCH_AT_LEAST:
         return opponent.followers_evolved_this_match >= cond.value
+    elif t == ConditionType.CONTROLLER_SUPER_EVOLUTION_UNLOCKED:
+        return ctx.controller_super_evolution_unlocked
+    elif t == ConditionType.OPPONENT_SUPER_EVOLUTION_UNLOCKED:
+        return ctx.opponent_super_evolution_unlocked
     elif t == ConditionType.SOURCE_FUSION_COUNT_AT_LEAST:
         return ctx.source_fusion_count >= cond.value
     elif t == ConditionType.TARGET_ATTACK_AT_MOST:
@@ -250,6 +264,10 @@ def evaluate_condition(cond: Condition | None, ctx: EvalContext | None) -> bool:
         if isinstance(source, Unit):
             return source.evolved
         return bool(ctx.source_snapshot and ctx.source_snapshot.evolved)
+    elif t == ConditionType.SOURCE_SUPER_EVOLVED:
+        if isinstance(source, Unit):
+            return source.super_evolved
+        return bool(ctx.source_snapshot and ctx.source_snapshot.super_evolved)
     elif t == ConditionType.SOURCE_HAS_KEYWORD:
         keyword = cond.keyword or ""
         if isinstance(source, Unit):

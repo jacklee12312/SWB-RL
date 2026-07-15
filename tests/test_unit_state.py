@@ -1613,6 +1613,85 @@ class SpellboostAllCardsTests(unittest.TestCase):
             os.remove(fp)
             os.rmdir(d)
 
+    def test_banish_on_leave_passive_allows_omitted_amount(self):
+        import json, tempfile, os
+        payload = {"passives": [{"card_id": 1, "kind": "banish_on_leave"}], "rules": []}
+        d = tempfile.mkdtemp()
+        try:
+            fp = os.path.join(d, "ok.json")
+            with open(fp, "w") as f:
+                json.dump(payload, f)
+            rb = RuleBook.from_directory(d)
+            self.assertTrue(rb.banish_on_leave(1))
+            self.assertFalse(rb.banish_on_leave(2))
+        finally:
+            os.remove(fp)
+            os.rmdir(d)
+
+    def test_banish_on_leave_passive_rejects_nonzero_amount(self):
+        import json, tempfile, os
+        payload = {
+            "passives": [
+                {"card_id": 1, "kind": "banish_on_leave", "amount": 1}
+            ],
+            "rules": [],
+        }
+        d = tempfile.mkdtemp()
+        try:
+            fp = os.path.join(d, "bad.json")
+            with open(fp, "w") as f:
+                json.dump(payload, f)
+            with self.assertRaises(ValueError) as ctx:
+                RuleBook.from_directory(d)
+            self.assertIn("must be 0 or omitted", str(ctx.exception))
+        finally:
+            os.remove(fp)
+            os.rmdir(d)
+
+    def test_effect_destroy_immunity_passive_allows_omitted_amount(self):
+        import json, tempfile, os
+        payload = {
+            "passives": [
+                {"card_id": 1, "kind": "cannot_be_destroyed_by_effects"}
+            ],
+            "rules": [],
+        }
+        d = tempfile.mkdtemp()
+        try:
+            fp = os.path.join(d, "ok.json")
+            with open(fp, "w") as f:
+                json.dump(payload, f)
+            rb = RuleBook.from_directory(d)
+            self.assertTrue(rb.cannot_be_destroyed_by_effects(1))
+            self.assertFalse(rb.cannot_be_destroyed_by_effects(2))
+        finally:
+            os.remove(fp)
+            os.rmdir(d)
+
+    def test_effect_destroy_immunity_passive_rejects_nonzero_amount(self):
+        import json, tempfile, os
+        payload = {
+            "passives": [
+                {
+                    "card_id": 1,
+                    "kind": "cannot_be_destroyed_by_effects",
+                    "amount": 1,
+                }
+            ],
+            "rules": [],
+        }
+        d = tempfile.mkdtemp()
+        try:
+            fp = os.path.join(d, "bad.json")
+            with open(fp, "w") as f:
+                json.dump(payload, f)
+            with self.assertRaises(ValueError) as ctx:
+                RuleBook.from_directory(d)
+            self.assertIn("must be 0 or omitted", str(ctx.exception))
+        finally:
+            os.remove(fp)
+            os.rmdir(d)
+
     def test_duplicate_passive_error_includes_both_paths(self):
         import json, tempfile, os
         payload = {

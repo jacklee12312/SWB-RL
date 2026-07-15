@@ -4,7 +4,7 @@ import random
 from typing import TYPE_CHECKING
 
 from swb.engine.abilities import AbilityKeyword
-from swb.engine.effects import EffectKind, EffectOperation, TargetKind
+from swb.engine.effects import CandidateExtreme, EffectKind, EffectOperation, TargetKind
 from swb.engine.origin import is_graveyard_return_eligible
 from swb.engine.state import Amulet, BoardCard, BoardEntity, GraveyardCard, Unit
 
@@ -83,6 +83,7 @@ _ALL_TARGETS = frozenset({
     TargetKind.ALL_ENEMY_AMULETS,
     TargetKind.ALL_OWN_HAND,
     TargetKind.ALL_OWN_GRAVEYARD_CARDS,
+    TargetKind.ALL_LEADERS,
 })
 
 _IMPLICIT_TARGETS = frozenset({
@@ -319,7 +320,61 @@ def target_candidates(
             if not _is_unselectable_by_enemy_effects(e, controller, players)
         ]
 
+    candidates = apply_candidate_extreme(candidates, operation.candidate_extreme)
+
     return candidates
+
+
+def apply_candidate_extreme(
+    candidates: list,
+    extreme: CandidateExtreme | None,
+) -> list:
+    """Keep every candidate tied at the requested current-state extreme."""
+
+    if extreme is None or not candidates:
+        return candidates
+    attribute = (
+        "attack"
+        if extreme in {CandidateExtreme.HIGHEST_ATTACK, CandidateExtreme.LOWEST_ATTACK}
+        else "health"
+    )
+    values = [getattr(candidate, attribute, None) for candidate in candidates]
+    comparable = [value for value in values if value is not None]
+    if not comparable:
+        return []
+    choose = (
+        max
+        if extreme in {CandidateExtreme.HIGHEST_ATTACK, CandidateExtreme.HIGHEST_HEALTH}
+        else min
+    )
+    selected_value = choose(comparable)
+    return [
+        candidate
+        for candidate in candidates
+        if getattr(candidate, attribute, None) == selected_value
+    ]
+
+
+def leader_target_ids(
+    operation: EffectOperation,
+    controller: int,
+    players: list,
+) -> list[int]:
+    if operation.target is not TargetKind.ALL_LEADERS:
+        return []
+    player_indexes = [0, 1]
+    if operation.candidate_extreme is not None:
+        healths = [players[index].health for index in player_indexes]
+        choose = (
+            max
+            if operation.candidate_extreme is CandidateExtreme.HIGHEST_HEALTH
+            else min
+        )
+        selected_health = choose(healths)
+        player_indexes = [
+            index for index in player_indexes if players[index].health == selected_health
+        ]
+    return [-1 - player_index for player_index in player_indexes]
 
 
 def _is_unselectable_by_enemy_effects(

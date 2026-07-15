@@ -30,6 +30,7 @@ class ConditionType(str, Enum):
     TARGET_HEALTH_AT_MOST = "target_health_at_most"
     TARGET_HEALTH_AT_LEAST = "target_health_at_least"
     SOURCE_EVOLVED = "source_evolved"
+    SOURCE_SUPER_EVOLVED = "source_super_evolved"
     SOURCE_HAS_KEYWORD = "source_has_keyword"
     TARGET_HAS_KEYWORD = "target_has_keyword"
     TARGET_IS_OWN = "target_is_own"
@@ -46,6 +47,8 @@ class ConditionType(str, Enum):
     OPPONENT_EARTH_SIGILS_AT_LEAST = "opponent_earth_sigils_at_least"
     CONTROLLER_EVOLUTIONS_THIS_MATCH_AT_LEAST = "controller_evolutions_this_match_at_least"
     OPPONENT_EVOLUTIONS_THIS_MATCH_AT_LEAST = "opponent_evolutions_this_match_at_least"
+    CONTROLLER_SUPER_EVOLUTION_UNLOCKED = "controller_super_evolution_unlocked"
+    OPPONENT_SUPER_EVOLUTION_UNLOCKED = "opponent_super_evolution_unlocked"
     SOURCE_FUSION_COUNT_AT_LEAST = "source_fusion_count_at_least"
 
 
@@ -109,9 +112,12 @@ class EffectKind(str, Enum):
     DAMAGE_LEADER = "damage_leader"
     DAMAGE_UNIT = "damage_unit"
     RESTORE_MANA = "restore_mana"
+    RESTORE_EVOLUTION_POINTS = "restore_evolution_points"
+    RESTORE_SUPER_EVOLUTION_POINTS = "restore_super_evolution_points"
     CHANGE_MAX_MANA = "change_max_mana"
     BUFF_UNIT = "buff_unit"
     SUMMON = "summon"
+    SUMMON_FROM_DECK = "summon_from_deck"
     DESTROY = "destroy"
     BANISH = "banish"
     ADD_CARD = "add_card"
@@ -153,6 +159,13 @@ class EffectKind(str, Enum):
     TARGET_EXISTS = "target_exists"
 
 
+class CandidateExtreme(str, Enum):
+    HIGHEST_ATTACK = "highest_attack"
+    LOWEST_ATTACK = "lowest_attack"
+    HIGHEST_HEALTH = "highest_health"
+    LOWEST_HEALTH = "lowest_health"
+
+
 class TargetKind(str, Enum):
     SELF = "self"
     EVENT_SOURCE = "event_source"
@@ -183,6 +196,7 @@ class TargetKind(str, Enum):
     ALL_BOARD = "all_board"
     ALL_OWN_AMULETS = "all_own_amulets"
     ALL_ENEMY_AMULETS = "all_enemy_amulets"
+    ALL_LEADERS = "all_leaders"
     OWN_HAND = "own_hand"
     RANDOM_OWN_HAND = "random_own_hand"
     ALL_OWN_HAND = "all_own_hand"
@@ -224,6 +238,7 @@ class DeckFilter:
     cost_min: int | None = None
     cost_max: int | None = None
     card_id: int | None = None
+    card_ids: tuple[int, ...] = ()
     card_name: str | None = None
     tribe_id: int | None = None
     tribe_name: str | None = None
@@ -236,6 +251,7 @@ class DeckFilter:
             and (self.cost_min is None or card.cost >= self.cost_min)
             and (self.cost_max is None or card.cost <= self.cost_max)
             and (self.card_id is None or card.card_id == self.card_id)
+            and (not self.card_ids or card.card_id in self.card_ids)
             and (self.card_name is None or card.name == self.card_name)
             and (self.tribe_id is None or card.tribe_id == self.tribe_id)
             and (self.tribe_name is None or card.tribe_name == self.tribe_name)
@@ -273,19 +289,29 @@ class HandFilter:
 @dataclass(frozen=True)
 class BoardFilter:
     card_type: str | None = None
+    class_id: int | None = None
+    class_name: str | None = None
     cost_min: int | None = None
     cost_max: int | None = None
     card_id: int | None = None
     card_name: str | None = None
+    tribe_id: int | None = None
+    tribe_name: str | None = None
     evolved: bool | None = None
+    super_evolved: bool | None = None
+    damaged: bool | None = None
 
     def matches(self, card: CardDefinition) -> bool:
         return (
             (self.card_type is None or card.card_type == self.card_type)
+            and (self.class_id is None or card.class_id == self.class_id)
+            and (self.class_name is None or card.class_name == self.class_name)
             and (self.cost_min is None or card.cost >= self.cost_min)
             and (self.cost_max is None or card.cost <= self.cost_max)
             and (self.card_id is None or card.card_id == self.card_id)
             and (self.card_name is None or card.name == self.card_name)
+            and (self.tribe_id is None or card.tribe_id == self.tribe_id)
+            and (self.tribe_name is None or card.tribe_name == self.tribe_name)
         )
 
     def matches_entity(self, entity: Any) -> bool:
@@ -294,6 +320,18 @@ class BoardFilter:
             return False
         if self.evolved is not None and getattr(entity, "evolved", False) is not self.evolved:
             return False
+        if (
+            self.super_evolved is not None
+            and getattr(entity, "super_evolved", False) is not self.super_evolved
+        ):
+            return False
+        if self.damaged is not None:
+            health = getattr(entity, "health", None)
+            max_health = getattr(entity, "max_health", None)
+            if health is None or max_health is None:
+                return False
+            if (health < max_health) is not self.damaged:
+                return False
         return True
 
 
@@ -329,6 +367,7 @@ class EffectOperation:
     graveyard_card_type: str | None = None
     deck_filter: DeckFilter | None = None
     board_filter: BoardFilter | None = None
+    candidate_extreme: CandidateExtreme | None = None
     then_operations: tuple["EffectOperation", ...] = ()
     else_operations: tuple["EffectOperation", ...] = ()
     choose_one_options: tuple["ChooseOneOption", ...] = ()

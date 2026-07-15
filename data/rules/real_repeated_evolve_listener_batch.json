@@ -1,0 +1,300 @@
+{
+  "passives": [
+    {"card_id": 10253110, "kind": "non_intrinsic_keyword", "keyword": "必杀", "notes": "毁灭仅授予入场曲所选的其他随从。"},
+    {"card_id": 10253110, "kind": "non_intrinsic_keyword", "keyword": "疾驰", "notes": "疾驰仅授予超进化时所选的其他随从。"},
+    {"card_id": 10561120, "kind": "non_intrinsic_keyword", "keyword": "必杀", "notes": "毁灭仅由爆能强化4授予。"},
+    {"card_id": 10561120, "kind": "non_intrinsic_keyword", "keyword": "突进", "notes": "突进由己方回合抽牌监听授予。"}
+  ],
+  "intrinsic_keywords": [
+    {"card_id": 10444110, "keywords": ["威慑"]},
+    {"card_id": 10643110, "keywords": ["守护", "屏障"]},
+    {"card_id": 10841110, "keywords": ["必杀", "守护"]}
+  ],
+  "activations": [
+    {"card_id": 10661210, "cost": 1}
+  ],
+  "rules": [
+    {
+      "card_id": 10253110,
+      "trigger": "fanfare",
+      "operations": [
+        {"kind": "add_keyword", "target": "own_unit", "keyword": "必杀", "exclude_source": true}
+      ]
+    },
+    {
+      "card_id": 10253110,
+      "trigger": "super_evolve",
+      "operations": [
+        {"kind": "add_keyword", "target": "own_unit", "keyword": "疾驰", "exclude_source": true}
+      ]
+    },
+    {
+      "card_id": 10104110,
+      "trigger": "fanfare",
+      "operations": [
+        {"kind": "draw", "target": "own_leader", "amount": 2},
+        {"kind": "heal_leader", "target": "own_leader", "amount": 2},
+        {"kind": "restore_mana", "target": "own_leader", "amount": 2}
+      ]
+    },
+    {
+      "card_id": 10104110,
+      "trigger": "super_evolve",
+      "operations": [
+        {
+          "kind": "super_evolve_unit",
+          "target": "own_unit",
+          "exclude_source": true,
+          "target_evolved_filter": false
+        }
+      ]
+    },
+    {
+      "card_id": 10562120,
+      "trigger": "fanfare",
+      "operations": [
+        {"kind": "draw", "target": "own_leader", "amount": 1}
+      ]
+    },
+    {
+      "card_id": 10562120,
+      "trigger": "evolve",
+      "operations": [
+        {"kind": "draw", "target": "own_leader", "amount": 1}
+      ]
+    },
+    {
+      "card_id": 10861110,
+      "trigger": "last_words",
+      "operations": [
+        {"kind": "draw", "target": "own_leader", "amount": 1}
+      ]
+    },
+    {
+      "card_id": 10861110,
+      "trigger": "evolve",
+      "operations": [
+        {"kind": "remove_all_abilities", "target": "enemy_unit", "target_key": "silenced_target"},
+        {"kind": "damage_unit", "target": "previous_target", "target_key": "silenced_target", "amount": 2}
+      ]
+    },
+    {
+      "card_id": 10444110,
+      "trigger": "fanfare",
+      "operations": [
+        {"kind": "damage_unit", "target": "enemy_unit", "amount": 8}
+      ]
+    },
+    {
+      "card_id": 10444110,
+      "trigger": "evolve",
+      "operations": [
+        {"kind": "damage_unit", "target": "enemy_unit", "amount": 8}
+      ]
+    },
+    {
+      "card_id": 10232120,
+      "trigger": "fanfare",
+      "operations": [
+        {"kind": "damage_unit", "target": "enemy_unit", "amount": 3},
+        {"kind": "add_earth_sigils", "target": "own_leader", "amount": 1}
+      ]
+    },
+    {
+      "card_id": 10232120,
+      "trigger": "evolve",
+      "operations": [
+        {"kind": "damage_unit", "target": "enemy_unit", "amount": 3},
+        {"kind": "add_earth_sigils", "target": "own_leader", "amount": 1}
+      ]
+    },
+    {
+      "card_id": 10731120,
+      "trigger": "fanfare",
+      "operations": [
+        {"kind": "damage_unit", "target": "enemy_unit", "amount": 1},
+        {"kind": "add_earth_sigils", "target": "own_leader", "amount": 1}
+      ]
+    },
+    {
+      "card_id": 10731120,
+      "trigger": "evolve",
+      "operations": [
+        {"kind": "damage_unit", "target": "enemy_unit", "amount": 1},
+        {"kind": "add_earth_sigils", "target": "own_leader", "amount": 1}
+      ]
+    },
+    {
+      "card_id": 10372110,
+      "trigger": "fanfare",
+      "operations": [
+        {"kind": "destroy", "target": "own_board", "exclude_source": true},
+        {"kind": "damage_unit", "target": "random_enemy_unit", "amount": 2}
+      ]
+    },
+    {
+      "card_id": 10372110,
+      "trigger": "evolve",
+      "operations": [
+        {"kind": "destroy", "target": "own_board", "exclude_source": true},
+        {"kind": "damage_unit", "target": "random_enemy_unit", "amount": 2}
+      ]
+    },
+    {
+      "card_id": 10552120,
+      "trigger": "fanfare",
+      "operations": [
+        {
+          "kind": "add_attack_restriction",
+          "target": "enemy_unit",
+          "restriction": "cannot_attack",
+          "duration": "until_end_of_opponent_turn"
+        },
+        {"kind": "draw", "target": "own_leader", "amount": 1}
+      ]
+    },
+    {
+      "card_id": 10552120,
+      "trigger": "evolve",
+      "operations": [
+        {
+          "kind": "add_attack_restriction",
+          "target": "enemy_unit",
+          "restriction": "cannot_attack",
+          "duration": "until_end_of_opponent_turn"
+        },
+        {"kind": "draw", "target": "own_leader", "amount": 1}
+      ]
+    },
+    {
+      "card_id": 10113110,
+      "trigger": "fanfare",
+      "operations": [
+        {
+          "kind": "set_stats",
+          "target": "enemy_unit",
+          "health": 1,
+          "conditions": [{"type": "controller_combo_at_least", "value": 3}]
+        }
+      ]
+    },
+    {
+      "card_id": 10113110,
+      "trigger": "evolve",
+      "operations": [
+        {"kind": "draw", "target": "own_leader", "amount": 1},
+        {"kind": "damage_unit", "target": "enemy_unit", "amount": 1}
+      ]
+    },
+    {
+      "card_id": 10461120,
+      "trigger": "turn_end",
+      "operations": [
+        {
+          "kind": "damage_unit",
+          "target": "all_units",
+          "amount": 2,
+          "conditions": [{"type": "source_evolved"}]
+        }
+      ]
+    },
+    {
+      "card_id": 10461120,
+      "trigger": "evolve",
+      "operations": [
+        {
+          "kind": "add_attack_restriction",
+          "target": "self",
+          "restriction": "cannot_attack",
+          "duration": "until_end_of_turn"
+        }
+      ]
+    },
+    {
+      "card_id": 10561120,
+      "trigger": "fanfare",
+      "operations": [],
+      "play_modes": [
+        {
+          "id": "enhance_4",
+          "type": "enhance",
+          "cost": 4,
+          "operations": [
+            {"kind": "draw", "target": "own_leader", "amount": 1},
+            {"kind": "add_keyword", "target": "self", "keyword": "必杀"}
+          ]
+        }
+      ]
+    },
+    {
+      "card_id": 10661210,
+      "trigger": "play",
+      "countdown": 3,
+      "operations": []
+    },
+    {
+      "card_id": 10661210,
+      "trigger": "last_words",
+      "operations": [
+        {"kind": "draw", "target": "own_leader", "amount": 1},
+        {"kind": "destroy", "target": "random_enemy_unit"}
+      ]
+    },
+    {
+      "card_id": 10661210,
+      "trigger": "activate",
+      "operations": [
+        {"kind": "reduce_countdown", "target": "self", "amount": 1}
+      ]
+    },
+    {
+      "card_id": 10643110,
+      "trigger": "fanfare",
+      "operations": [
+        {"kind": "discard", "target": "own_hand"},
+        {"kind": "damage_unit", "target": "random_enemy_unit", "amount": 6}
+      ]
+    },
+    {
+      "card_id": 10643110,
+      "trigger": "evolve",
+      "operations": [
+        {"kind": "discard", "target": "own_hand"},
+        {"kind": "damage_unit", "target": "random_enemy_unit", "amount": 6}
+      ]
+    },
+    {
+      "card_id": 10841110,
+      "trigger": "fanfare",
+      "operations": [
+        {
+          "kind": "evolve_unit",
+          "target": "self",
+          "conditions": [{"type": "controller_health_at_most", "value": 10}]
+        }
+      ]
+    }
+  ],
+  "listeners": [
+    {
+      "card_id": 10562120,
+      "zone": "board",
+      "event": "card_drawn",
+      "event_scope": "owner_event",
+      "turn_scope": "owner_turn",
+      "operations": [
+        {"kind": "damage_unit", "target": "all_enemy_units", "amount": 1}
+      ]
+    },
+    {
+      "card_id": 10561120,
+      "zone": "board",
+      "event": "card_drawn",
+      "event_scope": "owner_event",
+      "turn_scope": "owner_turn",
+      "operations": [
+        {"kind": "add_keyword", "target": "self", "keyword": "突进"}
+      ]
+    }
+  ]
+}

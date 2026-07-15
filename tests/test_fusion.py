@@ -538,6 +538,7 @@ class FusionSchemaTests(unittest.TestCase):
                     "class_id": 1,
                     "card_type": "随从",
                     "cost_max": 3,
+                    "card_ids": [201, 202],
                 },
                 "min_materials": 2,
                 "max_materials": 3,
@@ -548,6 +549,9 @@ class FusionSchemaTests(unittest.TestCase):
         self.assertEqual(definition.max_materials, 3)
         self.assertEqual(definition.material_filter.class_id, 1)
         self.assertEqual(definition.material_filter.card_type, "随从")
+        self.assertEqual(definition.material_filter.card_ids, (201, 202))
+        self.assertTrue(definition.material_filter.matches(_card(201)))
+        self.assertFalse(definition.material_filter.matches(_card(203)))
 
     def test_schema_rejects_bad_filters_and_limits(self):
         invalid = (
@@ -555,6 +559,10 @@ class FusionSchemaTests(unittest.TestCase):
             {"card_id": 100, "material_filter": {"unknown": 1}},
             {"card_id": 100, "material_filter": {}, "min_materials": 0},
             {"card_id": 100, "material_filter": {}, "min_materials": 2, "max_materials": 1},
+            {"card_id": 100, "material_filter": {"card_ids": []}},
+            {"card_id": 100, "material_filter": {"card_ids": [201, 201]}},
+            {"card_id": 100, "material_filter": {"card_ids": [0]}},
+            {"card_id": 100, "material_filter": {"card_id": 201, "card_ids": [202]}},
         )
         for raw in invalid:
             with self.subTest(raw=raw), self.assertRaises(ValueError):

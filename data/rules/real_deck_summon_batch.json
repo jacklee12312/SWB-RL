@@ -1,0 +1,144 @@
+{
+  "passives": [
+    {
+      "card_id": 10462120,
+      "kind": "non_intrinsic_keyword",
+      "keyword": "屏障",
+      "notes": "屏障仅由超进化时效果给予其他随从，不是本体初始关键词。"
+    }
+  ],
+  "intrinsic_keywords": [
+    {"card_id": 10264110, "keywords": ["守护"]}
+  ],
+  "rules": [
+    {
+      "card_id": 10164110,
+      "trigger": "fanfare",
+      "operations": [
+        {"kind": "discard", "target": "own_hand"},
+        {
+          "kind": "summon_from_deck",
+          "target": "own_leader",
+          "amount": 3,
+          "card_type_filter": "护符",
+          "cost_max": 3
+        }
+      ]
+    },
+    {
+      "card_id": 10164110,
+      "trigger": "super_evolve",
+      "operations": [
+        {
+          "kind": "destroy",
+          "target": "random_enemy_unit",
+          "candidate_extreme": "highest_attack"
+        },
+        {"kind": "damage_unit", "target": "all_enemy_units", "amount": 1}
+      ]
+    },
+    {
+      "card_id": 10264110,
+      "trigger": "fanfare",
+      "operations": [
+        {
+          "kind": "summon_from_deck",
+          "target": "own_leader",
+          "amount": 3,
+          "card_type_filter": "随从",
+          "cost_max": 3
+        }
+      ]
+    },
+    {
+      "card_id": 10264110,
+      "trigger": "super_evolve",
+      "operations": [
+        {
+          "kind": "buff_unit",
+          "target": "all_own_units",
+          "secondary_amount": 2,
+          "exclude_source": true
+        },
+        {
+          "kind": "add_keyword",
+          "target": "all_own_units",
+          "keyword": "灵气",
+          "exclude_source": true
+        }
+      ]
+    },
+    {
+      "card_id": 10322120,
+      "trigger": "fanfare",
+      "operations": [
+        {
+          "kind": "summon_from_deck",
+          "target": "own_leader",
+          "amount": 1,
+          "card_type_filter": "随从",
+          "class_id_filter": 2,
+          "cost_max": 3
+        }
+      ]
+    },
+    {
+      "card_id": 10322120,
+      "trigger": "evolve",
+      "operations": [
+        {
+          "kind": "buff_unit",
+          "target": "own_unit",
+          "amount": 2,
+          "secondary_amount": 2,
+          "exclude_source": true
+        }
+      ]
+    },
+    {
+      "card_id": 10462120,
+      "trigger": "fanfare",
+      "operations": [
+        {
+          "kind": "summon_from_deck",
+          "target": "own_leader",
+          "amount": 1,
+          "card_type_filter": "随从",
+          "class_id_filter": 6,
+          "cost_max": 2
+        }
+      ]
+    },
+    {
+      "card_id": 10462120,
+      "trigger": "super_evolve",
+      "operations": [
+        {
+          "kind": "add_keyword",
+          "target": "all_own_units",
+          "keyword": "屏障",
+          "exclude_source": true
+        }
+      ]
+    },
+    {
+      "card_id": 10813310,
+      "trigger": "play",
+      "operations": [
+        {
+          "kind": "summon_from_deck",
+          "target": "own_leader",
+          "amount": 2,
+          "card_type_filter": "随从",
+          "cost_max": 2
+        },
+        {
+          "kind": "buff_unit",
+          "target": "all_own_units",
+          "amount": 1,
+          "secondary_amount": 1
+        }
+      ]
+    }
+  ]
+}

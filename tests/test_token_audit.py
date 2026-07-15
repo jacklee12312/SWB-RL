@@ -65,7 +65,8 @@ class TokenAuditTests(unittest.TestCase):
             sigil["authored_producers"][0]["entry_kind"],
             "engine_earth_sigil",
         )
-        self.assertEqual(sigil["category"], "entry_behavior_partial")
+        self.assertEqual(sigil["category"], "entry_behavior_complete")
+        self.assertEqual(sigil["explicit_coverage"], "exact")
 
     def test_report_is_deterministic(self):
         again = _build_token_audit(

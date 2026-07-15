@@ -1,0 +1,72 @@
+{
+  "passives": [
+    {
+      "card_id": 10152110,
+      "kind": "non_intrinsic_keyword",
+      "keyword": "突进",
+      "notes": "突进只由爆能强化4授予，不是本体初始关键词。"
+    },
+    {
+      "card_id": 10152110,
+      "kind": "non_intrinsic_keyword",
+      "keyword": "必杀",
+      "notes": "毁灭（规范化为必杀）只由爆能强化4授予，不是本体初始关键词。"
+    }
+  ],
+  "rules": [
+    {
+      "card_id": 10101120,
+      "trigger": "last_words",
+      "operations": [
+        {"kind": "add_card", "target": "own_leader", "card_id": 10001210}
+      ]
+    },
+    {
+      "card_id": 10152110,
+      "trigger": "last_words",
+      "operations": [
+        {"kind": "add_card", "target": "own_leader", "card_id": 90051110}
+      ],
+      "play_modes": [
+        {
+          "id": "enhance_4",
+          "type": "enhance",
+          "cost": 4,
+          "operations": [
+            {"kind": "add_keyword", "target": "self", "keyword": "突进"},
+            {"kind": "add_keyword", "target": "self", "keyword": "必杀"}
+          ]
+        }
+      ]
+    },
+    {
+      "card_id": 10312120,
+      "trigger": "last_words",
+      "operations": [
+        {"kind": "add_card", "target": "own_leader", "card_id": 90011310},
+        {"kind": "add_card", "target": "own_leader", "card_id": 90011110}
+      ]
+    },
+    {
+      "card_id": 10751110,
+      "trigger": "last_words",
+      "operations": [
+        {"kind": "add_card", "target": "own_leader", "card_id": 90051120}
+      ]
+    },
+    {
+      "card_id": 10872110,
+      "trigger": "last_words",
+      "operations": [
+        {"kind": "add_card", "target": "own_leader", "card_id": 90071140}
+      ]
+    },
+    {
+      "card_id": 90011310,
+      "trigger": "play",
+      "operations": [
+        {"kind": "heal_leader", "target": "own_leader", "amount": 1}
+      ]
+    }
+  ]
+}

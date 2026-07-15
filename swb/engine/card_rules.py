@@ -8,6 +8,7 @@ from pathlib import Path
 from swb.engine.abilities import RUNTIME_UNIT_KEYWORDS, normalize_keyword_name
 from swb.engine.effects import (
     BoardFilter,
+    CandidateExtreme,
     ChooseOneOption,
     Condition,
     ConditionType,
@@ -68,6 +69,30 @@ _HAND_TARGETS = frozenset({
     TargetKind.OWN_HAND,
     TargetKind.RANDOM_OWN_HAND,
     TargetKind.ALL_OWN_HAND,
+})
+
+_BOARD_EXTREME_TARGETS = frozenset({
+    TargetKind.OWN_UNIT,
+    TargetKind.ENEMY_UNIT,
+    TargetKind.ANY_UNIT,
+    TargetKind.OWN_AMULET,
+    TargetKind.ENEMY_AMULET,
+    TargetKind.ANY_AMULET,
+    TargetKind.OWN_BOARD,
+    TargetKind.ENEMY_BOARD,
+    TargetKind.ANY_BOARD,
+    TargetKind.RANDOM_OWN_UNIT,
+    TargetKind.RANDOM_ENEMY_UNIT,
+    TargetKind.RANDOM_OWN_BOARD,
+    TargetKind.RANDOM_ENEMY_BOARD,
+    TargetKind.ALL_OWN_UNITS,
+    TargetKind.ALL_ENEMY_UNITS,
+    TargetKind.ALL_UNITS,
+    TargetKind.ALL_OWN_BOARD,
+    TargetKind.ALL_ENEMY_BOARD,
+    TargetKind.ALL_BOARD,
+    TargetKind.ALL_OWN_AMULETS,
+    TargetKind.ALL_ENEMY_AMULETS,
 })
 
 _TARGET_DEPENDENT_CONDITIONS = frozenset({
@@ -139,11 +164,17 @@ def _parse_board_filter(
     allow_evolved: bool = False,
 ) -> BoardFilter | None:
     card_type_key = f"{prefix}card_type_filter"
+    class_id_key = f"{prefix}class_id_filter"
+    class_name_key = f"{prefix}class_name_filter"
     cost_min_key = f"{prefix}cost_min"
     cost_max_key = f"{prefix}cost_max"
     card_id_key = f"{prefix}card_id_filter"
     card_name_key = f"{prefix}card_name_filter"
+    tribe_id_key = f"{prefix}tribe_id_filter"
+    tribe_name_key = f"{prefix}tribe_name_filter"
     evolved_key = f"{prefix}evolved_filter"
+    super_evolved_key = f"{prefix}super_evolved_filter"
+    damaged_key = f"{prefix}damaged_filter"
 
     card_type = raw.get(card_type_key)
     if card_type is not None:
@@ -156,6 +187,17 @@ def _parse_board_filter(
                 f"{source_path}/{card_type_key} card {card_id}: "
                 f"unknown card type {card_type!r}; valid: {sorted(_VALID_CARD_TYPES)}"
             )
+
+    class_id = raw.get(class_id_key)
+    if class_id is not None:
+        class_id = _parse_non_negative_int(
+            class_id, f"{source_path}/{class_id_key}", card_id
+        )
+    class_name = raw.get(class_name_key)
+    if class_name is not None and not isinstance(class_name, str):
+        raise ValueError(
+            f"{source_path}/{class_name_key} card {card_id}: must be a string"
+        )
 
     cost_min = raw.get(cost_min_key)
     if cost_min is not None:
@@ -183,6 +225,17 @@ def _parse_board_filter(
             f"{source_path}/{card_name_key} card {card_id}: must be a string"
         )
 
+    tribe_id = raw.get(tribe_id_key)
+    if tribe_id is not None:
+        tribe_id = _parse_non_negative_int(
+            tribe_id, f"{source_path}/{tribe_id_key}", card_id
+        )
+    tribe_name = raw.get(tribe_name_key)
+    if tribe_name is not None and not isinstance(tribe_name, str):
+        raise ValueError(
+            f"{source_path}/{tribe_name_key} card {card_id}: must be a string"
+        )
+
     evolved = raw.get(evolved_key)
     if evolved is not None:
         if not allow_evolved:
@@ -194,15 +247,67 @@ def _parse_board_filter(
                 f"{source_path}/{evolved_key} card {card_id}: must be boolean"
             )
 
-    if not any(v is not None for v in (card_type, cost_min, cost_max, filter_card_id, card_name, evolved)):
+    super_evolved = raw.get(super_evolved_key)
+    if super_evolved is not None:
+        if not allow_evolved:
+            raise ValueError(
+                f"{source_path}/{super_evolved_key} card {card_id}: "
+                "super-evolved filter is not valid here"
+            )
+        if not isinstance(super_evolved, bool):
+            raise ValueError(
+                f"{source_path}/{super_evolved_key} card {card_id}: must be boolean"
+            )
+
+    damaged = raw.get(damaged_key)
+    if damaged is not None:
+        if not allow_evolved:
+            raise ValueError(
+                f"{source_path}/{damaged_key} card {card_id}: "
+                "damaged filter is not valid here"
+            )
+        if not isinstance(damaged, bool):
+            raise ValueError(
+                f"{source_path}/{damaged_key} card {card_id}: must be boolean"
+            )
+
+    if evolved is False and super_evolved is True:
+        raise ValueError(
+            f"{source_path} card {card_id}: super_evolved=true conflicts "
+            "with evolved=false"
+        )
+
+    if not any(
+        v is not None
+        for v in (
+            card_type,
+            class_id,
+            class_name,
+            cost_min,
+            cost_max,
+            filter_card_id,
+            card_name,
+            tribe_id,
+            tribe_name,
+            evolved,
+            super_evolved,
+            damaged,
+        )
+    ):
         return None
     return BoardFilter(
         card_type=card_type,
+        class_id=class_id,
+        class_name=class_name,
         cost_min=cost_min,
         cost_max=cost_max,
         card_id=filter_card_id,
         card_name=card_name,
+        tribe_id=tribe_id,
+        tribe_name=tribe_name,
         evolved=evolved,
+        super_evolved=super_evolved,
+        damaged=damaged,
     )
 
 
@@ -386,6 +491,7 @@ class RuleBook:
         faith_defs: dict[int, FaithDefinition] | None = None,
         union_burst_defs: dict[int, tuple[UnionBurstDefinition, ...]] | None = None,
         listener_defs: dict[int, tuple[CardListenerDefinition, ...]] | None = None,
+        intrinsic_keyword_defs: dict[int, tuple[str, ...]] | None = None,
     ):
         self._rules: dict[tuple[int, Trigger], tuple[EffectOperation, ...]] = {}
         for rule in rules:
@@ -429,6 +535,40 @@ class RuleBook:
         self._listener_defs: dict[int, tuple[CardListenerDefinition, ...]] = (
             listener_defs or {}
         )
+        self._intrinsic_keyword_defs: dict[int, tuple[str, ...]] = {}
+        for card_id, keywords in (intrinsic_keyword_defs or {}).items():
+            if (
+                isinstance(card_id, bool)
+                or not isinstance(card_id, int)
+                or card_id <= 0
+            ):
+                raise ValueError(
+                    "intrinsic keyword card_id must be a positive integer"
+                )
+            if not keywords:
+                raise ValueError(
+                    f"card {card_id}: intrinsic keywords must not be empty"
+                )
+            normalized: list[str] = []
+            for keyword in keywords:
+                try:
+                    canonical = normalize_keyword_name(keyword, strict=True)
+                except (TypeError, ValueError) as exc:
+                    raise ValueError(
+                        f"card {card_id}: invalid intrinsic keyword {keyword!r}"
+                    ) from exc
+                if canonical not in RUNTIME_UNIT_KEYWORDS:
+                    raise ValueError(
+                        f"card {card_id}: {canonical!r} is not a runtime "
+                        "follower keyword"
+                    )
+                if canonical in normalized:
+                    raise ValueError(
+                        f"card {card_id}: duplicate intrinsic keyword "
+                        f"{canonical!r}"
+                    )
+                normalized.append(canonical)
+            self._intrinsic_keyword_defs[card_id] = tuple(normalized)
         self._union_burst_defs: dict[int, tuple[UnionBurstDefinition, ...]] = {}
         for card_id, definitions in (union_burst_defs or {}).items():
             if (
@@ -520,6 +660,11 @@ class RuleBook:
     ) -> tuple[CardListenerDefinition, ...]:
         return self._listener_defs.get(card_id, ())
 
+    def intrinsic_keywords_for(self, card_id: int) -> tuple[str, ...]:
+        """Return explicitly audited printed keywords for keyword-only cards."""
+
+        return self._intrinsic_keyword_defs.get(card_id, ())
+
     def emblem_trigger_ops_for(self, emblem_id: str, trigger: str) -> tuple[EffectOperation, ...]:
         from swb.engine.emblem import EmblemTriggerRule
         ed = self._emblem_defs.get(emblem_id)
@@ -539,6 +684,18 @@ class RuleBook:
     def cannot_be_played(self, card_id: int) -> bool:
         return any(
             p.kind == "cannot_be_played"
+            for p in self._passives.get(card_id, [])
+        )
+
+    def banish_on_leave(self, card_id: int) -> bool:
+        return any(
+            p.kind == "banish_on_leave"
+            for p in self._passives.get(card_id, [])
+        )
+
+    def cannot_be_destroyed_by_effects(self, card_id: int) -> bool:
+        return any(
+            p.kind == "cannot_be_destroyed_by_effects"
             for p in self._passives.get(card_id, [])
         )
 
@@ -566,6 +723,7 @@ class RuleBook:
         all_faith_defs: dict[int, FaithDefinition] = {}
         all_union_burst_defs: dict[int, list[UnionBurstDefinition]] = {}
         all_listener_defs: dict[int, list[CardListenerDefinition]] = {}
+        all_intrinsic_keyword_defs: dict[int, tuple[str, ...]] = {}
         for file_path in sorted(path.glob("*.json")):
             payload = json.loads(file_path.read_text(encoding="utf-8"))
             if isinstance(payload, list):
@@ -577,6 +735,7 @@ class RuleBook:
                 raw_faiths = []
                 raw_union_bursts = []
                 raw_listeners = []
+                raw_intrinsic_keywords = []
             else:
                 entries = payload.get("rules", [])
                 raw_passives = payload.get("passives", [])
@@ -586,6 +745,7 @@ class RuleBook:
                 raw_faiths = payload.get("faiths", [])
                 raw_union_bursts = payload.get("union_bursts", [])
                 raw_listeners = payload.get("listeners", [])
+                raw_intrinsic_keywords = payload.get("intrinsic_keywords", [])
                 if not isinstance(raw_fusions, list):
                     raise ValueError(f"{file_path.name}: 'fusions' must be a list")
                 if not isinstance(raw_invocations, list):
@@ -605,6 +765,10 @@ class RuleBook:
                 if not isinstance(raw_listeners, list):
                     raise ValueError(
                         f"{file_path.name}: 'listeners' must be a list"
+                    )
+                if not isinstance(raw_intrinsic_keywords, list):
+                    raise ValueError(
+                        f"{file_path.name}: 'intrinsic_keywords' must be a list"
                     )
                 raw_emblems = payload.get("emblems")
                 if raw_emblems is not None:
@@ -684,6 +848,12 @@ class RuleBook:
                         _validate_target_keys(
                             mode_def.operations,
                             f"{file_path.name} card {entry['card_id']}/play_modes/{mode_def.mode_id}",
+                            initial_bindings={
+                                operation.target_key: operation
+                                for operation in operations
+                                if operation.target_key
+                                and operation.target is not TargetKind.PREVIOUS_TARGET
+                            },
                         )
                         card_modes = all_play_modes.setdefault(int(entry["card_id"]), [])
                         if len(card_modes) >= MAX_SPECIAL_MODES_PER_CARD:
@@ -765,6 +935,18 @@ class RuleBook:
                 all_listener_defs.setdefault(listener.card_id, []).append(
                     listener
                 )
+            for index, raw_definition in enumerate(raw_intrinsic_keywords):
+                source_path = f"{file_path.name}/intrinsic_keywords[{index}]"
+                card_id, keywords = _parse_intrinsic_keyword_definition(
+                    raw_definition,
+                    source_path,
+                )
+                if card_id in all_intrinsic_keyword_defs:
+                    raise ValueError(
+                        f"{source_path}: duplicate intrinsic keyword definition "
+                        f"for card {card_id}"
+                    )
+                all_intrinsic_keyword_defs[card_id] = keywords
         _validate_passives(passives)
         frozen_modes = {
             cid: tuple(modes) for cid, modes in all_play_modes.items()
@@ -789,6 +971,7 @@ class RuleBook:
                 card_id: tuple(definitions)
                 for card_id, definitions in all_listener_defs.items()
             },
+            intrinsic_keyword_defs=all_intrinsic_keyword_defs,
         )
 
 
@@ -1280,7 +1463,7 @@ def _parse_fusion_definition(raw: dict, source_path: str) -> FusionDefinition:
         raise ValueError(f"{source_path}/material_filter: must be an object")
     filter_unknown = set(raw_filter) - {
         "card_type", "class_id", "class_name", "cost_min", "cost_max",
-        "card_id", "card_name", "tribe_id", "tribe_name",
+        "card_id", "card_ids", "card_name", "tribe_id", "tribe_name",
     }
     if filter_unknown:
         raise ValueError(
@@ -1321,6 +1504,35 @@ def _parse_fusion_definition(raw: dict, source_path: str) -> FusionDefinition:
     if filter_card_id is not None:
         filter_card_id = _parse_non_negative_int(
             filter_card_id, f"{source_path}/material_filter/card_id", card_id
+        )
+    raw_filter_card_ids = raw_filter.get("card_ids")
+    filter_card_ids: tuple[int, ...] = ()
+    if raw_filter_card_ids is not None:
+        if not isinstance(raw_filter_card_ids, list) or not raw_filter_card_ids:
+            raise ValueError(
+                f"{source_path}/material_filter/card_ids: must be a non-empty list"
+            )
+        parsed_filter_card_ids = []
+        for index, value in enumerate(raw_filter_card_ids):
+            parsed = _parse_non_negative_int(
+                value,
+                f"{source_path}/material_filter/card_ids[{index}]",
+                card_id,
+            )
+            if parsed <= 0:
+                raise ValueError(
+                    f"{source_path}/material_filter/card_ids[{index}]: "
+                    "must be a positive integer"
+                )
+            parsed_filter_card_ids.append(parsed)
+        if len(parsed_filter_card_ids) != len(set(parsed_filter_card_ids)):
+            raise ValueError(
+                f"{source_path}/material_filter/card_ids: must not contain duplicates"
+            )
+        filter_card_ids = tuple(parsed_filter_card_ids)
+    if filter_card_id is not None and filter_card_ids:
+        raise ValueError(
+            f"{source_path}/material_filter: card_id and card_ids are mutually exclusive"
         )
     card_name = raw_filter.get("card_name")
     if card_name is not None and (not isinstance(card_name, str) or not card_name):
@@ -1428,7 +1640,7 @@ def _parse_fusion_definition(raw: dict, source_path: str) -> FusionDefinition:
             parsed_result_filter = dict(raw_result_filter)
             filter_unknown = set(raw_result_filter) - {
                 "card_type", "class_id", "class_name", "cost_min", "cost_max",
-                "card_id", "card_name", "tribe_id", "tribe_name",
+                "card_id", "card_ids", "card_name", "tribe_id", "tribe_name",
             }
             if filter_unknown:
                 raise ValueError(
@@ -1463,6 +1675,38 @@ def _parse_fusion_definition(raw: dict, source_path: str) -> FusionDefinition:
                         f"{result_path}/material_filter/{text_field}: "
                         "must be a non-empty string"
                     )
+            raw_result_card_ids = parsed_result_filter.get("card_ids")
+            result_card_ids: tuple[int, ...] = ()
+            if raw_result_card_ids is not None:
+                if not isinstance(raw_result_card_ids, list) or not raw_result_card_ids:
+                    raise ValueError(
+                        f"{result_path}/material_filter/card_ids: "
+                        "must be a non-empty list"
+                    )
+                parsed_result_card_ids = []
+                for card_id_index, value in enumerate(raw_result_card_ids):
+                    parsed = _parse_non_negative_int(
+                        value,
+                        f"{result_path}/material_filter/card_ids[{card_id_index}]",
+                        card_id,
+                    )
+                    if parsed <= 0:
+                        raise ValueError(
+                            f"{result_path}/material_filter/card_ids[{card_id_index}]: "
+                            "must be a positive integer"
+                        )
+                    parsed_result_card_ids.append(parsed)
+                if len(parsed_result_card_ids) != len(set(parsed_result_card_ids)):
+                    raise ValueError(
+                        f"{result_path}/material_filter/card_ids: "
+                        "must not contain duplicates"
+                    )
+                result_card_ids = tuple(parsed_result_card_ids)
+            if parsed_result_filter.get("card_id") is not None and result_card_ids:
+                raise ValueError(
+                    f"{result_path}/material_filter: card_id and card_ids are "
+                    "mutually exclusive"
+                )
             if (
                 parsed_result_filter.get("cost_min") is not None
                 and parsed_result_filter.get("cost_max") is not None
@@ -1478,6 +1722,7 @@ def _parse_fusion_definition(raw: dict, source_path: str) -> FusionDefinition:
                 cost_min=parsed_result_filter.get("cost_min"),
                 cost_max=parsed_result_filter.get("cost_max"),
                 card_id=parsed_result_filter.get("card_id"),
+                card_ids=result_card_ids,
                 card_name=parsed_result_filter.get("card_name"),
                 tribe_id=parsed_result_filter.get("tribe_id"),
                 tribe_name=parsed_result_filter.get("tribe_name"),
@@ -1513,6 +1758,7 @@ def _parse_fusion_definition(raw: dict, source_path: str) -> FusionDefinition:
             cost_min=cost_min,
             cost_max=cost_max,
             card_id=filter_card_id,
+            card_ids=filter_card_ids,
             card_name=card_name,
             tribe_id=tribe_id,
             tribe_name=tribe_name,
@@ -1688,6 +1934,7 @@ def _parse_union_burst_definition(
         "card_id",
         "kind",
         "operations",
+        "replace_base_operations",
         "coverage",
         "implemented_text",
         "unsupported_text",
@@ -1716,10 +1963,16 @@ def _parse_union_burst_definition(
         for index, operation in enumerate(raw_operations)
     )
     _validate_target_keys(operations, source_path)
+    replace_base_operations = raw.get("replace_base_operations", False)
+    if not isinstance(replace_base_operations, bool):
+        raise ValueError(
+            f"{source_path}/replace_base_operations: must be a boolean"
+        )
     return UnionBurstDefinition(
         card_id=card_id,
         kind=kind,
         operations=operations,
+        replace_base_operations=replace_base_operations,
     )
 
 
@@ -1737,6 +1990,8 @@ def _parse_passive(raw: dict, source_file: str) -> CardPassive:
     if kind not in (
         "spellboost_cost_reduction",
         "cannot_be_played",
+        "banish_on_leave",
+        "cannot_be_destroyed_by_effects",
         "non_intrinsic_keyword",
     ):
         raise ValueError(f"{source_file} card {card_id}: unknown passive kind {kind!r}")
@@ -1774,7 +2029,11 @@ def _parse_passive(raw: dict, source_file: str) -> CardPassive:
             f"{source_file} card {card_id}/keyword: only valid for "
             "'non_intrinsic_keyword'"
         )
-    if kind == "cannot_be_played":
+    if kind in {
+        "cannot_be_played",
+        "banish_on_leave",
+        "cannot_be_destroyed_by_effects",
+    }:
         amount = raw.get("amount")
         if amount is None:
             return CardPassive(card_id=int(card_id), kind=kind, amount=0)
@@ -1803,6 +2062,52 @@ def _parse_passive(raw: dict, source_file: str) -> CardPassive:
             f"{source_file} card {card_id}/amount: must be non-negative, got {amount}"
         )
     return CardPassive(card_id=int(card_id), kind=kind, amount=amount)
+
+
+def _parse_intrinsic_keyword_definition(
+    raw: dict,
+    source_path: str,
+) -> tuple[int, tuple[str, ...]]:
+    if not isinstance(raw, dict):
+        raise ValueError(
+            f"{source_path}: intrinsic keyword definition must be an object"
+        )
+    unknown = set(raw) - {"card_id", "keywords", "notes"}
+    if unknown:
+        raise ValueError(f"{source_path}: unknown fields {sorted(unknown)}")
+    card_id = raw.get("card_id")
+    if isinstance(card_id, bool) or not isinstance(card_id, int) or card_id <= 0:
+        raise ValueError(f"{source_path}/card_id: must be a positive integer")
+    raw_keywords = raw.get("keywords")
+    if not isinstance(raw_keywords, list) or not raw_keywords:
+        raise ValueError(f"{source_path}/keywords: must be a non-empty list")
+    keywords: list[str] = []
+    for index, keyword in enumerate(raw_keywords):
+        if not isinstance(keyword, str) or not keyword:
+            raise ValueError(
+                f"{source_path}/keywords[{index}]: must be a non-empty string"
+            )
+        try:
+            canonical = normalize_keyword_name(keyword, strict=True)
+        except ValueError as exc:
+            raise ValueError(
+                f"{source_path}/keywords[{index}]: {exc}"
+            ) from exc
+        if canonical not in RUNTIME_UNIT_KEYWORDS:
+            raise ValueError(
+                f"{source_path}/keywords[{index}]: {canonical!r} is not a "
+                "runtime follower keyword"
+            )
+        if canonical in keywords:
+            raise ValueError(
+                f"{source_path}/keywords[{index}]: duplicate keyword "
+                f"{canonical!r}"
+            )
+        keywords.append(canonical)
+    notes = raw.get("notes")
+    if notes is not None and (not isinstance(notes, str) or not notes):
+        raise ValueError(f"{source_path}/notes: must be a non-empty string")
+    return card_id, tuple(keywords)
 
 
 _BINDABLE_TARGETS = frozenset({
@@ -1950,9 +2255,14 @@ _EVENT_SOURCE_TARGET_EFFECTS = frozenset({
 })
 
 
-def _validate_target_keys(operations: tuple[EffectOperation, ...], source: str) -> None:
-    defined: set[str] = set()
-    binding_operations: dict[str, EffectOperation] = {}
+def _validate_target_keys(
+    operations: tuple[EffectOperation, ...],
+    source: str,
+    *,
+    initial_bindings: dict[str, EffectOperation] | None = None,
+) -> None:
+    binding_operations = dict(initial_bindings or {})
+    defined: set[str] = set(binding_operations)
     for i, op in enumerate(operations):
         if op.condition_target_key:
             if op.kind is not EffectKind.CONDITIONAL:
@@ -1966,10 +2276,20 @@ def _validate_target_keys(operations: tuple[EffectOperation, ...], source: str) 
                     f"{op.condition_target_key!r} was not defined by a previous operation"
                 )
             binding_operation = binding_operations[op.condition_target_key]
-            if (
-                binding_operation.target_count != 1
-                or binding_operation.target_count_expr is not None
-            ):
+            output_binding_is_single = (
+                binding_operation.kind is EffectKind.SUMMON
+                or (
+                    binding_operation.kind is EffectKind.SUMMON_FROM_DECK
+                    and binding_operation.amount == 1
+                )
+            )
+            selected_binding_is_single = (
+                binding_operation.kind
+                not in {EffectKind.SUMMON, EffectKind.SUMMON_FROM_DECK}
+                and binding_operation.target_count == 1
+                and binding_operation.target_count_expr is None
+            )
+            if not (output_binding_is_single or selected_binding_is_single):
                 raise ValueError(
                     f"{source}/operations[{i}]: condition_target_key requires "
                     "a binding that selects exactly one target"
@@ -1985,7 +2305,10 @@ def _validate_target_keys(operations: tuple[EffectOperation, ...], source: str) 
                     f"{op.target_key!r} was not defined by a previous operation"
                 )
         elif op.target_key:
-            if op.target not in _BINDABLE_TARGETS:
+            if (
+                op.kind not in {EffectKind.SUMMON, EffectKind.SUMMON_FROM_DECK}
+                and op.target not in _BINDABLE_TARGETS
+            ):
                 raise ValueError(
                     f"{source}/operations[{i}]: target {op.target.value!r} "
                     f"cannot define target_key {op.target_key!r}; "
@@ -2088,6 +2411,38 @@ def _parse_operation(
         raise ValueError(
             f"{source_file}/target card {card_id}: "
             "random_enemy_unit_or_leader currently requires damage_unit"
+        )
+
+    raw_candidate_extreme = raw.get("candidate_extreme")
+    candidate_extreme = None
+    if raw_candidate_extreme is not None:
+        try:
+            candidate_extreme = CandidateExtreme(raw_candidate_extreme)
+        except (TypeError, ValueError) as exc:
+            raise ValueError(
+                f"{source_file}/candidate_extreme card {card_id}: invalid "
+                f"candidate extreme {raw_candidate_extreme!r}"
+            ) from exc
+        if target not in _BOARD_EXTREME_TARGETS and target is not TargetKind.ALL_LEADERS:
+            raise ValueError(
+                f"{source_file}/candidate_extreme card {card_id}: requires "
+                "a board candidate target or all_leaders"
+            )
+        if target is TargetKind.ALL_LEADERS and candidate_extreme in {
+            CandidateExtreme.HIGHEST_ATTACK,
+            CandidateExtreme.LOWEST_ATTACK,
+        }:
+            raise ValueError(
+                f"{source_file}/candidate_extreme card {card_id}: leader "
+                "candidates only support health extremes"
+            )
+    if target is TargetKind.ALL_LEADERS and kind not in {
+        EffectKind.DAMAGE_LEADER,
+        EffectKind.HEAL_LEADER,
+    }:
+        raise ValueError(
+            f"{source_file}/target card {card_id}: all_leaders requires "
+            "damage_leader or heal_leader"
         )
 
     conditions = ()
@@ -2208,6 +2563,17 @@ def _parse_operation(
             raise ValueError(
                 f"{source_file} card {card_id}: "
                 f"SET_STATS requires at least one of 'attack'/'amount' or 'health'/'secondary_amount'"
+            )
+
+    if kind is EffectKind.SUMMON_FROM_DECK:
+        if (
+            not isinstance(raw_amount, int)
+            or isinstance(raw_amount, bool)
+            or raw_amount < 1
+        ):
+            raise ValueError(
+                f"{source_file}/amount card {card_id}: summon_from_deck "
+                "requires a positive integer amount"
             )
 
     if kind is EffectKind.CHANGE_MAX_MANA:
@@ -2478,6 +2844,25 @@ def _parse_operation(
                 f"{source_file}/amount card {card_id}: reduce_countdown "
                 f"requires a positive integer amount, got {raw_amount!r}"
             )
+    if kind in {
+        EffectKind.RESTORE_EVOLUTION_POINTS,
+        EffectKind.RESTORE_SUPER_EVOLUTION_POINTS,
+    }:
+        if target is not TargetKind.OWN_LEADER:
+            raise ValueError(
+                f"{source_file}/target card {card_id}: {kind.value} requires "
+                f"own_leader, got {target.value!r}"
+            )
+        if (
+            raw_amount is None
+            or isinstance(raw_amount, bool)
+            or not isinstance(raw_amount, int)
+            or raw_amount <= 0
+        ):
+            raise ValueError(
+                f"{source_file}/amount card {card_id}: {kind.value} "
+                f"requires a positive integer amount, got {raw_amount!r}"
+            )
 
     earth_rite_ops: tuple = ()
     if kind is EffectKind.EARTH_RITE:
@@ -2730,8 +3115,16 @@ def _parse_operation(
         raise ValueError(
             f"{source_file}/class_name_filter card {card_id}: must be a string"
         )
-    deck_cost_min = raw_cost_min if kind is EffectKind.DRAW_FILTERED else None
-    deck_cost_max = raw_cost_max if kind is EffectKind.DRAW_FILTERED else None
+    deck_cost_min = (
+        raw_cost_min
+        if kind in {EffectKind.DRAW_FILTERED, EffectKind.SUMMON_FROM_DECK}
+        else None
+    )
+    deck_cost_max = (
+        raw_cost_max
+        if kind in {EffectKind.DRAW_FILTERED, EffectKind.SUMMON_FROM_DECK}
+        else None
+    )
     deck_card_id = raw.get("card_id_filter")
     if deck_card_id is not None:
         deck_card_id = _parse_non_negative_int(
@@ -2744,6 +3137,18 @@ def _parse_operation(
         raise ValueError(
             f"{source_file}/card_name_filter card {card_id}: must be a string"
         )
+    deck_tribe_id = raw.get("tribe_id_filter")
+    if deck_tribe_id is not None:
+        deck_tribe_id = _parse_non_negative_int(
+            deck_tribe_id,
+            f"{source_file}/tribe_id_filter",
+            card_id,
+        )
+    deck_tribe_name = raw.get("tribe_name_filter")
+    if deck_tribe_name is not None and not isinstance(deck_tribe_name, str):
+        raise ValueError(
+            f"{source_file}/tribe_name_filter card {card_id}: must be a string"
+        )
     operation_board_filter = _parse_board_filter(
         raw,
         source_path=source_file,
@@ -2753,7 +3158,10 @@ def _parse_operation(
     )
 
     _is_graveyard_kind = kind in _GRAVEYARD_EFFECT_KINDS
-    _is_deck_filter_kind = kind is EffectKind.DRAW_FILTERED
+    _is_deck_filter_kind = kind in {
+        EffectKind.DRAW_FILTERED,
+        EffectKind.SUMMON_FROM_DECK,
+    }
     deck_filter: DeckFilter | None = None
     hand_filter: HandFilter | None = None
     board_filter: BoardFilter | None = None
@@ -2768,11 +3176,25 @@ def _parse_operation(
             source_path=f"{source_file}/hand_filter",
             card_id=card_id,
         )
-    if _is_deck_filter_kind and target not in (TargetKind.OWN_LEADER, TargetKind.ENEMY_LEADER):
+    if kind is EffectKind.DRAW_FILTERED and target not in (
+        TargetKind.OWN_LEADER,
+        TargetKind.ENEMY_LEADER,
+    ):
         raise ValueError(
             f"{source_file} card {card_id}: draw_filtered requires own_leader "
             f"or enemy_leader target, got {target.value!r}"
         )
+    if kind is EffectKind.SUMMON_FROM_DECK:
+        if target is not TargetKind.OWN_LEADER:
+            raise ValueError(
+                f"{source_file} card {card_id}: summon_from_deck requires "
+                f"own_leader target, got {target.value!r}"
+            )
+        if card_type_filter not in {"随从", "护符"}:
+            raise ValueError(
+                f"{source_file}/card_type_filter card {card_id}: "
+                "summon_from_deck requires 随从 or 护符"
+            )
     if _is_deck_filter_kind:
         if deck_cost_min is not None:
             deck_cost_min = _parse_non_negative_int(
@@ -2799,16 +3221,20 @@ def _parse_operation(
             cost_max=deck_cost_max,
             card_id=deck_card_id,
             card_name=deck_card_name,
+            tribe_id=deck_tribe_id,
+            tribe_name=deck_tribe_name,
         )
     if not _is_deck_filter_kind and any([
         raw.get("class_id_filter") is not None,
         raw.get("class_name_filter") is not None,
         raw.get("card_id_filter") is not None,
         raw.get("card_name_filter") is not None,
+        raw.get("tribe_id_filter") is not None,
+        raw.get("tribe_name_filter") is not None,
     ]):
         raise ValueError(
             f"{source_file} card {card_id}: deck filter fields "
-            f"are only valid with draw_filtered"
+            f"are only valid with draw_filtered or summon_from_deck"
         )
     if _is_graveyard_kind:
         if target not in _GRAVEYARD_TARGETS:
@@ -2822,6 +3248,7 @@ def _parse_operation(
             TargetKind.OWN_HAND,
             TargetKind.RANDOM_OWN_HAND,
             TargetKind.ALL_OWN_HAND,
+            TargetKind.ALL_LEADERS,
             TargetKind.OWN_LEADER,
             TargetKind.ENEMY_LEADER,
             TargetKind.OWN_UNIT_OR_LEADER,
@@ -2931,7 +3358,9 @@ def _parse_operation(
         unknown_target_exists_keys = set(raw) - {
             "kind", "target", "conditions", "then", "else",
             "target_card_type_filter", "target_cost_min", "target_cost_max",
+            "target_class_id_filter", "target_class_name_filter",
             "target_card_id_filter", "target_card_name_filter",
+            "target_tribe_id_filter", "target_tribe_name_filter",
             "target_evolved_filter",
         }
         if unknown_target_exists_keys:
@@ -3148,6 +3577,7 @@ def _parse_operation(
         deck_filter=deck_filter,
         hand_filter=hand_filter,
         board_filter=board_filter,
+        candidate_extreme=candidate_extreme,
         then_operations=then_ops,
         else_operations=else_ops,
         choose_one_options=choose_one_options,

@@ -75,6 +75,18 @@
           "max_total_material_cost": 1
         }
       ]
+    },
+    {
+      "card_id": 90073110,
+      "material_filter": {
+        "card_ids": [90073120, 90073130]
+      },
+      "transform_results": [
+        {
+          "card_id": 90074110,
+          "min_distinct_material_cards": 2
+        }
+      ]
     }
   ],
   "rules": [

@@ -75,7 +75,22 @@ PRIMITIVE_KEYWORD_MAP = OrderedDict([
     ("倒数", {"primitive": "COUNTDOWN / countdown", "covered": True}),
     ("抽取", {"primitive": "DRAW / DRAW_FILTERED", "covered": True}),
     ("将.*加入手牌", {"primitive": "ADD_CARD", "covered": True}),
-    ("回复", {"primitive": "HEAL_LEADER / HEAL_UNIT", "covered": True}),
+    (
+        "回复自己\\d+点超进化点",
+        {"primitive": "RESTORE_SUPER_EVOLUTION_POINTS", "covered": True},
+    ),
+    (
+        "回复自己\\d+点进化点",
+        {"primitive": "RESTORE_EVOLUTION_POINTS", "covered": True},
+    ),
+    (
+        "回复自己\\d+点能量点",
+        {"primitive": "RESTORE_MANA", "covered": True},
+    ),
+    (
+        "回复(?!自己\\d+点(?:超进化点|进化点|能量点))",
+        {"primitive": "HEAL_LEADER / HEAL_UNIT", "covered": True},
+    ),
     ("造成.*伤害", {"primitive": "DAMAGE_LEADER / DAMAGE_UNIT", "covered": True}),
     ("失去所有能力", {"primitive": "REMOVE_ALL_ABILITIES", "covered": True}),
     (
@@ -362,6 +377,13 @@ def _build_coverage_report(db_path: str, rules_dir: str) -> dict:
             if "passive" not in ruled_ops[cid]["triggers"]:
                 ruled_ops[cid]["triggers"].append("passive")
             ruled_ops[cid]["effect_kinds"].append(passive.kind)
+    for cid, keywords in rulebook._intrinsic_keyword_defs.items():
+        ruled_cards.add(cid)
+        ruled_ops.setdefault(cid, {"triggers": [], "effect_kinds": []})
+        ruled_ops[cid]["triggers"].append("intrinsic_keywords")
+        ruled_ops[cid]["effect_kinds"].extend(
+            f"keyword:{keyword}" for keyword in keywords
+        )
     for emblem_id, ed in rulebook._emblem_defs.items():
         ruled_cards.add(ed.source_card_id)
         ruled_ops.setdefault(ed.source_card_id, {"triggers": [], "effect_kinds": []})

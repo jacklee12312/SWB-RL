@@ -1,6 +1,6 @@
 # SWB Engine Roadmap
 
-Last refreshed: 2026-07-14.
+Last refreshed: 2026-07-15.
 
 This file tracks implementation priorities and known gaps. Treat executable
 code and tests as the source of truth when this file drifts.
@@ -10,21 +10,21 @@ code and tests as the source of truth when this file drifts.
 - Database: 826 cards, 735 collectible cards, 91 non-collectible/generated
   cards from set `90000`.
 - Latest SVA source: `https://sva.hypd.asia/data/cards.json`.
-- Tests: `python -m unittest discover -s tests -v` currently runs 1368 tests.
+- Tests: `python -m unittest discover -s tests -v` currently runs 1646 tests.
 - RL adapter: fixed 111-action space; the default v1 observation remains 290
   floats, while opt-in v2 provides fixed-shape categorical/public state without
   changing action IDs.
 - Ability registry status: 18 implemented, 5 partial, 11 placeholder.
 - Explicit card and demo rules live in `data/rules/`; the current coverage
-  report classifies 224 card IDs with explicit rules, passives, fusion,
+  report classifies 433 card IDs with explicit rules, passives, fusion,
   invocation, activation, Faith, Union Burst, or listener definitions. Current
-  collectible coverage is 186 exact, 0 partial, 531 supported-but-missing-rule,
+  collectible coverage is 361 exact, 0 partial, 356 supported-but-missing-rule,
   0 missing-primitive, and 18 text-unclear cards.
 - `data/reports/token_audit.{json,md}` audits all 91 non-collectible/generated
   cards independently of collectible coverage. Database `card_references` and
-  executable structured producers are reported separately: 17 tokens have a
-  complete executable entry/behavior path, 11 have an executable entry but
-  partial behavior, and 63 have no authored producer. No token is currently
+  executable structured producers are reported separately: 57 tokens have a
+  complete executable entry/behavior path, no token has a partial authored
+  behavior, and 34 have no authored producer. No token is currently
   classified text-unclear or externally blocked; those categories remain
   explicit and can be assigned through `data/audits/token_overrides.json`.
 - `data/reports/ability_audit.{json,md}` validates all 34 runtime/database
@@ -33,7 +33,7 @@ code and tests as the source of truth when this file drifts.
   separate column and is covered for all 34; it does not automatically promote
   the 5 partial or 11 placeholder keyword statuses.
 - Coverage now has a backward-compatible clause audit. The legacy summary still
-  reports 186 exact collectible cards, and all 186 now have an explicit exact
+  reports 361 exact collectible cards, and all 361 now have an explicit exact
   text mapping plus named direct test evidence. The versioned sibling registry
   at `data/audits/rule_clauses.json` hashes every imported primary and
   alternate-mode clause; changed source text or stale test evidence invalidates
@@ -42,7 +42,7 @@ code and tests as the source of truth when this file drifts.
   rule version and errata metadata, structured trigger/operation evidence,
   explicit unsupported text, and a stable blocker taxonomy. There are zero
   unverified exact entries and no known missing schema, primitive, targeting,
-  or timing blocker among authored rules. The 531 supported-but-missing-rule
+  or timing blocker among authored rules. The 356 supported-but-missing-rule
   cards are now the per-card structured-content backlog; 18 unclear texts
   remain explicit.
 - RL observation v2 is available behind an explicit version switch. A
@@ -164,7 +164,7 @@ slice in this order:
   Printed repeated random effects remain separate operations with independent
   reselection and stabilization.
 - `CardListenerDefinition` provides ordinary board, hand, and leader-area event
-  listeners for amulet activation, Fusion, follower summon/evolution/
+  listeners for amulet activation, card draw, Earth Rite, Fusion, follower summon/evolution/
   destruction, amulet destruction, entity leave-play, card play, and turn
   boundaries. Event-card filters cover original cost, card type, class, Trait
   ID/name, card ID/name, and runtime keyword; event/turn scopes and self/other
@@ -538,6 +538,252 @@ slice in this order:
   binding, stale pending targets, follower-or-leader damage, capped healing,
   imported source hashes, producer auditing, and RL action-mask parity. The
   Token audit promotes all four gilded spells from database-only to complete.
+- Exact file `data/rules/real_generated_hand_last_words_batch.json` adds five
+  collectible followers whose Last Words generate a collectible amulet or
+  non-collectible cards in hand. Direct tests cover imported names, stats,
+  aliases, references and source hashes; generated versus Token origin;
+  printed two-card order and second-card full-hand overflow; normal versus
+  Enhance-4 Rush/Bane state; zero-cost Skeleton play; Forest's Mystery healing;
+  Fairy and Ancient Artifact Rush; Bat Drain; deterministic replay; and RL
+  normal/Enhance mask parity. Non-intrinsic annotations prevent the Enhance
+  keywords on `10152110` from becoming initial abilities. The Token audit now
+  promotes `90011310` and `90071140` to complete and records exact audited
+  behavior plus the new executable producers for all five generated cards.
+- Exact file `data/rules/real_intrinsic_keyword_pairs_batch.json` introduces a
+  first-class `intrinsic_keywords` declaration for cards whose complete text is
+  only printed follower keywords. The loader normalizes aliases, rejects empty,
+  duplicate, unknown, malformed, and cross-file duplicate declarations, and
+  exposes the declaration as coverage evidence without inventing a no-op
+  trigger. Six real followers directly cover Storm/Bane, Bane/Ward,
+  Storm/Intimidate, Ward/Barrier, Ambush/Bane, and Ward/Aura initial state,
+  source hashes, database aliases, combat legality, deterministic rule loading,
+  and RL Storm attack-mask parity.
+- Exact file `data/rules/real_exact_token_followup_batch.json` adds five
+  collectible cards whose complete text uses already-audited generic effects
+  and complete Tokens: `10011110`, `10112310`, `10151120`, `10151130`, and
+  `10512120`. Direct tests cover two-card Fanfare generation and second-card
+  overflow, add-before-draw ordering and overdraw, evolve-time double Bat
+  summoning, double-Skeleton Last Words, board-capacity shortage, Token origins
+  and producer records, Rush/Bane/Drain combat, imported source hashes,
+  deterministic replay, and RL action-mask parity.
+- Exact file `data/rules/real_complete_token_board_batch.json` adds nine
+  collectible cards whose complete text reuses exact Fairy, Knight, Iron
+  Knight, Orca, Skeleton, and Ancient Artifact Tokens. Direct tests cover
+  Fanfare/Evolve repetition, summon-before-add and summon-before-buff order,
+  draw-before-summon, board and hand capacity, selected evolve damage,
+  no-target and stale-target revalidation, Knight/Skeleton Last Words, illegal
+  evolution fingerprint preservation, Token origins/keywords/producers,
+  deterministic replay, imported source hashes, and RL target-choice masks.
+- Exact file `data/rules/real_super_evolution_unlock_batch.json` adds five
+  collectible cards gated by each controller's configured super-evolution
+  unlock turn: `10121150`, `10202110`, `10401120`, `10471110`, and `10872310`.
+  The generic condition context is shared by trigger and target-candidate
+  evaluation and exposes both controller and opponent unlock state. Direct
+  tests cover asymmetric first/second-player boundaries, conditional
+  Bane/Barrier/stat buffs/healing/effect evolution, intrinsic Rush/Ward/Storm,
+  actual combat and Barrier consumption, no-EP effect evolution, health caps,
+  deterministic replay, imported source hashes, and RL play/attack-mask parity.
+- Exact file `data/rules/real_evolution_replacement_batch.json` adds five
+  followers whose ordinary Evolve effect is replaced, not repeated, by their
+  Super Evolve text: `10002110`, `10042110`, `10062110`, `10072120`, and
+  `10541110`. A generic `source_super_evolved` condition reads live state or an
+  immutable source snapshot and guards the ordinary branch. Direct tests cover
+  exact 2-versus-4 healing, selected-versus-all damage and health-filtered
+  banish, one-versus-two collectible self-summons with intrinsic Ward, board
+  and health caps, no-target evolution, insufficient multi-target candidates,
+  duplicate rejection, leave-play revalidation, deterministic replay, imported
+  source hashes, and RL two-choice mask parity.
+- Exact file `data/rules/real_evolution_resource_recovery_batch.json` adds five
+  cards around capped EP/SEP restoration: `10414110`, `10653310`, `10801120`,
+  `10804120`, and `10854110`. The new generic effects emit actual-versus-
+  requested restoration events with configured maxima and schema-reject
+  non-positive amounts or non-controller targets. Direct tests cover the 9/10
+  Union Burst boundary, intrinsic Rush/Ward, full-resource no-overflow, both
+  spell modes, both Fanfare modes, both Evolve modes, leader/heal ordering,
+  simultaneous deaths, draw, mana recovery, illegal-choice immutability,
+  deterministic continuations, source hashes, and RL masks. Target
+  availability now distinguishes selected targets from random/all effects:
+  empty random/all candidate sets safely resolve as no-ops unless
+  `requires_target` explicitly prohibits play.
+- Exact file `data/rules/real_selected_hand_exchange_batch.json` adds eight
+  followers whose Fanfare selects another own-hand card to return or discard:
+  `10131120`, `10621120`, `10641110`, `10642110`, `10703110`, `10711120`,
+  `10811130`, and `10842120`. Existing optional selected-hand semantics allow
+  later effects to continue when no other hand card exists. Direct tests cover
+  return/discard ordering, plain and Royal-follower-filtered draws, Earth
+  Sigils, Last Words, simultaneous enemy-wide damage, exact Fairy generation,
+  full-hand behavior, repeated Fanfare text on Evolve, health caps and EP
+  spending, intrinsic Rush/Barrier/Ward combat, stale/illegal target handling,
+  deterministic replay, imported source hashes, Token producer auditing, and
+  RL choice-mask parity.
+- Exact file `data/rules/real_existing_condition_direct_batch.json` adds ten
+  cards using established Combo, evolved-board, amulet-count, target-health,
+  hand-count, Union Burst, Enhance, and direct-effect primitives: `10012110`,
+  `10111110`, `10111130`, `10152140`, `10433310`, `10451110`, `10452120`,
+  `10512310`, `10672120`, and `10762110`. The shared play path now carries
+  precomputed Union Burst definitions into ordinary spells and amulets, keeps
+  base → Burst → mode ordering, and emits the same activation metadata used by
+  followers. Direct tests cover exact and below thresholds, source exclusion,
+  draw-before-hand-count healing, no-target continuation, Earth Sigils,
+  effect evolution without EP, intrinsic Rush/Aura/Ambush, Combo replacement,
+  health-filtered banish, three-amulet targeting, deterministic replay,
+  imported hashes, and RL masks.
+- Exact file `data/rules/real_evolve_and_burst_direct_batch.json` adds eleven
+  cards using established evolution, turn-end, board-listener, Earth Rite,
+  draw, destruction, and target primitives: `10231310`, `10411120`, `10432110`,
+  `10442110`, `10453110`, `10473310`, `10571120`, `10622120`, `10642120`,
+  `10742120`, and `10832110`. `UnionBurstDefinition.replace_base_operations`
+  is a validated opt-in for text whose active Super Skybound Art replaces the
+  base effect; its default remains additive, and follower/spell/amulet play plus
+  suspended follower choices preserve the selected behavior. Direct tests
+  cover exact 3-versus-6 damage, below/at-threshold behavior, max-mana effect
+  evolution, turn-end evolution and healing, distinct multi-target shortages,
+  owner-only spell listeners, exact-health destruction, intrinsic Drain/Storm,
+  asymmetric draws, simultaneous effects, deterministic replay, imported
+  hashes, and RL masks.
+- Exact file `data/rules/real_board_state_filter_batch.json` adds ten cards:
+  `10201110`, `10204120`, `10222110`, `10231110`, `10242110`, `10261110`,
+  `10341120`, `10441120`, `10462110`, and `10863210`. `BoardFilter` now has
+  schema-validated `super_evolved` and `damaged` booleans for board-presence
+  conditions and manual/random/all board targets. Super evolution remains
+  distinct from ordinary evolution; damaged means current health is strictly
+  below maximum health and therefore never matches amulets. The batch covers a
+  conditional emblem, hand-zone super-evolution listener with printed-cost
+  filtering and end-of-turn expiry, exact damaged-target revalidation,
+  Enhance, Countdown, Ward, Earth Sigils, draw/heal replacement, deterministic
+  random selection, imported source and alternate-mode hashes, and RL choice
+  masks.
+- Exact file `data/rules/real_extreme_candidate_batch.json` adds eight
+  collectible cards (`10103310`, `10341310`, `10503310`, `10552310`,
+  `10613310`, `10743110`, `10822310`, `10832320`) plus complete generated
+  followers `90011120` and `90022110`. `CandidateExtreme` filters otherwise
+  legal board candidates by highest/lowest current Attack or Health while
+  retaining every tie; random selection remains seeded within that reduced
+  set, and all-target resolution snapshots all tied candidates. `all_leaders`
+  supplies the corresponding current-Health-only set semantics for one or both
+  leaders. Direct tests cover schema rejection, no-target continuation,
+  simultaneous snapshots, Overflow, Enhance, Earth Rite, Mode ordering,
+  turn-end effect evolution, intrinsic Ward/Rush, source hashes, and RL masks.
+- Exact file `data/rules/real_deck_summon_batch.json` adds five collectible
+  cards: `10164110`, `10264110`, `10322120`, `10462120`, and `10813310`.
+  The generic `summon_from_deck` operation filters physical deck cards by type,
+  class, cost, ID, name, or Trait; chooses through the engine RNG with physical
+  duplicate copies contributing their official increased probability; excludes
+  an already-selected card name for the rest of the same operation; and caps
+  removals to available board slots. Followers and amulets retain Deck origin,
+  emit ordinary entry/Cooperation events without Fanfare or play effects, and
+  preserve Countdown/Earth Sigil initialization. Direct tests cover schema
+  rejection, candidate/board shortages, copy weighting, distinctness,
+  deterministic replay, the official no-other-hand Rodeo Q&A, class filters,
+  Evolve/Super Evolve follow-ups, hashes, and unchanged RL action IDs.
+- Exact file `data/rules/real_summon_output_trait_batch.json` adds seven
+  collectible cards (`10124120`, `10224110`, `10653110`, `10724120`,
+  `10753110`, `10754110`, and `10834120`) plus exact generated-card follow-up
+  for `90031120` and `90051140`. `BoardFilter` now accepts class ID/name and
+  Trait ID/name for centralized selected/random/all board candidates and board
+  conditions. `summon` and `summon_from_deck` can bind the stable IDs of their
+  successful outputs to `target_key`; full-board or no-candidate outcomes bind
+  empty, while direct-deck multi-output bindings retain only entities that
+  actually entered. Follow-up `previous_target` operations skip outputs that
+  have since left play and never fall back to older same-card entities. Direct
+  tests cover single and multi-output identity, capacity failure, Cooperation,
+  Royal/Nightmare filtering, entry listeners, dynamic Rush/Storm, Spellboost,
+  automatic and manual evolution, intrinsic Ward, and Rotten Zombie's
+  terminating Last Words replacement.
+- Exact file `data/rules/real_basic_existing_primitives_batch.json` adds ten
+  collectibles (`10002210`, `10123120`, `10124110`, `10162220`, `10164120`,
+  `10403120`, `10551110`, `10662210`, `10762210`, and `10814110`) without new
+  engine primitives or referenced generated cards. Four additive Enhance modes
+  cover filtered high-cost follower draw, PP restoration, all-enemy damage,
+  double attacks, source buffs, and granted keywords; normal-mode tests prove
+  those operations do not leak into base play. Three Engage amulets verify
+  activation costs, source destruction before pending board choices, damage,
+  healing, and immediate same-turn activation. Countdown expiry, Last Words,
+  intrinsic keyword separation, source-excluding buffs, and ordered selected
+  destruction are directly tested with imported-text hashes.
+- Exact file `data/rules/real_listener_evolution_existing_batch.json` adds
+  fifteen collectibles (`10022210`, `10062120`, `10112130`, `10131130`,
+  `10132110`, `10133120`, `10161110`, `10461110`, `10463110`, `10612310`,
+  `10622110`, `10652120`, `10712110`, `10862120`, and `10871120`). Six
+  structured listeners cover owner amulet activation, exact follower entry,
+  stable hand-card normal evolution, and stable hand-card Super Evolve events.
+  The remaining rules reuse Combo, Enhance, mixed-board return, filtered draw
+  and hand choice, Spellboost, Earth Sigils, PP restoration, intrinsic keyword,
+  and Evolve/Super Evolve target flows. Direct tests distinguish below/at Combo
+  threshold, normal and super event dispatch, source exclusion, listener owner
+  scope, exact hand identity, and ordered target follow-ups.
+- Exact file `data/rules/real_repeated_evolve_listener_batch.json` adds fifteen
+  collectibles (`10104110`, `10113110`, `10232120`, `10253110`, `10372110`,
+  `10444110`, `10461120`, `10552120`, `10561120`, `10562120`, `10643110`,
+  `10661210`, `10731120`, `10841110`, and `10861110`). `CARD_DRAWN` is now a
+  supported ordinary listener event and carries the new hand entity as its
+  filterable event source. Two board listeners demonstrate owner-event plus
+  owner-turn scope, including a Fanfare/Enhance draw that immediately triggers
+  its own in-play listener. The remaining rules reuse established selection,
+  random/all target, output binding, ability removal, discard, Earth Sigil,
+  attack restriction, Combo, evolution, Countdown activation, Last Words, and
+  intrinsic keyword primitives. Direct tests cover empty-target continuations,
+  expiry and threshold boundaries, repeated Fanfare/Evolve paths, event turn
+  scope, deterministic random effects, and exact imported-text hashes.
+- Exact file `data/rules/real_spell_modes_and_earth_listener_batch.json` adds
+  fifteen spells (`10122310`, `10132310`, `10211310`, `10241310`, `10323310`,
+  `10332310`, `10432310`, `10542310`, `10611310`, `10621310`, `10731310`,
+  `10732310`, `10733310`, `10803310`, and `10823310`). Ordinary listeners now
+  accept the already-audited `EARTH_RITE_ACTIVATED` event, enabling two hand
+  cards to stack temporary cost reduction and expire it at the correct turn
+  boundary. Enhance validation can inherit top-level base-operation output
+  bindings, matching runtime concatenation and allowing `10621310` to buff
+  only the soldiers that actually entered under board-cap shortage. Five Mode
+  cards cover explicit choice and threshold-driven all-branch resolution;
+  remaining tests cover Treasure Fusion, Overflow, exact referenced summons,
+  dynamic total-follower damage, draw/damage ordering, distinct seeded random
+  targets, Reanimate, insufficient Earth Rite payment, hashes, and audit state.
+- Exact file `data/rules/real_token_producer_completion_batch.json` closes nine
+  collectibles (`10133320`, `10141140`, `10154110`, `10161310`, `10163210`,
+  `10331120`, `10371310`, `10373310`, and `10831120`) together with twelve
+  generated cards (`90031130`, `90031140`, `90031210`, `90031310`, `90041110`,
+  `90054110`, `90054120`, `90061110`, `90061120`, `90071110`, `90074210`, and
+  `90074220`). Tests cover exact producer paths, Shikigami Spellboost Last
+  Words, simultaneous Mimi/Coco deaths, Necromancy source exclusion, repeated
+  Reanimate, opponent-turn Puppet destruction, reciprocal nonrecursive
+  White/Black Countdown cycles, Earth Sigil activation, activation-driven
+  Tiger summon, and intrinsic Storm/Rush/Aura separation.
+- Exact file `data/rules/real_artifact_fusion_completion_batch.json`, together
+  with the structured definitions in `data/rules/fusion.json`, completes eight
+  generated Artifact cards (`90071210`, `90071220`, `90072110`, `90072120`,
+  `90073110`, `90073120`, `90073130`, and `90074110`). `DeckFilter.card_ids`
+  provides an audited OR whitelist without card-ID conditionals in resolution.
+  Tests cover unplayable cores, legal/illegal Artifact materials, stable hand
+  identity and inherited material state, all cumulative-cost branches,
+  duplicate-kind non-transformation, β+γ transformation to Ω, own-turn-end
+  effects, Ω Fanfare ordering, and intrinsic Rush/Ward/Storm/Aura.
+- Exact file `data/rules/real_final_partial_token_completion_batch.json`
+  completes generated Ghost (`90051130`) and Improved Puppet (`90071120`). The
+  generic `banish_on_leave` passive replaces destruction, return-to-hand, and
+  return-to-deck destinations with banishment, but is disabled after printed
+  abilities are removed; transformation remains correctly outside leave-play.
+  Tests verify no graveyard, Shadow, Last Words, destroyed-follower/Reanimate
+  history, or RNG use on replaced returns, plus simultaneous ordinary deaths,
+  real producers, Storm/Rush, and own/opponent turn-end expiry.
+- Exact file `data/rules/real_token_producer_modes_activation_batch.json`
+  closes six collectibles (`10042120`, `10141110`, `10143210`, `10144130`,
+  `10061210`, and `10821110`) and six generated cards (`90021130`, `90041120`,
+  `90043110`, `90044110`, `90044120`, and `90061130`). Tests cover normal versus
+  Enhance play and RL mode masks, paid activation and selected discard,
+  summon-before-discard ordering, Countdown expiry and Last Words slot release,
+  ordered dual summons, exact card-ID Super Evolution keyword grants, repeated
+  summon-then-damage resolution, intrinsic Token keywords, and board-capacity
+  continuation.
+- Exact file `data/rules/real_generated_spell_and_follower_chain_batch.json`
+  closes six collectible producers (`10223120`, `10134120`, `10872120`,
+  `10873110`, `10354120`, and `10374120`) and six generated cards (`90023110`,
+  `90034130`, `90071160`, `90054310`, `90054320`, and `90074310`). The generic
+  `cannot_be_destroyed_by_effects` passive and `effect_destroy_prevented` event
+  implement printed immunity without a card-ID branch. Direct tests cover
+  ability removal, banish and zero-Health boundaries; exact-card-ID conditions;
+  summon-before-Spellboost and destroy-before-summon order; opponent-turn-end
+  expiry; both Mode choices and RL mask parity; bound successful summon outputs;
+  board/hand capacity; and illegal no-target fingerprint/RNG preservation.
 
 ## Known Partial Or Unsupported Areas
 
@@ -570,16 +816,16 @@ slice in this order:
   filters/counts, source fused-count conditions, ordered post-Fusion hand
   transforms, material lineage preservation/reset policy, refusion, RL
   exposure, and exact real-card demos. Other hand/board cards can listen to
-  Fusion; later generated Artifact end-form abilities remain incremental
-  structured-rule content.
+  Fusion; the current Core → Attack/Castle → α/β/γ → Ω generated Artifact
+  chain is exact, while other Fusion cards remain incremental content.
 - `瞬念召唤` is implemented for its sole current official card and marked
   implemented in the ability registry. Sandalphon now combines exact
   Invocation, crest, return-to-hand, and `解放奥义` rules.
 - The generated-card audit is deterministic and covers all 91 database tokens.
   It does not equate a database reference with an executable entry, and it only
   marks behavior complete for vanilla cards, fully implemented keyword-only
-  cards, or explicitly exact structured rules. Current output is 17 complete,
-  11 partial, and 63 database-only/no-entry; this is the content backlog for
+  cards, or explicitly exact structured rules. Current output is 57 complete,
+  0 partial, and 34 database-only/no-entry; this is the content backlog for
   later card-rule entry, not a claim of broad generated-card support.
 - The ability registry is conservative and fully audited: all 34 entries have
   a reason and test evidence, and a covered generic primitive does not promote
@@ -626,8 +872,9 @@ slice in this order:
 ### 1. Further Basic Real-Card Batches
 
 - Continue 5–15 card batches whose complete primary/alternate/reference text
-  fits existing primitives. Audit every referenced Token with its producer;
-  do not select `10373310` until generated amulet `90074210` is itself exact.
+  fits existing primitives. Audit every referenced Token with its producer and
+  prefer slices that convert related database-only Tokens into executable
+  producer-and-behavior workflows.
 
 ### 2. Source-Backed Continuous Modifiers
 

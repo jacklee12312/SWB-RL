@@ -233,23 +233,46 @@ class DatabaseClauseAuditTests(unittest.TestCase):
             if card["card_id"] in TOKEN_IDS
         }
         expected_producers = {
-            90021310: 10322110,
-            90021320: 10321110,
-            90021330: 10321110,
-            90021340: 10322110,
+            90021310: [
+                {
+                    "source_card_id": 10322110,
+                    "entry_kind": "add_card",
+                    "rule_file": "real_royal_gilded_last_words_batch.json",
+                    "rule_group": "rules",
+                },
+                {
+                    "source_card_id": 10323310,
+                    "entry_kind": "add_card",
+                    "rule_file": "real_spell_modes_and_earth_listener_batch.json",
+                    "rule_group": "rules",
+                },
+            ],
+            90021320: [{
+                "source_card_id": 10321110,
+                "entry_kind": "add_card",
+                "rule_file": "real_royal_gilded_last_words_batch.json",
+                "rule_group": "rules",
+            }],
+            90021330: [{
+                "source_card_id": 10321110,
+                "entry_kind": "add_card",
+                "rule_file": "real_royal_gilded_last_words_batch.json",
+                "rule_group": "rules",
+            }],
+            90021340: [{
+                "source_card_id": 10322110,
+                "entry_kind": "add_card",
+                "rule_file": "real_royal_gilded_last_words_batch.json",
+                "rule_group": "rules",
+            }],
         }
-        for card_id, source_card_id in expected_producers.items():
+        for card_id, producers in expected_producers.items():
             with self.subTest(token_card_id=card_id):
                 self.assertEqual(tokens[card_id]["category"], "entry_behavior_complete")
                 self.assertEqual(tokens[card_id]["explicit_coverage"], "exact")
                 self.assertEqual(
                     tokens[card_id]["authored_producers"],
-                    [{
-                        "source_card_id": source_card_id,
-                        "entry_kind": "add_card",
-                        "rule_file": "real_royal_gilded_last_words_batch.json",
-                        "rule_group": "rules",
-                    }],
+                    producers,
                 )
 
 

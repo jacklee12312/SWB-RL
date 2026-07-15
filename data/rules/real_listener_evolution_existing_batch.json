@@ -1,0 +1,248 @@
+{
+  "passives": [
+    {"card_id": 10062120, "kind": "non_intrinsic_keyword", "keyword": "疾驰", "notes": "疾驰由己方策动护符时获得。"},
+    {"card_id": 10461110, "kind": "non_intrinsic_keyword", "keyword": "虹吸", "notes": "虹吸由己方策动护符时获得。"},
+    {"card_id": 10712110, "kind": "non_intrinsic_keyword", "keyword": "疾驰", "notes": "疾驰仅在连击3入场曲成立时获得。"},
+    {"card_id": 10871120, "kind": "non_intrinsic_keyword", "keyword": "潜行", "notes": "潜行仅授予超进化时所选的其他随从。"},
+    {"card_id": 10652120, "kind": "non_intrinsic_keyword", "keyword": "疾驰", "notes": "疾驰仅由爆能强化7授予。"}
+  ],
+  "intrinsic_keywords": [
+    {"card_id": 10062120, "keywords": ["守护"]},
+    {"card_id": 10461110, "keywords": ["疾驰"]},
+    {"card_id": 10862120, "keywords": ["突进", "必杀"]},
+    {"card_id": 10871120, "keywords": ["守护"]},
+    {"card_id": 10622110, "keywords": ["守护"]}
+  ],
+  "rules": [
+    {
+      "card_id": 10022210,
+      "trigger": "play",
+      "countdown": 4,
+      "operations": []
+    },
+    {
+      "card_id": 10712110,
+      "trigger": "fanfare",
+      "operations": [
+        {
+          "kind": "add_keyword",
+          "target": "self",
+          "keyword": "疾驰",
+          "conditions": [{"type": "controller_combo_at_least", "value": 3}]
+        }
+      ]
+    },
+    {
+      "card_id": 10612310,
+      "trigger": "play",
+      "operations": [
+        {"kind": "draw", "target": "own_leader", "amount": 2}
+      ]
+    },
+    {
+      "card_id": 10871120,
+      "trigger": "super_evolve",
+      "operations": [
+        {
+          "kind": "add_keyword",
+          "target": "own_unit",
+          "keyword": "潜行",
+          "exclude_source": true
+        }
+      ]
+    },
+    {
+      "card_id": 10652120,
+      "trigger": "fanfare",
+      "operations": [],
+      "play_modes": [
+        {
+          "id": "enhance_7",
+          "type": "enhance",
+          "cost": 7,
+          "operations": [
+            {"kind": "add_keyword", "target": "self", "keyword": "疾驰"}
+          ]
+        }
+      ]
+    },
+    {
+      "card_id": 10652120,
+      "trigger": "evolve",
+      "operations": [
+        {"kind": "damage_unit", "target": "enemy_unit", "amount": 4}
+      ]
+    },
+    {
+      "card_id": 10622110,
+      "trigger": "fanfare",
+      "operations": [],
+      "play_modes": [
+        {
+          "id": "enhance_4",
+          "type": "enhance",
+          "cost": 4,
+          "operations": [
+            {"kind": "buff_unit", "target": "self", "amount": 2, "secondary_amount": 2}
+          ]
+        }
+      ]
+    },
+    {
+      "card_id": 10622110,
+      "trigger": "evolve",
+      "operations": [
+        {"kind": "damage_unit", "target": "enemy_unit", "amount": 3}
+      ]
+    },
+    {
+      "card_id": 10161110,
+      "trigger": "fanfare",
+      "operations": [
+        {
+          "kind": "draw_filtered",
+          "target": "own_leader",
+          "amount": 1,
+          "card_type_filter": "护符"
+        }
+      ]
+    },
+    {
+      "card_id": 10161110,
+      "trigger": "evolve",
+      "operations": [
+        {
+          "kind": "change_cost",
+          "target": "own_hand",
+          "amount": 1,
+          "mode": "subtract",
+          "hand_filter": {"card_type": "护符"}
+        }
+      ]
+    },
+    {
+      "card_id": 10132110,
+      "trigger": "fanfare",
+      "operations": [
+        {"kind": "spellboost_hand", "target": "all_own_hand", "amount": 1}
+      ]
+    },
+    {
+      "card_id": 10132110,
+      "trigger": "evolve",
+      "operations": [
+        {"kind": "damage_unit", "target": "enemy_unit", "amount": 3},
+        {"kind": "spellboost_hand", "target": "all_own_hand", "amount": 1}
+      ]
+    },
+    {
+      "card_id": 10133120,
+      "trigger": "fanfare",
+      "operations": [
+        {"kind": "add_earth_sigils", "target": "own_leader", "amount": 2}
+      ]
+    },
+    {
+      "card_id": 10133120,
+      "trigger": "super_evolve",
+      "operations": [
+        {"kind": "draw", "target": "own_leader", "amount": 2},
+        {"kind": "heal_leader", "target": "own_leader", "amount": 2},
+        {"kind": "add_earth_sigils", "target": "own_leader", "amount": 2}
+      ]
+    },
+    {
+      "card_id": 10131130,
+      "trigger": "fanfare",
+      "operations": [
+        {"kind": "add_earth_sigils", "target": "own_leader", "amount": 1}
+      ]
+    },
+    {
+      "card_id": 10131130,
+      "trigger": "evolve",
+      "operations": [
+        {"kind": "damage_unit", "target": "enemy_unit", "amount": 5}
+      ]
+    },
+    {
+      "card_id": 10112130,
+      "trigger": "fanfare",
+      "operations": [
+        {"kind": "return_to_hand", "target": "own_board", "exclude_source": true}
+      ]
+    },
+    {
+      "card_id": 10112130,
+      "trigger": "super_evolve",
+      "operations": [
+        {"kind": "restore_mana", "target": "own_leader", "amount": 3}
+      ]
+    },
+    {
+      "card_id": 10463110,
+      "trigger": "evolve",
+      "operations": [
+        {"kind": "damage_unit", "target": "enemy_unit", "amount": 3}
+      ]
+    }
+  ],
+  "listeners": [
+    {
+      "card_id": 10062120,
+      "zone": "board",
+      "event": "amulet_activated",
+      "event_scope": "owner_event",
+      "operations": [
+        {"kind": "add_keyword", "target": "self", "keyword": "疾驰"}
+      ]
+    },
+    {
+      "card_id": 10461110,
+      "zone": "board",
+      "event": "amulet_activated",
+      "event_scope": "owner_event",
+      "operations": [
+        {"kind": "add_keyword", "target": "self", "keyword": "虹吸"}
+      ]
+    },
+    {
+      "card_id": 10022210,
+      "zone": "board",
+      "event": "follower_summoned",
+      "event_scope": "owner_event",
+      "source_relation": "any",
+      "event_filter": {"card_type": "随从"},
+      "operations": [
+        {"kind": "buff_unit", "target": "event_source", "amount": 1, "secondary_amount": 1}
+      ]
+    },
+    {
+      "card_id": 10862120,
+      "zone": "hand",
+      "event": "follower_super_evolved",
+      "event_scope": "owner_event",
+      "operations": [
+        {"kind": "change_cost", "target": "self", "amount": 3, "mode": "subtract"}
+      ]
+    },
+    {
+      "card_id": 10612310,
+      "zone": "hand",
+      "event": "follower_evolved",
+      "event_scope": "owner_event",
+      "operations": [
+        {"kind": "change_cost", "target": "self", "amount": 1, "mode": "subtract"}
+      ]
+    },
+    {
+      "card_id": 10463110,
+      "zone": "board",
+      "event": "amulet_activated",
+      "event_scope": "owner_event",
+      "operations": [
+        {"kind": "heal_leader", "target": "own_leader", "amount": 1}
+      ]
+    }
+  ]
+}

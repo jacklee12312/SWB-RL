@@ -1,0 +1,161 @@
+{
+  "intrinsic_keywords": [
+    {
+      "card_id": 10414110,
+      "keywords": ["突进"]
+    },
+    {
+      "card_id": 10804120,
+      "keywords": ["守护"]
+    }
+  ],
+  "union_bursts": [
+    {
+      "card_id": 10414110,
+      "kind": "union_burst",
+      "operations": [
+        {
+          "kind": "restore_evolution_points",
+          "target": "own_leader",
+          "amount": 1
+        }
+      ]
+    }
+  ],
+  "rules": [
+    {
+      "card_id": 10653310,
+      "trigger": "play",
+      "operations": [
+        {
+          "kind": "choose_one",
+          "target": "own_leader",
+          "options": [
+            {
+              "id": "restore_ep",
+              "label": "回复1点进化点",
+              "operations": [
+                {
+                  "kind": "restore_evolution_points",
+                  "target": "own_leader",
+                  "amount": 1
+                }
+              ]
+            },
+            {
+              "id": "damage_all",
+              "label": "对所有敌方随从造成2点伤害",
+              "operations": [
+                {
+                  "kind": "damage_unit",
+                  "target": "all_enemy_units",
+                  "amount": 2
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "card_id": 10801120,
+      "trigger": "fanfare",
+      "operations": [
+        {
+          "kind": "restore_evolution_points",
+          "target": "own_leader",
+          "amount": 1
+        }
+      ]
+    },
+    {
+      "card_id": 10804120,
+      "trigger": "fanfare",
+      "operations": [
+        {
+          "kind": "restore_super_evolution_points",
+          "target": "own_leader",
+          "amount": 2
+        }
+      ]
+    },
+    {
+      "card_id": 10854110,
+      "trigger": "fanfare",
+      "operations": [
+        {
+          "kind": "choose_one",
+          "target": "own_leader",
+          "options": [
+            {
+              "id": "leader_swing",
+              "label": "对敌方主战者造成4点并回复4点生命",
+              "operations": [
+                {
+                  "kind": "damage_leader",
+                  "target": "enemy_leader",
+                  "amount": 4
+                },
+                {
+                  "kind": "heal_leader",
+                  "target": "own_leader",
+                  "amount": 4
+                }
+              ]
+            },
+            {
+              "id": "board_and_ep",
+              "label": "对所有敌方随从造成5点并回复1点进化点",
+              "operations": [
+                {
+                  "kind": "damage_unit",
+                  "target": "all_enemy_units",
+                  "amount": 5
+                },
+                {
+                  "kind": "restore_evolution_points",
+                  "target": "own_leader",
+                  "amount": 1
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "card_id": 10854110,
+      "trigger": "evolve",
+      "operations": [
+        {
+          "kind": "choose_one",
+          "target": "own_leader",
+          "options": [
+            {
+              "id": "draw_two",
+              "label": "抽取2张卡牌",
+              "operations": [
+                {
+                  "kind": "draw",
+                  "target": "own_leader",
+                  "amount": 2
+                }
+              ]
+            },
+            {
+              "id": "restore_two_mana",
+              "label": "回复2点能量",
+              "operations": [
+                {
+                  "kind": "restore_mana",
+                  "target": "own_leader",
+                  "amount": 2
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -20,6 +20,7 @@ class UnionBurstDefinition:
     card_id: int
     kind: UnionBurstKind
     operations: tuple[EffectOperation, ...]
+    replace_base_operations: bool = False
 
     @property
     def threshold(self) -> int:

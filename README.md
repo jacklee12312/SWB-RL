@@ -20,7 +20,7 @@ rejected if passed directly in an initial deck. Deck validation requires
 exactly 40 collectible cards from the selected class and/or neutral. The
 auditable [token report](data/reports/token_audit.md) distinguishes database
 references from executable producer paths and behavior completeness for all 91
-cards: 17 complete entries, 11 partial entries, and 63 with no authored entry.
+cards: 57 complete entries, 0 partial entries, and 34 with no authored entry.
 
 Abilities are normalized in two relational tables:
 
@@ -38,13 +38,13 @@ covered generic boundary, but that never upgrades a partial or placeholder
 keyword whose full tagged-card semantics still require structured rules.
 
 The [rule coverage report](data/reports/rule_coverage.md) now includes a
-clause-audit layer without changing its legacy coverage categories. Of 186
-exact collectible cards, all 186 have explicit implemented text and named direct
+clause-audit layer without changing its legacy coverage categories. Of 361
+exact collectible cards, all 361 have explicit implemented text and named direct
 test evidence. The sibling `data/audits/rule_clauses.json` registry hashes every
 imported skill and alternate-mode clause, so a database text change or stale
 test reference invalidates the audit instead of silently retaining exact
 status. The current report has no unverified exact entry or missing generic
-schema, primitive, targeting, or timing blocker. Its remaining 531 collectible
+schema, primitive, targeting, or timing blocker. Its remaining 356 collectible
 gaps are missing per-card structured rules, while 18 unclear texts remain
 explicit. Rule metadata also supports version and errata fields, and the report
 records the complete imported source snapshot hash.
@@ -101,8 +101,11 @@ The deterministic rules core supports:
   board targets moving to the graveyard or changing controller, selected hand
   cards leaving hand, and selected graveyard cards moving to hand before
   resolution resumes; `target_key` stores an ordered tuple of selected board
-  targets and `previous_target` chains revalidate each member against the
-  original bound target filter before later operations resolve;
+  targets or the exact entities successfully created by `summon` and
+  `summon_from_deck`. `previous_target` chains revalidate selected members
+  against the original target filter and created members by stable entity ID;
+  failed summons bind an empty tuple, and multi-output deck summons preserve
+  only the entities that actually entered play;
 - structured hand filters match printed type, class, cost, identity, name, and
   trait fields. Selected, random, and all-hand flows share the same centralized
   candidates with play legality, stale-choice revalidation, and RL masks.
@@ -134,7 +137,8 @@ The deterministic rules core supports:
   fingerprint coverage, and auditable damage metadata. Exact `10474120`
   permanently gives the opposing leader damage taken +1;
 - structured ordinary-card event listeners sourced from the board, hand, or
-  shared leader area. Rules can observe `amulet_activated`, `card_fused`,
+  shared leader area. Rules can observe `amulet_activated`, `card_drawn`, `card_fused`,
+  `earth_rite_activated`,
   follower summon/evolution/destruction, amulet destruction, entity leave-play,
   card play, and turn boundaries; filter the event card by type, original cost,
   class, Trait ID/name, card ID/name, or runtime keyword; scope to
@@ -205,7 +209,8 @@ The deterministic rules core supports:
   normalized source text omitted the corresponding keyword tag, without
   double-running tagged abilities and while still respecting ability removal;
   exact `10143120` auto-evolves at Overflow before its evolve rule raises max PP;
-- command-level `融合` from hand, including structured material filters and
+- command-level `融合` from hand, including structured material filters (single
+  card IDs or explicit card-ID whitelists) and
   count limits, variable-count selection with explicit confirmation, once-per-
   card-per-turn tracking, atomic hand-zone revalidation, a distinct consumed
   material zone, inherited material identity, and `card_fused` events; real
@@ -218,7 +223,9 @@ The deterministic rules core supports:
   adopts the replacement's cost/type/passives/rules/play modes, and may fuse
   again when the replacement has its own definition. Exact `10171110`
   generates Past Core; Past/Future Core and their Castle/Attack Artifact forms
-  demonstrate Artifact filters and cumulative-cost transformation;
+  demonstrate Artifact filters and cumulative-cost transformation. The exact
+  α/β/γ chain additionally verifies β-or-γ-only fusion, distinct material-kind
+  counting, and the Ω end-form transform;
 - structured `瞬念召唤` at turn start before the normal draw, with persistent
   match evolution counts, seeded random candidate ordering weighted by copies,
   one copy per card definition per timing, board-full handling, summon-event and pending-choice
@@ -291,6 +298,156 @@ The deterministic rules core supports:
   source-excluding cross-controller targeting, Necromancy healing, and
   destruction followed by Reanimate. Direct tests cover insufficient-resource
   and no-target fallthrough paths plus intrinsic Ambush/Rush provenance;
+- a 6-card exact intrinsic-keyword batch introduces a schema-validated
+  `intrinsic_keywords` declaration for followers whose complete text is only
+  printed runtime keywords, without inventing empty trigger effects. Real-card
+  tests cover Storm/Bane, Bane/Ward, Storm/Intimidate, Ward/Barrier,
+  Ambush/Bane, and Ward/Aura initial state, combat legality, aliases, source
+  hashes, coverage evidence, and RL attack-mask parity;
+- a 5-card exact complete-Token follow-up batch covers two-Fairy Fanfare hand
+  generation, ordered Forest's Mystery plus draw, evolve-time double Bat
+  summoning, double-Skeleton Last Words, and a Rush/Bane/Drain follower. Direct
+  tests lock hand and board capacity boundaries, Token origins and producer
+  evidence, manual evolution, combat behavior, deterministic replay, source
+  hashes, and RL attack-mask parity;
+- a 9-card exact complete-Token board batch covers repeated Fanfare/Evolve
+  summons and hand generation, summon-before-buff ordering, draw-before-summon,
+  selected evolve damage, and Knight/Skeleton Last Words. Direct tests cover
+  full hand and board continuation, no-target and stale-target paths, illegal
+  evolution no-mutation, Token origins and keywords, deterministic replay,
+  source hashes, producer auditing, and RL target-choice mask parity;
+- a 5-card exact super-evolution-unlock batch adds config-aware controller and
+  opponent unlock conditions shared by ordinary and target-dependent rule
+  evaluation. Real-card tests cover first/second-player boundaries, conditional
+  Bane/Barrier/stat buffs/healing/effect evolution, intrinsic Rush/Ward/Storm,
+  combat resolution, health caps, deterministic replay, source hashes, and RL
+  play/attack-mask parity;
+- a 5-card exact evolution-replacement batch adds a source-snapshot-aware
+  `source_super_evolved` condition so ordinary Evolve effects are skipped when
+  Super Evolve text says “instead.” Direct tests cover exact 2-versus-4 healing,
+  selected-versus-all damage and banish, one-versus-two self-summons, Ward,
+  board and health caps, health-filtered/no-target paths, distinct target
+  selection, target leave-play revalidation, deterministic replay, hashes, and
+  RL choice-mask parity;
+- a 5-card exact evolution-resource batch adds capped, event-audited EP and SEP
+  restoration primitives. It covers Union Burst threshold recovery, intrinsic
+  Rush/Ward, spell and follower Mode choices, leader and simultaneous board
+  damage, healing, draw, mana recovery, illegal-choice immutability,
+  deterministic continuations, source hashes, and RL masks. Random and
+  all-target effects now remain executable as safe no-ops on empty candidate
+  sets, while selected and explicit `requires_target` effects stay prohibited;
+- an 8-card exact selected-hand exchange batch covers optional hand return or
+  discard followed by filtered/plain draw, Earth Sigils, simultaneous enemy
+  board damage, exact Fairy generation, leader healing, and repeated Evolve
+  text. Direct tests lock effect ordering, no-other-hand continuation, hand
+  capacity, Last Words, Rush/Barrier/Ward combat, stale and illegal choices,
+  deterministic replay, source hashes, Token producer evidence, and RL masks;
+- a 10-card exact existing-condition/direct-effect batch covers post-play Combo
+  thresholds, evolved-ally and three-amulet conditions, filtered banish,
+  draw-then-hand-count healing, damage/heal continuation, Union Burst,
+  Enhance effect evolution, and intrinsic Rush/Aura/Ambush. Ordinary spells
+  and amulets now consume their precomputed Union Burst operations and emit the
+  same threshold events as followers. Direct tests cover exact-threshold and
+  below-threshold paths, target filters, simultaneous damage, health/resource
+  caps, source exclusion, deterministic replay, hashes, and RL masks;
+- an 11-card exact evolution/Burst/direct-effect batch covers turn-end and
+  max-mana effect evolution, multi-target Fanfare damage, Earth Rite, intrinsic
+  Drain/Storm, spell-triggered board listeners, exact-health mass destruction,
+  asymmetric draws, and evolved-state healing. Structured Super Skybound Art
+  can now explicitly replace a card's base operations instead of being forced
+  to append to them; the ordinary append behavior remains the default. Direct
+  tests lock the 3-versus-6 damage replacement, threshold boundaries,
+  simultaneous effects, candidate shortages, deterministic replay, imported
+  source hashes, and RL choice/action-mask parity;
+- a 10-card exact board-state-filter batch adds reusable `super_evolved` and
+  `damaged` dimensions to board filters used by conditions and selected,
+  random, or all-target operations. It covers super-evolved-board Fanfare and
+  turn-end gates, a conditional emblem, an original-cost-three hand listener,
+  damaged-only destruction, Enhance health, Countdown draw/heal replacement,
+  Ward, Earth Sigils, and a referenced exact amulet. Direct tests distinguish
+  ordinary evolution from super evolution and full health from damaged state,
+  and lock illegal-choice immutability, seeded random selection, hashes, and RL
+  choice-mask parity;
+- an 8-card exact extreme-candidate batch adds schema-validated highest/lowest
+  current Attack or Health filtering after ordinary target legality. Random
+  effects select only among tied extrema, all-target effects snapshot every tie,
+  and the new all-leaders target can affect one or both leaders when their
+  current Health is tied. Two referenced Tokens become complete executable
+  entries with Ward/turn-end evolution and Rush. Direct tests cover no-target
+  continuation, seeded ties, simultaneous target snapshots, Overflow, Enhance,
+  Earth Rite, Mode choices, source self-evolution, hashes, and RL masks;
+- a 5-card exact direct-deck-summon batch adds filtered follower/amulet entry
+  from the physical deck. Selection follows the official direct-summon rule:
+  duplicate copies increase a name's probability, but only one copy of the same
+  name can enter during one operation; selected cards and their entry order
+  remain seeded, distinct, board-cap limited, and carry Deck origin. Direct
+  tests cover candidate and board shortages, no-Fanfare entry, Countdown,
+  class/type/cost filters, Cooperation events, follow-up Evolve/Super Evolve
+  choices and buffs, deterministic replay, source hashes, and unchanged RL IDs;
+- a 7-card exact summon-output/Trait batch adds class- and Trait-aware board
+  filters plus identity-safe summon result bindings. It covers Royal and
+  Nightmare board-wide effects, generated followers that must immediately gain
+  Rush/evolve, entry listeners, per-entry Spellboost, and a terminating Rotten
+  Zombie Last Words that summons an exact replacement and removes its printed
+  abilities. Guardian Golem's Ward and the previously vanilla Steelclad Knight
+  are audited alongside their producers;
+- a 10-card exact established-primitives batch adds four additive Enhance
+  followers, three Engage amulets, one Countdown/Last Words amulet, and two
+  ordered Fanfare followers. It directly covers normal-versus-Enhance behavior,
+  filtered draws and PP restoration, double attacks, source-excluding buffs,
+  self-destruction before suspended Engage choices, all-enemy damage, healing,
+  intrinsic versus granted keywords, and Countdown expiry;
+- a 15-card exact listener/evolution batch adds owner amulet-activation,
+  follower-entry, hand evolution and hand super-evolution listeners alongside
+  Combo, Enhance, Evolve, Super Evolve, Earth Sigil and Spellboost effects.
+  Direct tests lock owner scope, stable hand identity, normal-versus-super
+  evolution event behavior, source exclusion, filtered hand choices, intrinsic
+  versus granted keywords, and ordered follow-up effects;
+- a 15-card exact repeated-evolution/listener batch adds filterable draw-event
+  subjects and owner-turn draw listeners alongside repeated Fanfare/Evolve
+  effects. It covers self-excluding grants, automatic and selected Super
+  Evolution, ability removal with bound targets, optional sacrifice/discard
+  continuations, Earth Sigils, attack-lock expiry, Countdown activation and
+  Last Words, Combo thresholds, intrinsic keywords, and turn-end all-unit
+  damage;
+- a 15-card exact spell/mode batch adds ordinary `earth_rite_activated` hand
+  listeners and permits Enhance operations to consume target bindings produced
+  by their base spell operations. It covers five Mode spells, Treasure Fusion,
+  Overflow filtered draw, dynamic all-board damage, exact multi-summons,
+  draw-before-random-damage ordering, Reanimate, stacked turn-scoped hand cost
+  reduction, and board-cap-safe Enhance buffs of only successful summons;
+- a generated-card completion batch closes 12 Token behaviors and nine real
+  producer cards. It covers reciprocal Countdown amulets, opponent-turn-end
+  Puppet destruction, Shikigami Last Words Spellboost, Mimi/Coco Last Words,
+  canonical Earth Sigil activation, Storm/Rush/Aura tokens, Necromancy and
+  repeated Reanimate, while every Token now has an executable producer path;
+- an 8-Token exact Artifact fusion batch completes Future/Past Core,
+  Attack/Castle Artifact, Destruction Artifact α/β/γ, and Superior Artifact Ω.
+  It covers unplayable cores, exact Artifact material filters, cumulative-cost
+  branching, β/γ card-ID whitelisting, two-distinct-kind transformation,
+  end-of-turn heal/damage, Ω Fanfare damage/heal, and Rush/Ward/Storm/Aura;
+- a final partial-Token batch completes Ghost and Improved Puppet. The generic
+  `banish_on_leave` passive replaces destruction, return-to-hand, and
+  return-to-deck destinations with banishment while respecting removed printed
+  abilities; it emits auditable replacement causes and adds no graveyard,
+  Shadow, Last Words, or Reanimate history. Real producers and both turn-end
+  expiry boundaries are directly tested;
+- a six-producer/six-Token exact batch adds Roaring Dragoneer, Cloudsea Dragon
+  Rider, Otohime Fan, Wolong, Projected Bird Statue, and Nahato & Vincent. It
+  closes the Giantwing Dragon, Otohime Guard, Gold Dragon, Silver Dragon,
+  Majestic Falcon, and Nahato's Private Soldier workflows with Enhance, paid
+  activation, selected discard, Countdown/Last Words, Super Evolution replay,
+  exact card-ID keyword grants, board-capacity continuation, and RL Mode-mask
+  parity;
+- a generated follower/spell-chain batch closes six more collectible producers
+  and six Tokens: Prim/Norga, Anne & Grea/Anne's Great Spirit, two Brilliant
+  Artifact producers, Lulunai & Valnareik's two Mode spells, and Lishenna/Solo.
+  The generic `cannot_be_destroyed_by_effects` printed passive blocks only
+  ability destruction, emits an explicit prevention event, and is disabled by
+  ability removal without blocking banish or zero-Health death. Tests cover
+  exact-name conditions, ordered Spellboost, opponent-turn expiry, Mode/RL
+  choice parity, successful-summon output binding, no-target atomicity, and
+  destroy-prevention continuation;
 - an 8-card exact Activate follow-up batch covers zero- and one-PP activations,
   activation-only amulet play, self-destruction before queued choices, repeatable
   once-per-turn effects, selected keyword removal/buffs/debuffs, healing, hand
@@ -429,7 +586,7 @@ Known broad gaps include:
   graveyard, and follower-or-leader targets; the rule loader rejects those
   combinations instead of silently applying single-target semantics;
 - exact semantics for many real cards and most generated-card workflows; the
-  token audit keeps the remaining 11 partial and 63 database-only/no-entry cards
+  token audit has no remaining partial entry and keeps 34 database-only/no-entry cards
   explicit instead of treating non-collectible classification as coverage;
 - remaining `信仰` progression/payoff semantics, plus broader real-card coverage for `策动`,
   `土之秘术`, `觉醒`, and `连击` beyond the currently authored examples;

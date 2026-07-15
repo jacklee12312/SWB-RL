@@ -1,0 +1,220 @@
+{
+  "intrinsic_keywords": [
+    {"card_id": 10204120, "keywords": ["守护"]},
+    {"card_id": 10222110, "keywords": ["守护"]},
+    {"card_id": 10261110, "keywords": ["守护"]},
+    {"card_id": 10462110, "keywords": ["守护"]}
+  ],
+  "listeners": [
+    {
+      "card_id": 10441120,
+      "zone": "hand",
+      "event": "follower_super_evolved",
+      "event_scope": "owner_event",
+      "turn_scope": "owner_turn",
+      "event_filter": {"card_type": "随从", "cost_min": 3, "cost_max": 3},
+      "operations": [
+        {
+          "kind": "change_cost",
+          "target": "self",
+          "amount": 0,
+          "mode": "set",
+          "duration": "until_end_of_turn"
+        }
+      ]
+    }
+  ],
+  "emblems": [
+    {
+      "id": "hurricane_heavenly_grimnir",
+      "source_card_id": 10204120,
+      "stacking": "allow",
+      "triggers": [
+        {
+          "trigger": "turn_end",
+          "turn_scope": "owner_turn",
+          "conditions": [
+            {"type": "controller_board_has", "super_evolved_filter": true}
+          ],
+          "operations": [
+            {"kind": "damage_unit", "target": "all_enemy_units", "amount": 2}
+          ]
+        }
+      ]
+    }
+  ],
+  "rules": [
+    {
+      "card_id": 10201110,
+      "trigger": "fanfare",
+      "operations": [
+        {
+          "kind": "conditional",
+          "target": "own_leader",
+          "conditions": [
+            {"type": "controller_board_has", "super_evolved_filter": true}
+          ],
+          "then": [
+            {"kind": "damage_unit", "target": "enemy_unit", "amount": 4}
+          ]
+        }
+      ]
+    },
+    {
+      "card_id": 10204120,
+      "trigger": "fanfare",
+      "operations": [
+        {
+          "kind": "gain_emblem",
+          "target": "own_leader",
+          "emblem_id": "hurricane_heavenly_grimnir"
+        }
+      ]
+    },
+    {
+      "card_id": 10222110,
+      "trigger": "turn_end",
+      "operations": [
+        {
+          "kind": "conditional",
+          "target": "own_leader",
+          "conditions": [
+            {"type": "controller_board_has", "super_evolved_filter": true}
+          ],
+          "then": [
+            {"kind": "buff_unit", "target": "all_own_units", "amount": 1, "secondary_amount": 1}
+          ]
+        }
+      ]
+    },
+    {
+      "card_id": 10231110,
+      "trigger": "fanfare",
+      "operations": [
+        {"kind": "add_card", "target": "own_leader", "card_id": 10031210},
+        {
+          "kind": "conditional",
+          "target": "own_leader",
+          "conditions": [
+            {"type": "controller_board_has", "super_evolved_filter": true}
+          ],
+          "then": [
+            {"kind": "add_earth_sigils", "target": "own_leader", "amount": 2}
+          ]
+        }
+      ]
+    },
+    {
+      "card_id": 10242110,
+      "trigger": "fanfare",
+      "operations": [
+        {
+          "kind": "conditional",
+          "target": "own_leader",
+          "conditions": [
+            {"type": "controller_board_has", "super_evolved_filter": true}
+          ],
+          "then": [
+            {"kind": "draw", "target": "own_leader", "amount": 2}
+          ]
+        }
+      ]
+    },
+    {
+      "card_id": 10261110,
+      "trigger": "evolve",
+      "operations": [
+        {
+          "kind": "destroy",
+          "target": "enemy_unit",
+          "target_super_evolved_filter": true
+        }
+      ]
+    },
+    {
+      "card_id": 10341120,
+      "trigger": "fanfare",
+      "operations": [
+        {
+          "kind": "destroy",
+          "target": "all_enemy_units",
+          "target_damaged_filter": true
+        }
+      ]
+    },
+    {
+      "card_id": 10441120,
+      "trigger": "turn_end",
+      "operations": [
+        {
+          "kind": "buff_unit",
+          "target": "random_own_unit",
+          "amount": 1,
+          "secondary_amount": 1,
+          "target_super_evolved_filter": true
+        }
+      ]
+    },
+    {
+      "card_id": 10462110,
+      "trigger": "fanfare",
+      "operations": [],
+      "play_modes": [
+        {
+          "id": "enhance_6",
+          "type": "enhance",
+          "cost": 6,
+          "operations": [
+            {"kind": "buff_unit", "target": "self", "amount": 0, "secondary_amount": 10}
+          ]
+        }
+      ]
+    },
+    {
+      "card_id": 10462110,
+      "trigger": "evolve",
+      "operations": [
+        {
+          "kind": "destroy",
+          "target": "enemy_unit",
+          "target_damaged_filter": true
+        }
+      ]
+    },
+    {
+      "card_id": 10863210,
+      "trigger": "play",
+      "countdown": 2,
+      "operations": []
+    },
+    {
+      "card_id": 10863210,
+      "trigger": "turn_end",
+      "operations": [
+        {"kind": "draw", "target": "own_leader", "amount": 1},
+        {
+          "kind": "conditional",
+          "target": "own_leader",
+          "conditions": [
+            {"type": "controller_board_has", "super_evolved_filter": true}
+          ],
+          "then": [
+            {"kind": "heal_leader", "target": "own_leader", "amount": 2}
+          ],
+          "else": [
+            {
+              "kind": "conditional",
+              "target": "own_leader",
+              "conditions": [
+                {"type": "controller_board_has", "evolved_filter": true}
+              ],
+              "then": [
+                {"kind": "heal_leader", "target": "own_leader", "amount": 1}
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

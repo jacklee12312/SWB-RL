@@ -1,0 +1,43 @@
+{
+  "intrinsic_keywords": [
+    {
+      "card_id": 10512120,
+      "keywords": ["\u7a81\u8fdb", "\u5fc5\u6740", "\u5438\u8840"],
+      "notes": "\u5168\u6587\u53ea\u6709\u4e09\u4e2a\u56fa\u6709\u5173\u952e\u8bcd\uff1b\u6bc1\u706d\u89c4\u8303\u5316\u4e3a\u5fc5\u6740\uff0c\u8679\u5438\u89c4\u8303\u5316\u4e3a\u5438\u8840\u3002"
+    }
+  ],
+  "rules": [
+    {
+      "card_id": 10011110,
+      "trigger": "fanfare",
+      "operations": [
+        {"kind": "add_card", "target": "own_leader", "card_id": 90011110},
+        {"kind": "add_card", "target": "own_leader", "card_id": 90011110}
+      ]
+    },
+    {
+      "card_id": 10112310,
+      "trigger": "play",
+      "operations": [
+        {"kind": "add_card", "target": "own_leader", "card_id": 90011310},
+        {"kind": "draw", "target": "own_leader", "amount": 1}
+      ]
+    },
+    {
+      "card_id": 10151120,
+      "trigger": "evolve",
+      "operations": [
+        {"kind": "summon", "target": "own_leader", "card_id": 90051120},
+        {"kind": "summon", "target": "own_leader", "card_id": 90051120}
+      ]
+    },
+    {
+      "card_id": 10151130,
+      "trigger": "last_words",
+      "operations": [
+        {"kind": "summon", "target": "own_leader", "card_id": 90051110},
+        {"kind": "summon", "target": "own_leader", "card_id": 90051110}
+      ]
+    }
+  ]
+}

@@ -1,0 +1,101 @@
+{
+  "intrinsic_keywords": [
+    {
+      "card_id": 10642110,
+      "keywords": ["突进", "屏障"]
+    },
+    {
+      "card_id": 10811130,
+      "keywords": ["守护"]
+    }
+  ],
+  "rules": [
+    {
+      "card_id": 10131120,
+      "trigger": "fanfare",
+      "operations": [
+        {"kind": "return_to_deck", "target": "own_hand"},
+        {"kind": "draw", "target": "own_leader", "amount": 1},
+        {"kind": "add_earth_sigils", "target": "own_leader", "amount": 1}
+      ]
+    },
+    {
+      "card_id": 10621120,
+      "trigger": "fanfare",
+      "operations": [
+        {"kind": "return_to_deck", "target": "own_hand"},
+        {
+          "kind": "draw_filtered",
+          "target": "own_leader",
+          "amount": 2,
+          "card_type_filter": "随从",
+          "class_id_filter": 2
+        }
+      ]
+    },
+    {
+      "card_id": 10641110,
+      "trigger": "fanfare",
+      "operations": [
+        {"kind": "discard", "target": "own_hand"}
+      ]
+    },
+    {
+      "card_id": 10641110,
+      "trigger": "last_words",
+      "operations": [
+        {"kind": "draw", "target": "own_leader", "amount": 2}
+      ]
+    },
+    {
+      "card_id": 10642110,
+      "trigger": "fanfare",
+      "operations": [
+        {"kind": "discard", "target": "own_hand"}
+      ]
+    },
+    {
+      "card_id": 10703110,
+      "trigger": "fanfare",
+      "operations": [
+        {"kind": "discard", "target": "own_hand"},
+        {"kind": "damage_unit", "target": "all_enemy_units", "amount": 2}
+      ]
+    },
+    {
+      "card_id": 10711120,
+      "trigger": "fanfare",
+      "operations": [
+        {"kind": "return_to_deck", "target": "own_hand"},
+        {"kind": "add_card", "target": "own_leader", "card_id": 90011110},
+        {"kind": "add_card", "target": "own_leader", "card_id": 90011110}
+      ]
+    },
+    {
+      "card_id": 10811130,
+      "trigger": "fanfare",
+      "operations": [
+        {"kind": "return_to_deck", "target": "own_hand"},
+        {"kind": "draw", "target": "own_leader", "amount": 1}
+      ]
+    },
+    {
+      "card_id": 10842120,
+      "trigger": "fanfare",
+      "operations": [
+        {"kind": "discard", "target": "own_hand"},
+        {"kind": "draw", "target": "own_leader", "amount": 1},
+        {"kind": "heal_leader", "target": "own_leader", "amount": 1}
+      ]
+    },
+    {
+      "card_id": 10842120,
+      "trigger": "evolve",
+      "operations": [
+        {"kind": "discard", "target": "own_hand"},
+        {"kind": "draw", "target": "own_leader", "amount": 1},
+        {"kind": "heal_leader", "target": "own_leader", "amount": 1}
+      ]
+    }
+  ]
+}

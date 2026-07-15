@@ -1,0 +1,116 @@
+{
+  "intrinsic_keywords": [
+    {
+      "card_id": 10121150,
+      "keywords": ["\u7a81\u8fdb"],
+      "notes": "Rush is intrinsic; Bane is granted only when super evolution is unlocked."
+    },
+    {
+      "card_id": 10202110,
+      "keywords": ["\u5b88\u62a4"],
+      "notes": "Ward is intrinsic; the health buff is conditional."
+    },
+    {
+      "card_id": 10471110,
+      "keywords": ["\u75be\u9a70"],
+      "notes": "Storm is intrinsic; Barrier is granted only when super evolution is unlocked."
+    }
+  ],
+  "passives": [
+    {
+      "card_id": 10121150,
+      "kind": "non_intrinsic_keyword",
+      "keyword": "\u5fc5\u6740",
+      "notes": "Bane is conditional Fanfare text, not an initial keyword."
+    },
+    {
+      "card_id": 10471110,
+      "kind": "non_intrinsic_keyword",
+      "keyword": "\u5c4f\u969c",
+      "notes": "Barrier is conditional Fanfare text, not an initial keyword."
+    }
+  ],
+  "rules": [
+    {
+      "card_id": 10121150,
+      "trigger": "fanfare",
+      "operations": [
+        {
+          "kind": "conditional",
+          "target": "own_leader",
+          "conditions": [
+            {"type": "controller_super_evolution_unlocked"}
+          ],
+          "then": [
+            {"kind": "add_keyword", "target": "self", "keyword": "\u5fc5\u6740"}
+          ]
+        }
+      ]
+    },
+    {
+      "card_id": 10202110,
+      "trigger": "fanfare",
+      "operations": [
+        {
+          "kind": "conditional",
+          "target": "own_leader",
+          "conditions": [
+            {"type": "controller_super_evolution_unlocked"}
+          ],
+          "then": [
+            {"kind": "buff_unit", "target": "self", "amount": 0, "secondary_amount": 3}
+          ]
+        }
+      ]
+    },
+    {
+      "card_id": 10401120,
+      "trigger": "fanfare",
+      "operations": [
+        {
+          "kind": "conditional",
+          "target": "own_leader",
+          "conditions": [
+            {"type": "controller_super_evolution_unlocked"}
+          ],
+          "then": [
+            {"kind": "evolve_unit", "target": "self"}
+          ]
+        }
+      ]
+    },
+    {
+      "card_id": 10471110,
+      "trigger": "fanfare",
+      "operations": [
+        {
+          "kind": "conditional",
+          "target": "own_leader",
+          "conditions": [
+            {"type": "controller_super_evolution_unlocked"}
+          ],
+          "then": [
+            {"kind": "add_keyword", "target": "self", "keyword": "\u5c4f\u969c"}
+          ]
+        }
+      ]
+    },
+    {
+      "card_id": 10872310,
+      "trigger": "play",
+      "operations": [
+        {"kind": "draw", "target": "own_leader", "amount": 2},
+        {
+          "kind": "conditional",
+          "target": "own_leader",
+          "conditions": [
+            {"type": "controller_super_evolution_unlocked"}
+          ],
+          "then": [
+            {"kind": "heal_leader", "target": "own_leader", "amount": 2}
+          ]
+        }
+      ]
+    }
+  ]
+}

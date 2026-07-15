@@ -27,6 +27,7 @@ class SourceRelation(str, Enum):
 
 LISTENER_EVENT_TYPES = frozenset({
     EventType.AMULET_ACTIVATED,
+    EventType.CARD_DRAWN,
     EventType.CARD_FUSED,
     EventType.FOLLOWER_SUMMONED,
     EventType.FOLLOWER_EVOLVED,
@@ -34,6 +35,7 @@ LISTENER_EVENT_TYPES = frozenset({
     EventType.FOLLOWER_DESTROYED,
     EventType.AMULET_DESTROYED,
     EventType.ENTITY_LEFT_PLAY,
+    EventType.EARTH_RITE_ACTIVATED,
     EventType.CARD_PLAYED,
     EventType.TURN_STARTED,
     EventType.TURN_ENDED,

@@ -1,0 +1,210 @@
+{
+  "passives": [
+    {
+      "card_id": 10002210,
+      "kind": "non_intrinsic_keyword",
+      "keyword": "突进",
+      "notes": "突进由策动授予所选随从，不是护符本身的固有能力。"
+    },
+    {
+      "card_id": 10123120,
+      "kind": "non_intrinsic_keyword",
+      "keyword": "潜行",
+      "notes": "潜行只由爆能强化授予本体。"
+    },
+    {
+      "card_id": 10551110,
+      "kind": "non_intrinsic_keyword",
+      "keyword": "必杀",
+      "notes": "毁灭规范化为必杀，且只由爆能强化授予。"
+    },
+    {
+      "card_id": 10551110,
+      "kind": "non_intrinsic_keyword",
+      "keyword": "屏障",
+      "notes": "屏障只由爆能强化授予。"
+    }
+  ],
+  "intrinsic_keywords": [
+    {"card_id": 10124110, "keywords": ["疾驰"]},
+    {"card_id": 10164120, "keywords": ["守护"]},
+    {"card_id": 10403120, "keywords": ["屏障"]},
+    {"card_id": 10551110, "keywords": ["突进"]},
+    {"card_id": 10814110, "keywords": ["疾驰", "守护"]}
+  ],
+  "activations": [
+    {"card_id": 10002210, "cost": 1},
+    {"card_id": 10162220, "cost": 0},
+    {"card_id": 10762210, "cost": 0}
+  ],
+  "rules": [
+    {
+      "card_id": 10002210,
+      "trigger": "play",
+      "operations": [
+        {
+          "kind": "draw_filtered",
+          "target": "own_leader",
+          "amount": 1,
+          "card_type_filter": "随从"
+        }
+      ]
+    },
+    {
+      "card_id": 10002210,
+      "trigger": "activate",
+      "operations": [
+        {"kind": "destroy", "target": "self"},
+        {"kind": "add_keyword", "target": "own_unit", "keyword": "突进"}
+      ]
+    },
+    {
+      "card_id": 10123120,
+      "trigger": "fanfare",
+      "operations": [
+        {"kind": "damage_unit", "target": "enemy_unit", "amount": 5}
+      ],
+      "play_modes": [
+        {
+          "id": "enhance_6",
+          "type": "enhance",
+          "cost": 6,
+          "operations": [
+            {"kind": "buff_unit", "target": "self", "amount": 2, "secondary_amount": 2},
+            {"kind": "add_keyword", "target": "self", "keyword": "潜行"}
+          ]
+        }
+      ]
+    },
+    {
+      "card_id": 10124110,
+      "trigger": "fanfare",
+      "operations": [],
+      "play_modes": [
+        {
+          "id": "enhance_9",
+          "type": "enhance",
+          "cost": 9,
+          "operations": [
+            {"kind": "damage_unit", "target": "all_enemy_units", "amount": 3},
+            {"kind": "grant_attacks_per_turn", "target": "self", "amount": 2}
+          ]
+        }
+      ]
+    },
+    {
+      "card_id": 10162220,
+      "trigger": "activate",
+      "operations": [
+        {"kind": "destroy", "target": "self"},
+        {"kind": "damage_unit", "target": "enemy_unit", "amount": 4},
+        {"kind": "heal_leader", "target": "own_leader", "amount": 1}
+      ]
+    },
+    {
+      "card_id": 10164120,
+      "trigger": "fanfare",
+      "operations": [
+        {"kind": "damage_unit", "target": "all_enemy_units", "amount": 6},
+        {
+          "kind": "buff_unit",
+          "target": "all_own_units",
+          "amount": 2,
+          "secondary_amount": 4,
+          "exclude_source": true
+        }
+      ]
+    },
+    {
+      "card_id": 10403120,
+      "trigger": "fanfare",
+      "operations": [],
+      "play_modes": [
+        {
+          "id": "enhance_8",
+          "type": "enhance",
+          "cost": 8,
+          "operations": [
+            {
+              "kind": "draw_filtered",
+              "target": "own_leader",
+              "amount": 1,
+              "card_type_filter": "随从",
+              "cost_min": 7
+            },
+            {"kind": "restore_mana", "target": "own_leader", "amount": 7}
+          ]
+        }
+      ]
+    },
+    {
+      "card_id": 10551110,
+      "trigger": "fanfare",
+      "operations": [],
+      "play_modes": [
+        {
+          "id": "enhance_6",
+          "type": "enhance",
+          "cost": 6,
+          "operations": [
+            {"kind": "buff_unit", "target": "self", "secondary_amount": 6},
+            {"kind": "add_keyword", "target": "self", "keyword": "必杀"},
+            {"kind": "add_keyword", "target": "self", "keyword": "屏障"}
+          ]
+        }
+      ]
+    },
+    {
+      "card_id": 10662210,
+      "trigger": "play",
+      "countdown": 4,
+      "operations": []
+    },
+    {
+      "card_id": 10662210,
+      "trigger": "last_words",
+      "operations": [
+        {"kind": "draw", "target": "own_leader", "amount": 2},
+        {"kind": "damage_unit", "target": "all_enemy_units", "amount": 2},
+        {"kind": "heal_leader", "target": "own_leader", "amount": 2}
+      ]
+    },
+    {
+      "card_id": 10762210,
+      "trigger": "play",
+      "operations": [],
+      "play_modes": [
+        {
+          "id": "enhance_4",
+          "type": "enhance",
+          "cost": 4,
+          "operations": [
+            {"kind": "damage_unit", "target": "all_enemy_units", "amount": 1}
+          ]
+        }
+      ]
+    },
+    {
+      "card_id": 10762210,
+      "trigger": "activate",
+      "operations": [
+        {"kind": "destroy", "target": "self"},
+        {"kind": "damage_unit", "target": "all_enemy_units", "amount": 1}
+      ]
+    },
+    {
+      "card_id": 10814110,
+      "trigger": "fanfare",
+      "operations": [
+        {"kind": "destroy", "target": "enemy_unit"},
+        {
+          "kind": "buff_unit",
+          "target": "all_own_units",
+          "amount": 1,
+          "secondary_amount": 1,
+          "exclude_source": true
+        }
+      ]
+    }
+  ]
+}

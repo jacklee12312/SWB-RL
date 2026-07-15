@@ -9,7 +9,7 @@ from pathlib import Path
 from scripts.report_rule_coverage import _build_coverage_report, _classify_card
 from swb.db.repository import CardDefinition, CardRepository
 from swb.engine.abilities import AbilityKeyword
-from swb.engine.card_rules import RuleBook, _parse_union_burst_definition
+from swb.engine.card_rules import CardRule, RuleBook, Trigger, _parse_union_burst_definition
 from swb.engine.commands import Evolve, PlayCard, SuperEvolve
 from swb.engine.effects import EffectKind, EffectOperation, TargetKind
 from swb.engine.environment import ShadowverseEnv
@@ -173,6 +173,7 @@ class UnionBurstSchemaTests(unittest.TestCase):
             {
                 "card_id": 123,
                 "kind": "super_skybound_art",
+                "replace_base_operations": True,
                 "operations": [
                     {
                         "kind": "damage_leader",
@@ -186,6 +187,8 @@ class UnionBurstSchemaTests(unittest.TestCase):
 
         self.assertEqual(union.threshold, 10)
         self.assertEqual(super_art.threshold, 15)
+        self.assertFalse(union.replace_base_operations)
+        self.assertTrue(super_art.replace_base_operations)
         self.assertIs(
             union.operations[0].target,
             TargetKind.RANDOM_ENEMY_UNIT_OR_LEADER,
@@ -216,6 +219,18 @@ class UnionBurstSchemaTests(unittest.TestCase):
                 "kind": "union_burst",
                 "operations": [{}],
                 "unknown": 1,
+            },
+            {
+                "card_id": 123,
+                "kind": "super_skybound_art",
+                "replace_base_operations": 1,
+                "operations": [
+                    {
+                        "kind": "damage_leader",
+                        "target": "enemy_leader",
+                        "amount": 1,
+                    }
+                ],
             },
             {
                 "card_id": 123,
@@ -377,6 +392,104 @@ class UnionBurstGaugeTests(unittest.TestCase):
 
 
 class UnionBurstResolutionTests(unittest.TestCase):
+    def test_replacement_suppresses_base_for_followers_spells_and_amulets(self):
+        for card_type, trigger in (
+            ("随从", Trigger.FANFARE),
+            ("法术", Trigger.PLAY),
+            ("护符", Trigger.PLAY),
+        ):
+            with self.subTest(card_type=card_type):
+                definition = _card(
+                    100,
+                    card_type=card_type,
+                    attack=1 if card_type == "随从" else None,
+                    life=3 if card_type == "随从" else None,
+                )
+                base = CardRule(
+                    100,
+                    trigger,
+                    (
+                        EffectOperation(
+                            EffectKind.DAMAGE_LEADER,
+                            TargetKind.ENEMY_LEADER,
+                            1,
+                        ),
+                    ),
+                )
+                replacement = _definition(
+                    UnionBurstKind.SUPER_SKYBOUND_ART,
+                    operations=(
+                        EffectOperation(
+                            EffectKind.DAMAGE_LEADER,
+                            TargetKind.ENEMY_LEADER,
+                            2,
+                        ),
+                    ),
+                )
+                replacement = UnionBurstDefinition(
+                    card_id=replacement.card_id,
+                    kind=replacement.kind,
+                    operations=replacement.operations,
+                    replace_base_operations=True,
+                )
+                engine = GameEngine(
+                    [_card(1000 + index) for index in range(40)],
+                    [_card(2000 + index) for index in range(40)],
+                    class_a=1,
+                    class_b=1,
+                    seed=73,
+                    rulebook=RuleBook(
+                        (base,),
+                        union_burst_defs={100: (replacement,)},
+                    ),
+                    config=GameConfig(validate_invariants=True),
+                )
+                engine.reset(seed=73)
+
+                _play_burst(
+                    engine,
+                    turns_started=15,
+                    definition=definition,
+                )
+
+                self.assertEqual(engine.players[1].health, 18)
+
+    def test_spell_and_amulet_activate_at_exact_threshold(self):
+        for card_type in ("法术", "护符"):
+            with self.subTest(card_type=card_type):
+                definition = _card(
+                    100,
+                    name=f"Burst-{card_type}",
+                    card_type=card_type,
+                    attack=None,
+                    life=None,
+                )
+                engine = _engine(_definition())
+
+                _play_burst(
+                    engine,
+                    turns_started=10,
+                    definition=definition,
+                )
+
+                self.assertEqual(engine.players[1].health, 18)
+                events = [
+                    event for event in engine.event_history
+                    if event.type is EventType.UNION_BURST_ACTIVATED
+                ]
+                self.assertEqual(len(events), 1)
+                self.assertEqual(events[0].metadata["card_id"], 100)
+                if card_type == "法术":
+                    self.assertEqual(
+                        engine.players[0].graveyard[-1].definition.card_id,
+                        100,
+                    )
+                else:
+                    self.assertEqual(
+                        engine.players[0].board[-1].definition.card_id,
+                        100,
+                    )
+
     def test_below_threshold_does_not_activate(self):
         engine = _engine(_definition())
 
