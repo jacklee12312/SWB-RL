@@ -9,6 +9,10 @@ if TYPE_CHECKING:
     from swb.engine.state import FusionMaterial
 
 
+MAX_REPEAT_COUNT = 100
+MAX_RANDOM_DISTRIBUTION_TOTAL = 10_000
+
+
 class ConditionType(str, Enum):
     ALWAYS = "always"
     ALL = "all"
@@ -24,6 +28,7 @@ class ConditionType(str, Enum):
     OPPONENT_BOARD_HAS = "opponent_board_has"
     CONTROLLER_HAND_COUNT_AT_LEAST = "controller_hand_count_at_least"
     CONTROLLER_MAX_MANA_AT_LEAST = "controller_max_mana_at_least"
+    OPPONENT_MAX_MANA_AT_LEAST = "opponent_max_mana_at_least"
     CONTROLLER_DECK_HAS_NO_DUPLICATES = "controller_deck_has_no_duplicates"
     TARGET_ATTACK_AT_MOST = "target_attack_at_most"
     TARGET_ATTACK_AT_LEAST = "target_attack_at_least"
@@ -31,6 +36,8 @@ class ConditionType(str, Enum):
     TARGET_HEALTH_AT_LEAST = "target_health_at_least"
     SOURCE_EVOLVED = "source_evolved"
     SOURCE_SUPER_EVOLVED = "source_super_evolved"
+    SOURCE_HEALTH_AT_MOST = "source_health_at_most"
+    SOURCE_HEALTH_AT_LEAST = "source_health_at_least"
     SOURCE_HAS_KEYWORD = "source_has_keyword"
     TARGET_HAS_KEYWORD = "target_has_keyword"
     TARGET_IS_OWN = "target_is_own"
@@ -43,6 +50,9 @@ class ConditionType(str, Enum):
     OPPONENT_OVERFLOW = "opponent_overflow"
     CONTROLLER_COMBO_AT_LEAST = "controller_combo_at_least"
     OPPONENT_COMBO_AT_LEAST = "opponent_combo_at_least"
+    CONTROLLER_FOLLOWER_ATTACKS_THIS_TURN_AT_MOST = (
+        "controller_follower_attacks_this_turn_at_most"
+    )
     CONTROLLER_EARTH_SIGILS_AT_LEAST = "controller_earth_sigils_at_least"
     OPPONENT_EARTH_SIGILS_AT_LEAST = "opponent_earth_sigils_at_least"
     CONTROLLER_EVOLUTIONS_THIS_MATCH_AT_LEAST = "controller_evolutions_this_match_at_least"
@@ -50,6 +60,11 @@ class ConditionType(str, Enum):
     CONTROLLER_SUPER_EVOLUTION_UNLOCKED = "controller_super_evolution_unlocked"
     OPPONENT_SUPER_EVOLUTION_UNLOCKED = "opponent_super_evolution_unlocked"
     SOURCE_FUSION_COUNT_AT_LEAST = "source_fusion_count_at_least"
+    SOURCE_SPELLBOOST_COUNT_AT_LEAST = "source_spellboost_count_at_least"
+    SOURCE_COST_EQUALS = "source_cost_equals"
+    CONTROLLER_ENTERED_FOLLOWER_DISTINCT_COUNT_AT_LEAST = (
+        "controller_entered_follower_distinct_count_at_least"
+    )
 
 
 class ExprType(str, Enum):
@@ -62,6 +77,10 @@ class ExprType(str, Enum):
     CONTROLLER_BOARD_COUNT = "controller_board_count"
     OPPONENT_BOARD_COUNT = "opponent_board_count"
     CONTROLLER_HAND_COUNT = "controller_hand_count"
+    CONTROLLER_EMBLEM_COUNT = "controller_emblem_count"
+    SOURCE_SPELLBOOST_COUNT = "source_spellboost_count"
+    SOURCE_COST = "source_cost"
+    BOUND_CARD_COST = "bound_card_cost"
     SOURCE_ATTACK = "source_attack"
     SOURCE_HEALTH = "source_health"
     TARGET_ATTACK = "target_attack"
@@ -76,6 +95,16 @@ class ExprType(str, Enum):
     OPPONENT_COMBO = "opponent_combo"
     CONTROLLER_EARTH_SIGILS = "controller_earth_sigils"
     OPPONENT_EARTH_SIGILS = "opponent_earth_sigils"
+    CONTROLLER_DESTROYED_FOLLOWER_BASE_ATTACK_SUM_THIS_TURN = (
+        "controller_destroyed_follower_base_attack_sum_this_turn"
+    )
+    CONTROLLER_DESTROYED_FOLLOWER_BASE_HEALTH_SUM_THIS_TURN = (
+        "controller_destroyed_follower_base_health_sum_this_turn"
+    )
+    CONTROLLER_ENTERED_FOLLOWER_DISTINCT_COUNT = (
+        "controller_entered_follower_distinct_count"
+    )
+    DISTRIBUTED_VALUE = "distributed_value"
 
 
 @dataclass
@@ -85,6 +114,7 @@ class Condition:
     keyword: str | None = None
     card_type: str | None = None
     board_filter: "BoardFilter | None" = None
+    card_filter: "HandFilter | None" = None
     conditions: list[Condition] = field(default_factory=list)
 
     @classmethod
@@ -97,6 +127,9 @@ class ValueExpression:
     type: ExprType
     value: int = 0
     values: list[ValueExpression] = field(default_factory=list)
+    card_filter: "HandFilter | None" = None
+    board_filter: "BoardFilter | None" = None
+    binding_key: str | None = None
 
     @classmethod
     def constant(cls, v: int) -> "ValueExpression":
@@ -111,22 +144,34 @@ class EffectKind(str, Enum):
     HEAL_UNIT = "heal_unit"
     DAMAGE_LEADER = "damage_leader"
     DAMAGE_UNIT = "damage_unit"
+    DISTRIBUTE_DAMAGE = "distribute_damage"
     RESTORE_MANA = "restore_mana"
     RESTORE_EVOLUTION_POINTS = "restore_evolution_points"
     RESTORE_SUPER_EVOLUTION_POINTS = "restore_super_evolution_points"
     CHANGE_MAX_MANA = "change_max_mana"
     BUFF_UNIT = "buff_unit"
+    BUFF_HAND_CARD = "buff_hand_card"
     SUMMON = "summon"
+    SUMMON_COPY = "summon_copy"
+    SUMMON_HAND_COPY = "summon_hand_copy"
     SUMMON_FROM_DECK = "summon_from_deck"
     DESTROY = "destroy"
     BANISH = "banish"
     ADD_CARD = "add_card"
+    ADD_CARD_TO_DECK = "add_card_to_deck"
+    COPY_TO_HAND = "copy_to_hand"
+    COPY_DESTROYED_FOLLOWERS_TO_HAND = "copy_destroyed_followers_to_hand"
     ADD_KEYWORD = "add_keyword"
     REMOVE_KEYWORD = "remove_keyword"
     REMOVE_ALL_ABILITIES = "remove_all_abilities"
     GRANT_ATTACKS_PER_TURN = "grant_attacks_per_turn"
+    GRANT_TURN_END_DESTROY = "grant_turn_end_destroy"
     ADD_LEADER_DAMAGE_MODIFIER = "add_leader_damage_modifier"
     CHANGE_COST = "change_cost"
+    CHANGE_DECK_COST = "change_deck_cost"
+    REPLACE_DECK = "replace_deck"
+    SET_EMPTY_DECK_OUTCOME = "set_empty_deck_outcome"
+    SET_LEADER_MAX_HEALTH = "set_leader_max_health"
     TRANSFORM = "transform"
     GAIN_EMBLEM = "gain_emblem"
     ADD_EMBLEM = "add_emblem"
@@ -134,6 +179,7 @@ class EffectKind(str, Enum):
     RETURN_TO_HAND = "return_to_hand"
     RETURN_TO_DECK = "return_to_deck"
     REDUCE_COUNTDOWN = "reduce_countdown"
+    INCREASE_COUNTDOWN = "increase_countdown"
     DISCARD = "discard"
     SET_STATS = "set_stats"
     EVOLVE_UNIT = "evolve_unit"
@@ -144,6 +190,7 @@ class EffectKind(str, Enum):
     REMOVE_TARGETING_RESTRICTION = "remove_targeting_restriction"
     SPELLBOOST_HAND = "spellboost_hand"
     ADD_COMBO = "add_combo"
+    ADD_SHADOWS = "add_shadows"
     ADD_EARTH_SIGILS = "add_earth_sigils"
     EARTH_RITE = "earth_rite"
     CONSUME_FAITH = "consume_faith"
@@ -157,6 +204,8 @@ class EffectKind(str, Enum):
     CHOOSE_ONE = "choose_one"
     OPTIONAL = "optional"
     TARGET_EXISTS = "target_exists"
+    REPEAT = "repeat"
+    RANDOM_DISTRIBUTE = "random_distribute"
 
 
 class CandidateExtreme(str, Enum):
@@ -166,9 +215,18 @@ class CandidateExtreme(str, Enum):
     LOWEST_HEALTH = "lowest_health"
 
 
+class EmptyDeckOutcome(str, Enum):
+    """Result of attempting to draw while a player's deck is empty."""
+
+    DEFEAT = "defeat"
+    VICTORY = "victory"
+
+
 class TargetKind(str, Enum):
     SELF = "self"
+    EMBLEM_SELF = "emblem_self"
     EVENT_SOURCE = "event_source"
+    ATTACK_TARGET = "attack_target"
     OWN_LEADER = "own_leader"
     ENEMY_LEADER = "enemy_leader"
     OWN_UNIT = "own_unit"
@@ -196,10 +254,13 @@ class TargetKind(str, Enum):
     ALL_BOARD = "all_board"
     ALL_OWN_AMULETS = "all_own_amulets"
     ALL_ENEMY_AMULETS = "all_enemy_amulets"
+    ALL_OWN_EMBLEMS = "all_own_emblems"
     ALL_LEADERS = "all_leaders"
     OWN_HAND = "own_hand"
     RANDOM_OWN_HAND = "random_own_hand"
+    RANDOM_ENEMY_HAND = "random_enemy_hand"
     ALL_OWN_HAND = "all_own_hand"
+    ALL_ENEMY_HAND = "all_enemy_hand"
     PREVIOUS_TARGET = "previous_target"
     OWN_GRAVEYARD_CARD = "own_graveyard_card"
     RANDOM_OWN_GRAVEYARD_CARD = "random_own_graveyard_card"
@@ -214,6 +275,11 @@ class ModifierDuration(str, Enum):
     UNTIL_END_OF_OPPONENT_TURN = "until_end_of_opponent_turn"
     UNTIL_START_OF_CONTROLLER_NEXT_TURN = "until_start_of_controller_next_turn"
     WHILE_SOURCE_IN_PLAY = "while_source_in_play"
+
+
+class TurnEndDestroyTiming(str, Enum):
+    OWNER_TURN = "owner_turn"
+    OPPONENT_TURN = "opponent_turn"
 
 
 class CostChangeMode(str, Enum):
@@ -260,7 +326,7 @@ class DeckFilter:
 
 @dataclass(frozen=True)
 class HandFilter:
-    """Matches hand cards by their printed card definition."""
+    """Matches physical hand cards, using their current cost when available."""
 
     card_type: str | None = None
     class_id: int | None = None
@@ -268,21 +334,34 @@ class HandFilter:
     cost_min: int | None = None
     cost_max: int | None = None
     card_id: int | None = None
+    exclude_card_ids: tuple[int, ...] = ()
     card_name: str | None = None
     tribe_id: int | None = None
     tribe_name: str | None = None
+    keyword: str | None = None
 
     def matches(self, card: CardDefinition) -> bool:
+        definition = getattr(card, "definition", card)
+        cost = getattr(card, "current_cost", definition.cost)
         return (
-            (self.card_type is None or card.card_type == self.card_type)
-            and (self.class_id is None or card.class_id == self.class_id)
-            and (self.class_name is None or card.class_name == self.class_name)
-            and (self.cost_min is None or card.cost >= self.cost_min)
-            and (self.cost_max is None or card.cost <= self.cost_max)
-            and (self.card_id is None or card.card_id == self.card_id)
-            and (self.card_name is None or card.name == self.card_name)
-            and (self.tribe_id is None or card.tribe_id == self.tribe_id)
-            and (self.tribe_name is None or card.tribe_name == self.tribe_name)
+            (self.card_type is None or definition.card_type == self.card_type)
+            and (self.class_id is None or definition.class_id == self.class_id)
+            and (self.class_name is None or definition.class_name == self.class_name)
+            and (self.cost_min is None or cost >= self.cost_min)
+            and (self.cost_max is None or cost <= self.cost_max)
+            and (self.card_id is None or definition.card_id == self.card_id)
+            and definition.card_id not in self.exclude_card_ids
+            and (self.card_name is None or definition.name == self.card_name)
+            and (self.tribe_id is None or definition.tribe_id == self.tribe_id)
+            and (self.tribe_name is None or definition.tribe_name == self.tribe_name)
+            and (
+                self.keyword is None
+                or self.keyword
+                in {
+                    getattr(ability, "value", str(ability))
+                    for ability in definition.abilities
+                }
+            )
         )
 
 
@@ -342,6 +421,9 @@ class EffectOperation:
     amount: int = 0
     secondary_amount: int = 0
     card_id: int | None = None
+    card_ids: tuple[int, ...] = ()
+    shuffle: bool = True
+    empty_deck_outcome: EmptyDeckOutcome | None = None
     emblem_id: str | None = None
     keyword: str | None = None
     restriction: str | None = None
@@ -371,25 +453,37 @@ class EffectOperation:
     then_operations: tuple["EffectOperation", ...] = ()
     else_operations: tuple["EffectOperation", ...] = ()
     choose_one_options: tuple["ChooseOneOption", ...] = ()
+    choose_count: int = 1
     optional_prompt: str | None = None
     optional_operations: tuple["EffectOperation", ...] = ()
+    repeat_operations: tuple["EffectOperation", ...] = ()
+    random_distribution_operations: tuple[
+        tuple["EffectOperation", ...], ...
+    ] = ()
     emblem_remove_mode: str = "first"
     requires_target: bool = False
+    requires_full_target_count: bool = False
     target_count: int = 1
     target_count_expr: ValueExpression | None = None
     allow_duplicate_targets: bool = False
     exclude_source: bool = False
     hand_filter: HandFilter | None = None
+    history_filter: HandFilter | None = None
+    distinct_card_names: bool = False
+    include_leader: bool = False
+    turn_end_destroy_timing: TurnEndDestroyTiming | None = None
 
 
 @dataclass(frozen=True)
 class BoundTargetSnapshot:
     entity_id: int
     controller: int
+    zone: str
     card_id: int
     card_type: str
     card_name: str
     cost: int
+    definition: "CardDefinition"
 
 
 @dataclass(frozen=True)
@@ -416,6 +510,9 @@ class EffectFrame:
     source_card: CardDefinition
     operations: tuple[EffectOperation, ...]
     source_snapshot: SourceStateSnapshot | None = None
+    source_spellboost_count: int = 0
+    source_cost: int = 0
+    distributed_value: int = 0
     fusion_materials: tuple["FusionMaterial", ...] = ()
     label: str = "效果"
     next_index: int = 0
@@ -446,6 +543,7 @@ class EffectFrame:
     listener_activation_card_id: int | None = None
     listener_activation_definition_index: int | None = None
     event_source_entity_id: int | None = None
+    attack_target_entity_id: int | None = None
     emblem_expiration_batch_id: int | None = None
     expiring_emblem_owner: int | None = None
     expiring_emblem_entity_id: int | None = None

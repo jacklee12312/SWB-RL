@@ -12,7 +12,7 @@ from swb.engine.commands import Choose, PlayCard
 from swb.engine.environment import ShadowverseEnv
 from swb.engine.events import EventType
 from swb.engine.resolution import GameConfig, GameEngine
-from swb.engine.state import Amulet, HandCard, Unit
+from swb.engine.state import Amulet, HandCard, Phase, Unit
 
 
 CARD_IDS = (
@@ -190,7 +190,9 @@ class ExistingConditionDirectBehaviorTests(unittest.TestCase):
         empty.players[0].deck = []
         empty.players[0].health = 19
         _play(empty, self.repository, 10111130)
-        self.assertEqual(empty.players[0].health, 18)
+        self.assertEqual(empty.players[0].health, 19)
+        self.assertEqual(empty.state.phase, Phase.FINISHED)
+        self.assertEqual(empty.state.winner, 1)
 
     def test_vlad_damages_selected_target_then_heals_even_without_target(self):
         engine = self.fresh()

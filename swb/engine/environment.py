@@ -26,7 +26,7 @@ class StepResult:
 class ShadowverseEnv:
     """RL adapter around the deterministic command-based game engine."""
 
-    OBSERVATION_V1_SIZE = 290
+    OBSERVATION_V1_SIZE = 294
     MAX_HAND = 9
     MAX_BOARD = 5
     MAX_MANA = 10
@@ -283,6 +283,8 @@ class ShadowverseEnv:
             me.cooperation / 10, opponent.cooperation / 10,
             me.cards_played_this_turn / 10,
             opponent.cards_played_this_turn / 10,
+            me.follower_attacks_this_turn / 10,
+            opponent.follower_attacks_this_turn / 10,
         ]
         total_pages = self._graveyard_total_pages()
         values.extend([
@@ -358,7 +360,20 @@ class ShadowverseEnv:
             sum(faith.value for faith in me.faiths) / 50,
             sum(faith.value for faith in opponent.faiths) / 50,
         ])
+        values.extend([
+            min(self._artifact_entry_kind_count(perspective), 40) / 40,
+            min(self._artifact_entry_kind_count(1 - perspective), 40) / 40,
+        ])
         return values
+
+    def _artifact_entry_kind_count(self, player_index: int) -> int:
+        return len({
+            record.definition.name
+            for record in self.core.state.follower_entries
+            if record.owner == player_index
+            and record.definition.card_type == "随从"
+            and record.definition.tribe_name == "创造物"
+        })
 
     def info(self, *, debug: bool | None = None) -> dict[str, object]:
         self._sync_choice_page()

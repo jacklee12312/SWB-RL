@@ -15,7 +15,11 @@ from swb.engine.effects import (
 from swb.engine.state import Unit
 
 if TYPE_CHECKING:
-    from swb.engine.state import PlayerState
+    from swb.engine.state import (
+        DestroyedFollowerRecord,
+        FollowerEntryRecord,
+        PlayerState,
+    )
 
 
 OVERFLOW_MAX_MANA_THRESHOLD = 7
@@ -29,10 +33,17 @@ class EvalContext:
     target_entity_id: int | None = None
     source_card_id: int | None = None
     source_fusion_count: int = 0
+    source_spellboost_count: int = 0
+    source_cost: int = 0
+    distributed_value: int = 0
     source_snapshot: SourceStateSnapshot | None = None
     target_snapshot: BoundTargetSnapshot | None = None
+    bound_target_snapshots: dict[str, tuple[BoundTargetSnapshot, ...]] | None = None
     controller_super_evolution_unlocked: bool = False
     opponent_super_evolution_unlocked: bool = False
+    turn: int = 0
+    destroyed_followers: tuple[DestroyedFollowerRecord, ...] = ()
+    follower_entries: tuple[FollowerEntryRecord, ...] = ()
 
     @property
     def controller_player(self) -> PlayerState:
@@ -216,9 +227,16 @@ def evaluate_condition(cond: Condition | None, ctx: EvalContext | None) -> bool:
         threshold = cond.value if cond.value > 0 else 1
         return _matching_board_count(opponent.board, cond) >= threshold
     elif t == ConditionType.CONTROLLER_HAND_COUNT_AT_LEAST:
-        return len(player.hand) >= cond.value
+        return sum(
+            1
+            for card in player.hand
+            if cond.card_filter is None
+            or cond.card_filter.matches(getattr(card, "definition", card))
+        ) >= cond.value
     elif t == ConditionType.CONTROLLER_MAX_MANA_AT_LEAST:
         return player.max_mana >= cond.value
+    elif t == ConditionType.OPPONENT_MAX_MANA_AT_LEAST:
+        return opponent.max_mana >= cond.value
     elif t == ConditionType.CONTROLLER_DECK_HAS_NO_DUPLICATES:
         card_ids = [card.card_id for card in player.deck]
         return len(card_ids) == len(set(card_ids))
@@ -238,6 +256,8 @@ def evaluate_condition(cond: Condition | None, ctx: EvalContext | None) -> bool:
         return player.cards_played_this_turn >= cond.value
     elif t == ConditionType.OPPONENT_COMBO_AT_LEAST:
         return opponent.cards_played_this_turn >= cond.value
+    elif t == ConditionType.CONTROLLER_FOLLOWER_ATTACKS_THIS_TURN_AT_MOST:
+        return player.follower_attacks_this_turn <= cond.value
     elif t == ConditionType.CONTROLLER_EARTH_SIGILS_AT_LEAST:
         return player.earth_sigils >= cond.value
     elif t == ConditionType.OPPONENT_EARTH_SIGILS_AT_LEAST:
@@ -252,6 +272,18 @@ def evaluate_condition(cond: Condition | None, ctx: EvalContext | None) -> bool:
         return ctx.opponent_super_evolution_unlocked
     elif t == ConditionType.SOURCE_FUSION_COUNT_AT_LEAST:
         return ctx.source_fusion_count >= cond.value
+    elif t == ConditionType.SOURCE_SPELLBOOST_COUNT_AT_LEAST:
+        return ctx.source_spellboost_count >= cond.value
+    elif t == ConditionType.SOURCE_COST_EQUALS:
+        return ctx.source_cost == cond.value
+    elif t == ConditionType.CONTROLLER_ENTERED_FOLLOWER_DISTINCT_COUNT_AT_LEAST:
+        return (
+            _distinct_entered_follower_count(
+                ctx,
+                card_filter=cond.card_filter,
+            )
+            >= cond.value
+        )
     elif t == ConditionType.TARGET_ATTACK_AT_MOST:
         return isinstance(target, Unit) and target.attack <= cond.value
     elif t == ConditionType.TARGET_ATTACK_AT_LEAST:
@@ -268,6 +300,24 @@ def evaluate_condition(cond: Condition | None, ctx: EvalContext | None) -> bool:
         if isinstance(source, Unit):
             return source.super_evolved
         return bool(ctx.source_snapshot and ctx.source_snapshot.super_evolved)
+    elif t in {
+        ConditionType.SOURCE_HEALTH_AT_MOST,
+        ConditionType.SOURCE_HEALTH_AT_LEAST,
+    }:
+        source_health = (
+            source.health
+            if isinstance(source, Unit)
+            else (
+                ctx.source_snapshot.health
+                if ctx.source_snapshot is not None
+                else None
+            )
+        )
+        if source_health is None:
+            return False
+        if t is ConditionType.SOURCE_HEALTH_AT_MOST:
+            return source_health <= cond.value
+        return source_health >= cond.value
     elif t == ConditionType.SOURCE_HAS_KEYWORD:
         keyword = cond.keyword or ""
         if isinstance(source, Unit):
@@ -322,11 +372,51 @@ def evaluate_expression(expr: ValueExpression | None, ctx: EvalContext | None) -
     source = ctx.source_entity if ctx else None
 
     if t == ExprType.CONTROLLER_BOARD_COUNT:
-        return len(player.board) if player else 0
+        return (
+            sum(
+                1
+                for entity in player.board
+                if expr.board_filter is None
+                or expr.board_filter.matches_entity(entity)
+            )
+            if player
+            else 0
+        )
     elif t == ExprType.OPPONENT_BOARD_COUNT:
-        return len(opponent.board) if opponent else 0
+        return (
+            sum(
+                1
+                for entity in opponent.board
+                if expr.board_filter is None
+                or expr.board_filter.matches_entity(entity)
+            )
+            if opponent
+            else 0
+        )
     elif t == ExprType.CONTROLLER_HAND_COUNT:
-        return len(player.hand) if player else 0
+        return (
+            sum(
+                1
+                for card in player.hand
+                if expr.card_filter is None
+                or expr.card_filter.matches(card.definition)
+            )
+            if player
+            else 0
+        )
+    elif t == ExprType.CONTROLLER_EMBLEM_COUNT:
+        return len(player.emblems) if player else 0
+    elif t == ExprType.SOURCE_SPELLBOOST_COUNT:
+        return ctx.source_spellboost_count if ctx else 0
+    elif t == ExprType.SOURCE_COST:
+        return ctx.source_cost if ctx else 0
+    elif t == ExprType.BOUND_CARD_COST:
+        snapshots = (
+            ()
+            if ctx is None or ctx.bound_target_snapshots is None
+            else ctx.bound_target_snapshots.get(expr.binding_key or "", ())
+        )
+        return snapshots[0].cost if len(snapshots) == 1 else 0
     elif t == ExprType.SOURCE_ATTACK:
         if isinstance(source, Unit):
             return source.attack
@@ -375,5 +465,50 @@ def evaluate_expression(expr: ValueExpression | None, ctx: EvalContext | None) -
         return player.earth_sigils if player else 0
     elif t == ExprType.OPPONENT_EARTH_SIGILS:
         return opponent.earth_sigils if opponent else 0
+    elif t in {
+        ExprType.CONTROLLER_DESTROYED_FOLLOWER_BASE_ATTACK_SUM_THIS_TURN,
+        ExprType.CONTROLLER_DESTROYED_FOLLOWER_BASE_HEALTH_SUM_THIS_TURN,
+    }:
+        if ctx is None:
+            return 0
+        records = (
+            record
+            for record in ctx.destroyed_followers
+            if record.owner == ctx.controller
+            and record.destroyed_turn == ctx.turn
+            and (
+                expr.card_filter is None
+                or expr.card_filter.matches(record.definition)
+            )
+        )
+        if (
+            t
+            is ExprType.CONTROLLER_DESTROYED_FOLLOWER_BASE_ATTACK_SUM_THIS_TURN
+        ):
+            return sum(record.definition.attack or 0 for record in records)
+        return sum(record.definition.life or 0 for record in records)
+    elif t == ExprType.CONTROLLER_ENTERED_FOLLOWER_DISTINCT_COUNT:
+        if ctx is None:
+            return 0
+        return _distinct_entered_follower_count(
+            ctx,
+            card_filter=expr.card_filter,
+        )
+    elif t == ExprType.DISTRIBUTED_VALUE:
+        return ctx.distributed_value if ctx is not None else 0
 
     raise ValueError(f"Unknown expression type: {t}")
+
+
+def _distinct_entered_follower_count(ctx: EvalContext, *, card_filter) -> int:
+    """Count differently named matching followers that entered for controller."""
+
+    return len({
+        record.definition.name
+        for record in ctx.follower_entries
+        if record.owner == ctx.controller
+        and (
+            card_filter is None
+            or card_filter.matches(record.definition)
+        )
+    })

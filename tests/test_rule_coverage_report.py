@@ -10,6 +10,7 @@ import subprocess
 import sys
 import tempfile
 import unittest
+from contextlib import closing
 
 from swb.db.repository import CardDefinition
 from swb.engine.card_rules import RuleBook
@@ -242,7 +243,7 @@ class CoverageReportTests(unittest.TestCase):
     def test_source_text_map_includes_deduplicated_alternate_modes(self):
         from scripts.report_rule_coverage import _load_source_text_map
 
-        with sqlite3.connect(self.db_path) as conn:
+        with closing(sqlite3.connect(self.db_path)) as conn:
             source_texts = _load_source_text_map(conn)
 
         self.assertIn(

@@ -6,7 +6,11 @@ from typing import TYPE_CHECKING
 from swb.engine.abilities import RUNTIME_UNIT_KEYWORDS
 from swb.engine.commands import ChoiceKind
 from swb.engine.events import EventType
-from swb.engine.effects import ModifierDuration
+from swb.engine.effects import (
+    EmptyDeckOutcome,
+    ModifierDuration,
+    TurnEndDestroyTiming,
+)
 from swb.engine.origin import CardOrigin
 from swb.engine.state import Amulet, HandCard, Unit
 
@@ -59,7 +63,7 @@ def _hand_runtime(card: HandCard | None, turn: int) -> tuple[float, ...]:
 
 def _board_runtime(entity) -> tuple[float, ...]:
     if entity is None:
-        return (0.0,) * 13
+        return (0.0,) * 15
     if isinstance(entity, Amulet):
         return (
             1.0,
@@ -68,6 +72,8 @@ def _board_runtime(entity) -> tuple[float, ...]:
             min(entity.earth_sigil_count, 20) / 20,
             float(entity.pending_destroy),
             min(len(entity.fused_material_ids), 9) / 9,
+            0.0,
+            0.0,
             0.0,
             0.0,
             0.0,
@@ -90,6 +96,14 @@ def _board_runtime(entity) -> tuple[float, ...]:
         float(entity.printed_abilities_removed),
         float(entity.evolved),
         float(entity.super_evolved),
+        float(
+            TurnEndDestroyTiming.OWNER_TURN
+            in entity.turn_end_destroy_timings
+        ),
+        float(
+            TurnEndDestroyTiming.OPPONENT_TURN
+            in entity.turn_end_destroy_timings
+        ),
     )
 
 
@@ -315,6 +329,14 @@ def encode_observation_v2(env: ShadowverseEnv) -> dict[str, object]:
                 *_leader_modifier_runtime(env, me),
                 *_leader_modifier_runtime(env, opponent),
             ),
+            "empty_deck_outcomes": (
+                int(me.empty_deck_outcome is EmptyDeckOutcome.VICTORY),
+                int(opponent.empty_deck_outcome is EmptyDeckOutcome.VICTORY),
+            ),
+            "leader_max_healths": (
+                me.max_health,
+                opponent.max_health,
+            ),
         },
         "choice": _choice_features(env),
         "public_history": _history_features(env),
@@ -347,12 +369,14 @@ def observation_v2_spec(env: ShadowverseEnv) -> dict[str, object]:
         "graveyard_histograms": (2, len(env.card_vocabulary)),
         "banished_histograms": (2, len(env.card_vocabulary)),
         "own_hand_runtime": env.MAX_HAND * 10,
-        "public_board_runtime": 2 * env.MAX_BOARD * 13,
+        "public_board_runtime": 2 * env.MAX_BOARD * 15,
         "public_board_keyword_bits": 2 * env.MAX_BOARD * len(RUNTIME_KEYWORDS),
         "leader_area_slots_per_player": MAX_LEADER_AREA_SLOTS,
         "leader_damage_modifier_runtime": (
             2 * MAX_LEADER_DAMAGE_MODIFIERS * 5
         ),
+        "empty_deck_outcomes": 2,
+        "leader_max_healths": 2,
         "choice_options": env.MAX_CHOICE_OPTIONS,
         "public_history_length": HISTORY_LENGTH,
         "categorical_vocabulary": {

@@ -38,11 +38,22 @@ class TokenAuditTests(unittest.TestCase):
                 self.assertEqual(card["explicit_coverage"], "exact")
                 self.assertTrue(card["authored_producers"])
 
-    def test_database_reference_is_not_mistaken_for_executable_entry(self):
+    def test_mjerrabaine_testimony_has_a_complete_executable_producer(self):
         proof = self.cards[90004320]
         self.assertTrue(proof["database_sources"])
-        self.assertFalse(proof["authored_producers"])
-        self.assertEqual(proof["category"], "database_only_no_entry")
+        self.assertEqual(
+            proof["authored_producers"],
+            [
+                {
+                    "source_card_id": 10304110,
+                    "entry_kind": "add_card",
+                    "rule_file": "real_mjerrabaine_deck_batch.json",
+                    "rule_group": "rules",
+                }
+            ],
+        )
+        self.assertEqual(proof["category"], "entry_behavior_complete")
+        self.assertEqual(proof["explicit_coverage"], "exact")
 
     def test_goblin_has_a_complete_executable_producer(self):
         goblin = self.cards[90001110]

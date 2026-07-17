@@ -1,0 +1,133 @@
+{
+  "passives": [
+    {
+      "card_id": 10521120,
+      "kind": "non_intrinsic_keyword",
+      "keyword": "守护",
+      "notes": "守护仅由满足手牌法术数量条件的入场曲授予，并非初始关键词。"
+    }
+  ],
+  "activations": [
+    {"card_id": 10112210, "cost": 0}
+  ],
+  "rules": [
+    {
+      "card_id": 10112210,
+      "trigger": "play",
+      "operations": [
+        {"kind": "add_card", "target": "own_leader", "card_id": 90011110},
+        {
+          "kind": "add_card",
+          "target": "own_leader",
+          "card_id": 90011310,
+          "conditions": [
+            {"type": "controller_combo_at_least", "value": 3}
+          ]
+        }
+      ]
+    },
+    {
+      "card_id": 10112210,
+      "trigger": "activate",
+      "operations": [
+        {"kind": "destroy", "target": "self"},
+        {
+          "kind": "buff_unit",
+          "target": "own_unit",
+          "amount": 1,
+          "secondary_amount": 1,
+          "requires_target": true
+        }
+      ]
+    },
+    {
+      "card_id": 10521120,
+      "trigger": "fanfare",
+      "operations": [
+        {
+          "kind": "buff_unit",
+          "target": "self",
+          "amount": 1,
+          "secondary_amount": 1,
+          "conditions": [
+            {
+              "type": "controller_hand_count_at_least",
+              "value": 2,
+              "filter": {"card_type": "法术"}
+            }
+          ]
+        },
+        {
+          "kind": "add_keyword",
+          "target": "self",
+          "keyword": "守护",
+          "conditions": [
+            {
+              "type": "controller_hand_count_at_least",
+              "value": 2,
+              "filter": {"card_type": "法术"}
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "card_id": 10521120,
+      "trigger": "evolve",
+      "operations": [
+        {"kind": "add_card", "target": "own_leader", "card_id": 90021350}
+      ]
+    },
+    {
+      "card_id": 10741120,
+      "trigger": "fanfare",
+      "operations": [
+        {
+          "kind": "buff_unit",
+          "target": "own_unit",
+          "amount": 2,
+          "secondary_amount": 2,
+          "exclude_source": true
+        }
+      ]
+    },
+    {
+      "card_id": 10741120,
+      "trigger": "evolve",
+      "operations": [
+        {
+          "kind": "buff_hand_card",
+          "target": "own_hand",
+          "amount": 2,
+          "secondary_amount": 2,
+          "hand_filter": {"card_type": "随从"}
+        }
+      ]
+    },
+    {
+      "card_id": 10853110,
+      "trigger": "fanfare",
+      "operations": [
+        {
+          "kind": "buff_unit",
+          "target": "enemy_unit",
+          "amount": 0,
+          "secondary_amount": -3
+        }
+      ]
+    },
+    {
+      "card_id": 10853110,
+      "trigger": "evolve",
+      "operations": [
+        {
+          "kind": "buff_hand_card",
+          "target": "own_hand",
+          "amount": 3,
+          "secondary_amount": 0,
+          "hand_filter": {"card_type": "随从"}
+        }
+      ]
+    }
+  ]
+}

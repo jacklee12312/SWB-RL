@@ -1,0 +1,48 @@
+{
+  "rules": [
+    {
+      "card_id": 10334120,
+      "trigger": "fanfare",
+      "operations": [
+        {
+          "kind": "change_deck_cost",
+          "target": "own_leader",
+          "amount": 3,
+          "mode": "subtract",
+          "card_type_filter": "随从"
+        },
+        {
+          "kind": "transform",
+          "target": "random_own_hand",
+          "card_id": 90034310,
+          "amount": 0,
+          "mode": "set",
+          "duration": "until_end_of_turn",
+          "hand_filter": {
+            "card_type": "法术"
+          }
+        }
+      ]
+    },
+    {
+      "card_id": 90034310,
+      "trigger": "play",
+      "operations": [
+        {
+          "kind": "change_cost",
+          "target": "all_own_hand",
+          "amount": 1,
+          "mode": "add",
+          "duration": "permanent",
+          "hand_filter": {
+            "card_type": "随从"
+          }
+        },
+        {
+          "kind": "destroy",
+          "target": "all_enemy_units"
+        }
+      ]
+    }
+  ]
+}

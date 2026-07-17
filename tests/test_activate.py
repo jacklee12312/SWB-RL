@@ -397,6 +397,44 @@ class ActivateRuleSchemaTests(unittest.TestCase):
             with self.subTest(raw=raw), self.assertRaises(ValueError):
                 _parse_operation(raw, "test", 123)
 
+    def test_increase_countdown_requires_positive_amount_and_amulet_target(self):
+        operation = _parse_operation(
+            {"kind": "increase_countdown", "target": "own_amulet", "amount": 1},
+            "test",
+            123,
+        )
+        self.assertEqual(operation.kind, EffectKind.INCREASE_COUNTDOWN)
+        self.assertEqual(operation.amount, 1)
+
+        for raw in (
+            {"kind": "increase_countdown", "target": "own_amulet", "amount": 0},
+            {"kind": "increase_countdown", "target": "own_amulet", "amount": True},
+            {"kind": "increase_countdown", "target": "own_leader", "amount": 1},
+        ):
+            with self.subTest(raw=raw), self.assertRaises(ValueError):
+                _parse_operation(raw, "test", 123)
+
+    def test_random_countdown_change_requires_explicit_amulet_filter(self):
+        for kind in ("reduce_countdown", "increase_countdown"):
+            with self.subTest(kind=kind), self.assertRaises(ValueError):
+                _parse_operation(
+                    {"kind": kind, "target": "random_own_board", "amount": 1},
+                    "test",
+                    123,
+                )
+
+            operation = _parse_operation(
+                {
+                    "kind": kind,
+                    "target": "random_own_board",
+                    "amount": 1,
+                    "target_card_type_filter": "护符",
+                },
+                "test",
+                123,
+            )
+            self.assertEqual(operation.board_filter.card_type, "护符")
+
     def test_activation_definition_defaults_to_zero_cost(self):
         definition = _parse_activation_definition({"card_id": 123}, "test")
         self.assertEqual(definition, ActivationDefinition(123, 0))
@@ -512,7 +550,7 @@ class ActivateEnvironmentTests(unittest.TestCase):
         self.assertEqual(env.players[0].health, 11)
         self.assertFalse(result.info["action_mask"][action])
         self.assertEqual(env._board_features(amulet)[10], 1.0)
-        self.assertEqual(len(result.observation), 290)
+        self.assertEqual(len(result.observation), 294)
 
 
 @unittest.skipUnless(os.path.exists("data/cards.sqlite3"), "card database unavailable")

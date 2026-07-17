@@ -9,6 +9,7 @@ from swb.db.repository import CardDefinition
 from swb.engine.abilities import RUNTIME_UNIT_KEYWORDS, normalize_keyword_name
 from swb.engine.emblem import EmblemDefinition
 from swb.engine.faith import FaithInstance
+from swb.engine.effects import EmptyDeckOutcome, TurnEndDestroyTiming
 from swb.engine.origin import CardOrigin, is_derived, is_token
 
 if TYPE_CHECKING:
@@ -109,6 +110,7 @@ class DestroyedFollowerRecord:
     token: bool = False
     origin: CardOrigin = CardOrigin.DECK
     source_origin: CardOrigin | None = None
+    destroyed_turn: int = 0
 
     def __post_init__(self) -> None:
         object.__setattr__(
@@ -128,6 +130,17 @@ class DestroyedFollowerRecord:
             or is_token(self.definition, self.origin)
             or self.source_origin is CardOrigin.TOKEN,
         )
+
+
+@dataclass(frozen=True)
+class FollowerEntryRecord:
+    """Public match history for a follower that successfully entered play."""
+
+    definition: CardDefinition
+    owner: int
+    entry_sequence: int
+    entered_turn: int
+    entry_cause: str
 
 
 @dataclass
@@ -209,6 +222,7 @@ class AttackRestrictionModifier:
 
 class TargetingRestriction(str, Enum):
     CANNOT_BE_TARGETED_BY_ENEMY_EFFECTS = "cannot_be_targeted_by_enemy_effects"
+    FORCES_ENEMY_ABILITY_TARGET = "forces_enemy_ability_target"
 
 
 @dataclass(frozen=True)
@@ -228,10 +242,46 @@ class CostModifier:
 
 
 @dataclass
+class DeckCard:
+    """A physical card in a deck that can retain runtime cost changes.
+
+    Ordinary deck entries remain ``CardDefinition`` objects until an effect
+    modifies that physical copy.  This wrapper keeps the existing deck API
+    compatible while distinguishing copies that later carry different costs.
+    """
+
+    definition: CardDefinition
+    cost_modifiers: list[CostModifier] = field(default_factory=list)
+
+    @property
+    def current_cost(self) -> int:
+        cost = self.definition.cost
+        for modifier in self.cost_modifiers:
+            if modifier.mode == "set":
+                cost = modifier.amount
+            elif modifier.mode == "add":
+                cost += modifier.amount
+            elif modifier.mode == "subtract":
+                cost -= modifier.amount
+        return max(0, cost)
+
+    @property
+    def cost(self) -> int:
+        return self.current_cost
+
+    def __getattr__(self, name: str):
+        definition = self.__dict__.get("definition")
+        if definition is None:
+            raise AttributeError(name)
+        return getattr(definition, name)
+
+
+@dataclass
 class HandCard:
     definition: CardDefinition
     entity_id: int
     cost_modifiers: list[CostModifier] = field(default_factory=list)
+    stat_modifiers: list[StatModifier] = field(default_factory=list)
     spellboost_count: int = 0
     spellboost_cost_reduction: int = 0
     cannot_be_played: bool = False
@@ -280,11 +330,23 @@ class HandCard:
 
     @property
     def attack(self) -> int | None:
-        return self.definition.attack
+        if self.definition.attack is None:
+            return None
+        return max(
+            0,
+            self.definition.attack
+            + sum(modifier.attack_delta for modifier in self.stat_modifiers),
+        )
 
     @property
     def life(self) -> int | None:
-        return self.definition.life
+        if self.definition.life is None:
+            return None
+        return max(
+            1,
+            self.definition.life
+            + sum(modifier.health_delta for modifier in self.stat_modifiers),
+        )
 
     @property
     def keywords(self) -> frozenset[str]:
@@ -298,6 +360,21 @@ class HandCard:
         self.cost_modifiers = [
             modifier
             for modifier in self.cost_modifiers
+            if not (
+                modifier.duration == duration
+                and modifier.expires_for_player == player_index
+            )
+        ]
+
+    def add_stat_modifier(self, modifier: StatModifier) -> None:
+        if self.definition.card_type != "随从":
+            raise ValueError("Only follower cards can receive hand stat modifiers")
+        self.stat_modifiers.append(modifier)
+
+    def expire_stat_modifiers(self, duration: str, player_index: int) -> None:
+        self.stat_modifiers = [
+            modifier
+            for modifier in self.stat_modifiers
             if not (
                 modifier.duration == duration
                 and modifier.expires_for_player == player_index
@@ -334,6 +411,9 @@ class Unit(BoardEntity):
     attack_restrictions: list[AttackRestrictionModifier] = field(default_factory=list)
     targeting_restrictions: list[TargetingRestrictionModifier] = field(default_factory=list)
     printed_abilities_removed: bool = False
+    turn_end_destroy_timings: set[TurnEndDestroyTiming] = field(
+        default_factory=set
+    )
 
     @classmethod
     def summon(
@@ -401,6 +481,7 @@ class Unit(BoardEntity):
         self.attack_restrictions.clear()
         self.targeting_restrictions.clear()
         self.attack_capacity_modifiers.clear()
+        self.turn_end_destroy_timings.clear()
         self._adjust_attack_capacity(old_capacity)
         self._synchronize_keyword_state()
 
@@ -678,6 +759,13 @@ class Unit(BoardEntity):
             for r in self.targeting_restrictions
         )
 
+    @property
+    def forces_enemy_ability_target(self) -> bool:
+        return any(
+            r.restriction == TargetingRestriction.FORCES_ENEMY_ABILITY_TARGET
+            for r in self.targeting_restrictions
+        )
+
     def add_attack_restriction(
         self, restriction: AttackRestriction, *, duration: str, expires_for_player: int | None = None
     ) -> None:
@@ -769,7 +857,7 @@ class EmblemInstance:
 
 @dataclass
 class PlayerState:
-    deck: list[CardDefinition]
+    deck: list[CardDefinition | DeckCard]
     class_id: int
     class_name: str
     hand: list[HandCard] = field(default_factory=list)
@@ -781,9 +869,11 @@ class PlayerState:
     faiths: list[FaithInstance] = field(default_factory=list)
     fusion_materials: list[FusionMaterial] = field(default_factory=list)
     health: int = 20
+    max_health: int = 20
     max_mana: int = 0
     mana: int = 0
     fatigue: int = 0
+    empty_deck_outcome: EmptyDeckOutcome = EmptyDeckOutcome.DEFEAT
     evolution_points: int = 2
     super_evolution_points: int = 2
     turns_started: int = 0
@@ -791,6 +881,7 @@ class PlayerState:
     super_evolved_this_turn: bool = False
     followers_evolved_this_match: int = 0
     cards_played_this_turn: int = 0
+    follower_attacks_this_turn: int = 0
     followers_destroyed_this_turn: int = 0
     cooperation: int = 0
     shadows: int = 0
@@ -858,6 +949,7 @@ class GameState:
     resolution_steps: int = 0
     next_entity_id: int = 1
     destroyed_followers: list[DestroyedFollowerRecord] = field(default_factory=list)
+    follower_entries: list[FollowerEntryRecord] = field(default_factory=list)
     listener_activation_counts: dict[tuple[int, int, int], int] = field(
         default_factory=dict
     )
@@ -865,6 +957,7 @@ class GameState:
         default_factory=set
     )
     _next_death_sequence: int = 1
+    _next_follower_entry_sequence: int = 1
 
     @property
     def terminated(self) -> bool:

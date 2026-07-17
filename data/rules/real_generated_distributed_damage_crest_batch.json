@@ -1,0 +1,252 @@
+{
+  "activations": [
+    {"card_id": 10363210, "cost": 0}
+  ],
+  "emblems": [
+    {
+      "id": "hollowness_manifest_octrice",
+      "source_card_id": 10324120,
+      "stacking": "ignore",
+      "countdown": 8,
+      "triggers": [
+        {
+          "trigger": "card_played",
+          "event_scope": "owner_event",
+          "event_filter": {"tribe_name": "财宝"},
+          "operations": [
+            {"kind": "reduce_countdown", "target": "emblem_self", "amount": 1}
+          ]
+        },
+        {
+          "trigger": "card_fused",
+          "event_scope": "owner_event",
+          "event_filter": {"tribe_name": "财宝"},
+          "operations": [
+            {"kind": "reduce_countdown", "target": "emblem_self", "amount": 1}
+          ]
+        }
+      ],
+      "on_expire": [
+        {"kind": "add_card", "target": "own_leader", "card_id": 90024310}
+      ]
+    }
+  ],
+  "rules": [
+    {
+      "card_id": 10113120,
+      "trigger": "fanfare",
+      "operations": [
+        {"kind": "draw", "target": "own_leader", "amount": 2}
+      ]
+    },
+    {
+      "card_id": 10113120,
+      "trigger": "evolve",
+      "operations": [
+        {
+          "kind": "distribute_damage",
+          "target": "all_enemy_units",
+          "amount": {"type": "controller_hand_count"}
+        }
+      ]
+    },
+    {
+      "card_id": 10154130,
+      "trigger": "fanfare",
+      "operations": [
+        {"kind": "distribute_damage", "target": "all_enemy_units", "amount": 7}
+      ]
+    },
+    {
+      "card_id": 10154130,
+      "trigger": "evolve",
+      "operations": [
+        {"kind": "damage_leader", "target": "all_leaders", "amount": 3}
+      ]
+    },
+    {
+      "card_id": 10324120,
+      "trigger": "fanfare",
+      "operations": [
+        {
+          "kind": "gain_emblem",
+          "target": "own_leader",
+          "emblem_id": "hollowness_manifest_octrice"
+        }
+      ]
+    },
+    {
+      "card_id": 10324120,
+      "trigger": "evolve",
+      "operations": [
+        {"kind": "add_card", "target": "own_leader", "card_id": 90021310},
+        {"kind": "add_card", "target": "own_leader", "card_id": 90021340}
+      ]
+    },
+    {
+      "card_id": 10363210,
+      "trigger": "play",
+      "countdown": 4,
+      "operations": []
+    },
+    {
+      "card_id": 10363210,
+      "trigger": "last_words",
+      "operations": [
+        {
+          "kind": "distribute_damage",
+          "target": "all_enemy_units",
+          "amount": 4,
+          "include_leader": true
+        },
+        {"kind": "heal_leader", "target": "own_leader", "amount": 4}
+      ]
+    },
+    {
+      "card_id": 10363210,
+      "trigger": "activate",
+      "operations": [
+        {
+          "kind": "reduce_countdown",
+          "target": "self",
+          "amount": {"type": "controller_emblem_count"}
+        }
+      ]
+    },
+    {
+      "card_id": 10511310,
+      "trigger": "play",
+      "operations": [
+        {"kind": "distribute_damage", "target": "all_enemy_units", "amount": 3},
+        {"kind": "add_card", "target": "own_leader", "card_id": 90011110}
+      ]
+    },
+    {
+      "card_id": 10514120,
+      "trigger": "fanfare",
+      "operations": [
+        {
+          "kind": "choose_one",
+          "target": "own_leader",
+          "options": [
+            {
+              "id": "add_fairies",
+              "label": "将2张妖精加入手牌",
+              "operations": [
+                {"kind": "add_card", "target": "own_leader", "card_id": 90011110},
+                {"kind": "add_card", "target": "own_leader", "card_id": 90011110}
+              ]
+            },
+            {
+              "id": "restore_mana",
+              "label": "回复2点能量",
+              "operations": [
+                {"kind": "restore_mana", "target": "own_leader", "amount": 2}
+              ]
+            },
+            {
+              "id": "distribute_damage",
+              "label": "分配3点伤害",
+              "operations": [
+                {"kind": "distribute_damage", "target": "all_enemy_units", "amount": 3}
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "card_id": 10514120,
+      "trigger": "evolve",
+      "operations": [
+        {
+          "kind": "choose_one",
+          "target": "own_leader",
+          "options": [
+            {
+              "id": "add_fairies",
+              "label": "将2张妖精加入手牌",
+              "operations": [
+                {"kind": "add_card", "target": "own_leader", "card_id": 90011110},
+                {"kind": "add_card", "target": "own_leader", "card_id": 90011110}
+              ]
+            },
+            {
+              "id": "restore_mana",
+              "label": "回复2点能量",
+              "operations": [
+                {"kind": "restore_mana", "target": "own_leader", "amount": 2}
+              ]
+            },
+            {
+              "id": "distribute_damage",
+              "label": "分配3点伤害",
+              "operations": [
+                {"kind": "distribute_damage", "target": "all_enemy_units", "amount": 3}
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "card_id": 10673110,
+      "trigger": "fanfare",
+      "operations": [
+        {"kind": "summon", "target": "own_leader", "card_id": 10673110},
+        {"kind": "summon", "target": "own_leader", "card_id": 10673110}
+      ],
+      "play_modes": [
+        {
+          "id": "accelerate_4",
+          "type": "accelerate",
+          "cost": 4,
+          "operations": [
+            {"kind": "summon", "target": "own_leader", "card_id": 10673110}
+          ]
+        }
+      ]
+    },
+    {
+      "card_id": 10673110,
+      "trigger": "turn_end",
+      "operations": [
+        {"kind": "distribute_damage", "target": "all_enemy_units", "amount": 3}
+      ]
+    },
+    {
+      "card_id": 10673110,
+      "trigger": "evolve",
+      "operations": [
+        {"kind": "distribute_damage", "target": "all_enemy_units", "amount": 3}
+      ]
+    },
+    {
+      "card_id": 10753310,
+      "trigger": "play",
+      "operations": [
+        {"kind": "distribute_damage", "target": "all_enemy_units", "amount": 6},
+        {
+          "kind": "necromancy",
+          "target": "own_leader",
+          "amount": 6,
+          "operations": [
+            {"kind": "damage_leader", "target": "enemy_leader", "amount": 2}
+          ]
+        }
+      ]
+    },
+    {
+      "card_id": 90024310,
+      "trigger": "play",
+      "operations": [
+        {
+          "kind": "distribute_damage",
+          "target": "all_enemy_units",
+          "amount": 4,
+          "include_leader": true
+        }
+      ]
+    }
+  ]
+}

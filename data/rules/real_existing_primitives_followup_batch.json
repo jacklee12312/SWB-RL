@@ -1,0 +1,186 @@
+{
+  "passives": [
+    {
+      "card_id": 10532120,
+      "kind": "spellboost_cost_reduction",
+      "amount": 1
+    }
+  ],
+  "rules": [
+    {
+      "card_id": 10151140,
+      "trigger": "fanfare",
+      "operations": [
+        {"kind": "reanimate", "target": "own_leader", "amount": 4}
+      ]
+    },
+    {
+      "card_id": 10652110,
+      "trigger": "fanfare",
+      "operations": [],
+      "play_modes": [
+        {
+          "id": "enhance_8",
+          "type": "enhance",
+          "cost": 8,
+          "operations": [
+            {"kind": "reanimate", "target": "own_leader", "amount": 9}
+          ]
+        }
+      ]
+    },
+    {
+      "card_id": 10352120,
+      "trigger": "fanfare",
+      "operations": [],
+      "play_modes": [
+        {
+          "id": "enhance_7",
+          "type": "enhance",
+          "cost": 7,
+          "operations": [
+            {"kind": "reanimate", "target": "own_leader", "amount": 5},
+            {"kind": "reanimate", "target": "own_leader", "amount": 3}
+          ]
+        }
+      ]
+    },
+    {
+      "card_id": 10113140,
+      "trigger": "fanfare",
+      "operations": [
+        {
+          "kind": "buff_unit",
+          "target": "self",
+          "amount": {"type": "controller_combo"}
+        }
+      ]
+    },
+    {
+      "card_id": 10501110,
+      "trigger": "fanfare",
+      "operations": [
+        {
+          "kind": "target_exists",
+          "target": "all_board",
+          "target_cost_min": 1,
+          "target_cost_max": 1,
+          "exclude_source": true,
+          "then": [
+            {
+              "kind": "buff_unit",
+              "target": "self",
+              "amount": 1,
+              "secondary_amount": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "card_id": 10253120,
+      "trigger": "fanfare",
+      "operations": [
+        {
+          "kind": "buff_unit",
+          "target": "self",
+          "amount": {
+            "type": "subtract",
+            "values": [
+              {"type": "controller_board_count"},
+              {"type": "constant", "value": 1}
+            ]
+          }
+        },
+        {
+          "kind": "damage_leader",
+          "target": "own_leader",
+          "amount": 2
+        }
+      ]
+    },
+    {
+      "card_id": 10761120,
+      "trigger": "fanfare",
+      "operations": [
+        {
+          "kind": "draw_filtered",
+          "target": "own_leader",
+          "amount": 2,
+          "card_type_filter": "护符"
+        }
+      ]
+    },
+    {
+      "card_id": 10761120,
+      "trigger": "evolve",
+      "operations": [
+        {
+          "kind": "damage_unit",
+          "target": "all_enemy_units",
+          "amount": {
+            "type": "controller_hand_count",
+            "filter": {"card_type": "护符"}
+          }
+        }
+      ]
+    },
+    {
+      "card_id": 10251110,
+      "trigger": "evolve",
+      "operations": [
+        {
+          "kind": "destroy",
+          "target": "enemy_unit",
+          "target_count": 2
+        },
+        {
+          "kind": "damage_leader",
+          "target": "own_leader",
+          "amount": 2
+        }
+      ]
+    },
+    {
+      "card_id": 10233110,
+      "trigger": "clash",
+      "operations": [
+        {
+          "kind": "spellboost_hand",
+          "target": "all_own_hand",
+          "amount": 1
+        }
+      ]
+    },
+    {
+      "card_id": 10233110,
+      "trigger": "evolve",
+      "operations": [
+        {
+          "kind": "draw_filtered",
+          "target": "own_leader",
+          "amount": 2,
+          "card_type_filter": "随从"
+        }
+      ]
+    },
+    {
+      "card_id": 10532120,
+      "trigger": "fanfare",
+      "operations": [
+        {"kind": "draw", "target": "own_leader", "amount": 1}
+      ]
+    },
+    {
+      "card_id": 10532120,
+      "trigger": "last_words",
+      "operations": [
+        {
+          "kind": "spellboost_hand",
+          "target": "all_own_hand",
+          "amount": 1
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,154 @@
+{
+  "emblems": [
+    {
+      "id": "mjerrabaine_great_manifest",
+      "source_card_id": 10304110,
+      "stacking": "ignore",
+      "on_gain": [
+        {
+          "kind": "replace_deck",
+          "target": "own_leader",
+          "shuffle": true,
+          "card_ids": [
+            10301110,
+            10301310,
+            10302110,
+            10303110,
+            10303210,
+            10304120,
+            10311110,
+            10311120,
+            10311310,
+            10312110,
+            10312120,
+            10312210,
+            10313110,
+            10313310,
+            10314110,
+            10314120,
+            10321110,
+            10321120,
+            10321310,
+            10322110,
+            10322120,
+            10322210,
+            10323110,
+            10323310,
+            10324110,
+            10324120,
+            10331110,
+            10331120,
+            10331310,
+            10332110,
+            10332210,
+            10332310,
+            10333110,
+            10333310,
+            10334110,
+            10334120,
+            10341110,
+            10341120,
+            10341310,
+            10342110,
+            10342120,
+            10342210,
+            10343110,
+            10343310,
+            10344110,
+            10344120,
+            10351110,
+            10351120,
+            10351310,
+            10352110,
+            10352120,
+            10352210,
+            10353110,
+            10353310,
+            10354110,
+            10354120,
+            10361110,
+            10361120,
+            10361310,
+            10362110,
+            10362210,
+            10362220,
+            10363110,
+            10363210,
+            10364110,
+            10364120,
+            10371110,
+            10371120,
+            10371310,
+            10372110,
+            10372120,
+            10372210,
+            10373110,
+            10373310,
+            10374110,
+            10374120
+          ]
+        },
+        {
+          "kind": "set_empty_deck_outcome",
+          "target": "own_leader",
+          "outcome": "victory"
+        }
+      ],
+      "triggers": [
+        {
+          "trigger": "turn_end",
+          "turn_scope": "owner_turn",
+          "operations": [
+            {
+              "kind": "discard",
+              "target": "all_own_hand",
+              "hand_filter": {
+                "exclude_card_ids": [90004320]
+              }
+            },
+            {
+              "kind": "draw",
+              "target": "own_leader",
+              "amount": 6
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "rules": [
+    {
+      "card_id": 10304110,
+      "trigger": "fanfare",
+      "operations": [
+        {
+          "kind": "add_card",
+          "target": "own_leader",
+          "card_id": 90004320
+        }
+      ]
+    },
+    {
+      "card_id": 10304110,
+      "trigger": "evolve",
+      "operations": [
+        {
+          "kind": "gain_emblem",
+          "target": "own_leader",
+          "emblem_id": "mjerrabaine_great_manifest"
+        }
+      ]
+    },
+    {
+      "card_id": 90004320,
+      "trigger": "play",
+      "operations": [
+        {
+          "kind": "destroy",
+          "target": "enemy_unit",
+          "requires_target": true
+        }
+      ]
+    }
+  ]
+}

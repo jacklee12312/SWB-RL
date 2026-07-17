@@ -6,11 +6,14 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from swb.engine.effects import EffectOperation
+    from swb.engine.listeners import EventCardFilter
 
 
 class FaithTrigger(str, Enum):
     FOLLOWER_EVOLVED = "follower_evolved"
+    FOLLOWER_SUMMONED = "follower_summoned"
     AMULET_DESTROYED = "amulet_destroyed"
+    CARD_ENHANCED = "card_enhanced"
 
 
 class FaithAbilityStacking(str, Enum):
@@ -22,6 +25,7 @@ class FaithAbilityStacking(str, Enum):
 class FaithTriggerRule:
     trigger: FaithTrigger
     amount: int = 1
+    event_filter: "EventCardFilter | None" = None
 
 
 @dataclass(frozen=True)

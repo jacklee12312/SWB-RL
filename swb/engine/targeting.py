@@ -69,6 +69,7 @@ _RANDOM_TARGETS = frozenset({
     TargetKind.RANDOM_OWN_BOARD,
     TargetKind.RANDOM_ENEMY_BOARD,
     TargetKind.RANDOM_OWN_HAND,
+    TargetKind.RANDOM_ENEMY_HAND,
     TargetKind.RANDOM_OWN_GRAVEYARD_CARD,
 })
 
@@ -81,13 +82,16 @@ _ALL_TARGETS = frozenset({
     TargetKind.ALL_BOARD,
     TargetKind.ALL_OWN_AMULETS,
     TargetKind.ALL_ENEMY_AMULETS,
+    TargetKind.ALL_OWN_EMBLEMS,
     TargetKind.ALL_OWN_HAND,
+    TargetKind.ALL_ENEMY_HAND,
     TargetKind.ALL_OWN_GRAVEYARD_CARDS,
     TargetKind.ALL_LEADERS,
 })
 
 _IMPLICIT_TARGETS = frozenset({
     TargetKind.SELF,
+    TargetKind.ATTACK_TARGET,
     TargetKind.OWN_LEADER,
     TargetKind.ENEMY_LEADER,
 })
@@ -121,10 +125,11 @@ def is_graveyard_target(kind: TargetKind) -> bool:
 
 _EFFECT_UNIT_ONLY = frozenset({
     EffectKind.DAMAGE_UNIT,
+    EffectKind.SUMMON_COPY,
+    EffectKind.GRANT_TURN_END_DESTROY,
     EffectKind.BUFF_UNIT,
     EffectKind.ADD_KEYWORD,
     EffectKind.REMOVE_KEYWORD,
-    EffectKind.TRANSFORM,
     EffectKind.SET_STATS,
     EffectKind.EVOLVE_UNIT,
     EffectKind.SUPER_EVOLVE_UNIT,
@@ -218,7 +223,15 @@ def hand_candidates(
 ) -> list:
     """Return legal hand targets, excluding the resolving source by identity."""
 
-    candidates = list(players[controller].hand)
+    hand_owner = (
+        1 - controller
+        if operation.target in {
+            TargetKind.RANDOM_ENEMY_HAND,
+            TargetKind.ALL_ENEMY_HAND,
+        }
+        else controller
+    )
+    candidates = list(players[hand_owner].hand)
     if source_entity_id is not None:
         candidates = [
             card
@@ -229,9 +242,7 @@ def hand_candidates(
         candidates = [
             card
             for card in candidates
-            if operation.hand_filter.matches(
-                getattr(card, "definition", card)
-            )
+            if operation.hand_filter.matches(card)
         ]
     return candidates
 
@@ -319,6 +330,16 @@ def target_candidates(
             e for e in candidates
             if not _is_unselectable_by_enemy_effects(e, controller, players)
         ]
+        if enemy_has_forced_ability_target(controller, players):
+            candidates = [
+                entity
+                for entity in candidates
+                if entity not in enemy_board
+                or (
+                    isinstance(entity, Unit)
+                    and entity.forces_enemy_ability_target
+                )
+            ]
 
     candidates = apply_candidate_extreme(candidates, operation.candidate_extreme)
 
@@ -397,6 +418,15 @@ def _is_unselectable_by_enemy_effects(
     return False
 
 
+def enemy_has_forced_ability_target(controller: int, players: list) -> bool:
+    """Return whether the opposing field currently forces ability selections."""
+
+    return any(
+        isinstance(entity, Unit) and entity.forces_enemy_ability_target
+        for entity in players[1 - controller].board
+    )
+
+
 def build_choice_options(candidates: list[BoardCard]) -> list[ChoiceOption]:
     from swb.engine.commands import ChoiceOption
 
@@ -410,7 +440,11 @@ def build_choice_options(candidates: list[BoardCard]) -> list[ChoiceOption]:
     ]
 
 
-def leader_choice_options(target: TargetKind, controller: int) -> list[ChoiceOption]:
+def leader_choice_options(
+    target: TargetKind,
+    controller: int,
+    players: list | None = None,
+) -> list[ChoiceOption]:
     from swb.engine.commands import ChoiceOption
 
     if target == TargetKind.OWN_UNIT_OR_LEADER:
@@ -421,6 +455,14 @@ def leader_choice_options(target: TargetKind, controller: int) -> list[ChoiceOpt
         leader_indexes = (controller, 1 - controller)
     else:
         leader_indexes = ()
+    if (
+        players is not None
+        and 1 - controller in leader_indexes
+        and enemy_has_forced_ability_target(controller, players)
+    ):
+        leader_indexes = tuple(
+            index for index in leader_indexes if index == controller
+        )
     return [
         ChoiceOption(
             option_id=f"leader:{player_index}",

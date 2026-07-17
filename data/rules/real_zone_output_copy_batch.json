@@ -1,0 +1,101 @@
+{
+  "rules": [
+    {
+      "card_id": 10853310,
+      "trigger": "play",
+      "operations": [
+        {
+          "kind": "return_to_deck",
+          "target": "own_hand",
+          "requires_target": true
+        },
+        {
+          "kind": "draw",
+          "target": "own_leader",
+          "amount": 2,
+          "target_key": "drawn_cards"
+        },
+        {
+          "kind": "change_cost",
+          "target": "previous_target",
+          "target_key": "drawn_cards",
+          "amount": 1,
+          "mode": "subtract",
+          "conditions": [
+            {"type": "controller_super_evolution_unlocked"}
+          ]
+        }
+      ]
+    },
+    {
+      "card_id": 10541310,
+      "trigger": "play",
+      "operations": [
+        {
+          "kind": "draw_filtered",
+          "target": "own_leader",
+          "amount": 1,
+          "card_type_filter": "随从",
+          "target_key": "drawn_follower"
+        },
+        {
+          "kind": "damage_unit",
+          "target": "random_enemy_unit",
+          "amount": {
+            "type": "bound_card_cost",
+            "binding_key": "drawn_follower"
+          }
+        }
+      ]
+    },
+    {
+      "card_id": 10802310,
+      "trigger": "play",
+      "operations": [
+        {
+          "kind": "copy_to_hand",
+          "target": "random_enemy_hand",
+          "amount": 1,
+          "mode": "subtract"
+        },
+        {"kind": "draw", "target": "own_leader", "amount": 1}
+      ]
+    },
+    {
+      "card_id": 10443310,
+      "trigger": "play",
+      "operations": [
+        {
+          "kind": "banish",
+          "target": "enemy_board",
+          "target_key": "absorbed_card",
+          "requires_target": true
+        },
+        {
+          "kind": "copy_to_hand",
+          "target": "previous_target",
+          "target_key": "absorbed_card",
+          "amount": 0,
+          "mode": "add"
+        }
+      ]
+    },
+    {
+      "card_id": 10652310,
+      "trigger": "play",
+      "operations": [
+        {
+          "kind": "banish",
+          "target": "enemy_unit",
+          "target_key": "banished_follower",
+          "requires_target": true
+        },
+        {
+          "kind": "summon_copy",
+          "target": "previous_target",
+          "target_key": "banished_follower"
+        }
+      ]
+    }
+  ]
+}

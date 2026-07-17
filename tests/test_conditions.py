@@ -79,6 +79,35 @@ class ConditionEvalTests(unittest.TestCase):
         ctx = EvalContext(0, [_player(board_count=3), _player(board_count=1)])
         self.assertEqual(evaluate_expression(ValueExpression(ExprType.OPPONENT_BOARD_COUNT), ctx), 1)
 
+    def test_board_count_expression_applies_entity_filter(self):
+        own = _player()
+        follower = Unit.summon(card(10), entity_id=10)
+        evolved = Unit.summon(card(11), entity_id=11)
+        evolved.evolved = True
+        amulet = Amulet(
+            definition=card(
+                12,
+                card_type="护符",
+                attack=None,
+                life=None,
+            ),
+            entity_id=12,
+        )
+        own.board = [follower, evolved, amulet]
+        ctx = EvalContext(0, [own, _player()])
+
+        followers = ValueExpression(
+            ExprType.CONTROLLER_BOARD_COUNT,
+            board_filter=BoardFilter(card_type="随从"),
+        )
+        unevolved = ValueExpression(
+            ExprType.CONTROLLER_BOARD_COUNT,
+            board_filter=BoardFilter(card_type="随从", evolved=False),
+        )
+
+        self.assertEqual(evaluate_expression(followers, ctx), 2)
+        self.assertEqual(evaluate_expression(unevolved, ctx), 1)
+
     def test_board_has_with_filter(self):
         own = _player()
         other = Unit.summon(card(10, cost=2, name="other"), entity_id=10)

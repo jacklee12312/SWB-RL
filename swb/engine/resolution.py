@@ -35,14 +35,18 @@ from swb.engine.effects import (
     ConditionType,
     CostChangeMode,
     DeckFilter,
+    EmptyDeckOutcome,
     EffectFrame,
     EffectKind,
     EffectOperation,
     ExprType,
     HandFilter,
+    MAX_RANDOM_DISTRIBUTION_TOTAL,
+    MAX_REPEAT_COUNT,
     ModifierDuration,
     SourceStateSnapshot,
     TargetKind,
+    TurnEndDestroyTiming,
     ValueExpression,
 )
 from swb.engine.events import EventType, GameEvent
@@ -75,7 +79,9 @@ from swb.engine.state import (
     DeathBatch,
     DeathCause,
     DeathRecord,
+    DeckCard,
     DestroyedFollowerRecord,
+    FollowerEntryRecord,
     FusionMaterial,
     GameState,
     GraveyardCard,
@@ -94,7 +100,6 @@ from swb.engine.targeting import (
     graveyard_candidates,
     hand_candidates,
     hand_choice_options,
-    has_leader_choice,
     is_all_target,
     is_choice_target,
     is_graveyard_target,
@@ -182,6 +187,7 @@ _SOURCE_REQUIRED_SELF_TARGET_EFFECTS = frozenset({
     EffectKind.RETURN_TO_HAND,
     EffectKind.RETURN_TO_DECK,
     EffectKind.REDUCE_COUNTDOWN,
+    EffectKind.INCREASE_COUNTDOWN,
     EffectKind.ADD_KEYWORD,
     EffectKind.REMOVE_KEYWORD,
     EffectKind.GRANT_ATTACKS_PER_TURN,
@@ -196,6 +202,14 @@ _SOURCE_REQUIRED_SELF_TARGET_EFFECTS = frozenset({
 _EVENT_SOURCE_BOARD_EFFECTS = _SOURCE_REQUIRED_SELF_TARGET_EFFECTS | frozenset({
     EffectKind.EVOLVE_UNIT,
     EffectKind.SUPER_EVOLVE_UNIT,
+})
+
+_OUTPUT_BINDING_EFFECTS = frozenset({
+    EffectKind.SUMMON,
+    EffectKind.SUMMON_HAND_COPY,
+    EffectKind.SUMMON_FROM_DECK,
+    EffectKind.DRAW,
+    EffectKind.DRAW_FILTERED,
 })
 
 _SOURCE_CONDITION_TYPES = frozenset({
@@ -231,6 +245,22 @@ def _expression_depends_on_source(
             for child in expression.values
         )
     )
+
+
+def _expression_binding_keys(
+    expression: ValueExpression | None,
+) -> set[str]:
+    if expression is None:
+        return set()
+    keys = (
+        {expression.binding_key}
+        if expression.type is ExprType.BOUND_CARD_COST
+        and expression.binding_key is not None
+        else set()
+    )
+    for child in expression.values:
+        keys.update(_expression_binding_keys(child))
+    return keys
 
 
 def _expire_duration_values(duration: ModifierDuration) -> tuple[str, ...]:
@@ -355,6 +385,12 @@ class GameEngine:
             ops,
             controller=context.player_index,
             label=trigger.value,
+            attack_target_entity_id=(
+                context.target.entity_id
+                if trigger in {Trigger.ATTACK, Trigger.CLASH}
+                and isinstance(context.target, Unit)
+                else None
+            ),
         )
 
     def _is_ability_covered(self, context, ability) -> bool:
@@ -453,6 +489,12 @@ class GameEngine:
                         + operation.then_operations
                         + operation.else_operations
                         + operation.optional_operations
+                        + operation.repeat_operations
+                        + tuple(
+                            child
+                            for bucket in operation.random_distribution_operations
+                            for child in bucket
+                        )
                     )
                     if operation_contains(nested):
                         return True
@@ -489,6 +531,12 @@ class GameEngine:
                     + operation.then_operations
                     + operation.else_operations
                     + operation.optional_operations
+                    + operation.repeat_operations
+                    + tuple(
+                        child
+                        for bucket in operation.random_distribution_operations
+                        for child in bucket
+                    )
                 )
                 if contains_kind(nested):
                     return True
@@ -537,6 +585,7 @@ class GameEngine:
                     class_id=self.player_classes[index],
                     class_name=CLASS_NAMES[self.player_classes[index]],
                     health=self.config.starting_health,
+                    max_health=self.config.starting_health,
                     evolution_points=self.config.starting_evolution_points,
                     super_evolution_points=self.config.starting_super_evolution_points,
                 )
@@ -573,7 +622,9 @@ class GameEngine:
         self._next_emblem_expiration_batch_id = 1
         self._stabilizing = False
         self.state.destroyed_followers.clear()
+        self.state.follower_entries.clear()
         self.state._next_death_sequence = 1
+        self.state._next_follower_entry_sequence = 1
         self._initialize_faiths()
         for player_index in range(2):
             for _ in range(self.config.starting_hand):
@@ -643,6 +694,12 @@ class GameEngine:
         ):
             for rule in instance.definition.triggers:
                 if rule.trigger is not trigger:
+                    continue
+                if not self._event_card_filter_matches(
+                    rule.event_filter,
+                    event.type.value,
+                    event.metadata,
+                ):
                     continue
                 before = instance.value
                 instance.value += rule.amount
@@ -798,6 +855,8 @@ class GameEngine:
                     state["burst_metadata"],
                     state["burst_gauge"],
                     state["burst_replaces_base_operations"],
+                    state["source_spellboost_count"],
+                    state["source_cost"],
                 )
             else:
                 self._suspended_action = None
@@ -1004,8 +1063,14 @@ class GameEngine:
         target_entity_id: int | None = None,
         source_card_id: int | None = None,
         source_fusion_count: int = 0,
+        source_spellboost_count: int = 0,
+        source_cost: int = 0,
+        distributed_value: int = 0,
         source_snapshot: SourceStateSnapshot | None = None,
         target_snapshot: BoundTargetSnapshot | None = None,
+        bound_target_snapshots: (
+            dict[str, tuple[BoundTargetSnapshot, ...]] | None
+        ) = None,
     ) -> EvalContext:
         return EvalContext(
             controller=controller,
@@ -1020,8 +1085,15 @@ class GameEngine:
             target_entity_id=target_entity_id,
             source_card_id=source_card_id,
             source_fusion_count=source_fusion_count,
+            source_spellboost_count=source_spellboost_count,
+            source_cost=source_cost,
+            distributed_value=distributed_value,
             source_snapshot=source_snapshot,
             target_snapshot=target_snapshot,
+            bound_target_snapshots=bound_target_snapshots,
+            turn=self.turn,
+            destroyed_followers=tuple(self.state.destroyed_followers),
+            follower_entries=tuple(self.state.follower_entries),
         )
 
     def _target_conditions_met(
@@ -1200,8 +1272,14 @@ class GameEngine:
             source_origin=source_origin,
         )
         self._apply_initial_keyword_overrides(unit)
+        self._apply_initial_passives(unit)
         player.board.append(unit)
         unit.fused_material_ids.extend(fused_material_ids)
+        self._record_follower_entry(
+            player_index,
+            definition,
+            entry_cause=summon_cause,
+        )
         self._record_cooperation(
             player_index,
             1,
@@ -1219,6 +1297,20 @@ class GameEngine:
             return
         unit.removed_keywords.update(excluded)
         unit._synchronize_keyword_state()
+
+    def _apply_initial_passives(self, unit: Unit) -> None:
+        attacks_per_turn = self.rulebook.attacks_per_turn(
+            unit.definition.card_id
+        )
+        if attacks_per_turn > 1:
+            unit.grant_attacks_per_turn(attacks_per_turn)
+        if self.rulebook.forces_enemy_ability_target(unit.definition.card_id):
+            from swb.engine.state import TargetingRestriction
+
+            unit.add_targeting_restriction(
+                TargetingRestriction.FORCES_ENEMY_ABILITY_TARGET,
+                duration="permanent",
+            )
 
     def _fusion_material_candidates(
         self,
@@ -1295,7 +1387,7 @@ class GameEngine:
             return result
         return None
 
-    def _transform_hand_card_after_fusion(
+    def _transform_hand_card(
         self,
         hand_card: HandCard,
         replacement: CardDefinition,
@@ -1312,6 +1404,7 @@ class GameEngine:
         )
         hand_card.definition = replacement
         hand_card.cost_modifiers.clear()
+        hand_card.stat_modifiers.clear()
         hand_card.spellboost_count = 0
         hand_card.spellboost_cost_reduction = (
             self.rulebook.spellboost_cost_reduction(replacement.card_id)
@@ -1511,7 +1604,7 @@ class GameEngine:
             fusion_count = len(fusion_card.fused_material_ids)
             transform_event = None
             if replacement is not None:
-                transform_event = self._transform_hand_card_after_fusion(
+                transform_event = self._transform_hand_card(
                     fusion_card,
                     replacement,
                     request.player_index,
@@ -1534,6 +1627,9 @@ class GameEngine:
                         "material_entity_ids": selected_ids,
                         "material_card_ids": tuple(
                             material.card_id for material in materials
+                        ),
+                        "material_definitions": tuple(
+                            material.definition for material in materials
                         ),
                         "fusion_count": fusion_count,
                     },
@@ -1640,6 +1736,9 @@ class GameEngine:
         hand_entity_id = hand_card.entity_id
         hand_origin = hand_card.origin
         hand_source_origin = hand_card.source_origin
+        hand_spellboost_count = hand_card.spellboost_count
+        hand_current_cost = hand_card.current_cost
+        hand_stat_modifiers = tuple(hand_card.stat_modifiers)
         fused_material_ids = tuple(hand_card.fused_material_ids)
         fusion_materials = self._fusion_material_records(
             player,
@@ -1695,6 +1794,8 @@ class GameEngine:
             self._play_spell(
                 card, play_cost, hand_entity_id, origin=hand_origin,
                 source_origin=hand_source_origin,
+                source_spellboost_count=hand_spellboost_count,
+                source_cost=hand_current_cost,
                 fusion_materials=fusion_materials,
                 mode_def=mode_def,
                 burst_operations=burst_operations,
@@ -1711,6 +1812,7 @@ class GameEngine:
             self._play_amulet(
                 card, play_cost, origin=hand_origin,
                 fused_material_ids=fused_material_ids,
+                source_cost=hand_current_cost,
                 mode_def=mode_def,
                 burst_operations=burst_operations,
                 burst_metadata=burst_metadata,
@@ -1731,6 +1833,8 @@ class GameEngine:
         )
         if unit is None:
             raise IllegalCommand("Board is full")
+        for modifier in hand_stat_modifiers:
+            unit.add_stat_modifier(modifier)
         self._log(
             self.current_player,
             f"打出 {card.name} ({play_cost}费 {unit.attack}/{unit.health})",
@@ -1783,6 +1887,8 @@ class GameEngine:
                 "burst_replaces_base_operations": (
                     burst_replaces_base_operations
                 ),
+                "source_spellboost_count": hand_spellboost_count,
+                "source_cost": hand_current_cost,
             }
             return
         self._finish_follower_play(
@@ -1793,6 +1899,8 @@ class GameEngine:
             burst_metadata,
             burst_gauge,
             burst_replaces_base_operations,
+            hand_spellboost_count,
+            hand_current_cost,
         )
 
     def _finish_follower_play(
@@ -1804,6 +1912,8 @@ class GameEngine:
         burst_metadata: tuple[tuple[str, int], ...] = (),
         burst_gauge: int = 0,
         burst_replaces_base_operations: bool = False,
+        source_spellboost_count: int = 0,
+        source_cost: int = 0,
     ) -> None:
         try:
             unit = self._find_board_entity(unit_id)
@@ -1847,6 +1957,8 @@ class GameEngine:
                 unit.entity_id,
                 operations,
                 label=label,
+                source_spellboost_count=source_spellboost_count,
+                source_cost=source_cost,
             )
 
     def _play_spell(
@@ -1857,6 +1969,8 @@ class GameEngine:
         *,
         origin: CardOrigin,
         source_origin: CardOrigin | None,
+        source_spellboost_count: int = 0,
+        source_cost: int = 0,
         fusion_materials: tuple[FusionMaterial, ...] = (),
         mode_def: PlayModeDefinition | None = None,
         burst_operations: tuple[EffectOperation, ...] = (),
@@ -1913,6 +2027,8 @@ class GameEngine:
                 else "法术"
             ),
             fusion_materials=fusion_materials,
+            source_spellboost_count=source_spellboost_count,
+            source_cost=source_cost,
         )
         frame._hand_source_entity_id = source_entity_id
         frame._hand_source_origin = origin
@@ -1931,6 +2047,7 @@ class GameEngine:
         *,
         origin: CardOrigin = CardOrigin.DECK,
         fused_material_ids: tuple[int, ...] = (),
+        source_cost: int = 0,
         mode_def: PlayModeDefinition | None = None,
         burst_operations: tuple[EffectOperation, ...] = (),
         burst_metadata: tuple[tuple[str, int], ...] = (),
@@ -2010,6 +2127,7 @@ class GameEngine:
                 if mode_def is not None
                 else "入场曲"
             ),
+            source_cost=source_cost,
         )
 
     def _emit_union_burst_activations(
@@ -2132,6 +2250,9 @@ class GameEngine:
         controller: int | None = None,
         move_source_to_graveyard: bool = False,
         label: str = "效果",
+        source_spellboost_count: int = 0,
+        source_cost: int | None = None,
+        attack_target_entity_id: int | None = None,
     ) -> None:
         self._queue_effects(
             card,
@@ -2140,6 +2261,9 @@ class GameEngine:
             controller=controller,
             move_source_to_graveyard=move_source_to_graveyard,
             label=label,
+            source_spellboost_count=source_spellboost_count,
+            source_cost=source_cost,
+            attack_target_entity_id=attack_target_entity_id,
         )
         self._continue_effects()
 
@@ -2154,6 +2278,9 @@ class GameEngine:
         label: str = "效果",
         fusion_materials: tuple[FusionMaterial, ...] | None = None,
         source_snapshot: SourceStateSnapshot | None = None,
+        source_spellboost_count: int = 0,
+        source_cost: int | None = None,
+        attack_target_entity_id: int | None = None,
     ) -> EffectFrame:
         resolved_controller = self.current_player if controller is None else controller
         if fusion_materials is None:
@@ -2177,9 +2304,16 @@ class GameEngine:
             source_card=card,
             operations=operations,
             source_snapshot=source_snapshot,
+            source_spellboost_count=source_spellboost_count,
+            source_cost=(
+                getattr(card, "cost", 0)
+                if source_cost is None
+                else source_cost
+            ),
             fusion_materials=fusion_materials,
             label=label,
             move_source_to_graveyard=move_source_to_graveyard,
+            attack_target_entity_id=attack_target_entity_id,
         )
         self.state.effect_stack.append(frame)
         return frame
@@ -2190,6 +2324,7 @@ class GameEngine:
         operations: tuple[EffectOperation, ...],
         *,
         label: str,
+        distributed_value: int | None = None,
     ) -> EffectFrame:
         child = self._queue_effects(
             parent.source_card,
@@ -2199,6 +2334,8 @@ class GameEngine:
             label=label,
             fusion_materials=parent.fusion_materials,
             source_snapshot=parent.source_snapshot,
+            source_spellboost_count=parent.source_spellboost_count,
+            source_cost=parent.source_cost,
         )
         child.listener_activation_owner = parent.listener_activation_owner
         child.listener_activation_zone = parent.listener_activation_zone
@@ -2210,6 +2347,29 @@ class GameEngine:
             parent.listener_activation_definition_index
         )
         child.event_source_entity_id = parent.event_source_entity_id
+        child.attack_target_entity_id = parent.attack_target_entity_id
+        child.distributed_value = (
+            parent.distributed_value
+            if distributed_value is None
+            else distributed_value
+        )
+        inherited_keys = {
+            key
+            for key, target_ids in parent._target_bindings.items()
+            if target_ids
+        }
+        child._target_bindings = {
+            key: parent._target_bindings[key]
+            for key in inherited_keys
+        }
+        child._target_binding_operations = {
+            key: parent._target_binding_operations[key]
+            for key in inherited_keys
+        }
+        child._target_binding_snapshots = {
+            key: parent._target_binding_snapshots[key]
+            for key in inherited_keys
+        }
         return child
 
     def _debug_value(self, value):
@@ -2272,9 +2432,11 @@ class GameEngine:
             "amount": operation.amount,
             "secondary_amount": operation.secondary_amount,
             "requires_target": operation.requires_target,
+            "requires_full_target_count": operation.requires_full_target_count,
             "target_count": operation.target_count,
             "allow_duplicate_targets": operation.allow_duplicate_targets,
             "exclude_source": operation.exclude_source,
+            "include_leader": operation.include_leader,
         }
         if operation.card_id is not None:
             summary["card_id"] = operation.card_id
@@ -2298,6 +2460,10 @@ class GameEngine:
             summary["secondary_expr"] = operation.secondary_expr.type.value
         if operation.target_count_expr is not None:
             summary["target_count_expr"] = operation.target_count_expr.type.value
+        if operation.turn_end_destroy_timing is not None:
+            summary["turn_end_destroy_timing"] = (
+                operation.turn_end_destroy_timing.value
+            )
         nested_counts = {
             "earth_rite": len(operation.earth_rite_operations),
             "necromancy": len(operation.necromancy_operations),
@@ -2306,6 +2472,11 @@ class GameEngine:
             "else": len(operation.else_operations),
             "choose_one": len(operation.choose_one_options),
             "optional": len(operation.optional_operations),
+            "repeat": len(operation.repeat_operations),
+            "random_distribution": sum(
+                len(bucket)
+                for bucket in operation.random_distribution_operations
+            ),
         }
         if any(nested_counts.values()):
             summary["nested_counts"] = nested_counts
@@ -2319,6 +2490,8 @@ class GameEngine:
             "source_name": frame.source_name,
             "source_entity_id": frame.source_entity_id,
             "source_snapshot": self._debug_value(frame.source_snapshot),
+            "source_spellboost_count": frame.source_spellboost_count,
+            "source_cost": frame.source_cost,
             "label": frame.label,
             "next_index": frame.next_index,
             "operation_count": len(frame.operations),
@@ -2328,6 +2501,7 @@ class GameEngine:
             "listener_batch_id": frame.listener_batch_id,
             "listener_zone": frame.listener_activation_zone,
             "event_source_entity_id": frame.event_source_entity_id,
+            "attack_target_entity_id": frame.attack_target_entity_id,
             "upcoming_operations": [
                 self._operation_debug_summary(operation)
                 for operation in upcoming
@@ -2549,6 +2723,9 @@ class GameEngine:
                 "resolution_steps": self.state.resolution_steps,
                 "next_entity_id": self.state.next_entity_id,
                 "next_death_sequence": self.state._next_death_sequence,
+                "next_follower_entry_sequence": (
+                    self.state._next_follower_entry_sequence
+                ),
                 "players": tuple(
                     self._player_fingerprint(player)
                     for player in self.state.players
@@ -2571,6 +2748,10 @@ class GameEngine:
                 "destroyed_followers": tuple(
                     self._destroyed_follower_fingerprint(record)
                     for record in self.state.destroyed_followers
+                ),
+                "follower_entries": tuple(
+                    self._follower_entry_fingerprint(record)
+                    for record in self.state.follower_entries
                 ),
                 "listener_activation_counts": tuple(
                     sorted(self.state.listener_activation_counts.items())
@@ -2670,9 +2851,11 @@ class GameEngine:
             "class_id": player.class_id,
             "class_name": player.class_name,
             "health": player.health,
+            "max_health": player.max_health,
             "max_mana": player.max_mana,
             "mana": player.mana,
             "fatigue": player.fatigue,
+            "empty_deck_outcome": player.empty_deck_outcome.value,
             "evolution_points": player.evolution_points,
             "super_evolution_points": player.super_evolution_points,
             "turns_started": player.turns_started,
@@ -2680,6 +2863,7 @@ class GameEngine:
             "super_evolved_this_turn": player.super_evolved_this_turn,
             "followers_evolved_this_match": player.followers_evolved_this_match,
             "cards_played_this_turn": player.cards_played_this_turn,
+            "follower_attacks_this_turn": player.follower_attacks_this_turn,
             "followers_destroyed_this_turn": (
                 player.followers_destroyed_this_turn
             ),
@@ -2702,7 +2886,7 @@ class GameEngine:
             "next_faith_sequence": player._next_faith_sequence,
             "next_fusion_sequence": player._next_fusion_sequence,
             "deck": tuple(
-                self._card_fingerprint(card)
+                self._deck_card_fingerprint(card)
                 for card in player.deck
             ),
             "hand": tuple(
@@ -2768,6 +2952,22 @@ class GameEngine:
             tuple(sorted(ability.value for ability in card.ability_keywords)),
         )
 
+    def _deck_card_fingerprint(
+        self,
+        card: CardDefinition | DeckCard,
+    ) -> object:
+        if not isinstance(card, DeckCard):
+            return self._card_fingerprint(card)
+        return {
+            "zone_type": "DeckCard",
+            "definition": self._card_fingerprint(card.definition),
+            "current_cost": card.current_cost,
+            "cost_modifiers": tuple(
+                self._cost_modifier_fingerprint(modifier)
+                for modifier in card.cost_modifiers
+            ),
+        }
+
     def _hand_card_fingerprint(self, card) -> dict[str, object]:
         if not isinstance(card, HandCard):
             return {
@@ -2790,6 +2990,10 @@ class GameEngine:
             "cost_modifiers": tuple(
                 self._cost_modifier_fingerprint(modifier)
                 for modifier in card.cost_modifiers
+            ),
+            "stat_modifiers": tuple(
+                self._stat_modifier_fingerprint(modifier)
+                for modifier in card.stat_modifiers
             ),
             "fused_material_ids": tuple(card.fused_material_ids),
             "fusion_used_turn": card.fusion_used_turn,
@@ -2858,6 +3062,12 @@ class GameEngine:
                     for modifier in entity.targeting_restrictions
                 ),
                 "printed_abilities_removed": entity.printed_abilities_removed,
+                "turn_end_destroy_timings": tuple(
+                    sorted(
+                        timing.value
+                        for timing in entity.turn_end_destroy_timings
+                    )
+                ),
             })
         elif isinstance(entity, Amulet):
             base.update({
@@ -2913,6 +3123,19 @@ class GameEngine:
             record.token,
             record.origin.value,
             None if record.source_origin is None else record.source_origin.value,
+            record.destroyed_turn,
+        )
+
+    def _follower_entry_fingerprint(
+        self,
+        record: FollowerEntryRecord,
+    ) -> tuple[object, ...]:
+        return (
+            self._card_fingerprint(record.definition),
+            record.owner,
+            record.entry_sequence,
+            record.entered_turn,
+            record.entry_cause,
         )
 
     def _event_fingerprint(self, event: GameEvent) -> tuple[object, ...]:
@@ -2970,6 +3193,9 @@ class GameEngine:
             "source_entity_id": frame.source_entity_id,
             "source_card": self._card_fingerprint(frame.source_card),
             "source_snapshot": self._fingerprint_value(frame.source_snapshot),
+            "source_spellboost_count": frame.source_spellboost_count,
+            "source_cost": frame.source_cost,
+            "distributed_value": frame.distributed_value,
             "operations": tuple(
                 self._operation_fingerprint(operation)
                 for operation in frame.operations
@@ -3019,6 +3245,7 @@ class GameEngine:
                 frame.listener_activation_definition_index
             ),
             "event_source_entity_id": frame.event_source_entity_id,
+            "attack_target_entity_id": frame.attack_target_entity_id,
             "emblem_expiration_batch_id": frame.emblem_expiration_batch_id,
             "expiring_emblem_owner": frame.expiring_emblem_owner,
             "expiring_emblem_entity_id": frame.expiring_emblem_entity_id,
@@ -3034,6 +3261,13 @@ class GameEngine:
             operation.amount,
             operation.secondary_amount,
             operation.card_id,
+            operation.card_ids,
+            operation.shuffle,
+            (
+                None
+                if operation.empty_deck_outcome is None
+                else operation.empty_deck_outcome.value
+            ),
             operation.emblem_id,
             operation.keyword,
             operation.restriction,
@@ -3094,18 +3328,39 @@ class GameEngine:
                 )
                 for option in operation.choose_one_options
             ),
+            operation.choose_count,
             operation.optional_prompt,
             tuple(
                 self._operation_fingerprint(nested)
                 for nested in operation.optional_operations
             ),
+            tuple(
+                self._operation_fingerprint(nested)
+                for nested in operation.repeat_operations
+            ),
+            tuple(
+                tuple(
+                    self._operation_fingerprint(nested)
+                    for nested in bucket
+                )
+                for bucket in operation.random_distribution_operations
+            ),
             operation.emblem_remove_mode,
             operation.requires_target,
+            operation.requires_full_target_count,
             operation.target_count,
             self._expression_fingerprint(operation.target_count_expr),
             operation.allow_duplicate_targets,
             operation.exclude_source,
             self._hand_filter_fingerprint(operation.hand_filter),
+            self._hand_filter_fingerprint(operation.history_filter),
+            operation.distinct_card_names,
+            operation.include_leader,
+            (
+                None
+                if operation.turn_end_destroy_timing is None
+                else operation.turn_end_destroy_timing.value
+            ),
         )
 
     def _condition_fingerprint(
@@ -3118,6 +3373,7 @@ class GameEngine:
             condition.keyword,
             condition.card_type,
             self._board_filter_fingerprint(condition.board_filter),
+            self._hand_filter_fingerprint(condition.card_filter),
             tuple(
                 self._condition_fingerprint(nested)
                 for nested in condition.conditions
@@ -3133,6 +3389,9 @@ class GameEngine:
         return (
             expression.type.value,
             expression.value,
+            expression.binding_key,
+            self._hand_filter_fingerprint(expression.card_filter),
+            self._board_filter_fingerprint(expression.board_filter),
             tuple(
                 self._expression_fingerprint(value)
                 for value in expression.values
@@ -3192,9 +3451,11 @@ class GameEngine:
             hand_filter.cost_min,
             hand_filter.cost_max,
             hand_filter.card_id,
+            hand_filter.exclude_card_ids,
             hand_filter.card_name,
             hand_filter.tribe_id,
             hand_filter.tribe_name,
+            hand_filter.keyword,
         )
 
     def _death_batch_fingerprint(
@@ -3269,7 +3530,26 @@ class GameEngine:
             faith.value,
             faith.definition.initial_value,
             tuple(
-                (trigger.trigger.value, trigger.amount)
+                (
+                    trigger.trigger.value,
+                    trigger.amount,
+                    (
+                        None
+                        if trigger.event_filter is None
+                        else (
+                            trigger.event_filter.card_type,
+                            trigger.event_filter.class_id,
+                            trigger.event_filter.class_name,
+                            trigger.event_filter.tribe_id,
+                            trigger.event_filter.tribe_name,
+                            trigger.event_filter.cost_min,
+                            trigger.event_filter.cost_max,
+                            trigger.event_filter.card_id,
+                            trigger.event_filter.card_name,
+                            trigger.event_filter.keyword,
+                        )
+                    ),
+                )
                 for trigger in faith.definition.triggers
             ),
             tuple(
@@ -3311,8 +3591,28 @@ class GameEngine:
                     None if trigger.event_scope is None else trigger.event_scope.value,
                     trigger.once_per_turn,
                     trigger.max_activations,
+                    (
+                        None
+                        if trigger.event_filter is None
+                        else (
+                            trigger.event_filter.card_type,
+                            trigger.event_filter.class_id,
+                            trigger.event_filter.class_name,
+                            trigger.event_filter.tribe_id,
+                            trigger.event_filter.tribe_name,
+                            trigger.event_filter.cost_min,
+                            trigger.event_filter.cost_max,
+                            trigger.event_filter.card_id,
+                            trigger.event_filter.card_name,
+                            trigger.event_filter.keyword,
+                        )
+                    ),
                 )
                 for trigger in definition.triggers
+            ),
+            tuple(
+                self._operation_fingerprint(operation)
+                for operation in definition.on_gain
             ),
             tuple(
                 self._operation_fingerprint(operation)
@@ -3414,10 +3714,12 @@ class GameEngine:
             return (
                 value.entity_id,
                 value.controller,
+                value.zone,
                 value.card_id,
                 value.card_type,
                 value.card_name,
                 value.cost,
+                self._card_fingerprint(value.definition),
             )
         if isinstance(value, SourceStateSnapshot):
             return (
@@ -3452,6 +3754,8 @@ class GameEngine:
             return self._death_record_fingerprint(value)
         if isinstance(value, DestroyedFollowerRecord):
             return self._destroyed_follower_fingerprint(value)
+        if isinstance(value, FollowerEntryRecord):
+            return self._follower_entry_fingerprint(value)
         if isinstance(value, GraveyardCard):
             return self._graveyard_card_fingerprint(value)
         if isinstance(value, HandCard):
@@ -3648,7 +3952,7 @@ class GameEngine:
                 before_heal = owner.health
                 owner.health = min(
                     owner.health + heal_amount,
-                    self.config.starting_health,
+                    owner.max_health,
                 )
                 actual_heal = owner.health - before_heal
                 self._log(controller, f"{attacker.definition.name} 的吸血回复了 {actual_heal} 点生命")
@@ -3666,6 +3970,37 @@ class GameEngine:
                         amount=actual_heal,
                         metadata={"card_id": attacker.definition.card_id},
                     ))
+
+        if actual > 0 and target.health > 0:
+            target_owner = self._entity_owner(target.entity_id)
+            damage_source_card_id = (
+                source.definition.card_id
+                if isinstance(source, Unit)
+                else source.card_id
+                if isinstance(source, CardDefinition)
+                else None
+            )
+            self._emit(
+                GameEvent(
+                    EventType.FOLLOWER_DAMAGED_SURVIVED,
+                    target_owner,
+                    source_id=target.entity_id,
+                    amount=actual,
+                    metadata={
+                        "source": target,
+                        "card_id": target.definition.card_id,
+                        "damage_type": damage_type.value,
+                        "damage_source_card_id": damage_source_card_id,
+                        "damage_source_entity_id": (
+                            source.entity_id
+                            if isinstance(source, Unit)
+                            else None
+                        ),
+                        "health_before": health_before,
+                        "health_after": target.health,
+                    },
+                )
+            )
 
         source_name = source.definition.name if hasattr(source, 'definition') else (source.name if source else "效果")
         self._log(
@@ -3721,7 +4056,7 @@ class GameEngine:
             before_heal = owner.health
             owner.health = min(
                 owner.health + actual,
-                self.config.starting_health,
+                owner.max_health,
             )
             actual_heal = owner.health - before_heal
             self._log(controller, f"{source.definition.name} 的吸血回复了 {actual_heal} 点生命")
@@ -3845,12 +4180,34 @@ class GameEngine:
                 token=token,
                 origin=origin,
                 source_origin=source_origin,
+                destroyed_turn=self.turn,
             )
         )
         self.state._next_death_sequence += 1
 
+    def _record_follower_entry(
+        self,
+        player_index: int,
+        definition: CardDefinition,
+        *,
+        entry_cause: str,
+    ) -> None:
+        self.state.follower_entries.append(
+            FollowerEntryRecord(
+                definition=definition,
+                owner=player_index,
+                entry_sequence=self.state._next_follower_entry_sequence,
+                entered_turn=self.turn,
+                entry_cause=entry_cause,
+            )
+        )
+        self.state._next_follower_entry_sequence += 1
+
     def _continue_effects(self) -> None:
         while self.state.effect_stack and self.state.pending_choice is None:
+            if self.terminated:
+                for active_frame in self.state.effect_stack:
+                    active_frame.next_index = len(active_frame.operations)
             self._step()
             frame = self.state.effect_stack[-1]
 
@@ -3893,6 +4250,21 @@ class GameEngine:
                 continue
 
             operation = frame.operations[frame.next_index]
+            if (
+                operation.target_key
+                and operation.target is not TargetKind.PREVIOUS_TARGET
+                and operation.kind in _OUTPUT_BINDING_EFFECTS
+                and operation.target_key not in frame._target_bindings
+            ):
+                self._bind_targets(
+                    frame,
+                    operation.target_key,
+                    (),
+                    operation,
+                )
+            if not self._bound_expression_inputs_available(operation, frame):
+                frame.next_index += 1
+                continue
             is_meta_effect = operation.kind in (
                 EffectKind.CONDITIONAL,
                 EffectKind.CHOOSE_ONE,
@@ -3915,6 +4287,16 @@ class GameEngine:
                 self._stabilize()
                 continue
 
+            if operation.kind in {
+                EffectKind.DISTRIBUTE_DAMAGE,
+                EffectKind.RANDOM_DISTRIBUTE,
+            }:
+                self._checked_execute(operation, frame, None)
+                frame.next_index += 1
+                self._resolve_event_queue()
+                self._stabilize()
+                continue
+
             if operation.target is TargetKind.PREVIOUS_TARGET:
                 if not operation.target_key:
                     raise IllegalCommand(
@@ -3930,6 +4312,7 @@ class GameEngine:
                         frame,
                         operation.target_key,
                         bound_target_id,
+                        operation,
                     ):
                         continue
                     self._checked_execute(operation, frame, bound_target_id)
@@ -4019,11 +4402,12 @@ class GameEngine:
             if frame.pending_target_ids:
                 target_ids = tuple(frame.pending_target_ids)
                 frame.pending_target_ids.clear()
-                if operation.target_key:
-                    pending_snapshots = frame._decision_meta.pop(
-                        "pending_target_snapshots",
-                        None,
-                    )
+                pending_snapshots = frame._decision_meta.pop(
+                    "pending_target_snapshots",
+                    None,
+                )
+                output_binding = operation.kind in _OUTPUT_BINDING_EFFECTS
+                if operation.target_key and not output_binding:
                     self._bind_targets(
                         frame,
                         operation.target_key,
@@ -4032,7 +4416,9 @@ class GameEngine:
                         snapshots=pending_snapshots,
                     )
                 frame.defer_stabilize = True
-                for selected_target_id in target_ids:
+                legal_target_ids: list[int] = []
+                legal_snapshots: list[BoundTargetSnapshot] = []
+                for selected_index, selected_target_id in enumerate(target_ids):
                     if not self._target_id_still_legal(
                         operation,
                         frame,
@@ -4043,18 +4429,63 @@ class GameEngine:
                             f"已选目标 {selected_target_id} 已不再合法，跳过",
                         )
                         continue
+                    legal_target_ids.append(selected_target_id)
+                    if pending_snapshots is not None and not output_binding:
+                        legal_snapshots.append(pending_snapshots[selected_index])
                     self._checked_execute(
                         operation,
                         frame,
                         selected_target_id,
                     )
                 frame.defer_stabilize = False
+                if (
+                    operation.target_key
+                    and not output_binding
+                    and len(legal_target_ids) != len(target_ids)
+                ):
+                    self._bind_targets(
+                        frame,
+                        operation.target_key,
+                        tuple(legal_target_ids),
+                        operation,
+                        snapshots=(
+                            tuple(legal_snapshots)
+                            if pending_snapshots is not None
+                            else None
+                        ),
+                    )
                 frame.next_index += 1
                 self._resolve_event_queue()
                 self._stabilize()
                 continue
 
             if is_all_target(operation.target) and not frame.defer_stabilize:
+                if operation.target is TargetKind.ALL_OWN_EMBLEMS:
+                    target_ids = tuple(
+                        emblem.entity_id
+                        for emblem in self.players[frame.controller].emblems
+                        if emblem.countdown is not None
+                    )
+                    if not target_ids:
+                        frame.next_index += 1
+                        continue
+                    frame.defer_stabilize = True
+                    for emblem_entity_id in target_ids:
+                        if not any(
+                            emblem.entity_id == emblem_entity_id
+                            for emblem in self.players[frame.controller].emblems
+                        ):
+                            continue
+                        self._checked_execute(
+                            operation,
+                            frame,
+                            emblem_entity_id,
+                        )
+                    frame.defer_stabilize = False
+                    frame.next_index += 1
+                    self._resolve_event_queue()
+                    self._stabilize()
+                    continue
                 if operation.target is TargetKind.ALL_LEADERS:
                     target_ids = leader_target_ids(
                         operation,
@@ -4071,7 +4502,10 @@ class GameEngine:
                     self._resolve_event_queue()
                     self._stabilize()
                     continue
-                if operation.target is TargetKind.ALL_OWN_HAND:
+                if operation.target in {
+                    TargetKind.ALL_OWN_HAND,
+                    TargetKind.ALL_ENEMY_HAND,
+                }:
                     target_ids = [
                         card.entity_id
                         for card in hand_candidates(
@@ -4127,7 +4561,10 @@ class GameEngine:
                 continue
 
             if is_random_target(operation.target) and frame.pending_target_id is None:
-                if operation.target is TargetKind.RANDOM_OWN_HAND:
+                if operation.target in {
+                    TargetKind.RANDOM_OWN_HAND,
+                    TargetKind.RANDOM_ENEMY_HAND,
+                }:
                     hand_cards = hand_candidates(
                         operation,
                         frame.controller,
@@ -4228,7 +4665,7 @@ class GameEngine:
             if (
                 operation.target_key
                 and operation.kind
-                not in {EffectKind.SUMMON, EffectKind.SUMMON_FROM_DECK}
+                not in _OUTPUT_BINDING_EFFECTS
             ):
                 if target_id is None:
                     raise IllegalCommand(
@@ -4248,6 +4685,10 @@ class GameEngine:
                 )
             self._checked_execute(operation, frame, target_id)
             frame.next_index += 1
+            # A selected effect may make a board entity state-based dead.
+            # Remove it before a suspended event (for example, the following
+            # Super-Evolve event) is allowed to generate another target choice.
+            self._stabilize()
             self._resolve_event_queue()
             self._stabilize()
 
@@ -4364,19 +4805,37 @@ class GameEngine:
             ) <= 0
         ):
             return False
+        condition_state = evaluate_conditions_without_target(
+            operation.conditions,
+            self._eval_context(
+                controller,
+                source_entity_id=source_entity_id,
+                source_fusion_count=source_fusion_count,
+            ),
+        )
+        if condition_state is PartialConditionResult.FALSE:
+            return True
         if operation.target in {
             TargetKind.OWN_HAND,
             TargetKind.RANDOM_OWN_HAND,
+            TargetKind.RANDOM_ENEMY_HAND,
         }:
-            return bool(
-                hand_candidates(
-                    operation,
-                    controller,
-                    self.players,
-                    source_entity_id=source_entity_id,
-                )
+            candidates = hand_candidates(
+                operation,
+                controller,
+                self.players,
+                source_entity_id=source_entity_id,
             )
-        if operation.target == TargetKind.ALL_OWN_HAND:
+            return self._candidate_count_is_sufficient(
+                operation,
+                controller,
+                len(candidates),
+                source_entity_id=source_entity_id,
+            )
+        if operation.target in {
+            TargetKind.ALL_OWN_HAND,
+            TargetKind.ALL_ENEMY_HAND,
+        }:
             return not operation.requires_target or bool(
                 hand_candidates(
                     operation,
@@ -4391,17 +4850,12 @@ class GameEngine:
             return True
         if is_graveyard_target(operation.target):
             candidates = graveyard_candidates(operation, controller, self.players)
-            return bool(candidates)
-        condition_state = evaluate_conditions_without_target(
-            operation.conditions,
-            self._eval_context(
+            return self._candidate_count_is_sufficient(
+                operation,
                 controller,
+                len(candidates),
                 source_entity_id=source_entity_id,
-                source_fusion_count=source_fusion_count,
-            ),
-        )
-        if condition_state is PartialConditionResult.FALSE:
-            return True
+            )
         candidates = target_candidates(
             operation,
             controller,
@@ -4429,9 +4883,38 @@ class GameEngine:
                     source_fusion_count=source_fusion_count,
                 )
             ]
-        return bool(candidates) or (
-            has_leader_choice(operation.target)
-            and condition_state is not PartialConditionResult.DEPENDS_ON_TARGET
+        leader_options = (
+            leader_choice_options(
+                operation.target,
+                controller,
+                self.players,
+            )
+            if condition_state is not PartialConditionResult.DEPENDS_ON_TARGET
+            else []
+        )
+        return self._candidate_count_is_sufficient(
+            operation,
+            controller,
+            len(candidates) + len(leader_options),
+            source_entity_id=source_entity_id,
+        )
+
+    def _candidate_count_is_sufficient(
+        self,
+        operation: EffectOperation,
+        controller: int,
+        candidate_count: int,
+        *,
+        source_entity_id: int | None = None,
+    ) -> bool:
+        if candidate_count <= 0:
+            return False
+        if not operation.requires_full_target_count:
+            return True
+        return candidate_count >= self._requested_target_count_for(
+            operation,
+            controller,
+            source_entity_id=source_entity_id,
         )
 
     def _requested_target_count_for(
@@ -4495,7 +4978,9 @@ class GameEngine:
         if operation.target in {
             TargetKind.OWN_HAND,
             TargetKind.RANDOM_OWN_HAND,
+            TargetKind.RANDOM_ENEMY_HAND,
             TargetKind.ALL_OWN_HAND,
+            TargetKind.ALL_ENEMY_HAND,
         }:
             return bool(
                 hand_candidates(
@@ -4537,8 +5022,14 @@ class GameEngine:
                 )
             ]
         return bool(candidates) or (
-            has_leader_choice(operation.target)
-            and condition_state is not PartialConditionResult.DEPENDS_ON_TARGET
+            condition_state is not PartialConditionResult.DEPENDS_ON_TARGET
+            and bool(
+                leader_choice_options(
+                    operation.target,
+                    controller,
+                    self.players,
+                )
+            )
         )
 
     def _target_options(
@@ -4568,7 +5059,9 @@ class GameEngine:
         )
         candidates = [e for e in candidates if not (isinstance(e, Unit) and e.ambush_active and self._entity_owner(e.entity_id) != controller)]
         options = build_choice_options(candidates)
-        options.extend(leader_choice_options(operation.target, controller))
+        options.extend(
+            leader_choice_options(operation.target, controller, self.players)
+        )
         return options
 
     def _target_choice_options(
@@ -4623,7 +5116,11 @@ class GameEngine:
             )
             if condition_state_for_choice is not PartialConditionResult.DEPENDS_ON_TARGET:
                 options.extend(
-                    leader_choice_options(operation.target, frame.controller)
+                    leader_choice_options(
+                        operation.target,
+                        frame.controller,
+                        self.players,
+                    )
                 )
         return options
 
@@ -4649,6 +5146,8 @@ class GameEngine:
             return 0
         if operation.allow_duplicate_targets:
             return requested
+        if operation.requires_full_target_count and len(options) < requested:
+            return 0
         return min(requested, len(options))
 
     @staticmethod
@@ -4773,16 +5272,42 @@ class GameEngine:
         frame: EffectFrame,
         target_key: str,
         target_id: int,
+        consuming_operation: EffectOperation,
     ) -> bool:
+        binding_operation = frame._target_binding_operations.get(target_key)
+        snapshots = frame._target_binding_snapshots.get(target_key, ())
+        snapshot = next(
+            (
+                candidate
+                for candidate in snapshots
+                if candidate.entity_id == target_id
+            ),
+            None,
+        )
+        if binding_operation is not None and binding_operation.kind in {
+            EffectKind.DRAW,
+            EffectKind.DRAW_FILTERED,
+        }:
+            if snapshot is None or snapshot.zone != "hand":
+                return False
+            return any(
+                card.entity_id == target_id
+                for card in self._hand_cards(snapshot.controller)
+            )
+        if consuming_operation.kind in {
+            EffectKind.COPY_TO_HAND,
+            EffectKind.SUMMON_COPY,
+        }:
+            return snapshot is not None
         try:
             self._find_board_entity(target_id)
         except IllegalCommand:
             return False
-        binding_operation = frame._target_binding_operations.get(target_key)
         if binding_operation is None:
             return True
         if binding_operation.kind in {
             EffectKind.SUMMON,
+            EffectKind.SUMMON_HAND_COPY,
             EffectKind.SUMMON_FROM_DECK,
         }:
             return True
@@ -4816,10 +5341,77 @@ class GameEngine:
         return BoundTargetSnapshot(
             entity_id=target_id,
             controller=self._entity_owner(target_id),
+            zone="board",
             card_id=entity.definition.card_id,
             card_type=entity.definition.card_type,
             card_name=entity.definition.name,
             cost=entity.definition.cost,
+            definition=entity.definition,
+        )
+
+    def _bound_choice_snapshot(
+        self,
+        frame: EffectFrame,
+        request: ChoiceRequest,
+        target_id: int,
+    ) -> BoundTargetSnapshot:
+        if request.choice_kind is ChoiceKind.HAND:
+            hand_card = next(
+                (
+                    card
+                    for card in self._hand_cards(frame.controller)
+                    if card.entity_id == target_id
+                ),
+                None,
+            )
+            if hand_card is None:
+                raise IllegalCommand("Selected hand target is no longer present")
+            return self._bound_hand_snapshot(frame.controller, hand_card)
+        if request.choice_kind is ChoiceKind.GRAVEYARD:
+            graveyard_card = next(
+                (
+                    card
+                    for card in self.players[frame.controller].graveyard
+                    if card.entity_id == target_id
+                ),
+                None,
+            )
+            if graveyard_card is None:
+                raise IllegalCommand("Selected graveyard target is no longer present")
+            return self._bound_graveyard_snapshot(graveyard_card)
+        return self._bound_target_snapshot(target_id)
+
+    @staticmethod
+    def _bound_hand_snapshot(
+        controller: int,
+        card: HandCard,
+    ) -> BoundTargetSnapshot:
+        return BoundTargetSnapshot(
+            entity_id=card.entity_id,
+            controller=controller,
+            zone="hand",
+            card_id=card.card_id,
+            card_type=card.card_type,
+            card_name=card.name,
+            cost=card.current_cost,
+            definition=card.definition,
+        )
+
+    @staticmethod
+    def _bound_graveyard_snapshot(
+        card: GraveyardCard,
+        *,
+        cost: int | None = None,
+    ) -> BoundTargetSnapshot:
+        return BoundTargetSnapshot(
+            entity_id=card.entity_id,
+            controller=card.owner,
+            zone="graveyard",
+            card_id=card.definition.card_id,
+            card_type=card.definition.card_type,
+            card_name=card.definition.name,
+            cost=card.definition.cost if cost is None else cost,
+            definition=card.definition,
         )
 
     def _stale_choice_reason(
@@ -5058,13 +5650,21 @@ class GameEngine:
             else None
         )
 
+        player.follower_attacks_this_turn += 1
+
         self._emit(
             GameEvent(
                 EventType.ATTACK_DECLARED,
                 self.current_player,
                 source_id=attacker.entity_id,
                 target_id=target.entity_id if target else None,
-                metadata={"source": attacker, "target": target},
+                metadata={
+                    "source": attacker,
+                    "target": target,
+                    "follower_attacks_this_turn": (
+                        player.follower_attacks_this_turn
+                    ),
+                },
             )
         )
         self._resolve_event_queue()
@@ -5262,44 +5862,55 @@ class GameEngine:
         self._stabilize()
         if self.terminated:
             return
-        board = tuple(self.players[player_index].board)
+        turn_end_ids = (
+            tuple(
+                entity.entity_id
+                for entity in self.players[player_index].board
+            )
+            + tuple(
+                entity.entity_id
+                for entity in self.players[1 - player_index].board
+                if isinstance(entity, Unit)
+            )
+        )
         self._dispatch_emblem_triggers(player_index, "turn_end")
+        if self.terminated:
+            return
         if self.state.pending_choice is not None:
             self._suspended_action = "turn_end"
             self._suspended_action_state = {
                 "player_index": player_index,
-                "remaining_ids": [
-                    entity.entity_id for entity in board
-                    if isinstance(entity, Unit)
-                ],
+                "remaining_ids": list(turn_end_ids),
             }
             return
-        for idx, unit in enumerate(board):
-            self._dispatch_ability(
-                AbilityEvent.TURN_ENDED, unit, player_index=player_index
-            )
-            ops = (
-                ()
-                if isinstance(unit, Unit) and unit.printed_abilities_removed
-                else self.rulebook.operations_for(
-                    unit.definition.card_id, Trigger.TURN_END
-                )
-            )
+        for idx, entity_id in enumerate(turn_end_ids):
+            try:
+                unit = self._find_board_entity(entity_id)
+            except IllegalCommand:
+                continue
+            owner = self._entity_owner(entity_id)
+            ops = self._turn_end_operations(unit, owner, player_index)
             if ops:
-                self._start_effects(unit.definition, unit.entity_id, ops, label="回合结束")
+                self._start_effects(
+                    unit.definition,
+                    unit.entity_id,
+                    ops,
+                    controller=owner,
+                    label="回合结束",
+                )
+                if self.terminated:
+                    return
                 if self.state.pending_choice is not None:
                     self._suspended_action = "turn_end"
                     self._suspended_action_state = {
                         "player_index": player_index,
-                        "remaining_ids": [
-                            e.entity_id
-                            for e in board[idx + 1:]
-                        ],
+                        "remaining_ids": list(turn_end_ids[idx + 1:]),
                     }
                     return
         self._emit(GameEvent(EventType.TURN_ENDED, player_index))
         self._log(player_index, "结束回合")
         self.players[player_index].cards_played_this_turn = 0
+        self.players[player_index].follower_attacks_this_turn = 0
         self.state.active_player = 1 - player_index
         self.state.turn += 1
         self._start_turn(self.current_player)
@@ -5317,23 +5928,18 @@ class GameEngine:
                 unit = self._find_board_entity(entity_id)
             except IllegalCommand:
                 continue
-            if not isinstance(unit, Unit):
-                continue
             owner = self._entity_owner(entity_id)
-            if owner != player_index:
-                continue
-            self._dispatch_ability(
-                AbilityEvent.TURN_ENDED, unit, player_index=player_index
-            )
-            ops = (
-                ()
-                if isinstance(unit, Unit) and unit.printed_abilities_removed
-                else self.rulebook.operations_for(
-                    unit.definition.card_id, Trigger.TURN_END
-                )
-            )
+            ops = self._turn_end_operations(unit, owner, player_index)
             if ops:
-                self._start_effects(unit.definition, unit.entity_id, ops, label="回合结束")
+                self._start_effects(
+                    unit.definition,
+                    unit.entity_id,
+                    ops,
+                    controller=owner,
+                    label="回合结束",
+                )
+                if self.terminated:
+                    return
                 if self.state.pending_choice is not None:
                     self._suspended_action = "turn_end"
                     self._suspended_action_state = {
@@ -5344,9 +5950,50 @@ class GameEngine:
         self._emit(GameEvent(EventType.TURN_ENDED, player_index))
         self._log(player_index, "结束回合")
         self.players[player_index].cards_played_this_turn = 0
+        self.players[player_index].follower_attacks_this_turn = 0
         self.state.active_player = 1 - player_index
         self.state.turn += 1
         self._start_turn(self.current_player)
+
+    def _turn_end_operations(
+        self,
+        unit: BoardCard,
+        owner: int,
+        ending_player: int,
+    ) -> tuple[EffectOperation, ...]:
+        operations: list[EffectOperation] = []
+        if owner == ending_player:
+            self._dispatch_ability(
+                AbilityEvent.TURN_ENDED,
+                unit,
+                player_index=ending_player,
+            )
+            if not (
+                isinstance(unit, Unit)
+                and unit.printed_abilities_removed
+            ):
+                operations.extend(
+                    self.rulebook.operations_for(
+                        unit.definition.card_id,
+                        Trigger.TURN_END,
+                    )
+                )
+        matching_timing = (
+            TurnEndDestroyTiming.OWNER_TURN
+            if owner == ending_player
+            else TurnEndDestroyTiming.OPPONENT_TURN
+        )
+        if (
+            isinstance(unit, Unit)
+            and matching_timing in unit.turn_end_destroy_timings
+        ):
+            operations.append(
+                EffectOperation(
+                    kind=EffectKind.DESTROY,
+                    target=TargetKind.SELF,
+                )
+            )
+        return tuple(operations)
 
     def _choose(self, command: Choose) -> None:
         request = self.state.pending_choice
@@ -5367,9 +6014,34 @@ class GameEngine:
         if self.state.effect_stack:
             frame = self.state.effect_stack[-1]
             if request.choice_kind is ChoiceKind.MODE:
+                selected_options = (*request.selected_options, option)
+                if len(selected_options) < request.target_count:
+                    remaining_options = tuple(
+                        candidate
+                        for candidate in request.options
+                        if candidate.option_id != option.option_id
+                    )
+                    if not remaining_options:
+                        raise IllegalCommand(
+                            "Multi-mode choice has no remaining legal options"
+                        )
+                    self.state.pending_choice = replace(
+                        request,
+                        options=remaining_options,
+                        request_id=self._allocate_choice_request_id(),
+                        selected_options=selected_options,
+                    )
+                    self._log(
+                        command.player_index,
+                        f"已选择 {len(selected_options)}/{request.target_count} 个模式",
+                    )
+                    return
                 self.state.pending_choice = None
                 self.state.phase = Phase.MAIN
-                self._resolve_choose_one_choice(frame, option.option_id)
+                self._resolve_choose_one_choice(
+                    frame,
+                    tuple(selected.option_id for selected in selected_options),
+                )
                 self._continue_effects()
                 self._try_spellboost_hand()
                 return
@@ -5398,9 +6070,28 @@ class GameEngine:
                     raise IllegalCommand(
                         "Multi-target choice option has no target identity"
                     )
+                if not self._choice_option_still_legal(frame, request, option):
+                    self._log(
+                        command.player_index,
+                        f"目标 {option.label} "
+                        f"{self._stale_choice_reason(frame, request, option)}，"
+                        "取消本次多目标效果",
+                    )
+                    self.state.pending_choice = None
+                    self.state.phase = Phase.MAIN
+                    frame._decision_meta.pop("pending_target_snapshots", None)
+                    frame.pending_target_ids.clear()
+                    frame.next_index += 1
+                    self._continue_effects()
+                    self._try_spellboost_hand()
+                    return
                 selected_snapshots = (
                     *frame._decision_meta.get("pending_target_snapshots", ()),
-                    self._bound_target_snapshot(selected_target_id),
+                    self._bound_choice_snapshot(
+                        frame,
+                        request,
+                        selected_target_id,
+                    ),
                 )
                 selected_options = (*request.selected_options, option)
                 if len(selected_options) < request.target_count:
@@ -5493,6 +6184,7 @@ class GameEngine:
         player.evolved_this_turn = False
         player.super_evolved_this_turn = False
         player.cards_played_this_turn = 0
+        player.follower_attacks_this_turn = 0
         player.followers_destroyed_this_turn = 0
         player.max_mana = min(self.config.max_mana, player.max_mana + 1)
         player.mana = player.max_mana
@@ -5568,7 +6260,9 @@ class GameEngine:
             )
         for card in player.deck:
             self._dispatch_card_ability(
-                AbilityEvent.TURN_STARTED, card, player_index=player_index
+                AbilityEvent.TURN_STARTED,
+                card.definition if isinstance(card, DeckCard) else card,
+                player_index=player_index,
             )
         self._continue_turn_start_invocations(
             player_index,
@@ -5683,9 +6377,12 @@ class GameEngine:
             if card.card_type != "随从":
                 continue
             player.deck.pop(deck_index)
+            card_definition = (
+                card.definition if isinstance(card, DeckCard) else card
+            )
             unit = self._summon_follower_to_board(
                 player_index,
-                card,
+                card_definition,
                 summon_cause="invocation",
                 origin=CardOrigin.DECK,
             )
@@ -5831,10 +6528,18 @@ class GameEngine:
                         return
         self._finish_start_turn(player_index)
 
-    def _draw(self, player_index: int, *, reason: str) -> None:
+    def _draw(
+        self,
+        player_index: int,
+        *,
+        reason: str,
+    ) -> BoundTargetSnapshot | None:
         player = self.players[player_index]
         if player.deck:
             card = player.deck.pop()
+            drawn_cost = (
+                card.current_cost if isinstance(card, DeckCard) else card.cost
+            )
             if len(player.hand) < self.config.max_hand:
                 hand_card = self._append_hand_card(
                     player, card, origin=CardOrigin.DECK
@@ -5851,19 +6556,40 @@ class GameEngine:
                     )
                 )
                 self._log(player_index, f"{reason}：{card.name}")
+                return self._bound_hand_snapshot(player_index, hand_card)
             else:
-                self._send_to_graveyard(
-                    player_index, card, "overdraw",
+                card_definition = (
+                    card.definition if isinstance(card, DeckCard) else card
+                )
+                graveyard_card = self._send_to_graveyard(
+                    player_index, card_definition, "overdraw",
                     origin=CardOrigin.DECK,
                 )
                 self._log(player_index, f"{reason}：{card.name}，手牌已满而被弃置")
-            return
-        player.fatigue += 1
-        player.health -= player.fatigue
-        self._log(
-            player_index,
-            f"牌库耗尽，受到 {player.fatigue} 点疲劳伤害（生命 {player.health}）",
+                return self._bound_graveyard_snapshot(
+                    graveyard_card,
+                    cost=drawn_cost,
+                )
+        outcome = player.empty_deck_outcome
+        winner = (
+            player_index
+            if outcome is EmptyDeckOutcome.VICTORY
+            else 1 - player_index
         )
+        self.state.winner = winner
+        self.state.phase = Phase.FINISHED
+        self._emit(GameEvent(
+            EventType.EMPTY_DECK_DRAW_RESOLVED,
+            player_index,
+            metadata={
+                "outcome": outcome.value,
+                "winner": winner,
+                "reason": reason,
+            },
+        ))
+        result = "获得胜利" if outcome is EmptyDeckOutcome.VICTORY else "战败"
+        self._log(player_index, f"牌组为0张时抽牌，{result}")
+        return None
 
     def _draw_filtered(
         self,
@@ -5871,7 +6597,7 @@ class GameEngine:
         *,
         deck_filter: DeckFilter | None = None,
         reason: str,
-    ) -> None:
+    ) -> BoundTargetSnapshot | None:
         player = self.players[player_index]
         candidates = [
             index
@@ -5880,9 +6606,12 @@ class GameEngine:
         ]
         if not candidates:
             self._log(player_index, f"{reason}：没有符合条件的卡牌")
-            return
+            return None
         index = self.random.choice(candidates)
         card = player.deck.pop(index)
+        drawn_cost = (
+            card.current_cost if isinstance(card, DeckCard) else card.cost
+        )
         if len(player.hand) < self.config.max_hand:
             hand_card = self._append_hand_card(
                 player, card, origin=CardOrigin.DECK
@@ -5907,14 +6636,22 @@ class GameEngine:
                 )
             )
             self._log(player_index, f"{reason}：{card.name}")
+            return self._bound_hand_snapshot(player_index, hand_card)
         else:
-            self._send_to_graveyard(
+            card_definition = (
+                card.definition if isinstance(card, DeckCard) else card
+            )
+            graveyard_card = self._send_to_graveyard(
                 player_index,
-                card,
+                card_definition,
                 "overdraw",
                 origin=CardOrigin.DECK,
             )
             self._log(player_index, f"{reason}：{card.name}，手牌已满而被弃置")
+            return self._bound_graveyard_snapshot(
+                graveyard_card,
+                cost=drawn_cost,
+            )
 
     def _fanfare_operations(self, unit: Unit) -> tuple[EffectOperation, ...]:
         explicit = self.rulebook.operations_for(
@@ -5965,13 +6702,30 @@ class GameEngine:
             target_entity_id=target_id,
             source_card_id=frame.source_card_id,
             source_fusion_count=len(frame.fusion_materials),
+            source_spellboost_count=frame.source_spellboost_count,
+            source_cost=frame.source_cost,
+            distributed_value=frame.distributed_value,
             source_snapshot=frame.source_snapshot,
+            bound_target_snapshots=frame._target_binding_snapshots,
         )
 
     def _resolve_amount(self, operation: EffectOperation, ctx: EvalContext) -> int:
         if operation.amount_expr is not None:
             return evaluate_expression(operation.amount_expr, ctx)
         return operation.amount
+
+    @staticmethod
+    def _bound_expression_inputs_available(
+        operation: EffectOperation,
+        frame: EffectFrame,
+    ) -> bool:
+        binding_keys = set()
+        for expression in (operation.amount_expr, operation.secondary_expr):
+            binding_keys.update(_expression_binding_keys(expression))
+        return all(
+            len(frame._target_binding_snapshots.get(key, ())) == 1
+            for key in binding_keys
+        )
 
     def _resolve_secondary(self, operation: EffectOperation, ctx: EvalContext) -> int:
         if operation.secondary_expr is not None:
@@ -6036,17 +6790,38 @@ class GameEngine:
             and frame.source_snapshot is None
         ):
             return
-        if operation.target is TargetKind.SELF:
+        if operation.target is TargetKind.EMBLEM_SELF:
+            target_id = frame.emblem_activation_entity_id
+            if target_id is None:
+                return
+        elif operation.target is TargetKind.SELF:
             target_id = frame.source_entity_id
         elif operation.target is TargetKind.EVENT_SOURCE:
             target_id = frame.event_source_entity_id
             if target_id is None:
                 return
             if operation.kind in _EVENT_SOURCE_BOARD_EFFECTS:
-                try:
-                    self._find_board_entity(target_id)
-                except IllegalCommand:
-                    return
+                if operation.kind is EffectKind.TRANSFORM:
+                    try:
+                        self._find_hand_card(frame.controller, target_id)
+                    except IllegalCommand:
+                        try:
+                            self._find_board_entity(target_id)
+                        except IllegalCommand:
+                            return
+                else:
+                    try:
+                        self._find_board_entity(target_id)
+                    except IllegalCommand:
+                        return
+        elif operation.target is TargetKind.ATTACK_TARGET:
+            target_id = frame.attack_target_entity_id
+            if target_id is None:
+                return
+            try:
+                self._find_board_entity(target_id)
+            except IllegalCommand:
+                return
         ctx = self._build_eval_context(frame, target_id)
         is_meta = operation.kind in (
             EffectKind.CONDITIONAL,
@@ -6091,10 +6866,23 @@ class GameEngine:
                 if effect.target is TargetKind.ENEMY_LEADER
                 else frame.controller
             )
+            drawn_snapshots: list[BoundTargetSnapshot] = []
             for _ in range(effect.amount):
-                self._draw(
+                snapshot = self._draw(
                     draw_player,
                     reason=f"{name} {frame.label}抽牌",
+                )
+                if snapshot is not None:
+                    drawn_snapshots.append(snapshot)
+                if self.terminated:
+                    break
+            if effect.target_key:
+                self._bind_targets(
+                    frame,
+                    effect.target_key,
+                    tuple(snapshot.entity_id for snapshot in drawn_snapshots),
+                    effect,
+                    snapshots=tuple(drawn_snapshots),
                 )
         elif effect.kind is EffectKind.DRAW_FILTERED:
             draw_player = (
@@ -6102,11 +6890,22 @@ class GameEngine:
                 if effect.target is TargetKind.ENEMY_LEADER
                 else frame.controller
             )
+            drawn_snapshots = []
             for _ in range(effect.amount):
-                self._draw_filtered(
+                snapshot = self._draw_filtered(
                     draw_player,
                     deck_filter=effect.deck_filter,
                     reason=f"{name} {frame.label}抽牌",
+                )
+                if snapshot is not None:
+                    drawn_snapshots.append(snapshot)
+            if effect.target_key:
+                self._bind_targets(
+                    frame,
+                    effect.target_key,
+                    tuple(snapshot.entity_id for snapshot in drawn_snapshots),
+                    effect,
+                    snapshots=tuple(drawn_snapshots),
                 )
         elif effect.kind is EffectKind.HEAL_LEADER:
             target_idx = (
@@ -6117,7 +6916,7 @@ class GameEngine:
             target_player = self.players[target_idx]
             before = target_player.health
             target_player.health = min(
-                self.config.starting_health,
+                target_player.max_health,
                 target_player.health + effect.amount,
             )
             actual_heal = target_player.health - before
@@ -6204,6 +7003,8 @@ class GameEngine:
             if not isinstance(target, Unit):
                 raise IllegalCommand("Damage target must be a follower")
             self.apply_damage(None, target, effect.amount, DamageType.EFFECT, frame.controller)
+        elif effect.kind is EffectKind.DISTRIBUTE_DAMAGE:
+            self._execute_distribute_damage(effect, frame)
         elif effect.kind is EffectKind.RESTORE_MANA:
             restored = min(effect.amount, player.max_mana - player.mana)
             player.mana += restored
@@ -6283,6 +7084,38 @@ class GameEngine:
                 f"{name} {frame.label}使能量上限由 {before_max} "
                 f"变为 {target_player.max_mana}",
             )
+        elif effect.kind is EffectKind.SET_LEADER_MAX_HEALTH:
+            target_player_index = (
+                1 - frame.controller
+                if effect.target is TargetKind.ENEMY_LEADER
+                else frame.controller
+            )
+            target_player = self.players[target_player_index]
+            previous_max = target_player.max_health
+            previous_health = target_player.health
+            target_player.max_health = effect.amount
+            target_player.health = min(
+                target_player.health,
+                target_player.max_health,
+            )
+            self._emit(GameEvent(
+                EventType.LEADER_MAX_HEALTH_CHANGED,
+                target_player_index,
+                source_id=frame.source_entity_id,
+                amount=target_player.max_health - previous_max,
+                metadata={
+                    "source_card_id": frame.source_card_id,
+                    "previous_max_health": previous_max,
+                    "current_max_health": target_player.max_health,
+                    "previous_health": previous_health,
+                    "current_health": target_player.health,
+                },
+            ))
+            self._log(
+                frame.controller,
+                f"{name} {frame.label}将玩家 {target_player_index + 1} "
+                f"的生命值上限设为 {target_player.max_health}",
+            )
         elif effect.kind is EffectKind.BUFF_UNIT:
             target = (
                 self._find_board_entity(target_id)
@@ -6307,9 +7140,65 @@ class GameEngine:
                 ),
             )
             target.add_stat_modifier(modifier)
+            if effect.amount > 0 or effect.secondary_amount > 0:
+                owner = self._entity_owner(target.entity_id)
+                self._emit(
+                    GameEvent(
+                        EventType.FOLLOWER_STATS_INCREASED,
+                        owner,
+                        source_id=target.entity_id,
+                        amount=max(0, effect.amount),
+                        metadata={
+                            "source": target,
+                            "card_id": target.definition.card_id,
+                            "attack_delta": max(0, effect.amount),
+                            "health_delta": max(0, effect.secondary_amount),
+                            "effect_source_card_id": frame.source_card_id,
+                            "effect_source_entity_id": frame.source_entity_id,
+                        },
+                    )
+                )
             self._log(
                 frame.controller,
                 f"属性变化 {effect.amount}/{effect.secondary_amount}",
+            )
+        elif effect.kind is EffectKind.BUFF_HAND_CARD:
+            hand_card = self._find_hand_card(frame.controller, target_id)
+            if hand_card.card_type != "随从":
+                raise IllegalCommand("Hand stat buff target must be a follower")
+            modifier = StatModifier(
+                modifier_id=self._allocate_modifier_id(),
+                attack_delta=effect.amount,
+                health_delta=effect.secondary_amount,
+                duration=effect.duration.value,
+                expires_for_player=_expires_for_player(
+                    effect.duration,
+                    frame.controller,
+                    self.state.active_player,
+                ),
+            )
+            hand_card.add_stat_modifier(modifier)
+            if effect.amount > 0 or effect.secondary_amount > 0:
+                self._emit(
+                    GameEvent(
+                        EventType.HAND_FOLLOWER_STATS_INCREASED,
+                        frame.controller,
+                        source_id=frame.source_entity_id,
+                        target_id=hand_card.entity_id,
+                        amount=max(0, effect.amount),
+                        metadata={
+                            "card_id": hand_card.card_id,
+                            "attack_delta": max(0, effect.amount),
+                            "health_delta": max(0, effect.secondary_amount),
+                            "effect_source_card_id": frame.source_card_id,
+                            "effect_source_entity_id": frame.source_entity_id,
+                        },
+                    )
+                )
+            self._log(
+                frame.controller,
+                f"手牌 {hand_card.name} 属性变化 "
+                f"{effect.amount}/{effect.secondary_amount}",
             )
         elif effect.kind is EffectKind.DESTROY:
             target = self._find_board_entity(target_id)
@@ -6358,18 +7247,30 @@ class GameEngine:
                 target.pending_destroy = True
         elif effect.kind is EffectKind.SUMMON:
             self._execute_summon(effect, frame)
+        elif effect.kind is EffectKind.SUMMON_COPY:
+            self._execute_summon_copy(effect, frame, target_id)
+        elif effect.kind is EffectKind.SUMMON_HAND_COPY:
+            self._execute_summon_hand_copy(effect, frame, target_id)
         elif effect.kind is EffectKind.SUMMON_FROM_DECK:
             self._execute_summon_from_deck(effect, frame)
         elif effect.kind is EffectKind.BANISH:
             self._execute_banish(target_id, frame)
         elif effect.kind is EffectKind.ADD_CARD:
             self._execute_add_card(effect, frame)
+        elif effect.kind is EffectKind.ADD_CARD_TO_DECK:
+            self._execute_add_card_to_deck(effect, frame)
+        elif effect.kind is EffectKind.COPY_TO_HAND:
+            self._execute_copy_to_hand(effect, frame, target_id)
+        elif effect.kind is EffectKind.COPY_DESTROYED_FOLLOWERS_TO_HAND:
+            self._execute_copy_destroyed_followers_to_hand(effect, frame)
         elif effect.kind is EffectKind.RETURN_TO_HAND:
             self._execute_return_to_hand(target_id, frame)
         elif effect.kind is EffectKind.RETURN_TO_DECK:
             self._execute_return_to_deck(target_id, frame)
         elif effect.kind is EffectKind.REDUCE_COUNTDOWN:
             self._execute_reduce_countdown(effect, frame, target_id)
+        elif effect.kind is EffectKind.INCREASE_COUNTDOWN:
+            self._execute_increase_countdown(effect, frame, target_id)
         elif effect.kind is EffectKind.DISCARD:
             self._execute_discard(target_id, frame)
         elif effect.kind is EffectKind.ADD_KEYWORD:
@@ -6380,10 +7281,18 @@ class GameEngine:
             self._execute_remove_all_abilities(frame, target_id)
         elif effect.kind is EffectKind.GRANT_ATTACKS_PER_TURN:
             self._execute_grant_attacks_per_turn(effect, frame, target_id)
+        elif effect.kind is EffectKind.GRANT_TURN_END_DESTROY:
+            self._execute_grant_turn_end_destroy(effect, frame, target_id)
         elif effect.kind is EffectKind.ADD_LEADER_DAMAGE_MODIFIER:
             self._execute_add_leader_damage_modifier(effect, frame)
         elif effect.kind is EffectKind.CHANGE_COST:
             self._execute_change_cost(effect, frame, target_id)
+        elif effect.kind is EffectKind.CHANGE_DECK_COST:
+            self._execute_change_deck_cost(effect, frame)
+        elif effect.kind is EffectKind.REPLACE_DECK:
+            self._execute_replace_deck(effect, frame)
+        elif effect.kind is EffectKind.SET_EMPTY_DECK_OUTCOME:
+            self._execute_set_empty_deck_outcome(effect, frame)
         elif effect.kind is EffectKind.TRANSFORM:
             self._execute_transform(effect, frame, target_id)
         elif effect.kind is EffectKind.SET_STATS:
@@ -6404,6 +7313,8 @@ class GameEngine:
             self._execute_spellboost_hand(effect, frame, target_id)
         elif effect.kind is EffectKind.ADD_COMBO:
             self._execute_add_combo(effect, frame)
+        elif effect.kind is EffectKind.ADD_SHADOWS:
+            self._execute_add_shadows(effect, frame)
         elif effect.kind is EffectKind.ADD_EARTH_SIGILS:
             self._execute_add_earth_sigils(effect, frame)
         elif effect.kind is EffectKind.EARTH_RITE:
@@ -6412,6 +7323,8 @@ class GameEngine:
             self._execute_consume_faith(effect, frame)
         elif effect.kind is EffectKind.GRANT_FAITH_ABILITY:
             self._execute_grant_faith_ability(effect, frame)
+        elif effect.kind is EffectKind.RANDOM_DISTRIBUTE:
+            self._execute_random_distribute(effect, frame)
         elif effect.kind is EffectKind.NECROMANCY:
             self._execute_necromancy(effect, frame, target_id)
         elif effect.kind is EffectKind.REANIMATE:
@@ -6434,6 +7347,8 @@ class GameEngine:
             self._execute_optional(effect, frame)
         elif effect.kind is EffectKind.TARGET_EXISTS:
             self._execute_target_exists(effect, frame)
+        elif effect.kind is EffectKind.REPEAT:
+            self._execute_repeat(effect, frame)
         else:
             self._log(
                 frame.controller,
@@ -6519,6 +7434,44 @@ class GameEngine:
                 frame.controller,
                 f"{frame.source_name} {frame.label}使{owner_name}的连击 +{effect.amount}",
             )
+
+    def _execute_add_shadows(
+        self,
+        effect: EffectOperation,
+        frame: EffectFrame,
+    ) -> None:
+        if effect.amount < 0:
+            raise IllegalCommand("add_shadows amount must be non-negative")
+        if effect.amount == 0:
+            return
+        player_index = (
+            1 - frame.controller
+            if effect.target is TargetKind.ENEMY_LEADER
+            else frame.controller
+        )
+        player = self.players[player_index]
+        before = player.shadows
+        player.add_shadows(effect.amount)
+        self._emit(
+            GameEvent(
+                EventType.SHADOWS_CHANGED,
+                player_index,
+                source_id=frame.source_entity_id,
+                amount=effect.amount,
+                metadata={
+                    "change": "gain",
+                    "shadows_before": before,
+                    "shadows_after": player.shadows,
+                    "source_card_id": frame.source_card_id,
+                    "target_player": player_index,
+                },
+            )
+        )
+        owner_name = "对方" if player_index != frame.controller else "自己"
+        self._log(
+            frame.controller,
+            f"{frame.source_name} {frame.label}使{owner_name}的墓场 +{effect.amount}",
+        )
 
     def _execute_keyword_change(
         self,
@@ -6651,6 +7604,47 @@ class GameEngine:
             f"{target.definition.name} 每回合可攻击 {target.attacks_per_turn} 次",
         )
 
+    def _execute_grant_turn_end_destroy(
+        self,
+        effect: EffectOperation,
+        frame: EffectFrame,
+        target_id: int | None,
+    ) -> None:
+        if effect.turn_end_destroy_timing is None:
+            raise IllegalCommand(
+                "GRANT_TURN_END_DESTROY requires turn_end_destroy_timing"
+            )
+        target = self._find_board_entity(target_id)
+        if not isinstance(target, Unit):
+            raise IllegalCommand(
+                "grant_turn_end_destroy target must be a follower"
+            )
+        if effect.turn_end_destroy_timing in target.turn_end_destroy_timings:
+            return
+        target.turn_end_destroy_timings.add(effect.turn_end_destroy_timing)
+        self._emit(
+            GameEvent(
+                EventType.FOLLOWER_TURN_END_DESTROY_GRANTED,
+                self._entity_owner(target.entity_id),
+                source_id=frame.source_entity_id,
+                target_id=target.entity_id,
+                metadata={
+                    "source_card_id": frame.source_card_id,
+                    "target_card_id": target.definition.card_id,
+                    "timing": effect.turn_end_destroy_timing.value,
+                },
+            )
+        )
+        timing_label = (
+            "其控制者回合结束"
+            if effect.turn_end_destroy_timing is TurnEndDestroyTiming.OWNER_TURN
+            else "其控制者的对手回合结束"
+        )
+        self._log(
+            frame.controller,
+            f"{target.definition.name} 获得“{timing_label}时破坏自身”",
+        )
+
     def _execute_change_cost(
         self,
         effect: EffectOperation,
@@ -6659,7 +7653,12 @@ class GameEngine:
     ) -> None:
         if effect.mode is None:
             raise IllegalCommand("CHANGE_COST requires a mode")
-        hand_card = self._find_hand_card(frame.controller, target_id)
+        hand_owner = (
+            1 - frame.controller
+            if effect.target is TargetKind.ALL_ENEMY_HAND
+            else frame.controller
+        )
+        hand_card = self._find_hand_card(hand_owner, target_id)
         before = hand_card.current_cost
         hand_card.cost_modifiers.append(
             CostModifier(
@@ -6679,6 +7678,469 @@ class GameEngine:
             f"{hand_card.name} 费用由 {before} 变为 {hand_card.current_cost}",
         )
 
+    def _execute_change_deck_cost(
+        self,
+        effect: EffectOperation,
+        frame: EffectFrame,
+    ) -> None:
+        if effect.mode is None:
+            raise IllegalCommand("CHANGE_DECK_COST requires a mode")
+        if effect.deck_filter is None:
+            raise IllegalCommand("CHANGE_DECK_COST requires a deck filter")
+        player = self.players[frame.controller]
+        changed = 0
+        for index, raw_card in enumerate(list(player.deck)):
+            definition = (
+                raw_card.definition
+                if isinstance(raw_card, DeckCard)
+                else raw_card
+            )
+            if not effect.deck_filter.matches(definition):
+                continue
+            deck_card = (
+                raw_card
+                if isinstance(raw_card, DeckCard)
+                else DeckCard(definition=definition)
+            )
+            before = deck_card.current_cost
+            deck_card.cost_modifiers.append(CostModifier(
+                modifier_id=self._allocate_modifier_id(),
+                mode=effect.mode.value,
+                amount=effect.amount,
+                duration=ModifierDuration.PERMANENT.value,
+                expires_for_player=None,
+            ))
+            player.deck[index] = deck_card
+            changed += 1
+            self._emit(GameEvent(
+                EventType.DECK_CARD_COST_CHANGED,
+                frame.controller,
+                source_id=frame.source_entity_id,
+                amount=deck_card.current_cost - before,
+                metadata={
+                    "source_card_id": frame.source_card_id,
+                    "target_card_id": definition.card_id,
+                    "before": before,
+                    "after": deck_card.current_cost,
+                    "mode": effect.mode.value,
+                    "requested_amount": effect.amount,
+                },
+            ))
+        self._log(
+            frame.controller,
+            f"{frame.source_name} 使牌组中 {changed} 张卡牌的费用发生变化",
+        )
+
+    def _execute_replace_deck(
+        self,
+        effect: EffectOperation,
+        frame: EffectFrame,
+    ) -> None:
+        if not effect.card_ids:
+            raise IllegalCommand("REPLACE_DECK requires card_ids")
+        if self.card_resolver is None:
+            raise IllegalCommand("No card_resolver registered for REPLACE_DECK")
+        definitions: list[CardDefinition] = []
+        for card_id in effect.card_ids:
+            definition = self.card_resolver(card_id)
+            if definition is None:
+                raise IllegalCommand(
+                    f"REPLACE_DECK could not resolve card {card_id}"
+                )
+            definitions.append(definition)
+        if effect.shuffle:
+            self.random.shuffle(definitions)
+        target_player_index = (
+            1 - frame.controller
+            if effect.target is TargetKind.ENEMY_LEADER
+            else frame.controller
+        )
+        player = self.players[target_player_index]
+        previous_count = len(player.deck)
+        player.deck = definitions
+        self._emit(GameEvent(
+            EventType.DECK_REPLACED,
+            target_player_index,
+            source_id=frame.source_entity_id,
+            amount=len(definitions),
+            metadata={
+                "source_card_id": frame.source_card_id,
+                "previous_count": previous_count,
+                "new_count": len(definitions),
+                "card_ids": tuple(card.card_id for card in definitions),
+                "shuffled": effect.shuffle,
+            },
+        ))
+        self._log(
+            frame.controller,
+            f"{frame.source_name} 将牌组替换为 {len(definitions)} 张卡牌",
+        )
+
+    def _execute_set_empty_deck_outcome(
+        self,
+        effect: EffectOperation,
+        frame: EffectFrame,
+    ) -> None:
+        if effect.empty_deck_outcome is None:
+            raise IllegalCommand(
+                "SET_EMPTY_DECK_OUTCOME requires empty_deck_outcome"
+            )
+        target_player_index = (
+            1 - frame.controller
+            if effect.target is TargetKind.ENEMY_LEADER
+            else frame.controller
+        )
+        player = self.players[target_player_index]
+        previous = player.empty_deck_outcome
+        player.empty_deck_outcome = effect.empty_deck_outcome
+        self._emit(GameEvent(
+            EventType.EMPTY_DECK_OUTCOME_CHANGED,
+            target_player_index,
+            source_id=frame.source_entity_id,
+            metadata={
+                "source_card_id": frame.source_card_id,
+                "previous": previous.value,
+                "current": player.empty_deck_outcome.value,
+            },
+        ))
+        self._log(
+            frame.controller,
+            f"{frame.source_name} 将空牌组抽牌结果设为"
+            f"{player.empty_deck_outcome.value}",
+        )
+
+    def _execute_copy_to_hand(
+        self,
+        effect: EffectOperation,
+        frame: EffectFrame,
+        target_id: int | None,
+    ) -> None:
+        target = None
+        if target_id is not None:
+            try:
+                target = self._find_board_entity(target_id)
+            except IllegalCommand:
+                target = next(
+                    (
+                        card
+                        for player_index in (0, 1)
+                        for card in self._hand_cards(player_index)
+                        if card.entity_id == target_id
+                    ),
+                    None,
+                )
+        snapshot = self._bound_snapshot_for_effect(
+            effect,
+            frame,
+            target_id,
+        )
+        if target is not None:
+            card_def = target.definition
+        elif snapshot is not None:
+            card_def = snapshot.definition
+        else:
+            return
+        player = self.players[frame.controller]
+        origin = origin_for_added_card(card_def)
+        if len(player.hand) >= self.config.max_hand:
+            self._log(
+                frame.controller,
+                f"{frame.source_name} 复制卡牌失败：手牌已满",
+            )
+            self._send_to_graveyard(
+                frame.controller,
+                card_def,
+                "hand_full",
+                derived=True,
+                origin=origin,
+                token=is_token_definition(card_def),
+            )
+            return
+        copied = self._append_hand_card(player, card_def, origin=origin)
+        if effect.mode is not None:
+            copied.cost_modifiers.append(
+                CostModifier(
+                    modifier_id=self._allocate_modifier_id(),
+                    mode=effect.mode.value,
+                    amount=effect.amount,
+                    duration=effect.duration.value,
+                    expires_for_player=_expires_for_player(
+                        effect.duration,
+                        frame.controller,
+                        self.state.active_player,
+                    ),
+                )
+            )
+        self._log(
+            frame.controller,
+            f"{frame.source_name} 将1张复制卡以非公开形式加入手牌",
+        )
+        self._emit(
+            GameEvent(
+                EventType.CARD_ADDED_TO_HAND,
+                frame.controller,
+                source_id=copied.entity_id,
+                metadata={
+                    "card_id": card_def.card_id,
+                    "card": card_def,
+                    "source": copied,
+                    "origin": origin.value,
+                    "derived": True,
+                    "token": is_token_definition(card_def),
+                    "copied_from_entity_id": target_id,
+                    "revealed": False,
+                    "cost_after": copied.current_cost,
+                },
+            )
+        )
+
+    def _execute_copy_destroyed_followers_to_hand(
+        self,
+        effect: EffectOperation,
+        frame: EffectFrame,
+    ) -> None:
+        records = [
+            record
+            for record in sorted(
+                self.state.destroyed_followers,
+                key=lambda candidate: candidate.death_sequence,
+            )
+            if record.owner == frame.controller
+            and (
+                effect.history_filter is None
+                or effect.history_filter.matches(record.definition)
+            )
+        ]
+        if effect.distinct_card_names:
+            distinct_records: dict[str, DestroyedFollowerRecord] = {}
+            for record in records:
+                distinct_records.setdefault(record.definition.name, record)
+            records = list(distinct_records.values())
+        if not records:
+            return
+
+        selected = self.random.sample(records, min(effect.amount, len(records)))
+        player = self.players[frame.controller]
+        added_count = 0
+        for record in selected:
+            card_def = record.definition
+            origin = origin_for_added_card(card_def)
+            if len(player.hand) >= self.config.max_hand:
+                self._send_to_graveyard(
+                    frame.controller,
+                    card_def,
+                    "hand_full",
+                    derived=True,
+                    origin=origin,
+                    token=(
+                        is_token_definition(card_def)
+                        or origin is CardOrigin.TOKEN
+                    ),
+                )
+                self._log(
+                    frame.controller,
+                    f"{frame.source_name} 复制已破坏随从失败：手牌已满",
+                )
+                continue
+            copied = self._append_hand_card(player, card_def, origin=origin)
+            added_count += 1
+            self._emit(
+                GameEvent(
+                    EventType.CARD_ADDED_TO_HAND,
+                    frame.controller,
+                    source_id=copied.entity_id,
+                    metadata={
+                        "card_id": card_def.card_id,
+                        "card": card_def,
+                        "source": copied,
+                        "origin": origin.value,
+                        "derived": True,
+                        "token": (
+                            is_token_definition(card_def)
+                            or origin is CardOrigin.TOKEN
+                        ),
+                        "copied_from_death_sequence": record.death_sequence,
+                        "revealed": False,
+                        "cost_after": copied.current_cost,
+                    },
+                )
+            )
+        if added_count:
+            self._log(
+                frame.controller,
+                f"{frame.source_name} 将{added_count}张已破坏随从的同名卡"
+                "以非公开形式加入手牌",
+            )
+
+    @staticmethod
+    def _bound_snapshot_for_effect(
+        effect: EffectOperation,
+        frame: EffectFrame,
+        target_id: int | None,
+    ) -> BoundTargetSnapshot | None:
+        if effect.target_key is None or target_id is None:
+            return None
+        return next(
+            (
+                snapshot
+                for snapshot in frame._target_binding_snapshots.get(
+                    effect.target_key,
+                    (),
+                )
+                if snapshot.entity_id == target_id
+            ),
+            None,
+        )
+
+    def _execute_summon_copy(
+        self,
+        effect: EffectOperation,
+        frame: EffectFrame,
+        target_id: int | None,
+    ) -> None:
+        target = None
+        if target_id is not None:
+            try:
+                target = self._find_board_entity(target_id)
+            except IllegalCommand:
+                target = None
+        snapshot = self._bound_snapshot_for_effect(
+            effect,
+            frame,
+            target_id,
+        )
+        definition = (
+            target.definition
+            if target is not None
+            else (snapshot.definition if snapshot is not None else None)
+        )
+        if definition is None:
+            return
+        if definition.card_type != "随从":
+            raise IllegalCommand("SUMMON_COPY requires a follower definition")
+        player = self.players[frame.controller]
+        if len(player.board) >= self.config.max_board:
+            self._log(
+                frame.controller,
+                f"{frame.source_name} 复制召唤失败：场地已满",
+            )
+            return
+        origin = origin_for_summoned_card(definition)
+        unit = self._summon_follower_to_board(
+            frame.controller,
+            definition,
+            summon_cause="copy_summon",
+            origin=origin,
+        )
+        if unit is None:
+            self._log(
+                frame.controller,
+                f"{frame.source_name} 复制召唤失败：场地已满",
+            )
+            return
+        self._log(
+            frame.controller,
+            f"{frame.source_name} 召唤 {definition.name} 的复制随从 "
+            f"({unit.attack}/{unit.health})",
+        )
+        self._emit(
+            GameEvent(
+                EventType.FOLLOWER_SUMMONED,
+                frame.controller,
+                source_id=unit.entity_id,
+                metadata={
+                    "source": unit,
+                    "card_id": definition.card_id,
+                    "origin": unit.origin.value,
+                    "derived": True,
+                    "token": is_token_definition(definition),
+                    "via": "copy_summon",
+                    "copied_from_entity_id": target_id,
+                    "source_card_id": frame.source_card_id,
+                },
+            )
+        )
+
+    def _execute_summon_hand_copy(
+        self,
+        effect: EffectOperation,
+        frame: EffectFrame,
+        target_id: int | None,
+    ) -> None:
+        hand_card = next(
+            (
+                card
+                for card in self._hand_cards(frame.controller)
+                if card.entity_id == target_id
+            ),
+            None,
+        )
+        if hand_card is None:
+            return
+        if hand_card.card_type != "随从":
+            raise IllegalCommand("SUMMON_HAND_COPY requires a follower in hand")
+        player = self.players[frame.controller]
+        if len(player.board) >= self.config.max_board:
+            self._log(
+                frame.controller,
+                f"{frame.source_name} 手牌复制召唤失败：场地已满",
+            )
+            return
+        origin = origin_for_summoned_card(hand_card.definition)
+        unit = self._summon_follower_to_board(
+            frame.controller,
+            hand_card.definition,
+            summon_cause="hand_copy_summon",
+            origin=origin,
+            source_origin=hand_card.source_origin or hand_card.origin,
+        )
+        if unit is None:
+            self._log(
+                frame.controller,
+                f"{frame.source_name} 手牌复制召唤失败：场地已满",
+            )
+            return
+        for modifier in hand_card.stat_modifiers:
+            unit.add_stat_modifier(
+                replace(
+                    modifier,
+                    modifier_id=self._allocate_modifier_id(),
+                )
+            )
+        if effect.target_key:
+            previous_outputs = frame._target_bindings.get(
+                effect.target_key,
+                (),
+            )
+            self._bind_targets(
+                frame,
+                effect.target_key,
+                (*previous_outputs, unit.entity_id),
+                effect,
+            )
+        self._log(
+            frame.controller,
+            f"{frame.source_name} 召唤手牌中 {hand_card.name} 的完全相同复制品 "
+            f"({unit.attack}/{unit.health})",
+        )
+        self._emit(
+            GameEvent(
+                EventType.FOLLOWER_SUMMONED,
+                frame.controller,
+                source_id=unit.entity_id,
+                metadata={
+                    "source": unit,
+                    "card_id": hand_card.card_id,
+                    "origin": unit.origin.value,
+                    "derived": True,
+                    "token": is_token_definition(hand_card.definition),
+                    "via": "hand_copy_summon",
+                    "copied_from_entity_id": hand_card.entity_id,
+                    "source_card_id": frame.source_card_id,
+                },
+            )
+        )
+
     def _execute_transform(
         self,
         effect: EffectOperation,
@@ -6689,11 +8151,6 @@ class GameEngine:
             raise IllegalCommand("TRANSFORM requires a card_id")
         if self.card_resolver is None:
             raise IllegalCommand("No card_resolver registered for TRANSFORM")
-        target = self._find_board_entity(target_id)
-        if not isinstance(target, Unit):
-            raise IllegalCommand(
-                "TRANSFORM currently supports follower targets only"
-            )
         try:
             replacement = self.card_resolver(effect.card_id)
         except KeyError as exc:
@@ -6704,11 +8161,95 @@ class GameEngine:
             raise IllegalCommand(
                 f"Card {effect.card_id} not found for TRANSFORM"
             )
+
+        hand_target = next(
+            (
+                card
+                for card in self._hand_cards(frame.controller)
+                if card.entity_id == target_id
+            ),
+            None,
+        )
+        if hand_target is not None:
+            old_name = hand_target.name
+            transform_event = self._transform_hand_card(
+                hand_target,
+                replacement,
+                frame.controller,
+                preserve_fused_materials=False,
+            )
+            if effect.mode is not None:
+                hand_target.cost_modifiers.append(CostModifier(
+                    modifier_id=self._allocate_modifier_id(),
+                    mode=effect.mode.value,
+                    amount=effect.amount,
+                    duration=effect.duration.value,
+                    expires_for_player=_expires_for_player(
+                        effect.duration,
+                        frame.controller,
+                        self.state.active_player,
+                    ),
+                ))
+                transform_event.metadata.update({
+                    "cost_after": hand_target.current_cost,
+                    "cost_mode": effect.mode.value,
+                    "cost_amount": effect.amount,
+                    "cost_duration": effect.duration.value,
+                })
+            self._emit(transform_event)
+            self._log(
+                frame.controller,
+                f"手牌 {old_name} 变形为 {replacement.name}",
+            )
+            return
+
+        target = self._find_board_entity(target_id)
         if replacement.card_type != "随从":
             raise IllegalCommand(
-                "TRANSFORM currently supports follower-to-follower only"
+                "TRANSFORM currently supports board-card-to-follower only"
             )
         old_name = target.definition.name
+        old_definition = target.definition
+        owner = self._entity_owner(target.entity_id)
+        if isinstance(target, Amulet):
+            previous_origin = target.source_origin or target.origin
+            fresh = Unit.summon(
+                replacement,
+                entity_id=target.entity_id,
+                origin=CardOrigin.TRANSFORMED,
+                source_origin=previous_origin,
+            )
+            fresh.fused_material_ids = list(target.fused_material_ids)
+            self._apply_initial_keyword_overrides(fresh)
+            self._apply_initial_passives(fresh)
+            fresh._synchronize_keyword_state()
+            board = self.players[owner].board
+            board[board.index(target)] = fresh
+            self._death_causes.pop(fresh.entity_id, None)
+            self._emit(
+                GameEvent(
+                    EventType.BOARD_CARD_TRANSFORMED,
+                    owner,
+                    source_id=fresh.entity_id,
+                    metadata={
+                        "source": fresh,
+                        "old_definition": old_definition,
+                        "new_definition": replacement,
+                        "old_card_id": old_definition.card_id,
+                        "new_card_id": replacement.card_id,
+                        "old_card_type": old_definition.card_type,
+                        "new_card_type": replacement.card_type,
+                    },
+                )
+            )
+            self._log(
+                frame.controller,
+                f"{old_name} 变形为 {replacement.name}"
+                f"（{fresh.attack}/{fresh.health}）",
+            )
+            return
+        if not isinstance(target, Unit):
+            raise IllegalCommand("TRANSFORM target must be a board card or own hand card")
         can_attack = target.can_attack
         attacks_used = max(
             0, target.attacks_per_turn - target.attacks_remaining
@@ -6749,8 +8290,25 @@ class GameEngine:
         target.targeting_restrictions.clear()
         target.printed_abilities_removed = False
         self._apply_initial_keyword_overrides(target)
+        self._apply_initial_passives(target)
         target._synchronize_keyword_state()
         self._death_causes.pop(target.entity_id, None)
+        self._emit(
+            GameEvent(
+                EventType.BOARD_CARD_TRANSFORMED,
+                owner,
+                source_id=target.entity_id,
+                metadata={
+                    "source": target,
+                    "old_definition": old_definition,
+                    "new_definition": replacement,
+                    "old_card_id": old_definition.card_id,
+                    "new_card_id": replacement.card_id,
+                    "old_card_type": old_definition.card_type,
+                    "new_card_type": replacement.card_type,
+                },
+            )
+        )
         self._log(
             frame.controller,
             f"{old_name} 变形为 {replacement.name}"
@@ -7050,12 +8608,41 @@ class GameEngine:
         if emblem_def is None:
             self._log(frame.controller, f"[未实现] 纹章 '{emblem_id}' 未定义")
             return
-        self._add_emblem_to_player(frame.controller, emblem_def, frame.source_card_id)
+        self._add_emblem_to_player(frame.controller, emblem_def, frame.source_card)
 
-    def _add_emblem_to_player(self, player_index: int, emblem_def, source_card_id: int):
+    def _add_emblem_to_player(
+        self,
+        player_index: int,
+        emblem_def,
+        source_card=None,
+        *,
+        source_card_id: int | None = None,
+    ):
         from swb.engine.emblem import EmblemStacking
         from swb.engine.state import EmblemInstance
         player = self.players[player_index]
+        if source_card is not None and source_card_id is not None:
+            raise TypeError("provide source_card or source_card_id, not both")
+        if source_card is None:
+            source_card = source_card_id
+        if source_card is None:
+            raise TypeError("source_card or source_card_id is required")
+        if isinstance(source_card, int):
+            source_card_id = source_card
+            resolved_source = None
+            if self.card_resolver is not None:
+                try:
+                    resolved_source = self.card_resolver(source_card_id)
+                except KeyError:
+                    # Synthetic tests and external callers may use an audit-only
+                    # source ID that intentionally has no database definition.
+                    resolved_source = None
+            source_card = resolved_source or type("_EmblemSourceCard", (), {
+                "card_id": source_card_id,
+                "name": f"纹章_{emblem_def.emblem_id}",
+            })()
+        else:
+            source_card_id = source_card.card_id
 
         if emblem_def.stacking is EmblemStacking.IGNORE:
             existing = [e for e in player.emblems if e.emblem_id == emblem_def.emblem_id]
@@ -7095,6 +8682,14 @@ class GameEngine:
                 "stacking": emblem_def.stacking.value,
             },
         ))
+        if emblem_def.on_gain:
+            self._queue_effects(
+                source_card,
+                instance.entity_id,
+                emblem_def.on_gain,
+                controller=player_index,
+                label="纹章 获得时",
+            )
 
     def _execute_remove_emblem(self, effect: EffectOperation, frame: EffectFrame) -> None:
         emblem_id = effect.emblem_id
@@ -7178,6 +8773,7 @@ class GameEngine:
         operation: EffectOperation,
         controller: int,
         source_entity_id: int | None,
+        emblem_entity_id: int | None = None,
     ) -> bool:
         if operation.kind is EffectKind.TARGET_EXISTS:
             branch_ops = (
@@ -7204,20 +8800,47 @@ class GameEngine:
             TargetKind.ENEMY_LEADER,
         }:
             return True
+        if operation.target is TargetKind.EMBLEM_SELF:
+            return (
+                emblem_entity_id is not None
+                and any(
+                    emblem.entity_id == emblem_entity_id
+                    for player in self.players
+                    for emblem in player.emblems
+                )
+            )
         if operation.target is TargetKind.SELF:
             if source_entity_id is None:
                 return False
             try:
                 self._find_board_entity(source_entity_id)
             except IllegalCommand:
-                return False
+                return (
+                    operation.kind
+                    in {
+                        EffectKind.REDUCE_COUNTDOWN,
+                        EffectKind.INCREASE_COUNTDOWN,
+                    }
+                    and any(
+                        emblem.entity_id == source_entity_id
+                        for player in self.players
+                        for emblem in player.emblems
+                    )
+                )
             return True
         if operation.target is TargetKind.PREVIOUS_TARGET:
             return False
+        if operation.kind is EffectKind.DISTRIBUTE_DAMAGE:
+            return operation.include_leader or any(
+                isinstance(entity, Unit)
+                for entity in self.players[1 - controller].board
+            )
         if operation.target in {
             TargetKind.OWN_HAND,
             TargetKind.RANDOM_OWN_HAND,
+            TargetKind.RANDOM_ENEMY_HAND,
             TargetKind.ALL_OWN_HAND,
+            TargetKind.ALL_ENEMY_HAND,
         }:
             return bool(
                 hand_candidates(
@@ -7229,6 +8852,11 @@ class GameEngine:
             )
         if operation.target is TargetKind.ALL_LEADERS:
             return bool(leader_target_ids(operation, controller, self.players))
+        if operation.target is TargetKind.ALL_OWN_EMBLEMS:
+            return any(
+                emblem.countdown is not None
+                for emblem in self.players[controller].emblems
+            )
         if is_graveyard_target(operation.target):
             return bool(graveyard_candidates(operation, controller, self.players))
         if (
@@ -7439,7 +9067,6 @@ class GameEngine:
         self,
         event: GameEvent,
     ) -> list[dict[str, object]]:
-        event_source, event_definition = self._event_source_card(event)
         event_active_player = (
             event.player_index
             if event.type in {EventType.TURN_STARTED, EventType.TURN_ENDED}
@@ -7501,10 +9128,10 @@ class GameEngine:
                         continue
                     if (
                         definition.event_filter is not None
-                        and not definition.event_filter.matches(
-                            event_definition,
-                            event_source,
-                            event.metadata.get("keywords"),
+                        and not self._event_card_filter_matches(
+                            definition.event_filter,
+                            event.type.value,
+                            event.metadata,
                         )
                     ):
                         continue
@@ -7588,12 +9215,22 @@ class GameEngine:
                 definition,
             ):
                 continue
+            source_spellboost_count = 0
+            if zone == ListenerZone.HAND.value:
+                try:
+                    source_spellboost_count = self._find_hand_card(
+                        owner,
+                        entity_id,
+                    ).spellboost_count
+                except IllegalCommand:
+                    continue
             if definition.conditions:
                 result = evaluate_conditions_without_target(
                     definition.conditions,
                     self._eval_context(
                         owner,
                         source_entity_id=entity_id,
+                        source_spellboost_count=source_spellboost_count,
                     ),
                 )
                 if result is not PartialConditionResult.TRUE:
@@ -7628,6 +9265,7 @@ class GameEngine:
                 definition.operations,
                 controller=owner,
                 label=f"监听 {batch.get('event_type')}",
+                source_spellboost_count=source_spellboost_count,
             )
             frame.listener_batch_id = batch_id
             frame.listener_activation_owner = owner
@@ -7659,6 +9297,10 @@ class GameEngine:
                     if tr.trigger == event_type:
                         if ei.can_activate(ti) and self._check_emblem_trigger_scope(
                             pi, tr, event_type, event_player,
+                        ) and self._event_card_filter_matches(
+                            tr.event_filter,
+                            event_type,
+                            event_metadata,
                         ):
                             records.append((pi, ei.entity_id, ti, event_type))
         records.sort(
@@ -7692,6 +9334,38 @@ class GameEngine:
         }
         self._queue_next_emblem_trigger(batch_id)
         self._continue_effects()
+
+    @staticmethod
+    def _event_card_filter_matches(
+        event_filter,
+        event_type: str,
+        event_metadata: dict[str, object] | None,
+    ) -> bool:
+        if event_filter is None:
+            return True
+        metadata = event_metadata or {}
+        if event_type == "card_fused":
+            definitions = metadata.get("material_definitions", ())
+            return isinstance(definitions, tuple) and any(
+                isinstance(definition, CardDefinition)
+                and event_filter.matches(definition, definition)
+                for definition in definitions
+            )
+        source = metadata.get("source")
+        if source is None:
+            source = metadata.get("definition")
+        if source is None:
+            source = metadata.get("card")
+        definition = (
+            source
+            if isinstance(source, CardDefinition)
+            else getattr(source, "definition", None)
+        )
+        return event_filter.matches(
+            definition if isinstance(definition, CardDefinition) else None,
+            source,
+            metadata.get("keywords"),
+        )
 
     def _emblem_order_key(
         self,
@@ -7755,6 +9429,7 @@ class GameEngine:
                     operation,
                     player_index,
                     batch.get("source_id"),
+                    ei.entity_id,
                 )
                 for operation in tr.operations
             ):
@@ -7788,6 +9463,7 @@ class GameEngine:
                 controller=player_index,
                 label=f"纹章 {event_type}",
             )
+            frame.event_source_entity_id = batch.get("source_id")
             frame.emblem_batch_id = batch_id
             frame.emblem_activation_owner = player_index
             frame.emblem_activation_entity_id = ei.entity_id
@@ -7843,15 +9519,31 @@ class GameEngine:
         if emblem is not None and emblem.can_activate(trigger_index):
             emblem.record_activation(trigger_index)
 
-    def _resolve_choose_one_choice(self, frame, option_id: str) -> None:
-        for opt in frame._decision_meta.get("choose_one_options", ()):
-            if f"choose_one:{opt.option_id}" == option_id:
-                self._queue_effects_from_frame(
-                    frame,
-                    opt.operations,
-                    label=f"{frame.label}/choose_one/{opt.label}",
-                )
-                return
+    def _resolve_choose_one_choice(
+        self,
+        frame: EffectFrame,
+        option_ids: tuple[str, ...],
+    ) -> None:
+        selected_ids = set(option_ids)
+        selected = tuple(
+            option
+            for option in frame._decision_meta.get("choose_one_options", ())
+            if f"choose_one:{option.option_id}" in selected_ids
+        )
+        if len(selected) != len(option_ids):
+            raise IllegalCommand("Selected mode option is invalid")
+        operations = tuple(
+            operation
+            for option in selected
+            for operation in option.operations
+        )
+        if operations:
+            labels = "+".join(option.label for option in selected)
+            self._queue_effects_from_frame(
+                frame,
+                operations,
+                label=f"{frame.label}/choose/{labels}",
+            )
 
     def _execute_conditional(self, effect, frame) -> None:
         target_snapshot = None
@@ -7889,6 +9581,32 @@ class GameEngine:
                 label=f"{frame.label}/conditional",
             )
 
+    def _execute_repeat(
+        self,
+        effect: EffectOperation,
+        frame: EffectFrame,
+    ) -> None:
+        repeat_count = max(0, effect.amount)
+        if repeat_count == 0 or not effect.repeat_operations:
+            return
+        if repeat_count > MAX_REPEAT_COUNT:
+            diagnostics = self._loop_diagnostics()
+            diagnostics.update({
+                "repeat_count": repeat_count,
+                "repeat_limit": MAX_REPEAT_COUNT,
+                "repeat_source_card_id": frame.source_card_id,
+            })
+            raise ResolutionLoopError(
+                f"Repeat count {repeat_count} exceeds maximum of "
+                f"{MAX_REPEAT_COUNT} for card {frame.source_card_id}",
+                diagnostics=diagnostics,
+            )
+        self._queue_effects_from_frame(
+            frame,
+            effect.repeat_operations * repeat_count,
+            label=f"{frame.label}/repeat×{repeat_count}",
+        )
+
     def _execute_target_exists(self, effect, frame) -> None:
         branch_ops = (
             effect.then_operations
@@ -7908,6 +9626,13 @@ class GameEngine:
             )
 
     def _execute_choose_one(self, effect, frame) -> None:
+        if (
+            effect.choose_count < 1
+            or effect.choose_count > len(effect.choose_one_options)
+        ):
+            raise IllegalCommand(
+                "choose_count must be positive and cannot exceed the number of modes"
+            )
         legal_options = []
         for opt in effect.choose_one_options:
             if opt.conditions:
@@ -7919,43 +9644,34 @@ class GameEngine:
                 result = evaluate_conditions_without_target(opt.conditions, ctx)
                 if result is not PartialConditionResult.TRUE:
                     continue
-            if opt.operations:
-                if any(
-                    op.requires_target
-                    and not self._has_candidates_for(
-                        op,
-                        frame.controller,
-                        source_entity_id=frame.source_entity_id,
-                        source_fusion_count=len(frame.fusion_materials),
-                    )
-                    for op in opt.operations
-                ):
-                    continue
-                all_need_target = all(
-                    self._operation_consumes_target(op)
-                    for op in opt.operations
-                )
-                if all_need_target and all(
-                    not self._has_candidates_for(
-                        op,
-                        frame.controller,
-                        source_entity_id=frame.source_entity_id,
-                        source_fusion_count=len(frame.fusion_materials),
-                    )
-                    for op in opt.operations
-                ):
-                    continue
             legal_options.append(opt)
-        if not legal_options:
+        if len(legal_options) < effect.choose_count:
             return
 
         if frame.auto_resolve_choices:
-            chosen = self.random.choice(legal_options)
-            self._log(frame.controller, f"自动选择：{chosen.label}")
+            sampled = set(
+                self.random.sample(range(len(legal_options)), effect.choose_count)
+            )
+            chosen = tuple(
+                option
+                for index, option in enumerate(legal_options)
+                if index in sampled
+            )
+            self._log(
+                frame.controller,
+                "自动选择：" + "、".join(option.label for option in chosen),
+            )
             self._queue_effects_from_frame(
                 frame,
-                chosen.operations,
-                label=f"{frame.label}/choose_one/{chosen.label}",
+                tuple(
+                    operation
+                    for option in chosen
+                    for operation in option.operations
+                ),
+                label=(
+                    f"{frame.label}/choose/"
+                    + "+".join(option.label for option in chosen)
+                ),
             )
             return
 
@@ -7963,7 +9679,7 @@ class GameEngine:
         frame._decision_meta["choose_one_options"] = legal_options
         self.state.pending_choice = ChoiceRequest(
             player_index=frame.controller,
-            prompt=f"{frame.source_name} \u9009\u62e9\u4e00\u9879",
+            prompt=f"{frame.source_name} 选择 {effect.choose_count} 项",
             options=tuple(
                 ChoiceOption(option_id=f"choose_one:{opt.option_id}", label=opt.label)
                 for opt in legal_options
@@ -7971,6 +9687,7 @@ class GameEngine:
             continuation_id=f"{frame.source_card_id}:{frame.next_index}",
             choice_kind=ChoiceKind.MODE,
             request_id=request_id,
+            target_count=effect.choose_count,
         )
         self.state.phase = Phase.AWAITING_CHOICE
 
@@ -8271,7 +9988,7 @@ class GameEngine:
             for index, card in enumerate(player.deck)
             if effect.deck_filter.matches(card)
         ]
-        selected: list[tuple[int, CardDefinition]] = []
+        selected: list[tuple[int, CardDefinition | DeckCard]] = []
         while candidates and len(selected) < min(effect.amount, available_slots):
             chosen = self.random.choice(candidates)
             selected.append(chosen)
@@ -8297,7 +10014,12 @@ class GameEngine:
 
         summon_count = len(selected)
         summoned_entity_ids: list[int] = []
-        for summon_index, (_, card_def) in enumerate(selected):
+        for summon_index, (_, deck_card) in enumerate(selected):
+            card_def = (
+                deck_card.definition
+                if isinstance(deck_card, DeckCard)
+                else deck_card
+            )
             metadata = {
                 "card_id": card_def.card_id,
                 "origin": CardOrigin.DECK.value,
@@ -8680,6 +10402,69 @@ class GameEngine:
             label="信仰消费",
         )
 
+    def _execute_random_distribute(
+        self,
+        effect: EffectOperation,
+        frame: EffectFrame,
+    ) -> None:
+        if effect.faith_id is None:
+            raise IllegalCommand("random_distribute requires faith_id")
+        buckets = effect.random_distribution_operations
+        if len(buckets) < 2 or any(not bucket for bucket in buckets):
+            raise IllegalCommand(
+                "random_distribute requires at least two non-empty buckets"
+            )
+        instance = next(
+            (
+                faith
+                for faith in self.players[frame.controller].faiths
+                if faith.faith_id == effect.faith_id
+            ),
+            None,
+        )
+        total = 0 if instance is None else instance.value
+        if total < 0 or total > MAX_RANDOM_DISTRIBUTION_TOTAL:
+            raise IllegalCommand(
+                "random_distribute total must be between 0 and "
+                f"{MAX_RANDOM_DISTRIBUTION_TOTAL}, got {total}"
+            )
+
+        counts = [0] * len(buckets)
+        for _ in range(total):
+            counts[self.random.randrange(len(buckets))] += 1
+        self._emit(GameEvent(
+            EventType.RANDOM_DISTRIBUTION_RESOLVED,
+            frame.controller,
+            source_id=frame.source_entity_id,
+            target_id=None if instance is None else instance.entity_id,
+            amount=total,
+            metadata={
+                "faith_id": effect.faith_id,
+                "faith_entity_id": (
+                    None if instance is None else instance.entity_id
+                ),
+                "source_card_id": frame.source_card_id,
+                "bucket_values": tuple(counts),
+                "bucket_count": len(buckets),
+                "missing_faith": instance is None,
+            },
+        ))
+        self._log(
+            frame.controller,
+            f"{frame.source_name} 随机分配信仰值 {total}："
+            + "/".join(str(value) for value in counts),
+        )
+        for bucket_index in reversed(range(len(buckets))):
+            distributed_value = counts[bucket_index]
+            if distributed_value == 0:
+                continue
+            self._queue_effects_from_frame(
+                frame,
+                buckets[bucket_index],
+                label=f"随机分配:{bucket_index}",
+                distributed_value=distributed_value,
+            )
+
     def _execute_grant_faith_ability(
         self,
         effect: EffectOperation,
@@ -8818,7 +10603,21 @@ class GameEngine:
             )
             return
         origin = origin_for_added_card(card_def)
-        self._append_hand_card(player, card_def, origin=origin)
+        added = self._append_hand_card(player, card_def, origin=origin)
+        if effect.mode is not None:
+            added.cost_modifiers.append(
+                CostModifier(
+                    modifier_id=self._allocate_modifier_id(),
+                    mode=effect.mode.value,
+                    amount=effect.amount,
+                    duration=effect.duration.value,
+                    expires_for_player=_expires_for_player(
+                        effect.duration,
+                        frame.controller,
+                        self.state.active_player,
+                    ),
+                )
+            )
         self._log(
             frame.controller,
             f"{frame.source_name} 将 {card_def.name} 加入手牌",
@@ -8833,6 +10632,44 @@ class GameEngine:
                     "origin": origin.value,
                     "derived": is_derived(origin),
                     "token": is_token_definition(card_def) or origin is CardOrigin.TOKEN,
+                    "cost_after": added.current_cost,
+                },
+            )
+        )
+
+    def _execute_add_card_to_deck(
+        self,
+        effect: EffectOperation,
+        frame: EffectFrame,
+    ) -> None:
+        if effect.card_id is None:
+            raise IllegalCommand("ADD_CARD_TO_DECK requires a card_id")
+        if self.card_resolver is None:
+            raise IllegalCommand(
+                "No card_resolver registered for ADD_CARD_TO_DECK"
+            )
+        card_def = self.card_resolver(effect.card_id)
+        if card_def is None:
+            raise IllegalCommand(
+                f"Card {effect.card_id} not found for ADD_CARD_TO_DECK"
+            )
+        player = self.players[frame.controller]
+        insert_pos = self.random.randint(0, len(player.deck))
+        player.deck.insert(insert_pos, card_def)
+        self._log(
+            frame.controller,
+            f"{frame.source_name} 将 {card_def.name} 加入牌组",
+        )
+        self._emit(
+            GameEvent(
+                EventType.CARD_ADDED_TO_DECK,
+                frame.controller,
+                source_id=frame.source_entity_id,
+                metadata={
+                    "card_id": card_def.card_id,
+                    "card": card_def,
+                    "source_card_id": frame.source_card_id,
+                    "derived": True,
                 },
             )
         )
@@ -8980,22 +10817,187 @@ class GameEngine:
             )
         )
 
+    def _execute_distribute_damage(
+        self,
+        effect: EffectOperation,
+        frame: EffectFrame,
+    ) -> None:
+        """Apply the official oldest-first damage-distribution procedure."""
+
+        remaining = max(0, effect.amount)
+        if remaining == 0:
+            return
+        target_player_index = 1 - frame.controller
+        followers = [
+            entity
+            for entity in self.players[target_player_index].board
+            if isinstance(entity, Unit)
+        ]
+        allocations: list[tuple[Unit, int]] = []
+        for index, follower in enumerate(followers):
+            if remaining <= 0:
+                break
+            is_last_follower = index == len(followers) - 1
+            amount = (
+                min(remaining, max(0, follower.health))
+                if effect.include_leader or not is_last_follower
+                else remaining
+            )
+            if amount > 0:
+                allocations.append((follower, amount))
+                remaining -= amount
+
+        for follower, amount in allocations:
+            self.apply_damage(
+                None,
+                follower,
+                amount,
+                DamageType.EFFECT,
+                frame.controller,
+            )
+            self._log(
+                frame.controller,
+                f"{frame.source_name} {frame.label}向"
+                f"{follower.definition.name}分配 {amount} 点伤害",
+            )
+
+        if effect.include_leader and remaining > 0:
+            self.apply_damage(
+                None,
+                None,
+                remaining,
+                DamageType.EFFECT,
+                frame.controller,
+                target_player_index=target_player_index,
+            )
+            self._log(
+                frame.controller,
+                f"{frame.source_name} {frame.label}向对方主战者分配 "
+                f"{remaining} 点伤害（生命 "
+                f"{self.players[target_player_index].health}）",
+            )
+
     def _execute_reduce_countdown(
         self,
         effect: EffectOperation,
         frame: EffectFrame,
         target_id: int | None,
     ) -> None:
-        if target_id is None:
+        self._execute_countdown_change(
+            effect,
+            frame,
+            target_id,
+            delta=-effect.amount,
+        )
+
+    def _execute_increase_countdown(
+        self,
+        effect: EffectOperation,
+        frame: EffectFrame,
+        target_id: int | None,
+    ) -> None:
+        self._execute_countdown_change(
+            effect,
+            frame,
+            target_id,
+            delta=effect.amount,
+        )
+
+    def _execute_countdown_change(
+        self,
+        effect: EffectOperation,
+        frame: EffectFrame,
+        target_id: int | None,
+        *,
+        delta: int,
+    ) -> None:
+        if target_id is None or effect.amount <= 0:
             return
-        target = self._find_board_entity(target_id)
-        if not isinstance(target, Amulet) or target.countdown is None:
+        try:
+            target = self._find_board_entity(target_id)
+        except IllegalCommand:
+            target = None
+        if target is None:
+            emblem_owner = next(
+                (
+                    owner
+                    for owner in (0, 1)
+                    if any(
+                        emblem.entity_id == target_id
+                        for emblem in self.players[owner].emblems
+                    )
+                ),
+                None,
+            )
+            if emblem_owner is None:
+                return
+            emblem = next(
+                candidate
+                for candidate in self.players[emblem_owner].emblems
+                if candidate.entity_id == target_id
+            )
+            if emblem.countdown is None:
+                return
+            previous = emblem.countdown
+            emblem.countdown_before = previous
+            emblem.countdown = max(0, previous + delta)
+            self._emit(GameEvent(
+                EventType.EMBLEM_COUNTDOWN_CHANGED,
+                emblem_owner,
+                source_id=emblem.entity_id,
+                amount=emblem.countdown - previous,
+                metadata={
+                    "emblem_id": emblem.emblem_id,
+                    "entity_id": emblem.entity_id,
+                    "source_card_id": emblem.definition.source_card_id,
+                    "controller": emblem_owner,
+                    "countdown_before": previous,
+                    "countdown_after": emblem.countdown,
+                    "effect_source_card_id": frame.source_card_id,
+                    "effect_source_entity_id": frame.source_entity_id,
+                },
+            ))
+            self._log(
+                frame.controller,
+                f"纹章 {emblem.emblem_id} 倒数由 {previous} "
+                f"变为 {emblem.countdown}",
+            )
+            if emblem.countdown == 0:
+                batch_id = self._next_emblem_expiration_batch_id
+                self._next_emblem_expiration_batch_id += 1
+                self._emblem_expiration_batches[batch_id] = {
+                    "records": [(emblem_owner, emblem.entity_id)],
+                }
+                self._queue_next_emblem_expiration(batch_id)
+            return
+        if (
+            not isinstance(target, Amulet)
+            or target.countdown is None
+            or target.pending_destroy
+        ):
             return
         previous = target.countdown
-        target.countdown = max(0, previous - effect.amount)
+        target.countdown = max(0, previous + delta)
+        owner = self._entity_owner(target.entity_id)
+        self._emit(
+            GameEvent(
+                EventType.AMULET_COUNTDOWN_CHANGED,
+                owner,
+                source_id=target.entity_id,
+                amount=target.countdown - previous,
+                metadata={
+                    "source": target,
+                    "card_id": target.definition.card_id,
+                    "countdown_before": previous,
+                    "countdown_after": target.countdown,
+                    "effect_source_card_id": frame.source_card_id,
+                    "effect_source_entity_id": frame.source_entity_id,
+                },
+            )
+        )
         self._log(
             frame.controller,
-            f"{target.definition.name} 倒数由 {previous} 减为 {target.countdown}",
+            f"{target.definition.name} 倒数由 {previous} 变为 {target.countdown}",
         )
         if target.countdown == 0:
             target.pending_destroy = True
@@ -9011,6 +11013,11 @@ class GameEngine:
                     hand_card.definition
                     if isinstance(hand_card, HandCard)
                     else hand_card
+                )
+                discarded_cost = (
+                    hand_card.current_cost
+                    if isinstance(hand_card, HandCard)
+                    else hand_card.cost
                 )
                 discard_origin = hand_card.origin if isinstance(hand_card, HandCard) else CardOrigin.DECK
                 player.hand.pop(idx)
@@ -9031,9 +11038,34 @@ class GameEngine:
                     GameEvent(
                         EventType.CARD_DISCARDED,
                         frame.controller,
-                        metadata={"card_id": card_def.card_id, "card": card_def},
+                        source_id=discarded_eid,
+                        metadata={
+                            "card_id": card_def.card_id,
+                            "card": card_def,
+                            "source": hand_card,
+                            "origin": discard_origin.value,
+                            "cost": discarded_cost,
+                        },
                     )
                 )
+                discarded_operations = self.rulebook.operations_for(
+                    card_def.card_id,
+                    Trigger.DISCARDED,
+                )
+                if discarded_operations:
+                    self._queue_effects(
+                        card_def,
+                        discarded_eid,
+                        discarded_operations,
+                        controller=frame.controller,
+                        label="被弃置",
+                        source_spellboost_count=(
+                            hand_card.spellboost_count
+                            if isinstance(hand_card, HandCard)
+                            else 0
+                        ),
+                        source_cost=discarded_cost,
+                    )
                 return
 
     @staticmethod
@@ -9049,6 +11081,7 @@ class GameEngine:
     def _emblem_trigger_for_event(self, event: GameEvent) -> str | None:
         trigger = {
             EventType.CARD_PLAYED: "card_played",
+            EventType.CARD_FUSED: "card_fused",
             EventType.FOLLOWER_SUMMONED: "follower_summoned",
             EventType.FOLLOWER_EVOLVED: "follower_evolved",
             EventType.FOLLOWER_DESTROYED: "follower_destroyed",
@@ -9089,6 +11122,18 @@ class GameEngine:
             self.event_history.append(event)
             if event.type is EventType.FOLLOWER_DESTROYED:
                 self._resolve_super_evolution_attack_bonus(event)
+            if self._event_is_enhanced_card_play(event):
+                self._advance_faiths_for_event(
+                    event.player_index,
+                    FaithTrigger.CARD_ENHANCED,
+                    event,
+                )
+            if event.type is EventType.FOLLOWER_SUMMONED:
+                self._advance_faiths_for_event(
+                    event.player_index,
+                    FaithTrigger.FOLLOWER_SUMMONED,
+                    event,
+                )
             counts_as_evolution = self._event_counts_as_evolution(event)
             if counts_as_evolution:
                 self._advance_faiths_for_event(
@@ -9180,6 +11225,22 @@ class GameEngine:
                         phase="emblems_done",
                     )
                     return
+
+    def _event_is_enhanced_card_play(self, event: GameEvent) -> bool:
+        if event.type is not EventType.CARD_PLAYED:
+            return False
+        card_id = event.metadata.get("card_id")
+        mode_id = event.metadata.get("mode_id")
+        if (
+            not isinstance(card_id, int)
+            or isinstance(card_id, bool)
+            or not isinstance(mode_id, str)
+        ):
+            return False
+        return any(
+            mode.mode_id == mode_id and mode.is_enhance
+            for mode in self.rulebook.modes_for(card_id)
+        )
 
     def _resolve_super_evolution_attack_bonus(
         self,
@@ -10073,9 +12134,15 @@ class GameEngine:
                 raise IllegalCommand(
                     f"Invariant failed: {prefix} mana out of range: {player.mana}/{player.max_mana}"
                 )
-            if player.health < 0 or player.health > self.config.starting_health:
+            if player.max_health < 1:
                 raise IllegalCommand(
-                    f"Invariant failed: {prefix} health out of range: {player.health}"
+                    f"Invariant failed: {prefix} max_health is below 1: "
+                    f"{player.max_health}"
+                )
+            if player.health < 0 or player.health > player.max_health:
+                raise IllegalCommand(
+                    f"Invariant failed: {prefix} health out of range: "
+                    f"{player.health}/{player.max_health}"
                 )
             modifier_ids = [
                 modifier.modifier_id
@@ -10108,6 +12175,7 @@ class GameEngine:
                 ("turns_started", player.turns_started),
                 ("followers_evolved_this_match", player.followers_evolved_this_match),
                 ("cards_played_this_turn", player.cards_played_this_turn),
+                ("follower_attacks_this_turn", player.follower_attacks_this_turn),
                 ("followers_destroyed_this_turn", player.followers_destroyed_this_turn),
                 ("cooperation", player.cooperation),
                 ("shadows", player.shadows),
@@ -10116,6 +12184,45 @@ class GameEngine:
                     raise IllegalCommand(
                         f"Invariant failed: {prefix} {name} is negative: {value}"
                     )
+            if not isinstance(player.empty_deck_outcome, EmptyDeckOutcome):
+                raise IllegalCommand(
+                    f"Invariant failed: {prefix} empty_deck_outcome is invalid: "
+                    f"{player.empty_deck_outcome!r}"
+                )
+
+            for deck_index, deck_entry in enumerate(player.deck):
+                zone = f"{prefix} deck[{deck_index}]"
+                if isinstance(deck_entry, CardDefinition):
+                    continue
+                if not isinstance(deck_entry, DeckCard):
+                    raise IllegalCommand(
+                        f"Invariant failed: {zone} is not a card definition or DeckCard"
+                    )
+                modifier_ids = [
+                    modifier.modifier_id
+                    for modifier in deck_entry.cost_modifiers
+                ]
+                if (
+                    len(modifier_ids) != len(set(modifier_ids))
+                    or any(modifier_id <= 0 for modifier_id in modifier_ids)
+                ):
+                    raise IllegalCommand(
+                        f"Invariant failed: {zone} has invalid cost modifier ids"
+                    )
+                for modifier in deck_entry.cost_modifiers:
+                    if modifier.mode not in {
+                        mode.value for mode in CostChangeMode
+                    }:
+                        raise IllegalCommand(
+                            f"Invariant failed: {zone} has invalid cost modifier mode"
+                        )
+                    if (
+                        modifier.duration != ModifierDuration.PERMANENT.value
+                        or modifier.expires_for_player is not None
+                    ):
+                        raise IllegalCommand(
+                            f"Invariant failed: {zone} has non-permanent cost modifier"
+                        )
 
             for hand_index, hand_card in enumerate(player.hand):
                 if not isinstance(hand_card, HandCard):
@@ -10129,6 +12236,51 @@ class GameEngine:
                         f"entity_id {hand_card.entity_id} != hand_entity_ids {expected}"
                     )
                 remember(hand_card.entity_id, f"{prefix} hand[{hand_index}]")
+                hand_cost_modifier_ids = [
+                    modifier.modifier_id
+                    for modifier in hand_card.cost_modifiers
+                ]
+                if (
+                    len(hand_cost_modifier_ids)
+                    != len(set(hand_cost_modifier_ids))
+                    or any(
+                        modifier_id <= 0
+                        for modifier_id in hand_cost_modifier_ids
+                    )
+                ):
+                    raise IllegalCommand(
+                        f"Invariant failed: {prefix} hand[{hand_index}] has "
+                        "invalid cost modifier ids"
+                    )
+                for modifier in hand_card.cost_modifiers:
+                    if modifier.mode not in {
+                        mode.value for mode in CostChangeMode
+                    } or modifier.duration not in {
+                        duration.value for duration in ModifierDuration
+                    }:
+                        raise IllegalCommand(
+                            f"Invariant failed: {prefix} hand[{hand_index}] has "
+                            "invalid cost modifier"
+                        )
+                hand_stat_modifier_ids = [
+                    modifier.modifier_id
+                    for modifier in hand_card.stat_modifiers
+                ]
+                if len(hand_stat_modifier_ids) != len(set(hand_stat_modifier_ids)):
+                    raise IllegalCommand(
+                        f"Invariant failed: {prefix} hand[{hand_index}] has "
+                        "duplicate stat modifier ids"
+                    )
+                if any(modifier_id <= 0 for modifier_id in hand_stat_modifier_ids):
+                    raise IllegalCommand(
+                        f"Invariant failed: {prefix} hand[{hand_index}] has a "
+                        "non-positive stat modifier id"
+                    )
+                if hand_card.stat_modifiers and hand_card.card_type != "随从":
+                    raise IllegalCommand(
+                        f"Invariant failed: {prefix} hand[{hand_index}] has "
+                        "stat modifiers but is not a follower"
+                    )
                 if len(hand_card.fused_material_ids) != len(set(hand_card.fused_material_ids)):
                     raise IllegalCommand(
                         f"Invariant failed: {prefix} hand[{hand_index}] has duplicate fused materials"
@@ -10180,6 +12332,17 @@ class GameEngine:
                     if not isinstance(entity.printed_abilities_removed, bool):
                         raise IllegalCommand(
                             f"Invariant failed: {zone} ability-removal flag is invalid"
+                        )
+                    if (
+                        not isinstance(entity.turn_end_destroy_timings, set)
+                        or any(
+                            not isinstance(timing, TurnEndDestroyTiming)
+                            for timing in entity.turn_end_destroy_timings
+                        )
+                    ):
+                        raise IllegalCommand(
+                            f"Invariant failed: {zone} has invalid turn-end "
+                            "destroy timings"
                         )
                     if entity.attack < 0:
                         raise IllegalCommand(
@@ -10448,6 +12611,30 @@ class GameEngine:
                     raise IllegalCommand(
                         f"Invariant failed: {zone} source_snapshot state is invalid"
                     )
+            if (
+                not isinstance(frame.source_spellboost_count, int)
+                or isinstance(frame.source_spellboost_count, bool)
+                or frame.source_spellboost_count < 0
+            ):
+                raise IllegalCommand(
+                    f"Invariant failed: {zone} source_spellboost_count is invalid"
+                )
+            if (
+                not isinstance(frame.source_cost, int)
+                or isinstance(frame.source_cost, bool)
+                or frame.source_cost < 0
+            ):
+                raise IllegalCommand(
+                    f"Invariant failed: {zone} source_cost is invalid"
+                )
+            if (
+                not isinstance(frame.distributed_value, int)
+                or isinstance(frame.distributed_value, bool)
+                or frame.distributed_value < 0
+            ):
+                raise IllegalCommand(
+                    f"Invariant failed: {zone} distributed_value is invalid"
+                )
             if not isinstance(frame.label, str) or not frame.label:
                 raise IllegalCommand(
                     f"Invariant failed: {zone} label is empty"
@@ -10509,9 +12696,9 @@ class GameEngine:
                     raise IllegalCommand(
                         f"Invariant failed: {zone} has invalid target binding key"
                     )
-                if not isinstance(target_ids, tuple) or not target_ids:
+                if not isinstance(target_ids, tuple):
                     raise IllegalCommand(
-                        f"Invariant failed: {zone} target binding must be a non-empty tuple"
+                        f"Invariant failed: {zone} target binding must be a tuple"
                     )
                 for target_index, target_id in enumerate(target_ids):
                     check_effect_target_id(
@@ -10534,6 +12721,13 @@ class GameEngine:
                 if not isinstance(operation, EffectOperation):
                     raise IllegalCommand(
                         f"Invariant failed: {zone} target binding operation is invalid"
+                    )
+                if (
+                    not frame._target_bindings[key]
+                    and operation.kind not in _OUTPUT_BINDING_EFFECTS
+                ):
+                    raise IllegalCommand(
+                        f"Invariant failed: {zone} selected target binding is empty"
                     )
             if not isinstance(frame._target_binding_snapshots, dict):
                 raise IllegalCommand(
@@ -10561,6 +12755,7 @@ class GameEngine:
                         )
                     if (
                         snapshot.controller not in (0, 1)
+                        or snapshot.zone not in {"board", "hand", "graveyard"}
                         or not isinstance(snapshot.card_id, int)
                         or isinstance(snapshot.card_id, bool)
                         or snapshot.card_id <= 0
@@ -10570,6 +12765,8 @@ class GameEngine:
                         or not isinstance(snapshot.cost, int)
                         or isinstance(snapshot.cost, bool)
                         or snapshot.cost < 0
+                        or not isinstance(snapshot.definition, CardDefinition)
+                        or snapshot.definition.card_id != snapshot.card_id
                     ):
                         raise IllegalCommand(
                             f"Invariant failed: {zone} target snapshot payload is invalid"
@@ -10604,9 +12801,34 @@ class GameEngine:
                     raise IllegalCommand(
                         f"Invariant failed: {operation_zone} duplicate-target policy is invalid"
                     )
+                if not isinstance(operation.requires_full_target_count, bool):
+                    raise IllegalCommand(
+                        f"Invariant failed: {operation_zone} full-target policy is invalid"
+                    )
+                if (
+                    operation.turn_end_destroy_timing is not None
+                    and not isinstance(
+                        operation.turn_end_destroy_timing,
+                        TurnEndDestroyTiming,
+                    )
+                ):
+                    raise IllegalCommand(
+                        f"Invariant failed: {operation_zone} turn-end destroy timing is invalid"
+                    )
                 if not isinstance(operation.exclude_source, bool):
                     raise IllegalCommand(
                         f"Invariant failed: {operation_zone} source-exclusion policy is invalid"
+                    )
+                if not isinstance(operation.distinct_card_names, bool):
+                    raise IllegalCommand(
+                        f"Invariant failed: {operation_zone} distinct-name policy is invalid"
+                    )
+                if (
+                    operation.history_filter is not None
+                    and not isinstance(operation.history_filter, HandFilter)
+                ):
+                    raise IllegalCommand(
+                        f"Invariant failed: {operation_zone} history filter is invalid"
                     )
                 if operation.condition_target_key is not None and (
                     operation.kind is not EffectKind.CONDITIONAL
@@ -10642,6 +12864,19 @@ class GameEngine:
                     ):
                         raise IllegalCommand(
                             f"Invariant failed: {operation_zone} grant_faith_ability payload is invalid"
+                        )
+                if operation.kind is EffectKind.RANDOM_DISTRIBUTE:
+                    if (
+                        not isinstance(operation.faith_id, str)
+                        or not operation.faith_id
+                        or len(operation.random_distribution_operations) < 2
+                        or any(
+                            not bucket
+                            for bucket in operation.random_distribution_operations
+                        )
+                    ):
+                        raise IllegalCommand(
+                            f"Invariant failed: {operation_zone} random_distribute payload is invalid"
                         )
 
             def check_positive_int(value: int | None, field: str) -> None:
@@ -10735,6 +12970,10 @@ class GameEngine:
                 frame.event_source_entity_id,
                 "event_source_entity_id",
             )
+            check_positive_int(
+                frame.attack_target_entity_id,
+                "attack_target_entity_id",
+            )
 
             check_positive_int(
                 frame.emblem_expiration_batch_id,
@@ -10772,6 +13011,54 @@ class GameEngine:
                 raise IllegalCommand(
                     "Invariant failed: destroyed follower death_sequence must be positive"
                 )
+            if (
+                not isinstance(record.destroyed_turn, int)
+                or isinstance(record.destroyed_turn, bool)
+                or record.destroyed_turn < 0
+                or record.destroyed_turn > state.turn
+            ):
+                raise IllegalCommand(
+                    "Invariant failed: destroyed follower destroyed_turn is invalid"
+                )
+        follower_entry_sequences: set[int] = set()
+        for record in state.follower_entries:
+            if record.owner not in (0, 1):
+                raise IllegalCommand(
+                    "Invariant failed: follower entry owner out of range"
+                )
+            if (
+                record.entry_sequence <= 0
+                or record.entry_sequence in follower_entry_sequences
+            ):
+                raise IllegalCommand(
+                    "Invariant failed: follower entry sequence must be unique and positive"
+                )
+            follower_entry_sequences.add(record.entry_sequence)
+            if (
+                not isinstance(record.entered_turn, int)
+                or isinstance(record.entered_turn, bool)
+                or record.entered_turn < 0
+                or record.entered_turn > state.turn
+            ):
+                raise IllegalCommand(
+                    "Invariant failed: follower entry entered_turn is invalid"
+                )
+            if record.definition.card_type != "随从":
+                raise IllegalCommand(
+                    "Invariant failed: follower entry definition is not a follower"
+                )
+            if not isinstance(record.entry_cause, str) or not record.entry_cause:
+                raise IllegalCommand(
+                    "Invariant failed: follower entry cause is invalid"
+                )
+        if (
+            state._next_follower_entry_sequence <= 0
+            or state._next_follower_entry_sequence
+            <= max(follower_entry_sequences, default=0)
+        ):
+            raise IllegalCommand(
+                "Invariant failed: next follower entry sequence is invalid"
+            )
         for batch in state.death_queue:
             if batch.batch_id <= 0:
                 raise IllegalCommand("Invariant failed: death batch id must be positive")
@@ -10958,11 +13245,18 @@ class GameEngine:
                 seen.add(graveyard_card.entity_id)
 
     def _append_hand_card(
-        self, player: PlayerState, definition: CardDefinition, *,
+        self,
+        player: PlayerState,
+        definition: CardDefinition | DeckCard,
+        *,
         origin: CardOrigin = CardOrigin.DECK,
         source_origin: CardOrigin | None = None,
         fused_material_ids: tuple[int, ...] = (),
     ) -> HandCard:
+        inherited_cost_modifiers: list[CostModifier] = []
+        if isinstance(definition, DeckCard):
+            inherited_cost_modifiers = list(definition.cost_modifiers)
+            definition = definition.definition
         hand_card = self._make_hand_card(
             definition,
             self.state.allocate_entity_id(),
@@ -10970,6 +13264,7 @@ class GameEngine:
             source_origin=source_origin,
             fused_material_ids=fused_material_ids,
         )
+        hand_card.cost_modifiers.extend(inherited_cost_modifiers)
         player.hand.append(hand_card)
         player.hand_entity_ids.append(hand_card.entity_id)
         return hand_card
@@ -11037,6 +13332,7 @@ class GameEngine:
             for hand_card in self._hand_cards(owner_index):
                 for dur_str in expire_durations:
                     hand_card.expire_cost_modifiers(dur_str, player_index)
+                    hand_card.expire_stat_modifiers(dur_str, player_index)
 
     def _find_board_entity(self, entity_id: int | None) -> BoardCard:
         if entity_id is None:

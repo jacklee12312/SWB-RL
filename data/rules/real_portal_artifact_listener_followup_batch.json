@@ -1,0 +1,260 @@
+{
+  "passives": [
+    {
+      "card_id": 10171140,
+      "kind": "non_intrinsic_keyword",
+      "keyword": "必杀",
+      "notes": "必杀只授予每回合首个进入战场的己方人偶随从。"
+    },
+    {
+      "card_id": 10374110,
+      "kind": "cannot_be_destroyed_by_effects"
+    },
+    {
+      "card_id": 10571110,
+      "kind": "non_intrinsic_keyword",
+      "keyword": "疾驰",
+      "notes": "疾驰只由爆能强化7授予入场曲召唤的人偶。"
+    },
+    {
+      "card_id": 10671120,
+      "kind": "non_intrinsic_keyword",
+      "keyword": "必杀",
+      "notes": "必杀只授予入场曲召唤的毁灭创造物α。"
+    },
+    {
+      "card_id": 10671120,
+      "kind": "non_intrinsic_keyword",
+      "keyword": "守护",
+      "notes": "守护只授予入场曲召唤的毁灭创造物α。"
+    }
+  ],
+  "listeners": [
+    {
+      "card_id": 10171140,
+      "zone": "board",
+      "event": "follower_summoned",
+      "event_scope": "owner_event",
+      "source_relation": "any",
+      "event_filter": {"card_type": "随从", "tribe_name": "人偶"},
+      "once_per_turn": true,
+      "operations": [
+        {"kind": "add_keyword", "target": "event_source", "keyword": "必杀"}
+      ]
+    },
+    {
+      "card_id": 10173210,
+      "zone": "board",
+      "event": "card_fused",
+      "event_scope": "owner_event",
+      "source_relation": "any",
+      "operations": [
+        {"kind": "damage_unit", "target": "random_enemy_unit", "amount": 2}
+      ]
+    }
+  ],
+  "rules": [
+    {
+      "card_id": 10171140,
+      "trigger": "fanfare",
+      "operations": [
+        {"kind": "add_card", "target": "own_leader", "card_id": 90071120}
+      ]
+    },
+    {
+      "card_id": 10173210,
+      "trigger": "play",
+      "operations": [
+        {"kind": "add_card", "target": "own_leader", "card_id": 90071210}
+      ]
+    },
+    {
+      "card_id": 10271110,
+      "trigger": "fanfare",
+      "operations": [
+        {"kind": "summon", "target": "own_leader", "card_id": 90072110},
+        {"kind": "add_card", "target": "own_leader", "card_id": 90071220}
+      ]
+    },
+    {
+      "card_id": 10271110,
+      "trigger": "evolve",
+      "operations": [
+        {"kind": "summon", "target": "own_leader", "card_id": 90072110},
+        {"kind": "add_card", "target": "own_leader", "card_id": 90071220}
+      ]
+    },
+    {
+      "card_id": 10371120,
+      "trigger": "fanfare",
+      "operations": [
+        {"kind": "summon", "target": "own_leader", "card_id": 90073130}
+      ]
+    },
+    {
+      "card_id": 10371120,
+      "trigger": "evolve",
+      "operations": [
+        {
+          "kind": "buff_unit",
+          "target": "own_unit",
+          "amount": 3,
+          "secondary_amount": 3,
+          "target_tribe_name_filter": "创造物",
+          "requires_target": true
+        }
+      ]
+    },
+    {
+      "card_id": 10372210,
+      "trigger": "play",
+      "operations": [
+        {"kind": "destroy", "target": "own_board", "exclude_source": true},
+        {"kind": "draw", "target": "own_leader", "amount": 2}
+      ]
+    },
+    {
+      "card_id": 10372210,
+      "trigger": "last_words",
+      "operations": [
+        {"kind": "draw", "target": "own_leader", "amount": 1}
+      ]
+    },
+    {
+      "card_id": 10374110,
+      "trigger": "super_evolve",
+      "operations": [
+        {
+          "kind": "damage_leader",
+          "target": "enemy_leader",
+          "amount": {
+            "type": "subtract",
+            "values": [
+              {"type": "controller_board_count"},
+              {"type": "constant", "value": 1}
+            ]
+          }
+        },
+        {"kind": "destroy", "target": "all_own_board", "exclude_source": true}
+      ]
+    },
+    {
+      "card_id": 10471130,
+      "trigger": "last_words",
+      "operations": [
+        {"kind": "add_card", "target": "own_leader", "card_id": 90072110}
+      ]
+    },
+    {
+      "card_id": 10571110,
+      "trigger": "fanfare",
+      "operations": [
+        {"kind": "summon", "target": "own_leader", "card_id": 90071120},
+        {"kind": "summon", "target": "own_leader", "card_id": 90071110}
+      ],
+      "play_modes": [
+        {
+          "id": "enhance_7",
+          "type": "enhance",
+          "cost": 7,
+          "replace_base_operations": true,
+          "operations": [
+            {
+              "kind": "summon",
+              "target": "own_leader",
+              "card_id": 90071120,
+              "target_key": "enhance_improved_puppet"
+            },
+            {
+              "kind": "summon",
+              "target": "own_leader",
+              "card_id": 90071110,
+              "target_key": "enhance_puppet"
+            },
+            {
+              "kind": "add_keyword",
+              "target": "previous_target",
+              "target_key": "enhance_improved_puppet",
+              "keyword": "疾驰"
+            },
+            {
+              "kind": "add_keyword",
+              "target": "previous_target",
+              "target_key": "enhance_puppet",
+              "keyword": "疾驰"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "card_id": 10671120,
+      "trigger": "fanfare",
+      "operations": [
+        {
+          "kind": "summon",
+          "target": "own_leader",
+          "card_id": 90073110,
+          "target_key": "summoned_alpha"
+        },
+        {
+          "kind": "add_keyword",
+          "target": "previous_target",
+          "target_key": "summoned_alpha",
+          "keyword": "必杀"
+        },
+        {
+          "kind": "add_keyword",
+          "target": "previous_target",
+          "target_key": "summoned_alpha",
+          "keyword": "守护"
+        }
+      ]
+    },
+    {
+      "card_id": 10672310,
+      "trigger": "play",
+      "operations": [
+        {
+          "kind": "summon",
+          "target": "own_leader",
+          "card_id": 10673110,
+          "target_key": "foolish_weapon"
+        },
+        {
+          "kind": "summon",
+          "target": "own_leader",
+          "card_id": 10671110,
+          "target_key": "inferior_toy"
+        },
+        {
+          "kind": "summon",
+          "target": "own_leader",
+          "card_id": 10672110,
+          "target_key": "clumsy_puppet"
+        },
+        {
+          "kind": "buff_unit",
+          "target": "previous_target",
+          "target_key": "foolish_weapon",
+          "amount": 0,
+          "secondary_amount": 1
+        },
+        {
+          "kind": "buff_unit",
+          "target": "previous_target",
+          "target_key": "inferior_toy",
+          "amount": 0,
+          "secondary_amount": 1
+        },
+        {
+          "kind": "buff_unit",
+          "target": "previous_target",
+          "target_key": "clumsy_puppet",
+          "amount": 0,
+          "secondary_amount": 1
+        }
+      ]
+    }
+  ]
+}

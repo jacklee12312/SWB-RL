@@ -1,0 +1,61 @@
+{
+  "rules": [
+    {
+      "card_id": 10852310,
+      "trigger": "play",
+      "operations": [
+        {
+          "kind": "choose_one",
+          "target": "own_leader",
+          "choose_count": 2,
+          "options": [
+            {
+              "id": "damage_leader",
+              "label": "对敌方主战者造成1点伤害",
+              "operations": [
+                {
+                  "kind": "damage_leader",
+                  "target": "enemy_leader",
+                  "amount": 1
+                }
+              ]
+            },
+            {
+              "id": "heal_leader",
+              "label": "回复己方主战者2点生命值",
+              "operations": [
+                {
+                  "kind": "heal_leader",
+                  "target": "own_leader",
+                  "amount": 2
+                }
+              ]
+            },
+            {
+              "id": "damage_follower",
+              "label": "对随机敌方随从造成3点伤害",
+              "operations": [
+                {
+                  "kind": "damage_unit",
+                  "target": "random_enemy_unit",
+                  "amount": 3
+                }
+              ]
+            },
+            {
+              "id": "gain_shadows",
+              "label": "使己方墓场+4",
+              "operations": [
+                {
+                  "kind": "add_shadows",
+                  "target": "own_leader",
+                  "amount": 4
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,213 @@
+{
+  "intrinsic_keywords": [
+    {"card_id": 10252110, "keywords": ["突进"]},
+    {"card_id": 10361120, "keywords": ["守护"]}
+  ],
+  "listeners": [
+    {
+      "card_id": 10121130,
+      "zone": "board",
+      "event": "follower_summoned",
+      "event_scope": "owner_event",
+      "event_filter": {"card_type": "随从", "tribe_name": "士兵"},
+      "operations": [
+        {"kind": "heal_leader", "target": "own_leader", "amount": 1}
+      ]
+    },
+    {
+      "card_id": 10212120,
+      "zone": "hand",
+      "event": "follower_super_evolved",
+      "event_scope": "owner_event",
+      "operations": [
+        {"kind": "change_cost", "target": "self", "amount": 1, "mode": "set"}
+      ]
+    },
+    {
+      "card_id": 10252110,
+      "zone": "board",
+      "event": "follower_super_evolved",
+      "event_scope": "owner_event",
+      "source_relation": "other",
+      "operations": [
+        {"kind": "buff_unit", "target": "event_source", "amount": 2},
+        {"kind": "buff_unit", "target": "self", "amount": 2}
+      ]
+    },
+    {
+      "card_id": 10361120,
+      "zone": "board",
+      "event": "follower_stats_increased",
+      "event_scope": "owner_event",
+      "source_relation": "self",
+      "operations": [
+        {"kind": "heal_leader", "target": "own_leader", "amount": 1}
+      ]
+    },
+    {
+      "card_id": 10673310,
+      "zone": "hand",
+      "event": "follower_summoned",
+      "event_scope": "owner_event",
+      "event_filter": {"card_type": "随从", "cost_min": 5},
+      "operations": [
+        {
+          "kind": "change_cost",
+          "target": "self",
+          "amount": 1,
+          "mode": "subtract",
+          "duration": "until_end_of_turn"
+        }
+      ]
+    },
+    {
+      "card_id": 10721110,
+      "zone": "hand",
+      "event": "follower_super_evolved",
+      "event_scope": "owner_event",
+      "operations": [
+        {"kind": "change_cost", "target": "self", "amount": 1, "mode": "set"}
+      ]
+    },
+    {
+      "card_id": 10812110,
+      "zone": "board",
+      "event": "follower_stats_increased",
+      "event_scope": "owner_event",
+      "turn_scope": "owner_turn",
+      "source_relation": "self",
+      "once_per_turn": true,
+      "operations": [
+        {"kind": "summon", "target": "own_leader", "card_id": 90011110}
+      ]
+    }
+  ],
+  "rules": [
+    {
+      "card_id": 10121130,
+      "trigger": "fanfare",
+      "operations": [
+        {"kind": "summon", "target": "own_leader", "card_id": 90021120}
+      ]
+    },
+    {
+      "card_id": 10131310,
+      "trigger": "play",
+      "operations": [
+        {
+          "kind": "spellboost_hand",
+          "target": "own_hand",
+          "amount": 1,
+          "requires_target": true,
+          "hand_filter": {"keyword": "魔力增幅"}
+        },
+        {"kind": "draw", "target": "own_leader", "amount": 1}
+      ]
+    },
+    {
+      "card_id": 10212120,
+      "trigger": "fanfare",
+      "operations": [
+        {"kind": "add_card", "target": "own_leader", "card_id": 90011110}
+      ]
+    },
+    {
+      "card_id": 10232310,
+      "trigger": "play",
+      "operations": [
+        {
+          "kind": "distribute_damage",
+          "target": "all_enemy_units",
+          "amount": {"type": "source_spellboost_count"}
+        }
+      ]
+    },
+    {
+      "card_id": 10353310,
+      "trigger": "play",
+      "operations": [
+        {
+          "kind": "choose_one",
+          "target": "own_leader",
+          "choose_count": 2,
+          "options": [
+            {
+              "id": "restore_mana",
+              "label": "回复自己1点能量点",
+              "operations": [
+                {"kind": "restore_mana", "target": "own_leader", "amount": 1}
+              ]
+            },
+            {
+              "id": "draw_follower",
+              "label": "抽取1张随从",
+              "operations": [
+                {
+                  "kind": "draw_filtered",
+                  "target": "own_leader",
+                  "amount": 1,
+                  "card_type_filter": "随从"
+                }
+              ]
+            },
+            {
+              "id": "draw_three_cost_spell",
+              "label": "抽取1张费用为3的法术",
+              "operations": [
+                {
+                  "kind": "draw_filtered",
+                  "target": "own_leader",
+                  "amount": 1,
+                  "card_type_filter": "法术",
+                  "cost_min": 3,
+                  "cost_max": 3
+                }
+              ]
+            },
+            {
+              "id": "damage_follower",
+              "label": "对随机敌方随从造成4点伤害",
+              "operations": [
+                {"kind": "damage_unit", "target": "random_enemy_unit", "amount": 4}
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "card_id": 10612110,
+      "trigger": "fanfare",
+      "operations": [
+        {"kind": "add_card", "target": "own_leader", "card_id": 90011120}
+      ]
+    },
+    {
+      "card_id": 10673310,
+      "trigger": "play",
+      "operations": [
+        {
+          "kind": "evolve_unit",
+          "target": "random_own_unit",
+          "target_cost_min": 5,
+          "target_evolved_filter": false
+        },
+        {"kind": "damage_unit", "target": "random_enemy_unit", "amount": 6}
+      ]
+    },
+    {
+      "card_id": 10721110,
+      "trigger": "fanfare",
+      "operations": [
+        {"kind": "damage_unit", "target": "enemy_unit", "amount": 3}
+      ]
+    },
+    {
+      "card_id": 10812110,
+      "trigger": "last_words",
+      "operations": [
+        {"kind": "add_card", "target": "own_leader", "card_id": 90011110}
+      ]
+    }
+  ]
+}

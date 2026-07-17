@@ -13,7 +13,12 @@ from swb.engine.abilities import (
 )
 from swb.engine.card_rules import CardRule, RuleBook, Trigger
 from swb.engine.commands import ChoiceKind, ChoiceOption, ChoiceRequest
-from swb.engine.effects import EffectKind, EffectOperation, TargetKind
+from swb.engine.effects import (
+    ChooseOneOption,
+    EffectKind,
+    EffectOperation,
+    TargetKind,
+)
 from swb.engine.emblem import EmblemDefinition, EmblemTriggerRule
 from swb.engine.environment import ShadowverseEnv
 from swb.engine.events import EventType
@@ -113,14 +118,15 @@ class EnvironmentTests(unittest.TestCase):
 
     def test_observation_and_action_space_are_fixed(self) -> None:
         self.assertEqual(len(self.env.action_mask()), ShadowverseEnv.ACTION_SIZE)
-        self.assertEqual(len(self.env.observation()), 290)
+        self.assertEqual(len(self.env.observation()), 294)
         self.assertTrue(self.env.action_mask()[ShadowverseEnv.END_TURN])
-        self.assertEqual(sum(self.env.observation()[30:37]), 1.0)
-        self.assertEqual(sum(self.env.observation()[37:44]), 1.0)
-        self.assertEqual(self.env.observation()[44:48], [1.0, 1.0, 0.0, 0.0])
-        self.assertEqual(self.env.observation()[48:50], [0.0, 0.0])
-        self.assertEqual(self.env.observation()[-6:-4], [0.0, 0.0])
-        self.assertEqual(self.env.observation()[-4:], [0.0, 0.0, 0.0, 0.0])
+        self.assertEqual(sum(self.env.observation()[32:39]), 1.0)
+        self.assertEqual(sum(self.env.observation()[39:46]), 1.0)
+        self.assertEqual(self.env.observation()[46:50], [1.0, 1.0, 0.0, 0.0])
+        self.assertEqual(self.env.observation()[50:52], [0.0, 0.0])
+        self.assertEqual(self.env.observation()[-8:-6], [0.0, 0.0])
+        self.assertEqual(self.env.observation()[-6:-2], [0.0, 0.0, 0.0, 0.0])
+        self.assertEqual(self.env.observation()[-2:], [0.0, 0.0])
 
     def test_observation_exposes_public_combo_counts(self) -> None:
         self.env.players[0].cards_played_this_turn = 3
@@ -130,10 +136,10 @@ class EnvironmentTests(unittest.TestCase):
     def test_observation_exposes_public_overflow_flags(self) -> None:
         self.env.players[0].max_mana = 7
         self.env.players[1].max_mana = 6
-        self.assertEqual(self.env.observation()[48:50], [1.0, 0.0])
+        self.assertEqual(self.env.observation()[50:52], [1.0, 0.0])
 
         self.env.players[1].max_mana = 7
-        self.assertEqual(self.env.observation()[48:50], [1.0, 1.0])
+        self.assertEqual(self.env.observation()[50:52], [1.0, 1.0])
 
     def test_opening_hands_are_four_plus_first_player_draw(self) -> None:
         self.assertEqual(len(self.env.players[0].hand), 5)
@@ -714,7 +720,7 @@ class EnvironmentTests(unittest.TestCase):
             if first_mask[action]
         ]
         self.assertEqual(len(first_actions), 2)
-        self.assertEqual(env.observation()[-8:-6], [2 / 16, 0.0])
+        self.assertEqual(env.observation()[-10:-8], [2 / 16, 0.0])
         first_option_id = env.core.state.pending_choice.options[0].option_id
         env.step(first_actions[0])
 
@@ -734,11 +740,105 @@ class EnvironmentTests(unittest.TestCase):
             if second_mask[action]
         ]
         self.assertEqual(len(second_actions), 1)
-        self.assertEqual(env.observation()[-8:-6], [2 / 16, 0.5])
+        self.assertEqual(env.observation()[-10:-8], [2 / 16, 0.5])
         env.step(second_actions[0])
 
         self.assertIsNone(env.core.state.pending_choice)
         self.assertEqual([target.health for target in targets], [4, 4])
+
+    def test_rl_multi_mode_mask_decode_and_observation_progress_agree(self) -> None:
+        rulebook = RuleBook((
+            CardRule(
+                card_id=2,
+                trigger=Trigger.PLAY,
+                operations=(
+                    EffectOperation(
+                        EffectKind.CHOOSE_ONE,
+                        TargetKind.OWN_LEADER,
+                        choose_one_options=(
+                            ChooseOneOption(
+                                "damage",
+                                "伤害",
+                                operations=(
+                                    EffectOperation(
+                                        EffectKind.DAMAGE_LEADER,
+                                        TargetKind.ENEMY_LEADER,
+                                        amount=1,
+                                    ),
+                                ),
+                            ),
+                            ChooseOneOption(
+                                "draw",
+                                "抽牌",
+                                operations=(
+                                    EffectOperation(
+                                        EffectKind.DRAW,
+                                        TargetKind.OWN_LEADER,
+                                        amount=1,
+                                    ),
+                                ),
+                            ),
+                            ChooseOneOption("empty", "空模式"),
+                        ),
+                        choose_count=2,
+                    ),
+                ),
+            ),
+        ))
+        env = ShadowverseEnv(
+            [card(i) for i in range(100, 140)],
+            [card(i) for i in range(200, 240)],
+            class_a=1,
+            class_b=1,
+            seed=3,
+            rulebook=rulebook,
+        )
+        env.reset(seed=3)
+        env.players[0].hand[0] = card(
+            2,
+            attack=None,
+            life=None,
+            card_type="法术",
+        )
+        env.players[0].mana = 10
+
+        env.step(ShadowverseEnv.PLAY_OFFSET)
+
+        first_mask = env.action_mask()
+        first_actions = [
+            action
+            for action in range(
+                ShadowverseEnv.CHOICE_OFFSET,
+                ShadowverseEnv.GRAVEYARD_CHOICE_OFFSET,
+            )
+            if first_mask[action]
+        ]
+        self.assertEqual(len(first_actions), 3)
+        self.assertEqual(env.observation()[-10:-8], [2 / 16, 0.0])
+        first_option_id = env.core.state.pending_choice.options[0].option_id
+        env.step(first_actions[0])
+
+        request = env.core.state.pending_choice
+        self.assertEqual(len(request.selected_options), 1)
+        self.assertNotIn(
+            first_option_id,
+            {option.option_id for option in request.options},
+        )
+        second_mask = env.action_mask()
+        second_actions = [
+            action
+            for action in range(
+                ShadowverseEnv.CHOICE_OFFSET,
+                ShadowverseEnv.GRAVEYARD_CHOICE_OFFSET,
+            )
+            if second_mask[action]
+        ]
+        self.assertEqual(len(second_actions), 2)
+        self.assertEqual(env.observation()[-10:-8], [2 / 16, 0.5])
+        env.step(second_actions[0])
+
+        self.assertIsNone(env.core.state.pending_choice)
+        self.assertEqual(env.players[1].health, 19)
 
     def test_rl_choice_action_revalidates_target_after_controller_change(self) -> None:
         spell = card(

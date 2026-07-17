@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from swb.engine.effects import Condition, EffectOperation
+    from swb.engine.listeners import EventCardFilter
 
 
 class EmblemStacking(str, Enum):
@@ -35,6 +36,7 @@ class EmblemTriggerRule:
     event_scope: EventScope | None = None
     once_per_turn: bool = False
     max_activations: int | None = None
+    event_filter: "EventCardFilter | None" = None
 
 
 @dataclass(frozen=True)
@@ -45,6 +47,7 @@ class EmblemDefinition:
     countdown: int | None = None
     triggers: tuple[EmblemTriggerRule, ...] = ()
     on_expire: tuple["EffectOperation", ...] = ()
+    on_gain: tuple["EffectOperation", ...] = ()
 
     @property
     def is_permanent(self) -> bool:

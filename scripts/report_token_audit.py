@@ -72,6 +72,17 @@ def _load_authored_evidence(
             authored_cards.add(source_id)
             for operation in _walk_dicts(entry):
                 kind = operation.get("kind")
+                if kind == "replace_deck":
+                    raw_target_ids = operation.get("card_ids")
+                    if isinstance(raw_target_ids, list):
+                        for target_id in raw_target_ids:
+                            producers[int(target_id)].append({
+                                "source_card_id": source_id,
+                                "entry_kind": kind,
+                                "rule_file": file_path.name,
+                                "rule_group": group,
+                            })
+                    continue
                 target_id = operation.get("card_id")
                 if kind not in PRODUCER_KINDS or target_id is None:
                     continue

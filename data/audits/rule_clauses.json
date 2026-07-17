@@ -3975,6 +3975,1453 @@
       "source_text_sha256": "2aceca0355e1214fbe6c308bc2adc8dd97641e9b85b74032ced4bc8a8aa3f842",
       "test_evidence": ["tests/test_real_generated_spell_and_follower_chain_batch.py"],
       "notes": "Its real producer, own follower/amulet target requirement, destroy-prevention continuation, seeded random damage, and illegal no-target fingerprint/RNG preservation are tested."
+    },
+    {
+      "card_id": 10304120,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】选择战场上的1个其他随从，使其+2/-2；双方能量点最大值均为10时，将涸绝的甘露加入手牌。【虹吸】【进化时】选择战场上的1个随从，使其+2/-2。",
+      "rule_version": 1,
+      "source_text_sha256": "b7cfef33c62035057b0c42c94c7718b0221b8daa42af38ffb44c94bb24f62ed2",
+      "test_evidence": ["tests/test_real_generated_burst_spell_batch.py"],
+      "notes": "Other-source targeting, the no-candidate continuation, both players' 10-PP boundary, Drain, and self-selectable evolution are directly tested."
+    },
+    {
+      "card_id": 90004330,
+      "coverage": "exact",
+      "implemented_text": "对随机1个敌方随从和敌方主战者各造成5点伤害。",
+      "rule_version": 1,
+      "source_text_sha256": "6d7dc2ea7e15a0d53b62ca97fd1fe43ee4f4fd577b52e3820e42a7e6ddd73140",
+      "test_evidence": ["tests/test_real_generated_burst_spell_batch.py"],
+      "notes": "The real hand producer, seeded random follower damage, lethal stabilization, leader damage, and empty-enemy-board continuation are tested."
+    },
+    {
+      "card_id": 10824110,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】召唤1个同名随从；【协作_20】对敌方主战者造成4点伤害。【突进】【进化时】将亡命者的枪击加入手牌。",
+      "rule_version": 1,
+      "source_text_sha256": "9498a685b03e8762ce89d5eb39820ce87499ab5be05ebf51ef6c26d26d472213",
+      "test_evidence": ["tests/test_real_generated_burst_spell_batch.py"],
+      "notes": "Self-summon cooperation ordering, threshold damage, full-board summon failure, intrinsic Rush, and the evolution producer are tested."
+    },
+    {
+      "card_id": 90024330,
+      "coverage": "exact",
+      "implemented_text": "发动2次：对随机1个敌方随从造成4点伤害。",
+      "rule_version": 1,
+      "source_text_sha256": "8ee84d0e4eacb74d7a6b59cb5c69a1f3b4c2edc788042a50fac17d1bf0ec5e20",
+      "test_evidence": ["tests/test_real_generated_burst_spell_batch.py"],
+      "notes": "The real evolution producer and two independently sampled, state-stabilized random damage resolutions are tested."
+    },
+    {
+      "card_id": 10654120,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】【唤灵_4】本随从进化；本随从进化时，将天眼深渊加入手牌。",
+      "rule_version": 1,
+      "source_text_sha256": "e9c0b41c8031ebdd745f745f0f9690bf8840f3eafda3126d96bcd7cc850f5fbc",
+      "test_evidence": ["tests/test_real_generated_burst_spell_batch.py"],
+      "notes": "Necromancy success and shortage paths, effect evolution, shadow spending, evolution-trigger ordering, and the generated spell are tested."
+    },
+    {
+      "card_id": 90054330,
+      "coverage": "exact",
+      "implemented_text": "抽取2张卡牌。",
+      "rule_version": 1,
+      "source_text_sha256": "b19dd5e5718f692fb1413eff1bf9d6eafc40bce626a4cb13da5cd7c079c003db",
+      "test_evidence": ["tests/test_real_generated_burst_spell_batch.py"],
+      "notes": "Its real evolution producer and executable two-card draw are directly tested."
+    },
+    {
+      "card_id": 10314120,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】选择1个敌方随从，使其-0/-6；【进化时】将绝命的痛击加入手牌。",
+      "rule_version": 1,
+      "source_text_sha256": "bda0d5939bd7bc554f1e9dad6720c08d4e26c9e72c547ef1c96d94d7d45d5242",
+      "test_evidence": ["tests/test_real_generated_burst_spell_batch.py"],
+      "notes": "Selected health reduction, state-based death, evolution production, and source-board identity for the generated spell are tested."
+    },
+    {
+      "card_id": 90014320,
+      "coverage": "exact",
+      "implemented_text": "在手牌中，自己的回合结束时费用-1；对敌方主战者造成6点伤害，若己方战场有绝命的显现·艾斯迪亚则改为20点。",
+      "rule_version": 1,
+      "source_text_sha256": "408c462fbcebefcdfa6d284cf0730e433c6309c4afac5ee114e85e63899e04c6",
+      "test_evidence": ["tests/test_real_generated_burst_spell_batch.py"],
+      "notes": "The real producer, own-turn hand listener, opponent-turn non-trigger, permanent cost reduction, and both 6/20 damage branches are tested."
+    },
+    {
+      "card_id": 10834110,
+      "coverage": "exact",
+      "implemented_text": "X起始为0且每次魔力增幅使X+1；【入场曲】X至少为10时加入苍奏之四，至少为20时再加入宏大的回归。【疾驰】",
+      "rule_version": 1,
+      "source_text_sha256": "3cfa73a9e12a75d8711b089b28a466e5bb8e9656ba211600545886c17b8d6434",
+      "test_evidence": ["tests/test_real_generated_burst_spell_batch.py"],
+      "notes": "The immutable play-time Spellboost value, 9/10/19/20 thresholds, both generated cards, and intrinsic Storm are tested."
+    },
+    {
+      "card_id": 90034340,
+      "coverage": "exact",
+      "implemented_text": "对所有敌方随从造成5点伤害。",
+      "rule_version": 1,
+      "source_text_sha256": "da2047c1114ad05dde91d34925b5edb8499d4355fb705648b00e587977844bdb",
+      "test_evidence": ["tests/test_real_generated_burst_spell_batch.py"],
+      "notes": "Its real threshold producer and simultaneous all-enemy damage with lethal and surviving targets are tested."
+    },
+    {
+      "card_id": 90034350,
+      "coverage": "exact",
+      "implemented_text": "选择1个己方随从，使其获得每回合可以攻击2次。",
+      "rule_version": 1,
+      "source_text_sha256": "10566adb565e5c730051dd5e3583193b4b64ad067a767a7b739b0c01be328e3d",
+      "test_evidence": ["tests/test_real_generated_burst_spell_batch.py"],
+      "notes": "Its real threshold producer, required own target, atomic no-target rejection, attack-capacity grant, and RL choice-mask parity are tested."
+    },
+    {
+      "card_id": 10114120,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】使手牌中所有费用2以下的精灵卡变身为蔷薇之闪击。【守护】每回合可以攻击2次。",
+      "rule_version": 1,
+      "source_text_sha256": "0a49dbe5d679a43854e226204d998208b4da6f2aff95416375d984bee75e26f3",
+      "test_evidence": ["tests/test_real_generated_burst_spell_batch.py"],
+      "notes": "Printed class/cost hand filtering, all-card-type hand transformation, stable identity, modifier reset, Ward, static attack capacity, and ability removal are tested."
+    },
+    {
+      "card_id": 90014310,
+      "coverage": "exact",
+      "implemented_text": "选择1个敌方随从或敌方主战者，对其造成3点伤害。",
+      "rule_version": 1,
+      "source_text_sha256": "4dd04ef5953b94879278d179ba16ce47cd85f7987dd39ce8b430ad67ddc8cc88",
+      "test_evidence": ["tests/test_real_generated_burst_spell_batch.py"],
+      "notes": "The real hand-transform producer and both centralized follower/leader target classes are directly exercised."
+    },
+    {
+      "card_id": 10874120,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】将解析的创造物加入手牌；【进化时】选择1个己方进化前的其他随从，使其进化。",
+      "rule_version": 1,
+      "source_text_sha256": "67300e982e599559b187afce4674c54bdb725a3edeb7003e22bbddecd1a72e2d",
+      "test_evidence": ["tests/test_real_generated_entry_listener_batch.py"],
+      "notes": "The real hand producer, generated follower entry draw, exact source exclusion, evolved-target filtering, effect evolution, and no-candidate evolution are tested."
+    },
+    {
+      "card_id": 10773110,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】召唤解析的创造物；【爆能强化_5】再召唤神秘的创造物；自己的创造物随从进入战场时，使其获得突进。",
+      "rule_version": 1,
+      "source_text_sha256": "0729a062e58bfe4b65f490e4b1cd5b9dfff0eeb5cdaa2d5582bf1510a1803d02",
+      "test_evidence": ["tests/test_real_generated_entry_listener_batch.py"],
+      "notes": "Normal/Enhance outputs, Artifact trait filtering, non-intrinsic Rush exclusion, ordered entry draw, board shortage, and RL Enhance-mask parity are tested."
+    },
+    {
+      "card_id": 90071130,
+      "coverage": "exact",
+      "implemented_text": "本随从进入战场时，抽取1张卡牌。",
+      "rule_version": 1,
+      "source_text_sha256": "12ea140ffd423deafdf28dab0d6d348160d3e1df0ed3cc75caa4b374df28b9d6",
+      "test_evidence": ["tests/test_real_generated_entry_listener_batch.py"],
+      "notes": "Two real producers plus the self-related board entry listener are tested for both hand play and effect summon."
+    },
+    {
+      "card_id": 10272110,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】选择手牌中的1张人偶随从，使其变身为屠戮人偶。【毁灭】",
+      "rule_version": 1,
+      "source_text_sha256": "950a6dd1f99569c7ce648fc3fc6e811228a8603ea3aa44418296c06bb6ae34b5",
+      "test_evidence": ["tests/test_real_generated_entry_listener_batch.py"],
+      "notes": "Selected Puppet hand filtering, stable-identity transformation, no-candidate continuation, intrinsic Bane, and the generated Last Words return chain are tested."
+    },
+    {
+      "card_id": 90072130,
+      "coverage": "exact",
+      "implemented_text": "【潜行】【谢幕曲】召唤1个心灵屠戮者·菲亚。",
+      "rule_version": 1,
+      "source_text_sha256": "d2292474b71a9be06a903f08368c98b491203c0d7394559e76ed1546fce82faa",
+      "test_evidence": ["tests/test_real_generated_entry_listener_batch.py"],
+      "notes": "Its real hand-transform producer, intrinsic Ambush, death lifecycle, and executable collectible-card return summon are tested."
+    },
+    {
+      "card_id": 10264120,
+      "coverage": "exact",
+      "implemented_text": "【守护】【谢幕曲】召唤2个圣骑兵；【进化时】获得纹章：呜咽的圣骑士·维尔伯特；拥有守护的己方随从进入战场时，使其+1/+2。",
+      "rule_version": 1,
+      "source_text_sha256": "8847ee69d01cf4d3ef07217af3d15c72ebcf3ef015d8131c11dcc9c3e2ac1b40",
+      "test_evidence": ["tests/test_real_generated_entry_listener_batch.py"],
+      "notes": "Intrinsic Ward, persistent crest acquisition, leader-area Ward filtering, Last Words dual summon, per-entry buffs, non-Ward exclusion, and board shortage are tested."
+    },
+    {
+      "card_id": 90064110,
+      "coverage": "exact",
+      "implemented_text": "【守护】",
+      "rule_version": 1,
+      "source_text_sha256": "fd22b46c04522f13395a9cb2a5444e83007a05cf6121d94ba170126602ed58c5",
+      "test_evidence": ["tests/test_real_generated_entry_listener_batch.py"],
+      "notes": "Intrinsic Ward, its real two-copy Last Words producer, base stats, crest-buffed stats, and capacity-shortage production are directly tested."
+    },
+    {
+      "card_id": 10814120,
+      "coverage": "exact",
+      "implemented_text": "【爆能强化_4】使己方所有随从+1/+1。【突进】本随从的攻击力或生命值在战场上增加时，自己的每回合限1次，将冰晶剑士·伊芙加入手牌。",
+      "rule_version": 1,
+      "source_text_sha256": "b4b579354c1c14e4d63add1f09dff4ed747e799e024638978a242062d32f9444",
+      "test_evidence": ["tests/test_real_generated_spellboost_growth_batch.py"],
+      "notes": "Enhance-wide buffs, self-related positive stat-increase events, evolution/debuff exclusion, own-turn once-per-turn reset, ability removal, intrinsic Rush, and the real Eve producer are tested."
+    },
+    {
+      "card_id": 90014110,
+      "coverage": "exact",
+      "implemented_text": "【疾驰】【守护】",
+      "rule_version": 1,
+      "source_text_sha256": "aa52b7161a6c63106daab4129b5846597d52b722f34aad71e5973667f1f3affa",
+      "test_evidence": ["tests/test_real_generated_spellboost_growth_batch.py"],
+      "notes": "Both intrinsic keywords and its executable once-per-turn producer are exercised end to end."
+    },
+    {
+      "card_id": 10232110,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】召唤2个洋葱军团兵。【进化时】获得纹章：否定的咏唱·芭赛特；自己的回合开始时召唤1个洋葱军团兵。",
+      "rule_version": 1,
+      "source_text_sha256": "f9f0b155ded66e9d8d1702aeaf4154495c4297fa51f4e56aa8ac84d6feb71c7d",
+      "test_evidence": ["tests/test_real_generated_spellboost_growth_batch.py"],
+      "notes": "Ordered dual summon, board-capacity shortage, evolution crest acquisition, owner-turn start production, and full-board failure are tested."
+    },
+    {
+      "card_id": 90032110,
+      "coverage": "exact",
+      "implemented_text": "【突进】【攻击时】使自己的所有手牌发动1次魔力增幅。",
+      "rule_version": 1,
+      "source_text_sha256": "225926651cbb723e29109208bf7b14056dd05465a196358f4ca7d626449ea933",
+      "test_evidence": ["tests/test_real_generated_spellboost_growth_batch.py"],
+      "notes": "Both fanfare and recurring crest producers, intrinsic Rush, legal same-turn follower attack, and all-hand Spellboost are tested."
+    },
+    {
+      "card_id": 10133310,
+      "coverage": "exact",
+      "implemented_text": "X起始为0；本卡每次魔力增幅使X+1，X至少为5时变身为有所成长了！；使用时抽取2张卡牌。",
+      "rule_version": 1,
+      "source_text_sha256": "558ee927becae510471e229c7b485012a8ee17d0388d50a0b84ea6023d13ae87",
+      "test_evidence": ["tests/test_real_generated_spellboost_growth_batch.py"],
+      "notes": "Counts 1 through 4, exact fifth-Spellboost transformation, self-related hand listener, stable entity identity, modifier reset, no repeat transformation, and base draw are tested."
+    },
+    {
+      "card_id": 90033310,
+      "coverage": "exact",
+      "implemented_text": "抽取2张卡牌；对随机1个敌方随从造成2点伤害。",
+      "rule_version": 1,
+      "source_text_sha256": "e2748181f7691bdefe9f1611800f020ee44da0748056eb7e27d1d676854c6575",
+      "test_evidence": ["tests/test_real_generated_spellboost_growth_batch.py"],
+      "notes": "Its real hand-transformation producer, two-card draw, random damage, and empty-enemy-board continuation are tested."
+    },
+    {
+      "card_id": 10344120,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】获得纹章：烈绝的显现·嘉尔缪；【爆能强化_7】获得疾驰；本随从受到伤害且没被破坏时，自己的每回合限1次，对随机1个敌方随从造成3点伤害；纹章在己方随从受伤存活时每个己方回合限1次加入烈绝的灭牙。",
+      "rule_version": 1,
+      "source_text_sha256": "02c75f4a0c9747489ff4ae5282aafd380db637ff6fe3c9cb052e45872d0a014e",
+      "test_evidence": ["tests/test_real_generated_damage_countdown_batch.py"],
+      "notes": "Enhance Storm, crest gain, self versus other survivor relation, independent once-per-turn sources, lethal and opponent-turn exclusions, event metadata, and the generated all-board spell are tested."
+    },
+    {
+      "card_id": 90044320,
+      "coverage": "exact",
+      "implemented_text": "对战场上的所有随从造成1点伤害。",
+      "rule_version": 1,
+      "source_text_sha256": "014bd0aa67c48094be95aab6b9064c04d2c438a2c83517f96ad83b0dad08803c",
+      "test_evidence": ["tests/test_real_generated_damage_countdown_batch.py"],
+      "notes": "Both real survivor-trigger producers and simultaneous own/enemy follower damage with surviving listeners are exercised."
+    },
+    {
+      "card_id": 10434120,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】使土之印+2并将伟大之术加入手牌；【奥义】本随从进化；【解放奥义】获得纹章：天才美少女炼金术士·卡莉奥丝特罗；自己的回合开始时，土之秘术_1将伟大之术加入手牌。",
+      "rule_version": 1,
+      "source_text_sha256": "5107cc463a5ff6fec38fdaac05a7e780ba7403a805d2715853004073e30ff036",
+      "test_evidence": ["tests/test_real_generated_damage_countdown_batch.py"],
+      "notes": "Gauge 9/10/15 boundaries, additive Union and Liberation Burst resolution, effect evolution, crest acquisition, Earth Rite success/shortage, and repeated real spell production are tested."
+    },
+    {
+      "card_id": 90034320,
+      "coverage": "exact",
+      "implemented_text": "选择1个敌方随从或敌方主战者，对其造成2点伤害；回复己方主战者1点生命值。",
+      "rule_version": 1,
+      "source_text_sha256": "3e2a4e2725fd530bac7d8caadbe5416de30e8cc6f272a60ccf4cb60ed261e670",
+      "test_evidence": ["tests/test_real_generated_damage_countdown_batch.py"],
+      "notes": "Fanfare and crest producers plus follower/leader target branches and post-damage healing are directly tested."
+    },
+    {
+      "card_id": 10764110,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】召唤月影指环；【进化时】使随机1张己方月影指环的倒计数+1。",
+      "rule_version": 1,
+      "source_text_sha256": "c653df9a1d602fb409b01d64f5645d8f5b3d7c3b748eda1a990c910750d121e3",
+      "test_evidence": ["tests/test_real_generated_damage_countdown_batch.py"],
+      "notes": "Real amulet summon, exact-card random filtering, positive Countdown event metadata, unrelated-amulet exclusion, full-board failure, and safe no-target evolution are tested."
+    },
+    {
+      "card_id": 90064210,
+      "coverage": "exact",
+      "implemented_text": "【吟唱_1】【灵气】己方回合结束时，若己方战场上的护符至少为3张，则对所有敌方随从和敌方主战者造成3点伤害。",
+      "rule_version": 1,
+      "source_text_sha256": "1a76774b368b49782668d83504e101eba2f28fe777f77fdaf2355a4edf512133",
+      "test_evidence": ["tests/test_real_generated_damage_countdown_batch.py"],
+      "notes": "Its real summon producer, Countdown increase, Aura targeting exclusion, 2/3-amulet boundary, all-follower damage, and leader damage are tested."
+    },
+    {
+      "card_id": 10244110,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】若为觉醒，则将银冰吐息加入手牌。【毁灭】【进化时】对所有敌方随从造成1点伤害。",
+      "rule_version": 1,
+      "source_text_sha256": "2438f2a33579a4cc61f767064e847ce74c0e7292cd48139a8102783ee7e90910",
+      "test_evidence": ["tests/test_real_generated_hidden_copy_discard_batch.py"],
+      "notes": "Overflow 6/7 boundaries, intrinsic Bane, exact hidden spell production, and all-enemy evolution damage are directly tested."
+    },
+    {
+      "card_id": 90044310,
+      "coverage": "exact",
+      "implemented_text": "【模式】选择破坏所有受伤的敌方随从，或使对手现有的所有手牌费用+1直到对手回合结束。",
+      "rule_version": 1,
+      "source_text_sha256": "d98548a36e8b78c25df0c743bd6d9cdaecda932965647d613214fd18aeb471ce",
+      "test_evidence": ["tests/test_real_generated_hidden_copy_discard_batch.py"],
+      "notes": "The real Overflow producer, both choices, damaged filtering, opponent hidden-hand mutation, and exact expiration boundary are tested."
+    },
+    {
+      "card_id": 10644120,
+      "coverage": "exact",
+      "implemented_text": "本卡被舍弃时召唤古旧天刀·波菈莱。【毁灭】【进化时】将1张天刀深渊加入手牌；【超进化时】改为3张。",
+      "rule_version": 1,
+      "source_text_sha256": "537b8a4c886a417e8e876c5e2499f53939ea0005cdb46c8fb99c0f7062cfde04",
+      "test_evidence": ["tests/test_real_generated_hidden_copy_discard_batch.py"],
+      "notes": "Post-zone discard triggering, stable discard identity, full-board failure, intrinsic Bane, and normal versus super evolution replacement counts are tested."
+    },
+    {
+      "card_id": 90044330,
+      "coverage": "exact",
+      "implemented_text": "本卡被舍弃时，对敌方主战者造成1点伤害并回复己方主战者1点生命；使用时发动相同效果。",
+      "rule_version": 1,
+      "source_text_sha256": "ef8b99f1c0fe7e4111b1ccecc5076f35b144f549fe587d5b662a17929c767996",
+      "test_evidence": ["tests/test_real_generated_hidden_copy_discard_batch.py"],
+      "notes": "Its real evolution producers and both play/discard execution paths are directly tested."
+    },
+    {
+      "card_id": 10573310,
+      "coverage": "exact",
+      "implemented_text": "选择战场上的1张卡牌，使其变身为伊鞠的小鬼。",
+      "rule_version": 1,
+      "source_text_sha256": "a8c80be2808eb2a16efe708fba8d86f38f9635fd585545842eb53369d6f7c92d",
+      "test_evidence": ["tests/test_real_generated_hidden_copy_discard_batch.py"],
+      "notes": "Required any-board targeting, illegal no-target atomicity, amulet-to-follower replacement, stable entity identity, and auditable transform metadata are tested."
+    },
+    {
+      "card_id": 90074140,
+      "coverage": "exact",
+      "implemented_text": "【突进】",
+      "rule_version": 1,
+      "source_text_sha256": "7abde1fa8f2c436a6805d99abe026718965b9776b4b5a2dffe05f57cd5b2776f",
+      "test_evidence": ["tests/test_real_generated_hidden_copy_discard_batch.py"],
+      "notes": "Its real transform producer, printed stats, intrinsic Rush, stable board identity, and transformed origin are exercised end to end."
+    },
+    {
+      "card_id": 10674120,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】若己方战场上有原始费用至少为5的随从，则将天斧深渊加入手牌。【突进】",
+      "rule_version": 1,
+      "source_text_sha256": "4fc858e9c92faf34a84a0202606d69102a76f3ac57ab4d2de9eba2b70b41a09f",
+      "test_evidence": ["tests/test_real_generated_hidden_copy_discard_batch.py"],
+      "notes": "The original-cost 5 boundary, no-candidate producer path, real spell production, and intrinsic Rush are directly tested."
+    },
+    {
+      "card_id": 90074320,
+      "coverage": "exact",
+      "implemented_text": "选择1个原始费用至少为5的己方随从，将1张同名复制品以非公开形式加入手牌并使复制品费用-3。",
+      "rule_version": 1,
+      "source_text_sha256": "bab9bb5cfc4c06662746e6993600123c38cd56a65943593d76a00238d4abf53d",
+      "test_evidence": ["tests/test_real_generated_hidden_copy_discard_batch.py"],
+      "notes": "The real producer, centralized original-cost filter, hidden copy metadata/logging, generated origin, exact cost modifier, and full-hand burn are tested."
+    },
+    {
+      "card_id": 10174120,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】召唤1个洛伊德；自己的 人偶·随从进入战场时，使其获得【疾驰】和【必杀】；【超进化时】召唤2个改良型·悬丝傀儡。",
+      "rule_version": 1,
+      "source_text_sha256": "546af1a901720d730671111f37e53d9799e263842c42a1ee5ffec056c67ee0c4",
+      "test_evidence": ["tests/test_real_generated_forced_target_strike_batch.py"],
+      "notes": "Fanfare production, Puppetry trait listener filtering, non-intrinsic Storm/Bane exclusion, same-turn attack readiness, ordered two-copy Super-Evolve production, and board capacity are tested."
+    },
+    {
+      "card_id": 10274110,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】召唤1个维多利亚；自己的 人偶·随从进入战场时，使其获得【守护】；【进化时】召唤1个改良型·悬丝傀儡。",
+      "rule_version": 1,
+      "source_text_sha256": "b2343c2ec75fc900c4b3965022f5dd55c8b977abb7352a8dfa8a1d48b0f5cd15",
+      "test_evidence": ["tests/test_real_generated_forced_target_strike_batch.py"],
+      "notes": "Fanfare/evolution production, Puppetry trait filtering, non-intrinsic Ward exclusion, and Ward grants to both Victoria and Enhanced Puppet are tested."
+    },
+    {
+      "card_id": 10273310,
+      "coverage": "exact",
+      "implemented_text": "依次召唤1个洛伊德和1个维多利亚。",
+      "rule_version": 1,
+      "source_text_sha256": "15c9f048455f622f215ea5c5dca41fe43e6505a8fc7d2cd02ad254f0cc03733c",
+      "test_evidence": ["tests/test_real_generated_forced_target_strike_batch.py"],
+      "notes": "Both executable token outputs, their intrinsic/static behavior, deterministic summon order, and one-slot board shortage are tested."
+    },
+    {
+      "card_id": 10173120,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】【模式】选择抽取2张卡牌或回复己方主战者4点生命；【进化时】选择并破坏1个敌方随从；【超进化时】额外依次选择并破坏第2个。",
+      "rule_version": 1,
+      "source_text_sha256": "48c6935b42047f3da6479b06c881139c4bd30b13e5c49ddb7596bd7b3662f4bc",
+      "test_evidence": ["tests/test_real_generated_forced_target_strike_batch.py"],
+      "notes": "Both Mode shapes, evolution target selection, evolve-before-super-evolve ordering, and the official Lloyd-then-Orchis target revalidation sequence are tested."
+    },
+    {
+      "card_id": 90074120,
+      "coverage": "exact",
+      "implemented_text": "【守护】对手以能力手动选择己方战场目标时只能选择本卡牌。",
+      "rule_version": 1,
+      "source_text_sha256": "25c5da3e44af5d48f6759bed8ebaf8a3099524c64aa98498d987ae27b66083be",
+      "test_evidence": ["tests/test_real_generated_forced_target_strike_batch.py"],
+      "notes": "Both real producers, intrinsic Ward, enemy unit/leader and mixed candidate forcing, random/all exclusions, filters, multiple Lloyds, ability removal, leaving play, and the official Sylvia FAQ sequence are tested."
+    },
+    {
+      "card_id": 90074130,
+      "coverage": "exact",
+      "implemented_text": "【突进】【攻击时】若攻击随从，则在交战前对该随从造成等同于本随从当前攻击力的伤害。",
+      "rule_version": 1,
+      "source_text_sha256": "a5ab4669f437aca69d5515fcecb14b2595367bcb5f1003b4ef9fe72feadde29f",
+      "test_evidence": ["tests/test_real_generated_forced_target_strike_batch.py"],
+      "notes": "Both real producers, intrinsic Rush, stable attack-target context, current attack expression, pre-combat removal, surviving combat, and leader-attack exclusion are tested."
+    },
+    {
+      "card_id": 10624120,
+      "coverage": "exact",
+      "implemented_text": "信仰值起始为0；自己以【爆能强化】使用卡牌时信仰值+1。【入场曲】将1张『天剑深渊』加入手牌。【进化时】信仰值-5，使自己的信仰获得『自己以【爆能强化】使用卡牌时，使己方战场上的所有随从+1/+1』。",
+      "rule_version": 1,
+      "source_text_sha256": "99cea234b82589870a279861221aa332afc1fbeb6db8e02eb7de80468c8b7111",
+      "test_evidence": ["tests/test_real_generated_enhance_faith_shikigami_batch.py"],
+      "notes": "Faith initialization, verified Enhance-only growth, insufficient/exact payment, granted-ability stacking payload, real generated spell production, normal-mode exclusion, and allied-board buff resolution are directly tested."
+    },
+    {
+      "card_id": 90024320,
+      "coverage": "exact",
+      "implemented_text": "选择1个敌方随从，对其造成1点伤害。【爆能强化_1】改为造成3点伤害。",
+      "rule_version": 1,
+      "source_text_sha256": "77af6ca7705d3eb3bd234c37e2b4405ca97b29c4fdf3c115be6a8ac170492e28",
+      "test_evidence": ["tests/test_real_generated_enhance_faith_shikigami_batch.py"],
+      "notes": "Its real Yidmetra producer, required enemy targeting, normal/enhance replacement damage, no-target atomicity, and Enhance Faith event are tested end to end."
+    },
+    {
+      "card_id": 10134110,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】依次召唤『式神·天后』『式神·暴鬼』『式神·小纸人』。【爆能强化_10】破坏己方战场上的所有式神·随从，再召唤『式神·贵人』。【超进化时】选择1个己方式神·随从，使其获得【疾驰】。",
+      "rule_version": 1,
+      "source_text_sha256": "40b458a8cdb80930a186ad279df5d737794590dc33e03eb73ea251e5f9d511a3",
+      "test_evidence": ["tests/test_real_generated_enhance_faith_shikigami_batch.py"],
+      "notes": "Ordered base summons, board shortage, additive Enhance ordering, Shikigami-only simultaneous destruction, Last Words, Noble production, Super-Evolve filtering, no-target skipping, non-intrinsic Storm, and seeded replay are tested."
+    },
+    {
+      "card_id": 90034110,
+      "coverage": "exact",
+      "implemented_text": "【守护】【谢幕曲】使自己的所有手牌发动3次魔力增幅。",
+      "rule_version": 1,
+      "source_text_sha256": "a48c82626490d58eac57033a72b3edae6f513f8221deb9e44f2fb0a9794d47b2",
+      "test_evidence": ["tests/test_real_generated_enhance_faith_shikigami_batch.py"],
+      "notes": "Its real Kuon producer, intrinsic Ward, Enhance destruction record, printed stats, and three Spellboost Last Words are exercised directly."
+    },
+    {
+      "card_id": 90034120,
+      "coverage": "exact",
+      "implemented_text": "进入战场时，本随从+X/+Y；X/Y为本回合中被破坏的己方式神·随从的原始攻击力/生命值合计。【守护】【灵气】",
+      "rule_version": 1,
+      "source_text_sha256": "247d2107ae14446cef7fbc4e09e04322cad29cfaba5faea37dd5a0062c236dc3",
+      "test_evidence": ["tests/test_real_generated_enhance_faith_shikigami_batch.py"],
+      "notes": "Its real Kuon producer, self-entry listener, owner/current-turn/trait filtering, printed attack and health aggregation, prior-turn and opponent exclusions, board shortage, Ward, Aura, and deterministic replay are tested."
+    },
+    {
+      "card_id": 10113120,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】抽取2张卡牌。【进化时】按最早入场顺序向敌方随从分配X点伤害，X为结算时自己的手牌数。",
+      "rule_version": 1,
+      "source_text_sha256": "721d6ad795c04207e134eb384b060a9bf12b5ca115b66a4130799c4240ac2e27",
+      "test_evidence": ["tests/test_real_generated_distributed_damage_crest_batch.py"],
+      "notes": "Fanfare draw ordering, current hand-count evaluation, oldest-first health caps, and final-follower remainder behavior are directly tested."
+    },
+    {
+      "card_id": 10154130,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】按最早入场顺序向敌方随从分配7点伤害。【进化时】对双方主战者各造成3点伤害。",
+      "rule_version": 1,
+      "source_text_sha256": "27839cc83dba2c316f2b3a4e4794ada297f7e4423c5b1b6ab8159d8824e3686c",
+      "test_evidence": ["tests/test_real_generated_distributed_damage_crest_batch.py"],
+      "notes": "Distributed Fanfare damage and simultaneous all-leader evolution damage are directly exercised."
+    },
+    {
+      "card_id": 10324120,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】获得不可重复的倒数8纹章；每次使用财宝卡或一次融合中含财宝素材时倒数-1（一次融合多张只减1）；到期将『空绝的残光』加入手牌。【进化时】将『黄金短剑』『黄金项链』各1张加入手牌。",
+      "rule_version": 1,
+      "source_text_sha256": "a5b66cee06015986df92c03d0a325eb8ff11665ce73051a804bde3e9ef90310f",
+      "test_evidence": ["tests/test_real_generated_distributed_damage_crest_batch.py"],
+      "notes": "Official same-name crest non-duplication and multi-material fusion FAQ semantics, Treasure filters, countdown events, immediate expiration, both evolve outputs, and seeded replay are tested."
+    },
+    {
+      "card_id": 10363210,
+      "coverage": "exact",
+      "implemented_text": "【吟唱_4】【谢幕曲】按最早入场顺序向敌方随从分配4点伤害，余量给予敌方主战者；回复己方主战者4点生命。【启动】倒数-X，X为自己的纹章数（不含信仰）。",
+      "rule_version": 1,
+      "source_text_sha256": "fd74a641ffe6f63617a4e89047992330eddc3296170af670117403189c938a08",
+      "test_evidence": ["tests/test_real_generated_distributed_damage_crest_batch.py"],
+      "notes": "Dynamic emblem-count activation, zero-reaching destruction, distributed Last Words with leader remainder, and healing are directly tested."
+    },
+    {
+      "card_id": 10511310,
+      "coverage": "exact",
+      "implemented_text": "按最早入场顺序向敌方随从分配3点伤害；将1张『妖精』加入手牌。",
+      "rule_version": 1,
+      "source_text_sha256": "0810d42507753370e129117a9c5f18c2499ce5294b55c6cca0d6d6963dc4180b",
+      "test_evidence": ["tests/test_real_generated_distributed_damage_crest_batch.py"],
+      "notes": "Ordered distribution and the existing exact Fairy token production path are tested together."
+    },
+    {
+      "card_id": 10514120,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】【模式】选择：加入2张『妖精』、回复2点能量、或向敌方随从分配3点伤害。【进化时】再次进行同一模式选择。",
+      "rule_version": 1,
+      "source_text_sha256": "4dddc1f7ad882db73f05a2c7288b2636863edb7c6935bada6dec3a88c9371fec",
+      "test_evidence": ["tests/test_real_generated_distributed_damage_crest_batch.py"],
+      "notes": "All three Fanfare options and the repeated evolution choice/resumption path are directly tested."
+    },
+    {
+      "card_id": 10673110,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】召唤2个同名随从；自己的回合结束时及【进化时】各向敌方随从分配3点伤害。【激奏_4】改为召唤1个同名随从。",
+      "rule_version": 1,
+      "source_text_sha256": "3f3610e64dc8983ca2cef7c4f9870e5c5864370cef871bc7a17dffbaf62d2e05",
+      "test_evidence": ["tests/test_real_generated_distributed_damage_crest_batch.py"],
+      "notes": "Non-recursive effect summons, three independent turn-end triggers, evolution damage, Accelerate replacement/cost, and board output are directly tested."
+    },
+    {
+      "card_id": 10753310,
+      "coverage": "exact",
+      "implemented_text": "向敌方随从分配6点伤害。【唤灵_6】若可支付则消耗6墓场并对敌方主战者造成2点伤害。",
+      "rule_version": 1,
+      "source_text_sha256": "671cf9f554f3e924ca095e545b27de1f72c353c417c241a0e35e784b5a383398",
+      "test_evidence": ["tests/test_real_generated_distributed_damage_crest_batch.py"],
+      "notes": "Distributed damage plus both sufficient and insufficient Necromancy resource paths, including spell graveyard gain ordering, are tested."
+    },
+    {
+      "card_id": 90024310,
+      "coverage": "exact",
+      "implemented_text": "按最早入场顺序向敌方随从分配4点伤害，余量给予敌方主战者。",
+      "rule_version": 1,
+      "source_text_sha256": "4c6a54931490f57a6dd74ed8179fb84a5f0b833998437453360a9d96610db00d",
+      "test_evidence": ["tests/test_real_generated_distributed_damage_crest_batch.py"],
+      "notes": "Real Octrice crest expiration production, executable play, follower health caps, leader remainder, and no-follower leader path are covered."
+    },
+    {
+      "card_id": 10071110,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】将1张『未来核心』加入手牌。【突进】",
+      "rule_version": 1,
+      "source_text_sha256": "17fb0db76812382bfbf772f1fbd99a03358c3e37ecc72a8496d3413d7f173074",
+      "test_evidence": ["tests/test_real_portal_core_puppet_producer_batch.py"],
+      "notes": "The exact Future Core producer, generated origin, and intrinsic Rush are directly tested."
+    },
+    {
+      "card_id": 10071120,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】将1张『改良型·悬丝傀儡』加入手牌。",
+      "rule_version": 1,
+      "source_text_sha256": "6edafdb030760b86db36792de9c1fa0295aa18e9facc35e4bf8301fd29002b8f",
+      "test_evidence": ["tests/test_real_portal_core_puppet_producer_batch.py"],
+      "notes": "The real Improved Puppet hand-production path and token origin are directly tested."
+    },
+    {
+      "card_id": 10071310,
+      "coverage": "exact",
+      "implemented_text": "选择1个敌方随从并将其破坏；将『未来核心』『过往核心』各1张加入手牌。",
+      "rule_version": 1,
+      "source_text_sha256": "ae0443a9bd80fc0877a4ef456d84aa020155373e0374af49bc536f6cbaad1f2a",
+      "test_evidence": ["tests/test_real_portal_core_puppet_producer_batch.py"],
+      "notes": "Required-target atomicity, destruction, ordered dual-Core production, token origin, and illegal-command fingerprint preservation are tested."
+    },
+    {
+      "card_id": 10072110,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】将1张『过往核心』加入手牌。",
+      "rule_version": 1,
+      "source_text_sha256": "b7b12a02555f9c6b51aa4172ecb092e81c3fb7056550c1a92dab4ad2bb6133be",
+      "test_evidence": ["tests/test_real_portal_core_puppet_producer_batch.py"],
+      "notes": "The exact Past Core producer and generated origin are directly tested."
+    },
+    {
+      "card_id": 10072210,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】将1张『悬丝傀儡』加入手牌。【吟唱_2】自己的回合结束时，将1张『悬丝傀儡』加入手牌。",
+      "rule_version": 1,
+      "source_text_sha256": "0106f1578b29eb6ab694498db3e5f8f70a5a342520f8c001d0e64f6b645d9547",
+      "test_evidence": ["tests/test_real_portal_core_puppet_producer_batch.py"],
+      "notes": "Countdown initialization, play-time production, owner-only turn-end production, opponent-turn exclusion, and countdown progression are tested."
+    },
+    {
+      "card_id": 10171120,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】召唤1个『城堡创造物』。",
+      "rule_version": 1,
+      "source_text_sha256": "d1bb7e40cb1de446d45e68b6599f193fc95b573ccdf26657dc119216f3619e0e",
+      "test_evidence": ["tests/test_real_portal_core_puppet_producer_batch.py"],
+      "notes": "Successful generated summon, token origin, and full-board shortage continuation are directly tested."
+    },
+    {
+      "card_id": 10171130,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】将1张『未来核心』加入手牌。【进化时】选择1个敌方随从，对其造成3点伤害。",
+      "rule_version": 1,
+      "source_text_sha256": "7e90bc6ccfa831800feb12e85ba0dec81e2915bb09881afe2bc105df4b04e952",
+      "test_evidence": ["tests/test_real_portal_core_puppet_producer_batch.py"],
+      "notes": "Fanfare production, targeted evolution damage, pending choice, and legal no-target evolution skip are directly tested."
+    },
+    {
+      "card_id": 10172110,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】将『未来核心』『过往核心』各1张加入手牌。【进化时】召唤1个『攻击创造物』。",
+      "rule_version": 1,
+      "source_text_sha256": "e5724cc845a9ebfc9053b7bacad4eb870846aa1c80491ef7466d7bd465dd88a3",
+      "test_evidence": ["tests/test_real_portal_core_puppet_producer_batch.py"],
+      "notes": "Ordered dual-Core generation, evolution summon, and generated origins are tested end to end."
+    },
+    {
+      "card_id": 10172120,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】将1张『悬丝傀儡』加入手牌。【进化时】再次发动同一能力。",
+      "rule_version": 1,
+      "source_text_sha256": "b18fd6e8bfb464abf6e2864ffdbf9bacec342c44ff6c7836d251ca4bccc138a5",
+      "test_evidence": ["tests/test_real_portal_core_puppet_producer_batch.py"],
+      "notes": "Both the initial Fanfare and repeated evolution production are directly tested."
+    },
+    {
+      "card_id": 10173110,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】将『未来核心』『过往核心』各1张加入手牌。【进化时】再次发动同一能力。",
+      "rule_version": 1,
+      "source_text_sha256": "18c7a0f971807e28a9b153d02ba6839ef32a1edad5f87790046878505b493e35",
+      "test_evidence": ["tests/test_real_portal_core_puppet_producer_batch.py"],
+      "notes": "Fanfare and evolution each produce the ordered Core pair, with deterministic replay and token origins tested."
+    },
+    {
+      "card_id": 10171140,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】将1张『改良型·悬丝傀儡』加入手牌。己方人偶随从进入战场时，每回合限1次，使其获得【必杀】。",
+      "rule_version": 1,
+      "source_text_sha256": "5b61a6b0948f76c1769536d04e186da8dd99b2627df840af346a3ade5035a557",
+      "test_evidence": ["tests/test_real_portal_artifact_listener_followup_batch.py"],
+      "notes": "The real hand producer, non-intrinsic Bane, official simultaneous-Puppet first-only FAQ, per-turn reset, and event-source grant are directly tested."
+    },
+    {
+      "card_id": 10173210,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】将1张『未来核心』加入手牌。自己进行融合时，对随机1个敌方随从造成2点伤害。",
+      "rule_version": 1,
+      "source_text_sha256": "c548c014d4817cc1230a6d75ed6871e2f1936928f9a2cb37f7b04d1eb6c101f0",
+      "test_evidence": ["tests/test_real_portal_artifact_listener_followup_batch.py"],
+      "notes": "The persistent amulet producer and one activation for a multi-material Fusion event are tested without fabricating Countdown."
+    },
+    {
+      "card_id": 10271110,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】召唤1个『攻击创造物』并将1张『过往核心』加入手牌。【进化时】再次发动同一能力。",
+      "rule_version": 1,
+      "source_text_sha256": "426d0cc7ef29736e6ab98489b725bff8a335d96cbb6162caf1a618a4080a043c",
+      "test_evidence": ["tests/test_real_portal_artifact_listener_followup_batch.py"],
+      "notes": "Both Fanfare and evolution produce their ordered board/hand outputs with generated origins."
+    },
+    {
+      "card_id": 10371120,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】召唤1个『毁灭创造物γ』。【进化时】选择1个己方创造物随从，使其+3/+3。",
+      "rule_version": 1,
+      "source_text_sha256": "129a3e926da31a77aa22873cf6b6eb38329ba3340c2b8a512bea40ad0d3ffe9f",
+      "test_evidence": ["tests/test_real_portal_artifact_listener_followup_batch.py"],
+      "notes": "The real Gamma producer, Artifact-only evolution candidates, pending choice, and permanent stat gain are directly tested."
+    },
+    {
+      "card_id": 10372210,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】可选择1张己方其他场上卡；若选择则破坏之，随后抽2张卡。【谢幕曲】抽1张卡。",
+      "rule_version": 1,
+      "source_text_sha256": "328309fa3814fbc5e10e991bbb8536eaa8a45a921520a5652602f20a483479b4",
+      "test_evidence": ["tests/test_real_portal_artifact_listener_followup_batch.py"],
+      "notes": "No-candidate play, selected other-card destruction, source exclusion, two-card draw, and selected amulet Last Words draw ordering are tested."
+    },
+    {
+      "card_id": 10374110,
+      "coverage": "exact",
+      "implemented_text": "【守护】不会被能力破坏。【超进化时】先按己方其他场上卡数量对敌方主战者造成伤害，再破坏己方其他所有场上卡。",
+      "rule_version": 1,
+      "source_text_sha256": "222c350f27203309020880ce837dcbdaa00aa2e75bc9c1b0c21be19ad2ed667a",
+      "test_evidence": ["tests/test_real_portal_artifact_listener_followup_batch.py"],
+      "notes": "Intrinsic Ward, effect-destroy immunity registration, pre-destruction mixed-board count, leader damage, simultaneous other-card destruction, and source survival are tested."
+    },
+    {
+      "card_id": 10471130,
+      "coverage": "exact",
+      "implemented_text": "【谢幕曲】将1张『攻击创造物』加入手牌。",
+      "rule_version": 1,
+      "source_text_sha256": "e77af91ee743b9fcc291ec9dc1cced9387e2f203009f0a8c7f7ec8810980eece",
+      "test_evidence": ["tests/test_real_portal_artifact_listener_followup_batch.py"],
+      "notes": "A real destruction path, Last Words timing, executable Attack Artifact production, and Token origin are tested."
+    },
+    {
+      "card_id": 10571110,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】召唤『改良型·悬丝傀儡』『悬丝傀儡』各1个。【爆能强化_7】改为使本次成功召唤的这些随从获得【疾驰】。",
+      "rule_version": 1,
+      "source_text_sha256": "104bb4d43461fb06a7b698a2c9f6612a431badec9f780d4a2ced0518ac265552",
+      "test_evidence": ["tests/test_real_portal_artifact_listener_followup_batch.py"],
+      "notes": "Normal and Enhance output sets, non-intrinsic Storm, exact output bindings, source exclusion, and board-shortage success-only grants are tested."
+    },
+    {
+      "card_id": 10671120,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】召唤1个『毁灭创造物α』，使该随从获得【必杀】和【守护】。",
+      "rule_version": 1,
+      "source_text_sha256": "4c50d46978594d5b9a1d373da7d7df9a19b29d8341f7f7f39118426fb3b06733",
+      "test_evidence": ["tests/test_real_portal_artifact_listener_followup_batch.py"],
+      "notes": "Successful-output binding and both non-intrinsic keyword grants are tested without leaking them to the source."
+    },
+    {
+      "card_id": 10672310,
+      "coverage": "exact",
+      "implemented_text": "依次召唤『愚劣的兵器』『低劣的玩具』『拙劣的人偶』各1个，使每个成功召唤的随从+0/+1。",
+      "rule_version": 1,
+      "source_text_sha256": "a010ce1b32873bf58fc5ff798abd964395ae48ccdc3e76146f6f737200110455",
+      "test_evidence": ["tests/test_real_portal_artifact_listener_followup_batch.py"],
+      "notes": "Ordered three-card output bindings, permanent health buffs, complete output, and board-shortage partial success are directly tested."
+    },
+    {
+      "card_id": 10771120,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】召唤1个『炫酷舞者』；本局己方不同名创造物随从进入战场达到3种时改为召唤2个。【突进】",
+      "rule_version": 1,
+      "source_text_sha256": "a1a934e0cf87edfa40e821f5850075beb508daca5490c4e1f626db80274c24bd",
+      "test_evidence": ["tests/test_real_portal_artifact_entry_history_batch.py"],
+      "notes": "Different-name history, below/at-threshold output, intrinsic Rush, and board-shortage partial summon are directly tested."
+    },
+    {
+      "card_id": 10771310,
+      "coverage": "exact",
+      "implemented_text": "【模式】通常选择将『解析的创造物』或『古老的创造物』之一加入手牌；本局己方不同名创造物随从进入战场达到3种时发动全部模式。",
+      "rule_version": 1,
+      "source_text_sha256": "95d5fe03fe842fd35a41ffe4582cbef0c9efbf7ef0a0cc2438e879f873b7a4a2",
+      "test_evidence": ["tests/test_real_portal_artifact_entry_history_batch.py"],
+      "notes": "Below-threshold choice, atomic invalid choice, RL action-mask parity, and threshold all-mode resolution are directly tested."
+    },
+    {
+      "card_id": 10772120,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】可选择并破坏1个敌方随从；本局己方不同名创造物随从进入战场达到3种时，再依次召唤『古老的创造物』和『神秘的创造物』各1个。",
+      "rule_version": 1,
+      "source_text_sha256": "435f8fa1f2f2dc38dae69260883cab90bae896368289be8e09c49f0f62f9d8b4",
+      "test_evidence": ["tests/test_real_portal_artifact_entry_history_batch.py"],
+      "notes": "Selected destruction, no-target continuation, threshold summons, and board-space ordering are directly tested."
+    },
+    {
+      "card_id": 10773310,
+      "coverage": "exact",
+      "implemented_text": "对全部敌方随从造成X点伤害，X为本局己方进入战场的不同名创造物随从种类数；再对敌方主战者造成1点伤害。",
+      "rule_version": 1,
+      "source_text_sha256": "a37594eedb3286d59f47efe09a2d89759f8e4285043270ff79047d75ecc4f546",
+      "test_evidence": ["tests/test_real_portal_artifact_entry_history_batch.py"],
+      "notes": "Zero and nonzero dynamic counts, all-enemy damage, persistent match history, and leader damage are directly tested."
+    },
+    {
+      "card_id": 10774110,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】对全部敌方随从造成X点伤害，X为本局己方进入战场的不同名创造物随从种类数。【疾驰】【守护】",
+      "rule_version": 1,
+      "source_text_sha256": "c6fa4071b1171b4f7bba5c5d4c1de768eacbf733e7520dfcadc526d9897c2318",
+      "test_evidence": ["tests/test_real_portal_artifact_entry_history_batch.py"],
+      "notes": "Dynamic all-enemy Fanfare damage and both intrinsic combat keywords are directly tested."
+    },
+    {
+      "card_id": 10774120,
+      "coverage": "exact",
+      "implemented_text": "己方创造物随从进入战场时，对随机1个敌方随从造成3点伤害。【进化时】召唤『古老的创造物』。【超进化时】之后若本局己方不同名创造物随从入场达到3种，则本随从获得【疾驰】。",
+      "rule_version": 1,
+      "source_text_sha256": "737995cc8cffc09b3d67c68ab41fbc7c61084d4608ce1fa7f993b694bb2e6a7c",
+      "test_evidence": ["tests/test_real_portal_artifact_entry_history_batch.py"],
+      "notes": "Non-intrinsic Storm, every Artifact entry listener, evolve summon, listener damage, and post-evolve super-evolution threshold ordering are directly tested."
+    },
+    {
+      "card_id": 10873310,
+      "coverage": "exact",
+      "implemented_text": "必须选择1个敌方随从并对其造成6点伤害；本局己方不同名创造物随从进入战场达到3种时，回复1点进化点。",
+      "rule_version": 1,
+      "source_text_sha256": "dc7862d073a4e6e433324648fd15c2267c5a86263674d5bf898e40e55910b3d7",
+      "test_evidence": ["tests/test_real_portal_artifact_entry_history_batch.py"],
+      "notes": "Required-target legality and atomicity, selected damage, below/at-threshold EP recovery, and resource cap are directly tested."
+    },
+    {
+      "card_id": 10371110,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】本随从+X/+X，X为己方战场上其他卡牌数；随后同时破坏己方战场上的其他所有卡牌。【守护】",
+      "rule_version": 1,
+      "source_text_sha256": "055d03c29d5346d13245512afd5408e5f5c0985108ab53c82292fed7aeb96149",
+      "test_evidence": ["tests/test_real_portal_dynamic_evolution_batch.py"],
+      "notes": "Dynamic pre-destruction board count, follower and amulet destruction, empty-board behavior, and intrinsic Ward are directly tested."
+    },
+    {
+      "card_id": 10472110,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】【奥义】有其他未进化己方随从时，选择其中1个并使其与本随从进化。【交战时】对交战对手造成3点伤害。",
+      "rule_version": 1,
+      "source_text_sha256": "34e9c974b7523801f290b05a3a1f3ab18672cbb88d98f15c1c83c629ba4a397a",
+      "test_evidence": ["tests/test_real_portal_dynamic_evolution_batch.py"],
+      "notes": "Below-threshold and no-target Skybound Art behavior, selected double effect evolution without EP, and attacker/defender Clash targeting are directly tested."
+    },
+    {
+      "card_id": 10573110,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】回复X点能量，X为己方战场上的其他随从数。【突进】【谢幕曲】抽取2张卡牌。",
+      "rule_version": 1,
+      "source_text_sha256": "6ab32ddb59d04e66ffdd313921e6606760b924ab5668d5a9868d5768c5623ce8",
+      "test_evidence": ["tests/test_real_portal_dynamic_evolution_batch.py"],
+      "notes": "Filtered follower-only board count, amulet exclusion, intrinsic Rush, combat death, and two-card Last Words draw are directly tested."
+    },
+    {
+      "card_id": 10672110,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】召唤1个『拙劣的人偶』并使其与本随从进化。【激奏_3】召唤2个『拙劣的人偶』。",
+      "rule_version": 1,
+      "source_text_sha256": "6489f6974a77e03047796dee332476faa86f89adb627afa770803d13974279f3",
+      "test_evidence": ["tests/test_real_portal_dynamic_evolution_batch.py"],
+      "notes": "Normal self-copy output binding and double effect evolution, Accelerate spell-zone resolution, mode legality, and board-space shortage are directly tested."
+    },
+    {
+      "card_id": 10874110,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】可选择1个敌方随从并使其获得【守护】。【爆能强化_9】本随从进化并获得【疾驰】。【进化时】破坏随机2个拥有【守护】的敌方随从。",
+      "rule_version": 1,
+      "source_text_sha256": "37457fc0e3985c81b87787d588a56450e9d5023ef92f7ef6e841d26b25245ee4",
+      "test_evidence": ["tests/test_real_portal_dynamic_evolution_batch.py"],
+      "notes": "Non-intrinsic Ward and Storm provenance, optional no-target Fanfare, Enhance effect evolution, random Ward filtering, candidate shortage, seeded replay, and RL masks are directly tested."
+    },
+    {
+      "card_id": 10172130,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】将3张『悬丝傀儡』加入手牌。使己方手牌中的所有人偶随从+1/+0。",
+      "rule_version": 1,
+      "source_text_sha256": "2c2e09319d08af62e7cf23eb5de57050abcc8ac5f2e9f21b5442a112ecd74432",
+      "test_evidence": ["tests/test_real_hand_follower_buff_batch.py"],
+      "notes": "Ordered token generation, trait-filtered hand buffing, exclusion of non-Puppetry cards, and buff inheritance when a hand follower enters play are directly tested."
+    },
+    {
+      "card_id": 10343110,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】对所有随从造成3点伤害。己方回合结束时，若本随从的生命值为3以下，使己方手牌中的所有龙族随从+1/+1。",
+      "rule_version": 1,
+      "source_text_sha256": "256c97edb4ae0ac5c027f883cde93813987bb2d32dfa68bc9f205bd910e9d5e5",
+      "test_evidence": ["tests/test_real_hand_follower_buff_batch.py"],
+      "notes": "Simultaneous all-follower damage, the live source-health threshold, class-filtered hand buffs, and source-leaves-play behavior are directly tested."
+    },
+    {
+      "card_id": 10772310,
+      "coverage": "exact",
+      "implemented_text": "使己方战场上的所有随从+1/+0。若已解锁超进化，则使己方手牌中的所有随从+1/+0。",
+      "rule_version": 1,
+      "source_text_sha256": "0bdeb564f0b10662107dd180824f84d34d824b225d16c728d13f0b6b5b928675",
+      "test_evidence": ["tests/test_real_hand_follower_buff_batch.py"],
+      "notes": "Unconditional board buffs, locked and unlocked hand-buff branches, follower-only filtering, emitted hand-stat events, and seeded replay are directly tested."
+    },
+    {
+      "card_id": 10112210,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】将1张『妖精』加入手牌；【连击_3】再将1张『森林的奥秘』加入手牌。【启动】破坏本卡牌，选择1个己方随从并使其+1/+1。",
+      "rule_version": 1,
+      "source_text_sha256": "06a57556640cef59731b9793efa43e31924faf8ea2016888e4ed3e87c6523544",
+      "test_evidence": ["tests/test_real_selected_hand_stat_batch.py"],
+      "notes": "Below/at Combo threshold generation, exact Token order and origins, activation target legality, source destruction, selected buff continuation, and illegal-command atomicity are directly tested."
+    },
+    {
+      "card_id": 10521120,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】己方手牌中有至少2张法术时，本随从+1/+1并获得【守护】。【进化时】将1张『闪耀的金币』加入手牌。",
+      "rule_version": 1,
+      "source_text_sha256": "824afd414b4918b263b680a577993396b971783da7af984b666c1f813f103a11",
+      "test_evidence": ["tests/test_real_selected_hand_stat_batch.py"],
+      "notes": "Filtered hand-count threshold, non-spell exclusion, non-intrinsic Ward provenance, stat gain, and exact Glittering Gold evolution output are directly tested."
+    },
+    {
+      "card_id": 10741120,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】选择1个其他己方随从并使其+2/+2。【进化时】选择己方手牌中的1张随从并使其+2/+2。",
+      "rule_version": 1,
+      "source_text_sha256": "b440f19fcd5ae36673fc3fc18195bd2758ddc270b5be9805494670f6056460fa",
+      "test_evidence": ["tests/test_real_selected_hand_stat_batch.py"],
+      "notes": "Fanfare source exclusion, selected board buff, follower-only hand choice, play inheritance, deterministic replay, and RL evolve/choice masks are directly tested."
+    },
+    {
+      "card_id": 10853110,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】选择1个敌方随从并使其-0/-3。【进化时】选择己方手牌中的1张随从并使其+3/+0。",
+      "rule_version": 1,
+      "source_text_sha256": "86b144215e4269cbe80f1943f3af0c68761e8ecee93dc1d4c019cd9f3d1047b2",
+      "test_evidence": ["tests/test_real_selected_hand_stat_batch.py"],
+      "notes": "Optional no-enemy Fanfare, selected health reduction and state-based death, selected hand attack gain, and stale hand-target revalidation are directly tested."
+    },
+    {
+      "card_id": 10114130,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】本随从+X/+X。X为己方手牌中的妖精随从数量。【守护】【进化时】发动X次『对随机1个敌方随从造成1点伤害』。X为己方手牌中的妖精随从数量。",
+      "rule_version": 1,
+      "source_text_sha256": "cc87ebe3021b9bf7c92489e2a8ec381a35824cae355dc0ef697508d6475ee1af",
+      "test_evidence": ["tests/test_real_dynamic_repeat_batch.py"],
+      "notes": "Follower/trait-filtered hand count, intrinsic Ward, Fanfare stats, fixed-at-resolution repeat count, independently reselected seeded targets, between-hit stabilization, no-candidate behavior, and RL evolution execution are directly tested."
+    },
+    {
+      "card_id": 10313310,
+      "coverage": "exact",
+      "implemented_text": "发动X次『使随机1个敌方随从-0/-1』。X为己方【连击】。",
+      "rule_version": 1,
+      "source_text_sha256": "cb9fa176773cd99b2767bd4e89b74bd53c1ef370ee72eacfa2d957166524bd08",
+      "test_evidence": ["tests/test_real_dynamic_repeat_batch.py"],
+      "notes": "Zero and positive Combo counts, repeated reselection, per-iteration state-based death, empty-candidate continuation, and deterministic replay are directly tested."
+    },
+    {
+      "card_id": 10152210,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】使自己的墓场+2。【启动】破坏本卡牌。召唤2个『怨灵』。",
+      "rule_version": 1,
+      "source_text_sha256": "dd76afee6ce963358e89bbf3ef0973c1d6de1485ad17d424bc2b2b3dff743cf0",
+      "test_evidence": ["tests/test_real_shadow_gain_batch.py"],
+      "notes": "Explicit shadow gain and audit event, zero-cost activation, source destruction and its ordinary graveyard shadow, sequential board-capacity-aware Ghost summons, Token origin/Storm behavior, deterministic replay, and RL play/activation masks are directly tested."
+    },
+    {
+      "card_id": 10153120,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】使自己的墓场+2。【守护】【进化时】【唤灵_4】发动2次『对随机1个敌方随从造成2点伤害』。",
+      "rule_version": 1,
+      "source_text_sha256": "9576894dcc7a53dd32d1d50d25409f87772c4ef1d20a6fb9068f4adf924147ee",
+      "test_evidence": ["tests/test_real_shadow_gain_batch.py"],
+      "notes": "Fanfare shadow gain, intrinsic Ward, sufficient and insufficient Necromancy, single payment, sequential random damage, target death between hits, empty-candidate RNG behavior, deterministic replay, and RL evolution are directly tested."
+    },
+    {
+      "card_id": 10852310,
+      "coverage": "exact",
+      "implemented_text": "【模式】选择2个能力发动。（1）对对手主战者造成1点伤害。（2）回复自己主战者2点生命值。（3）对随机1个敌方随从造成3点伤害。（4）使自己的墓场+4。",
+      "rule_version": 1,
+      "source_text_sha256": "d60f335eebff188c3c72e355d6132a6c5253a1b05273d420947bc3cc6f7f3f7f",
+      "test_evidence": ["tests/test_real_multi_mode_batch.py"],
+      "notes": "Two distinct modes are collected before any selected ability resolves, then execute in printed mode order. All six pairs, duplicate rejection atomicity, no-enemy random mode behavior, spell graveyard shadow, seeded replay, and RL choice-mask/observation progress are directly tested."
+    },
+    {
+      "card_id": 10151140,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】发动【亡者召还_4】。",
+      "rule_version": 1,
+      "source_text_sha256": "c4e0d5569c42a80b886bfc984446bbc3b2e4d60c84d49623336f3db4444abaea",
+      "test_evidence": ["tests/test_real_existing_primitives_followup_batch.py"],
+      "notes": "Highest eligible destroyed-follower selection, over-cost exclusion, Reanimated origin, audit event, seeded tie replay, and full-state fingerprint equality are directly tested."
+    },
+    {
+      "card_id": 10652110,
+      "coverage": "exact",
+      "implemented_text": "【爆能强化_8】发动【亡者召还_9】。【守护】",
+      "rule_version": 1,
+      "source_text_sha256": "6a313926f9c1b12561c1c82d617497a4fc84eb85676db4cce1eade8a38f3b856",
+      "test_evidence": ["tests/test_real_existing_primitives_followup_batch.py"],
+      "notes": "Normal-mode nonactivation, Enhance 8 cost/action legality, Reanimate 9, intrinsic Ward, and RL special-mode mask execution are directly tested."
+    },
+    {
+      "card_id": 10352120,
+      "coverage": "exact",
+      "implemented_text": "【爆能强化_7】发动【亡者召还_5】和【亡者召还_3】。",
+      "rule_version": 1,
+      "source_text_sha256": "46b6fa11080a0ef5e18891f1193d614594b32aca9823358cfdf28b7745759f9a",
+      "test_evidence": ["tests/test_real_existing_primitives_followup_batch.py"],
+      "notes": "Ordered Reanimate 5 then Reanimate 3, distinct threshold candidates, Enhance execution, and the board-capacity boundary between summons are directly tested."
+    },
+    {
+      "card_id": 10113140,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】本随从+X/+0。X为自己的【连击】。【疾驰】",
+      "rule_version": 1,
+      "source_text_sha256": "b24184f852ab015ceaa19b6613e19f8695b5acfa62a6d095bc31efefbfb212b4",
+      "test_evidence": ["tests/test_real_existing_primitives_followup_batch.py"],
+      "notes": "Current Combo including the played card, dynamic self attack gain, printed-stat comparison, and intrinsic Storm are directly tested."
+    },
+    {
+      "card_id": 10501110,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】若战场上有其他原始费用为1的卡牌，则本随从+1/+1。",
+      "rule_version": 1,
+      "source_text_sha256": "122936da3a789b489fab16a025764d5da9dd8af8e2ed74f9a3d47fc1e4f968e0",
+      "test_evidence": ["tests/test_real_existing_primitives_followup_batch.py"],
+      "notes": "Source exclusion, printed-cost filtering, a nonmatching allied card, an opposing matching card, and both buff/no-buff branches are directly tested."
+    },
+    {
+      "card_id": 10253120,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】本随从+X/+0。X为自己的战场上的其他随从的张数。对自己的主战者造成2点伤害。【疾驰】",
+      "rule_version": 1,
+      "source_text_sha256": "95e4da1306400c9ba9157cf35f1ab87e5ec91ea354356ded8eecd556d7198199",
+      "test_evidence": ["tests/test_real_existing_primitives_followup_batch.py"],
+      "notes": "Dynamic allied-board count minus the live source, opponent exclusion, ordered self buff and leader damage, and intrinsic Storm are directly tested."
+    },
+    {
+      "card_id": 10761120,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】抽取2张护符。【进化时】对所有敌方随从造成X点伤害。X为自己手牌中的护符数量。",
+      "rule_version": 1,
+      "source_text_sha256": "a57384700b6e514122f96df283270e0d9969d6788549f25048273dc6802eb6b3",
+      "test_evidence": ["tests/test_real_existing_primitives_followup_batch.py"],
+      "notes": "Filtered two-amulet draw through mixed deck contents, post-draw hand composition, live filtered hand count, manual evolution, and all-enemy damage are directly tested."
+    },
+    {
+      "card_id": 10251110,
+      "coverage": "exact",
+      "implemented_text": "【毁灭】【进化时】选择2个敌方随从并破坏，对自己的主战者造成2点伤害。",
+      "rule_version": 1,
+      "source_text_sha256": "4580634f7028001ecb32cdf0f193222335c09e20eddabf5f6dc8cc08d4d5f9a2",
+      "test_evidence": ["tests/test_real_existing_primitives_followup_batch.py"],
+      "notes": "Intrinsic Bane, two distinct choices collected before destruction, unselected-target survival, empty-candidate self-damage continuation, and RL choice-mask progress are directly tested."
+    },
+    {
+      "card_id": 10233110,
+      "coverage": "exact",
+      "implemented_text": "【守护】【交战时】使自己的所有手牌发动1次魔力增幅。【进化时】抽取2张随从。",
+      "rule_version": 1,
+      "source_text_sha256": "e8a39384b85b98c1108e1047d414d8be7e397523fe40f935fae55bb504258aaa",
+      "test_evidence": ["tests/test_real_existing_primitives_followup_batch.py"],
+      "notes": "Intrinsic Ward, Clash before combat completion, all-card hand Spellboost, manual evolution, and filtered two-follower draw through mixed deck contents are directly tested."
+    },
+    {
+      "card_id": 10532120,
+      "coverage": "exact",
+      "implemented_text": "【魔力增幅时】本卡牌费用-1。【入场曲】抽取1张卡牌。【谢幕曲】使自己的所有手牌发动1次魔力增幅。",
+      "rule_version": 1,
+      "source_text_sha256": "3f0ab2832f42b2ee7f44d8ca89eb5040f88a95783ebf1e6fd525a4b571b032d6",
+      "test_evidence": ["tests/test_real_existing_primitives_followup_batch.py"],
+      "notes": "Per-Spellboost hand cost reduction, reduced-cost play, Fanfare draw, death stabilization, and Last Words Spellboost of both retained and newly drawn hand cards are directly tested."
+    },
+    {
+      "card_id": 10334120,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】使自己的牌组中的所有随从的费用-3。使自己的手牌中的随机1张法术变身为『绝尽的伪证』。回合结束前，使其费用变为0。",
+      "rule_version": 1,
+      "source_text_sha256": "c570136705a80bce9ea0ce38f7d91c22ca5686aee84dfb1ffce2e724a9f37c07",
+      "test_evidence": ["tests/test_real_deck_cost_transform_token_batch.py"],
+      "notes": "Every physical follower currently in deck receives a persistent -3 modifier; one seeded-random spell in hand transforms with a turn-scoped set-to-zero modifier. Empty spell candidates skip without consuming RNG, and deck modifiers survive draw with deterministic fingerprints."
+    },
+    {
+      "card_id": 90034310,
+      "coverage": "exact",
+      "implemented_text": "使自己的手牌中的所有随从的费用+1。破坏对手的战场上的所有随从。",
+      "rule_version": 1,
+      "source_text_sha256": "65e6b9ba2e5b79ed6611fbe68b455719fa74a91fca47714d9e0d553a5c12903d",
+      "test_evidence": ["tests/test_real_deck_cost_transform_token_batch.py"],
+      "notes": "All current allied hand followers receive a persistent +1 cost modifier before the complete enemy follower set is destroyed in one state-based batch; the executable transform producer is directly audited."
+    },
+    {
+      "card_id": 10364120,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】将1张『绝望的奔流』加入手牌。【进化时】使自己获得『纹章：绝望的显现·玛温』。自己的回合结束时，若本回合中自己的随从没有进行过攻击，则对对手的战场上的所有随从和对手的主战者分配X点伤害。X为自己的纹章数。",
+      "rule_version": 1,
+      "source_text_sha256": "459769cb5d49c35cdc03808b4beb8d82de628ff24b98e1f93a0f4ab35dcf3ec2",
+      "test_evidence": ["tests/test_real_attack_history_emblem_countdown_token_batch.py"],
+      "notes": "Fanfare production, evolution-only nonstacking crest gain, public per-turn follower-attack history, no-attack and attacked branches, attacker removal after declaration, dynamic crest count, oldest-first enemy distribution including leader overflow, illegal-command rollback, and RL observation exposure are directly tested."
+    },
+    {
+      "card_id": 90064310,
+      "coverage": "exact",
+      "implemented_text": "使对手的战场上的随机1个随从消失。使自己的所有具有倒数的纹章的倒计数+1。",
+      "rule_version": 1,
+      "source_text_sha256": "81413d0a6ed82a18dbc112cf8a1c129697522d38cb3f81d5aacf76b99b5ab48a",
+      "test_evidence": ["tests/test_real_attack_history_emblem_countdown_token_batch.py"],
+      "notes": "Seeded random enemy-follower banish precedes a snapshot-ordered +1 change to every allied countdown crest; permanent crests and opposing crests remain unchanged, empty enemy candidates consume no RNG, and the real executable producer is audited."
+    },
+    {
+      "card_id": 10634120,
+      "coverage": "exact",
+      "implemented_text": "在手牌中发动。自己的『天晶魔手』进入战场时，使本卡牌的费用-1。【入场曲】召唤2个『天晶魔手』，使其获得【疾驰】。【进化时】将1张『天晶深渊』加入手牌。信仰值起始为0。自己的『天晶魔手』进入战场时，信仰值+1。",
+      "rule_version": 1,
+      "source_text_sha256": "85de1285338b34160e1bd0734c4e33e491a66e0b76aa63e3e8dbc928af5ab0fa",
+      "test_evidence": ["tests/test_real_crystal_faith_random_distribution_batch.py"]
+    },
+    {
+      "card_id": 90034330,
+      "coverage": "exact",
+      "implemented_text": "召唤1个『天晶魔手』，使其+X/+X。回复自己的主战者Y点生命值。对对手的主战者造成Z点伤害。X/Y/Z的数值随机决定，合计为信仰值。",
+      "rule_version": 1,
+      "source_text_sha256": "580741ff3e5a4ef58b5b10d0e3e569d149954d6ff0cdbc67f8cfde160a99d686",
+      "test_evidence": ["tests/test_real_crystal_faith_random_distribution_batch.py"]
+    },
+    {
+      "card_id": 10304110,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】将1张『绝大的证明』加入手牌。【进化时】使自己获得『纹章：绝大的显现·麦哲佩恩』。获得该纹章时，将自己的牌组替换为除本卡外的第3弹全部76张卡各1张并洗牌，将空牌组抽牌结果改为胜利。自己的回合结束时，舍弃手牌中所有非『绝大的证明』卡牌，抽取6张卡牌。",
+      "rule_version": 1,
+      "source_text_sha256": "56d5e1874aad0ece9dfc8ec8e5aa0083ed2143ab3a660658565db7d351390bb6",
+      "test_evidence": ["tests/test_real_mjerrabaine_deck_batch.py"],
+      "notes": "The official card page and glossary define crest acquisition, replacement, turn-end discard/draw, and the Victory Card empty-draw result. The imported 10003 set contains exactly 77 cards, so the special deck is audited as the other 76 distinct cards and shuffled only by the engine RNG."
+    },
+    {
+      "card_id": 90004320,
+      "coverage": "exact",
+      "implemented_text": "选择对手战场上的1个随从，破坏该随从。",
+      "rule_version": 1,
+      "source_text_sha256": "66ec49c21c8e25e6493b951661ca2eac60463d34540a24c76b935050158a13da",
+      "test_evidence": ["tests/test_real_mjerrabaine_deck_batch.py"],
+      "notes": "Play is prohibited without an enemy follower; selected targets are revalidated before destruction, and the exact executable producer is Mjerrabaine's Fanfare."
+    },
+    {
+      "card_id": 10131320,
+      "coverage": "exact",
+      "implemented_text": "X起始为2。【魔力增幅时】使本卡牌的X+1。选择对手战场上的1个随从，对其造成X点伤害。",
+      "rule_version": 1,
+      "source_text_sha256": "54d450622e6601e336272504847b151912ec6ddf159997339bb2c9c585df57b3",
+      "test_evidence": ["tests/test_real_spellboost_recycle_listener_batch.py"],
+      "notes": "Damage uses the source hand card's frozen Spellboost count; zero legal followers prohibits play atomically, and RL masks share the same target requirement."
+    },
+    {
+      "card_id": 10831310,
+      "coverage": "exact",
+      "implemented_text": "X起始为2。【魔力增幅时】使本卡牌的X+1。选择对手战场上的1个随从，对其造成X点伤害。",
+      "rule_version": 1,
+      "source_text_sha256": "54d450622e6601e336272504847b151912ec6ddf159997339bb2c9c585df57b3",
+      "test_evidence": ["tests/test_real_spellboost_recycle_listener_batch.py"],
+      "notes": "The Chronicle reprint has the same imported clause and independently maps to the frozen source-Spellboost expression with required-target behavior."
+    },
+    {
+      "card_id": 10341110,
+      "coverage": "exact",
+      "implemented_text": "本随从受到伤害且没被破坏时，若为自己的回合，则抽取1张龙族·随从。",
+      "rule_version": 1,
+      "source_text_sha256": "f75cde2c3a37578ccfb445c92df434dd2fa1b6ab8db353c528d4e9ad4cc695d0",
+      "test_evidence": ["tests/test_real_spellboost_recycle_listener_batch.py"],
+      "notes": "A self-related board listener fires for every positive survived-damage event only during its controller's turn and performs a Dragoncraft-follower filtered draw; lethal and opponent-turn paths are directly tested."
+    },
+    {
+      "card_id": 10551310,
+      "coverage": "exact",
+      "implemented_text": "选择对手战场上的1个随从，对其造成5点伤害。将1张『奥夜花的开战』加入牌组。",
+      "rule_version": 1,
+      "source_text_sha256": "59a81e35b233335a1d58921e05266120bce5f314e058df762bf9b80fc7de7b70",
+      "test_evidence": ["tests/test_real_spellboost_recycle_listener_batch.py"],
+      "notes": "Required target selection resolves before a seeded hidden-position insertion of one exact self card; event ordering, deterministic replay, and no-target rollback are audited."
+    },
+    {
+      "card_id": 10843310,
+      "coverage": "exact",
+      "implemented_text": "选择对手战场上的1个随从或对手主战者，对其造成1点伤害。将1张『狐火蜃景』加入牌组。若为【觉醒】，则抽取1张卡牌。",
+      "rule_version": 1,
+      "source_text_sha256": "7ebf32a75b4cf390a494d18dd886e4d87545677291d2962fcb619d44ecb2e771",
+      "test_evidence": ["tests/test_real_spellboost_recycle_listener_batch.py"],
+      "notes": "Follower-or-leader damage precedes self insertion; the Overflow branch draws afterward, so the newly inserted copy is eligible exactly according to the ordered deck state."
+    },
+    {
+      "card_id": 10752310,
+      "coverage": "exact",
+      "implemented_text": "召唤1个『怨灵』、1个『蝙蝠』和1个『骸骨士兵』，使其进化。",
+      "rule_version": 1,
+      "source_text_sha256": "7879b70f795a6921a61d9067071541bd8a0fabbe9ef938210711469c5dec5079",
+      "test_evidence": ["tests/test_real_spellboost_recycle_listener_batch.py"],
+      "notes": "Each token is summoned and effect-evolved in printed order without spending evolution points; a full-board boundary evolves only successfully summoned outputs, and all three referenced token behaviors remain separately exact."
+    },
+    {
+      "card_id": 10853310,
+      "coverage": "exact",
+      "implemented_text": "选择自己的1张手牌，使其返回牌组。抽取2张卡牌。若为超进化已解禁的回合，则使其费用-1。",
+      "rule_version": 1,
+      "source_text_sha256": "4eb10c63bc26c7f973c195c1e0eb5717dfb01fc3510a91bde4d51f6e30a90c07",
+      "test_evidence": ["tests/test_real_zone_output_copy_batch.py"],
+      "notes": "A required hand selection returns first; both actual draw outputs are identity-bound, and only surviving hand outputs receive the post-draw Super-Evolution-turn cost reduction."
+    },
+    {
+      "card_id": 10541310,
+      "coverage": "exact",
+      "implemented_text": "抽取1张随从。对对手的战场上的随机1个随从造成X点伤害。X为因本能力抽取的卡牌的费用。",
+      "rule_version": 1,
+      "source_text_sha256": "0e46884a910dc2ef571c49a2e5d775648277df1089be6f835971f5d9bb6a2974",
+      "test_evidence": ["tests/test_real_zone_output_copy_batch.py"],
+      "notes": "The filtered draw binds its physical output and frozen current cost, including overdraw; no matching follower skips the random damage without consuming RNG."
+    },
+    {
+      "card_id": 10802310,
+      "coverage": "exact",
+      "implemented_text": "将对手的手牌中的随机1张卡牌的复制卡牌以非公开形式加入自己的手牌，使其费用-1。抽取1张卡牌。",
+      "rule_version": 1,
+      "source_text_sha256": "707e7f47b0dbf75922e9bbe6c717c605110a63b6e0389998f4cceedbdbff1253",
+      "test_evidence": ["tests/test_real_zone_output_copy_batch.py"],
+      "notes": "The engine RNG selects an opponent hand identity, creates an unrevealed generated copy with a permanent cost reduction, then resolves the ordered draw without exposing hidden identity in the opponent observation."
+    },
+    {
+      "card_id": 10443310,
+      "coverage": "exact",
+      "implemented_text": "选择对手的战场上的1张卡牌，使其消失，将1张同名的卡牌加入自己的手牌。",
+      "rule_version": 1,
+      "source_text_sha256": "bfd077a398120be80d2eb2c7ecc8bd67b03a0a8f568df64a67ca972dbb887220",
+      "test_evidence": ["tests/test_real_zone_output_copy_batch.py"],
+      "notes": "A legal board target is snapshotted, banished, and only then copied from the immutable snapshot; a target that becomes stale before selection resolution produces neither effect."
+    },
+    {
+      "card_id": 10652310,
+      "coverage": "exact",
+      "implemented_text": "选择对手的战场上的1个随从，使其消失，召唤对应数量的复制随从。",
+      "rule_version": 1,
+      "source_text_sha256": "d0752b2a9da851ffef2331d6fd76f5925f7b493083e0b2cf668a6c3947426fdf",
+      "test_evidence": ["tests/test_real_zone_output_copy_batch.py"],
+      "notes": "The selected follower is banished before an unevolved base copy is effect-summoned from its immutable snapshot; board-capacity failure and stale-target behavior remain explicit safe skips."
+    },
+    {
+      "card_id": 10572310,
+      "coverage": "exact",
+      "implemented_text": "选择自己的1张手牌，舍弃该手牌。将随机2种与本次对战中被破坏的自己的随从同名的卡牌各1张以非公开形式加入手牌。",
+      "rule_version": 1,
+      "source_text_sha256": "90f38f64b6590b99d9448c98b3de1cdebbf3731bc48188fe78fddb50f8f54320",
+      "test_evidence": ["tests/test_real_destroyed_history_source_cost_batch.py"],
+      "notes": "The selected hand card is discarded first; the engine RNG then samples up to two distinct destroyed allied follower names without replacement, creates hidden generated copies, safely handles fewer candidates and hand overflow, and consumes no RNG for empty history."
+    },
+    {
+      "card_id": 10871130,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】将随机1张与本次对战中被破坏的自己的创造物·随从同名的卡牌以非公开形式加入手牌。",
+      "rule_version": 1,
+      "source_text_sha256": "a8589b276cd37c67a932fa83e59bce8e52ac1e881c3cf52be3d6ba604f696f33",
+      "test_evidence": ["tests/test_real_destroyed_history_source_cost_batch.py"],
+      "notes": "Destroyed-follower history is filtered to allied Artifact followers before seeded instance selection; non-Artifact history is excluded and the copied identity remains hidden from the opponent observation."
+    },
+    {
+      "card_id": 10641310,
+      "coverage": "exact",
+      "implemented_text": "本卡牌被舍弃时，若本卡牌的费用为4，则将1张『天刀授予』加入手牌，使其费用变为2。选择自己的战场上的1个随从，使其+2/+2。",
+      "rule_version": 1,
+      "source_text_sha256": "3cf5300d8a98aefc904c30935931fefbfef036ce7cf75ae47ec45ca57bfa4b5a",
+      "test_evidence": ["tests/test_real_destroyed_history_source_cost_batch.py"],
+      "notes": "Discard freezes the physical hand card's current cost before it leaves; only a cost-4 copy self-replaces at cost 2. Normal play requires and buffs one allied follower, with illegal no-target play fully rolled back and exposed through the existing RL choice layout."
+    },
+    {
+      "card_id": 10643310,
+      "coverage": "exact",
+      "implemented_text": "本卡牌被舍弃时，若本卡牌的费用为7，则将1张『断头的天刀』加入手牌，使其费用变为5。若为5，则将1张同名卡加入手牌，使其费用变为3。对对手的战场上的所有随从造成X点伤害，X为本卡牌的费用。",
+      "rule_version": 1,
+      "source_text_sha256": "b5b16fe0a41a9fc190225cf3eb339a8e6dc5fc730626f1f045e90b51d21b8955",
+      "test_evidence": ["tests/test_real_destroyed_history_source_cost_batch.py"],
+      "notes": "The frozen discarded source cost deterministically drives the 7-to-5-to-3 replacement chain and stops at 3; normal play snapshots the physical cost and applies that exact value simultaneously to all enemy followers."
+    },
+    {
+      "card_id": 10331110,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】若本卡牌的费用不为2，则回复自己的主战者3点生命值。",
+      "rule_version": 1,
+      "source_text_sha256": "21be4108c58e1de2eb26ac4a94e07bbba30c2ff47c83a41b1b2065369162f894",
+      "test_evidence": ["tests/test_real_destroyed_history_source_cost_batch.py"],
+      "notes": "Fanfare evaluates the current cost frozen from the physical hand card at play time: printed cost 2 does nothing, while a modified non-2 cost heals exactly 3."
+    },
+    {
+      "card_id": 10121130,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】召唤1个『铁甲骑士』。自己的士兵·随从进入战场时，回复自己的主战者1点生命值。",
+      "rule_version": 1,
+      "source_text_sha256": "817103e747a52c0650eaa95191bece9a11ff040544af8c0787833fdb4b187754",
+      "test_evidence": ["tests/test_real_listener_spellboost_followup_batch.py"],
+      "notes": "Fanfare summons the referenced Soldier token; every actual allied Soldier entry, including multiple entries from one effect, independently heals while the source remains on board."
+    },
+    {
+      "card_id": 10131310,
+      "coverage": "exact",
+      "implemented_text": "选择自己的手牌中的1张拥有【魔力增幅时】的卡牌，使其发动1次魔力增幅。抽取1张卡牌。",
+      "rule_version": 1,
+      "source_text_sha256": "791e998fb2d4b24b7451bad01446b888b33e6e04b10f26c883f10556671869c8",
+      "test_evidence": ["tests/test_real_listener_spellboost_followup_batch.py"],
+      "notes": "A normalized ability-keyword hand filter exposes only cards with On Spellboost; the official FAQ's no-candidate prohibition is atomic, and the draw follows the selected boost."
+    },
+    {
+      "card_id": 10212120,
+      "coverage": "exact",
+      "implemented_text": "在手牌中发动。自己的随从超进化时，使本卡牌的费用变为1。【入场曲】将1张『妖精』加入手牌。",
+      "rule_version": 1,
+      "source_text_sha256": "7ac811fa16cd65431f480acb8f0935a906190cd757c87fa28eb77e1f0c59b8a5",
+      "test_evidence": ["tests/test_real_listener_spellboost_followup_batch.py"],
+      "notes": "Each physical hand copy independently sets its cost to 1 after an allied Super-Evolution; Fanfare produces the exact Fairy token with normal hand-overflow behavior."
+    },
+    {
+      "card_id": 10232310,
+      "coverage": "exact",
+      "implemented_text": "X起始为0。【魔力增幅时】使本卡牌的X+1。对对手的战场上的所有随从分配X点伤害。",
+      "rule_version": 1,
+      "source_text_sha256": "4633b88ed54f0e8eea1f47ccb80c327ced86bf2fa1c06e27ce68e326a7f345be",
+      "test_evidence": ["tests/test_real_listener_spellboost_followup_batch.py"],
+      "notes": "The played physical copy's frozen Spellboost count is X and is distributed by the official oldest-first allocation primitive; X=0 and empty-board paths consume no RNG."
+    },
+    {
+      "card_id": 10252110,
+      "coverage": "exact",
+      "implemented_text": "【突进】自己的其他随从超进化时，使该随从和本随从+2/+0。",
+      "rule_version": 1,
+      "source_text_sha256": "cd9c7850e998a5cd9f319306d4ab515d3d70747bea96d55e6866e13afe5c1953",
+      "test_evidence": ["tests/test_real_listener_spellboost_followup_batch.py"],
+      "notes": "Rush is intrinsic. An allied other-follower Super-Evolution emits one listener event that buffs the evolved event source first and Piyura second; self Super-Evolution does not trigger the listener."
+    },
+    {
+      "card_id": 10353310,
+      "coverage": "exact",
+      "implemented_text": "【模式】选择2个能力发动。（1）回复自己1点能量点。（2）抽取1张随从。（3）抽取1张费用为3的法术。（4）对对手的战场上的随机1个随从造成4点伤害。",
+      "rule_version": 1,
+      "source_text_sha256": "c4a6d126cf572b50327d292fc8f55b704d5b70efb3e081e1a08a24759361edb1",
+      "test_evidence": ["tests/test_real_listener_spellboost_followup_batch.py"],
+      "notes": "Two distinct modes are selected through the existing fixed action space and resolve in printed declaration order; filtered draws and an empty random-damage candidate safely preserve the remaining chosen mode."
+    },
+    {
+      "card_id": 10361120,
+      "coverage": "exact",
+      "implemented_text": "【守护】本随从在战场上获得攻击力或生命值增加时，回复自己的主战者1点生命值。",
+      "rule_version": 1,
+      "source_text_sha256": "b78ee6b7326fcc6d5642bc9aad9476de1b47e1b466a37c3d2f12dfc1d28dd1dc",
+      "test_evidence": ["tests/test_real_listener_spellboost_followup_batch.py"],
+      "notes": "Ward is intrinsic. Each positive additive stat event on this follower heals once, including an opponent-controlled increase; SET_STATS intentionally does not emit the event, matching the official FAQ."
+    },
+    {
+      "card_id": 10612110,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】将1张『新绿的妖精』加入手牌。",
+      "rule_version": 1,
+      "source_text_sha256": "9dbe1162cd0efacd40722f7e018f53e7abb7a685fff231b6520661007dd57af5",
+      "test_evidence": ["tests/test_real_listener_spellboost_followup_batch.py"],
+      "notes": "Fanfare creates the exact referenced Springbloom Fairy token and uses the normal generated-card origin and hand-overflow path."
+    },
+    {
+      "card_id": 10673310,
+      "coverage": "exact",
+      "implemented_text": "在手牌中发动。自己的原始费用为5或以上的随从进入战场时，回合结束前，使本卡牌的费用-1。使自己的战场上的随机1个原始费用为5或以上的进化前随从进化。对对手的战场上的随机1个随从造成6点伤害。",
+      "rule_version": 1,
+      "source_text_sha256": "f84f805481d616f35f1226db48f4971b6ffb6ce6d8041057a15305453b28735d",
+      "test_evidence": ["tests/test_real_listener_spellboost_followup_batch.py"],
+      "notes": "Each successful allied base-cost-5+ entry temporarily reduces every physical hand copy by 1 until the current turn ends. Play independently samples an eligible unevolved ally, evolves it, then samples an enemy for 6 damage."
+    },
+    {
+      "card_id": 10721110,
+      "coverage": "exact",
+      "implemented_text": "在手牌中发动。自己的随从超进化时，使本卡牌的费用变为1。【入场曲】选择对手的战场上的1个随从，对其造成3点伤害。",
+      "rule_version": 1,
+      "source_text_sha256": "f3aa9170b582c7774341c53ea429aee779de1220a1d6b98f8ccc7f3d8c64e416",
+      "test_evidence": ["tests/test_real_listener_spellboost_followup_batch.py"],
+      "notes": "The hand listener permanently sets the physical copy to cost 1 after an allied Super-Evolution. Its selected Fanfare deals 3 when a target exists and safely skips on an empty enemy board."
+    },
+    {
+      "card_id": 10812110,
+      "coverage": "exact",
+      "implemented_text": "本随从在战场上获得攻击力或生命值增加时，自己的每回合中可触发1次，召唤1个『妖精』。【谢幕曲】将1张『妖精』加入手牌。",
+      "rule_version": 1,
+      "source_text_sha256": "40dd874630409ab4e4cf3f8512892ac07e81926d3ba091fc95d9b577f550f844",
+      "test_evidence": ["tests/test_real_listener_spellboost_followup_batch.py"],
+      "notes": "Only positive additive stat events during its controller's turn consume the once-per-turn listener and summon Fairy when space permits; Last Words independently adds Fairy to hand."
+    },
+    {
+      "card_id": 10172320,
+      "coverage": "exact",
+      "implemented_text": "选择自己的手牌中的2张费用为5或以下的创造物·随从，召唤对应数量的复制随从，使其获得「对手的回合结束时，破坏本卡牌」。",
+      "rule_version": 1,
+      "source_text_sha256": "7bde96addfbbc1c8f15b11ba1961e313ce5212d05d7b4ca6a12027a08b214599",
+      "test_evidence": ["tests/test_real_hand_exact_copy_turn_end_destroy_batch.py"],
+      "notes": "The spell is atomically unavailable unless two distinct current-cost-5-or-less Artifact followers exist in hand. Both originals remain in hand; each successful exact-copy summon preserves hand stat modifiers and receives opponent-turn-end self-destruction. Board shortage marks only copies that actually entered play."
+    },
+    {
+      "card_id": 10173140,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】将1张『未来核心』和1张『过往核心』加入手牌。【进化时】选择自己的手牌中的1张费用为5或以下的创造物·随从，召唤对应数量的复制随从。",
+      "rule_version": 1,
+      "source_text_sha256": "bfd9204a87010bbac380cdfaa9dbaf77ebdc4ecb2bfca569e0f3c89fbe6f3803",
+      "test_evidence": ["tests/test_real_hand_exact_copy_turn_end_destroy_batch.py"],
+      "notes": "Fanfare generates both referenced Core tokens. Evolution exposes a current-cost Artifact-follower hand choice and summons an exact copy without consuming the selected physical hand card."
+    },
+    {
+      "card_id": 10174130,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】选择自己的手牌中的3张费用为5或以下的创造物·随从，召唤对应数量的复制随从。【超进化时】使自己的战场上的所有创造物·随从+1/+1。",
+      "rule_version": 1,
+      "source_text_sha256": "436ec26f501c8d33fffb67bc833bb7fdf3d6e1330e64b28d54b13a6f40638c35",
+      "test_evidence": ["tests/test_real_hand_exact_copy_turn_end_destroy_batch.py"],
+      "notes": "Fanfare follows the official shortage ruling by selecting up to three distinct eligible physical hand cards and summoning exact copies in selection order. Super-Evolution buffs every allied Artifact follower and excludes non-Artifact followers."
+    },
+    {
+      "card_id": 10261120,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】选择对手的战场上的1个随从，使其获得「自己的回合结束时，破坏本卡牌」。",
+      "rule_version": 1,
+      "source_text_sha256": "ad33b423354df823f3224d280220237c2f0e3e453f8b7b1c7389d83c42a158c9",
+      "test_evidence": ["tests/test_real_hand_exact_copy_turn_end_destroy_batch.py"],
+      "notes": "The granted ability is attached to the target entity and resolves before the active-player flip at its controller's turn end. This ordering preserves the official FAQ interaction where a Super-Evolved target's own-turn effect-destroy protection prevents destruction. Removing all abilities clears the grant."
+    },
+    {
+      "card_id": 10271210,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】将1张『未来核心』和1张『过往核心』加入手牌。费用3【启动】破坏本卡牌。选择自己的手牌中的1张费用为5或以下的创造物·随从，召唤对应数量的复制随从，使其获得「对手的回合结束时，破坏本卡牌」。",
+      "rule_version": 1,
+      "source_text_sha256": "4736e02fb7874738f8a51d6844fd0bc71bc36007341b2872bd07e3f154490bd8",
+      "test_evidence": ["tests/test_real_hand_exact_copy_turn_end_destroy_batch.py"],
+      "notes": "Play generates both Core tokens. The 3-cost activation is legal only with an eligible hand follower, destroys the source as its cost flow, summons an exact copy, and grants opponent-turn-end self-destruction only to a successfully summoned copy."
+    },
+    {
+      "card_id": 10274120,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】选择自己的手牌中的1张费用为5或以下的创造物·随从，召唤对应数量的复制随从。【超进化时】本随从获得「1回合可以攻击2次」。",
+      "rule_version": 1,
+      "source_text_sha256": "768c24c22a23a3688650ce81a6602cba981a18c19c1f938ef4545cc31c5e3f3e",
+      "test_evidence": ["tests/test_real_hand_exact_copy_turn_end_destroy_batch.py"],
+      "notes": "Fanfare summons an exact copy of one eligible current-cost Artifact follower while retaining the original hand card. Super-Evolution grants the source a permanent two-attacks-per-turn capacity."
+    },
+    {
+      "card_id": 10572110,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】将1张『毁灭创造物β』加入手牌。【超进化时】选择自己的手牌中的1张费用为5或以下的创造物·随从，召唤对应数量的复制随从。",
+      "rule_version": 1,
+      "source_text_sha256": "56cab5b53b019d0ca252a88b09dc4d776b753d4d3f207611de7fbec5d85ae12d",
+      "test_evidence": ["tests/test_real_hand_exact_copy_turn_end_destroy_batch.py"],
+      "notes": "Fanfare generates the exact Destroy Artifact Beta token. Super-Evolution can select that physical hand card or another eligible Artifact follower, summon an exact copy, and retain the original in hand."
+    },
+    {
+      "card_id": 10104120,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】将自己的牌组替换为10张启示录牌组并洗牌：3张『沉默的魔将』、3张『深渊之主的仆从』、3张『边狱的邪祟』和1张『阿斯塔罗特的宣判』。",
+      "rule_version": 1,
+      "source_text_sha256": "32b3206e40810ae7f8e6d6a6868b9fe5aa1296df7210e9ee9a543f64e1c50e40",
+      "test_evidence": ["tests/test_real_apocalypse_deck_batch.py"],
+      "notes": "The official card page identifies the four related cards and the official Apocalypse Deck glossary defines a ten-card deck. The established 3/3/3/1 composition is shuffled only by the seeded engine RNG; replacement, duplicate counts, replay determinism, and all four executable entries are directly tested."
+    },
+    {
+      "card_id": 90004110,
+      "coverage": "exact",
+      "implemented_text": "【疾驰】",
+      "rule_version": 1,
+      "source_text_sha256": "487bbc3ead279c8faccb6c74842ddc77225535cb22afa3b651dcdc587a172eb8",
+      "test_evidence": ["tests/test_real_apocalypse_deck_batch.py"],
+      "notes": "The generated 6-cost 10/10 follower is produced by the executable Apocalypse Deck replacement and its intrinsic Storm behavior is directly tested on its entry turn."
+    },
+    {
+      "card_id": 90004120,
+      "coverage": "exact",
+      "implemented_text": "无能力的1费13/13随从。",
+      "rule_version": 1,
+      "source_text_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "test_evidence": ["tests/test_real_apocalypse_deck_batch.py"],
+      "notes": "The generated vanilla follower is produced by the executable Apocalypse Deck replacement; its cost, attack, health, and absence of rules text are checked against the database."
+    },
+    {
+      "card_id": 90004130,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】尽可能选择对手战场上的2个随从，对所选随从和对手主战者造成6点伤害。",
+      "rule_version": 1,
+      "source_text_sha256": "c2a5f313310bb1348f3df1870ec50e1317bf5fe1f1780b0c7a803873e246513c",
+      "test_evidence": ["tests/test_real_apocalypse_deck_batch.py"],
+      "notes": "The official FAQ confirms that zero enemy followers still allows the Fanfare to damage the enemy leader. Zero-, one-, two-, and stale-multi-target paths are directly tested."
+    },
+    {
+      "card_id": 90004310,
+      "coverage": "exact",
+      "implemented_text": "使对手主战者的生命值上限变为1，并将当前生命值限制到该上限。",
+      "rule_version": 1,
+      "source_text_sha256": "004694355979fc9ffee0b9ba23b11fd25d3c3ec98e03bcaa6634e222ecd3efeb",
+      "test_evidence": ["tests/test_real_apocalypse_deck_batch.py"],
+      "notes": "A generic leader-max-health operation clamps current health without dealing damage, becomes part of deterministic state and public v2 observation, and caps every later leader-healing path."
     }
   ]
 }

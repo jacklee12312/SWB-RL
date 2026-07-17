@@ -7,6 +7,7 @@ from swb.engine.card_rules import RuleBook
 from swb.engine.commands import ChoiceKind, ChoiceOption, ChoiceRequest
 from swb.engine.emblem import EmblemDefinition
 from swb.engine.environment import ShadowverseEnv
+from swb.engine.effects import TurnEndDestroyTiming
 from swb.engine.events import EventType, GameEvent
 from swb.engine.faith import FaithDefinition, FaithInstance
 from swb.engine.origin import CardOrigin
@@ -86,7 +87,7 @@ class ObservationV2Tests(unittest.TestCase):
         self.assertEqual(len(observation["card_indices"]["public_board"]), 10)
         self.assertEqual(len(observation["card_indices"]["initial_decks"][0]), 140)
         self.assertEqual(len(observation["own_hand_runtime"]), 90)
-        self.assertEqual(len(observation["public_board_runtime"]), 130)
+        self.assertEqual(len(observation["public_board_runtime"]), 150)
         self.assertEqual(len(observation["choice"]["option_references"]), 16)
         self.assertEqual(len(observation["public_history"]["event_types"]), 16)
         self.assertEqual(
@@ -151,6 +152,12 @@ class ObservationV2Tests(unittest.TestCase):
         second_unit.origin = CardOrigin.TRANSFORMED
         second_unit.printed_abilities_removed = True
         self.assertNotEqual(first.observation(), second.observation())
+
+        before_scope = first.observation()
+        first_unit.turn_end_destroy_timings.add(
+            TurnEndDestroyTiming.OWNER_TURN
+        )
+        self.assertNotEqual(before_scope, first.observation())
 
     def test_deck_composition_is_order_independent_and_distinguishable(self):
         first = self.make_env()

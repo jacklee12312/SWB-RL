@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import sqlite3
 import unittest
+from contextlib import closing
 from pathlib import Path
 
 from scripts.ability_status import build_ability_audit
@@ -39,7 +40,7 @@ class AbilityAuditTests(unittest.TestCase):
         self.assertEqual(statuses["瞬念召唤"], "implemented")
 
     def test_database_registry_matches_runtime_audit(self):
-        with sqlite3.connect("data/cards.sqlite3") as conn:
+        with closing(sqlite3.connect("data/cards.sqlite3")) as conn:
             database = dict(conn.execute(
                 "SELECT keyword, status FROM abilities ORDER BY keyword"
             ))

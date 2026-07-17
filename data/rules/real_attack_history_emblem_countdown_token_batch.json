@@ -1,0 +1,67 @@
+{
+  "emblems": [
+    {
+      "id": "despair_manifest_marwynn",
+      "source_card_id": 10364120,
+      "stacking": "ignore",
+      "triggers": [
+        {
+          "trigger": "turn_end",
+          "conditions": [
+            {
+              "type": "controller_follower_attacks_this_turn_at_most",
+              "value": 0
+            }
+          ],
+          "operations": [
+            {
+              "kind": "distribute_damage",
+              "target": "all_enemy_units",
+              "amount": {"type": "controller_emblem_count"},
+              "include_leader": true
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "rules": [
+    {
+      "card_id": 10364120,
+      "trigger": "fanfare",
+      "operations": [
+        {
+          "kind": "add_card",
+          "target": "own_leader",
+          "card_id": 90064310
+        }
+      ]
+    },
+    {
+      "card_id": 10364120,
+      "trigger": "evolve",
+      "operations": [
+        {
+          "kind": "gain_emblem",
+          "target": "own_leader",
+          "emblem_id": "despair_manifest_marwynn"
+        }
+      ]
+    },
+    {
+      "card_id": 90064310,
+      "trigger": "play",
+      "operations": [
+        {
+          "kind": "banish",
+          "target": "random_enemy_unit"
+        },
+        {
+          "kind": "increase_countdown",
+          "target": "all_own_emblems",
+          "amount": 1
+        }
+      ]
+    }
+  ]
+}

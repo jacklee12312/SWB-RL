@@ -797,14 +797,14 @@ class FaithEnvironmentTests(unittest.TestCase):
         )
         env.reset(seed=42)
 
-        self.assertEqual(len(env.observation()), 290)
-        self.assertEqual(env.observation()[-4:], [0.2, 0.2, 0.0, 0.0])
+        self.assertEqual(len(env.observation()), 294)
+        self.assertEqual(env.observation()[-6:-2], [0.2, 0.2, 0.0, 0.0])
 
         unit = _place_unit(env.core, 0, card_id=303)
         _unlock_evolution(env.core, 0)
         env.core.apply(Evolve(0, unit.entity_id))
 
-        self.assertEqual(env.observation()[-4:], [0.2, 0.2, 0.02, 0.0])
+        self.assertEqual(env.observation()[-6:-2], [0.2, 0.2, 0.02, 0.0])
 
 
 @unittest.skipUnless(os.path.exists("data/cards.sqlite3"), "card database unavailable")

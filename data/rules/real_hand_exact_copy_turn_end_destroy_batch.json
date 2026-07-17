@@ -1,0 +1,175 @@
+{
+  "activations": [
+    {"card_id": 10271210, "cost": 3}
+  ],
+  "rules": [
+    {
+      "card_id": 10172320,
+      "trigger": "play",
+      "operations": [
+        {
+          "kind": "summon_hand_copy",
+          "target": "own_hand",
+          "target_count": 2,
+          "requires_target": true,
+          "requires_full_target_count": true,
+          "target_key": "summoned_copies",
+          "hand_filter": {
+            "card_type": "随从",
+            "cost_max": 5,
+            "tribe_name": "创造物"
+          }
+        },
+        {
+          "kind": "grant_turn_end_destroy",
+          "target": "previous_target",
+          "target_key": "summoned_copies",
+          "turn_end_destroy_timing": "opponent_turn"
+        }
+      ]
+    },
+    {
+      "card_id": 10173140,
+      "trigger": "fanfare",
+      "operations": [
+        {"kind": "add_card", "target": "own_leader", "card_id": 90071210},
+        {"kind": "add_card", "target": "own_leader", "card_id": 90071220}
+      ]
+    },
+    {
+      "card_id": 10173140,
+      "trigger": "evolve",
+      "operations": [
+        {
+          "kind": "summon_hand_copy",
+          "target": "own_hand",
+          "target_key": "summoned_copy",
+          "hand_filter": {
+            "card_type": "随从",
+            "cost_max": 5,
+            "tribe_name": "创造物"
+          }
+        }
+      ]
+    },
+    {
+      "card_id": 10174130,
+      "trigger": "fanfare",
+      "operations": [
+        {
+          "kind": "summon_hand_copy",
+          "target": "own_hand",
+          "target_count": 3,
+          "target_key": "summoned_copies",
+          "hand_filter": {
+            "card_type": "随从",
+            "cost_max": 5,
+            "tribe_name": "创造物"
+          }
+        }
+      ]
+    },
+    {
+      "card_id": 10174130,
+      "trigger": "super_evolve",
+      "operations": [
+        {
+          "kind": "buff_unit",
+          "target": "all_own_units",
+          "amount": 1,
+          "secondary_amount": 1,
+          "target_tribe_name_filter": "创造物"
+        }
+      ]
+    },
+    {
+      "card_id": 10261120,
+      "trigger": "fanfare",
+      "operations": [
+        {
+          "kind": "grant_turn_end_destroy",
+          "target": "enemy_unit",
+          "turn_end_destroy_timing": "owner_turn"
+        }
+      ]
+    },
+    {
+      "card_id": 10271210,
+      "trigger": "play",
+      "operations": [
+        {"kind": "add_card", "target": "own_leader", "card_id": 90071210},
+        {"kind": "add_card", "target": "own_leader", "card_id": 90071220}
+      ]
+    },
+    {
+      "card_id": 10271210,
+      "trigger": "activate",
+      "operations": [
+        {"kind": "destroy", "target": "self"},
+        {
+          "kind": "summon_hand_copy",
+          "target": "own_hand",
+          "requires_target": true,
+          "target_key": "summoned_copy",
+          "hand_filter": {
+            "card_type": "随从",
+            "cost_max": 5,
+            "tribe_name": "创造物"
+          }
+        },
+        {
+          "kind": "grant_turn_end_destroy",
+          "target": "previous_target",
+          "target_key": "summoned_copy",
+          "turn_end_destroy_timing": "opponent_turn"
+        }
+      ]
+    },
+    {
+      "card_id": 10274120,
+      "trigger": "fanfare",
+      "operations": [
+        {
+          "kind": "summon_hand_copy",
+          "target": "own_hand",
+          "target_key": "summoned_copy",
+          "hand_filter": {
+            "card_type": "随从",
+            "cost_max": 5,
+            "tribe_name": "创造物"
+          }
+        }
+      ]
+    },
+    {
+      "card_id": 10274120,
+      "trigger": "super_evolve",
+      "operations": [
+        {"kind": "grant_attacks_per_turn", "target": "self", "amount": 2}
+      ]
+    },
+    {
+      "card_id": 10572110,
+      "trigger": "fanfare",
+      "operations": [
+        {"kind": "add_card", "target": "own_leader", "card_id": 90073120}
+      ]
+    },
+    {
+      "card_id": 10572110,
+      "trigger": "super_evolve",
+      "operations": [
+        {
+          "kind": "summon_hand_copy",
+          "target": "own_hand",
+          "target_key": "summoned_copy",
+          "hand_filter": {
+            "card_type": "随从",
+            "cost_max": 5,
+            "tribe_name": "创造物"
+          }
+        }
+      ]
+    }
+  ]
+}

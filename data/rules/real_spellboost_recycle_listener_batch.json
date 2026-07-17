@@ -1,0 +1,139 @@
+{
+  "listeners": [
+    {
+      "card_id": 10341110,
+      "zone": "board",
+      "event": "follower_damaged_survived",
+      "event_scope": "owner_event",
+      "turn_scope": "owner_turn",
+      "source_relation": "self",
+      "operations": [
+        {
+          "kind": "draw_filtered",
+          "target": "own_leader",
+          "amount": 1,
+          "card_type_filter": "随从",
+          "class_id_filter": 4
+        }
+      ]
+    }
+  ],
+  "rules": [
+    {
+      "card_id": 10131320,
+      "trigger": "play",
+      "operations": [
+        {
+          "kind": "damage_unit",
+          "target": "enemy_unit",
+          "amount": {
+            "type": "add",
+            "values": [
+              {"type": "constant", "value": 2},
+              {"type": "source_spellboost_count"}
+            ]
+          },
+          "requires_target": true
+        }
+      ]
+    },
+    {
+      "card_id": 10831310,
+      "trigger": "play",
+      "operations": [
+        {
+          "kind": "damage_unit",
+          "target": "enemy_unit",
+          "amount": {
+            "type": "add",
+            "values": [
+              {"type": "constant", "value": 2},
+              {"type": "source_spellboost_count"}
+            ]
+          },
+          "requires_target": true
+        }
+      ]
+    },
+    {
+      "card_id": 10551310,
+      "trigger": "play",
+      "operations": [
+        {
+          "kind": "damage_unit",
+          "target": "enemy_unit",
+          "amount": 5,
+          "requires_target": true
+        },
+        {
+          "kind": "add_card_to_deck",
+          "target": "own_leader",
+          "card_id": 10551310
+        }
+      ]
+    },
+    {
+      "card_id": 10843310,
+      "trigger": "play",
+      "operations": [
+        {
+          "kind": "damage_unit",
+          "target": "enemy_unit_or_leader",
+          "amount": 1
+        },
+        {
+          "kind": "add_card_to_deck",
+          "target": "own_leader",
+          "card_id": 10843310
+        },
+        {
+          "kind": "draw",
+          "target": "own_leader",
+          "amount": 1,
+          "conditions": [
+            {"type": "controller_overflow"}
+          ]
+        }
+      ]
+    },
+    {
+      "card_id": 10752310,
+      "trigger": "play",
+      "operations": [
+        {
+          "kind": "summon",
+          "target": "own_leader",
+          "card_id": 90051130,
+          "target_key": "ghost"
+        },
+        {
+          "kind": "evolve_unit",
+          "target": "previous_target",
+          "target_key": "ghost"
+        },
+        {
+          "kind": "summon",
+          "target": "own_leader",
+          "card_id": 90051120,
+          "target_key": "bat"
+        },
+        {
+          "kind": "evolve_unit",
+          "target": "previous_target",
+          "target_key": "bat"
+        },
+        {
+          "kind": "summon",
+          "target": "own_leader",
+          "card_id": 90051110,
+          "target_key": "skeleton"
+        },
+        {
+          "kind": "evolve_unit",
+          "target": "previous_target",
+          "target_key": "skeleton"
+        }
+      ]
+    }
+  ]
+}

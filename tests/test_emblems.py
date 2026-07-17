@@ -884,7 +884,7 @@ class ObservationTests(unittest.TestCase):
             class_a=1, class_b=1, seed=42,
         )
         obs, _ = env.reset(seed=42)
-        self.assertEqual(len(obs), 290)
+        self.assertEqual(len(obs), 294)
 
     def test_observation_exposes_public_emblem_state(self):
         env = ShadowverseEnv(
@@ -897,7 +897,7 @@ class ObservationTests(unittest.TestCase):
         env.core._add_emblem_to_player(0, definition, definition.source_card_id)
         after = env.observation()
         self.assertNotEqual(before, after)
-        self.assertEqual(after[24:30], [0.1, 0.0, 1.0, 0.0, 0.3, 0.0])
+        self.assertEqual(after[26:32], [0.1, 0.0, 1.0, 0.0, 0.3, 0.0])
 
     def test_action_size(self):
         self.assertEqual(ShadowverseEnv.ACTION_SIZE, 111)

@@ -1,0 +1,124 @@
+{
+  "rules": [
+    {
+      "card_id": 10071110,
+      "trigger": "fanfare",
+      "operations": [
+        {"kind": "add_card", "target": "own_leader", "card_id": 90071210}
+      ]
+    },
+    {
+      "card_id": 10071120,
+      "trigger": "fanfare",
+      "operations": [
+        {"kind": "add_card", "target": "own_leader", "card_id": 90071120}
+      ]
+    },
+    {
+      "card_id": 10071310,
+      "trigger": "play",
+      "operations": [
+        {
+          "kind": "destroy",
+          "target": "enemy_unit",
+          "requires_target": true
+        },
+        {"kind": "add_card", "target": "own_leader", "card_id": 90071210},
+        {"kind": "add_card", "target": "own_leader", "card_id": 90071220}
+      ]
+    },
+    {
+      "card_id": 10072110,
+      "trigger": "fanfare",
+      "operations": [
+        {"kind": "add_card", "target": "own_leader", "card_id": 90071220}
+      ]
+    },
+    {
+      "card_id": 10072210,
+      "trigger": "play",
+      "countdown": 2,
+      "operations": [
+        {"kind": "add_card", "target": "own_leader", "card_id": 90071110}
+      ]
+    },
+    {
+      "card_id": 10072210,
+      "trigger": "turn_end",
+      "operations": [
+        {"kind": "add_card", "target": "own_leader", "card_id": 90071110}
+      ]
+    },
+    {
+      "card_id": 10171120,
+      "trigger": "fanfare",
+      "operations": [
+        {"kind": "summon", "target": "own_leader", "card_id": 90072120}
+      ]
+    },
+    {
+      "card_id": 10171130,
+      "trigger": "fanfare",
+      "operations": [
+        {"kind": "add_card", "target": "own_leader", "card_id": 90071210}
+      ]
+    },
+    {
+      "card_id": 10171130,
+      "trigger": "evolve",
+      "operations": [
+        {
+          "kind": "damage_unit",
+          "target": "enemy_unit",
+          "amount": 3,
+          "requires_target": true
+        }
+      ]
+    },
+    {
+      "card_id": 10172110,
+      "trigger": "fanfare",
+      "operations": [
+        {"kind": "add_card", "target": "own_leader", "card_id": 90071210},
+        {"kind": "add_card", "target": "own_leader", "card_id": 90071220}
+      ]
+    },
+    {
+      "card_id": 10172110,
+      "trigger": "evolve",
+      "operations": [
+        {"kind": "summon", "target": "own_leader", "card_id": 90072110}
+      ]
+    },
+    {
+      "card_id": 10172120,
+      "trigger": "fanfare",
+      "operations": [
+        {"kind": "add_card", "target": "own_leader", "card_id": 90071110}
+      ]
+    },
+    {
+      "card_id": 10172120,
+      "trigger": "evolve",
+      "operations": [
+        {"kind": "add_card", "target": "own_leader", "card_id": 90071110}
+      ]
+    },
+    {
+      "card_id": 10173110,
+      "trigger": "fanfare",
+      "operations": [
+        {"kind": "add_card", "target": "own_leader", "card_id": 90071210},
+        {"kind": "add_card", "target": "own_leader", "card_id": 90071220}
+      ]
+    },
+    {
+      "card_id": 10173110,
+      "trigger": "evolve",
+      "operations": [
+        {"kind": "add_card", "target": "own_leader", "card_id": 90071210},
+        {"kind": "add_card", "target": "own_leader", "card_id": 90071220}
+      ]
+    }
+  ]
+}

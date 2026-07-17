@@ -363,7 +363,7 @@ class IntimidateEnvironmentTests(unittest.TestCase):
         self.assertTrue(mask[base])
         self.assertFalse(mask[base + 1])
         self.assertEqual(env._board_features(target)[12], 1.0)
-        self.assertEqual(len(env.observation()), 290)
+        self.assertEqual(len(env.observation()), 294)
 
 
 @unittest.skipUnless(os.path.exists("data/cards.sqlite3"), "card database unavailable")

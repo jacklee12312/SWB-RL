@@ -1,0 +1,143 @@
+{
+  "passives": [
+    {
+      "card_id": 10634120,
+      "kind": "non_intrinsic_keyword",
+      "keyword": "疾驰",
+      "notes": "疾驰只授予入场曲召唤的天晶魔手，不是本体的初始能力。"
+    }
+  ],
+  "faiths": [
+    {
+      "id": "eld_crystals",
+      "source_card_id": 10634120,
+      "initial_value": 0,
+      "triggers": [
+        {
+          "trigger": "follower_summoned",
+          "amount": 1,
+          "event_filter": {
+            "card_id": 10631110
+          }
+        }
+      ],
+      "notes": "只为实际进入己方战场的天晶魔手增长；场地已满导致的召唤失败不增长。"
+    }
+  ],
+  "listeners": [
+    {
+      "card_id": 10634120,
+      "zone": "hand",
+      "event": "follower_summoned",
+      "event_scope": "owner_event",
+      "event_filter": {
+        "card_id": 10631110
+      },
+      "notes": "每个手牌实体独立永久减费并以0为下限；已经离开手牌的本体不会为自己的入场曲减费。",
+      "operations": [
+        {
+          "kind": "change_cost",
+          "target": "self",
+          "amount": 1,
+          "mode": "subtract",
+          "duration": "permanent"
+        }
+      ]
+    }
+  ],
+  "rules": [
+    {
+      "card_id": 10634120,
+      "trigger": "fanfare",
+      "notes": "两次召唤顺序结算；只为成功进入战场的对应实体授予疾驰。",
+      "operations": [
+        {
+          "kind": "summon",
+          "target": "own_leader",
+          "card_id": 10631110,
+          "target_key": "first_crystalspawn"
+        },
+        {
+          "kind": "add_keyword",
+          "target": "previous_target",
+          "target_key": "first_crystalspawn",
+          "keyword": "疾驰"
+        },
+        {
+          "kind": "summon",
+          "target": "own_leader",
+          "card_id": 10631110,
+          "target_key": "second_crystalspawn"
+        },
+        {
+          "kind": "add_keyword",
+          "target": "previous_target",
+          "target_key": "second_crystalspawn",
+          "keyword": "疾驰"
+        }
+      ]
+    },
+    {
+      "card_id": 10634120,
+      "trigger": "evolve",
+      "operations": [
+        {
+          "kind": "add_card",
+          "target": "own_leader",
+          "card_id": 90034330
+        }
+      ]
+    },
+    {
+      "card_id": 90034330,
+      "trigger": "play",
+      "notes": "按官网FAQ，对信仰值的每一点分别在X/Y/Z间等概率独立抽签；信仰值不被消费。",
+      "operations": [
+        {
+          "kind": "summon",
+          "target": "own_leader",
+          "card_id": 10631110,
+          "target_key": "depths_crystalspawn"
+        },
+        {
+          "kind": "random_distribute",
+          "target": "own_leader",
+          "faith_id": "eld_crystals",
+          "buckets": [
+            [
+              {
+                "kind": "buff_unit",
+                "target": "previous_target",
+                "target_key": "depths_crystalspawn",
+                "amount": {
+                  "type": "distributed_value"
+                },
+                "secondary_amount": {
+                  "type": "distributed_value"
+                }
+              }
+            ],
+            [
+              {
+                "kind": "heal_leader",
+                "target": "own_leader",
+                "amount": {
+                  "type": "distributed_value"
+                }
+              }
+            ],
+            [
+              {
+                "kind": "damage_leader",
+                "target": "enemy_leader",
+                "amount": {
+                  "type": "distributed_value"
+                }
+              }
+            ]
+          ]
+        }
+      ]
+    }
+  ]
+}

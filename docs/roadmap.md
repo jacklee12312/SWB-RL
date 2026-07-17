@@ -1,6 +1,6 @@
 # SWB Engine Roadmap
 
-Last refreshed: 2026-07-15.
+Last refreshed: 2026-07-17.
 
 This file tracks implementation priorities and known gaps. Treat executable
 code and tests as the source of truth when this file drifts.
@@ -10,21 +10,21 @@ code and tests as the source of truth when this file drifts.
 - Database: 826 cards, 735 collectible cards, 91 non-collectible/generated
   cards from set `90000`.
 - Latest SVA source: `https://sva.hypd.asia/data/cards.json`.
-- Tests: `python -m unittest discover -s tests -v` currently runs 1646 tests.
-- RL adapter: fixed 111-action space; the default v1 observation remains 290
+- Tests: `python -m unittest discover -s tests -v` currently runs 2002 tests.
+- RL adapter: fixed 111-action space; the default v1 observation is 294
   floats, while opt-in v2 provides fixed-shape categorical/public state without
   changing action IDs.
 - Ability registry status: 18 implemented, 5 partial, 11 placeholder.
 - Explicit card and demo rules live in `data/rules/`; the current coverage
-  report classifies 433 card IDs with explicit rules, passives, fusion,
+  report classifies 592 card IDs with explicit rules, passives, fusion,
   invocation, activation, Faith, Union Burst, or listener definitions. Current
-  collectible coverage is 361 exact, 0 partial, 356 supported-but-missing-rule,
-  0 missing-primitive, and 18 text-unclear cards.
+  collectible coverage is 488 exact, 0 partial, 230 supported-but-missing-rule,
+  0 missing-primitive, and 17 text-unclear cards.
 - `data/reports/token_audit.{json,md}` audits all 91 non-collectible/generated
   cards independently of collectible coverage. Database `card_references` and
-  executable structured producers are reported separately: 57 tokens have a
+  executable structured producers are reported separately: all 91 tokens have a
   complete executable entry/behavior path, no token has a partial authored
-  behavior, and 34 have no authored producer. No token is currently
+  behavior, and none lacks an authored producer. No token is currently
   classified text-unclear or externally blocked; those categories remain
   explicit and can be assigned through `data/audits/token_overrides.json`.
 - `data/reports/ability_audit.{json,md}` validates all 34 runtime/database
@@ -33,7 +33,7 @@ code and tests as the source of truth when this file drifts.
   separate column and is covered for all 34; it does not automatically promote
   the 5 partial or 11 placeholder keyword statuses.
 - Coverage now has a backward-compatible clause audit. The legacy summary still
-  reports 361 exact collectible cards, and all 361 now have an explicit exact
+  reports 488 exact collectible cards, and all 488 now have an explicit exact
   text mapping plus named direct test evidence. The versioned sibling registry
   at `data/audits/rule_clauses.json` hashes every imported primary and
   alternate-mode clause; changed source text or stale test evidence invalidates
@@ -42,8 +42,8 @@ code and tests as the source of truth when this file drifts.
   rule version and errata metadata, structured trigger/operation evidence,
   explicit unsupported text, and a stable blocker taxonomy. There are zero
   unverified exact entries and no known missing schema, primitive, targeting,
-  or timing blocker among authored rules. The 356 supported-but-missing-rule
-  cards are now the per-card structured-content backlog; 18 unclear texts
+  or timing blocker among authored rules. The 230 supported-but-missing-rule
+  cards are now the per-card structured-content backlog; 17 unclear texts
   remain explicit.
 - RL observation v2 is available behind an explicit version switch. A
   configured card vocabulary supplies stable categorical indices for own-hand,
@@ -52,10 +52,20 @@ code and tests as the source of truth when this file drifts.
   action-mask, and bounded public-history inputs have fixed shapes. Index 0 is
   padding/unknown. Privacy tests lock out opponent hand identity, hidden Fusion
   state, raw entity IDs, and remaining deck order. V1 stays the default at
-  111 actions and 290 floats, and the recurrent/belief-state interface leaves
+  111 actions and 294 floats, and the recurrent/belief-state interface leaves
   model hidden state under caller ownership.
+  V2 also exposes both public leader maximum-health values without changing v1
+  width or action IDs.
 
 ## Stable Priorities
+
+Before large-scale reinforcement-learning training, complete the platform gate
+defined in [the RL architecture audit](rl_architecture_audit.md): replace the
+legacy follower-only training pool with an exact-audit catalog, standardize the
+two-agent environment and termination semantics, freeze a no-leak Observation
+v3, and remove repeated legal-action/observation work. This gate does not block
+small deterministic engine slices, but it takes priority over beginning a long
+training run.
 
 Unless the user gives a different priority, choose the next coherent vertical
 slice in this order:
@@ -68,7 +78,8 @@ slice in this order:
    debug-only events.
 3. Extend targeting only when a verified real rule needs a new hand,
    graveyard, fallback, or chained-target boundary; true multi-target choices,
-   duplicate policy, and suspended-choice revalidation are in place.
+   duplicate policy, multi-mode collection, and suspended-choice revalidation
+   are in place.
 4. Add new trigger/death boundaries only when a verified real rule requires
    them; simultaneous deaths, pending trigger choices, and bounded recursive
    trigger diagnostics are covered.
@@ -88,6 +99,93 @@ slice in this order:
   exhaustion damage.
 - Followers, spells, amulets, combat, evolution, manual and effect-caused
   super-evolution, and shared board slots.
+- Hand-follower stat modifiers are structured, filterable, duration-aware,
+  fingerprinted, visible in own-hand observations, and inherited on ordinary
+  follower play. Exact `10172130`, `10343110`, and `10772310` cover generated
+  Puppets, class/trait filtering, live source-health thresholds, source leaving
+  play, Super Evolution unlock gating, and deterministic replay.
+- Physical hand-card cost filters now use current rather than printed cost.
+  Generic `summon_hand_copy` retains the selected hand entity, clones its
+  attack/health modifiers with fresh modifier identities, and binds only
+  successful board outputs. `requires_full_target_count` distinguishes an
+  exact distinct-card prerequisite from the existing up-to-N shortage path.
+  Followers can carry owner-turn or opponent-turn self-destruction grants;
+  these resolve before the player flip, are cleared by ability removal, respect
+  Super-Evolution effect-destroy protection, participate in fingerprints and
+  invariants, and occupy two explicit public v2 board-runtime bits. Exact
+  `10172320`, `10173140`, `10174130`, `10261120`, `10271210`, `10274120`, and
+  `10572110` cover the complete real-card slice, including Core/Artifact Token
+  production, Evolution/Super-Evolution, Engage, board shortage, stale
+  multi-hand choices, RL masks, and official FAQ boundaries.
+- Filtered controller-hand count thresholds now share `HandFilter` semantics
+  with selected/random/all hand targets. Exact `10112210`, `10521120`,
+  `10741120`, and `10853110` cover Combo-gated Token production, target-required
+  Engage after source destruction, spell-only thresholds, non-intrinsic Ward,
+  selected hand buffs, stale hand-target revalidation, and RL choice masks.
+- `controller_hand_count` expressions now accept the same type/class/cost/
+  identity/Trait filters. The bounded `repeat` meta-effect snapshots its count
+  once, rejects static or dynamic counts above 100, and queues each nested
+  operation in sequential resolution order so random candidates, triggers,
+  deaths, and state-based checks fully resolve before the next iteration. Empty
+  random candidate sets do not consume RNG. Exact `10114130` covers filtered
+  Fanfare stats, intrinsic Ward, dynamic Evolve hits, same-target reselection,
+  no-target behavior, seeded replay, and RL evolution; exact `10313310` covers
+  Combo-driven repeated random health loss and between-iteration death checks.
+- `add_shadows` is a structured leader operation with constant or dynamic
+  amounts and auditable gain events carrying the source, target player, and
+  before/after values. Exact `10152210` covers entry gain, zero-cost Engage,
+  source destruction, ordinary graveyard gain, board-capacity-aware Ghost
+  summons, Token provenance, deterministic replay, and RL activation. Exact
+  `10153120` covers Fanfare gain, Ward, insufficient/sufficient Necromancy,
+  one-time payment, sequential random hits, empty candidates, seeded replay,
+  and RL evolution. JSON `summon` now schema-requires the implicit
+  `own_leader` destination, preventing accidental board-choice targets from
+  silently turning a summon into a no-op.
+- `choose_one` remains backward compatible for one-mode rules and now accepts
+  `choose_count` for multi-mode cards. Distinct modes accumulate through
+  sequential `Choose` commands, no selected ability resolves before the full
+  set is collected, and the chosen abilities execute in printed declaration
+  order. Modes remain selectable when their current target set is empty and
+  safely no-op at execution, matching the official Mode tip. Duplicate
+  attempts are atomic; request IDs, fixed RL masks, and public selection
+  progress advance at each step. Exact `10852310` covers all six pairs of its
+  four modes, random/no-target behavior, spell graveyard Shadow, seeded replay,
+  and RL continuation.
+- Exact file `data/rules/real_existing_primitives_followup_batch.json` adds ten
+  collectibles without new engine branches: `10151140`, `10652110`, and
+  `10352120` exercise Reanimate and Enhance ordering; `10113140`, `10501110`,
+  and `10253120` cover Combo, other-card printed-cost existence, and other-own-
+  follower counts; `10761120`, `10251110`, `10233110`, and `10532120` cover
+  filtered draw/live hand counts, two-target destruction, Clash/Evolve draws,
+  and Last Words Spellboost/cost reduction. Tests cover normal and shortage
+  paths, source exclusion, board capacity, seeded replay/fingerprints, and RL
+  mode plus two-step choice masks.
+- Exact file `data/rules/real_deck_cost_transform_token_batch.json` adds
+  copy-specific runtime deck cost modifiers plus cost-bearing hand transforms.
+  Only physical deck copies present at resolution are modified; modifiers
+  stack, floor at zero, survive shuffle/draw, enter deterministic fingerprints,
+  and are invariant-checked. Exact `10334120` gives every current deck follower
+  `-3` cost, transforms one seeded-random hand spell into `90034310`, and sets
+  the replacement to 0 until turn end. Exact generated spell `90034310`
+  permanently raises every allied hand follower's cost by 1 before one
+  simultaneous enemy-follower destruction batch. Tests cover filters,
+  stacking, later deck entries, empty-candidate RNG preservation, expiry,
+  illegal-play atomicity, deterministic replay, producer auditing, and RL mask
+  parity.
+- Exact file `data/rules/real_attack_history_emblem_countdown_token_batch.json`
+  adds a fingerprinted and invariant-checked public follower-attack counter,
+  the `controller_follower_attacks_this_turn_at_most` condition, and an ordered
+  `all_own_emblems` countdown-increase target. Legal attack declaration counts
+  even if its attack trigger removes the attacker; illegal attacks remain
+  atomic, and the count resets at the turn boundary. Exact `10364120` produces
+  exact generated spell `90064310`, gains its nonstacking crest on evolution,
+  and at turn end distributes the live allied-crest count among all enemies
+  only when no allied follower attacked. The spell seeded-randomly banishes one
+  enemy follower before increasing every allied countdown crest by 1. Tests
+  cover no-attack/attacked branches, source removal, empty-target RNG
+  preservation, permanent/opposing crest exclusion, event ordering, producer
+  audit, and v1/v2 public observation. The two attack counters intentionally
+  migrate v1 from 292 to 294 while all 111 action IDs remain unchanged.
 - Manual super evolution spends SEP, adds `+3/+3`, grants follower-only attack
   access, and emits `FOLLOWER_EVOLVED` before `FOLLOWER_SUPER_EVOLVED` so
   `进化时` completes before `超进化时`. A choice in the first trigger suspends
@@ -161,8 +259,9 @@ slice in this order:
   automatically. Default selection is seeded and distinct, candidate shortage
   uses every available target, explicit duplicates use selection with
   replacement, and the selected batch resolves before one state-based check.
-  Printed repeated random effects remain separate operations with independent
-  reselection and stabilization.
+  Fixed printed repetitions may remain separate operations; dynamic repetitions
+  use `repeat`. Both forms independently reselect and stabilize between
+  iterations.
 - `CardListenerDefinition` provides ordinary board, hand, and leader-area event
   listeners for amulet activation, card draw, Earth Rite, Fusion, follower summon/evolution/
   destruction, amulet destruction, entity leave-play, card play, and turn
@@ -203,8 +302,8 @@ slice in this order:
   leader damage modifiers stack increases/reductions and support permanent,
   turn-scoped, and source-in-play lifetimes with deterministic source
   revalidation and fingerprint/event diagnostics. The default RL v1 interface
-  remains 111 actions/290 observations; these public fields are reserved for
-  the later versioned observation migration rather than breaking v1.
+  remains 111 actions/294 observations; detailed modifier identity and lifetime
+  fields remain in the explicit v2 observation rather than leaking entity IDs.
 - `土之印` is modeled on `Amulet.earth_sigil_count`, not as a player-side
   integer. A Sigil enters at 1, banishes and merges all other friendly Sigils
   into the newest entity, cannot be destroyed by abilities, cannot be manually
@@ -381,6 +480,12 @@ slice in this order:
 - Generic effects for damage, healing, draw, summon, destroy, banish, return,
   discard, transform, stat changes, keyword changes, cost changes, and attack
   or targeting restrictions.
+- `distribute_damage` implements the official oldest-first follower procedure:
+  earlier followers receive no more than their current health, and the final
+  remainder goes to the last follower or an explicitly included leader.
+  Allocations are determined before prevention is applied. No-follower paths
+  are an explicit no-op for follower-only effects and assign the full amount to
+  the leader when included.
 - Countdown amulets, last words, fanfare/play rules, attack/clash,
   evolve/super-evolve, turn-start/turn-end triggers, and emblem triggers.
 - Simultaneous-death tests now cover same-batch Last Words ordering, pending
@@ -411,6 +516,12 @@ slice in this order:
   only after a death batch's Last Words finish; their effects can create later
   death batches without re-entering the completed batch. Trigger diagnostics
   carry the originating death `batch_id`.
+- Emblem triggers now accept `card_fused` and structured event-card filters.
+  Fusion filters inspect all consumed material definitions but enqueue only one
+  activation per Fusion event, matching Octrice's official two-Treasure FAQ.
+  `emblem_self` is an explicit countdown-change target, preserving `self` as
+  the triggering card for existing emblem rules. Same-name crests still use
+  their declared stacking policy instead of duplicating silently.
 - Recursive resolution loops are bounded by a step limit and raise
   `ResolutionLoopError` with structured, deterministic diagnostics for recent
   events, queued events, effect frames, death batches, active emblem batches,
@@ -784,9 +895,238 @@ slice in this order:
   summon-before-Spellboost and destroy-before-summon order; opponent-turn-end
   expiry; both Mode choices and RL mask parity; bound successful summon outputs;
   board/hand capacity; and illegal no-target fingerprint/RNG preservation.
+- Exact file `data/rules/real_generated_burst_spell_batch.json` closes six
+  collectible producers (`10304120`, `10824110`, `10654120`, `10314120`,
+  `10834110`, and `10114120`) and seven generated spells (`90004330`,
+  `90024330`, `90054330`, `90014320`, `90034340`, `90034350`, and `90014310`).
+  Generic additions are an opponent-max-PP condition, an immutable play-time
+  Spellboost value carried by effect frames and deterministic fingerprints,
+  printed `attacks_per_turn` passives, and filtered all-hand transformation.
+  Direct tests cover both 10-PP players; 9/10/19/20 Spellboost thresholds;
+  Cooperation and Necromancy success/failure; full-board continuation; two
+  independently sampled random hits; own-turn hand cost listeners; static
+  attack capacity and ability removal; follower/leader targets; atomic illegal
+  spell play; RL mask parity; and compatibility with source-leave semantics.
+- Exact file `data/rules/real_generated_entry_listener_batch.json` closes four
+  collectible producers (`10874120`, `10773110`, `10272110`, and `10264120`)
+  and three generated followers (`90071130`, `90072130`, and `90064110`). It
+  reuses self-related follower-entry listeners for Analyzing Artifact's draw,
+  Artifact-trait filtering for Wild Announcer's Rush grant, filtered selected
+  hand transformation for Fia, and a persistent emblem represented by an
+  existing leader-area listener for Wilbert's Ward-entry buff. Tests cover
+  normal/Enhance output order, RL Enhance masks, source and evolved-target
+  exclusion, no-candidate continuation, stable hand identity, Ambush/Last
+  Words return, crest persistence, non-Ward exclusion, and board shortage.
+- Exact file `data/rules/real_generated_spellboost_growth_batch.json` closes
+  three collectible producers (`10814120`, `10232110`, and `10133310`) and
+  three generated cards (`90014110`, `90032110`, and `90033310`). The generic
+  listener surface now exposes positive follower stat-increase events, and
+  hand listeners can consume their own immutable Spellboost count and transform
+  the exact event source while preserving entity identity. Direct tests cover
+  Tia's Enhance-wide buff, own-turn once-per-turn reset, evolution/debuff and
+  ability-removal exclusions, Eve's Storm/Ward, Basset's dual summon and
+  recurring crest production, Onion's attack-time all-hand Spellboost, the
+  exact fifth-Spellboost transformation threshold, empty-enemy continuation,
+  board capacity, deterministic event metadata, and RL Enhance-mask parity.
+- Exact file `data/rules/real_generated_damage_countdown_batch.json` closes
+  three collectible producers (`10344120`, `10434120`, and `10764110`) and
+  three generated cards (`90044320`, `90034320`, and `90064210`). Generic
+  additions are a filterable follower-damaged-but-survived event and positive
+  amulet Countdown changes with auditable before/after metadata. Tests cover
+  independent source/crest once-per-turn reactions, lethal and opponent-turn
+  exclusions, Enhance Storm, all-board damage, gauge 9/10/15 Union Burst
+  boundaries, Earth Rite success/shortage, follower/leader choices, exact-card
+  random amulet filtering, Aura legality, the 2/3-amulet threshold, full-board
+  production failure, and safe no-target evolution.
+- Exact file `data/rules/real_generated_hidden_copy_discard_batch.json` closes
+  four collectible producers (`10244110`, `10644120`, `10573310`, and
+  `10674120`) and four generated cards (`90044310`, `90044330`, `90074140`,
+  and `90074320`). Generic additions are `all_enemy_hand`, stable post-zone
+  `discarded` rules, `copy_to_hand` with hidden metadata and a copy-local cost
+  modifier, amulet-to-follower transformation, and an auditable board-transform
+  event. Tests cover Overflow 6/7, damaged-only Mode destruction, opponent-turn
+  cost expiration, discard event identity, full-board summon failure, ordinary
+  versus Super Evolution replacement, play/discard spell parity, required
+  any-board targeting, stable amulet entity identity, original-cost filtering,
+  generated copy origin, non-public logs, and full-hand copy burn.
+- Exact file `data/rules/real_generated_forced_target_strike_batch.json` closes
+  four collectibles (`10174120`, `10274110`, `10273310`, and `10173120`) plus
+  generated Puppetry followers `90074120` and `90074130`. Generic additions
+  are a removable source-backed enemy ability-selection lock and implicit
+  `attack_target` frame identity. Tests cover unit/leader and mixed candidate
+  forcing, filters, multiple Lloyds, random/all exclusions, ability removal,
+  leaving play, current-attack pre-combat damage, leader exclusion, both real
+  token producers, Puppet-trait entry grants, board shortage, and the official
+  Sylvia sequence that destroys Lloyd before selecting Orchis.
+- Exact file `data/rules/real_generated_enhance_faith_shikigami_batch.json`
+  closes collectibles `10624120` (Yidmetra, Eld Sword) and `10134110` (Kuon,
+  Fivefold Master) plus generated `90024320`, `90034110`, and `90034120`.
+  `card_enhanced` is a verified Faith trigger derived from the registered play
+  mode rather than a mode-name guess, and excludes normal, Accelerate, and
+  Crystallize plays. Destroyed-follower records now retain the global turn;
+  filtered current-turn expressions sum the printed attack/health of matching
+  owned followers. Tests cover insufficient/exact Faith payment, gained
+  abilities, required-target atomicity, base/Enhance damage replacement,
+  ordered Shikigami summons and simultaneous destruction, three Last Words,
+  printed-stat Noble growth, prior-turn/opponent/non-Shikigami exclusions,
+  board shortage, Super-Evolve targeting, and deterministic replay.
+- Exact file `data/rules/real_crystal_faith_random_distribution_batch.json`
+  closes collectible `10634120` and generated `90034330`. Faith progression
+  now accepts a structured card filter for owner `follower_summoned` events;
+  retained hand copies reuse ordinary listener cost modifiers. Generic
+  `random_distribute` reads a named Faith without consuming it, independently
+  assigns each point through the engine RNG to one of at least two buckets,
+  exposes the bucket count through `distributed_value`, emits an auditable
+  result event, and retains nested target bindings plus deterministic
+  fingerprints. The official three-way FAQ law, live post-summon value, two
+  Storm grants, board capacity, zero-value RNG preservation, and seeded replay
+  are directly tested.
+- Exact file `data/rules/real_generated_distributed_damage_crest_batch.json`
+  closes eight collectibles (`10113120`, `10154130`, `10324120`, `10363210`,
+  `10511310`, `10514120`, `10673110`, `10753310`) and generated `90024310`.
+  It combines oldest-first damage distribution, dynamic hand/emblem-count
+  expressions, Octrice's filtered Treasure crest and expiry payoff, Choose,
+  Necromancy, Accelerate, evolution, and deterministic replay. Tests lock
+  Barrier allocation, no-follower/one-follower remainder, nonduplicating
+  crests, multi-material Fusion ticking once, and all alternate play paths.
+- Exact file `data/rules/real_portal_core_puppet_producer_batch.json` closes ten
+  Portalcraft collectibles (`10071110`, `10071120`, `10071310`, `10072110`,
+  `10072210`, `10171120`, `10171130`, `10172110`, `10172120`, `10173110`).
+  It adds executable Future/Past Core, Puppet/Improved Puppet, and Attack/Castle
+  Artifact producer paths using existing generic operations. Tests cover
+  ordered outputs, intrinsic Rush, target-required spell immutability,
+  Countdown owner-turn timing, evolution repeat/target/no-target paths, board
+  shortage, Token origin, producer audits, and deterministic replay.
+- Exact file `data/rules/real_portal_artifact_listener_followup_batch.json`
+  closes ten more Portalcraft collectibles (`10171140`, `10173210`, `10271110`,
+  `10371120`, `10372210`, `10374110`, `10471130`, `10571110`, `10671120`,
+  `10672310`). Existing listener, Fusion-event, output-binding, play-mode,
+  mixed-board, and destruction-immunity primitives implement the full texts.
+  Tests lock the official Automata Assassin simultaneous-entry first-only FAQ,
+  one Heritage Barrage activation per multi-material Fusion, filtered evolution
+  choice, optional no-target draw continuation, real effect-destroy prevention,
+  pre-destruction board counting, Last Words, normal/Enhance output sets,
+  board shortage, producer audit paths, and deterministic replay.
+- Exact file `data/rules/real_portal_artifact_entry_history_batch.json` adds a
+  public, deterministic record for every successful follower entry and generic
+  filtered condition/expression primitives that count different printed names.
+  Seven Portalcraft collectibles (`10771120`, `10771310`, `10772120`,
+  `10773310`, `10774110`, `10774120`, `10873310`) use Artifact-Trait history.
+  Tests cover same-name deduplication across different IDs, opponent/non-Artifact
+  exclusion, leave-play persistence, reset, fingerprints, invariants, zero and
+  nonzero dynamic damage, no-target continuation, required-target atomicity,
+  Mode/RL masks, board shortage, EP caps, seeded replay, and Myuu checking the
+  threshold after its evolution summon. V1/v2 continuous public observations
+  expose both players' normalized counts, intentionally migrating v1 from 290
+  to 292 floats while preserving all 111 action IDs.
+- Exact file `data/rules/real_portal_dynamic_evolution_batch.json` closes five
+  Portalcraft collectibles (`10371110`, `10472110`, `10573110`, `10672110`,
+  `10874110`). Generic live-board count expressions now accept compact
+  `BoardFilter` payloads, and both Attack and Clash trigger frames can bind the
+  current opposing follower as `attack_target`. The rules cover dynamic
+  other-card buff/destruction, follower-only PP recovery, Last Words draw,
+  target-gated Skybound Art double effect evolution, attacker/defender Clash,
+  same-card summon output binding, Accelerate 3, non-intrinsic Ward/Storm,
+  Enhance 9 effect evolution, and random two-Ward destruction. Direct tests
+  cover empty targets, evolved-target exclusion, mixed follower/amulet boards,
+  simultaneous cleanup, board shortage, no-EP effect evolution, illegal-mode
+  no-mutation, seeded random replay, and RL mode/choice action masks.
+- Exact file `data/rules/real_mjerrabaine_deck_batch.json` closes collectible
+  `10304110` and the executable producer/behavior chain for generated spell
+  `90004320`. Generic `replace_deck`, `set_empty_deck_outcome`, crest `on_gain`,
+  and hand-filter exclusion semantics implement the reviewed 76-card special
+  deck, seeded shuffle, Victory Card end condition, end-of-turn discard/draw,
+  and selected destroy spell without a card-ID branch. The ordinary empty-deck
+  rule is corrected from fatigue damage to immediate defeat. Fingerprints,
+  events, invariants, ignored duplicate crest acquisition, stale target
+  revalidation, illegal-play no-mutation, RL masks, and v2 public victory-mode
+  state have direct tests.
+- Exact file `data/rules/real_spellboost_recycle_listener_batch.json` closes
+  six collectible cards (`10131320`, `10831310`, `10341110`, `10551310`,
+  `10843310`, `10752310`). The played hand card's frozen Spellboost count now
+  reaches spell effect frames and is available as a generic value expression;
+  `add_card_to_deck` resolves a specified definition before one seeded hidden-
+  position insertion and emits a distinct auditable event. The real rules also
+  exercise survived-damage self listeners, owner-turn gating, filtered
+  Dragoncraft-follower draw, follower-or-leader selection, Overflow ordering,
+  ordered summon-output evolution, and board shortage. Direct tests cover
+  lethal/opponent-turn listener skips, no-target atomic rollback, deterministic
+  deck order and fingerprints, schema rejection, RL masks, database references,
+  and both identical Storm Blast printings. Token audit producer lists for
+  Ghost, Bat, and Skeleton now include the executable `10752310` path.
+- Exact file `data/rules/real_zone_output_copy_batch.json` closes five
+  collectible cards (`10853310`, `10541310`, `10802310`, `10443310`,
+  `10652310`). Draw and filtered-draw operations can now bind every physical
+  output, including an overdraw snapshot, while `bound_card_cost` reads one
+  named output's frozen current cost. Missing output skips dependent effects
+  before random target selection. Generic `random_enemy_hand`, snapshot-backed
+  `copy_to_hand`, and `summon_copy` support ordered unrevealed hand copies and
+  banish-then-copy flows without retaining a live board dependency or adding
+  card-ID branches. Direct tests cover post-unlock cost reduction, deck cost
+  inheritance, seeded random targets, no-candidate RNG stability, overdraw,
+  stale pending choices, full boards, base-state copy summoning, hidden
+  opponent observations, schema rejection, clause hashes, and unchanged
+  111-action/v1-294 observation compatibility.
+- Exact file `data/rules/real_destroyed_history_source_cost_batch.json` closes
+  five collectible cards (`10572310`, `10871130`, `10641310`, `10643310`,
+  `10331110`). Effect frames now retain the physical hand card's current cost
+  when it is played or discarded, and expose it through `source_cost_equals`
+  and `source_cost`; nested frames inherit that frozen value while non-card
+  emblem/Faith sources safely default to zero. Generic destroyed-follower
+  history copying filters allied definitions, samples by destroyed instance or
+  distinct name using only the engine RNG, emits unrevealed generated cards,
+  and safely handles empty history, fewer candidates, and full hands. Direct
+  tests cover actual simultaneous destruction, deterministic replay,
+  Artifact-only filtering, hidden opponent observations, optional empty hand
+  selection, cost-4 and 7-to-5-to-3 discard replacement, modified-cost area
+  damage/healing, required-target rollback, schema rejection, source hashes,
+  and unchanged 111-action/v1-294 compatibility.
+- Exact file `data/rules/real_listener_spellboost_followup_batch.json` closes
+  eleven collectibles (`10121130`, `10131310`, `10212120`, `10232310`,
+  `10252110`, `10353310`, `10361120`, `10612110`, `10673310`, `10721110`,
+  `10812110`). `HandFilter` now accepts a normalized ability keyword, allowing
+  selected-hand Spellboost effects to share ordinary candidate generation,
+  play legality, stale-choice handling, fingerprints, and RL masks. Existing
+  summon, Super-Evolution, positive-stat, and hand listeners express the other
+  cards without card-ID branches. Direct tests cover the official Rainbow
+  Miracle no-target prohibition and Holy Knight SET_STATS distinction, frozen
+  Spellboost distribution, all six distinct pairs of four modes, Token
+  production and capacity, listener self/other and turn scopes, temporary cost
+  stacking/expiry, seeded random evolution/damage, source hashes, and unchanged
+  111-action/v1-294 compatibility.
+- Exact file `data/rules/real_hand_exact_copy_turn_end_destroy_batch.json`
+  closes seven collectibles (`10172320`, `10173140`, `10174130`, `10261120`,
+  `10271210`, `10274120`, `10572110`). Generic hand-copy summoning retains the
+  selected physical card, copies current stat modifiers with fresh identities,
+  and output-binds only successful summons. Full-count availability separates
+  the exact-two spell prerequisite from Loramia's official up-to-three shortage
+  behavior. Entity-attached owner/opponent-turn destruction resolves before
+  the player flip and therefore respects Super-Evolution protection; ability
+  removal, fingerprints, invariants, and public v2 state include the grant.
+  Direct tests cover current-cost filters, two-step hand selection, duplicate
+  prevention, stale targets, board shortage, Engage source destruction,
+  Core/Artifact Token production, Evolution/Super-Evolution, RL masks, official
+  FAQs, and clause hashes while preserving 111-action/v1-294 compatibility.
+- Exact file `data/rules/real_apocalypse_deck_batch.json` closes collectible
+  `10104120` and the final four database-only generated cards (`90004110`,
+  `90004120`, `90004130`, `90004310`). Generic player maximum-health state,
+  healing caps, `set_leader_max_health`, event emission, fingerprints,
+  invariants, and v2 public fields implement Astaroth without treating the
+  change as damage. The source Fanfare atomically replaces and seed-shuffles
+  the official ten-card Apocalypse Deck; its three copies of each follower and
+  one spell are authored as structured data. Direct tests cover exact deck
+  composition, replay, illegal-play no-mutation, Storm, printed vanilla stats,
+  up-to-two selected targets, the official zero-target FAQ, stale second
+  targets, health clamping, later healing caps, database text, clause hashes,
+  and unchanged 111-action/v1-294 compatibility. The token audit now reports
+  all 91 generated cards complete with no partial or database-only entry.
 
 ## Known Partial Or Unsupported Areas
 
+- `repeat` snapshots and sequentially resolves automatic repetitions, but its
+  schema rejects nested `requires_target`. Repeated manual selections that must
+  affect initial play legality need an explicit command-level availability
+  rule before being enabled; empty automatic/random iterations safely no-op.
 - Random hand, graveyard, and follower-or-leader targets remain single-target
   operations. Multi-target count fields are schema-rejected for those target
   kinds until a verified real rule requires explicit zone or mixed leader
@@ -801,9 +1141,9 @@ slice in this order:
 - Union Burst core gauge and threshold semantics are implemented, but every
   additional real card still needs an explicit structured definition. Faith
   leader-area initialization, evolution progression, atomic value spending,
-  and gained structured abilities are implemented, while mode-selection,
-  Enhance, and named-follower progression triggers remain
-  explicit partial semantics. `策动` and `土之秘术` /
+  gained structured abilities, Enhance-card progression, and filtered
+  named-follower entry progression are implemented, while mode-selection
+  progression remains explicit partial semantics. `策动` and `土之秘术` /
   `土之印` core semantics are implemented, while broader real-card coverage
   remains intentionally incremental.
 - Faith and emblems are both represented in the leader area, but the official
@@ -824,9 +1164,10 @@ slice in this order:
 - The generated-card audit is deterministic and covers all 91 database tokens.
   It does not equate a database reference with an executable entry, and it only
   marks behavior complete for vanilla cards, fully implemented keyword-only
-  cards, or explicitly exact structured rules. Current output is 57 complete,
-  0 partial, and 34 database-only/no-entry; this is the content backlog for
-  later card-rule entry, not a claim of broad generated-card support.
+  cards, or explicitly exact structured rules. Current output is 91 complete,
+  0 partial, and 0 database-only/no-entry. This closes the imported generated-
+  card entry/behavior backlog without implying that uncovered collectible cards
+  are implemented.
 - The ability registry is conservative and fully audited: all 34 entries have
   a reason and test evidence, and a covered generic primitive does not promote
   a keyword until its real tagged-card semantics and boundaries are complete.

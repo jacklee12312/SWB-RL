@@ -1,0 +1,233 @@
+{
+  "passives": [
+    {
+      "card_id": 10114120,
+      "kind": "attacks_per_turn",
+      "amount": 2
+    }
+  ],
+  "intrinsic_keywords": [
+    {"card_id": 10304120, "keywords": ["虹吸"]},
+    {"card_id": 10824110, "keywords": ["突进"]},
+    {"card_id": 10834110, "keywords": ["疾驰"]},
+    {"card_id": 10114120, "keywords": ["守护"]}
+  ],
+  "listeners": [
+    {
+      "card_id": 90014320,
+      "zone": "hand",
+      "event": "turn_ended",
+      "event_scope": "owner_event",
+      "operations": [
+        {"kind": "change_cost", "target": "self", "mode": "subtract", "amount": 1}
+      ]
+    }
+  ],
+  "rules": [
+    {
+      "card_id": 10304120,
+      "trigger": "fanfare",
+      "operations": [
+        {
+          "kind": "buff_unit",
+          "target": "any_unit",
+          "amount": 2,
+          "secondary_amount": -2,
+          "exclude_source": true,
+          "requires_target": true
+        },
+        {
+          "kind": "add_card",
+          "target": "own_leader",
+          "card_id": 90004330,
+          "conditions": [
+            {"type": "controller_max_mana_at_least", "value": 10},
+            {"type": "opponent_max_mana_at_least", "value": 10}
+          ]
+        }
+      ]
+    },
+    {
+      "card_id": 10304120,
+      "trigger": "evolve",
+      "operations": [
+        {
+          "kind": "buff_unit",
+          "target": "any_unit",
+          "amount": 2,
+          "secondary_amount": -2,
+          "requires_target": true
+        }
+      ]
+    },
+    {
+      "card_id": 90004330,
+      "trigger": "play",
+      "operations": [
+        {"kind": "damage_unit", "target": "random_enemy_unit", "amount": 5},
+        {"kind": "damage_leader", "target": "enemy_leader", "amount": 5}
+      ]
+    },
+    {
+      "card_id": 10824110,
+      "trigger": "fanfare",
+      "operations": [
+        {"kind": "summon", "target": "own_leader", "card_id": 10824110},
+        {
+          "kind": "damage_leader",
+          "target": "enemy_leader",
+          "amount": 4,
+          "conditions": [
+            {"type": "controller_cooperation_at_least", "value": 20}
+          ]
+        }
+      ]
+    },
+    {
+      "card_id": 10824110,
+      "trigger": "evolve",
+      "operations": [
+        {"kind": "add_card", "target": "own_leader", "card_id": 90024330}
+      ]
+    },
+    {
+      "card_id": 90024330,
+      "trigger": "play",
+      "operations": [
+        {"kind": "damage_unit", "target": "random_enemy_unit", "amount": 4},
+        {"kind": "damage_unit", "target": "random_enemy_unit", "amount": 4}
+      ]
+    },
+    {
+      "card_id": 10654120,
+      "trigger": "fanfare",
+      "operations": [
+        {
+          "kind": "necromancy",
+          "target": "own_leader",
+          "amount": 4,
+          "operations": [
+            {"kind": "evolve_unit", "target": "self"}
+          ]
+        }
+      ]
+    },
+    {
+      "card_id": 10654120,
+      "trigger": "evolve",
+      "operations": [
+        {"kind": "add_card", "target": "own_leader", "card_id": 90054330}
+      ]
+    },
+    {
+      "card_id": 90054330,
+      "trigger": "play",
+      "operations": [
+        {"kind": "draw", "target": "own_leader", "amount": 2}
+      ]
+    },
+    {
+      "card_id": 10314120,
+      "trigger": "fanfare",
+      "operations": [
+        {
+          "kind": "buff_unit",
+          "target": "enemy_unit",
+          "amount": 0,
+          "secondary_amount": -6,
+          "requires_target": true
+        }
+      ]
+    },
+    {
+      "card_id": 10314120,
+      "trigger": "evolve",
+      "operations": [
+        {"kind": "add_card", "target": "own_leader", "card_id": 90014320}
+      ]
+    },
+    {
+      "card_id": 90014320,
+      "trigger": "play",
+      "operations": [
+        {
+          "kind": "conditional",
+          "target": "own_leader",
+          "conditions": [
+            {"type": "controller_board_has", "card_id_filter": 10314120}
+          ],
+          "then": [
+            {"kind": "damage_leader", "target": "enemy_leader", "amount": 20}
+          ],
+          "else": [
+            {"kind": "damage_leader", "target": "enemy_leader", "amount": 6}
+          ]
+        }
+      ]
+    },
+    {
+      "card_id": 10834110,
+      "trigger": "fanfare",
+      "operations": [
+        {
+          "kind": "add_card",
+          "target": "own_leader",
+          "card_id": 90034340,
+          "conditions": [
+            {"type": "source_spellboost_count_at_least", "value": 10}
+          ]
+        },
+        {
+          "kind": "add_card",
+          "target": "own_leader",
+          "card_id": 90034350,
+          "conditions": [
+            {"type": "source_spellboost_count_at_least", "value": 20}
+          ]
+        }
+      ]
+    },
+    {
+      "card_id": 90034340,
+      "trigger": "play",
+      "operations": [
+        {"kind": "damage_unit", "target": "all_enemy_units", "amount": 5}
+      ]
+    },
+    {
+      "card_id": 90034350,
+      "trigger": "play",
+      "operations": [
+        {
+          "kind": "grant_attacks_per_turn",
+          "target": "own_unit",
+          "amount": 2,
+          "requires_target": true
+        }
+      ]
+    },
+    {
+      "card_id": 10114120,
+      "trigger": "fanfare",
+      "operations": [
+        {
+          "kind": "transform",
+          "target": "all_own_hand",
+          "card_id": 90014310,
+          "hand_filter": {"class_id": 1, "cost_max": 2}
+        }
+      ]
+    },
+    {
+      "card_id": 90014310,
+      "trigger": "play",
+      "operations": [
+        {
+          "kind": "damage_unit",
+          "target": "enemy_unit_or_leader",
+          "amount": 3
+        }
+      ]
+    }
+  ]
+}

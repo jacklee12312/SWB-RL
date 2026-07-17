@@ -388,6 +388,8 @@ def _build_coverage_report(db_path: str, rules_dir: str) -> dict:
         ruled_cards.add(ed.source_card_id)
         ruled_ops.setdefault(ed.source_card_id, {"triggers": [], "effect_kinds": []})
         ruled_ops[ed.source_card_id]["triggers"].append("emblem_source")
+        for op in _iter_nested_operations(ed.on_gain):
+            ruled_ops[ed.source_card_id]["effect_kinds"].append(op.kind.value)
         for tr in ed.triggers:
             for op in _iter_nested_operations(tr.operations):
                 ruled_ops[ed.source_card_id]["effect_kinds"].append(op.kind.value)

@@ -1,0 +1,158 @@
+{
+  "intrinsic_keywords": [
+    {"card_id": 10244110, "keywords": ["必杀"]},
+    {"card_id": 10644120, "keywords": ["必杀"]},
+    {"card_id": 10674120, "keywords": ["突进"]},
+    {"card_id": 90074140, "keywords": ["突进"]}
+  ],
+  "rules": [
+    {
+      "card_id": 10244110,
+      "trigger": "fanfare",
+      "operations": [
+        {
+          "kind": "add_card",
+          "target": "own_leader",
+          "card_id": 90044310,
+          "conditions": [{"type": "controller_overflow"}]
+        }
+      ]
+    },
+    {
+      "card_id": 10244110,
+      "trigger": "evolve",
+      "operations": [
+        {"kind": "damage_unit", "target": "all_enemy_units", "amount": 1}
+      ]
+    },
+    {
+      "card_id": 90044310,
+      "trigger": "play",
+      "operations": [
+        {
+          "kind": "choose_one",
+          "target": "own_leader",
+          "options": [
+            {
+              "id": "destroy_damaged",
+              "label": "破坏所有受伤的敌方随从",
+              "operations": [
+                {
+                  "kind": "destroy",
+                  "target": "all_enemy_units",
+                  "target_damaged_filter": true
+                }
+              ]
+            },
+            {
+              "id": "freeze_enemy_hand",
+              "label": "对手所有手牌费用+1",
+              "operations": [
+                {
+                  "kind": "change_cost",
+                  "target": "all_enemy_hand",
+                  "amount": 1,
+                  "mode": "add",
+                  "duration": "until_end_of_opponent_turn"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "card_id": 10644120,
+      "trigger": "discarded",
+      "operations": [
+        {"kind": "summon", "target": "own_leader", "card_id": 10644120}
+      ]
+    },
+    {
+      "card_id": 10644120,
+      "trigger": "evolve",
+      "operations": [
+        {
+          "kind": "add_card",
+          "target": "own_leader",
+          "card_id": 90044330,
+          "conditions": [
+            {
+              "type": "not",
+              "conditions": [{"type": "source_super_evolved"}]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "card_id": 10644120,
+      "trigger": "super_evolve",
+      "operations": [
+        {"kind": "add_card", "target": "own_leader", "card_id": 90044330},
+        {"kind": "add_card", "target": "own_leader", "card_id": 90044330},
+        {"kind": "add_card", "target": "own_leader", "card_id": 90044330}
+      ]
+    },
+    {
+      "card_id": 90044330,
+      "trigger": "discarded",
+      "operations": [
+        {"kind": "damage_leader", "target": "enemy_leader", "amount": 1},
+        {"kind": "heal_leader", "target": "own_leader", "amount": 1}
+      ]
+    },
+    {
+      "card_id": 90044330,
+      "trigger": "play",
+      "operations": [
+        {"kind": "damage_leader", "target": "enemy_leader", "amount": 1},
+        {"kind": "heal_leader", "target": "own_leader", "amount": 1}
+      ]
+    },
+    {
+      "card_id": 10573310,
+      "trigger": "play",
+      "operations": [
+        {
+          "kind": "transform",
+          "target": "any_board",
+          "card_id": 90074140,
+          "requires_target": true
+        }
+      ]
+    },
+    {
+      "card_id": 10674120,
+      "trigger": "fanfare",
+      "operations": [
+        {
+          "kind": "add_card",
+          "target": "own_leader",
+          "card_id": 90074320,
+          "conditions": [
+            {
+              "type": "controller_board_has",
+              "card_type_filter": "随从",
+              "cost_min": 5
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "card_id": 90074320,
+      "trigger": "play",
+      "operations": [
+        {
+          "kind": "copy_to_hand",
+          "target": "own_unit",
+          "amount": 3,
+          "mode": "subtract",
+          "target_cost_min": 5,
+          "requires_target": true
+        }
+      ]
+    }
+  ]
+}

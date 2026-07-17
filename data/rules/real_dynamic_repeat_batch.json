@@ -1,0 +1,60 @@
+{
+  "rules": [
+    {
+      "card_id": 10114130,
+      "trigger": "fanfare",
+      "operations": [
+        {
+          "kind": "buff_unit",
+          "target": "self",
+          "amount": {
+            "type": "controller_hand_count",
+            "filter": {"card_type": "随从", "tribe_name": "妖精"}
+          },
+          "secondary_amount": {
+            "type": "controller_hand_count",
+            "filter": {"card_type": "随从", "tribe_name": "妖精"}
+          }
+        }
+      ]
+    },
+    {
+      "card_id": 10114130,
+      "trigger": "evolve",
+      "operations": [
+        {
+          "kind": "repeat",
+          "amount": {
+            "type": "controller_hand_count",
+            "filter": {"card_type": "随从", "tribe_name": "妖精"}
+          },
+          "operations": [
+            {
+              "kind": "damage_unit",
+              "target": "random_enemy_unit",
+              "amount": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "card_id": 10313310,
+      "trigger": "play",
+      "operations": [
+        {
+          "kind": "repeat",
+          "amount": {"type": "controller_combo"},
+          "operations": [
+            {
+              "kind": "buff_unit",
+              "target": "random_enemy_unit",
+              "amount": 0,
+              "secondary_amount": -1
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

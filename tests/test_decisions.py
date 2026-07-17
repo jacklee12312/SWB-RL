@@ -144,6 +144,107 @@ class ChooseOneTests(unittest.TestCase):
         self.assertEqual(len(engine.state.effect_stack), 0)
         self.assertEqual(len(engine.players[0].deck), deck_before - 2)
 
+    def test_choose_multiple_collects_distinct_modes_before_resolving(self):
+        op = EffectOperation(
+            EffectKind.CHOOSE_ONE,
+            TargetKind.OWN_LEADER,
+            choose_one_options=(
+                ChooseOneOption(
+                    "first",
+                    "第一项",
+                    operations=(
+                        EffectOperation(
+                            EffectKind.DAMAGE_LEADER,
+                            TargetKind.ENEMY_LEADER,
+                            1,
+                        ),
+                    ),
+                ),
+                ChooseOneOption(
+                    "second",
+                    "第二项",
+                    operations=(
+                        EffectOperation(
+                            EffectKind.DAMAGE_LEADER,
+                            TargetKind.ENEMY_LEADER,
+                            2,
+                        ),
+                    ),
+                ),
+                ChooseOneOption(
+                    "third",
+                    "第三项",
+                    operations=(
+                        EffectOperation(
+                            EffectKind.DRAW,
+                            TargetKind.OWN_LEADER,
+                            1,
+                        ),
+                    ),
+                ),
+            ),
+            choose_count=2,
+        )
+        engine = _engine(_sr(999973, op))
+        engine.reset(seed=42)
+        _insert_card(engine, _card(999973, card_type="法术", cost=1))
+        engine.players[0].mana = 10
+
+        engine.apply(PlayCard(0, 0))
+        first_request = engine.state.pending_choice
+        self.assertEqual(first_request.target_count, 2)
+        self.assertEqual(engine.players[1].health, 20)
+
+        engine.apply(Choose(0, "choose_one:second"))
+
+        second_request = engine.state.pending_choice
+        self.assertIsNotNone(second_request)
+        self.assertNotEqual(second_request.request_id, first_request.request_id)
+        self.assertEqual(
+            tuple(option.option_id for option in second_request.selected_options),
+            ("choose_one:second",),
+        )
+        self.assertNotIn(
+            "choose_one:second",
+            {option.option_id for option in second_request.options},
+        )
+        self.assertEqual(engine.players[1].health, 20)
+
+        engine.apply(Choose(0, "choose_one:first"))
+
+        self.assertIsNone(engine.state.pending_choice)
+        self.assertEqual(engine.players[1].health, 17)
+        damage_amounts = [
+            event.amount
+            for event in engine.event_history
+            if event.type is EventType.DAMAGE_APPLIED
+            and event.metadata.get("target_player") == 1
+        ]
+        self.assertEqual(damage_amounts[-2:], [1, 2])
+
+    def test_choose_multiple_duplicate_rejection_is_atomic(self):
+        op = EffectOperation(
+            EffectKind.CHOOSE_ONE,
+            TargetKind.OWN_LEADER,
+            choose_one_options=(
+                ChooseOneOption("a", "A"),
+                ChooseOneOption("b", "B"),
+            ),
+            choose_count=2,
+        )
+        engine = _engine(_sr(999974, op))
+        engine.reset(seed=42)
+        _insert_card(engine, _card(999974, card_type="法术", cost=1))
+        engine.players[0].mana = 10
+        engine.apply(PlayCard(0, 0))
+        engine.apply(Choose(0, "choose_one:a"))
+        before = engine.deterministic_fingerprint()
+
+        with self.assertRaises(IllegalCommand):
+            engine.apply(Choose(0, "choose_one:a"))
+
+        self.assertEqual(engine.deterministic_fingerprint(), before)
+
     def test_choose_one_branch_can_request_target_choice(self):
         op = EffectOperation(
             EffectKind.CHOOSE_ONE, TargetKind.OWN_LEADER,
@@ -172,6 +273,42 @@ class ChooseOneTests(unittest.TestCase):
 
         engine.apply(Choose(second.player_index, second.options[0].option_id))
         self.assertEqual(enemy.health, 1)
+        self.assertEqual(len(engine.state.effect_stack), 0)
+
+    def test_choose_one_mode_remains_selectable_without_current_target(self):
+        op = EffectOperation(
+            EffectKind.CHOOSE_ONE,
+            TargetKind.OWN_LEADER,
+            choose_one_options=(
+                ChooseOneOption(
+                    "damage",
+                    "伤害",
+                    operations=(
+                        EffectOperation(
+                            EffectKind.DAMAGE_UNIT,
+                            TargetKind.ENEMY_UNIT,
+                            2,
+                            requires_target=True,
+                        ),
+                    ),
+                ),
+            ),
+        )
+        engine = _engine(_sr(999975, op))
+        engine.reset(seed=42)
+        _insert_card(engine, _card(999975, card_type="法术", cost=1))
+        engine.players[0].mana = 10
+
+        engine.apply(PlayCard(0, 0))
+
+        request = engine.state.pending_choice
+        self.assertIsNotNone(request)
+        self.assertEqual(
+            tuple(option.option_id for option in request.options),
+            ("choose_one:damage",),
+        )
+        engine.apply(Choose(0, "choose_one:damage"))
+        self.assertIsNone(engine.state.pending_choice)
         self.assertEqual(len(engine.state.effect_stack), 0)
 
     def test_choose_one_branch_stale_target_skips_and_continues(self):
@@ -375,6 +512,36 @@ class SchemaValidationTests(unittest.TestCase):
                 "test.json", 1,
             )
 
+    def test_choose_one_parses_choose_count(self):
+        from swb.engine.card_rules import _parse_operation
+        operation = _parse_operation(
+            {
+                "kind": "choose_one",
+                "choose_count": 2,
+                "options": [{"id": "a"}, {"id": "b"}, {"id": "c"}],
+            },
+            "test.json",
+            1,
+        )
+        self.assertEqual(operation.choose_count, 2)
+
+    def test_choose_one_rejects_invalid_choose_count(self):
+        from swb.engine.card_rules import _parse_operation
+        for value in (0, True, 3):
+            with self.subTest(value=value), self.assertRaisesRegex(
+                ValueError,
+                "choose_count",
+            ):
+                _parse_operation(
+                    {
+                        "kind": "choose_one",
+                        "choose_count": value,
+                        "options": [{"id": "a"}, {"id": "b"}],
+                    },
+                    "test.json",
+                    1,
+                )
+
     def test_conditional_rejects_unknown_field(self):
         from swb.engine.card_rules import _parse_operation
         with self.assertRaisesRegex(ValueError, "unknown fields"):
@@ -553,14 +720,14 @@ class SchemaValidationTests(unittest.TestCase):
 
 
 class ObservationTests(unittest.TestCase):
-    def test_observation_290(self):
+    def test_observation_294(self):
         env = ShadowverseEnv(
             deck_a=[_card(100 + i) for i in range(40)],
             deck_b=[_card(200 + i) for i in range(40)],
             class_a=1, class_b=1, seed=42,
         )
         obs, _ = env.reset(seed=42)
-        self.assertEqual(len(obs), 290)
+        self.assertEqual(len(obs), 294)
 
     def test_action_size(self):
         self.assertGreater(ShadowverseEnv.ACTION_SIZE, 100)

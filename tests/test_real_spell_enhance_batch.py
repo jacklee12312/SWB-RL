@@ -224,12 +224,20 @@ class DatabaseClauseAuditTests(unittest.TestCase):
         self.assertEqual(token["explicit_coverage"], "exact")
         self.assertEqual(
             token["authored_producers"],
-            [{
-                "source_card_id": 10523310,
-                "entry_kind": "add_card",
-                "rule_file": "real_spell_enhance_batch.json",
-                "rule_group": "rules",
-            }],
+            [
+                {
+                    "source_card_id": 10521120,
+                    "entry_kind": "add_card",
+                    "rule_file": "real_selected_hand_stat_batch.json",
+                    "rule_group": "rules",
+                },
+                {
+                    "source_card_id": 10523310,
+                    "entry_kind": "add_card",
+                    "rule_file": "real_spell_enhance_batch.json",
+                    "rule_group": "rules",
+                },
+            ],
         )
 
 

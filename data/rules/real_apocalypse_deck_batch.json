@@ -1,0 +1,55 @@
+{
+  "rules": [
+    {
+      "card_id": 10104120,
+      "trigger": "fanfare",
+      "operations": [
+        {
+          "kind": "replace_deck",
+          "target": "own_leader",
+          "shuffle": true,
+          "card_ids": [
+            90004110,
+            90004110,
+            90004110,
+            90004120,
+            90004120,
+            90004120,
+            90004130,
+            90004130,
+            90004130,
+            90004310
+          ]
+        }
+      ]
+    },
+    {
+      "card_id": 90004130,
+      "trigger": "fanfare",
+      "operations": [
+        {
+          "kind": "damage_unit",
+          "target": "enemy_unit",
+          "amount": 6,
+          "target_count": 2
+        },
+        {
+          "kind": "damage_leader",
+          "target": "enemy_leader",
+          "amount": 6
+        }
+      ]
+    },
+    {
+      "card_id": 90004310,
+      "trigger": "play",
+      "operations": [
+        {
+          "kind": "set_leader_max_health",
+          "target": "enemy_leader",
+          "amount": 1
+        }
+      ]
+    }
+  ]
+}

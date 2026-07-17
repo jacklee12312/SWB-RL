@@ -3,6 +3,7 @@
 from __future__ import annotations
 import sqlite3
 import unittest
+from contextlib import closing
 from pathlib import Path
 from swb.db.repository import CardDefinition
 from swb.engine.card_rules import CardRule, RuleBook, Trigger, _parse_operation
@@ -334,7 +335,7 @@ class CooperationObservationTests(unittest.TestCase):
         env = ShadowverseEnv([_card(i) for i in range(1000, 1040)], [_card(i) for i in range(1100, 1140)], class_a=1, class_b=1, seed=42, rulebook=RuleBook())
         env.reset(seed=42); env.core.players[0].cooperation=7; env.core.players[1].cooperation=3
         obs = env.observation()
-        self.assertEqual(len(obs), 290)
+        self.assertEqual(len(obs), 294)
         self.assertEqual(obs[18], 0.7); self.assertEqual(obs[19], 0.3)
 
 class CooperationDeterminismTests(unittest.TestCase):
@@ -348,7 +349,7 @@ class RealCardCooperationTests(unittest.TestCase):
     DATABASE = Path("data/cards.sqlite3")
 
     def test_database_text_matches_supported_rule(self):
-        with sqlite3.connect(self.DATABASE) as connection:
+        with closing(sqlite3.connect(self.DATABASE)) as connection:
             name = connection.execute(
                 """
                 SELECT name FROM card_names
@@ -434,7 +435,7 @@ class RealCardCooperationTests(unittest.TestCase):
         self.assertEqual(enemy.attack_restrictions, [])
 
     def test_unsupported_real_card_has_no_fabricated_rule(self):
-        with sqlite3.connect(self.DATABASE) as connection:
+        with closing(sqlite3.connect(self.DATABASE)) as connection:
             text = connection.execute(
                 """
                 SELECT text_chs FROM skill_texts

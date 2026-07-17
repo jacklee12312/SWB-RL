@@ -7,6 +7,7 @@ import copy
 import os
 import sqlite3
 import unittest
+from contextlib import closing
 
 from swb.db.repository import CardDefinition, CardRepository
 from swb.engine.card_rules import CardRule, RuleBook, Trigger
@@ -110,7 +111,7 @@ class DatabaseVerificationTests(unittest.TestCase):
         cls.repo = CardRepository(str(cls.db_path))
 
     def _skill_texts(self, card_id):
-        with sqlite3.connect(str(self.db_path)) as conn:
+        with closing(sqlite3.connect(str(self.db_path))) as conn:
             return [
                 row[0]
                 for row in conn.execute(
@@ -209,7 +210,7 @@ class DatabaseVerificationBatch2Tests(unittest.TestCase):
         cls.repo = CardRepository(str(cls.db_path))
 
     def _skill_texts(self, card_id):
-        with sqlite3.connect(str(self.db_path)) as conn:
+        with closing(sqlite3.connect(str(self.db_path))) as conn:
             return [row[0] for row in conn.execute(
                 "SELECT text_chs FROM skill_texts WHERE card_id=? ORDER BY position", (card_id,))]
 
@@ -291,7 +292,7 @@ class DatabaseVerificationBatch3Tests(unittest.TestCase):
         cls.repo = CardRepository(str(cls.db_path))
 
     def _skill_texts(self, card_id):
-        with sqlite3.connect(str(self.db_path)) as conn:
+        with closing(sqlite3.connect(str(self.db_path))) as conn:
             return [row[0] for row in conn.execute(
                 "SELECT text_chs FROM skill_texts WHERE card_id=? ORDER BY position", (card_id,))]
 
@@ -331,7 +332,7 @@ class DatabaseVerificationBatch4Tests(unittest.TestCase):
         cls.repo = CardRepository(str(cls.db_path))
 
     def _skill_texts(self, card_id):
-        with sqlite3.connect(str(self.db_path)) as conn:
+        with closing(sqlite3.connect(str(self.db_path))) as conn:
             return [row[0] for row in conn.execute(
                 "SELECT text_chs FROM skill_texts WHERE card_id=? ORDER BY position", (card_id,))]
 

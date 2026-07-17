@@ -1,0 +1,182 @@
+{
+  "passives": [
+    {
+      "card_id": 10344120,
+      "kind": "non_intrinsic_keyword",
+      "keyword": "疾驰",
+      "notes": "疾驰仅由爆能强化7授予。"
+    }
+  ],
+  "intrinsic_keywords": [
+    {"card_id": 90064210, "keywords": ["灵气"]}
+  ],
+  "union_bursts": [
+    {
+      "card_id": 10434120,
+      "kind": "union_burst",
+      "operations": [
+        {"kind": "evolve_unit", "target": "self"}
+      ]
+    },
+    {
+      "card_id": 10434120,
+      "kind": "super_skybound_art",
+      "operations": [
+        {
+          "kind": "gain_emblem",
+          "target": "own_leader",
+          "emblem_id": "genius_alchemist_cagliostro"
+        }
+      ]
+    }
+  ],
+  "emblems": [
+    {
+      "id": "manifestation_of_ardent_destruction_galmieux",
+      "source_card_id": 10344120,
+      "stacking": "allow",
+      "triggers": []
+    },
+    {
+      "id": "genius_alchemist_cagliostro",
+      "source_card_id": 10434120,
+      "stacking": "allow",
+      "triggers": [
+        {
+          "trigger": "turn_start",
+          "turn_scope": "owner_turn",
+          "operations": [
+            {
+              "kind": "earth_rite",
+              "target": "own_leader",
+              "amount": 1,
+              "operations": [
+                {"kind": "add_card", "target": "own_leader", "card_id": 90034320}
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "listeners": [
+    {
+      "card_id": 10344120,
+      "zone": "board",
+      "event": "follower_damaged_survived",
+      "event_scope": "owner_event",
+      "turn_scope": "owner_turn",
+      "source_relation": "self",
+      "once_per_turn": true,
+      "operations": [
+        {"kind": "damage_unit", "target": "random_enemy_unit", "amount": 3}
+      ]
+    },
+    {
+      "card_id": 10344120,
+      "zone": "leader_area",
+      "event": "follower_damaged_survived",
+      "event_scope": "owner_event",
+      "turn_scope": "owner_turn",
+      "source_relation": "any",
+      "once_per_turn": true,
+      "operations": [
+        {"kind": "add_card", "target": "own_leader", "card_id": 90044320}
+      ]
+    },
+    {
+      "card_id": 90064210,
+      "zone": "board",
+      "event": "turn_ended",
+      "event_scope": "owner_event",
+      "turn_scope": "owner_turn",
+      "conditions": [
+        {
+          "type": "controller_board_has",
+          "value": 3,
+          "card_type_filter": "护符"
+        }
+      ],
+      "operations": [
+        {"kind": "damage_unit", "target": "all_enemy_units", "amount": 3},
+        {"kind": "damage_leader", "target": "enemy_leader", "amount": 3}
+      ]
+    }
+  ],
+  "rules": [
+    {
+      "card_id": 10344120,
+      "trigger": "fanfare",
+      "operations": [
+        {
+          "kind": "gain_emblem",
+          "target": "own_leader",
+          "emblem_id": "manifestation_of_ardent_destruction_galmieux"
+        }
+      ],
+      "play_modes": [
+        {
+          "id": "enhance_7",
+          "type": "enhance",
+          "cost": 7,
+          "operations": [
+            {"kind": "add_keyword", "target": "self", "keyword": "疾驰"}
+          ]
+        }
+      ]
+    },
+    {
+      "card_id": 90044320,
+      "trigger": "play",
+      "operations": [
+        {"kind": "damage_unit", "target": "all_units", "amount": 1}
+      ]
+    },
+    {
+      "card_id": 10434120,
+      "trigger": "fanfare",
+      "operations": [
+        {"kind": "add_earth_sigils", "target": "own_leader", "amount": 2},
+        {"kind": "add_card", "target": "own_leader", "card_id": 90034320}
+      ]
+    },
+    {
+      "card_id": 90034320,
+      "trigger": "play",
+      "operations": [
+        {
+          "kind": "damage_unit",
+          "target": "enemy_unit_or_leader",
+          "amount": 2
+        },
+        {"kind": "heal_leader", "target": "own_leader", "amount": 1}
+      ]
+    },
+    {
+      "card_id": 10764110,
+      "trigger": "fanfare",
+      "operations": [
+        {"kind": "summon", "target": "own_leader", "card_id": 90064210}
+      ]
+    },
+    {
+      "card_id": 10764110,
+      "trigger": "evolve",
+      "operations": [
+        {
+          "kind": "increase_countdown",
+          "target": "random_own_board",
+          "amount": 1,
+          "target_card_type_filter": "护符",
+          "target_card_id_filter": 90064210
+        }
+      ]
+    },
+    {
+      "card_id": 90064210,
+      "trigger": "play",
+      "countdown": 1,
+      "operations": []
+    }
+  ]
+}

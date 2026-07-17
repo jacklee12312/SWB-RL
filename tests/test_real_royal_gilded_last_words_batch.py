@@ -246,6 +246,12 @@ class DatabaseClauseAuditTests(unittest.TestCase):
                     "rule_file": "real_spell_modes_and_earth_listener_batch.json",
                     "rule_group": "rules",
                 },
+                {
+                    "source_card_id": 10324120,
+                    "entry_kind": "add_card",
+                    "rule_file": "real_generated_distributed_damage_crest_batch.json",
+                    "rule_group": "rules",
+                },
             ],
             90021320: [{
                 "source_card_id": 10321110,
@@ -259,12 +265,20 @@ class DatabaseClauseAuditTests(unittest.TestCase):
                 "rule_file": "real_royal_gilded_last_words_batch.json",
                 "rule_group": "rules",
             }],
-            90021340: [{
-                "source_card_id": 10322110,
-                "entry_kind": "add_card",
-                "rule_file": "real_royal_gilded_last_words_batch.json",
-                "rule_group": "rules",
-            }],
+            90021340: [
+                {
+                    "source_card_id": 10322110,
+                    "entry_kind": "add_card",
+                    "rule_file": "real_royal_gilded_last_words_batch.json",
+                    "rule_group": "rules",
+                },
+                {
+                    "source_card_id": 10324120,
+                    "entry_kind": "add_card",
+                    "rule_file": "real_generated_distributed_damage_crest_batch.json",
+                    "rule_group": "rules",
+                },
+            ],
         }
         for card_id, producers in expected_producers.items():
             with self.subTest(token_card_id=card_id):
