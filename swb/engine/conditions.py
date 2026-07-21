@@ -300,6 +300,13 @@ def evaluate_condition(cond: Condition | None, ctx: EvalContext | None) -> bool:
         if isinstance(source, Unit):
             return source.super_evolved
         return bool(ctx.source_snapshot and ctx.source_snapshot.super_evolved)
+    elif t == ConditionType.SOURCE_CARD_TYPE_IS:
+        if source is not None:
+            return source.definition.card_type == cond.card_type
+        return bool(
+            ctx.source_snapshot
+            and ctx.source_snapshot.card_type == cond.card_type
+        )
     elif t in {
         ConditionType.SOURCE_HEALTH_AT_MOST,
         ConditionType.SOURCE_HEALTH_AT_LEAST,

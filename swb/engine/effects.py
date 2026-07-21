@@ -39,6 +39,7 @@ class ConditionType(str, Enum):
     SOURCE_HEALTH_AT_MOST = "source_health_at_most"
     SOURCE_HEALTH_AT_LEAST = "source_health_at_least"
     SOURCE_HAS_KEYWORD = "source_has_keyword"
+    SOURCE_CARD_TYPE_IS = "source_card_type_is"
     TARGET_HAS_KEYWORD = "target_has_keyword"
     TARGET_IS_OWN = "target_is_own"
     TARGET_CARD_TYPE_IS = "target_card_type_is"
@@ -379,8 +380,9 @@ class BoardFilter:
     evolved: bool | None = None
     super_evolved: bool | None = None
     damaged: bool | None = None
+    keyword: str | None = None
 
-    def matches(self, card: CardDefinition) -> bool:
+    def _matches_definition(self, card: CardDefinition) -> bool:
         return (
             (self.card_type is None or card.card_type == self.card_type)
             and (self.class_id is None or card.class_id == self.class_id)
@@ -393,10 +395,24 @@ class BoardFilter:
             and (self.tribe_name is None or card.tribe_name == self.tribe_name)
         )
 
+    def matches(self, card: CardDefinition) -> bool:
+        return self._matches_definition(card) and (
+            self.keyword is None
+            or self.keyword
+            in {
+                getattr(ability, "value", str(ability))
+                for ability in card.abilities
+            }
+        )
+
     def matches_entity(self, entity: Any) -> bool:
         definition = getattr(entity, "definition", None)
-        if definition is None or not self.matches(definition):
+        if definition is None or not self._matches_definition(definition):
             return False
+        if self.keyword is not None:
+            has_keyword = getattr(entity, "has_keyword", None)
+            if not callable(has_keyword) or not has_keyword(self.keyword):
+                return False
         if self.evolved is not None and getattr(entity, "evolved", False) is not self.evolved:
             return False
         if (

@@ -5530,6 +5530,141 @@
       "source_text_sha256": "4bb3863417e73e0773f757ef31ff8baa8dce22918e21909a3dfad948a2bb868b",
       "test_evidence": ["tests/test_real_royal_bishop_existing_primitives_batch.py"],
       "notes": "正常消失、无目标继续、选择后目标离场继续、护符阈值治疗和固有疾驰均有直接测试。"
+    },
+    {
+      "card_id": 10121140,
+      "coverage": "exact",
+      "implemented_text": "【爆能强化_6】召唤2个本体；本体具有【突进】。",
+      "rule_version": 1,
+      "source_text_sha256": "7af5d223e70dd603421a8514c345f30ca9fccdebf9e9cbaaa7416680447b1b2b",
+      "test_evidence": ["tests/test_real_royal_rune_bishop_mixed_batch.py"],
+      "notes": "普通与爆能强化模式、自身复制、固有突进和场地容量不足均有直接测试。"
+    },
+    {
+      "card_id": 10322210,
+      "coverage": "exact",
+      "implemented_text": "【策动】破坏本护符，并在两组黄金 Token 中选择一组各加入1张到手牌。",
+      "rule_version": 1,
+      "source_text_sha256": "f64fa951556b082dba2a661955ab5f6233af265b40f1fb7141f07e9e3eb5adff",
+      "test_evidence": ["tests/test_real_royal_rune_bishop_mixed_batch.py"],
+      "notes": "护符先离场再选择、四个 Token 引用、两种模式、手牌容量和待选期间来源离场均有直接测试。"
+    },
+    {
+      "card_id": 10623110,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】可选择并破坏1个敌方随从；【爆能强化_6】再回复3点能量并加入1张无畏战士。",
+      "rule_version": 1,
+      "source_text_sha256": "496419dee2cdcd5efe9e6c0abd6903c65e8514a4e1b7e92bbbfbf982bc8684b0",
+      "test_evidence": ["tests/test_real_royal_rune_bishop_mixed_batch.py"],
+      "notes": "有目标、无目标、选择后目标离场、增强续效和手牌容量均有直接测试。"
+    },
+    {
+      "card_id": 10822110,
+      "coverage": "exact",
+      "implemented_text": "己方每回合首次使用其他法术时随机对1个敌方随从造成2点伤害；【进化时】加入1张闪耀黄金。",
+      "rule_version": 1,
+      "source_text_sha256": "27dfe594d8822b060399863df22f416b506af63ed638f361e6e2c5c933435af1",
+      "test_evidence": ["tests/test_real_royal_rune_bishop_mixed_batch.py"],
+      "notes": "场上监听、其他来源限制、每回合一次、无目标随机效果、进化 Token 和种子确定性均有直接测试。"
+    },
+    {
+      "card_id": 10031110,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】【模式】使手牌法术进行2次魔力增幅，或支付【土之秘术_1】使本体+2/+2并获得【守护】。",
+      "rule_version": 1,
+      "source_text_sha256": "dc67c3aa01c468008fe06b83b7c4260a93aed543b6e3ad421b009d68239af0e9",
+      "test_evidence": ["tests/test_real_royal_rune_bishop_mixed_batch.py"],
+      "notes": "两种模式、全手牌法术过滤、土片充足与不足、非固有守护均有直接测试。"
+    },
+    {
+      "card_id": 10331310,
+      "coverage": "exact",
+      "implemented_text": "获得倒数2的水晶凝视纹章；到期时抽取2张卡并对所有敌方随从造成4点伤害。",
+      "rule_version": 1,
+      "source_text_sha256": "ca4dc52756671bfe7fa3207e9d5d3649c2dbc5f2a307369b0748e0a686648101",
+      "test_evidence": ["tests/test_real_royal_rune_bishop_mixed_batch.py"],
+      "notes": "主文本与纹章模式文本均映射；叠加、倒数到期、抽牌和敌方全体伤害均有直接测试。"
+    },
+    {
+      "card_id": 10531110,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】获得2个土之印；【超进化时】召唤2个守护者巨像。",
+      "rule_version": 1,
+      "source_text_sha256": "a176ff3bd6ba6a1a628b348689e6153e8518f52eafa3cbdcaa8fc167f83a5a8c",
+      "test_evidence": ["tests/test_real_royal_rune_bishop_mixed_batch.py"],
+      "notes": "职业资源增加、超进化触发、Token 引用和战场容量均有直接测试。"
+    },
+    {
+      "card_id": 10631120,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】召唤1个商队猛犸；【超进化时】使其他己方随从获得【突进】。",
+      "rule_version": 1,
+      "source_text_sha256": "839f301f23eb146392812734de223cc9e7b99d2a875849d43bba298e599d5c84",
+      "test_evidence": ["tests/test_real_royal_rune_bishop_mixed_batch.py"],
+      "notes": "Token 生产、场地容量、排除来源实体和运行时关键字授予均有直接测试。"
+    },
+    {
+      "card_id": 10633110,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】召唤2个水晶魔物；【进化时】使所有己方水晶魔物+1/+0。",
+      "rule_version": 1,
+      "source_text_sha256": "d197edfc04551faa02467f95e664c53650e3d1c9b8e559db6d9ac3bd03823079",
+      "test_evidence": ["tests/test_real_royal_rune_bishop_mixed_batch.py"],
+      "notes": "同名 Token 连续召唤、卡牌 ID 过滤增益、非目标不受影响和容量路径均有直接测试。"
+    },
+    {
+      "card_id": 10731110,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】【土之秘术_1】进化本体；本体具有【守护】。",
+      "rule_version": 1,
+      "source_text_sha256": "b6b80810684c06ceb12761ebb0e7ad98de5643ff128cebf3cb490f28ab56ef75",
+      "test_evidence": ["tests/test_real_royal_rune_bishop_mixed_batch.py"],
+      "notes": "土片充足与不足、自我进化及固有守护均有直接测试。"
+    },
+    {
+      "card_id": 10833310,
+      "coverage": "exact",
+      "implemented_text": "X 等于本卡魔力增幅次数；抽取2张卡，X至少为5时再回复主战者2点生命和2点能量。",
+      "rule_version": 1,
+      "source_text_sha256": "69b7918281d5e07ccf59e4ebba3d48d161ce902e2cfabc719c59137e6609f8d9",
+      "test_evidence": ["tests/test_real_royal_rune_bishop_mixed_batch.py"],
+      "notes": "来源卡魔力增幅阈值上下、抽牌、治疗上限和能量回复均有直接测试。"
+    },
+    {
+      "card_id": 10463210,
+      "coverage": "exact",
+      "implemented_text": "【策动】破坏本护符，并选择随机破坏1个敌方随从或抽取2张卡。",
+      "rule_version": 1,
+      "source_text_sha256": "26e65d10be7e1a75efbff5247c640fee04673ff5cac32d2e3f0f65de1aa5be74",
+      "test_evidence": ["tests/test_real_royal_rune_bishop_mixed_batch.py"],
+      "notes": "两种模式、无敌方随从安全跳过、随机确定性、抽牌和来源先离场均有直接测试。"
+    },
+    {
+      "card_id": 10562210,
+      "coverage": "exact",
+      "implemented_text": "【策动】破坏本护符，抽取等同于己方场上具有【守护】的随从数量的卡。",
+      "rule_version": 1,
+      "source_text_sha256": "7ffd30e53f24652099ade5cce20acd92618ce2efd6e46608d526b52fba67252a",
+      "test_evidence": ["tests/test_real_royal_rune_bishop_mixed_batch.py"],
+      "notes": "打印与运行时获得的守护均计数，非守护随从和护符不计数；策动离场及抽牌数量有直接测试。"
+    },
+    {
+      "card_id": 10662110,
+      "coverage": "exact",
+      "implemented_text": "本体具有【突进】【必杀】；【结晶_1】作为倒数3护符，谢幕曲召唤本体。",
+      "rule_version": 1,
+      "source_text_sha256": "fc33832a634400bd21315e7dcd1432f9cea08e1a6a98253f1bcd19d943752b7e",
+      "test_evidence": ["tests/test_real_royal_rune_bishop_mixed_batch.py"],
+      "notes": "普通与结晶模式、倒数、谢幕曲自身生产链、固有关键字和 RL action mask 均有直接测试。"
+    },
+    {
+      "card_id": 10763110,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】己方至少有3张护符时进化本体并获得【屏障】；本体具有【守护】；【谢幕曲】回复主战者3点生命。",
+      "rule_version": 1,
+      "source_text_sha256": "348a546ea069a93573b26e23210f1c4801575ceaff3817a42894e118194cf396",
+      "test_evidence": ["tests/test_real_royal_rune_bishop_mixed_batch.py"],
+      "notes": "护符阈值上下、自我进化、条件屏障、固有守护和谢幕曲治疗均有直接测试。"
     }
   ]
 }

@@ -122,6 +122,7 @@ _SOURCE_DEPENDENT_CONDITIONS = frozenset({
     ConditionType.SOURCE_HEALTH_AT_MOST,
     ConditionType.SOURCE_HEALTH_AT_LEAST,
     ConditionType.SOURCE_HAS_KEYWORD,
+    ConditionType.SOURCE_CARD_TYPE_IS,
     ConditionType.SOURCE_FUSION_COUNT_AT_LEAST,
     ConditionType.SOURCE_SPELLBOOST_COUNT_AT_LEAST,
 })
@@ -205,6 +206,7 @@ def _parse_board_filter(
     card_name_key = f"{prefix}card_name_filter"
     tribe_id_key = f"{prefix}tribe_id_filter"
     tribe_name_key = f"{prefix}tribe_name_filter"
+    keyword_key = f"{prefix}keyword_filter"
     evolved_key = f"{prefix}evolved_filter"
     super_evolved_key = f"{prefix}super_evolved_filter"
     damaged_key = f"{prefix}damaged_filter"
@@ -269,6 +271,19 @@ def _parse_board_filter(
             f"{source_path}/{tribe_name_key} card {card_id}: must be a string"
         )
 
+    keyword = raw.get(keyword_key)
+    if keyword is not None:
+        if not isinstance(keyword, str) or not keyword:
+            raise ValueError(
+                f"{source_path}/{keyword_key} card {card_id}: must be a non-empty string"
+            )
+        try:
+            keyword = normalize_keyword_name(keyword, strict=True)
+        except ValueError as exc:
+            raise ValueError(
+                f"{source_path}/{keyword_key} card {card_id}: {exc}"
+            ) from exc
+
     evolved = raw.get(evolved_key)
     if evolved is not None:
         if not allow_evolved:
@@ -322,6 +337,7 @@ def _parse_board_filter(
             card_name,
             tribe_id,
             tribe_name,
+            keyword,
             evolved,
             super_evolved,
             damaged,
@@ -338,6 +354,7 @@ def _parse_board_filter(
         card_name=card_name,
         tribe_id=tribe_id,
         tribe_name=tribe_name,
+        keyword=keyword,
         evolved=evolved,
         super_evolved=super_evolved,
         damaged=damaged,
@@ -4584,15 +4601,23 @@ def _parse_condition(raw: dict, source_path: str, card_id: int) -> Condition:
             ) from exc
 
     card_type = raw.get("card_type")
-    if t is ConditionType.TARGET_CARD_TYPE_IS:
+    if t in {
+        ConditionType.SOURCE_CARD_TYPE_IS,
+        ConditionType.TARGET_CARD_TYPE_IS,
+    }:
         if not isinstance(card_type, str) or not card_type:
             raise ValueError(
                 f"{source_path}/card_type card {card_id}: card_type required"
             )
+        if card_type not in _VALID_CARD_TYPES:
+            raise ValueError(
+                f"{source_path}/card_type card {card_id}: unknown card type "
+                f"{card_type!r}; valid: {sorted(_VALID_CARD_TYPES)}"
+            )
     elif card_type is not None:
         raise ValueError(
             f"{source_path}/card_type card {card_id}: card_type is only valid "
-            "for target_card_type_is"
+            "for source_card_type_is or target_card_type_is"
         )
 
     board_filter = None
@@ -4710,6 +4735,7 @@ def _parse_expression(raw: dict, source_path: str, card_id: int) -> ValueExpress
                 "card_name",
                 "tribe_id",
                 "tribe_name",
+                "keyword",
                 "evolved",
                 "super_evolved",
                 "damaged",
@@ -4731,6 +4757,7 @@ def _parse_expression(raw: dict, source_path: str, card_id: int) -> ValueExpress
                     "card_name": "card_name_filter",
                     "tribe_id": "tribe_id_filter",
                     "tribe_name": "tribe_name_filter",
+                    "keyword": "keyword_filter",
                     "evolved": "evolved_filter",
                     "super_evolved": "super_evolved_filter",
                     "damaged": "damaged_filter",

@@ -216,6 +216,7 @@ _OUTPUT_BINDING_EFFECTS = frozenset({
 _SOURCE_CONDITION_TYPES = frozenset({
     ConditionType.SOURCE_EVOLVED,
     ConditionType.SOURCE_HAS_KEYWORD,
+    ConditionType.SOURCE_CARD_TYPE_IS,
 })
 
 _SOURCE_EXPRESSION_TYPES = frozenset({
@@ -3540,6 +3541,7 @@ class GameEngine:
             board_filter.evolved,
             board_filter.super_evolved,
             board_filter.damaged,
+            board_filter.keyword,
         )
 
     def _hand_filter_fingerprint(

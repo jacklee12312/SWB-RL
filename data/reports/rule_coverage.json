@@ -12,25 +12,25 @@
   },
   "summary": {
     "total_cards": 826,
-    "total_with_rules": 604,
+    "total_with_rules": 619,
     "test_or_synthetic_ids_with_rules": 26,
     "coverage_counts": {
-      "covered_exact": 500,
+      "covered_exact": 515,
       "text_unclear": 17,
-      "supported_missing_rule": 218,
+      "supported_missing_rule": 203,
       "token_or_non_collectible": 91
     },
     "clause_audit_counts": {
-      "mapped_exact": 500,
+      "mapped_exact": 515,
       "unverified_exact": 0,
       "partial": 0,
-      "missing_rule": 218,
+      "missing_rule": 203,
       "missing_primitive": 0,
       "text_unclear": 17,
       "token_separate_audit": 91
     },
     "blocker_counts": {
-      "missing_rule": 218,
+      "missing_rule": 203,
       "missing_schema": 0,
       "missing_primitive": 0,
       "missing_targeting": 0,
@@ -574,7 +574,9 @@
           "triggers": [],
           "effect_kinds": []
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_royal_rune_bishop_mixed_batch.py"
+        ],
         "audit_validation_error": null,
         "blocker_type": "text_unclear"
       }
@@ -1456,8 +1458,8 @@
       "cost": 3,
       "is_collectible": true,
       "card_set_id": 10000,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '魔力增幅', '土之秘术|土之印', '选择一项|模式']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['fanfare'], Ops: ['choose_one', 'spellboost_hand', 'earth_rite', 'buff_unit', 'add_keyword']",
       "hit_keywords": [
         "入场曲",
         "魔力增幅",
@@ -1475,27 +1477,47 @@
         "【<color=Keyword>入场曲</color>】【<color=Keyword>模式</color>】选择1个能力发动。\n<ridx=0>（1）使自己的所有手牌发动2次魔力增幅。</ridx>\n<ridx=1>（2）【<color=Keyword>土之秘术</color>_1】本随从+2/+2且获得【<color=Keyword>守护</color>】。</ridx>"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【入场曲】【模式】使手牌法术进行2次魔力增幅，或支付【土之秘术_1】使本体+2/+2并获得【守护】。",
+        "notes": "两种模式、全手牌法术过滤、土片充足与不足、非固有守护均有直接测试。",
+        "rule_version": 1,
+        "source_text_sha256": "dc67c3aa01c468008fe06b83b7c4260a93aed543b6e3ad421b009d68239af0e9",
+        "test_evidence": [
+          "tests/test_real_royal_rune_bishop_mixed_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10031110:0",
             "source_text": "【<color=Keyword>入场曲</color>】【<color=Keyword>模式</color>】选择1个能力发动。\n<ridx=0>（1）使自己的所有手牌发动2次魔力增幅。</ridx>\n<ridx=1>（2）【<color=Keyword>土之秘术</color>_1】本随从+2/+2且获得【<color=Keyword>守护</color>】。</ridx>",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "【入场曲】【模式】使手牌法术进行2次魔力增幅，或支付【土之秘术_1】使本体+2/+2并获得【守护】。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "dc67c3aa01c468008fe06b83b7c4260a93aed543b6e3ad421b009d68239af0e9",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "fanfare"
+          ],
+          "effect_kinds": [
+            "choose_one",
+            "spellboost_hand",
+            "earth_rite",
+            "buff_unit",
+            "add_keyword"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_royal_rune_bishop_mixed_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10031210": {
@@ -5498,8 +5520,8 @@
       "cost": 3,
       "is_collectible": true,
       "card_set_id": 10001,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['召唤', '爆能强化']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['fanfare', 'play_modes', 'intrinsic_keywords'], Ops: ['play_mode', 'summon', 'summon', 'keyword:突进']",
       "hit_keywords": [
         "召唤",
         "爆能强化"
@@ -5513,27 +5535,48 @@
         "【<color=Keyword>爆能强化</color>_6】召唤2个『<color=Keyword>军犬</color>』。\n<hr>【<color=Keyword>突进</color>】"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【爆能强化_6】召唤2个本体；本体具有【突进】。",
+        "notes": "普通与爆能强化模式、自身复制、固有突进和场地容量不足均有直接测试。",
+        "rule_version": 1,
+        "source_text_sha256": "7af5d223e70dd603421a8514c345f30ca9fccdebf9e9cbaaa7416680447b1b2b",
+        "test_evidence": [
+          "tests/test_real_royal_rune_bishop_mixed_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10121140:0",
             "source_text": "【<color=Keyword>爆能强化</color>_6】召唤2个『<color=Keyword>军犬</color>』。\n<hr>【<color=Keyword>突进</color>】",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "【爆能强化_6】召唤2个本体；本体具有【突进】。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "7af5d223e70dd603421a8514c345f30ca9fccdebf9e9cbaaa7416680447b1b2b",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "fanfare",
+            "play_modes",
+            "intrinsic_keywords"
+          ],
+          "effect_kinds": [
+            "play_mode",
+            "summon",
+            "summon",
+            "keyword:突进"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_royal_rune_bishop_mixed_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10121150": {
@@ -18340,8 +18383,8 @@
       "cost": 1,
       "is_collectible": true,
       "card_set_id": 10003,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['策动', '将.*加入手牌', '破坏', '选择一项|模式']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['activate', 'activation'], Ops: ['destroy', 'choose_one', 'add_card', 'add_card', 'add_card', 'add_card', 'activation']",
       "hit_keywords": [
         "策动",
         "将.*加入手牌",
@@ -18349,9 +18392,6 @@
         "选择一项|模式"
       ],
       "missing_primitives": [],
-      "missing_rule_mechanics": [
-        "策动"
-      ],
       "ability_keywords": [
         "模式",
         "策动"
@@ -18360,27 +18400,50 @@
         "【<color=Keyword>启动</color>】破坏本卡牌。【<color=Keyword>模式</color>】选择1个能力发动。\n<ridx=0>（1）将1张『<color=Keyword>黄金短剑</color>』和1张『<color=Keyword>黄金项链</color>』加入手牌。</ridx>\n<ridx=1>（2）将1张『<color=Keyword>黄金之杯</color>』和1张『<color=Keyword>黄金之靴</color>』加入手牌。</ridx>"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【策动】破坏本护符，并在两组黄金 Token 中选择一组各加入1张到手牌。",
+        "notes": "护符先离场再选择、四个 Token 引用、两种模式、手牌容量和待选期间来源离场均有直接测试。",
+        "rule_version": 1,
+        "source_text_sha256": "f64fa951556b082dba2a661955ab5f6233af265b40f1fb7141f07e9e3eb5adff",
+        "test_evidence": [
+          "tests/test_real_royal_rune_bishop_mixed_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10322210:0",
             "source_text": "【<color=Keyword>启动</color>】破坏本卡牌。【<color=Keyword>模式</color>】选择1个能力发动。\n<ridx=0>（1）将1张『<color=Keyword>黄金短剑</color>』和1张『<color=Keyword>黄金项链</color>』加入手牌。</ridx>\n<ridx=1>（2）将1张『<color=Keyword>黄金之杯</color>』和1张『<color=Keyword>黄金之靴</color>』加入手牌。</ridx>",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "【策动】破坏本护符，并在两组黄金 Token 中选择一组各加入1张到手牌。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "f64fa951556b082dba2a661955ab5f6233af265b40f1fb7141f07e9e3eb5adff",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "activate",
+            "activation"
+          ],
+          "effect_kinds": [
+            "destroy",
+            "choose_one",
+            "add_card",
+            "add_card",
+            "add_card",
+            "add_card",
+            "activation"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_royal_rune_bishop_mixed_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10323110": {
@@ -18769,8 +18832,8 @@
       "cost": 4,
       "is_collectible": true,
       "card_set_id": 10003,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['谢幕曲', '倒数', '抽取', '造成.*伤害', '纹章']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['play', 'emblem_source'], Ops: ['gain_emblem', 'draw', 'damage_unit']",
       "hit_keywords": [
         "谢幕曲",
         "倒数",
@@ -18789,32 +18852,51 @@
         "【纹章_0】【<color=Keyword>吟唱</color>_2】\n【<color=Keyword>谢幕曲</color>】抽取2张卡牌。对对手的战场上的所有随从造成4点伤害。"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "获得倒数2的水晶凝视纹章；到期时抽取2张卡并对所有敌方随从造成4点伤害。",
+        "notes": "主文本与纹章模式文本均映射；叠加、倒数到期、抽牌和敌方全体伤害均有直接测试。",
+        "rule_version": 1,
+        "source_text_sha256": "ca4dc52756671bfe7fa3207e9d5d3649c2dbc5f2a307369b0748e0a686648101",
+        "test_evidence": [
+          "tests/test_real_royal_rune_bishop_mixed_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10331310:0",
             "source_text": "使自己获得『纹章：水晶的指引』。",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           },
           {
             "clause_id": "10331310:1",
             "source_text": "【纹章_0】【<color=Keyword>吟唱</color>_2】\n【<color=Keyword>谢幕曲</color>】抽取2张卡牌。对对手的战场上的所有随从造成4点伤害。",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "获得倒数2的水晶凝视纹章；到期时抽取2张卡并对所有敌方随从造成4点伤害。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "ca4dc52756671bfe7fa3207e9d5d3649c2dbc5f2a307369b0748e0a686648101",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "play",
+            "emblem_source"
+          ],
+          "effect_kinds": [
+            "gain_emblem",
+            "draw",
+            "damage_unit"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_royal_rune_bishop_mixed_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10332110": {
@@ -25421,8 +25503,8 @@
       "cost": 3,
       "is_collectible": true,
       "card_set_id": 10004,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['策动', '抽取', '破坏', '选择一项|模式']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['activate', 'activation'], Ops: ['destroy', 'choose_one', 'destroy', 'draw', 'activation']",
       "hit_keywords": [
         "策动",
         "抽取",
@@ -25430,9 +25512,6 @@
         "选择一项|模式"
       ],
       "missing_primitives": [],
-      "missing_rule_mechanics": [
-        "策动"
-      ],
       "ability_keywords": [
         "模式",
         "策动"
@@ -25441,27 +25520,48 @@
         "【<color=Keyword>启动</color>】破坏本卡牌。【<color=Keyword>模式</color>】选择1个能力发动。\n<ridx=0>（1）破坏对手的战场上的随机1个随从。</ridx>\n<ridx=1>（2）抽取2张卡牌。</ridx>"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【策动】破坏本护符，并选择随机破坏1个敌方随从或抽取2张卡。",
+        "notes": "两种模式、无敌方随从安全跳过、随机确定性、抽牌和来源先离场均有直接测试。",
+        "rule_version": 1,
+        "source_text_sha256": "26e65d10be7e1a75efbff5247c640fee04673ff5cac32d2e3f0f65de1aa5be74",
+        "test_evidence": [
+          "tests/test_real_royal_rune_bishop_mixed_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10463210:0",
             "source_text": "【<color=Keyword>启动</color>】破坏本卡牌。【<color=Keyword>模式</color>】选择1个能力发动。\n<ridx=0>（1）破坏对手的战场上的随机1个随从。</ridx>\n<ridx=1>（2）抽取2张卡牌。</ridx>",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "【策动】破坏本护符，并选择随机破坏1个敌方随从或抽取2张卡。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "26e65d10be7e1a75efbff5247c640fee04673ff5cac32d2e3f0f65de1aa5be74",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "activate",
+            "activation"
+          ],
+          "effect_kinds": [
+            "destroy",
+            "choose_one",
+            "destroy",
+            "draw",
+            "activation"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_royal_rune_bishop_mixed_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10464110": {
@@ -27660,8 +27760,8 @@
       "cost": 3,
       "is_collectible": true,
       "card_set_id": 10005,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '进化时', '超进化', '召唤', '土之秘术|土之印']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['fanfare', 'super_evolve'], Ops: ['add_earth_sigils', 'summon', 'summon']",
       "hit_keywords": [
         "入场曲",
         "进化时",
@@ -27678,27 +27778,46 @@
         "【<color=Keyword>入场曲</color>】使自己的战场上的土之印+2。\n<hr><sev>【<color=Keyword>超进化时</color>】召唤2个『<color=Keyword>守护者巨像</color>』。</sev>"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【入场曲】获得2个土之印；【超进化时】召唤2个守护者巨像。",
+        "notes": "职业资源增加、超进化触发、Token 引用和战场容量均有直接测试。",
+        "rule_version": 1,
+        "source_text_sha256": "a176ff3bd6ba6a1a628b348689e6153e8518f52eafa3cbdcaa8fc167f83a5a8c",
+        "test_evidence": [
+          "tests/test_real_royal_rune_bishop_mixed_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10531110:0",
             "source_text": "【<color=Keyword>入场曲</color>】使自己的战场上的土之印+2。\n<hr><sev>【<color=Keyword>超进化时</color>】召唤2个『<color=Keyword>守护者巨像</color>』。</sev>",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "【入场曲】获得2个土之印；【超进化时】召唤2个守护者巨像。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "a176ff3bd6ba6a1a628b348689e6153e8518f52eafa3cbdcaa8fc167f83a5a8c",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "fanfare",
+            "super_evolve"
+          ],
+          "effect_kinds": [
+            "add_earth_sigils",
+            "summon",
+            "summon"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_royal_rune_bishop_mixed_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10531120": {
@@ -29671,17 +29790,14 @@
       "cost": 2,
       "is_collectible": true,
       "card_set_id": 10005,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['策动', '抽取', '破坏']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['activate', 'activation'], Ops: ['destroy', 'draw', 'activation']",
       "hit_keywords": [
         "策动",
         "抽取",
         "破坏"
       ],
       "missing_primitives": [],
-      "missing_rule_mechanics": [
-        "策动"
-      ],
       "ability_keywords": [
         "守护",
         "策动"
@@ -29690,27 +29806,46 @@
         "【<color=Keyword>启动</color>】破坏本卡牌。抽取X张卡牌。X为自己的战场上的拥有【<color=Keyword>守护</color>】的随从的张数。"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【策动】破坏本护符，抽取等同于己方场上具有【守护】的随从数量的卡。",
+        "notes": "打印与运行时获得的守护均计数，非守护随从和护符不计数；策动离场及抽牌数量有直接测试。",
+        "rule_version": 1,
+        "source_text_sha256": "7ffd30e53f24652099ade5cce20acd92618ce2efd6e46608d526b52fba67252a",
+        "test_evidence": [
+          "tests/test_real_royal_rune_bishop_mixed_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10562210:0",
             "source_text": "【<color=Keyword>启动</color>】破坏本卡牌。抽取X张卡牌。X为自己的战场上的拥有【<color=Keyword>守护</color>】的随从的张数。",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "【策动】破坏本护符，抽取等同于己方场上具有【守护】的随从数量的卡。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "7ffd30e53f24652099ade5cce20acd92618ce2efd6e46608d526b52fba67252a",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "activate",
+            "activation"
+          ],
+          "effect_kinds": [
+            "destroy",
+            "draw",
+            "activation"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_royal_rune_bishop_mixed_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10563110": {
@@ -31821,8 +31956,8 @@
       "cost": 4,
       "is_collectible": true,
       "card_set_id": 10006,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '将.*加入手牌', '回复自己\\\\d+点能量点', '破坏', '爆能强化']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['fanfare', 'play_modes'], Ops: ['destroy', 'play_mode', 'restore_mana', 'add_card']",
       "hit_keywords": [
         "入场曲",
         "将.*加入手牌",
@@ -31839,27 +31974,47 @@
         "【<color=Keyword>入场曲</color>】选择对手的战场上的1个随从，破坏该随从。\n【<color=Keyword>爆能强化</color>_6】回复自己3点能量点。将1张『<color=Keyword>勇烈的士兵</color>』加入手牌。"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【入场曲】可选择并破坏1个敌方随从；【爆能强化_6】再回复3点能量并加入1张无畏战士。",
+        "notes": "有目标、无目标、选择后目标离场、增强续效和手牌容量均有直接测试。",
+        "rule_version": 1,
+        "source_text_sha256": "496419dee2cdcd5efe9e6c0abd6903c65e8514a4e1b7e92bbbfbf982bc8684b0",
+        "test_evidence": [
+          "tests/test_real_royal_rune_bishop_mixed_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10623110:0",
             "source_text": "【<color=Keyword>入场曲</color>】选择对手的战场上的1个随从，破坏该随从。\n【<color=Keyword>爆能强化</color>_6】回复自己3点能量点。将1张『<color=Keyword>勇烈的士兵</color>』加入手牌。",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "【入场曲】可选择并破坏1个敌方随从；【爆能强化_6】再回复3点能量并加入1张无畏战士。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "496419dee2cdcd5efe9e6c0abd6903c65e8514a4e1b7e92bbbfbf982bc8684b0",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "fanfare",
+            "play_modes"
+          ],
+          "effect_kinds": [
+            "destroy",
+            "play_mode",
+            "restore_mana",
+            "add_card"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_royal_rune_bishop_mixed_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10623310": {
@@ -32106,6 +32261,7 @@
         "test_evidence": [
           "tests/test_real_card_rules_batch.py",
           "tests/test_real_crystal_faith_random_distribution_batch.py",
+          "tests/test_real_royal_rune_bishop_mixed_batch.py",
           "tests/test_trait_listeners.py"
         ],
         "audit_validation_error": null,
@@ -32120,8 +32276,8 @@
       "cost": 6,
       "is_collectible": true,
       "card_set_id": 10006,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '进化时', '超进化', '召唤']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['fanfare', 'super_evolve'], Ops: ['summon', 'add_keyword']",
       "hit_keywords": [
         "入场曲",
         "进化时",
@@ -32138,27 +32294,45 @@
         "【<color=Keyword>入场曲</color>】召唤1个『<color=Keyword>商队猛犸象</color>』。\n<hr><sev>【<color=Keyword>超进化时</color>】使自己的战场上的其他所有随从获得【<color=Keyword>突进</color>】。</sev>"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【入场曲】召唤1个商队猛犸；【超进化时】使其他己方随从获得【突进】。",
+        "notes": "Token 生产、场地容量、排除来源实体和运行时关键字授予均有直接测试。",
+        "rule_version": 1,
+        "source_text_sha256": "839f301f23eb146392812734de223cc9e7b99d2a875849d43bba298e599d5c84",
+        "test_evidence": [
+          "tests/test_real_royal_rune_bishop_mixed_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10631120:0",
             "source_text": "【<color=Keyword>入场曲</color>】召唤1个『<color=Keyword>商队猛犸象</color>』。\n<hr><sev>【<color=Keyword>超进化时</color>】使自己的战场上的其他所有随从获得【<color=Keyword>突进</color>】。</sev>",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "【入场曲】召唤1个商队猛犸；【超进化时】使其他己方随从获得【突进】。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "839f301f23eb146392812734de223cc9e7b99d2a875849d43bba298e599d5c84",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "fanfare",
+            "super_evolve"
+          ],
+          "effect_kinds": [
+            "summon",
+            "add_keyword"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_royal_rune_bishop_mixed_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10631310": {
@@ -32401,8 +32575,8 @@
       "cost": 4,
       "is_collectible": true,
       "card_set_id": 10006,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '进化时', '召唤']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['fanfare', 'evolve'], Ops: ['summon', 'summon', 'buff_unit']",
       "hit_keywords": [
         "入场曲",
         "进化时",
@@ -32417,27 +32591,46 @@
         "【<color=Keyword>入场曲</color>】召唤2个『<color=Keyword>天晶魔手</color>』。\n<hr><ev>【<color=Keyword>进化时</color>】使自己的战场上的所有『<color=Keyword>天晶魔手</color>』+1/+0。</ev>"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【入场曲】召唤2个水晶魔物；【进化时】使所有己方水晶魔物+1/+0。",
+        "notes": "同名 Token 连续召唤、卡牌 ID 过滤增益、非目标不受影响和容量路径均有直接测试。",
+        "rule_version": 1,
+        "source_text_sha256": "d197edfc04551faa02467f95e664c53650e3d1c9b8e559db6d9ac3bd03823079",
+        "test_evidence": [
+          "tests/test_real_royal_rune_bishop_mixed_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10633110:0",
             "source_text": "【<color=Keyword>入场曲</color>】召唤2个『<color=Keyword>天晶魔手</color>』。\n<hr><ev>【<color=Keyword>进化时</color>】使自己的战场上的所有『<color=Keyword>天晶魔手</color>』+1/+0。</ev>",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "【入场曲】召唤2个水晶魔物；【进化时】使所有己方水晶魔物+1/+0。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "d197edfc04551faa02467f95e664c53650e3d1c9b8e559db6d9ac3bd03823079",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "fanfare",
+            "evolve"
+          ],
+          "effect_kinds": [
+            "summon",
+            "summon",
+            "buff_unit"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_royal_rune_bishop_mixed_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10633310": {
@@ -34069,8 +34262,8 @@
       "cost": 4,
       "is_collectible": true,
       "card_set_id": 10006,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['谢幕曲', '倒数', '召唤', '必杀', '结晶']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['play', 'last_words', 'play_modes', 'intrinsic_keywords'], Ops: ['summon', 'play_mode', 'keyword:突进', 'keyword:必杀']",
       "hit_keywords": [
         "谢幕曲",
         "倒数",
@@ -34090,32 +34283,54 @@
         "【结晶_1】【<color=Keyword>吟唱</color>_3】\n【<color=Keyword>谢幕曲</color>】召唤1个『<color=Keyword>崇敬的涂描者</color>』。"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "本体具有【突进】【必杀】；【结晶_1】作为倒数3护符，谢幕曲召唤本体。",
+        "notes": "普通与结晶模式、倒数、谢幕曲自身生产链、固有关键字和 RL action mask 均有直接测试。",
+        "rule_version": 1,
+        "source_text_sha256": "fc33832a634400bd21315e7dcd1432f9cea08e1a6a98253f1bcd19d943752b7e",
+        "test_evidence": [
+          "tests/test_real_royal_rune_bishop_mixed_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10662110:0",
             "source_text": "【<color=Keyword>突进</color>】\n【<color=Keyword>毁灭</color>】",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           },
           {
             "clause_id": "10662110:1",
             "source_text": "【结晶_1】【<color=Keyword>吟唱</color>_3】\n【<color=Keyword>谢幕曲</color>】召唤1个『<color=Keyword>崇敬的涂描者</color>』。",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "本体具有【突进】【必杀】；【结晶_1】作为倒数3护符，谢幕曲召唤本体。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "fc33832a634400bd21315e7dcd1432f9cea08e1a6a98253f1bcd19d943752b7e",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "play",
+            "last_words",
+            "play_modes",
+            "intrinsic_keywords"
+          ],
+          "effect_kinds": [
+            "summon",
+            "play_mode",
+            "keyword:突进",
+            "keyword:必杀"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_royal_rune_bishop_mixed_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10662120": {
@@ -36789,8 +37004,8 @@
       "cost": 4,
       "is_collectible": true,
       "card_set_id": 10007,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '土之秘术|土之印']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['fanfare', 'intrinsic_keywords'], Ops: ['earth_rite', 'evolve_unit', 'keyword:守护']",
       "hit_keywords": [
         "入场曲",
         "土之秘术|土之印"
@@ -36805,27 +37020,46 @@
         "【<color=Keyword>入场曲</color>】【<color=Keyword>土之秘术</color>_1】本随从进化。\n<hr>【<color=Keyword>守护</color>】"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【入场曲】【土之秘术_1】进化本体；本体具有【守护】。",
+        "notes": "土片充足与不足、自我进化及固有守护均有直接测试。",
+        "rule_version": 1,
+        "source_text_sha256": "b6b80810684c06ceb12761ebb0e7ad98de5643ff128cebf3cb490f28ab56ef75",
+        "test_evidence": [
+          "tests/test_real_royal_rune_bishop_mixed_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10731110:0",
             "source_text": "【<color=Keyword>入场曲</color>】【<color=Keyword>土之秘术</color>_1】本随从进化。\n<hr>【<color=Keyword>守护</color>】",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "【入场曲】【土之秘术_1】进化本体；本体具有【守护】。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "b6b80810684c06ceb12761ebb0e7ad98de5643ff128cebf3cb490f28ab56ef75",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "fanfare",
+            "intrinsic_keywords"
+          ],
+          "effect_kinds": [
+            "earth_rite",
+            "evolve_unit",
+            "keyword:守护"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_royal_rune_bishop_mixed_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10731120": {
@@ -38989,8 +39223,8 @@
       "cost": 6,
       "is_collectible": true,
       "card_set_id": 10007,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '谢幕曲', '回复(?!自己\\\\d+点(?:超进化点|进化点|能量点))', '屏障']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['fanfare', 'last_words', 'intrinsic_keywords'], Ops: ['conditional', 'evolve_unit', 'add_keyword', 'heal_leader', 'keyword:守护']",
       "hit_keywords": [
         "入场曲",
         "谢幕曲",
@@ -39008,27 +39242,49 @@
         "【<color=Keyword>入场曲</color>】若自己的战场上的护符的张数为3张或以上，则本随从进化。本随从获得【<color=Keyword>屏障</color>】。\n<hr>【<color=Keyword>守护</color>】\n【<color=Keyword>谢幕曲</color>】回复自己的主战者3点生命值。"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【入场曲】己方至少有3张护符时进化本体并获得【屏障】；本体具有【守护】；【谢幕曲】回复主战者3点生命。",
+        "notes": "护符阈值上下、自我进化、条件屏障、固有守护和谢幕曲治疗均有直接测试。",
+        "rule_version": 1,
+        "source_text_sha256": "348a546ea069a93573b26e23210f1c4801575ceaff3817a42894e118194cf396",
+        "test_evidence": [
+          "tests/test_real_royal_rune_bishop_mixed_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10763110:0",
             "source_text": "【<color=Keyword>入场曲</color>】若自己的战场上的护符的张数为3张或以上，则本随从进化。本随从获得【<color=Keyword>屏障</color>】。\n<hr>【<color=Keyword>守护</color>】\n【<color=Keyword>谢幕曲</color>】回复自己的主战者3点生命值。",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "【入场曲】己方至少有3张护符时进化本体并获得【屏障】；本体具有【守护】；【谢幕曲】回复主战者3点生命。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "348a546ea069a93573b26e23210f1c4801575ceaff3817a42894e118194cf396",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "fanfare",
+            "last_words",
+            "intrinsic_keywords"
+          ],
+          "effect_kinds": [
+            "conditional",
+            "evolve_unit",
+            "add_keyword",
+            "heal_leader",
+            "keyword:守护"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_royal_rune_bishop_mixed_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10763210": {
@@ -41134,8 +41390,8 @@
       "cost": 3,
       "is_collectible": true,
       "card_set_id": 10008,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['进化时', '将.*加入手牌', '造成.*伤害']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['evolve', 'listener:board:card_played'], Ops: ['add_card', 'damage_unit']",
       "hit_keywords": [
         "进化时",
         "将.*加入手牌",
@@ -41149,27 +41405,45 @@
         "自己使用法术时，自己的每回合中可触发1次，对对手的战场上的随机1个随从造成2点伤害。\n<hr><ev>【<color=Keyword>进化时</color>】将1张『<color=Keyword>闪耀的金币</color>』加入手牌。</ev>"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "己方每回合首次使用其他法术时随机对1个敌方随从造成2点伤害；【进化时】加入1张闪耀黄金。",
+        "notes": "场上监听、其他来源限制、每回合一次、无目标随机效果、进化 Token 和种子确定性均有直接测试。",
+        "rule_version": 1,
+        "source_text_sha256": "27dfe594d8822b060399863df22f416b506af63ed638f361e6e2c5c933435af1",
+        "test_evidence": [
+          "tests/test_real_royal_rune_bishop_mixed_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10822110:0",
             "source_text": "自己使用法术时，自己的每回合中可触发1次，对对手的战场上的随机1个随从造成2点伤害。\n<hr><ev>【<color=Keyword>进化时</color>】将1张『<color=Keyword>闪耀的金币</color>』加入手牌。</ev>",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "己方每回合首次使用其他法术时随机对1个敌方随从造成2点伤害；【进化时】加入1张闪耀黄金。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "27dfe594d8822b060399863df22f416b506af63ed638f361e6e2c5c933435af1",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "evolve",
+            "listener:board:card_played"
+          ],
+          "effect_kinds": [
+            "add_card",
+            "damage_unit"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_royal_rune_bishop_mixed_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10822120": {
@@ -41989,8 +42263,8 @@
       "cost": 3,
       "is_collectible": true,
       "card_set_id": 10008,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['抽取', '回复自己\\\\d+点能量点', '回复(?!自己\\\\d+点(?:超进化点|进化点|能量点))', '魔力增幅']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['play'], Ops: ['draw', 'heal_leader', 'restore_mana']",
       "hit_keywords": [
         "抽取",
         "回复自己\\d+点能量点",
@@ -42005,27 +42279,45 @@
         "X起始为0。\n【<color=Keyword>魔力增幅时</color>】使本卡牌的X+1。\n<hr>抽取2张卡牌。若X为5或以上，则回复自己的主战者2点生命值。回复自己2点能量点。"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "X 等于本卡魔力增幅次数；抽取2张卡，X至少为5时再回复主战者2点生命和2点能量。",
+        "notes": "来源卡魔力增幅阈值上下、抽牌、治疗上限和能量回复均有直接测试。",
+        "rule_version": 1,
+        "source_text_sha256": "69b7918281d5e07ccf59e4ebba3d48d161ce902e2cfabc719c59137e6609f8d9",
+        "test_evidence": [
+          "tests/test_real_royal_rune_bishop_mixed_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10833310:0",
             "source_text": "X起始为0。\n【<color=Keyword>魔力增幅时</color>】使本卡牌的X+1。\n<hr>抽取2张卡牌。若X为5或以上，则回复自己的主战者2点生命值。回复自己2点能量点。",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "X 等于本卡魔力增幅次数；抽取2张卡，X至少为5时再回复主战者2点生命和2点能量。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "69b7918281d5e07ccf59e4ebba3d48d161ce902e2cfabc719c59137e6609f8d9",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "play"
+          ],
+          "effect_kinds": [
+            "draw",
+            "heal_leader",
+            "restore_mana"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_royal_rune_bishop_mixed_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10834110": {
@@ -47758,54 +48050,6 @@
       "suggested_rule_file": "batch_中立.json"
     },
     {
-      "card_id": 10822110,
-      "name": "越狱者·卡婕",
-      "class_name": "皇家护卫",
-      "card_type": "随从",
-      "cost": 3,
-      "ability_keywords": [
-        "进化时"
-      ],
-      "hit_keywords": [
-        "进化时",
-        "将.*加入手牌",
-        "造成.*伤害"
-      ],
-      "confidence": "high",
-      "why_recommended": "Covered keywords: 进化时, 将.*加入手牌, 造成.*伤害",
-      "required_primitives": [
-        "进化时",
-        "将.*加入手牌",
-        "造成.*伤害"
-      ],
-      "suggested_rule_file": "batch_皇家护卫.json"
-    },
-    {
-      "card_id": 10833310,
-      "name": "钢铁的小憩",
-      "class_name": "巫师",
-      "card_type": "法术",
-      "cost": 3,
-      "ability_keywords": [
-        "魔力增幅"
-      ],
-      "hit_keywords": [
-        "抽取",
-        "回复自己\\d+点能量点",
-        "回复(?!自己\\d+点(?:超进化点|进化点|能量点))",
-        "魔力增幅"
-      ],
-      "confidence": "high",
-      "why_recommended": "Covered keywords: 抽取, 回复自己\\d+点能量点, 回复(?!自己\\d+点(?:超进化点|进化点|能量点))",
-      "required_primitives": [
-        "抽取",
-        "回复自己\\d+点能量点",
-        "回复(?!自己\\d+点(?:超进化点|进化点|能量点))",
-        "魔力增幅"
-      ],
-      "suggested_rule_file": "batch_巫师.json"
-    },
-    {
       "card_id": 10462210,
       "name": "骑驰天空之艇",
       "class_name": "主教",
@@ -48053,6 +48297,50 @@
         "召唤"
       ],
       "suggested_rule_file": "batch_梦魇.json"
+    },
+    {
+      "card_id": 10321120,
+      "name": "剑圣的同胞",
+      "class_name": "皇家护卫",
+      "card_type": "随从",
+      "cost": 6,
+      "ability_keywords": [
+        "谢幕曲"
+      ],
+      "hit_keywords": [
+        "谢幕曲",
+        "召唤"
+      ],
+      "confidence": "high",
+      "why_recommended": "Covered keywords: 谢幕曲, 召唤",
+      "required_primitives": [
+        "谢幕曲",
+        "召唤"
+      ],
+      "suggested_rule_file": "batch_皇家护卫.json"
+    },
+    {
+      "card_id": 10521110,
+      "name": "好施的名人",
+      "class_name": "皇家护卫",
+      "card_type": "随从",
+      "cost": 6,
+      "ability_keywords": [
+        "入场曲"
+      ],
+      "hit_keywords": [
+        "入场曲",
+        "回复(?!自己\\d+点(?:超进化点|进化点|能量点))",
+        "舍弃"
+      ],
+      "confidence": "high",
+      "why_recommended": "Covered keywords: 入场曲, 回复(?!自己\\d+点(?:超进化点|进化点|能量点)), 舍弃",
+      "required_primitives": [
+        "入场曲",
+        "回复(?!自己\\d+点(?:超进化点|进化点|能量点))",
+        "舍弃"
+      ],
+      "suggested_rule_file": "batch_皇家护卫.json"
     }
   ]
 }

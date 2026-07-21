@@ -1,0 +1,360 @@
+{
+  "passives": [
+    {
+      "card_id": 10031110,
+      "kind": "non_intrinsic_keyword",
+      "keyword": "守护",
+      "notes": "守护仅由入场曲的土之秘术模式授予。"
+    },
+    {
+      "card_id": 10631120,
+      "kind": "non_intrinsic_keyword",
+      "keyword": "突进",
+      "notes": "突进仅由超进化效果授予本体以外的己方随从。"
+    },
+    {
+      "card_id": 10763110,
+      "kind": "non_intrinsic_keyword",
+      "keyword": "屏障",
+      "notes": "屏障仅在入场时己方战场至少有3张护符时授予。"
+    }
+  ],
+  "intrinsic_keywords": [
+    {"card_id": 10121140, "keywords": ["突进"]},
+    {"card_id": 10662110, "keywords": ["突进", "必杀"]},
+    {"card_id": 10731110, "keywords": ["守护"]},
+    {"card_id": 10763110, "keywords": ["守护"]}
+  ],
+  "activations": [
+    {"card_id": 10322210, "cost": 0},
+    {"card_id": 10463210, "cost": 0},
+    {"card_id": 10562210, "cost": 0}
+  ],
+  "emblems": [
+    {
+      "id": "crystal_gazing",
+      "source_card_id": 10331310,
+      "stacking": "allow",
+      "countdown": 2,
+      "triggers": [],
+      "on_expire": [
+        {"kind": "draw", "target": "own_leader", "amount": 2},
+        {"kind": "damage_unit", "target": "all_enemy_units", "amount": 4}
+      ]
+    }
+  ],
+  "listeners": [
+    {
+      "card_id": 10822110,
+      "zone": "board",
+      "event": "card_played",
+      "event_scope": "owner_event",
+      "turn_scope": "owner_turn",
+      "source_relation": "other",
+      "event_filter": {"card_type": "法术"},
+      "once_per_turn": true,
+      "operations": [
+        {"kind": "damage_unit", "target": "random_enemy_unit", "amount": 2}
+      ]
+    }
+  ],
+  "rules": [
+    {
+      "card_id": 10121140,
+      "trigger": "fanfare",
+      "operations": [],
+      "play_modes": [
+        {
+          "id": "enhance_6",
+          "type": "enhance",
+          "cost": 6,
+          "operations": [
+            {"kind": "summon", "target": "own_leader", "card_id": 10121140},
+            {"kind": "summon", "target": "own_leader", "card_id": 10121140}
+          ]
+        }
+      ]
+    },
+    {
+      "card_id": 10322210,
+      "trigger": "activate",
+      "operations": [
+        {"kind": "destroy", "target": "self"},
+        {
+          "kind": "choose_one",
+          "target": "own_leader",
+          "options": [
+            {
+              "id": "blade_necklace",
+              "label": "黄金短剑与黄金项链",
+              "operations": [
+                {"kind": "add_card", "target": "own_leader", "card_id": 90021310},
+                {"kind": "add_card", "target": "own_leader", "card_id": 90021340}
+              ]
+            },
+            {
+              "id": "goblet_boots",
+              "label": "黄金之杯与黄金之靴",
+              "operations": [
+                {"kind": "add_card", "target": "own_leader", "card_id": 90021320},
+                {"kind": "add_card", "target": "own_leader", "card_id": 90021330}
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "card_id": 10623110,
+      "trigger": "fanfare",
+      "operations": [
+        {"kind": "destroy", "target": "enemy_unit"}
+      ],
+      "play_modes": [
+        {
+          "id": "enhance_6",
+          "type": "enhance",
+          "cost": 6,
+          "operations": [
+            {"kind": "restore_mana", "target": "own_leader", "amount": 3},
+            {"kind": "add_card", "target": "own_leader", "card_id": 10621110}
+          ]
+        }
+      ]
+    },
+    {
+      "card_id": 10822110,
+      "trigger": "evolve",
+      "operations": [
+        {"kind": "add_card", "target": "own_leader", "card_id": 90021350}
+      ]
+    },
+    {
+      "card_id": 10031110,
+      "trigger": "fanfare",
+      "operations": [
+        {
+          "kind": "choose_one",
+          "target": "own_leader",
+          "options": [
+            {
+              "id": "spellboost_twice",
+              "label": "手牌魔力增幅2次",
+              "operations": [
+                {"kind": "spellboost_hand", "target": "all_own_hand", "amount": 2}
+              ]
+            },
+            {
+              "id": "earth_rite_buff",
+              "label": "土之秘术1：本体+2/+2并获得守护",
+              "operations": [
+                {
+                  "kind": "earth_rite",
+                  "target": "own_leader",
+                  "amount": 1,
+                  "operations": [
+                    {"kind": "buff_unit", "target": "self", "amount": 2, "secondary_amount": 2},
+                    {"kind": "add_keyword", "target": "self", "keyword": "守护"}
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "card_id": 10331310,
+      "trigger": "play",
+      "operations": [
+        {"kind": "gain_emblem", "target": "own_leader", "emblem_id": "crystal_gazing"}
+      ]
+    },
+    {
+      "card_id": 10531110,
+      "trigger": "fanfare",
+      "operations": [
+        {"kind": "add_earth_sigils", "target": "own_leader", "amount": 2}
+      ]
+    },
+    {
+      "card_id": 10531110,
+      "trigger": "super_evolve",
+      "operations": [
+        {"kind": "summon", "target": "own_leader", "card_id": 90031120},
+        {"kind": "summon", "target": "own_leader", "card_id": 90031120}
+      ]
+    },
+    {
+      "card_id": 10631120,
+      "trigger": "fanfare",
+      "operations": [
+        {"kind": "summon", "target": "own_leader", "card_id": 10002120}
+      ]
+    },
+    {
+      "card_id": 10631120,
+      "trigger": "super_evolve",
+      "operations": [
+        {"kind": "add_keyword", "target": "all_own_units", "keyword": "突进", "exclude_source": true}
+      ]
+    },
+    {
+      "card_id": 10633110,
+      "trigger": "fanfare",
+      "operations": [
+        {"kind": "summon", "target": "own_leader", "card_id": 10631110},
+        {"kind": "summon", "target": "own_leader", "card_id": 10631110}
+      ]
+    },
+    {
+      "card_id": 10633110,
+      "trigger": "evolve",
+      "operations": [
+        {
+          "kind": "buff_unit",
+          "target": "all_own_units",
+          "amount": 1,
+          "secondary_amount": 0,
+          "target_card_id_filter": 10631110
+        }
+      ]
+    },
+    {
+      "card_id": 10731110,
+      "trigger": "fanfare",
+      "operations": [
+        {
+          "kind": "earth_rite",
+          "target": "own_leader",
+          "amount": 1,
+          "operations": [
+            {"kind": "evolve_unit", "target": "self"}
+          ]
+        }
+      ]
+    },
+    {
+      "card_id": 10833310,
+      "trigger": "play",
+      "operations": [
+        {"kind": "draw", "target": "own_leader", "amount": 2},
+        {
+          "kind": "heal_leader",
+          "target": "own_leader",
+          "amount": 2,
+          "conditions": [
+            {"type": "source_spellboost_count_at_least", "value": 5}
+          ]
+        },
+        {
+          "kind": "restore_mana",
+          "target": "own_leader",
+          "amount": 2,
+          "conditions": [
+            {"type": "source_spellboost_count_at_least", "value": 5}
+          ]
+        }
+      ]
+    },
+    {
+      "card_id": 10463210,
+      "trigger": "activate",
+      "operations": [
+        {"kind": "destroy", "target": "self"},
+        {
+          "kind": "choose_one",
+          "target": "own_leader",
+          "options": [
+            {
+              "id": "destroy_random",
+              "label": "随机破坏1个敌方随从",
+              "operations": [
+                {"kind": "destroy", "target": "random_enemy_unit"}
+              ]
+            },
+            {
+              "id": "draw_two",
+              "label": "抽取2张卡牌",
+              "operations": [
+                {"kind": "draw", "target": "own_leader", "amount": 2}
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "card_id": 10562210,
+      "trigger": "activate",
+      "operations": [
+        {"kind": "destroy", "target": "self"},
+        {
+          "kind": "draw",
+          "target": "own_leader",
+          "amount": {
+            "type": "controller_board_count",
+            "filter": {"card_type": "随从", "keyword": "守护"}
+          }
+        }
+      ]
+    },
+    {
+      "card_id": 10662110,
+      "trigger": "play",
+      "operations": [],
+      "play_modes": [
+        {
+          "id": "crystallize_1",
+          "type": "crystallize",
+          "cost": 1,
+          "resulting_card_type": "护符",
+          "countdown": 3,
+          "operations": []
+        }
+      ]
+    },
+    {
+      "card_id": 10662110,
+      "trigger": "last_words",
+      "operations": [
+        {
+          "kind": "summon",
+          "target": "own_leader",
+          "card_id": 10662110,
+          "conditions": [
+            {"type": "source_card_type_is", "card_type": "护符"}
+          ]
+        }
+      ]
+    },
+    {
+      "card_id": 10763110,
+      "trigger": "fanfare",
+      "operations": [
+        {
+          "kind": "conditional",
+          "target": "own_leader",
+          "conditions": [
+            {
+              "type": "controller_board_has",
+              "value": 3,
+              "card_type_filter": "护符"
+            }
+          ],
+          "then": [
+            {"kind": "evolve_unit", "target": "self"},
+            {"kind": "add_keyword", "target": "self", "keyword": "屏障"}
+          ]
+        }
+      ]
+    },
+    {
+      "card_id": 10763110,
+      "trigger": "last_words",
+      "operations": [
+        {"kind": "heal_leader", "target": "own_leader", "amount": 3}
+      ]
+    }
+  ]
+}

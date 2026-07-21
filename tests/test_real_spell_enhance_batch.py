@@ -237,6 +237,12 @@ class DatabaseClauseAuditTests(unittest.TestCase):
                     "rule_file": "real_spell_enhance_batch.json",
                     "rule_group": "rules",
                 },
+                {
+                    "source_card_id": 10822110,
+                    "entry_kind": "add_card",
+                    "rule_file": "real_royal_rune_bishop_mixed_batch.json",
+                    "rule_group": "rules",
+                },
             ],
         )
 

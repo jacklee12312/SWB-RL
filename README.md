@@ -38,14 +38,14 @@ covered generic boundary, but that never upgrades a partial or placeholder
 keyword whose full tagged-card semantics still require structured rules.
 
 The [rule coverage report](data/reports/rule_coverage.md) now includes a
-clause-audit layer without changing its legacy coverage categories. Of 500
-exact collectible cards, all 500 have explicit implemented text and named direct
+clause-audit layer without changing its legacy coverage categories. Of 515
+exact collectible cards, all 515 have explicit implemented text and named direct
 test evidence. The sibling `data/audits/rule_clauses.json` registry hashes every
 imported skill and alternate-mode clause, so a database text change or stale
 test reference invalidates the audit instead of silently retaining exact
 status. The current report has no unverified exact entry or missing generic
 schema, primitive, targeting, or timing blocker. Its remaining collectible gaps
-are 218 missing per-card structured rules plus 17 explicitly unclear texts.
+are 203 missing per-card structured rules plus 17 explicitly unclear texts.
 Rule metadata also supports version and errata fields, and the report
 records the complete imported source snapshot hash.
 
@@ -116,7 +116,7 @@ distributed learner, a policy-strength result, or a complete MCTS
 implementation. Multiprocess PPO currently uses current-policy self-play;
 random, fixed, and historical opponent mixing remains on the single-process
 collector. Snapshot/clone is the search foundation only. Card-rule
-coverage also remains deliberately separate: 218 collectible cards still lack
+coverage also remains deliberately separate: 203 collectible cards still lack
 per-card structured rules and 17 card texts remain explicitly unclear; neither
 group enters the exact training catalog or counts as supported.
 
@@ -142,6 +142,15 @@ The deterministic rules core supports:
   cover target-required no-mutation and RL masks, the Rally replacement's
   zero-target path, stale selections, printed summon order, Token references,
   board shortage, paired/self producer chains, Last Words, and seeded replay;
+- a keyword-aware `BoardFilter` and board-count expression inspect both printed
+  and runtime-granted keywords. Fifteen mixed Royal/Runecraft/Bishop exact cards
+  (`10121140`, `10322210`, `10623110`, `10822110`, `10031110`, `10331310`,
+  `10531110`, `10631120`, `10633110`, `10731110`, `10833310`, `10463210`,
+  `10562210`, `10662110`, `10763110`) exercise Enhance, Engage choices,
+  spell listeners, Earth Rite, crests, Super Evolve, filtered Token buffs,
+  Crystallize, Countdown, Last Words, deterministic random effects, and RL masks.
+  A source-card-type condition keeps alternate-form Last Words on the amulet
+  form and prevents the same-ID follower from inheriting them;
 - seeded reset, shuffle, draw, turn progression, official immediate defeat when
   drawing from an empty deck, an auditable alternate victory outcome, atomic
   seeded replacement-deck shuffling,

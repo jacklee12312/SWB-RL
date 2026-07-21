@@ -8,26 +8,26 @@
 | Metric | Count |
 |---|---|
 | Total cards in DB | 826 |
-| Cards with rules | 604 |
+| Cards with rules | 619 |
 | Test/synthetic IDs with rules | 26 |
 
 ### Coverage Categories
 
 | Category | Count |
 |---|---|
-| covered_exact | 500 |
+| covered_exact | 515 |
 | text_unclear | 17 |
-| supported_missing_rule | 218 |
+| supported_missing_rule | 203 |
 | token_or_non_collectible | 91 |
 
 ### Clause Audit
 
 | Clause status | Count |
 |---|---:|
-| mapped_exact | 500 |
+| mapped_exact | 515 |
 | unverified_exact | 0 |
 | partial | 0 |
-| missing_rule | 218 |
+| missing_rule | 203 |
 | missing_primitive | 0 |
 | text_unclear | 17 |
 | token_separate_audit | 91 |
@@ -36,7 +36,7 @@
 
 | Blocker | Count |
 |---|---:|
-| missing_rule | 218 |
+| missing_rule | 203 |
 | missing_schema | 0 |
 | missing_primitive | 0 |
 | missing_targeting | 0 |
@@ -111,16 +111,16 @@
 | 5 | 10412110 | 美妆少女·克洛伊 | 精灵 | 2 | 随从 | high | Covered keywords: 召唤, 返回手牌, 爆能强化 |
 | 6 | 10464110 | 土之法则·伽莱翁 | 主教 | 3 | 随从 | high | Covered keywords: 超进化, 回合结束, 不能攻击|无法攻击 |
 | 7 | 10602210 | 被侵略的世界 | 中立 | 3 | 护符 | high | Covered keywords: 策动 |
-| 8 | 10822110 | 越狱者·卡婕 | 皇家护卫 | 3 | 随从 | high | Covered keywords: 进化时, 将.*加入手牌, 造成.*伤害 |
-| 9 | 10833310 | 钢铁的小憩 | 巫师 | 3 | 法术 | high | Covered keywords: 抽取, 回复自己\d+点能量点, 回复(?!自己\d+点(?:超进化点|进化点|能量 |
-| 10 | 10462210 | 骑驰天空之艇 | 主教 | 4 | 护符 | high | Covered keywords: 策动, 破坏 |
-| 11 | 10502120 | 手持军配团扇的伟丈夫 | 中立 | 4 | 随从 | high | Covered keywords: 进化时, 破坏 |
-| 12 | 10523110 | 不动如山的将校 | 皇家护卫 | 4 | 随从 | high | Covered keywords: 进化时, 超进化, 回合结束 |
-| 13 | 10603210 | 黑暗次元 | 中立 | 4 | 护符 | high | Covered keywords: 回合结束, 倒数, 造成.*伤害 |
-| 14 | 10272120 | 绝望之王·阿基姆 | 超越者 | 5 | 随从 | high | Covered keywords: 进化时, 消失, 召唤 |
-| 15 | 10332110 | 真理的祈祷者 | 巫师 | 5 | 随从 | high | Covered keywords: 入场曲, 抽取, 造成.*伤害 |
-| 16 | 10502110 | 星辉女神 | 中立 | 5 | 随从 | high | Covered keywords: 进化时, 将.*加入手牌, 舍弃 |
-| 17 | 10613110 | 慈惠的心腹 | 精灵 | 5 | 随从 | high | Covered keywords: 入场曲, 进化时, 回复(?!自己\d+点(?:超进化点|进化点|能量点)) |
-| 18 | 10142110 | 煌牙的义勇·基德 | 龙族 | 6 | 随从 | high | Covered keywords: 舍弃 |
-| 19 | 10163110 | 终焉的白骨圣堂之主 | 主教 | 6 | 随从 | high | Covered keywords: 入场曲, 造成.*伤害, 破坏 |
-| 20 | 10252120 | 尸兵 | 梦魇 | 6 | 随从 | high | Covered keywords: 入场曲, 召唤 |
+| 8 | 10462210 | 骑驰天空之艇 | 主教 | 4 | 护符 | high | Covered keywords: 策动, 破坏 |
+| 9 | 10502120 | 手持军配团扇的伟丈夫 | 中立 | 4 | 随从 | high | Covered keywords: 进化时, 破坏 |
+| 10 | 10523110 | 不动如山的将校 | 皇家护卫 | 4 | 随从 | high | Covered keywords: 进化时, 超进化, 回合结束 |
+| 11 | 10603210 | 黑暗次元 | 中立 | 4 | 护符 | high | Covered keywords: 回合结束, 倒数, 造成.*伤害 |
+| 12 | 10272120 | 绝望之王·阿基姆 | 超越者 | 5 | 随从 | high | Covered keywords: 进化时, 消失, 召唤 |
+| 13 | 10332110 | 真理的祈祷者 | 巫师 | 5 | 随从 | high | Covered keywords: 入场曲, 抽取, 造成.*伤害 |
+| 14 | 10502110 | 星辉女神 | 中立 | 5 | 随从 | high | Covered keywords: 进化时, 将.*加入手牌, 舍弃 |
+| 15 | 10613110 | 慈惠的心腹 | 精灵 | 5 | 随从 | high | Covered keywords: 入场曲, 进化时, 回复(?!自己\d+点(?:超进化点|进化点|能量点)) |
+| 16 | 10142110 | 煌牙的义勇·基德 | 龙族 | 6 | 随从 | high | Covered keywords: 舍弃 |
+| 17 | 10163110 | 终焉的白骨圣堂之主 | 主教 | 6 | 随从 | high | Covered keywords: 入场曲, 造成.*伤害, 破坏 |
+| 18 | 10252120 | 尸兵 | 梦魇 | 6 | 随从 | high | Covered keywords: 入场曲, 召唤 |
+| 19 | 10321120 | 剑圣的同胞 | 皇家护卫 | 6 | 随从 | high | Covered keywords: 谢幕曲, 召唤 |
+| 20 | 10521110 | 好施的名人 | 皇家护卫 | 6 | 随从 | high | Covered keywords: 入场曲, 回复(?!自己\d+点(?:超进化点|进化点|能量点)), 舍弃 |
