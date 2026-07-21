@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import copy
+from collections import Counter
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Callable, Sequence
@@ -10,17 +12,27 @@ from swb.engine.commands import ActivateAmulet, Attack, BeginFusion, ChoiceKind,
 from swb.engine.conditions import OVERFLOW_MAX_MANA_THRESHOLD
 from swb.engine.card_rules import RuleBook
 from swb.engine.play_modes import MAX_SPECIAL_MODES_PER_CARD
-from swb.engine.resolution import GameConfig, GameEngine
+from swb.engine.resolution import GameConfig, GameEngine, GameEngineSnapshot
 from swb.engine.state import Amulet, BoardCard, HandCard, PlayerState, Unit
 
 
 @dataclass(frozen=True)
 class StepResult:
-    observation: list[float] | dict[str, object]
+    observation: object
     reward: float
     terminated: bool
     truncated: bool
     info: dict[str, object]
+
+
+@dataclass(frozen=True)
+class EnvironmentSnapshot:
+    core: GameEngineSnapshot
+    graveyard_page: int
+    last_choice_request_key: tuple[str, int] | None
+    truncated: bool
+    agent_steps: int
+    transition_version: int
 
 
 class ShadowverseEnv:
@@ -75,12 +87,41 @@ class ShadowverseEnv:
         validate_invariants: bool = False,
         observation_version: str = "v1",
         card_vocabulary: Sequence[int] | None = None,
+        open_decklists: bool = False,
+        max_game_turns: int | None = MAX_TURNS,
+        max_agent_steps: int | None = 2000,
+        debug_cache_validation: bool = False,
+        training_mode: bool = False,
+        training_event_history_limit: int = 256,
     ):
-        if observation_version not in {"v1", "v2"}:
+        if observation_version not in {"v1", "v2", "v3"}:
             raise ValueError(
-                f"observation_version must be 'v1' or 'v2', got {observation_version!r}"
+                "observation_version must be 'v1', 'v2', or 'v3', "
+                f"got {observation_version!r}"
+            )
+        for name, value in (
+            ("max_game_turns", max_game_turns),
+            ("max_agent_steps", max_agent_steps),
+        ):
+            if value is not None and (
+                not isinstance(value, int) or isinstance(value, bool) or value <= 0
+            ):
+                raise ValueError(f"{name} must be a positive integer or None")
+        if (
+            not isinstance(training_event_history_limit, int)
+            or isinstance(training_event_history_limit, bool)
+            or training_event_history_limit <= 0
+        ):
+            raise ValueError(
+                "training_event_history_limit must be a positive integer"
             )
         self.observation_version = observation_version
+        self.open_decklists = bool(open_decklists)
+        self.max_game_turns = max_game_turns
+        self.max_agent_steps = max_agent_steps
+        self.debug_cache_validation = bool(debug_cache_validation)
+        self.training_mode = bool(training_mode)
+        self.training_event_history_limit = training_event_history_limit
         vocabulary = (
             []
             if observation_version == "v1" and card_vocabulary is None
@@ -110,7 +151,7 @@ class ShadowverseEnv:
             self.DEFAULT_RULE_DIRECTORY
         )
         self.debug_info = debug_info
-        self.core = GameEngine(
+        self._core = GameEngine(
             deck_a,
             deck_b,
             class_a=class_a,
@@ -122,7 +163,9 @@ class ShadowverseEnv:
                 max_hand=self.MAX_HAND,
                 max_board=self.MAX_BOARD,
                 max_mana=self.MAX_MANA,
-                max_turns=self.MAX_TURNS,
+                # Time limits belong to the RL adapter and must truncate rather
+                # than manufacture a rules-level winner from current health.
+                max_turns=None,
                 starting_hand=self.STARTING_HAND,
                 starting_evolution_points=self.STARTING_EVOLUTION_POINTS,
                 evolution_unlock_turn=self.EVOLUTION_UNLOCK_TURN,
@@ -134,10 +177,18 @@ class ShadowverseEnv:
                     self.SECOND_PLAYER_SUPER_EVOLUTION_UNLOCK_TURN
                 ),
                 validate_invariants=validate_invariants,
+                retain_text_logs=not self.training_mode,
+                event_history_limit=(
+                    self.training_event_history_limit
+                    if self.training_mode
+                    else None
+                ),
             ),
         )
         self._graveyard_page: int = 0
         self._last_choice_request_key: tuple[str, int] | None = None
+        self._truncated = False
+        self._agent_steps = 0
         self._v2_faith_index = {
             faith_id: index + 1
             for index, faith_id in enumerate(
@@ -151,55 +202,233 @@ class ShadowverseEnv:
             emblem_id: index + 1
             for index, emblem_id in enumerate(sorted(resolved_rulebook._emblem_defs))
         }
+        self._transition_version = 0
+        self._legal_commands_cache: tuple[GameCommand, ...] | None = None
+        self._legal_action_map_cache: dict[int, GameCommand] | None = None
+        self._action_mask_cache: tuple[bool, ...] | None = None
+        self._observation_cache: dict[tuple[object, ...], object] = {}
+        self._zone_histogram_cache: dict[tuple[object, ...], tuple[int, ...]] = {}
+        self._debug_cache_fingerprint: dict[str, object] | None = None
+        self._cache_stats = Counter()
+        self._initial_deck_histograms = tuple(
+            self._build_card_histogram(deck) for deck in self._core.deck_lists
+        )
+
+    @property
+    def core(self) -> GameEngine:
+        """Expose mutable core state through an explicit cache boundary.
+
+        Holding this object and mutating it later still requires callers to use
+        :meth:`invalidate_cache`; ``debug_cache_validation=True`` detects a
+        missed boundary before a cached result can be returned.
+        """
+        self.invalidate_cache(reason="mutable core access")
+        return self._core
+
+    @core.setter
+    def core(self, value: GameEngine) -> None:
+        """Replace the compatibility core and rebuild deck-derived caches."""
+        if not isinstance(value, GameEngine):
+            raise TypeError("core must be a GameEngine")
+        self._core = value
+        self._graveyard_page = 0
+        self._last_choice_request_key = None
+        self._initial_deck_histograms = tuple(
+            self._build_card_histogram(deck) for deck in self._core.deck_lists
+        )
+        self.invalidate_cache(reason="mutable core replacement")
 
     @property
     def deck_lists(self) -> tuple[list[CardDefinition], list[CardDefinition]]:
-        return self.core.deck_lists
+        return self._core.deck_lists
 
     @property
     def players(self) -> list[PlayerState]:
-        return self.core.players
+        self.invalidate_cache(reason="mutable player access")
+        return self._core.players
+
+    @property
+    def state_version(self) -> int:
+        return self._core.state_version
+
+    @property
+    def transition_version(self) -> int:
+        return self._transition_version
+
+    @property
+    def cache_stats(self) -> dict[str, int]:
+        return dict(self._cache_stats)
+
+    def invalidate_cache(self, *, reason: str = "external state mutation") -> None:
+        """Invalidate all derived RL state after direct/debug mutation."""
+        self._invalidate_caches(advance_transition=True, reason=reason)
+
+    def snapshot(self) -> EnvironmentSnapshot:
+        return EnvironmentSnapshot(
+            core=self._core.snapshot(),
+            graveyard_page=self._graveyard_page,
+            last_choice_request_key=self._last_choice_request_key,
+            truncated=self._truncated,
+            agent_steps=self._agent_steps,
+            transition_version=self._transition_version,
+        )
+
+    def restore(self, snapshot: EnvironmentSnapshot) -> None:
+        previous_version = self._transition_version
+        self._core.restore(snapshot.core)
+        self._graveyard_page = snapshot.graveyard_page
+        self._last_choice_request_key = snapshot.last_choice_request_key
+        self._truncated = snapshot.truncated
+        self._agent_steps = snapshot.agent_steps
+        self._transition_version = max(
+            previous_version,
+            snapshot.transition_version,
+        ) + 1
+        self._invalidate_caches(
+            advance_transition=False,
+            reason="snapshot restore",
+        )
+
+    def clone(self) -> ShadowverseEnv:
+        clone = ShadowverseEnv(
+            self._core.deck_lists[0],
+            self._core.deck_lists[1],
+            class_a=self._core.player_classes[0],
+            class_b=self._core.player_classes[1],
+            seed=0,
+            rulebook=self._core.rulebook,
+            card_resolver=self._core.card_resolver,
+            debug_info=self.debug_info,
+            validate_invariants=self._core.config.validate_invariants,
+            observation_version=self.observation_version,
+            card_vocabulary=self.card_vocabulary,
+            open_decklists=self.open_decklists,
+            max_game_turns=self.max_game_turns,
+            max_agent_steps=self.max_agent_steps,
+            debug_cache_validation=self.debug_cache_validation,
+            training_mode=self.training_mode,
+            training_event_history_limit=self.training_event_history_limit,
+        )
+        clone.restore(self.snapshot())
+        return clone
+
+    def _invalidate_caches(
+        self,
+        *,
+        advance_transition: bool,
+        reason: str,
+    ) -> None:
+        if advance_transition:
+            self._transition_version += 1
+        self._legal_commands_cache = None
+        self._legal_action_map_cache = None
+        self._action_mask_cache = None
+        self._observation_cache.clear()
+        self._zone_histogram_cache.clear()
+        self._debug_cache_fingerprint = None
+        self._cache_stats["invalidations"] += 1
+        self._cache_stats[f"invalidation:{reason}"] += 1
+
+    def _record_debug_cache_fingerprint(self) -> None:
+        if self.debug_cache_validation:
+            self._debug_cache_fingerprint = self._core.deterministic_fingerprint()
+
+    def _assert_cache_coherent(self) -> None:
+        if not self.debug_cache_validation or self._debug_cache_fingerprint is None:
+            return
+        if self._debug_cache_fingerprint != self._core.deterministic_fingerprint():
+            self._invalidate_caches(
+                advance_transition=True,
+                reason="debug mutation detected",
+            )
+            raise RuntimeError(
+                "Engine state changed outside an official transition; "
+                "call env.invalidate_cache() after direct debug/test mutation"
+            )
+
+    def _build_card_histogram(self, definitions) -> tuple[int, ...]:
+        counts = Counter(
+            self._v2_card_index.get(definition.card_id, 0)
+            for definition in definitions
+        )
+        counts.pop(0, None)
+        return tuple(
+            counts.get(index, 0)
+            for index in range(1, len(self.card_vocabulary) + 1)
+        )
+
+    def cached_card_histogram(
+        self,
+        zone_key: tuple[object, ...],
+        definitions,
+    ) -> tuple[int, ...]:
+        """Return one zone histogram per environment transition."""
+        key = (self._transition_version, self._core.state_version, *zone_key)
+        cached = self._zone_histogram_cache.get(key)
+        if cached is not None:
+            self._assert_cache_coherent()
+            self._cache_stats["histogram_hits"] += 1
+            return cached
+        result = self._build_card_histogram(definitions)
+        self._zone_histogram_cache[key] = result
+        self._cache_stats["histogram_misses"] += 1
+        self._record_debug_cache_fingerprint()
+        return result
 
     @property
     def current_player(self) -> int:
-        return self.core.current_player
+        return self._core.current_player
 
     @property
     def decision_player(self) -> int:
-        pending = self.core.state.pending_choice
+        pending = self._core.state.pending_choice
         if pending is not None:
             return pending.player_index
-        return self.core.current_player
+        return self._core.current_player
 
     @property
     def turn(self) -> int:
-        return self.core.turn
+        return self._core.turn
 
     @property
     def terminated(self) -> bool:
-        return self.core.terminated
+        return self._core.terminated
+
+    @property
+    def truncated(self) -> bool:
+        return self._truncated
+
+    @property
+    def agent_steps(self) -> int:
+        return self._agent_steps
 
     @property
     def winner(self) -> int | None:
-        return self.core.winner
+        return self._core.winner
 
     @property
     def logs(self) -> list[str]:
-        return self.core.logs
+        return self._core.logs
 
     @property
     def placeholder_ability_events(self) -> list[object]:
-        return self.core.placeholder_ability_events
+        return self._core.placeholder_ability_events
 
     def reset(
         self, *, seed: int | None = None
-    ) -> tuple[list[float] | dict[str, object], dict[str, object]]:
-        self.core.reset(seed=seed)
+    ) -> tuple[object, dict[str, object]]:
+        self._core.reset(seed=seed)
         self._graveyard_page = 0
         self._last_choice_request_key = None
-        return self.observation(), self.info()
+        self._truncated = False
+        self._agent_steps = 0
+        self._invalidate_caches(advance_transition=True, reason="reset")
+        mask = self.action_mask()
+        return self.observation(action_mask=mask), self.info(action_mask=mask)
 
     def step(self, action: int) -> StepResult:
+        if self.terminated or self.truncated:
+            raise ValueError("Cannot step a finished environment; call reset()")
         page_before = self._graveyard_page
         choice_key_before = self._last_choice_request_key
         if action < 0 or action >= self.ACTION_SIZE:
@@ -213,37 +442,108 @@ class ShadowverseEnv:
         try:
             command = self._decode_action(action)
         except _PageTurn:
+            self._agent_steps += 1
+            self._update_truncation()
+            self._invalidate_caches(
+                advance_transition=True,
+                reason="graveyard page transition",
+            )
+            next_mask = self.action_mask()
             return StepResult(
-                observation=self.observation(),
+                observation=self.observation(action_mask=next_mask),
                 reward=0.0,
                 terminated=False,
-                truncated=False,
-                info=self.info(),
+                truncated=self.truncated,
+                info=self.info(action_mask=next_mask),
             )
         except ValueError:
             self._graveyard_page = page_before
             self._last_choice_request_key = choice_key_before
             raise
-        result = self.core.apply(command)
+        result = self._core.apply(command)
+        self._agent_steps += 1
+        self._update_truncation()
         reward = 0.0 if result.winner is None else (
             1.0 if result.winner == acting_player else -1.0
         )
-        self._sync_choice_page()
+        self._sync_choice_page(invalidate=False)
+        self._invalidate_caches(advance_transition=True, reason="legal step")
+        next_mask = self.action_mask()
         return StepResult(
-            observation=self.observation(),
+            observation=self.observation(action_mask=next_mask),
             reward=reward,
-            terminated=self.core.terminated,
-            truncated=self.turn > self.MAX_TURNS,
-            info=self.info(),
+            terminated=self._core.terminated,
+            truncated=self.truncated,
+            info=self.info(action_mask=next_mask),
         )
 
-    def observation(self) -> list[float] | dict[str, object]:
+    def _update_truncation(self) -> None:
+        if self._core.terminated:
+            self._truncated = False
+            return
+        turn_limit = (
+            self.max_game_turns is not None and self.turn > self.max_game_turns
+        )
+        step_limit = (
+            self.max_agent_steps is not None
+            and self._agent_steps >= self.max_agent_steps
+        )
+        self._truncated = turn_limit or step_limit
+
+    def observation(
+        self,
+        *,
+        perspective: int | None = None,
+        action_mask: Sequence[bool] | None = None,
+    ) -> object:
+        if perspective is not None and perspective not in (0, 1):
+            raise ValueError("perspective must be 0 or 1")
+        self._sync_choice_page()
+        resolved_perspective = (
+            self.decision_player if perspective is None else perspective
+        )
+        mask_key = None if action_mask is None else tuple(bool(x) for x in action_mask)
+        cache_key = (
+            self._transition_version,
+            self._core.state_version,
+            self.observation_version,
+            resolved_perspective,
+            mask_key,
+            self.open_decklists,
+        )
+        # V1/v2 are compatibility formats and historically reflect direct
+        # mutation through retained entity references. Keep that behavior;
+        # formal NumPy-only v3 training observations use the versioned cache.
+        cacheable = self.observation_version == "v3"
+        cached = self._observation_cache.get(cache_key) if cacheable else None
+        if cached is not None:
+            self._assert_cache_coherent()
+            self._cache_stats["observation_hits"] += 1
+            return copy.deepcopy(cached)
         if self.observation_version == "v2":
             from swb.engine.observation_v2 import encode_observation_v2
 
-            self._sync_choice_page()
-            return encode_observation_v2(self)
-        return self._observation_v1()
+            result = encode_observation_v2(
+                self,
+                perspective=resolved_perspective,
+                action_mask=action_mask,
+            )
+        elif self.observation_version == "v3":
+            from swb.engine.observation_v3 import encode_observation_v3
+
+            result = encode_observation_v3(
+                self,
+                perspective=resolved_perspective,
+                action_mask=action_mask,
+                open_decklists=self.open_decklists,
+            )
+        else:
+            result = self._observation_v1(perspective=resolved_perspective)
+        if cacheable:
+            self._observation_cache[cache_key] = copy.deepcopy(result)
+        self._cache_stats["observation_misses"] += 1
+        self._record_debug_cache_fingerprint()
+        return result
 
     def observation_v2_spec(self) -> dict[str, object]:
         if self.observation_version != "v2":
@@ -260,11 +560,18 @@ class ShadowverseEnv:
 
         return encode_observation_v2(self)
 
-    def _observation_v1(self) -> list[float]:
+    def observation_v3_space(self):
+        if self.observation_version != "v3":
+            raise ValueError("observation_v3_space requires observation_version='v3'")
+        from swb.engine.observation_v3 import observation_v3_space
+
+        return observation_v3_space(self)
+
+    def _observation_v1(self, perspective: int | None = None) -> list[float]:
         self._sync_choice_page()
-        perspective = self.decision_player
-        me = self.players[perspective]
-        opponent = self.players[1 - perspective]
+        perspective = self.decision_player if perspective is None else perspective
+        me = self._core.players[perspective]
+        opponent = self._core.players[1 - perspective]
         values = [
             me.health / 20, opponent.health / 20,
             me.mana / self.MAX_MANA, me.max_mana / self.MAX_MANA,
@@ -278,7 +585,7 @@ class ShadowverseEnv:
             opponent.turns_started / self.MAX_TURNS,
             float(me.evolved_this_turn),
             float(opponent.evolved_this_turn),
-            float(self.core.state.pending_choice is not None),
+            float(self._core.state.pending_choice is not None),
             me.shadows / 20, opponent.shadows / 20,
             me.cooperation / 10, opponent.cooperation / 10,
             me.cards_played_this_turn / 10,
@@ -327,7 +634,7 @@ class ShadowverseEnv:
         ])
         for index in range(self.MAX_HAND):
             card = me.hand[index] if index < len(me.hand) else None
-            values.extend(self._card_features(card))
+            values.extend(self._card_features(card, perspective=perspective))
         for board in (me.board, opponent.board):
             for index in range(self.MAX_BOARD):
                 unit = board[index] if index < len(board) else None
@@ -336,7 +643,7 @@ class ShadowverseEnv:
             me.followers_evolved_this_match / 10,
             opponent.followers_evolved_this_match / 10,
         ])
-        pending = self.core.state.pending_choice
+        pending = self._core.state.pending_choice
         pending_target_count = 0 if pending is None else pending.target_count
         pending_selected_count = (
             0 if pending is None else len(pending.selected_options)
@@ -369,13 +676,18 @@ class ShadowverseEnv:
     def _artifact_entry_kind_count(self, player_index: int) -> int:
         return len({
             record.definition.name
-            for record in self.core.state.follower_entries
+            for record in self._core.state.follower_entries
             if record.owner == player_index
             and record.definition.card_type == "随从"
             and record.definition.tribe_name == "创造物"
         })
 
-    def info(self, *, debug: bool | None = None) -> dict[str, object]:
+    def info(
+        self,
+        *,
+        debug: bool | None = None,
+        action_mask: Sequence[bool] | None = None,
+    ) -> dict[str, object]:
         self._sync_choice_page()
         total_pages = self._graveyard_total_pages()
         include_debug = self.debug_info if debug is None else debug
@@ -384,20 +696,25 @@ class ShadowverseEnv:
             "decision_player": self.decision_player,
             "turn": self.turn,
             "winner": self.winner,
-            "player_classes": self.core.player_classes,
-            "action_mask": self.action_mask(),
+            "player_classes": self._core.player_classes,
+            "action_mask": list(
+                self.action_mask() if action_mask is None else action_mask
+            ),
             "super_evolution_points": (
-                self.players[0].super_evolution_points,
-                self.players[1].super_evolution_points,
+                self._core.players[0].super_evolution_points,
+                self._core.players[1].super_evolution_points,
             ),
             "placeholder_ability_count": len(self.placeholder_ability_events),
             "graveyard_page": self._graveyard_page,
             "graveyard_total_pages": total_pages,
+            "terminated": self.terminated,
+            "truncated": self.truncated,
+            "agent_steps": self.agent_steps,
         }
         if include_debug:
             info.update({
                 "log": tuple(self.logs),
-                "events": tuple(self.core.event_history),
+                "events": tuple(self._core.event_history),
                 "placeholder_ability_events": tuple(self.placeholder_ability_events),
             })
         return info
@@ -412,7 +729,7 @@ class ShadowverseEnv:
             self._graveyard_page += 1
             raise _PageTurn()
         if action >= self.GRAVEYARD_SLOT_OFFSET and action < self.MODE_PLAY_OFFSET:
-            request = self.core.state.pending_choice
+            request = self._core.state.pending_choice
             if request is None or request.choice_kind is not ChoiceKind.GRAVEYARD:
                 raise ValueError("No graveyard choice is pending")
             slot_idx = action - self.GRAVEYARD_SLOT_OFFSET
@@ -421,7 +738,7 @@ class ShadowverseEnv:
                 raise ValueError(f"Graveyard choice index {global_idx} out of range")
             return Choose(request.player_index, request.options[global_idx].option_id)
         if action >= self.CHOICE_OFFSET and action < self.GRAVEYARD_CHOICE_OFFSET:
-            request = self.core.state.pending_choice
+            request = self._core.state.pending_choice
             if request is None:
                 raise ValueError("No choice is pending")
             option_index = action - self.CHOICE_OFFSET
@@ -433,44 +750,50 @@ class ShadowverseEnv:
                 board_index = action - self.SUPER_EVOLVE_OFFSET
                 return SuperEvolve(
                     self.current_player,
-                    self.players[self.current_player].board[board_index].entity_id,
+                    self._core.players[self.current_player].board[board_index].entity_id,
                 )
             return self._decode_mode_play(action)
         if action < self.ATTACK_OFFSET:
             return PlayCard(self.current_player, action - self.PLAY_OFFSET)
         if action >= self.EVOLVE_OFFSET:
             board_index = action - self.EVOLVE_OFFSET
-            entity = self.players[self.current_player].board[board_index]
+            entity = self._core.players[self.current_player].board[board_index]
             if isinstance(entity, Amulet):
                 return ActivateAmulet(self.current_player, entity.entity_id)
             return Evolve(self.current_player, entity.entity_id)
         relative = action - self.ATTACK_OFFSET
         attacker_index = relative // self.TARGETS_PER_ATTACKER
         target_slot = relative % self.TARGETS_PER_ATTACKER
-        attacker = self.players[self.current_player].board[attacker_index]
+        attacker = self._core.players[self.current_player].board[attacker_index]
         target_id = None
         if target_slot:
-            target_id = self.players[1 - self.current_player].board[target_slot - 1].entity_id
+            target_id = self._core.players[1 - self.current_player].board[target_slot - 1].entity_id
         return Attack(self.current_player, attacker.entity_id, target_id)
 
     def _special_hand_commands(self, hand_index: int) -> list[GameCommand]:
-        player = self.players[self.current_player]
-        card = player.hand[hand_index]
-        commands: list[GameCommand] = []
-        if self.core._can_begin_fusion(card, player):
-            commands.append(BeginFusion(self.current_player, card.entity_id))
-        commands.extend(
-            PlayCard(self.current_player, hand_index, mode.mode_id)
-            for mode in self.core.rulebook.modes_for(card.card_id)
-            if self.core._is_mode_playable(card, player, mode)
-        )
-        return commands
+        player = self._core.players[self.current_player]
+        if hand_index >= len(player.hand):
+            return []
+        entity_id = player.hand[hand_index].entity_id
+        return [
+            command
+            for command in self._cached_legal_commands()
+            if (
+                isinstance(command, BeginFusion)
+                and command.fusion_entity_id == entity_id
+            )
+            or (
+                isinstance(command, PlayCard)
+                and command.hand_index == hand_index
+                and command.mode_id != "normal"
+            )
+        ]
 
     def _decode_mode_play(self, action: int) -> GameCommand:
         relative = action - self.MODE_PLAY_OFFSET
         hand_index = relative // MAX_SPECIAL_MODES_PER_CARD
         mode_slot = relative % MAX_SPECIAL_MODES_PER_CARD
-        if hand_index >= len(self.players[self.current_player].hand):
+        if hand_index >= len(self._core.players[self.current_player].hand):
             raise ValueError(f"Hand index {hand_index} out of range")
         commands = self._special_hand_commands(hand_index)
         if mode_slot >= len(commands):
@@ -481,7 +804,7 @@ class ShadowverseEnv:
         if isinstance(command, EndTurn):
             return self.END_TURN
         if isinstance(command, Choose):
-            request = self.core.state.pending_choice
+            request = self._core.state.pending_choice
             if request is None:
                 return None
             if request.choice_kind is ChoiceKind.GRAVEYARD:
@@ -509,7 +832,7 @@ class ShadowverseEnv:
             hand_index = next(
                 (
                     index
-                    for index, card in enumerate(self.players[self.current_player].hand)
+                    for index, card in enumerate(self._core.players[self.current_player].hand)
                     if card.entity_id == command.fusion_entity_id
                 ),
                 None,
@@ -522,28 +845,28 @@ class ShadowverseEnv:
             return None
         if isinstance(command, ActivateAmulet):
             index = self._unit_index(
-                self.players[self.current_player].board,
+                self._core.players[self.current_player].board,
                 command.amulet_id,
             )
             return self.EVOLVE_OFFSET + index
         if isinstance(command, Evolve):
-            index = self._unit_index(self.players[self.current_player].board, command.unit_id)
+            index = self._unit_index(self._core.players[self.current_player].board, command.unit_id)
             return self.EVOLVE_OFFSET + index
         if isinstance(command, SuperEvolve):
-            index = self._unit_index(self.players[self.current_player].board, command.unit_id)
+            index = self._unit_index(self._core.players[self.current_player].board, command.unit_id)
             return self.SUPER_EVOLVE_OFFSET + index
         if isinstance(command, Attack):
-            attacker_index = self._unit_index(self.players[self.current_player].board, command.attacker_id)
+            attacker_index = self._unit_index(self._core.players[self.current_player].board, command.attacker_id)
             base = self.ATTACK_OFFSET + attacker_index * self.TARGETS_PER_ATTACKER
             if command.target_id is None:
                 return base
-            target_index = self._unit_index(self.players[1 - self.current_player].board, command.target_id)
+            target_index = self._unit_index(self._core.players[1 - self.current_player].board, command.target_id)
             return base + 1 + target_index
         return None
 
     def _build_grave_page_mask(self) -> list[bool]:
         mask = [False] * self.ACTION_SIZE
-        request = self.core.state.pending_choice
+        request = self._core.state.pending_choice
         if request is None or request.choice_kind is not ChoiceKind.GRAVEYARD:
             return mask
         total = len(request.options)
@@ -557,37 +880,73 @@ class ShadowverseEnv:
             mask[self.GRAVEYARD_NEXT_PAGE] = True
         return mask
 
-    def _legal_non_choice_mask(self) -> list[bool]:
+    def _legal_non_choice_mask(
+        self, commands: Sequence[GameCommand] | None = None
+    ) -> list[bool]:
         mask = [False] * self.ACTION_SIZE
-        for command in self.core.legal_commands():
+        for command in self._core.legal_commands() if commands is None else commands:
             if not isinstance(command, Choose):
                 action = self._encode_command(command)
                 if action is not None:
                     mask[action] = True
         return mask
 
-    def _legal_choice_mask(self) -> list[bool]:
+    def _legal_choice_mask(
+        self, commands: Sequence[GameCommand] | None = None
+    ) -> list[bool]:
         mask = [False] * self.ACTION_SIZE
-        request = self.core.state.pending_choice
+        request = self._core.state.pending_choice
         if request is None:
             return mask
         if request.choice_kind is ChoiceKind.GRAVEYARD:
             return self._build_grave_page_mask()
-        for command in self.core.legal_commands():
+        for command in self._core.legal_commands() if commands is None else commands:
             if isinstance(command, Choose) and request.choice_kind is not ChoiceKind.GRAVEYARD:
                 action = self._encode_command(command)
                 if action is not None:
                     mask[action] = True
         return mask
 
+    def _cached_legal_commands(self) -> tuple[GameCommand, ...]:
+        cached = self._legal_commands_cache
+        if cached is not None:
+            self._assert_cache_coherent()
+            self._cache_stats["legal_command_hits"] += 1
+            return cached
+        commands = tuple(self._core.legal_commands())
+        self._legal_commands_cache = commands
+        self._cache_stats["legal_command_misses"] += 1
+        self._record_debug_cache_fingerprint()
+        return commands
+
     def action_mask(self) -> list[bool]:
         self._sync_choice_page()
-        non_choice = self._legal_non_choice_mask()
-        choice = self._legal_choice_mask()
-        return [a or b for a, b in zip(non_choice, choice)]
+        if self._action_mask_cache is not None:
+            self._assert_cache_coherent()
+            self._cache_stats["action_mask_hits"] += 1
+            return list(self._action_mask_cache)
+        if self.terminated or self.truncated:
+            mask = [False] * self.ACTION_SIZE
+            self._action_mask_cache = tuple(mask)
+            self._cache_stats["action_mask_misses"] += 1
+            self._record_debug_cache_fingerprint()
+            return mask
+        request = self._core.state.pending_choice
+        if request is not None and request.choice_kind is ChoiceKind.GRAVEYARD:
+            mask = self._build_grave_page_mask()
+        else:
+            commands = self._cached_legal_commands()
+            if request is not None:
+                mask = self._legal_choice_mask(commands)
+            else:
+                mask = self._legal_non_choice_mask(commands)
+        self._action_mask_cache = tuple(mask)
+        self._cache_stats["action_mask_misses"] += 1
+        self._record_debug_cache_fingerprint()
+        return mask
 
     def _graveyard_total_pages(self) -> int:
-        request = self.core.state.pending_choice
+        request = self._core.state.pending_choice
         if request is None or request.choice_kind is not ChoiceKind.GRAVEYARD:
             return 0
         return max(
@@ -596,8 +955,8 @@ class ShadowverseEnv:
             // self.GRAVEYARD_PAGE_SIZE,
         )
 
-    def _sync_choice_page(self) -> None:
-        request = self.core.state.pending_choice
+    def _sync_choice_page(self, *, invalidate: bool = True) -> None:
+        request = self._core.state.pending_choice
         if request is None:
             request_key = None
         else:
@@ -606,6 +965,11 @@ class ShadowverseEnv:
         if request_key != self._last_choice_request_key:
             self._graveyard_page = 0
             self._last_choice_request_key = request_key
+            if invalidate:
+                self._invalidate_caches(
+                    advance_transition=True,
+                    reason="pending choice changed",
+                )
 
     @staticmethod
     def _unit_index(board: list[BoardCard], entity_id: int) -> int:
@@ -614,7 +978,12 @@ class ShadowverseEnv:
                 return index
         raise ValueError(f"Unit {entity_id} is not on the board")
 
-    def _card_features(self, card: CardDefinition | HandCard | None) -> list[float]:
+    def _card_features(
+        self,
+        card: CardDefinition | HandCard | None,
+        *,
+        perspective: int | None = None,
+    ) -> list[float]:
         if card is None:
             return [0.0] * 10
         fused_count = len(card.fused_material_ids) if isinstance(card, HandCard) else 0
@@ -624,10 +993,11 @@ class ShadowverseEnv:
         union_burst_gauge = 0
         if (
             isinstance(card, HandCard)
-            and self.core.rulebook.union_bursts_for(card.card_id)
+            and self._core.rulebook.union_bursts_for(card.card_id)
         ):
+            player_index = self.decision_player if perspective is None else perspective
             union_burst_gauge = card.union_burst_gauge(
-                self.players[self.decision_player].turns_started
+                self._core.players[player_index].turns_started
             )
         return [
             1.0, card.cost / ShadowverseEnv.MAX_MANA,

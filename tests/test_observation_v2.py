@@ -297,7 +297,7 @@ class ObservationV2Tests(unittest.TestCase):
             seed=42,
         )
         with self.assertRaisesRegex(ValueError, "observation_version"):
-            ShadowverseEnv(**kwargs, observation_version="v3")
+            ShadowverseEnv(**kwargs, observation_version="v4")
         with self.assertRaisesRegex(ValueError, "card_vocabulary"):
             ShadowverseEnv(
                 **kwargs,

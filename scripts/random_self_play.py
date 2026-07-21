@@ -5,7 +5,9 @@ import random
 from pathlib import Path
 
 from swb.db.repository import CardRepository
-from swb.engine import DECK_SIZE, ShadowverseEnv
+from swb.engine import ShadowverseEnv
+from swb.engine.card_rules import RuleBook
+from swb.rl.catalog import TrainableCardCatalog
 
 
 def main() -> None:
@@ -21,39 +23,41 @@ def main() -> None:
     args = parser.parse_args()
 
     repository = CardRepository(args.database)
+    catalog = TrainableCardCatalog.from_repository(repository)
+    rulebook = RuleBook.from_directory(ShadowverseEnv.DEFAULT_RULE_DIRECTORY)
     rng = random.Random(args.seed)
     wins = [0, 0]
     draws = 0
+    truncations = 0
     turns = []
     for game in range(args.games):
         class_a = rng.randint(1, 7)
         class_b = rng.randint(1, 7)
-        pool_a = repository.training_pool(class_id=class_a)
-        pool_b = repository.training_pool(class_id=class_b)
-        if not pool_a or not pool_b:
-            raise RuntimeError("No supported collectible cards are available")
-        deck_a = [rng.choice(pool_a) for _ in range(DECK_SIZE)]
-        deck_b = [rng.choice(pool_b) for _ in range(DECK_SIZE)]
+        deck_a = catalog.sample_deck(class_a, rng)
+        deck_b = catalog.sample_deck(class_b, rng)
         env = ShadowverseEnv(
             deck_a,
             deck_b,
             class_a=class_a,
             class_b=class_b,
             seed=args.seed + game,
-            card_resolver=repository.get,
+            rulebook=rulebook,
+            card_resolver=catalog.resolve,
             validate_invariants=args.validate_invariants,
         )
         env.reset()
-        while not env.terminated:
+        while not (env.terminated or env.truncated):
             legal = [i for i, allowed in enumerate(env.action_mask()) if allowed]
             result = env.step(rng.choice(legal))
         turns.append(result.info["turn"])
-        if env.winner is None:
+        if env.truncated:
+            truncations += 1
+        elif env.winner is None:
             draws += 1
         else:
             wins[env.winner] += 1
     print(
-        f"games={args.games} wins={wins} draws={draws} "
+        f"games={args.games} wins={wins} draws={draws} truncations={truncations} "
         f"mean_turns={sum(turns) / len(turns):.1f}"
     )
 

@@ -1,6 +1,6 @@
 # SWB Engine Roadmap
 
-Last refreshed: 2026-07-17.
+Last refreshed: 2026-07-21.
 
 This file tracks implementation priorities and known gaps. Treat executable
 code and tests as the source of truth when this file drifts.
@@ -10,10 +10,32 @@ code and tests as the source of truth when this file drifts.
 - Database: 826 cards, 735 collectible cards, 91 non-collectible/generated
   cards from set `90000`.
 - Latest SVA source: `https://sva.hypd.asia/data/cards.json`.
-- Tests: `python -m unittest discover -s tests -v` currently runs 2002 tests.
+- Tests: `python -m unittest discover -s tests -v` discovers 2075 behavioral
+  contracts (2026-07-21 final RL-platform verification).
 - RL adapter: fixed 111-action space; the default v1 observation is 294
-  floats, while opt-in v2 provides fixed-shape categorical/public state without
-  changing action IDs.
+  floats, opt-in v2 preserves the structured compatibility mapping, and v3
+  supplies fixed-dtype NumPy arrays plus a Gymnasium observation space without
+  changing action IDs. Hidden decklists are the v3 default.
+- The exact-audit `TrainableCardCatalog` currently admits all 488 exact
+  collectible cards, preloads all 826 definitions for SQLite-free matches, and
+  provides deterministic class-valid deck sampling. Self-play no longer uses
+  the legacy 2-to-5-card follower pool.
+- `SWBAECEnv` is a PettingZoo AEC wrapper with per-agent rewards and done state.
+  Rules endings and sampling truncations are mutually exclusive, and both game
+  turn and agent-step safety limits are explicit.
+- The reproducible RL baseline now includes state-version caches, bounded-log
+  training mode, immutable spawn-safe worker assets, formal Observation/Action
+  and trajectory versions, deterministic single/multi-worker rollout,
+  recurrent masked PPO with stable card embeddings, persistent multiprocess
+  fixed-policy sampling, atomic mid-episode checkpoint/resume, a four-kind
+  opponent league, fixed mirrored evaluation, `SWBGymEnv`, and deterministic
+  snapshot/restore/clone. Official PettingZoo and Gymnasium checks pass.
+- The saved embedding/vector CPU smoke is deliberately not a strength claim:
+  its 2-worker whole-episode batches requested 1,024 agent steps, completed
+  1,304 steps/16 episodes, resumed to 1,571 steps/20 episodes without episode-ID
+  gaps, and ran a 16-game fixed-seed mirrored evaluation with zero illegal
+  actions or mask mismatches. Whole-episode collection may pass the requested
+  step boundary.
 - Ability registry status: 18 implemented, 5 partial, 11 placeholder.
 - Explicit card and demo rules live in `data/rules/`; the current coverage
   report classifies 592 card IDs with explicit rules, passives, fusion,
@@ -59,13 +81,23 @@ code and tests as the source of truth when this file drifts.
 
 ## Stable Priorities
 
-Before large-scale reinforcement-learning training, complete the platform gate
-defined in [the RL architecture audit](rl_architecture_audit.md): replace the
-legacy follower-only training pool with an exact-audit catalog, standardize the
-two-agent environment and termination semantics, freeze a no-leak Observation
-v3, and remove repeated legal-action/observation work. This gate does not block
-small deterministic engine slices, but it takes priority over beginning a long
-training run.
+The P0 platform gate and the requested P1/P2 reproducible baseline in
+[the RL architecture audit](rl_architecture_audit.md) are complete: exact-audit
+catalog, AEC/Gym protocols, no-leak Observation v3, termination/truncation,
+version caches, training mode, vector workers, seed derivation, recurrent
+masked PPO, stable card embeddings, multiprocess PPO sampling, atomic
+checkpoint/resume, opponent snapshots, fixed evaluation,
+and performance reports are executable and tested.
+
+The remaining RL priorities are explicitly beyond this baseline: profile and
+optimize snapshot/clone payload cost before high-branching search; scale worker
+and learner topology only when a real experiment needs it; add curriculum or
+additional fixed evaluation suites without weakening deterministic manifests;
+and treat every saved training/evaluation number as smoke until a separately
+designed policy-strength experiment exists. A full MCTS/search algorithm and a
+distributed learner are not implemented. Multiprocess PPO currently freezes
+one current policy generation per collection batch and supports self-play only;
+mixed random/fixed/historical opponents remain on the single-process collector.
 
 Unless the user gives a different priority, choose the next coherent vertical
 slice in this order:

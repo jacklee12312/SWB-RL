@@ -49,6 +49,77 @@ are 230 missing per-card structured rules plus 17 explicitly unclear texts.
 Rule metadata also supports version and errata fields, and the report
 records the complete imported source snapshot hash.
 
+## Reproducible RL Platform
+
+The P1/P2 platform-hardening slice is implemented around the deterministic
+rules core:
+
+- Observation v3 and the 111-action layout have named schemas and stable
+  SHA-256 manifests. Catalog, card vocabulary, training pool, coverage report,
+  RuleBook, observation, action, and seed-derivation versions travel with every
+  trajectory and checkpoint; incompatible checkpoints are rejected by field
+  name.
+- `GameEngine` and `ShadowverseEnv` expose monotonic state/transition versions,
+  deterministic snapshot/restore/clone, and version-keyed command, mask,
+  observation, and public-zone histogram caches. Retained mutable debug
+  references are explicit cache-invalidation boundaries.
+- Training mode suppresses unbounded Chinese text logs, bounds diagnostic event
+  history, and preserves complete per-transition events and deterministic rule
+  behavior. An immutable spawn-safe worker snapshot loads the Catalog and
+  RuleBook once, so worker match hot paths do not access SQLite or rule files.
+- `VectorRollout` provides persistent Windows/Linux spawn workers, stable
+  master/worker/episode/deck/engine/policy seed derivation, ordered trajectory
+  identity, timeout/error propagation, graceful shutdown, and a formal
+  recurrent trajectory schema. `PolicyVectorRollout` additionally keeps those
+  workers alive across PPO updates and collects trajectories under one frozen
+  policy generation.
+- The CPU baseline is shared-parameter recurrent masked PPO with separate
+  player hidden states, sparse terminal reward, terminated/truncated bootstrap,
+  recurrent sequence batching, PPO clipping, gradient clipping, and finite-
+  value guards. Stable vocabulary indices in hand and public-board slots feed a
+  trainable card embedding instead of being treated as dynamically normalized
+  ordinal numbers. Atomic schema-v2 checkpoints include the model, optimizer, live
+  environment, RNGs, progress, versions, dirty git state, and opponent league.
+- The configurable opponent league includes current, historical checkpoint,
+  random-legal, and fixed-first-legal policies with reproducible selection,
+  periodic snapshots, and bounded retention. Fixed-seed mirrored evaluation
+  reports win/side rates, confidence interval, relative Elo, duration, done
+  split, illegal/mask consistency, and visited cards/classes/mechanisms without
+  mutating training state.
+- `SWBAECEnv` and the one-learner `SWBGymEnv` wrappers pass the official
+  PettingZoo API test and Gymnasium environment checker, respectively.
+
+The checked-in reports under `data/reports/` are reproducibility and smoke
+artifacts, not policy-strength claims. The 2026-07-21 embedding/vector CPU
+smoke requested 1,024 agent steps and completed 1,304 steps/16 whole episodes
+with finite metrics, then resumed to 1,571 steps/20 episodes without reusing or
+skipping episode IDs. Whole-episode vector batches may intentionally pass the
+requested step boundary. Its 16-game mirrored evaluation is likewise a pipeline
+check, not evidence of a strong policy. The current environment
+benchmark records 143.79 step/s, 34.75x cached-mask speedup, 21.75x cached-v3-
+observation speedup, 24.61 snapshots/s, and 7.23 clones/s on the recorded
+machine; the four-worker report records 369.22 rollout steps/s.
+
+Install the optional training stack and run the reproducible entry points with:
+
+```powershell
+python -m pip install -e ".[rl,train]"
+python -m scripts.vector_rollout --workers 4 --episodes 16
+python -m scripts.train_ppo --total-agent-steps 10000
+python -m scripts.train_ppo --rollout-workers 4 --total-agent-steps 10000 --opponent-current-weight 1 --opponent-random-weight 0 --opponent-fixed-weight 0 --opponent-historical-weight 0
+python -m scripts.evaluate_ppo data/checkpoints/ppo_smoke.pt
+python -m scripts.benchmark_rl_env
+```
+
+Still unsupported: this is a baseline PPO and league/evaluation system, not a
+distributed learner, a policy-strength result, or a complete MCTS
+implementation. Multiprocess PPO currently uses current-policy self-play;
+random, fixed, and historical opponent mixing remains on the single-process
+collector. Snapshot/clone is the search foundation only. Card-rule
+coverage also remains deliberately separate: 230 collectible cards still lack
+per-card structured rules and 17 card texts remain explicitly unclear; neither
+group enters the exact training catalog or counts as supported.
+
 ## Implemented Engine Surface
 
 The deterministic rules core supports:
@@ -802,6 +873,38 @@ attack and selected-effect mask entries come from the same command legality as
 `GameEngine`.
 The structured leader-area section also exposes both public leader maximum
 health values; this does not change the fixed v1 width or any action ID.
+
+For training, `observation_version="v3"` converts the same public state into
+fixed-shape NumPy arrays with an explicit Gymnasium `spaces.Dict`. Hidden
+decklists are the default: the learner receives its own initial-deck histogram,
+while the opponent histogram is zero unless `open_decklists=True` is selected.
+V3 observations for a non-acting player expose an all-zero action mask. V1 and
+V2 remain compatibility interfaces; V3 is the supported input boundary for new
+full-card training code.
+
+`swb.rl.TrainableCardCatalog` builds the training pool from exact collectible
+entries in `data/reports/rule_coverage.json`, rather than the legacy
+follower-only database support flag. It preloads every database card for
+SQLite-free match resolution and exposes the coverage-report hash/source
+snapshot for experiment metadata. Its seeded deck sampler produces legal
+40-card class/neutral decks with a configurable copy limit.
+
+`swb.rl.SWBAECEnv` wraps the deterministic engine as a PettingZoo AEC
+environment with `player_0` and `player_1`, per-agent rewards and done flags,
+Gymnasium spaces, and decision ownership that follows pending choices. Rules
+victories set `terminated`; `max_game_turns` and `max_agent_steps` set only
+`truncated` and never manufacture a health-based winner. Page-navigation
+actions count toward the agent-step limit. A single step reuses its computed
+next-state action mask for the returned observation and info. The AEC wrapper
+requires an explicit shared `card_vocabulary`; production callers should pass
+`catalog.card_vocabulary` so every worker and deck has identical shapes and
+card indices, including generated cards.
+
+The RL dependencies are installed with the project metadata:
+
+```powershell
+python -m pip install -e .
+```
 Two public features expose the controller and opponent's Earth Sigil totals.
 Sigils are board amulets rather than player-side counters: entering
 Sigils merge into the newest amulet, merged Sigils are banished, and a depleted

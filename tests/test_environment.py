@@ -65,6 +65,9 @@ PUBLIC_INFO_KEYS = {
     "placeholder_ability_count",
     "graveyard_page",
     "graveyard_total_pages",
+    "terminated",
+    "truncated",
+    "agent_steps",
 }
 
 DEBUG_INFO_KEYS = {

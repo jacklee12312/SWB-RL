@@ -5,6 +5,8 @@ from pathlib import Path
 
 from swb.db.repository import CardRepository
 from swb.engine import CLASS_NAMES, DECK_SIZE, ShadowverseEnv
+from swb.engine.card_rules import RuleBook
+from swb.rl.catalog import TrainableCardCatalog
 
 
 def choose_action(env: ShadowverseEnv) -> int:
@@ -81,8 +83,10 @@ def main() -> None:
     args = parser.parse_args()
 
     repository = CardRepository(args.database)
-    pool_a = repository.training_pool(class_id=args.class_a)
-    pool_b = repository.training_pool(class_id=args.class_b)
+    catalog = TrainableCardCatalog.from_repository(repository)
+    rulebook = RuleBook.from_directory(ShadowverseEnv.DEFAULT_RULE_DIRECTORY)
+    pool_a = catalog.pool(class_id=args.class_a)
+    pool_b = catalog.pool(class_id=args.class_b)
     deck_a = [pool_a[index % len(pool_a)] for index in range(DECK_SIZE)]
     deck_b = [pool_b[-1 - (index % len(pool_b))] for index in range(DECK_SIZE)]
     env = ShadowverseEnv(
@@ -91,17 +95,19 @@ def main() -> None:
         class_a=args.class_a,
         class_b=args.class_b,
         seed=args.seed,
+        rulebook=rulebook,
+        card_resolver=catalog.resolve,
     )
     env.reset(seed=args.seed)
 
-    while not env.terminated:
+    while not (env.terminated or env.truncated):
         env.step(choose_action(env))
 
     transcript = "\n".join(env.logs)
     summary = (
         f"\n最终状态：玩家1({CLASS_NAMES[args.class_a]})生命={env.players[0].health}，"
         f"玩家2({CLASS_NAMES[args.class_b]})生命={env.players[1].health}，"
-        f"胜者={env.winner + 1 if env.winner is not None else '平局'}"
+        f"结果={'截断' if env.truncated else (env.winner + 1 if env.winner is not None else '平局')}"
     )
     print(transcript)
     print(summary)

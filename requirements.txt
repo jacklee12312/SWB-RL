@@ -1,7 +1,10 @@
-# Runtime dependencies for swb-rl.
+# Optional RL adapter dependencies for swb-rl.  The deterministic rules core
+# itself has no third-party runtime dependency.  Equivalent to: pip install -e .[rl]
 #
-# The engine currently uses only the Python standard library.
 # Install with:
 #   python -m pip install -r requirements.txt
 #
 # Python itself is specified in pyproject.toml as >=3.11.
+numpy>=2.3,<3
+gymnasium>=1.3,<2
+pettingzoo>=1.26.1,<2

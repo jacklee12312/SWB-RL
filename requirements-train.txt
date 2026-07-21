@@ -1,0 +1,3 @@
+# Full CPU/GPU training stack. PyTorch selects the platform wheel published
+# for the current interpreter; see https://pytorch.org/get-started/locally/.
+-e .[rl,train]

@@ -1,0 +1,201 @@
+{
+  "schema_version": 1,
+  "purpose": "CPU smoke only; not a policy-strength conclusion",
+  "torch_version": "2.13.0+cpu",
+  "device": "cpu",
+  "master_seed": 20260721,
+  "requested_agent_steps": 1024,
+  "completed_agent_steps": 1304,
+  "completed_episodes": 16,
+  "updates": 4,
+  "elapsed_seconds": 18.033864500001073,
+  "agent_steps_per_second": 72.30840622096957,
+  "checkpoint": "data\\checkpoints\\ppo_smoke.pt",
+  "resumed_from": null,
+  "hyperparameters": {
+    "rollout_steps": 256,
+    "sequence_length": 16,
+    "minibatch_sequences": 8,
+    "update_epochs": 2,
+    "hidden_size": 64,
+    "card_embedding_dim": 16,
+    "learning_rate": 0.0003,
+    "gamma": 0.99,
+    "gae_lambda": 0.95,
+    "clip_ratio": 0.2,
+    "value_coefficient": 0.5,
+    "entropy_coefficient": 0.01,
+    "max_grad_norm": 0.5,
+    "max_agent_steps_per_episode": 128,
+    "max_game_turns": 200,
+    "opponent_current_weight": 1.0,
+    "opponent_random_weight": 0.0,
+    "opponent_fixed_weight": 0.0,
+    "opponent_historical_weight": 0.0,
+    "opponent_max_history": 4,
+    "opponent_snapshot_interval_steps": 2500,
+    "rollout_workers": 2,
+    "rollout_result_timeout_seconds": 120.0
+  },
+  "final_metrics": {
+    "policy_loss": 0.029990259325131774,
+    "value_loss": 0.16383420303463936,
+    "entropy": 1.3195111751556396,
+    "grad_norm": 1.5372378006577492,
+    "agent_steps": 1304.0,
+    "completed_episodes": 16.0,
+    "updates": 4.0
+  },
+  "opponent_pool": {
+    "master_seed": 20260721,
+    "max_history": 4,
+    "snapshot_interval_steps": 2500,
+    "historical_weight": 0.0,
+    "last_snapshot_steps": 0,
+    "selection_count": 1,
+    "base_entries": [
+      {
+        "opponent_id": "current",
+        "kind": "current",
+        "weight": 1.0,
+        "checkpoint_path": null,
+        "created_agent_steps": 0
+      },
+      {
+        "opponent_id": "random_legal",
+        "kind": "random_legal",
+        "weight": 0.0,
+        "checkpoint_path": null,
+        "created_agent_steps": 0
+      },
+      {
+        "opponent_id": "fixed_first_legal",
+        "kind": "fixed",
+        "weight": 0.0,
+        "checkpoint_path": null,
+        "created_agent_steps": 0
+      }
+    ],
+    "history": []
+  },
+  "opponent_assignments": [
+    {
+      "episode_id": 0,
+      "learner_player": "both",
+      "opponent_id": "current",
+      "opponent_kind": "current",
+      "worker_id": 0
+    },
+    {
+      "episode_id": 1,
+      "learner_player": "both",
+      "opponent_id": "current",
+      "opponent_kind": "current",
+      "worker_id": 1
+    },
+    {
+      "episode_id": 2,
+      "learner_player": "both",
+      "opponent_id": "current",
+      "opponent_kind": "current",
+      "worker_id": 0
+    },
+    {
+      "episode_id": 3,
+      "learner_player": "both",
+      "opponent_id": "current",
+      "opponent_kind": "current",
+      "worker_id": 1
+    },
+    {
+      "episode_id": 4,
+      "learner_player": "both",
+      "opponent_id": "current",
+      "opponent_kind": "current",
+      "worker_id": 0
+    },
+    {
+      "episode_id": 5,
+      "learner_player": "both",
+      "opponent_id": "current",
+      "opponent_kind": "current",
+      "worker_id": 1
+    },
+    {
+      "episode_id": 6,
+      "learner_player": "both",
+      "opponent_id": "current",
+      "opponent_kind": "current",
+      "worker_id": 0
+    },
+    {
+      "episode_id": 7,
+      "learner_player": "both",
+      "opponent_id": "current",
+      "opponent_kind": "current",
+      "worker_id": 1
+    },
+    {
+      "episode_id": 8,
+      "learner_player": "both",
+      "opponent_id": "current",
+      "opponent_kind": "current",
+      "worker_id": 0
+    },
+    {
+      "episode_id": 9,
+      "learner_player": "both",
+      "opponent_id": "current",
+      "opponent_kind": "current",
+      "worker_id": 1
+    },
+    {
+      "episode_id": 10,
+      "learner_player": "both",
+      "opponent_id": "current",
+      "opponent_kind": "current",
+      "worker_id": 0
+    },
+    {
+      "episode_id": 11,
+      "learner_player": "both",
+      "opponent_id": "current",
+      "opponent_kind": "current",
+      "worker_id": 1
+    },
+    {
+      "episode_id": 12,
+      "learner_player": "both",
+      "opponent_id": "current",
+      "opponent_kind": "current",
+      "worker_id": 0
+    },
+    {
+      "episode_id": 13,
+      "learner_player": "both",
+      "opponent_id": "current",
+      "opponent_kind": "current",
+      "worker_id": 1
+    },
+    {
+      "episode_id": 14,
+      "learner_player": "both",
+      "opponent_id": "current",
+      "opponent_kind": "current",
+      "worker_id": 0
+    },
+    {
+      "episode_id": 15,
+      "learner_player": "both",
+      "opponent_id": "current",
+      "opponent_kind": "current",
+      "worker_id": 1
+    }
+  ],
+  "historical_snapshots_created": [],
+  "versions": {
+    "catalog_sha256": "99b25d895a06add54096d520ce99ac77002cfdbbaecf793a681268459bbe4808",
+    "card_vocabulary_sha256": "b1b0001b0e54fef8092dfc74f2674c7443417ca8d8391e0ae6c8039d2ad1b055",
+    "rulebook_sha256": "2483d55db7828c2a900cd4025e7c10078f9739770256fe335ac80adb1b3fcd32"
+  }
+}

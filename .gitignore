@@ -18,6 +18,7 @@ env/
 *.tmp
 
 data/backups/
+data/checkpoints/
 data/**/*.log
 
 # Local database/query scratch files

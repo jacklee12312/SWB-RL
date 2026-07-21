@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import pickle
 import random
 from dataclasses import dataclass, replace
 from enum import Enum
@@ -290,7 +291,7 @@ class GameConfig:
     max_hand: int = 9
     max_board: int = 5
     max_mana: int = 10
-    max_turns: int = 200
+    max_turns: int | None = None
     starting_hand: int = 4
     starting_evolution_points: int = 2
     evolution_unlock_turn: int = 4
@@ -299,6 +300,8 @@ class GameConfig:
     second_player_super_evolution_unlock_turn: int = 6
     starting_health: int = 20
     validate_invariants: bool = False
+    retain_text_logs: bool = True
+    event_history_limit: int | None = None
 
 
 @dataclass(frozen=True)
@@ -308,6 +311,14 @@ class CoreTransition:
     acting_player: int
     winner: int | None
     terminated: bool
+
+
+@dataclass(frozen=True)
+class GameEngineSnapshot:
+    """Immutable serialized state needed to reproduce every future transition."""
+
+    compatibility: tuple[object, ...]
+    payload: bytes
 
 
 class GameEngine:
@@ -333,12 +344,23 @@ class GameEngine:
         self.deck_lists = (list(deck_a), list(deck_b))
         self.player_classes = (class_a, class_b)
         self.config = config or GameConfig()
+        if self.config.event_history_limit is not None and (
+            not isinstance(self.config.event_history_limit, int)
+            or isinstance(self.config.event_history_limit, bool)
+            or self.config.event_history_limit <= 0
+        ):
+            raise ValueError("event_history_limit must be a positive integer or None")
         self.rulebook = rulebook or RuleBook()
         self.card_resolver = card_resolver
         self.random = random.Random(seed)
         self.state = GameState(players=[])
+        # Monotonic across resets and successful command transitions.  This is
+        # deliberately engine-owned so every adapter can key derived caches
+        # without depending on RL action identifiers.
+        self._state_version: int = 0
         self.logs: list[str] = []
         self.event_history: list[GameEvent] = []
+        self._active_transition_events: list[GameEvent] | None = None
         self.placeholder_ability_events: list[PlaceholderAbilityEvent] = []
         self.ability_handlers = AbilityHandlers(self)
         self._stabilizing: bool = False
@@ -572,6 +594,75 @@ class GameEngine:
     def winner(self) -> int | None:
         return self.state.winner
 
+    @property
+    def state_version(self) -> int:
+        """Monotonic version of the last completed official state transition."""
+        return self._state_version
+
+    def snapshot(self) -> GameEngineSnapshot:
+        """Capture all mutable future-determining state between transitions."""
+        if self._active_transition_events is not None:
+            raise RuntimeError("cannot snapshot while a command transition is active")
+        excluded = {
+            "deck_lists",
+            "player_classes",
+            "config",
+            "rulebook",
+            "card_resolver",
+            "ability_handlers",
+        }
+        mutable = {
+            name: value
+            for name, value in self.__dict__.items()
+            if name not in excluded
+        }
+        compatibility = (
+            self.player_classes,
+            tuple(
+                tuple(card.card_id for card in deck)
+                for deck in self.deck_lists
+            ),
+            self.config,
+        )
+        return GameEngineSnapshot(
+            compatibility=compatibility,
+            payload=pickle.dumps(mutable, protocol=pickle.HIGHEST_PROTOCOL),
+        )
+
+    def restore(self, snapshot: GameEngineSnapshot) -> None:
+        """Restore without replacing immutable rules or card resolver assets."""
+        expected = (
+            self.player_classes,
+            tuple(
+                tuple(card.card_id for card in deck)
+                for deck in self.deck_lists
+            ),
+            self.config,
+        )
+        if snapshot.compatibility != expected:
+            raise ValueError("snapshot is incompatible with this engine configuration")
+        previous_version = self._state_version
+        restored = pickle.loads(snapshot.payload)
+        for name, value in restored.items():
+            setattr(self, name, value)
+        self._state_version = max(previous_version, self._state_version) + 1
+        self._active_transition_events = None
+
+    def clone(self) -> GameEngine:
+        """Return a deterministic branch sharing no mutable match state."""
+        clone = GameEngine(
+            self.deck_lists[0],
+            self.deck_lists[1],
+            class_a=self.player_classes[0],
+            class_b=self.player_classes[1],
+            seed=0,
+            config=self.config,
+            rulebook=self.rulebook,
+            card_resolver=self.card_resolver,
+        )
+        clone.restore(self.snapshot())
+        return clone
+
     def reset(self, *, seed: int | None = None) -> GameState:
         if seed is not None:
             self.random.seed(seed)
@@ -592,14 +683,19 @@ class GameEngine:
                 for index, deck in enumerate(decks)
             ]
         )
-        self.logs = [
-            "=== 对局开始 ===",
-            *[
-                f"[玩家 {index + 1}] 职业：{player.class_name}，牌组 {len(self.deck_lists[index])} 张"
-                for index, player in enumerate(self.state.players)
-            ],
-        ]
+        self.logs = (
+            [
+                "=== 对局开始 ===",
+                *[
+                    f"[玩家 {index + 1}] 职业：{player.class_name}，牌组 {len(self.deck_lists[index])} 张"
+                    for index, player in enumerate(self.state.players)
+                ],
+            ]
+            if self.config.retain_text_logs
+            else []
+        )
         self.event_history = []
+        self._active_transition_events = None
         self.placeholder_ability_events = []
         self._next_modifier_id = 1
         self._next_choice_request_id = 1
@@ -633,6 +729,7 @@ class GameEngine:
         self._resolve_event_queue()
         if self.config.validate_invariants:
             self.assert_invariants()
+        self._state_version += 1
         return self.state
 
     def _initialize_faiths(self) -> None:
@@ -793,40 +890,47 @@ class GameEngine:
             raise IllegalCommand("Command belongs to the non-active player")
 
         acting_player = self.current_player
-        event_start = len(self.event_history)
-        if isinstance(command, EndTurn):
-            self._end_turn()
-        elif isinstance(command, PlayCard):
-            self._play_card(command)
-        elif isinstance(command, Attack):
-            self._attack(command)
-        elif isinstance(command, Evolve):
-            self._evolve(command)
-        elif isinstance(command, SuperEvolve):
-            self._super_evolve(command)
-        elif isinstance(command, BeginFusion):
-            self._begin_fusion(command)
-        elif isinstance(command, ActivateAmulet):
-            self._activate_amulet(command)
-        elif isinstance(command, Choose):
-            self._choose(command)
-        else:
-            raise TypeError(f"Unknown command: {command!r}")
+        self._active_transition_events = []
+        try:
+            if isinstance(command, EndTurn):
+                self._end_turn()
+            elif isinstance(command, PlayCard):
+                self._play_card(command)
+            elif isinstance(command, Attack):
+                self._attack(command)
+            elif isinstance(command, Evolve):
+                self._evolve(command)
+            elif isinstance(command, SuperEvolve):
+                self._super_evolve(command)
+            elif isinstance(command, BeginFusion):
+                self._begin_fusion(command)
+            elif isinstance(command, ActivateAmulet):
+                self._activate_amulet(command)
+            elif isinstance(command, Choose):
+                self._choose(command)
+            else:
+                raise TypeError(f"Unknown command: {command!r}")
 
-        self._resolve_event_queue()
-        self._stabilize()
-        self._resume_suspended_action()
-        if self._suspended_action != "attack":
-            self._active_super_evolution_attack = None
-        if self.config.validate_invariants:
-            self.assert_invariants()
-        return CoreTransition(
-            command=command,
-            events=tuple(self.event_history[event_start:]),
-            acting_player=acting_player,
-            winner=self.winner,
-            terminated=self.terminated,
-        )
+            self._resolve_event_queue()
+            self._stabilize()
+            self._resume_suspended_action()
+            if self._suspended_action != "attack":
+                self._active_super_evolution_attack = None
+            if self.config.validate_invariants:
+                self.assert_invariants()
+            transition = CoreTransition(
+                command=command,
+                events=tuple(self._active_transition_events),
+                acting_player=acting_player,
+                winner=self.winner,
+                terminated=self.terminated,
+            )
+        except Exception:
+            self._active_transition_events = None
+            raise
+        self._active_transition_events = None
+        self._state_version += 1
+        return transition
 
     def _resume_suspended_action(self) -> None:
         while self._suspended_action is not None and self.state.pending_choice is None:
@@ -9241,7 +9345,7 @@ class GameEngine:
                 definition_index,
                 definition,
             )
-            self.event_history.append(GameEvent(
+            self._record_event(GameEvent(
                 EventType.CARD_LISTENER_TRIGGERED,
                 owner,
                 source_id=entity_id,
@@ -9479,7 +9583,7 @@ class GameEngine:
         event_type: str,
         batch: dict[str, object],
     ) -> None:
-        self.event_history.append(GameEvent(
+        self._record_event(GameEvent(
             EventType.EMBLEM_TRIGGERED,
             player_index,
             source_id=emblem.entity_id,
@@ -11119,7 +11223,7 @@ class GameEngine:
         while self.state.event_queue:
             self._step()
             event = self.state.event_queue.popleft()
-            self.event_history.append(event)
+            self._record_event(event)
             if event.type is EventType.FOLLOWER_DESTROYED:
                 self._resolve_super_evolution_attack_bonus(event)
             if self._event_is_enhanced_card_play(event):
@@ -11745,7 +11849,7 @@ class GameEngine:
         if dead:
             self.state.winner = None if len(dead) == 2 else 1 - dead[0]
             self.state.phase = Phase.FINISHED
-        elif self.turn > self.config.max_turns:
+        elif self.config.max_turns is not None and self.turn > self.config.max_turns:
             health = [player.health for player in self.players]
             self.state.winner = (
                 None if health[0] == health[1] else int(health[1] > health[0])
@@ -11759,7 +11863,8 @@ class GameEngine:
                 if self.winner is None
                 else f"玩家 {self.winner + 1} 获胜"
             )
-            self.logs.append(f"=== 对局结束：{result} ===")
+            if self.config.retain_text_logs:
+                self.logs.append(f"=== 对局结束：{result} ===")
             self._emit(
                 GameEvent(
                     EventType.GAME_ENDED,
@@ -13095,6 +13200,15 @@ class GameEngine:
                         "Invariant failed: death record evolution state is invalid"
                     )
 
+    def _record_event(self, event: GameEvent) -> None:
+        """Record diagnostics without truncating the current transition."""
+        self.event_history.append(event)
+        if self._active_transition_events is not None:
+            self._active_transition_events.append(event)
+        limit = self.config.event_history_limit
+        if limit is not None and len(self.event_history) > limit:
+            del self.event_history[:-limit]
+
     def _emit(self, event: GameEvent) -> None:
         self.state.event_queue.append(event)
 
@@ -13174,6 +13288,8 @@ class GameEngine:
         )
 
     def _log(self, player_index: int, message: str) -> None:
+        if not self.config.retain_text_logs:
+            return
         self.logs.append(
             f"[半回合 {self.turn:03d}][玩家 {player_index + 1}] {message}"
         )

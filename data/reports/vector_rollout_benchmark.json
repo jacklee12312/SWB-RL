@@ -1,0 +1,86 @@
+{
+  "schema_version": 1,
+  "machine": {
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.13.13 | packaged by Anaconda, Inc. | (main, Apr 14 2026, 06:12:50) [MSC v.1942 64 bit (AMD64)]",
+    "processor": "Intel64 Family 6 Model 186 Stepping 2, GenuineIntel",
+    "logical_cpu_count": 20
+  },
+  "configuration": {
+    "master_seed": 20260721,
+    "workers": 4,
+    "episodes": 16,
+    "max_agent_steps": 128,
+    "start_method": "spawn"
+  },
+  "versions": {
+    "catalog_sha256": "99b25d895a06add54096d520ce99ac77002cfdbbaecf793a681268459bbe4808",
+    "card_vocabulary_sha256": "b1b0001b0e54fef8092dfc74f2674c7443417ca8d8391e0ae6c8039d2ad1b055",
+    "rulebook_sha256": "2483d55db7828c2a900cd4025e7c10078f9739770256fe335ac80adb1b3fcd32",
+    "coverage_report_sha256": "b559171777fa2441ee903e0095f366c50934474b879de725acc9870337afc9e9",
+    "training_pool_sha256": "84e801a840f6389b3276ef252cc137803b86c8284038ae4187742be1b6be9f3b"
+  },
+  "results": {
+    "snapshot_build_seconds": 0.2738805999979377,
+    "rollout_seconds": 3.824288100004196,
+    "episodes_per_second": 4.183785212202618,
+    "agent_steps": 1412,
+    "agent_steps_per_second": 369.219044976881,
+    "terminated": 14,
+    "truncated": 2,
+    "episode_ids": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15
+    ],
+    "worker_ids": [
+      0,
+      1,
+      2,
+      3,
+      0,
+      1,
+      2,
+      3,
+      0,
+      1,
+      2,
+      3,
+      0,
+      1,
+      2,
+      3
+    ],
+    "fingerprints": [
+      "f6b0eed4af850282371954fb9f6434f8ffd391c33e16069f5e84484fc115e22b",
+      "8a06284ae0b9d4ef785d4731541a18ac24841c81a22eca2ac8de854a1a422704",
+      "8d2b32b3b078d29fa5422e7591f8235c76477d7bb985c775b06c383c61926924",
+      "31497b67884fcf3e5cdf2cb55f053d72bccf41795a5ab5f955f7cff4a7e2a7ed",
+      "e30b6f495a6afa05766ee3eac10d4d438bd0af8aa693bfe3a4e781d5bf0590e3",
+      "722a7337e622803cd1a4c62406c29c5150d6efbbf1d5bf6902ef1ad9df23c766",
+      "789936840481dc85c8dff61c49113a058d029bf265edf8646c936c5e1ba2d654",
+      "80dd737ba1491aa6508eb851bb4c606093484fa290b03c69a6666e50e86f5d66",
+      "cb8564626ba4c33991b06ca2490af62380b465f67e452a4239269e1225064292",
+      "620e3b0886d1f2b4d04e5ca5aff795ecd3bf03dd2c7e28ea5525b99a9fa7023d",
+      "34b7b032db87a7dc914c7f9e57f6bce933265ebc5eb55bbecdd156ac4edb673a",
+      "7890c57c5065a147fafc2b198c7b1df81b2ecfd2c36d56b018d87bd03dfe3ebf",
+      "26886c00ba82fdad192d4fe935d1fa412cae90d7d8412a43a0a6b5e7df2f8d42",
+      "830f68aaf948938af6dcd7817cdb020f460dbb89a26af2c073fee5f77c03d7fb",
+      "4fc68e769336e258543d8f6a33be7543c08271a4424dd4f317e3dd24bb973e1b",
+      "4add41f6c2d9c05165d84d46f5349aabffba9e661e91ea03f84e282687aef0b1"
+    ]
+  }
+}

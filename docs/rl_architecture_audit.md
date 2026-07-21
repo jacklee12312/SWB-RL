@@ -1,20 +1,62 @@
 # SWB RL 底层技术栈架构审计
 
 审计日期：2026-07-17
+P0 修复状态更新：2026-07-21
+P1/P2 平台验收更新：2026-07-21
+
+## 2026-07-21 修复结果
+
+本次平台硬化已经完成审计中的四项 P0，并完成目标内的 P1/P2 训练平台闭环：
+
+- `TrainableCardCatalog` 以 `rule_coverage.json` 的 `covered_exact` 为准，
+  当前纳入 488 张可收集卡；全部 826 张定义在 worker 启动时进入只读内存，
+  对局解析不再访问 SQLite；
+- Observation v3 使用固定 shape/dtype 的 NumPy 数组和 Gymnasium space，
+  默认隐藏对手初始牌组，只有 `open_decklists=True` 才公开；
+- `SWBAECEnv` 提供 PettingZoo AEC 双智能体接口，并通过官方 `api_test`；
+- 规则胜负与训练上限已经分离：前者 `terminated`，后者 `truncated`；
+  独立 `max_agent_steps` 也覆盖不推进回合的墓地翻页动作；
+- 单次 `action_mask()` 只扫描一次 `legal_commands()`；`step()` 计算出的
+  下一状态 mask 会复用于 observation 和 info；跨调用的合法命令、mask、
+  Observation v3 和公共直方图均按单调版本缓存；
+- training mode 关闭无界中文日志、限制诊断事件历史，同时保留完整
+  `CoreTransition.events` 和确定性；Catalog/RuleBook 由父进程构建不可变、
+  可序列化的 spawn-safe worker 快照，对局热路径不访问 SQLite 或规则文件；
+- Observation v3、111-action、trajectory、Catalog、词表、训练池、覆盖报告、
+  RuleBook 和种子派生都具有正式版本或稳定 SHA-256；
+- persistent spawn vector worker、稳定卡牌 embedding、共享参数 recurrent masked
+  PPO、PPO 多 worker 策略采样、原子中局
+  checkpoint/resume、四类对手池、固定种子镜像评估、Gym 单学习方包装和
+  GameEngine snapshot/restore/clone 均已实现并有正常/边界测试。
+
+V1/V2 和原 `ShadowverseEnv` 均保留兼容。当前状态是“可复现训练基线闭环”，
+不是“已证明策略强度”或“已完成大规模分布式训练系统”。保存的 2-worker
+CPU 训练、恢复、16 局镜像评估和吞吐数据都只作为 smoke/回归证据。
+
+## 状态分级与验收证据
+
+| 状态 | 范围 | 证据或限制 |
+| --- | --- | --- |
+| 已完成 | P0、state-version 缓存、training mode、正式版本/hash、稳定卡牌 embedding、单/多 worker PPO rollout、recurrent masked PPO、原子恢复、四类对手池、固定评估、AEC/Gym、snapshot/clone | 聚焦测试、官方 wrapper 检查、2-worker CPU smoke 训练到 1,304 步并恢复到 1,571 步、环境与 4-worker 随机 rollout 基准 |
+| 部分完成 | 性能优化与评估覆盖广度 | 已有稳定基准和阈值；snapshot 约 0.82 MB/24.61 次每秒、clone 7.23 次每秒，足以作为正确性基础但仍需在高分支搜索前优化；固定评估当前仅使用 Forestcraft exact 牌组 |
+| 尚未实现 | 分布式 learner、完整 MCTS、策略强度实验、训练 curriculum | 不属于本次可复现 baseline；不得从 smoke 胜率推断策略强度 |
+| 明确不支持 | 230 张缺少 per-card 结构化规则的可收集卡、17 张文本不明确卡 | 不进入 exact 训练目录，不得视为已支持；规则覆盖与 RL 平台状态继续分开报告 |
 
 ## 结论
 
-当前项目的规则引擎底座方向正确，不需要推倒重来；真正需要补齐的是
-RL 环境协议、训练数据入口和大规模采样基础设施。
+当前项目的规则引擎底座方向正确，不需要推倒重来；审计指出的 RL 环境协议、
+训练数据入口和首个可复现采样/训练闭环已经完成。后续工作是扩大实验规模与
+覆盖面，而不是重新设计规则核心。
 
 可以将当前状态概括为：
 
 - 规则引擎：成熟的确定性规则核心；
-- RL 适配器：可验证的原型接口；
-- 训练系统：尚未形成完整的模型、采样、对手池、评估和实验管理闭环。
+- RL 适配器：通过 AEC/Gym 官方检查的版本化接口；
+- 训练系统：已形成可复现的 PPO、采样、对手池、评估和检查点 baseline，
+  但尚不是分布式 learner 或策略强度实验平台。
 
-因此，在开始大规模训练前，应先完成一次独立的“RL 平台硬化”切片。
-继续增加卡牌规则不会解决训练分布、观察语义、双人协议或吞吐问题。
+因此，开始长期训练前不再需要另一轮底层重写；应先扩大固定评估职业和牌组，
+再用真实实验数据决定 learner 拓扑、curriculum 和性能优化优先级。
 
 ## 审计范围
 
@@ -56,7 +98,7 @@ RL 环境协议、训练数据入口和大规模采样基础设施。
 
 ## 主要问题
 
-### P0：训练卡池与规则覆盖脱节
+### P0：训练卡池与规则覆盖脱节（已修复）
 
 `CardRepository.training_pool()` 当前只选择：
 
@@ -78,7 +120,11 @@ RL 环境协议、训练数据入口和大规模采样基础设施。
 3. 提供合法牌组生成器，显式定义职业、中立、重复张数和精确信息策略；
 4. 将训练池版本、规则快照哈希和牌组生成种子写入实验元数据。
 
-### P0：v1 观察不能表达完整卡牌策略
+实现：`swb/rl/catalog.py` 保存覆盖报告 SHA-256 和源数据快照，提供按职业的
+exact pool、可复现的 40 张牌组采样和默认最多 3 张同名卡约束。旧
+`training_pool()` 暂留为兼容 smoke API，训练/自对战脚本已切换到新目录。
+
+### P0：v1 观察不能表达完整卡牌策略（已修复）
 
 v1 手牌特征只有存在、费用、攻防、类型和少量运行时数值，没有卡牌身份。
 费用和身材相同但能力不同的卡可能得到相同输入，因此 v1 不适合完整卡池训练。
@@ -94,11 +140,16 @@ v2 当前存在以下工程问题：
 - action mask 同时出现在观察和 `info()` 路径，容易重复计算；
 - 双方初始牌组组成都会暴露，需要明确是公开牌表赛制还是隐藏牌表赛制。
 
-建议 Observation v3 使用 NumPy 数组和卡牌 embedding 输入，并通过
+Observation v3 已使用 NumPy 数组；PPO 将手牌和公共场面卡牌的稳定词表索引
+送入可训练 embedding，而不是把 ID 当连续数值动态缩放，并通过
 `open_decklists` 配置区分公开牌表与普通隐藏信息对局。隐藏牌表模式只允许
 己方初始牌组、已公开对手卡牌和模型自身维护的 belief state。
 
-### P0：双人环境协议尚未标准化
+实现：`observation_version="v3"` 输出 NumPy-only 字典并提供对应
+Gymnasium `spaces.Dict`。默认 `open_decklists=False`，对手初始牌组直方图固定
+为零；非当前决策方的 action mask 也固定为零。
+
+### P0：双人环境协议尚未标准化（已修复 AEC 层）
 
 `decision_player` 已经表达了“当前应由谁处理普通行动或待选择”，这与轮流行动的
 Agent Environment Cycle 很接近，但当前接口仍是自定义 `StepResult`，没有标准：
@@ -117,7 +168,11 @@ mask：<https://pettingzoo.farama.org/main/api/aec/>。
 `observation, reward, terminated, truncated, info` 步进协议：
 <https://gymnasium.farama.org/api/env/>。
 
-### P0：终止和截断语义混合
+实现：`swb/rl/aec_env.py` 在规则核心之外跟踪 `player_0/player_1`、逐 agent
+reward/termination/truncation、死亡步骤、agent selection 和固定空间。单学习方
+Gymnasium 对手包装仍是后续工作。
+
+### P0：终止和截断语义混合（已修复）
 
 当前超过最大回合时，引擎会按生命值决定胜者并结束比赛；环境随后可能同时返回
 `terminated=True` 与 `truncated=True`。这会影响价值函数是否 bootstrap，并把
@@ -137,7 +192,11 @@ mask：<https://pettingzoo.farama.org/main/api/aec/>。
 Gymnasium 对 termination/truncation 的区分及其 bootstrap 影响有专门说明：
 <https://gymnasium.farama.org/main/tutorials/handling_time_limits/>。
 
-### P1：每个策略动作重复计算合法性和观察
+实现：核心默认不设置人为最大回合；环境用 `max_game_turns` 和
+`max_agent_steps` 截断且不产生胜者。规则胜负优先，因此同一步不会同时返回
+`terminated=True` 和 `truncated=True`。
+
+### P1：每个策略动作重复计算合法性和观察（已完成）
 
 当前典型调用链可能在一个动作上重复生成合法命令：
 
@@ -147,19 +206,28 @@ Gymnasium 对 termination/truncation 的区分及其 bootstrap 影响有专门�
 4. v2 观察还会请求自己的 action mask；
 5. 待选择状态下，一次 mask 构建可能分别扫描非选择和选择命令。
 
-本机固定牌组、关闭运行时不变量的微基准结果：
+审计时旧路径（legacy follower pool）在本机固定牌组、关闭运行时不变量的
+微基准结果：
 
 - 规则核心约 627 action/s；
 - 完整 v1 环境约 404 action/s；
 - 826 卡词表的一次 v2 观察约 0.98 ms；
 - 1000 局现有随机自对战约 217.5 秒完成。
 
-这些数据只用于确定优化方向，不是跨机器性能承诺。
+这些数据只用于保留修复前基线和确定优化方向，不代表 exact 全卡池的当前吞吐，
+也不是跨机器性能承诺。
 
 建议给引擎状态增加单调递增 `state_version`，按版本缓存合法命令、动作掩码和
 观察中的公共增量。一次 `step()` 应只生成一次下一状态观察与掩码。
 
-### P1：运行时资源和诊断路径不适合大规模 worker
+实现：`GameEngine.state_version` 只在成功 reset/command 后递增；非法命令不递增。
+`ShadowverseEnv.transition_version` 还覆盖墓地翻页、待选择同步和显式外部失效。
+合法命令、action mask、完整 Observation v3 与墓地/消失区直方图按版本缓存，
+初始牌组直方图只构建一次；返回观察为防御性副本。公开可变 `core/players` 访问是
+显式 invalidation boundary，debug fingerprint 可检测保留引用造成的未声明修改。
+最终基准记录 mask/观察缓存加速 34.75x/21.75x，阈值检查通过。
+
+### P1：运行时资源和诊断路径不适合大规模 worker（已完成基线）
 
 - 默认构造每个环境时可以重新加载 RuleBook；
 - `CardRepository.get()` 每次打开 SQLite 连接，生成卡牌时也可能进入该路径；
@@ -170,6 +238,13 @@ Gymnasium 对 termination/truncation 的区分及其 bootstrap 影响有专门�
 建议每个采样进程启动时一次性加载不可变 CardCatalog 和 RuleBook，比赛过程中
 不访问 SQLite。训练模式应关闭完整文本日志，使用短环形公共历史和按需诊断，
 同时保留命令级 `CoreTransition.events` 与规则所需的专用历史状态。
+
+实现：Catalog 使用单 SQLite 连接/批量查询构建，不再通过 826 次单卡连接；
+父进程生成不可变、pickle/spawn-safe 的 Catalog/RuleBook 快照。worker 启动只
+反序列化一次，对局热路径不访问 SQLite 或重新读取/解析规则。training mode
+关闭文本日志、以环形上限保留诊断事件但不裁剪当前 transition events。
+SHA-256 domain separation 固定 master→worker→episode→deck/engine/policy 种子；
+单/多 worker 确定性、异常传播、优雅关闭和无残留进程均有测试。
 
 ### P1：规则解析与解析器已经成为维护单体
 
@@ -187,15 +262,16 @@ Gymnasium 对 termination/truncation 的区分及其 bootstrap 影响有专门�
 
 不建议进行一次性重写。每次只迁移一个已有测试充分覆盖的边界。
 
-### P2：没有面向搜索算法的廉价状态分支
+### P2：面向搜索算法的确定性状态分支（基础已完成）
 
-当前引擎支持确定性重放和指纹，但没有公开的 `clone`、`snapshot/restore` 或 undo
-接口。对 PPO、R2D2 一类只需要前向采样的算法，这不是阻塞项；对 AlphaZero/MCTS
-类每个决策需要大量分支模拟的算法，这是硬性缺口。
+`GameEngine.snapshot/restore/clone` 与环境级对应接口现已公开：RNG、pending
+choice、效果/触发队列、实体 ID、批次状态、事件历史和所有决定未来行为的可变
+状态都会复制；RuleBook、resolver 等不可变资产共享。相同 snapshot 与命令序列
+会得到相同事件、winner 和 fingerprint，非法分支与 clone 可变状态相互隔离。
 
-建议先确定首个训练基线。考虑到当前为隐藏信息卡牌游戏，优先建设参数共享、
-action-mask、循环策略的前向自对战基线；只有明确选择搜索路线后，再为搜索设计
-可验证的快照或撤销协议，避免过早重构状态核心。
+这完成了搜索基础设施，不等于实现完整 MCTS，也还不是“廉价 undo”。当前基准
+payload 约 0.82 MB，24.61 snapshot/s、7.23 clone/s；在高分支搜索前仍应分析
+增量/结构共享方案。PPO 前向基线不依赖该优化。
 
 ## 推荐目标架构
 
@@ -212,7 +288,7 @@ Deterministic GameEngine  <---- replay/fingerprint/invariants
 SWB AEC environment  ---- action mask / Observation v3 / agent rewards
             |
             v
-Vector rollout workers ---- seeded deck curriculum / opponent assignment
+Vector rollout workers ---- fixed-policy PPO sampling / seeded episode identity
             |
             v
 Recurrent masked policy --- checkpoints / opponent league / evaluation
@@ -223,14 +299,14 @@ Recurrent masked policy --- checkpoints / opponent league / evaluation
 
 ## 分阶段执行顺序
 
-### 阶段 A：训练语义冻结
+### 阶段 A：训练语义冻结（已完成）
 
 1. 定义公开牌表与隐藏牌表模式；
 2. 定义逐 agent 的奖励归属和终止/截断语义；
 3. 建立 exact-audit 驱动的训练卡池与合法牌组生成；
 4. 冻结 Observation v3 和动作编号迁移规则。
 
-### 阶段 B：标准环境和吞吐
+### 阶段 B：标准环境和吞吐（已完成基线）
 
 1. 新增 PettingZoo AEC 包装层；
 2. 使用 NumPy observation/action mask；
@@ -238,7 +314,7 @@ Recurrent masked policy --- checkpoints / opponent league / evaluation
 4. 预加载 CardCatalog/RuleBook；
 5. 增加 training mode、向量 worker 和稳定性能基准。
 
-### 阶段 C：首个可复现实验闭环
+### 阶段 C：首个可复现实验闭环（已完成 smoke）
 
 1. 参数共享的 recurrent masked-policy 基线；
 2. 对手快照池与固定基准对手；
@@ -246,11 +322,17 @@ Recurrent masked policy --- checkpoints / opponent league / evaluation
 4. 保存代码提交、规则快照、训练池、种子和超参数；
 5. 固定评估牌组与跨版本回归。
 
-### 阶段 D：按算法需要扩展
+### 阶段 D：按算法需要扩展（部分完成）
 
-- PPO/R2D2 路线：优先扩展采样吞吐、序列批次和对手多样性；
+- PPO/R2D2 路线：PPO 已接入持久多进程策略采样；下一步扩展独立 learner
+  拓扑、评估职业和 curriculum；
 - MCTS 路线：补充廉价状态分支、批量推理和隐藏信息处理方案；
 - 模型式路线：建立公开状态与完整状态的明确隔离，防止训练标签泄漏到策略输入。
+
+阶段 D 目前完成了可验证 snapshot/clone 搜索基础、稳定卡牌 embedding 和
+PPO 多进程固定权重采样；完整 MCTS、分布式 learner、跨 worker 批量推理和
+策略强度训练尚未实现。多进程 PPO 当前仅支持 current-policy self-play，
+四类对手池仍由单进程采样路径完整支持。
 
 ## 进入大规模训练前的验收条件
 
@@ -267,6 +349,8 @@ Recurrent masked policy --- checkpoints / opponent league / evaluation
 
 ## 最终建议
 
-不需要替换 Python 或重写规则引擎。应保留当前确定性命令核心，在其外增加标准
-多智能体协议和训练基础设施。下一项最高优先级不再是继续扩大卡牌数量，而是完成
-阶段 A 与阶段 B，使已经实现的规则真正进入正确、无泄漏且可扩展的训练分布。
+不需要替换 Python 或重写规则引擎。阶段 A/B/C 的可复现 baseline 已在确定性
+命令核心之外完成；下一步应由真实实验需求驱动：若走 PPO 路线，先扩展评估职业、
+curriculum 与 worker/learner 吞吐；若走搜索路线，先降低 snapshot/clone 成本。
+任何策略结论都应另设长期训练和统计设计。本次 smoke 不改变规则覆盖事实：仍有
+230 张缺规则卡和 17 张文本不明确卡，它们必须继续保持 unsupported 可见性。

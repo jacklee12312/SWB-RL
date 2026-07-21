@@ -1,7 +1,6 @@
 from __future__ import annotations
 
-from collections import Counter
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Sequence
 
 from swb.engine.abilities import RUNTIME_UNIT_KEYWORDS
 from swb.engine.commands import ChoiceKind
@@ -38,10 +37,12 @@ def _origin_index(origin: CardOrigin | None) -> int:
     return 0 if origin is None else ORIGIN_INDEX.get(origin, 0)
 
 
-def _histogram(env: ShadowverseEnv, definitions) -> tuple[int, ...]:
-    counts = Counter(_card_index(env, definition.card_id) for definition in definitions)
-    counts.pop(0, None)
-    return tuple(counts.get(index, 0) for index in range(1, len(env.card_vocabulary) + 1))
+def _histogram(
+    env: ShadowverseEnv,
+    zone_key: tuple[object, ...],
+    definitions,
+) -> tuple[int, ...]:
+    return env.cached_card_histogram(zone_key, definitions)
 
 
 def _hand_runtime(card: HandCard | None, turn: int) -> tuple[float, ...]:
@@ -107,12 +108,13 @@ def _board_runtime(entity) -> tuple[float, ...]:
     )
 
 
-def _option_reference(env: ShadowverseEnv, entity_id: int | None) -> int:
+def _option_reference(
+    env: ShadowverseEnv, entity_id: int | None, perspective: int
+) -> int:
     if entity_id is None:
         return 0
-    perspective = env.decision_player
-    me = env.players[perspective]
-    opponent = env.players[1 - perspective]
+    me = env._core.players[perspective]
+    opponent = env._core.players[1 - perspective]
     for index, entity in enumerate(me.board):
         if entity.entity_id == entity_id:
             return 1 + index
@@ -128,8 +130,10 @@ def _option_reference(env: ShadowverseEnv, entity_id: int | None) -> int:
     return 0
 
 
-def _choice_features(env: ShadowverseEnv) -> dict[str, object]:
-    request = env.core.state.pending_choice
+def _choice_features(
+    env: ShadowverseEnv, perspective: int
+) -> dict[str, object]:
+    request = env._core.state.pending_choice
     if request is None:
         return {
             "kind": 0,
@@ -142,10 +146,10 @@ def _choice_features(env: ShadowverseEnv) -> dict[str, object]:
     references = []
     leader_relations = []
     for option in request.options[: env.MAX_CHOICE_OPTIONS]:
-        references.append(_option_reference(env, option.entity_id))
+        references.append(_option_reference(env, option.entity_id, perspective))
         if option.leader_player_index is None:
             leader_relations.append(0)
-        elif option.leader_player_index == env.decision_player:
+        elif option.leader_player_index == perspective:
             leader_relations.append(1)
         else:
             leader_relations.append(2)
@@ -160,8 +164,10 @@ def _choice_features(env: ShadowverseEnv) -> dict[str, object]:
     }
 
 
-def _history_features(env: ShadowverseEnv) -> dict[str, tuple]:
-    events = env.core.event_history[-HISTORY_LENGTH:]
+def _history_features(
+    env: ShadowverseEnv, perspective: int
+) -> dict[str, tuple]:
+    events = env._core.event_history[-HISTORY_LENGTH:]
     event_types = []
     actor_relations = []
     amounts = []
@@ -169,7 +175,7 @@ def _history_features(env: ShadowverseEnv) -> dict[str, tuple]:
         event_types.append(EVENT_INDEX[event.type])
         if event.player_index not in (0, 1):
             actor_relations.append(0)
-        elif event.player_index == env.decision_player:
+        elif event.player_index == perspective:
             actor_relations.append(1)
         else:
             actor_relations.append(2)
@@ -182,23 +188,25 @@ def _history_features(env: ShadowverseEnv) -> dict[str, tuple]:
     }
 
 
-def _leader_modifier_runtime(env: ShadowverseEnv, player) -> tuple[float, ...]:
+def _leader_modifier_runtime(
+    env: ShadowverseEnv, player, perspective: int
+) -> tuple[float, ...]:
     values = []
     public_entity_ids = {
         entity.entity_id
-        for board_owner in env.players
+        for board_owner in env._core.players
         for entity in board_owner.board
     }
     for modifier in player.leader_damage_modifiers[:MAX_LEADER_DAMAGE_MODIFIERS]:
         if modifier.expires_for_player not in (0, 1):
             expiry_relation = 0
-        elif modifier.expires_for_player == env.decision_player:
+        elif modifier.expires_for_player == perspective:
             expiry_relation = 1
         else:
             expiry_relation = 2
         if modifier.source_controller not in (0, 1):
             source_relation = 0
-        elif modifier.source_controller == env.decision_player:
+        elif modifier.source_controller == perspective:
             source_relation = 1
         else:
             source_relation = 2
@@ -219,10 +227,16 @@ def _leader_modifier_runtime(env: ShadowverseEnv, player) -> tuple[float, ...]:
     return tuple(values)
 
 
-def encode_observation_v2(env: ShadowverseEnv) -> dict[str, object]:
-    perspective = env.decision_player
-    me = env.players[perspective]
-    opponent = env.players[1 - perspective]
+def encode_observation_v2(
+    env: ShadowverseEnv,
+    *,
+    perspective: int | None = None,
+    action_mask: Sequence[bool] | None = None,
+    open_decklists: bool = True,
+) -> dict[str, object]:
+    perspective = env.decision_player if perspective is None else perspective
+    me = env._core.players[perspective]
+    opponent = env._core.players[1 - perspective]
     hand = [*me.hand[: env.MAX_HAND]]
     hand.extend([None] * (env.MAX_HAND - len(hand)))
     boards = []
@@ -256,7 +270,7 @@ def encode_observation_v2(env: ShadowverseEnv) -> dict[str, object]:
 
     return {
         "version": 2,
-        "continuous_v1": tuple(env._observation_v1()),
+        "continuous_v1": tuple(env._observation_v1(perspective=perspective)),
         "card_indices": {
             "own_hand": tuple(
                 0 if card is None else _card_index(env, card.card_id)
@@ -267,16 +281,28 @@ def encode_observation_v2(env: ShadowverseEnv) -> dict[str, object]:
                 for entity in boards
             ),
             "initial_decks": (
-                _histogram(env, env.deck_lists[perspective]),
-                _histogram(env, env.deck_lists[1 - perspective]),
+                env._initial_deck_histograms[perspective],
+                (
+                    env._initial_deck_histograms[1 - perspective]
+                    if open_decklists
+                    else (0,) * len(env.card_vocabulary)
+                ),
             ),
             "public_graveyards": (
-                _histogram(env, (card.definition for card in me.graveyard)),
-                _histogram(env, (card.definition for card in opponent.graveyard)),
+                _histogram(
+                    env,
+                    ("graveyard", perspective),
+                    (card.definition for card in me.graveyard),
+                ),
+                _histogram(
+                    env,
+                    ("graveyard", 1 - perspective),
+                    (card.definition for card in opponent.graveyard),
+                ),
             ),
             "public_banished": (
-                _histogram(env, me.banished),
-                _histogram(env, opponent.banished),
+                _histogram(env, ("banished", perspective), me.banished),
+                _histogram(env, ("banished", 1 - perspective), opponent.banished),
             ),
         },
         "origins": {
@@ -326,8 +352,8 @@ def encode_observation_v2(env: ShadowverseEnv) -> dict[str, object]:
                 sum(modifier.amount for modifier in opponent.leader_damage_modifiers),
             ),
             "leader_damage_modifier_runtime": (
-                *_leader_modifier_runtime(env, me),
-                *_leader_modifier_runtime(env, opponent),
+                *_leader_modifier_runtime(env, me, perspective),
+                *_leader_modifier_runtime(env, opponent, perspective),
             ),
             "empty_deck_outcomes": (
                 int(me.empty_deck_outcome is EmptyDeckOutcome.VICTORY),
@@ -338,9 +364,11 @@ def encode_observation_v2(env: ShadowverseEnv) -> dict[str, object]:
                 opponent.max_health,
             ),
         },
-        "choice": _choice_features(env),
-        "public_history": _history_features(env),
-        "action_mask": tuple(env.action_mask()),
+        "choice": _choice_features(env, perspective),
+        "public_history": _history_features(env, perspective),
+        "action_mask": tuple(
+            env.action_mask() if action_mask is None else action_mask
+        ),
     }
 
 
