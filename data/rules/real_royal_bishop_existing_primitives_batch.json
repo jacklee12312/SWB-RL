@@ -1,0 +1,237 @@
+{
+  "intrinsic_keywords": [
+    {"card_id": 10122140, "keywords": ["潜行"]},
+    {"card_id": 10421120, "keywords": ["守护"]},
+    {"card_id": 10421130, "keywords": ["疾驰"]},
+    {"card_id": 10562110, "keywords": ["守护"]},
+    {"card_id": 10761110, "keywords": ["突进"]},
+    {"card_id": 10762120, "keywords": ["疾驰"]}
+  ],
+  "activations": [
+    {"card_id": 10062210, "cost": 1},
+    {"card_id": 10362220, "cost": 1}
+  ],
+  "emblems": [
+    {
+      "id": "maddening_benison",
+      "source_card_id": 10263310,
+      "stacking": "allow",
+      "countdown": 2,
+      "triggers": [],
+      "on_expire": [
+        {"kind": "damage_leader", "target": "own_leader", "amount": 10}
+      ]
+    }
+  ],
+  "rules": [
+    {
+      "card_id": 10723310,
+      "trigger": "play",
+      "operations": [
+        {
+          "kind": "damage_unit",
+          "target": "enemy_unit",
+          "amount": 6,
+          "requires_target": true,
+          "conditions": [
+            {
+              "type": "not",
+              "conditions": [
+                {"type": "controller_cooperation_at_least", "value": 10}
+              ]
+            }
+          ]
+        },
+        {
+          "kind": "damage_unit",
+          "target": "all_enemy_units",
+          "amount": {
+            "type": "controller_board_count",
+            "filter": {"card_type": "随从"}
+          },
+          "conditions": [
+            {"type": "controller_cooperation_at_least", "value": 10}
+          ]
+        }
+      ]
+    },
+    {
+      "card_id": 10263310,
+      "trigger": "play",
+      "operations": [
+        {"kind": "heal_leader", "target": "own_leader", "amount": 10},
+        {
+          "kind": "gain_emblem",
+          "target": "own_leader",
+          "emblem_id": "maddening_benison"
+        }
+      ]
+    },
+    {
+      "card_id": 10062210,
+      "trigger": "play",
+      "countdown": 4,
+      "operations": []
+    },
+    {
+      "card_id": 10062210,
+      "trigger": "last_words",
+      "operations": [
+        {"kind": "summon", "target": "own_leader", "card_id": 90061110}
+      ]
+    },
+    {
+      "card_id": 10062210,
+      "trigger": "activate",
+      "operations": [
+        {"kind": "reduce_countdown", "target": "self", "amount": 1}
+      ]
+    },
+    {
+      "card_id": 10362220,
+      "trigger": "play",
+      "countdown": 3,
+      "operations": []
+    },
+    {
+      "card_id": 10362220,
+      "trigger": "last_words",
+      "operations": [
+        {"kind": "summon", "target": "own_leader", "card_id": 90061110},
+        {"kind": "summon", "target": "own_leader", "card_id": 90061120}
+      ]
+    },
+    {
+      "card_id": 10362220,
+      "trigger": "activate",
+      "operations": [
+        {"kind": "reduce_countdown", "target": "self", "amount": 1}
+      ]
+    },
+    {
+      "card_id": 10122140,
+      "trigger": "evolve",
+      "operations": [
+        {"kind": "summon", "target": "own_leader", "card_id": 10122140}
+      ]
+    },
+    {
+      "card_id": 10421120,
+      "trigger": "evolve",
+      "operations": [
+        {"kind": "summon", "target": "own_leader", "card_id": 10421130}
+      ]
+    },
+    {
+      "card_id": 10421130,
+      "trigger": "evolve",
+      "operations": [
+        {"kind": "summon", "target": "own_leader", "card_id": 10421120}
+      ]
+    },
+    {
+      "card_id": 10821130,
+      "trigger": "fanfare",
+      "operations": [
+        {
+          "kind": "summon",
+          "target": "own_leader",
+          "card_id": 90021120,
+          "target_key": "fanfare_knight"
+        },
+        {
+          "kind": "add_keyword",
+          "target": "previous_target",
+          "target_key": "fanfare_knight",
+          "keyword": "突进"
+        }
+      ]
+    },
+    {
+      "card_id": 10821130,
+      "trigger": "evolve",
+      "operations": [
+        {
+          "kind": "summon",
+          "target": "own_leader",
+          "card_id": 90021120,
+          "target_key": "evolve_knight"
+        },
+        {
+          "kind": "add_keyword",
+          "target": "previous_target",
+          "target_key": "evolve_knight",
+          "keyword": "守护"
+        }
+      ]
+    },
+    {
+      "card_id": 10761110,
+      "trigger": "fanfare",
+      "operations": [
+        {
+          "kind": "conditional",
+          "conditions": [
+            {
+              "type": "controller_board_has",
+              "value": 3,
+              "card_type_filter": "护符"
+            }
+          ],
+          "then": [
+            {"kind": "summon", "target": "own_leader", "card_id": 10761110}
+          ]
+        }
+      ]
+    },
+    {
+      "card_id": 10761110,
+      "trigger": "last_words",
+      "operations": [
+        {"kind": "draw", "target": "own_leader", "amount": 1}
+      ]
+    },
+    {
+      "card_id": 10662120,
+      "trigger": "fanfare",
+      "operations": [
+        {"kind": "summon", "target": "own_leader", "card_id": 90061110}
+      ]
+    },
+    {
+      "card_id": 10662120,
+      "trigger": "evolve",
+      "operations": [
+        {"kind": "summon", "target": "own_leader", "card_id": 90061110}
+      ]
+    },
+    {
+      "card_id": 10562110,
+      "trigger": "fanfare",
+      "operations": [
+        {"kind": "summon", "target": "own_leader", "card_id": 10562110},
+        {"kind": "summon", "target": "own_leader", "card_id": 10562110},
+        {"kind": "summon", "target": "own_leader", "card_id": 10562110}
+      ]
+    },
+    {
+      "card_id": 10762120,
+      "trigger": "fanfare",
+      "operations": [
+        {"kind": "banish", "target": "enemy_unit"},
+        {
+          "kind": "heal_leader",
+          "target": "own_leader",
+          "amount": 3,
+          "conditions": [
+            {
+              "type": "controller_board_has",
+              "value": 3,
+              "card_type_filter": "护符"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

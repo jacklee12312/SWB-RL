@@ -38,14 +38,14 @@ covered generic boundary, but that never upgrades a partial or placeholder
 keyword whose full tagged-card semantics still require structured rules.
 
 The [rule coverage report](data/reports/rule_coverage.md) now includes a
-clause-audit layer without changing its legacy coverage categories. Of 488
-exact collectible cards, all 488 have explicit implemented text and named direct
+clause-audit layer without changing its legacy coverage categories. Of 500
+exact collectible cards, all 500 have explicit implemented text and named direct
 test evidence. The sibling `data/audits/rule_clauses.json` registry hashes every
 imported skill and alternate-mode clause, so a database text change or stale
 test reference invalidates the audit instead of silently retaining exact
 status. The current report has no unverified exact entry or missing generic
 schema, primitive, targeting, or timing blocker. Its remaining collectible gaps
-are 230 missing per-card structured rules plus 17 explicitly unclear texts.
+are 218 missing per-card structured rules plus 17 explicitly unclear texts.
 Rule metadata also supports version and errata fields, and the report
 records the complete imported source snapshot hash.
 
@@ -116,7 +116,7 @@ distributed learner, a policy-strength result, or a complete MCTS
 implementation. Multiprocess PPO currently uses current-policy self-play;
 random, fixed, and historical opponent mixing remains on the single-process
 collector. Snapshot/clone is the search foundation only. Card-rule
-coverage also remains deliberately separate: 230 collectible cards still lack
+coverage also remains deliberately separate: 218 collectible cards still lack
 per-card structured rules and 17 card texts remain explicitly unclear; neither
 group enters the exact training catalog or counts as supported.
 
@@ -134,6 +134,14 @@ The deterministic rules core supports:
   maximum health to 1 without dealing damage. Seeded replay, stale targets,
   board shortage, healing after the cap change, official FAQ semantics, and
   unchanged v1/action layouts are directly tested;
+- existing cooperation, filtered board-count, countdown/activation, emblem
+  expiry, intrinsic keyword, summon-output, evolution, banish, and healing
+  primitives close exact rules for twelve Royal/Bishop cards (`10723310`,
+  `10263310`, `10062210`, `10362220`, `10122140`, `10421120`, `10421130`,
+  `10821130`, `10761110`, `10662120`, `10562110`, `10762120`). Direct tests
+  cover target-required no-mutation and RL masks, the Rally replacement's
+  zero-target path, stale selections, printed summon order, Token references,
+  board shortage, paired/self producer chains, Last Words, and seeded replay;
 - seeded reset, shuffle, draw, turn progression, official immediate defeat when
   drawing from an empty deck, an auditable alternate victory outcome, atomic
   seeded replacement-deck shuffling,

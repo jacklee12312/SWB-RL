@@ -12,25 +12,25 @@
   },
   "summary": {
     "total_cards": 826,
-    "total_with_rules": 592,
+    "total_with_rules": 604,
     "test_or_synthetic_ids_with_rules": 26,
     "coverage_counts": {
-      "covered_exact": 488,
+      "covered_exact": 500,
       "text_unclear": 17,
-      "supported_missing_rule": 230,
+      "supported_missing_rule": 218,
       "token_or_non_collectible": 91
     },
     "clause_audit_counts": {
-      "mapped_exact": 488,
+      "mapped_exact": 500,
       "unverified_exact": 0,
       "partial": 0,
-      "missing_rule": 230,
+      "missing_rule": 218,
       "missing_primitive": 0,
       "text_unclear": 17,
       "token_separate_audit": 91
     },
     "blocker_counts": {
-      "missing_rule": 230,
+      "missing_rule": 218,
       "missing_schema": 0,
       "missing_primitive": 0,
       "missing_targeting": 0,
@@ -3064,8 +3064,8 @@
       "cost": 1,
       "is_collectible": true,
       "card_set_id": 10000,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['谢幕曲', '策动', '倒数', '召唤']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['play', 'last_words', 'activate', 'activation'], Ops: ['summon', 'reduce_countdown', 'activation']",
       "hit_keywords": [
         "谢幕曲",
         "策动",
@@ -3073,9 +3073,6 @@
         "召唤"
       ],
       "missing_primitives": [],
-      "missing_rule_mechanics": [
-        "策动"
-      ],
       "ability_keywords": [
         "倒数",
         "策动",
@@ -3085,27 +3082,48 @@
         "【<color=Keyword>吟唱</color>_4】\n【<color=Keyword>谢幕曲</color>】召唤1个『<color=Keyword>神圣猎鹰</color>』。\n<hr>费用1【<color=Keyword>启动</color>】本护符的倒计数-1。"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【倒数_4】【谢幕曲】召唤1个神圣猎鹰。费用1【策动】本护符的倒数-1。",
+        "notes": "普通入场倒数、付费策动、自然离场谢幕曲、Token 引用和确定性顺序均使用既有通用原语。",
+        "rule_version": 1,
+        "source_text_sha256": "0ca07db3d147ca0cf2f63c310a6ce8c47b54a13c2bf36785cb7608c0a943010f",
+        "test_evidence": [
+          "tests/test_real_royal_bishop_existing_primitives_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10062210:0",
             "source_text": "【<color=Keyword>吟唱</color>_4】\n【<color=Keyword>谢幕曲</color>】召唤1个『<color=Keyword>神圣猎鹰</color>』。\n<hr>费用1【<color=Keyword>启动</color>】本护符的倒计数-1。",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "【倒数_4】【谢幕曲】召唤1个神圣猎鹰。费用1【策动】本护符的倒数-1。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "0ca07db3d147ca0cf2f63c310a6ce8c47b54a13c2bf36785cb7608c0a943010f",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "play",
+            "last_words",
+            "activate",
+            "activation"
+          ],
+          "effect_kinds": [
+            "summon",
+            "reduce_countdown",
+            "activation"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_royal_bishop_existing_primitives_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10071110": {
@@ -5842,8 +5860,8 @@
       "cost": 2,
       "is_collectible": true,
       "card_set_id": 10001,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['进化时', '召唤']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['evolve', 'intrinsic_keywords'], Ops: ['summon', 'keyword:潜行']",
       "hit_keywords": [
         "进化时",
         "召唤"
@@ -5857,27 +5875,45 @@
         "【<color=Keyword>潜行</color>】\n<hr><ev>【<color=Keyword>进化时</color>】召唤1个『<color=Keyword>忍者鼯鼠</color>』。</ev>"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【潜行】【进化时】召唤1个忍者鼯鼠。",
+        "notes": "本体固有潜行、自身引用生产链、进化触发和战场满载时的召唤失败均有直接测试。",
+        "rule_version": 1,
+        "source_text_sha256": "85cb770aa28cdde9e30cb30d34f3b64b61a9e6bfb2e35ac794359dc5174c486d",
+        "test_evidence": [
+          "tests/test_real_royal_bishop_existing_primitives_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10122140:0",
             "source_text": "【<color=Keyword>潜行</color>】\n<hr><ev>【<color=Keyword>进化时</color>】召唤1个『<color=Keyword>忍者鼯鼠</color>』。</ev>",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "【潜行】【进化时】召唤1个忍者鼯鼠。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "85cb770aa28cdde9e30cb30d34f3b64b61a9e6bfb2e35ac794359dc5174c486d",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "evolve",
+            "intrinsic_keywords"
+          ],
+          "effect_kinds": [
+            "summon",
+            "keyword:潜行"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_royal_bishop_existing_primitives_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10122310": {
@@ -16165,8 +16201,8 @@
       "cost": 4,
       "is_collectible": true,
       "card_set_id": 10002,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['谢幕曲', '倒数', '回复(?!自己\\\\d+点(?:超进化点|进化点|能量点))', '造成.*伤害', '纹章']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['play', 'emblem_source'], Ops: ['heal_leader', 'gain_emblem', 'damage_leader']",
       "hit_keywords": [
         "谢幕曲",
         "倒数",
@@ -16185,32 +16221,51 @@
         "【纹章_0】【<color=Keyword>吟唱</color>_2】\n【<color=Keyword>谢幕曲</color>】对自己的主战者造成10点伤害。"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "回复己方主战者10点生命并获得倒数2的疯狂恩宠纹章；纹章到期时对己方主战者造成10点伤害。",
+        "notes": "主文本和独立纹章文本均映射；治疗上限、倒数推进、一次性到期伤害及后续不重复结算均有直接测试。",
+        "rule_version": 1,
+        "source_text_sha256": "4e1f852e83df10630b0bdbb985598d5a0145194565fa54b8880bdd6a0e8ce245",
+        "test_evidence": [
+          "tests/test_real_royal_bishop_existing_primitives_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10263310:0",
             "source_text": "回复自己的主战者10点生命值。使自己获得『纹章：疯狂的恩宠』。",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           },
           {
             "clause_id": "10263310:1",
             "source_text": "【纹章_0】【<color=Keyword>吟唱</color>_2】\n【<color=Keyword>谢幕曲</color>】对自己的主战者造成10点伤害。",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "回复己方主战者10点生命并获得倒数2的疯狂恩宠纹章；纹章到期时对己方主战者造成10点伤害。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "4e1f852e83df10630b0bdbb985598d5a0145194565fa54b8880bdd6a0e8ce245",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "play",
+            "emblem_source"
+          ],
+          "effect_kinds": [
+            "heal_leader",
+            "gain_emblem",
+            "damage_leader"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_royal_bishop_existing_primitives_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10264110": {
@@ -20633,8 +20688,8 @@
       "cost": 3,
       "is_collectible": true,
       "card_set_id": 10003,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['谢幕曲', '策动', '倒数', '召唤']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['play', 'last_words', 'activate', 'activation'], Ops: ['summon', 'summon', 'reduce_countdown', 'activation']",
       "hit_keywords": [
         "谢幕曲",
         "策动",
@@ -20642,9 +20697,6 @@
         "召唤"
       ],
       "missing_primitives": [],
-      "missing_rule_mechanics": [
-        "策动"
-      ],
       "ability_keywords": [
         "倒数",
         "策动",
@@ -20654,27 +20706,49 @@
         "【<color=Keyword>吟唱</color>_3】\n【<color=Keyword>谢幕曲</color>】召唤1个『<color=Keyword>神圣猎鹰</color>』和1个『<color=Keyword>圣炎猛虎</color>』。\n<hr>费用1【<color=Keyword>启动</color>】本护符的倒计数-1。"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【倒数_3】【谢幕曲】依次召唤神圣猎鹰和圣炎猛虎。费用1【策动】本护符的倒数-1。",
+        "notes": "两个 Token 的打印顺序、策动成本、护符离场释放空位和仅剩一个空位时的容量行为均有直接测试。",
+        "rule_version": 1,
+        "source_text_sha256": "5eb782bad60b4bb7261cec5b8c159426716fb16b6f3ea16b87a2e87c46c27675",
+        "test_evidence": [
+          "tests/test_real_royal_bishop_existing_primitives_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10362220:0",
             "source_text": "【<color=Keyword>吟唱</color>_3】\n【<color=Keyword>谢幕曲</color>】召唤1个『<color=Keyword>神圣猎鹰</color>』和1个『<color=Keyword>圣炎猛虎</color>』。\n<hr>费用1【<color=Keyword>启动</color>】本护符的倒计数-1。",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "【倒数_3】【谢幕曲】依次召唤神圣猎鹰和圣炎猛虎。费用1【策动】本护符的倒数-1。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "5eb782bad60b4bb7261cec5b8c159426716fb16b6f3ea16b87a2e87c46c27675",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "play",
+            "last_words",
+            "activate",
+            "activation"
+          ],
+          "effect_kinds": [
+            "summon",
+            "summon",
+            "reduce_countdown",
+            "activation"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_royal_bishop_existing_primitives_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10363110": {
@@ -22612,8 +22686,8 @@
       "cost": 3,
       "is_collectible": true,
       "card_set_id": 10004,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['进化时', '召唤']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['evolve', 'intrinsic_keywords'], Ops: ['summon', 'keyword:守护']",
       "hit_keywords": [
         "进化时",
         "召唤"
@@ -22627,27 +22701,45 @@
         "【<color=Keyword>守护</color>】\n<hr><ev>【<color=Keyword>进化时</color>】召唤1个『<color=Keyword>迷茫的狮子·莫德雷德</color>』。</ev>"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【守护】【进化时】召唤1个迷茫的狮子·莫德雷德。",
+        "notes": "固有守护、成对卡牌引用、进化召唤及容量不足路径与对应卡共同直接测试。",
+        "rule_version": 1,
+        "source_text_sha256": "4c53753da93e9a26f28e0370c2ed6263468449a09c3f0bdf3efd58a73cc7d361",
+        "test_evidence": [
+          "tests/test_real_royal_bishop_existing_primitives_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10421120:0",
             "source_text": "【<color=Keyword>守护</color>】\n<hr><ev>【<color=Keyword>进化时</color>】召唤1个『<color=Keyword>迷茫的狮子·莫德雷德</color>』。</ev>",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "【守护】【进化时】召唤1个迷茫的狮子·莫德雷德。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "4c53753da93e9a26f28e0370c2ed6263468449a09c3f0bdf3efd58a73cc7d361",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "evolve",
+            "intrinsic_keywords"
+          ],
+          "effect_kinds": [
+            "summon",
+            "keyword:守护"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_royal_bishop_existing_primitives_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10421130": {
@@ -22658,8 +22750,8 @@
       "cost": 3,
       "is_collectible": true,
       "card_set_id": 10004,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['进化时', '召唤']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['evolve', 'intrinsic_keywords'], Ops: ['summon', 'keyword:疾驰']",
       "hit_keywords": [
         "进化时",
         "召唤"
@@ -22673,27 +22765,45 @@
         "【<color=Keyword>疾驰</color>】\n<hr><ev>【<color=Keyword>进化时</color>】召唤1个『<color=Keyword>决心之辉龙·亚瑟</color>』。</ev>"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【疾驰】【进化时】召唤1个决心之辉龙·亚瑟。",
+        "notes": "固有疾驰、成对卡牌引用、进化召唤及容量不足路径与对应卡共同直接测试。",
+        "rule_version": 1,
+        "source_text_sha256": "a63c74cf3b277405ce4b358510a7036e1fdc2c14cf7b3a4e2c81946b38300377",
+        "test_evidence": [
+          "tests/test_real_royal_bishop_existing_primitives_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10421130:0",
             "source_text": "【<color=Keyword>疾驰</color>】\n<hr><ev>【<color=Keyword>进化时</color>】召唤1个『<color=Keyword>决心之辉龙·亚瑟</color>』。</ev>",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "【疾驰】【进化时】召唤1个决心之辉龙·亚瑟。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "a63c74cf3b277405ce4b358510a7036e1fdc2c14cf7b3a4e2c81946b38300377",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "evolve",
+            "intrinsic_keywords"
+          ],
+          "effect_kinds": [
+            "summon",
+            "keyword:疾驰"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_royal_bishop_existing_primitives_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10422110": {
@@ -29427,8 +29537,8 @@
       "cost": 8,
       "is_collectible": true,
       "card_set_id": 10005,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '召唤']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['fanfare', 'intrinsic_keywords'], Ops: ['summon', 'summon', 'summon', 'keyword:守护']",
       "hit_keywords": [
         "入场曲",
         "召唤"
@@ -29442,27 +29552,47 @@
         "【<color=Keyword>入场曲</color>】召唤3个『<color=Keyword>毫不动摇的圣骑士</color>』。\n<hr>【<color=Keyword>守护</color>】"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【入场曲】依次召唤3个毫不动摇的圣骑士。【守护】",
+        "notes": "自身引用不会递归触发入场曲；四个实体的固有守护、空场完整输出和部分容量输出均有直接测试。",
+        "rule_version": 1,
+        "source_text_sha256": "a27210fd8a0778c766cff44abba19d1d03fd463ba52af7947fc03cef53c610c8",
+        "test_evidence": [
+          "tests/test_real_royal_bishop_existing_primitives_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10562110:0",
             "source_text": "【<color=Keyword>入场曲</color>】召唤3个『<color=Keyword>毫不动摇的圣骑士</color>』。\n<hr>【<color=Keyword>守护</color>】",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "【入场曲】依次召唤3个毫不动摇的圣骑士。【守护】",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "a27210fd8a0778c766cff44abba19d1d03fd463ba52af7947fc03cef53c610c8",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "fanfare",
+            "intrinsic_keywords"
+          ],
+          "effect_kinds": [
+            "summon",
+            "summon",
+            "summon",
+            "keyword:守护"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_royal_bishop_existing_primitives_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10562120": {
@@ -33996,8 +34126,8 @@
       "cost": 6,
       "is_collectible": true,
       "card_set_id": 10006,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '进化时', '召唤']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['fanfare', 'evolve'], Ops: ['summon', 'summon']",
       "hit_keywords": [
         "入场曲",
         "进化时",
@@ -34012,27 +34142,45 @@
         "【<color=Keyword>入场曲</color>】召唤1个『<color=Keyword>神圣猎鹰</color>』。\n<hr><ev>【<color=Keyword>进化时</color>】发动与【<color=Keyword>入场曲</color>】相同的能力。</ev>"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【入场曲】召唤1个神圣猎鹰。【进化时】再次发动相同能力。",
+        "notes": "入场和进化各一次的 Token 生产顺序及战场容量由真实规则路径直接测试。",
+        "rule_version": 1,
+        "source_text_sha256": "578e278cccfc18d975226c0a76e508e561acc05a398f82eb995bdb98351305d9",
+        "test_evidence": [
+          "tests/test_real_royal_bishop_existing_primitives_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10662120:0",
             "source_text": "【<color=Keyword>入场曲</color>】召唤1个『<color=Keyword>神圣猎鹰</color>』。\n<hr><ev>【<color=Keyword>进化时</color>】发动与【<color=Keyword>入场曲</color>】相同的能力。</ev>",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "【入场曲】召唤1个神圣猎鹰。【进化时】再次发动相同能力。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "578e278cccfc18d975226c0a76e508e561acc05a398f82eb995bdb98351305d9",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "fanfare",
+            "evolve"
+          ],
+          "effect_kinds": [
+            "summon",
+            "summon"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_royal_bishop_existing_primitives_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10662210": {
@@ -36444,8 +36592,8 @@
       "cost": 3,
       "is_collectible": true,
       "card_set_id": 10007,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['造成.*伤害', '协作']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['play'], Ops: ['damage_unit', 'damage_unit']",
       "hit_keywords": [
         "造成.*伤害",
         "协作"
@@ -36458,27 +36606,44 @@
         "选择对手的战场上的1个随从，对其造成6点伤害。【<color=Keyword>协作</color>_10】对对手的战场上的所有随从造成X点伤害。X为自己的战场上的随从的张数。"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "选择1个敌方随从并造成6点伤害；协作10时改为按己方随从数对全部敌方随从造成伤害。",
+        "notes": "互斥的协作条件保留基础分支的必选目标，并使协作替换分支在没有敌方随从时仍可合法使用；直接测试非法命令无变更、过期目标、伤害计数和 RL mask。",
+        "rule_version": 1,
+        "source_text_sha256": "deed034a06178f525bb8925c47a18ee1f583d67cc73706fa3f63c38f9b7e9c0d",
+        "test_evidence": [
+          "tests/test_real_royal_bishop_existing_primitives_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10723310:0",
             "source_text": "选择对手的战场上的1个随从，对其造成6点伤害。【<color=Keyword>协作</color>_10】对对手的战场上的所有随从造成X点伤害。X为自己的战场上的随从的张数。",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "选择1个敌方随从并造成6点伤害；协作10时改为按己方随从数对全部敌方随从造成伤害。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "deed034a06178f525bb8925c47a18ee1f583d67cc73706fa3f63c38f9b7e9c0d",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "play"
+          ],
+          "effect_kinds": [
+            "damage_unit",
+            "damage_unit"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_royal_bishop_existing_primitives_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10724110": {
@@ -38418,8 +38583,8 @@
       "cost": 4,
       "is_collectible": true,
       "card_set_id": 10007,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '谢幕曲', '抽取', '召唤']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['fanfare', 'last_words', 'intrinsic_keywords'], Ops: ['conditional', 'summon', 'draw', 'keyword:突进']",
       "hit_keywords": [
         "入场曲",
         "谢幕曲",
@@ -38436,27 +38601,48 @@
         "【<color=Keyword>入场曲</color>】若自己的战场上的护符的张数为3张或以上，则召唤1个『<color=Keyword>营利支援者</color>』。\n<hr>【<color=Keyword>突进</color>】\n【<color=Keyword>谢幕曲</color>】抽取1张卡牌。"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【入场曲】己方战场有至少3个护符时召唤1个营利支援者。【突进】【谢幕曲】抽取1张卡牌。",
+        "notes": "护符过滤阈值的不足与满足路径、非入场曲复制实体的固有突进及每个实体的谢幕曲均有直接测试。",
+        "rule_version": 1,
+        "source_text_sha256": "f75f4b4acf1145f31b8e5fa19f63bbcda99ad275bc0a678e535a1a9be5f356ea",
+        "test_evidence": [
+          "tests/test_real_royal_bishop_existing_primitives_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10761110:0",
             "source_text": "【<color=Keyword>入场曲</color>】若自己的战场上的护符的张数为3张或以上，则召唤1个『<color=Keyword>营利支援者</color>』。\n<hr>【<color=Keyword>突进</color>】\n【<color=Keyword>谢幕曲</color>】抽取1张卡牌。",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "【入场曲】己方战场有至少3个护符时召唤1个营利支援者。【突进】【谢幕曲】抽取1张卡牌。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "f75f4b4acf1145f31b8e5fa19f63bbcda99ad275bc0a678e535a1a9be5f356ea",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "fanfare",
+            "last_words",
+            "intrinsic_keywords"
+          ],
+          "effect_kinds": [
+            "conditional",
+            "summon",
+            "draw",
+            "keyword:突进"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_royal_bishop_existing_primitives_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10761120": {
@@ -38666,8 +38852,8 @@
       "cost": 8,
       "is_collectible": true,
       "card_set_id": 10007,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '回复(?!自己\\\\d+点(?:超进化点|进化点|能量点))', '消失']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['fanfare', 'intrinsic_keywords'], Ops: ['banish', 'heal_leader', 'keyword:疾驰']",
       "hit_keywords": [
         "入场曲",
         "回复(?!自己\\d+点(?:超进化点|进化点|能量点))",
@@ -38682,27 +38868,46 @@
         "【<color=Keyword>入场曲</color>】选择对手的战场上的1个随从，使其消失。若自己的战场上的护符的张数为3张或以上，则回复自己的主战者3点生命值。\n<hr>【<color=Keyword>疾驰</color>】"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【入场曲】选择1个敌方随从并使其消失；己方战场有至少3个护符时回复己方主战者3点生命。【疾驰】",
+        "notes": "正常消失、无目标继续、选择后目标离场继续、护符阈值治疗和固有疾驰均有直接测试。",
+        "rule_version": 1,
+        "source_text_sha256": "4bb3863417e73e0773f757ef31ff8baa8dce22918e21909a3dfad948a2bb868b",
+        "test_evidence": [
+          "tests/test_real_royal_bishop_existing_primitives_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10762120:0",
             "source_text": "【<color=Keyword>入场曲</color>】选择对手的战场上的1个随从，使其消失。若自己的战场上的护符的张数为3张或以上，则回复自己的主战者3点生命值。\n<hr>【<color=Keyword>疾驰</color>】",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "【入场曲】选择1个敌方随从并使其消失；己方战场有至少3个护符时回复己方主战者3点生命。【疾驰】",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "4bb3863417e73e0773f757ef31ff8baa8dce22918e21909a3dfad948a2bb868b",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "fanfare",
+            "intrinsic_keywords"
+          ],
+          "effect_kinds": [
+            "banish",
+            "heal_leader",
+            "keyword:疾驰"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_royal_bishop_existing_primitives_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10762210": {
@@ -40860,8 +41065,8 @@
       "cost": 4,
       "is_collectible": true,
       "card_set_id": 10008,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '进化时', '召唤']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['fanfare', 'evolve'], Ops: ['summon', 'add_keyword', 'summon', 'add_keyword']",
       "hit_keywords": [
         "入场曲",
         "进化时",
@@ -40878,27 +41083,47 @@
         "【<color=Keyword>入场曲</color>】召唤1个『<color=Keyword>铁甲骑士</color>』，使其获得【<color=Keyword>突进</color>】。\n<hr><ev>【<color=Keyword>进化时</color>】召唤1个『<color=Keyword>铁甲骑士</color>』，使其获得【<color=Keyword>守护</color>】。</ev>"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【入场曲】召唤铁甲骑士并仅使该召唤成功的实体获得突进；【进化时】再召唤铁甲骑士并仅使其获得守护。",
+        "notes": "复用召唤输出绑定，验证两条独立授予、旧实体不受影响，以及满场时空输出令后续授予安全跳过。",
+        "rule_version": 1,
+        "source_text_sha256": "247563fdceea0f05842e463fef6b72b96a3594ec153c8a67211af701e53c3227",
+        "test_evidence": [
+          "tests/test_real_royal_bishop_existing_primitives_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10821130:0",
             "source_text": "【<color=Keyword>入场曲</color>】召唤1个『<color=Keyword>铁甲骑士</color>』，使其获得【<color=Keyword>突进</color>】。\n<hr><ev>【<color=Keyword>进化时</color>】召唤1个『<color=Keyword>铁甲骑士</color>』，使其获得【<color=Keyword>守护</color>】。</ev>",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "【入场曲】召唤铁甲骑士并仅使该召唤成功的实体获得突进；【进化时】再召唤铁甲骑士并仅使其获得守护。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "247563fdceea0f05842e463fef6b72b96a3594ec153c8a67211af701e53c3227",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "fanfare",
+            "evolve"
+          ],
+          "effect_kinds": [
+            "summon",
+            "add_keyword",
+            "summon",
+            "add_keyword"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_royal_bishop_existing_primitives_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10822110": {
@@ -47533,27 +47758,6 @@
       "suggested_rule_file": "batch_中立.json"
     },
     {
-      "card_id": 10723310,
-      "name": "带来静寂的拔刀",
-      "class_name": "皇家护卫",
-      "card_type": "法术",
-      "cost": 3,
-      "ability_keywords": [
-        "协作"
-      ],
-      "hit_keywords": [
-        "造成.*伤害",
-        "协作"
-      ],
-      "confidence": "high",
-      "why_recommended": "Covered keywords: 造成.*伤害, 协作",
-      "required_primitives": [
-        "造成.*伤害",
-        "协作"
-      ],
-      "suggested_rule_file": "batch_皇家护卫.json"
-    },
-    {
       "card_id": 10822110,
       "name": "越狱者·卡婕",
       "class_name": "皇家护卫",
@@ -47828,6 +48032,27 @@
         "破坏"
       ],
       "suggested_rule_file": "batch_主教.json"
+    },
+    {
+      "card_id": 10252120,
+      "name": "尸兵",
+      "class_name": "梦魇",
+      "card_type": "随从",
+      "cost": 6,
+      "ability_keywords": [
+        "入场曲"
+      ],
+      "hit_keywords": [
+        "入场曲",
+        "召唤"
+      ],
+      "confidence": "high",
+      "why_recommended": "Covered keywords: 入场曲, 召唤",
+      "required_primitives": [
+        "入场曲",
+        "召唤"
+      ],
+      "suggested_rule_file": "batch_梦魇.json"
     }
   ]
 }
