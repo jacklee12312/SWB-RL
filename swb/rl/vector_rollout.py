@@ -13,6 +13,7 @@ from typing import Any, Mapping
 import numpy as np
 
 from swb.engine.environment import ShadowverseEnv
+from swb.rl.class_schedule import class_pair_for_episode, normalize_class_ids
 from swb.rl.runtime import WorkerAssetsSnapshot
 from swb.rl.seeding import episode_seeds
 from swb.rl.trajectory import (
@@ -29,6 +30,7 @@ class RolloutConfig:
     worker_count: int = 1
     class_a: int = 1
     class_b: int = 1
+    class_ids: tuple[int, ...] = ()
     max_game_turns: int | None = 200
     max_agent_steps: int = 2000
     open_decklists: bool = False
@@ -41,6 +43,12 @@ class RolloutConfig:
             raise ValueError("worker_count must be positive")
         if self.class_a not in range(1, 8) or self.class_b not in range(1, 8):
             raise ValueError("class_a and class_b must be in 1..7")
+        if self.class_ids:
+            object.__setattr__(
+                self,
+                "class_ids",
+                normalize_class_ids(self.class_ids),
+            )
         if self.max_agent_steps <= 0:
             raise ValueError("max_agent_steps must be positive")
         if self.result_timeout_seconds <= 0:
@@ -78,6 +86,15 @@ class PolicyEpisode:
     winner: int | None
 
 
+def _episode_classes(
+    config: RolloutConfig,
+    episode_id: int,
+) -> tuple[int, int]:
+    if config.class_ids:
+        return class_pair_for_episode(config.class_ids, episode_id)
+    return config.class_a, config.class_b
+
+
 def _run_episode(
     snapshot: WorkerAssetsSnapshot,
     assets,
@@ -88,19 +105,20 @@ def _run_episode(
     if config.fail_episode_id == episode_id:
         raise RuntimeError(f"injected rollout failure for episode {episode_id}")
     seeds = episode_seeds(config.master_seed, worker_id, episode_id)
+    class_a, class_b = _episode_classes(config, episode_id)
     deck_a = assets.catalog.sample_deck(
-        config.class_a,
+        class_a,
         random.Random(seeds.deck_seed_a),
     )
     deck_b = assets.catalog.sample_deck(
-        config.class_b,
+        class_b,
         random.Random(seeds.deck_seed_b),
     )
     env = ShadowverseEnv(
         deck_a,
         deck_b,
-        class_a=config.class_a,
-        class_b=config.class_b,
+        class_a=class_a,
+        class_b=class_b,
         seed=seeds.engine_seed,
         rulebook=assets.rulebook,
         card_resolver=assets.catalog.resolve,
@@ -229,17 +247,18 @@ def _run_policy_episode(
     from swb.rl.ppo import ObservationFlattener
 
     seeds = episode_seeds(config.master_seed, worker_id, episode_id)
+    class_a, class_b = _episode_classes(config, episode_id)
     deck_a = assets.catalog.sample_deck(
-        config.class_a, random.Random(seeds.deck_seed_a)
+        class_a, random.Random(seeds.deck_seed_a)
     )
     deck_b = assets.catalog.sample_deck(
-        config.class_b, random.Random(seeds.deck_seed_b)
+        class_b, random.Random(seeds.deck_seed_b)
     )
     env = ShadowverseEnv(
         deck_a,
         deck_b,
-        class_a=config.class_a,
-        class_b=config.class_b,
+        class_a=class_a,
+        class_b=class_b,
         seed=seeds.engine_seed,
         rulebook=assets.rulebook,
         card_resolver=assets.catalog.resolve,

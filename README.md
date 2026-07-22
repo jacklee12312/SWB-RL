@@ -82,10 +82,13 @@ rules core:
   environment, RNGs, progress, versions, dirty git state, and opponent league.
 - The configurable opponent league includes current, historical checkpoint,
   random-legal, and fixed-first-legal policies with reproducible selection,
-  periodic snapshots, and bounded retention. Fixed-seed mirrored evaluation
-  reports win/side rates, confidence interval, relative Elo, duration, done
-  split, illegal/mask consistency, and visited cards/classes/mechanisms without
-  mutating training state.
+  periodic snapshots, and bounded retention. New PPO runs use a deterministic
+  seven-class 7x7 ordered matchup cycle, while legacy callers retain their
+  single-class default. Fixed-seed mirrored evaluation defaults to two exact
+  deck pairs for each of the seven classes and reports win/side rates,
+  confidence interval, relative Elo, duration, done split, illegal/mask
+  consistency, invariant checking, deck/checkpoint/version hashes, and visited
+  cards/classes/mechanisms/resources without mutating training state.
 - `SWBAECEnv` and the one-learner `SWBGymEnv` wrappers pass the official
   PettingZoo API test and Gymnasium environment checker, respectively.
 
@@ -95,7 +98,13 @@ smoke requested 1,024 agent steps and completed 1,304 steps/16 whole episodes
 with finite metrics, then resumed to 1,571 steps/20 episodes without reusing or
 skipping episode IDs. Whole-episode vector batches may intentionally pass the
 requested step boundary. Its 16-game mirrored evaluation is likewise a pipeline
-check, not evidence of a strong policy. The current environment
+check, not evidence of a strong policy. The 2026-07-22 seven-class smoke adds a
+98-episode pre-training distribution audit whose two complete schedule cycles
+sample every ordered class matchup twice, balance learner/opponent class counts
+at 14 each, and include all 588 exact cards. A separate 28-game evaluation uses
+two fixed deck pairs per class with mirrored sides; all 28 games terminated by
+rules with zero truncations, illegal actions, or action-mask mismatches. The
+current environment
 benchmark records 143.79 step/s, 34.75x cached-mask speedup, 21.75x cached-v3-
 observation speedup, 24.61 snapshots/s, and 7.23 clones/s on the recorded
 machine; the four-worker report records 369.22 rollout steps/s.
@@ -105,6 +114,7 @@ Install the optional training stack and run the reproducible entry points with:
 ```powershell
 python -m pip install -e ".[rl,train]"
 python -m scripts.vector_rollout --workers 4 --episodes 16
+python -m scripts.audit_rl_distribution --episodes 98 --workers 2
 python -m scripts.train_ppo --total-agent-steps 10000
 python -m scripts.train_ppo --rollout-workers 4 --total-agent-steps 10000 --opponent-current-weight 1 --opponent-random-weight 0 --opponent-fixed-weight 0 --opponent-historical-weight 0
 python -m scripts.evaluate_ppo data/checkpoints/ppo_smoke.pt
@@ -115,7 +125,9 @@ Still unsupported: this is a baseline PPO and league/evaluation system, not a
 distributed learner, a policy-strength result, or a complete MCTS
 implementation. Multiprocess PPO currently uses current-policy self-play;
 random, fixed, and historical opponent mixing remains on the single-process
-collector. Snapshot/clone is the search foundation only. Card-rule
+collector. The balanced class schedule is not an adaptive curriculum, and the
+same-class fixed evaluation suite is not yet a 7x7 cross-class policy-strength
+matrix. Snapshot/clone is the search foundation only. Card-rule
 coverage also remains deliberately separate: 131 collectible cards still lack
 per-card structured rules and 16 card texts remain explicitly unclear; neither
 group enters the exact training catalog or counts as supported.

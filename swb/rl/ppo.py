@@ -10,6 +10,7 @@ import torch
 from torch import nn
 
 from swb.engine.environment import ShadowverseEnv
+from swb.rl.class_schedule import class_pair_for_episode, normalize_class_ids
 from swb.rl.opponents import OpponentEntry, OpponentPool
 from swb.rl.runtime import WorkerAssetsSnapshot
 from swb.rl.seeding import episode_seeds
@@ -40,8 +41,14 @@ class PPOConfig:
     opponent_snapshot_interval_steps: int = 50_000
     rollout_workers: int = 1
     rollout_result_timeout_seconds: float = 120.0
+    training_class_ids: tuple[int, ...] = (1,)
 
     def __post_init__(self) -> None:
+        object.__setattr__(
+            self,
+            "training_class_ids",
+            normalize_class_ids(self.training_class_ids),
+        )
         integer_fields = (
             self.rollout_steps,
             self.sequence_length,
@@ -393,6 +400,10 @@ class PPOTrainer:
         episode_id = self.next_episode_id
         self.next_episode_id += 1
         self.learner_player = episode_id % 2
+        class_a, class_b = class_pair_for_episode(
+            self.config.training_class_ids,
+            episode_id,
+        )
         self.current_opponent = self.opponent_pool.select(
             episode_id=episode_id,
             learner_player=self.learner_player,
@@ -402,20 +413,24 @@ class PPOTrainer:
             "learner_player": self.learner_player,
             "opponent_id": self.current_opponent.opponent_id,
             "opponent_kind": self.current_opponent.kind,
+            "class_a": class_a,
+            "class_b": class_b,
+            "learner_class": (class_a, class_b)[self.learner_player],
+            "opponent_class": (class_a, class_b)[1 - self.learner_player],
         })
         self.opponent_assignments = self.opponent_assignments[-4096:]
         seeds = episode_seeds(self.master_seed, 0, episode_id)
         deck_a = self.assets.catalog.sample_deck(
-            1, random.Random(seeds.deck_seed_a)
+            class_a, random.Random(seeds.deck_seed_a)
         )
         deck_b = self.assets.catalog.sample_deck(
-            1, random.Random(seeds.deck_seed_b)
+            class_b, random.Random(seeds.deck_seed_b)
         )
         self.env = ShadowverseEnv(
             deck_a,
             deck_b,
-            class_a=1,
-            class_b=1,
+            class_a=class_a,
+            class_b=class_b,
             seed=seeds.engine_seed,
             rulebook=self.assets.rulebook,
             card_resolver=self.assets.catalog.resolve,
@@ -616,8 +631,7 @@ class PPOTrainer:
                 RolloutConfig(
                     master_seed=self.master_seed,
                     worker_count=self.config.rollout_workers,
-                    class_a=1,
-                    class_b=1,
+                    class_ids=self.config.training_class_ids,
                     max_game_turns=self.config.max_game_turns,
                     max_agent_steps=min(
                         self.config.max_agent_steps_per_episode,
@@ -643,12 +657,20 @@ class PPOTrainer:
                 self.model, episode_ids
             )
             for episode in episodes:
+                class_a, class_b = class_pair_for_episode(
+                    self.config.training_class_ids,
+                    episode.episode_id,
+                )
                 self.opponent_assignments.append({
                     "episode_id": episode.episode_id,
                     "learner_player": "both",
                     "opponent_id": "current",
                     "opponent_kind": "current",
                     "worker_id": episode.worker_id,
+                    "class_a": class_a,
+                    "class_b": class_b,
+                    "learner_class": "both",
+                    "opponent_class": "self_play",
                 })
                 for step in episode.records:
                     records.append(_Record(

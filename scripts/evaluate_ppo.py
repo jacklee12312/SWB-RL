@@ -1,11 +1,13 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 from pathlib import Path
 
 from swb.db.repository import CardRepository
 from swb.rl.checkpoint import load_checkpoint
+from swb.rl.class_schedule import ALL_CLASS_IDS
 from swb.rl.evaluation import EvaluationConfig, evaluate
 from swb.rl.runtime import WorkerAssetsSnapshot
 
@@ -16,9 +18,15 @@ def main() -> None:
     )
     parser.add_argument("checkpoint", type=Path)
     parser.add_argument("--database", type=Path, default=Path("data/cards.sqlite3"))
-    parser.add_argument("--seed-count", type=int, default=8)
+    parser.add_argument("--seed-count", type=int, default=2)
     parser.add_argument("--max-agent-steps", type=int, default=512)
     parser.add_argument("--master-seed", type=int, default=20260721)
+    parser.add_argument(
+        "--classes",
+        type=int,
+        nargs="+",
+        default=list(ALL_CLASS_IDS),
+    )
     parser.add_argument(
         "--opponent",
         choices=("current", "random_legal", "fixed", "historical"),
@@ -46,8 +54,13 @@ def main() -> None:
                 if args.opponent_checkpoint is None
                 else str(args.opponent_checkpoint)
             ),
+            class_ids=tuple(args.classes),
         ),
     )
+    report["checkpoint"] = {
+        "path": str(args.checkpoint),
+        "sha256": hashlib.sha256(args.checkpoint.read_bytes()).hexdigest(),
+    }
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(
         json.dumps(report, ensure_ascii=False, indent=2) + "\n",

@@ -6,6 +6,7 @@ from __future__ import annotations
 import re
 import sqlite3
 import unittest
+from contextlib import closing
 
 from scripts.report_rule_coverage import _build_coverage_report
 from swb.db.repository import CardDefinition, CardRepository
@@ -511,7 +512,7 @@ class SpellAmuletCrestDatabaseAuditTests(unittest.TestCase):
             10631110: [],
         }
         crest_cards = {10412310, 10441310, 10451310, 10712310, 10713310, 10233310}
-        with sqlite3.connect("data/cards.sqlite3") as connection:
+        with closing(sqlite3.connect("data/cards.sqlite3")) as connection:
             for card_id in BATCH_CARD_IDS:
                 with self.subTest(card_id=card_id):
                     texts = [

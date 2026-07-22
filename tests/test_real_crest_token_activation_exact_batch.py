@@ -6,6 +6,7 @@ from __future__ import annotations
 import re
 import sqlite3
 import unittest
+from contextlib import closing
 
 from scripts.report_rule_coverage import _build_coverage_report
 from scripts.report_token_audit import _build_token_audit
@@ -550,7 +551,7 @@ class CrestTokenActivationDatabaseAuditTests(unittest.TestCase):
             10163130: 2,
             10174110: 2,
         }
-        with sqlite3.connect("data/cards.sqlite3") as connection:
+        with closing(sqlite3.connect("data/cards.sqlite3")) as connection:
             for card_id in BATCH_CARD_IDS:
                 with self.subTest(card_id=card_id):
                     texts = [

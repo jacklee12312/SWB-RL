@@ -5,6 +5,8 @@ import json
 from dataclasses import asdict, dataclass
 from typing import TYPE_CHECKING
 
+from swb.rl.class_schedule import CLASS_SCHEDULE_VERSION
+
 if TYPE_CHECKING:
     from swb.engine.environment import ShadowverseEnv
     from swb.rl.catalog import TrainableCardCatalog
@@ -85,6 +87,7 @@ class ExperimentVersions:
     coverage_report_sha256: str
     training_pool_sha256: str
     seed_derivation_version: int = SEED_DERIVATION_VERSION
+    class_schedule_version: int = CLASS_SCHEDULE_VERSION
 
     @classmethod
     def capture(

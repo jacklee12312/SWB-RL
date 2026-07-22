@@ -9,23 +9,32 @@ import numpy as np
 import torch
 
 from swb.engine.commands import ChoiceKind
+from swb.engine.deck import CLASS_NAMES
 from swb.engine.environment import ShadowverseEnv
 from swb.engine.events import EventType
 from swb.rl.checkpoint import load_checkpoint
+from swb.rl.class_schedule import ALL_CLASS_IDS, normalize_class_ids
 from swb.rl.ppo import ObservationFlattener, PPOTrainer, RecurrentMaskedActorCritic
 from swb.rl.runtime import WorkerAssetsSnapshot
 from swb.rl.seeding import derive_seed
+from swb.rl.versioning import ExperimentVersions, stable_json_sha256
 
 
 @dataclass(frozen=True)
 class EvaluationConfig:
     master_seed: int = 20260721
-    seed_count: int = 8
+    seed_count: int = 2
     max_agent_steps: int = 512
     opponent_kind: str = "random_legal"
     opponent_checkpoint: str | None = None
+    class_ids: tuple[int, ...] = ALL_CLASS_IDS
 
     def __post_init__(self) -> None:
+        object.__setattr__(
+            self,
+            "class_ids",
+            normalize_class_ids(self.class_ids),
+        )
         if self.seed_count <= 0 or self.max_agent_steps <= 0:
             raise ValueError("seed_count and max_agent_steps must be positive")
         if self.opponent_kind not in {
@@ -144,6 +153,111 @@ def _opponent_policy(
     )
 
 
+def _deck_manifest(
+    *,
+    class_id: int,
+    deck_index: int,
+    role: str,
+    seed: int,
+    deck,
+) -> dict[str, object]:
+    card_ids = tuple(card.card_id for card in deck)
+    return {
+        "class_id": class_id,
+        "class_name": CLASS_NAMES[class_id],
+        "deck_index": deck_index,
+        "role": role,
+        "seed": seed,
+        "card_ids": list(card_ids),
+        "composition_sha256": stable_json_sha256(tuple(sorted(card_ids))),
+    }
+
+
+def _aggregate_metrics(results: list[dict[str, object]]) -> dict[str, object]:
+    games = len(results)
+    score = sum(float(result["score"]) for result in results)
+    win_rate = score / games
+    confidence = _wilson_interval(score, games)
+    clamped = min(1.0 - 1e-6, max(1e-6, win_rate))
+    side_rates = {}
+    for side in (0, 1):
+        side_results = [
+            result for result in results if result["learner_player"] == side
+        ]
+        side_rates[str(side)] = (
+            sum(float(result["score"]) for result in side_results)
+            / len(side_results)
+        )
+    mask_checks = sum(int(result["action_mask_checks"]) for result in results)
+    mask_mismatches = sum(
+        int(result["action_mask_mismatches"]) for result in results
+    )
+    illegal_actions = sum(int(result["illegal_actions"]) for result in results)
+    return {
+        "games": games,
+        "win_rate": win_rate,
+        "side_win_rates": side_rates,
+        "confidence_interval_95": confidence,
+        "elo_relative": 400.0 * math.log10(clamped / (1.0 - clamped)),
+        "average_turn": sum(int(result["turn"]) for result in results) / games,
+        "average_agent_steps": (
+            sum(int(result["agent_steps"]) for result in results) / games
+        ),
+        "terminated": sum(bool(result["terminated"]) for result in results),
+        "truncated": sum(bool(result["truncated"]) for result in results),
+        "terminated_rate": (
+            sum(bool(result["terminated"]) for result in results) / games
+        ),
+        "truncated_rate": (
+            sum(bool(result["truncated"]) for result in results) / games
+        ),
+        "illegal_actions": illegal_actions,
+        "illegal_action_rate": illegal_actions / max(1, mask_checks),
+        "action_mask_checks": mask_checks,
+        "action_mask_mismatches": mask_mismatches,
+    }
+
+
+def _observe_state(
+    env: ShadowverseEnv,
+    visited_cards: set[int],
+    visited_classes: set[int],
+    resource_maxima: dict[str, int],
+) -> None:
+    for player in env._core.players:
+        visited_classes.add(player.class_id)
+        visited_cards.update(card.card_id for card in player.hand)
+        visited_cards.update(
+            entity.definition.card_id for entity in player.board
+        )
+        visited_cards.update(
+            card.definition.card_id for card in player.graveyard
+        )
+        visited_cards.update(card.card_id for card in player.banished)
+        visited_cards.update(
+            material.definition.card_id for material in player.fusion_materials
+        )
+        values = {
+            "shadows": player.shadows,
+            "cooperation": player.cooperation,
+            "earth_sigils": player.earth_sigils,
+            "faith_count": len(player.faiths),
+            "faith_value": sum(faith.value for faith in player.faiths),
+            "emblem_count": len(player.emblems),
+            "emblem_activations": sum(
+                sum(emblem.activation_counts.values())
+                for emblem in player.emblems
+            ),
+            "fusion_material_count": len(player.fusion_materials),
+            "spellboosted_hand_cards": sum(
+                card.spellboost_count > 0 for card in player.hand
+            ),
+            "followers_evolved": player.followers_evolved_this_match,
+        }
+        for name, value in values.items():
+            resource_maxima[name] = max(resource_maxima.get(name, 0), value)
+
+
 def evaluate(
     trainer: PPOTrainer,
     snapshot: WorkerAssetsSnapshot,
@@ -156,110 +270,171 @@ def evaluate(
     generator_rng = trainer.torch_generator.get_state().clone()
     was_training = trainer.model.training
     trainer.model.eval()
-    results = []
+    results: list[dict[str, object]] = []
+    deck_manifests: list[dict[str, object]] = []
+    deck_card_ids: set[int] = set()
     visited_cards: set[int] = set()
     visited_classes: set[int] = set()
     visited_mechanisms: set[str] = set()
-    mask_checks = 0
-    mask_mismatches = 0
-    illegal_actions = 0
+    resource_maxima: dict[str, int] = {}
     try:
-        for seed_index in range(config.seed_count):
-            deck_seed = derive_seed(config.master_seed, "evaluation_decks", seed_index)
-            learner_deck = snapshot.catalog.sample_deck(
-                1, random.Random(derive_seed(deck_seed, "learner"))
-            )
-            opponent_deck = snapshot.catalog.sample_deck(
-                1, random.Random(derive_seed(deck_seed, "opponent"))
-            )
-            for learner_player in (0, 1):
-                if learner_player == 0:
-                    decks = (learner_deck, opponent_deck)
-                else:
-                    decks = (opponent_deck, learner_deck)
-                engine_seed = derive_seed(
+        for class_id in config.class_ids:
+            for deck_index in range(config.seed_count):
+                deck_seed = derive_seed(
                     config.master_seed,
-                    "evaluation_engine",
-                    seed_index,
-                    learner_player,
+                    "evaluation_decks",
+                    class_id,
+                    deck_index,
                 )
-                env = ShadowverseEnv(
-                    decks[0],
-                    decks[1],
-                    class_a=1,
-                    class_b=1,
-                    seed=engine_seed,
-                    rulebook=trainer.assets.rulebook,
-                    card_resolver=trainer.assets.catalog.resolve,
-                    observation_version="v3",
-                    card_vocabulary=trainer.assets.catalog.card_vocabulary,
-                    max_agent_steps=config.max_agent_steps,
-                    training_mode=True,
-                    training_event_history_limit=4096,
+                learner_deck_seed = derive_seed(deck_seed, "learner")
+                opponent_deck_seed = derive_seed(deck_seed, "opponent")
+                learner_deck = snapshot.catalog.sample_deck(
+                    class_id,
+                    random.Random(learner_deck_seed),
                 )
-                _, info = env.reset(seed=engine_seed)
-                learner_policy = _RecurrentPolicy(
-                    trainer.model, trainer.flattener, trainer.device
+                opponent_deck = snapshot.catalog.sample_deck(
+                    class_id,
+                    random.Random(opponent_deck_seed),
                 )
-                opponent = _opponent_policy(
-                    config,
-                    trainer,
-                    snapshot,
-                    derive_seed(engine_seed, "opponent_policy"),
+                learner_manifest = _deck_manifest(
+                    class_id=class_id,
+                    deck_index=deck_index,
+                    role="learner",
+                    seed=learner_deck_seed,
+                    deck=learner_deck,
                 )
-                learner_policy.reset()
-                opponent.reset()
-                steps = 0
-                while not env.terminated and not env.truncated:
-                    player = env.decision_player
-                    reported_mask = np.asarray(info["action_mask"], dtype=np.int8)
-                    executable_mask = np.asarray(env.action_mask(), dtype=np.int8)
-                    mask_checks += 1
-                    if not np.array_equal(reported_mask, executable_mask):
-                        mask_mismatches += 1
-                    policy = learner_policy if player == learner_player else opponent
-                    action = policy.action(env, player, reported_mask)
-                    if action < 0 or action >= env.ACTION_SIZE or not reported_mask[action]:
-                        illegal_actions += 1
-                        raise RuntimeError("evaluation policy selected an illegal action")
-                    transition = env.step(action)
-                    info = transition.info
-                    steps += 1
-                    for state_player in env._core.players:
-                        visited_classes.add(state_player.class_id)
-                        visited_cards.update(
-                            card.card_id for card in state_player.hand
+                opponent_manifest = _deck_manifest(
+                    class_id=class_id,
+                    deck_index=deck_index,
+                    role="opponent",
+                    seed=opponent_deck_seed,
+                    deck=opponent_deck,
+                )
+                deck_manifests.extend((learner_manifest, opponent_manifest))
+                deck_card_ids.update(card.card_id for card in learner_deck)
+                deck_card_ids.update(card.card_id for card in opponent_deck)
+
+                for learner_player in (0, 1):
+                    if learner_player == 0:
+                        decks = (learner_deck, opponent_deck)
+                    else:
+                        decks = (opponent_deck, learner_deck)
+                    engine_seed = derive_seed(
+                        config.master_seed,
+                        "evaluation_engine",
+                        class_id,
+                        deck_index,
+                        learner_player,
+                    )
+                    env = ShadowverseEnv(
+                        decks[0],
+                        decks[1],
+                        class_a=class_id,
+                        class_b=class_id,
+                        seed=engine_seed,
+                        rulebook=trainer.assets.rulebook,
+                        card_resolver=trainer.assets.catalog.resolve,
+                        observation_version="v3",
+                        card_vocabulary=trainer.assets.catalog.card_vocabulary,
+                        max_agent_steps=config.max_agent_steps,
+                        training_mode=True,
+                        training_event_history_limit=4096,
+                        validate_invariants=True,
+                    )
+                    _, info = env.reset(seed=engine_seed)
+                    learner_policy = _RecurrentPolicy(
+                        trainer.model, trainer.flattener, trainer.device
+                    )
+                    opponent = _opponent_policy(
+                        config,
+                        trainer,
+                        snapshot,
+                        derive_seed(engine_seed, "opponent_policy"),
+                    )
+                    learner_policy.reset()
+                    opponent.reset()
+                    steps = 0
+                    mask_checks = 0
+                    mask_mismatches = 0
+                    illegal_actions = 0
+                    _observe_state(
+                        env,
+                        visited_cards,
+                        visited_classes,
+                        resource_maxima,
+                    )
+                    while not env.terminated and not env.truncated:
+                        player = env.decision_player
+                        reported_mask = np.asarray(
+                            info["action_mask"], dtype=np.int8
                         )
-                        visited_cards.update(
-                            entity.definition.card_id for entity in state_player.board
+                        executable_mask = np.asarray(
+                            env.action_mask(), dtype=np.int8
                         )
-                        visited_cards.update(
-                            card.definition.card_id for card in state_player.graveyard
+                        mask_checks += 1
+                        if not np.array_equal(reported_mask, executable_mask):
+                            mask_mismatches += 1
+                        policy = (
+                            learner_policy
+                            if player == learner_player
+                            else opponent
                         )
-                        visited_cards.update(
-                            card.card_id for card in state_player.banished
+                        action = policy.action(env, player, reported_mask)
+                        if (
+                            action < 0
+                            or action >= env.ACTION_SIZE
+                            or not reported_mask[action]
+                        ):
+                            illegal_actions += 1
+                            raise RuntimeError(
+                                "evaluation policy selected an illegal action"
+                            )
+                        transition = env.step(action)
+                        info = transition.info
+                        steps += 1
+                        _observe_state(
+                            env,
+                            visited_cards,
+                            visited_classes,
+                            resource_maxima,
                         )
-                    pending = env._core.state.pending_choice
-                    if pending is not None:
-                        visited_mechanisms.add(f"choice:{pending.choice_kind.value}")
-                visited_mechanisms.update(
-                    event.type.value for event in env._core.event_history
-                )
-                score = (
-                    0.5
-                    if env.winner is None
-                    else (1.0 if env.winner == learner_player else 0.0)
-                )
-                results.append({
-                    "seed_index": seed_index,
-                    "learner_player": learner_player,
-                    "score": score,
-                    "winner": env.winner,
-                    "turn": env.turn,
-                    "agent_steps": steps,
-                    "terminated": env.terminated,
-                    "truncated": env.truncated,
-                })
+                        pending = env._core.state.pending_choice
+                        if pending is not None:
+                            visited_mechanisms.add(
+                                f"choice:{pending.choice_kind.value}"
+                            )
+                    visited_mechanisms.update(
+                        event.type.value for event in env._core.event_history
+                    )
+                    score = (
+                        0.5
+                        if env.winner is None
+                        else (
+                            1.0 if env.winner == learner_player else 0.0
+                        )
+                    )
+                    results.append({
+                        "class_id": class_id,
+                        "class_name": CLASS_NAMES[class_id],
+                        "deck_index": deck_index,
+                        "learner_player": learner_player,
+                        "score": score,
+                        "winner": env.winner,
+                        "turn": env.turn,
+                        "agent_steps": steps,
+                        "terminated": env.terminated,
+                        "truncated": env.truncated,
+                        "engine_seed": engine_seed,
+                        "learner_deck_sha256": learner_manifest[
+                            "composition_sha256"
+                        ],
+                        "opponent_deck_sha256": opponent_manifest[
+                            "composition_sha256"
+                        ],
+                        "action_mask_checks": mask_checks,
+                        "action_mask_mismatches": mask_mismatches,
+                        "illegal_actions": illegal_actions,
+                    })
     finally:
         random.setstate(python_rng)
         np.random.set_state(numpy_rng)
@@ -267,74 +442,112 @@ def evaluate(
         trainer.torch_generator.set_state(generator_rng)
         trainer.model.train(was_training)
 
-    games = len(results)
-    score = sum(result["score"] for result in results)
-    win_rate = score / games
-    confidence = _wilson_interval(score, games)
-    clamped = min(1.0 - 1e-6, max(1e-6, win_rate))
-    elo = 400.0 * math.log10(clamped / (1.0 - clamped))
-    side_rates = {
-        str(side): (
-            sum(
-                result["score"]
-                for result in results
-                if result["learner_player"] == side
-            )
-            / config.seed_count
-        )
-        for side in (0, 1)
-    }
     mechanism_universe = {
         *(event_type.value for event_type in EventType),
         *(f"choice:{choice_kind.value}" for choice_kind in ChoiceKind),
     }
     visited_known_mechanisms = visited_mechanisms & mechanism_universe
-    return {
-        "schema_version": 1,
-        "purpose": "fixed-seed evaluation; not a policy-strength claim",
-        "configuration": {
-            "master_seed": config.master_seed,
-            "seed_count": config.seed_count,
-            "mirrored_games": games,
-            "opponent_kind": config.opponent_kind,
-            "opponent_checkpoint": config.opponent_checkpoint,
-            "max_agent_steps": config.max_agent_steps,
-        },
+    exact_ids = set(snapshot.catalog.exact_collectible_ids)
+    visited_exact_ids = visited_cards & exact_ids
+    sampled_exact_ids = deck_card_ids & exact_ids
+    class_metrics = {}
+    class_coverage = {}
+    for class_id in config.class_ids:
+        class_results = [
+            result for result in results if result["class_id"] == class_id
+        ]
+        class_metrics[str(class_id)] = {
+            "class_name": CLASS_NAMES[class_id],
+            **_aggregate_metrics(class_results),
+        }
+        eligible_ids = {
+            card.card_id
+            for card in snapshot.catalog.pool(class_id=class_id)
+        }
+        seen_ids = visited_exact_ids & eligible_ids
+        sampled_ids = sampled_exact_ids & eligible_ids
+        class_coverage[str(class_id)] = {
+            "class_name": CLASS_NAMES[class_id],
+            "eligible_exact_count": len(eligible_ids),
+            "sampled_exact_count": len(sampled_ids),
+            "sampled_exact_rate": (
+                len(sampled_ids) / max(1, len(eligible_ids))
+            ),
+            "encountered_exact_count": len(seen_ids),
+            "encountered_exact_rate": (
+                len(seen_ids) / max(1, len(eligible_ids))
+            ),
+            "unsampled_exact_card_ids": sorted(eligible_ids - sampled_ids),
+            "unencountered_exact_card_ids": sorted(eligible_ids - seen_ids),
+        }
+    versions = ExperimentVersions.capture(
+        trainer.env,
+        snapshot.catalog,
+        rulebook_sha256=snapshot.rulebook_sha256,
+    ).to_dict()
+    configuration = {
+        "master_seed": config.master_seed,
+        "seed_count": config.seed_count,
+        "deck_pairs_per_class": config.seed_count,
+        "class_ids": list(config.class_ids),
+        "class_names": [CLASS_NAMES[class_id] for class_id in config.class_ids],
+        "mirrored_games": len(results),
+        "opponent_kind": config.opponent_kind,
+        "opponent_checkpoint": config.opponent_checkpoint,
+        "max_agent_steps": config.max_agent_steps,
+        "validate_invariants": True,
+    }
+    report = {
+        "schema_version": 2,
+        "purpose": (
+            "fixed-seed, fixed-deck, mirrored multi-class evaluation; not a "
+            "policy-strength claim"
+        ),
+        "configuration": configuration,
+        "versions": versions,
         "metrics": {
-            "win_rate": win_rate,
-            "side_win_rates": side_rates,
-            "confidence_interval_95": confidence,
-            "elo_relative": elo,
-            "average_turn": sum(result["turn"] for result in results) / games,
-            "average_agent_steps": (
-                sum(result["agent_steps"] for result in results) / games
-            ),
-            "terminated": sum(result["terminated"] for result in results),
-            "truncated": sum(result["truncated"] for result in results),
-            "terminated_rate": (
-                sum(result["terminated"] for result in results) / games
-            ),
-            "truncated_rate": (
-                sum(result["truncated"] for result in results) / games
-            ),
-            "illegal_action_rate": illegal_actions / max(1, mask_checks),
-            "action_mask_checks": mask_checks,
-            "action_mask_mismatches": mask_mismatches,
+            **_aggregate_metrics(results),
+            "per_class": class_metrics,
         },
         "coverage": {
             "card_ids": sorted(visited_cards),
             "card_count": len(visited_cards),
+            "exact_card_ids": sorted(visited_exact_ids),
+            "exact_card_count": len(visited_exact_ids),
             "card_coverage_rate": (
-                len(visited_cards)
-                / max(1, len(snapshot.catalog.exact_collectible_ids))
+                len(visited_exact_ids) / max(1, len(exact_ids))
+            ),
+            "deck_exact_card_ids": sorted(sampled_exact_ids),
+            "deck_exact_card_count": len(sampled_exact_ids),
+            "deck_card_coverage_rate": (
+                len(sampled_exact_ids) / max(1, len(exact_ids))
+            ),
+            "unsampled_exact_card_ids": sorted(exact_ids - sampled_exact_ids),
+            "unencountered_exact_card_ids": sorted(
+                exact_ids - visited_exact_ids
             ),
             "classes": sorted(visited_classes),
             "class_coverage_rate": len(visited_classes) / 7.0,
+            "per_class": class_coverage,
             "mechanisms": sorted(visited_mechanisms),
             "known_mechanism_count": len(mechanism_universe),
             "mechanism_coverage_rate": (
                 len(visited_known_mechanisms) / max(1, len(mechanism_universe))
             ),
+            "resource_maxima": dict(sorted(resource_maxima.items())),
+            "active_resources": sorted(
+                name for name, value in resource_maxima.items() if value > 0
+            ),
+            "inactive_resources": sorted(
+                name for name, value in resource_maxima.items() if value == 0
+            ),
         },
+        "decks": deck_manifests,
         "games": results,
     }
+    report["evaluation_suite_sha256"] = stable_json_sha256({
+        "configuration": configuration,
+        "versions": versions,
+        "decks": deck_manifests,
+    })
+    return report

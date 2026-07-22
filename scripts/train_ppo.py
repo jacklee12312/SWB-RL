@@ -10,6 +10,7 @@ import torch
 
 from swb.db.repository import CardRepository
 from swb.rl.checkpoint import load_checkpoint, save_checkpoint_atomic
+from swb.rl.class_schedule import ALL_CLASS_IDS, CLASS_SCHEDULE_VERSION
 from swb.rl.ppo import PPOConfig, PPOTrainer
 from swb.rl.runtime import WorkerAssetsSnapshot
 
@@ -24,6 +25,13 @@ def main() -> None:
     parser.add_argument("--rollout-workers", type=int, default=1)
     parser.add_argument("--max-episode-steps", type=int, default=256)
     parser.add_argument("--master-seed", type=int, default=20260721)
+    parser.add_argument(
+        "--classes",
+        type=int,
+        nargs="+",
+        default=list(ALL_CLASS_IDS),
+        help="ordered playable class IDs used by the deterministic matchup cycle",
+    )
     parser.add_argument("--device", default="cpu")
     parser.add_argument("--opponent-current-weight", type=float, default=0.6)
     parser.add_argument("--opponent-random-weight", type=float, default=0.2)
@@ -79,6 +87,7 @@ def main() -> None:
                     args.opponent_snapshot_interval_steps
                 ),
                 rollout_workers=args.rollout_workers,
+                training_class_ids=tuple(args.classes),
             ),
             device=args.device,
         )
@@ -149,6 +158,7 @@ def main() -> None:
         "checkpoint": str(args.checkpoint),
         "resumed_from": None if args.resume is None else str(args.resume),
         "hyperparameters": trainer.hyperparameters(),
+        "training_class_ids": list(trainer.config.training_class_ids),
         "final_metrics": metrics[-1],
         "opponent_pool": trainer.opponent_pool.state_dict(),
         "opponent_assignments": list(trainer.opponent_assignments),
@@ -157,6 +167,7 @@ def main() -> None:
             "catalog_sha256": snapshot.catalog.catalog_sha256,
             "card_vocabulary_sha256": snapshot.catalog.card_vocabulary_sha256,
             "rulebook_sha256": snapshot.rulebook_sha256,
+            "class_schedule_version": CLASS_SCHEDULE_VERSION,
         },
     }
     args.metrics_output.parent.mkdir(parents=True, exist_ok=True)

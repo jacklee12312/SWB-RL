@@ -22,6 +22,12 @@ DATABASE = Path("data/cards.sqlite3")
 
 
 class MaskedPolicyTests(unittest.TestCase):
+    def test_training_class_ids_are_validated_and_frozen(self) -> None:
+        config = PPOConfig(training_class_ids=[1, 2, 3])
+        self.assertEqual(config.training_class_ids, (1, 2, 3))
+        with self.assertRaises(ValueError):
+            PPOConfig(training_class_ids=(1, 1))
+
     def test_multiprocess_rollout_rejects_unsupported_opponent_mixing(self) -> None:
         with self.assertRaisesRegex(ValueError, "self-play only"):
             PPOConfig(
@@ -130,6 +136,23 @@ class PPOTrainerTests(unittest.TestCase):
             self.assertIn(player_id, (0, 1))
             self.assertIn(episode_id, boundaries)
             self.assertTrue(math.isfinite(value))
+
+    def test_episode_schedule_changes_training_classes_deterministically(self) -> None:
+        trainer = PPOTrainer(
+            self.snapshot,
+            master_seed=779,
+            config=PPOConfig(
+                rollout_steps=4,
+                hidden_size=16,
+                max_agent_steps_per_episode=4,
+                training_class_ids=(1, 2),
+            ),
+        )
+        self.assertEqual(trainer.env._core.player_classes, (1, 1))
+        trainer._start_episode()
+        self.assertEqual(trainer.env._core.player_classes, (1, 2))
+        assignment = trainer.opponent_assignments[-1]
+        self.assertEqual((assignment["class_a"], assignment["class_b"]), (1, 2))
 
     def test_update_changes_parameters_and_reports_finite_metrics(self) -> None:
         trainer = self.make_trainer()

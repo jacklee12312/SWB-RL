@@ -10,8 +10,8 @@ code and tests as the source of truth when this file drifts.
 - Database: 826 cards, 735 collectible cards, 91 non-collectible/generated
   cards from set `90000`.
 - Latest SVA source: `https://sva.hypd.asia/data/cards.json`.
-- Tests: `python -m unittest discover -s tests -v` discovers 2215 behavioral
-  contracts (2026-07-22 exact-rule batch verification).
+- Tests: `python -m unittest discover -s tests -v` discovers 2220 behavioral
+  contracts (2026-07-22 exact-rule and seven-class RL verification).
 - RL adapter: fixed 111-action space; the default v1 observation is 294
   floats, opt-in v2 preserves the structured compatibility mapping, and v3
   supplies fixed-dtype NumPy arrays plus a Gymnasium observation space without
@@ -29,13 +29,23 @@ code and tests as the source of truth when this file drifts.
   recurrent masked PPO with stable card embeddings, persistent multiprocess
   fixed-policy sampling, atomic mid-episode checkpoint/resume, a four-kind
   opponent league, fixed mirrored evaluation, `SWBGymEnv`, and deterministic
-  snapshot/restore/clone. Official PettingZoo and Gymnasium checks pass.
+  snapshot/restore/clone. PPO training now supports a deterministic seven-class
+  7x7 ordered matchup cycle, and the fixed evaluation suite defaults to two
+  seeded exact deck pairs per class with mirrored sides. Official PettingZoo
+  and Gymnasium checks pass.
 - The saved embedding/vector CPU smoke is deliberately not a strength claim:
   its 2-worker whole-episode batches requested 1,024 agent steps, completed
   1,304 steps/16 episodes, resumed to 1,571 steps/20 episodes without episode-ID
   gaps, and ran a 16-game fixed-seed mirrored evaluation with zero illegal
   actions or mask mismatches. Whole-episode collection may pass the requested
   step boundary.
+- The 2026-07-22 distribution audit runs two complete 49-episode class cycles:
+  every ordered matchup appears twice, learner/opponent counts are 14 per
+  class, all three card types appear, and all 588 exact cards enter at least one
+  sampled deck. The new 28-game same-class fixed suite covers all seven classes
+  with two deck pairs and mirrored sides; all games rule-terminate with zero
+  truncations, illegal actions, or action-mask mismatches. These are environment
+  and distribution acceptance results, not policy-strength evidence.
 - Ability registry status: 18 implemented, 5 partial, 11 placeholder.
 - Explicit card and demo rules live in `data/rules/`; the current coverage
   report classifies 692 card IDs with explicit rules, passives, fusion,
@@ -91,8 +101,8 @@ and performance reports are executable and tested.
 
 The remaining RL priorities are explicitly beyond this baseline: profile and
 optimize snapshot/clone payload cost before high-branching search; scale worker
-and learner topology only when a real experiment needs it; add curriculum or
-additional fixed evaluation suites without weakening deterministic manifests;
+and learner topology only when a real experiment needs it; add an adaptive
+curriculum or a 7x7 cross-class strength matrix without weakening deterministic manifests;
 and treat every saved training/evaluation number as smoke until a separately
 designed policy-strength experiment exists. A full MCTS/search algorithm and a
 distributed learner are not implemented. Multiprocess PPO currently freezes

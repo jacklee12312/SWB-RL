@@ -8,6 +8,7 @@ from pathlib import Path
 from swb.db.repository import CardRepository
 from swb.engine.environment import ShadowverseEnv
 from swb.rl.catalog import TrainableCardCatalog
+from swb.rl.class_schedule import CLASS_SCHEDULE_VERSION
 from swb.rl.runtime import hash_rule_directory
 from swb.rl.versioning import (
     ACTION_LAYOUT_VERSION,
@@ -80,6 +81,10 @@ class RLVersioningTests(unittest.TestCase):
             rulebook_sha256=self.rulebook_sha256,
         )
         self.assertEqual(first, second)
+        self.assertEqual(
+            first.class_schedule_version,
+            CLASS_SCHEDULE_VERSION,
+        )
 
     def test_open_decklist_schema_is_explicitly_incompatible(self) -> None:
         closed = ExperimentVersions.capture(
@@ -105,10 +110,11 @@ class RLVersioningTests(unittest.TestCase):
             current,
             catalog_sha256="0" * 64,
             action_layout_sha256="1" * 64,
+            class_schedule_version=current.class_schedule_version + 1,
         )
         with self.assertRaisesRegex(
             ValueError,
-            "action_layout_sha256.*catalog_sha256",
+            "action_layout_sha256.*catalog_sha256.*class_schedule_version",
         ):
             stale.assert_compatible(current)
 

@@ -40,6 +40,7 @@ class EvaluationTests(unittest.TestCase):
             seed_count=1,
             max_agent_steps=12,
             opponent_kind="random_legal",
+            class_ids=(1,),
         )
         first = evaluate(trainer, self.snapshot, config)
         second = evaluate(trainer, self.snapshot, config)
@@ -50,6 +51,12 @@ class EvaluationTests(unittest.TestCase):
         self.assertIn("class_coverage_rate", first["coverage"])
         self.assertIn("mechanism_coverage_rate", first["coverage"])
         self.assertEqual(first["configuration"]["mirrored_games"], 2)
+        self.assertEqual(first["schema_version"], 2)
+        self.assertEqual(first["configuration"]["class_ids"], [1])
+        self.assertEqual(set(first["metrics"]["per_class"]), {"1"})
+        self.assertEqual(len(first["decks"]), 2)
+        self.assertTrue(first["evaluation_suite_sha256"])
+        self.assertIn("training_pool_sha256", first["versions"])
         self.assertEqual(set(first["metrics"]["side_win_rates"]), {"0", "1"})
         self.assertEqual(first["metrics"]["illegal_action_rate"], 0.0)
         self.assertEqual(first["metrics"]["action_mask_mismatches"], 0)
@@ -79,6 +86,7 @@ class EvaluationTests(unittest.TestCase):
                 seed_count=1,
                 max_agent_steps=8,
                 opponent_kind="fixed",
+                class_ids=(1,),
             ),
         )
         for key, value in model_before.items():

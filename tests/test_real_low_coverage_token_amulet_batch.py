@@ -8,6 +8,7 @@ import re
 import sqlite3
 import tempfile
 import unittest
+from contextlib import closing
 from pathlib import Path
 
 from scripts.report_rule_coverage import _build_coverage_report
@@ -664,7 +665,7 @@ class LowCoverageTokenAmuletDatabaseAuditTests(unittest.TestCase):
             10113210: [],
             10011210: [90011110],
         }
-        with sqlite3.connect("data/cards.sqlite3") as connection:
+        with closing(sqlite3.connect("data/cards.sqlite3")) as connection:
             for card_id in BATCH_CARD_IDS:
                 with self.subTest(card_id=card_id):
                     texts = [

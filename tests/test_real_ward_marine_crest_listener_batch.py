@@ -6,6 +6,7 @@ from __future__ import annotations
 import re
 import sqlite3
 import unittest
+from contextlib import closing
 
 from scripts.report_rule_coverage import _build_coverage_report
 from swb.db.repository import CardRepository
@@ -623,7 +624,7 @@ class WardMarineCrestListenerDatabaseAuditTests(unittest.TestCase):
             10613110: [90011120],
         }
         mode_cards = {10361110, 10362110, 10663110}
-        with sqlite3.connect("data/cards.sqlite3") as connection:
+        with closing(sqlite3.connect("data/cards.sqlite3")) as connection:
             for card_id in BATCH_CARD_IDS:
                 with self.subTest(card_id=card_id):
                     texts = [
