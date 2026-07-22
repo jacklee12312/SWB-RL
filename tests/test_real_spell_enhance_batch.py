@@ -232,6 +232,12 @@ class DatabaseClauseAuditTests(unittest.TestCase):
                     "rule_group": "rules",
                 },
                 {
+                    "source_card_id": 10522120,
+                    "entry_kind": "add_card",
+                    "rule_file": "real_balanced_trigger_resource_batch.json",
+                    "rule_group": "rules",
+                },
+                {
                     "source_card_id": 10523310,
                     "entry_kind": "add_card",
                     "rule_file": "real_spell_enhance_batch.json",

@@ -338,6 +338,12 @@
           "rule_group": "rules"
         },
         {
+          "source_card_id": 10011210,
+          "entry_kind": "add_card",
+          "rule_file": "real_low_coverage_token_amulet_batch.json",
+          "rule_group": "rules"
+        },
+        {
           "source_card_id": 10111120,
           "entry_kind": "add_card",
           "rule_file": "real_complete_token_board_batch.json",
@@ -371,6 +377,12 @@
           "source_card_id": 10212120,
           "entry_kind": "add_card",
           "rule_file": "real_listener_spellboost_followup_batch.json",
+          "rule_group": "rules"
+        },
+        {
+          "source_card_id": 10213110,
+          "entry_kind": "summon",
+          "rule_file": "real_balanced_trigger_resource_batch.json",
           "rule_group": "rules"
         },
         {
@@ -497,6 +509,18 @@
       ],
       "authored_producers": [
         {
+          "source_card_id": 10611110,
+          "entry_kind": "add_card",
+          "rule_file": "real_balanced_trigger_resource_batch.json",
+          "rule_group": "rules"
+        },
+        {
+          "source_card_id": 10611110,
+          "entry_kind": "summon",
+          "rule_file": "real_balanced_trigger_resource_batch.json",
+          "rule_group": "rules"
+        },
+        {
           "source_card_id": 10611310,
           "entry_kind": "summon",
           "rule_file": "real_spell_modes_and_earth_listener_batch.json",
@@ -512,6 +536,12 @@
           "source_card_id": 10613310,
           "entry_kind": "summon",
           "rule_file": "real_extreme_candidate_batch.json",
+          "rule_group": "rules"
+        },
+        {
+          "source_card_id": 10614110,
+          "entry_kind": "summon",
+          "rule_file": "real_balanced_trigger_resource_batch.json",
           "rule_group": "rules"
         }
       ],
@@ -832,6 +862,12 @@
           "rule_group": "rules"
         },
         {
+          "source_card_id": 10123110,
+          "entry_kind": "summon",
+          "rule_file": "real_balanced_trigger_resource_batch.json",
+          "rule_group": "rules"
+        },
+        {
           "source_card_id": 10123130,
           "entry_kind": "summon",
           "rule_file": "real_complete_token_board_batch.json",
@@ -988,6 +1024,12 @@
           "entry_kind": "summon",
           "rule_file": "real_summon_output_trait_batch.json",
           "rule_group": "rules"
+        },
+        {
+          "source_card_id": 10821130,
+          "entry_kind": "summon",
+          "rule_file": "real_royal_bishop_existing_primitives_batch.json",
+          "rule_group": "rules"
         }
       ],
       "has_authored_behavior": false,
@@ -1067,6 +1109,12 @@
           "rule_group": "rules"
         },
         {
+          "source_card_id": 10322210,
+          "entry_kind": "add_card",
+          "rule_file": "real_royal_rune_bishop_mixed_batch.json",
+          "rule_group": "rules"
+        },
+        {
           "source_card_id": 10323310,
           "entry_kind": "add_card",
           "rule_file": "real_spell_modes_and_earth_listener_batch.json",
@@ -1120,6 +1168,12 @@
           "entry_kind": "add_card",
           "rule_file": "real_royal_gilded_last_words_batch.json",
           "rule_group": "rules"
+        },
+        {
+          "source_card_id": 10322210,
+          "entry_kind": "add_card",
+          "rule_file": "real_royal_rune_bishop_mixed_batch.json",
+          "rule_group": "rules"
         }
       ],
       "has_authored_behavior": true,
@@ -1162,6 +1216,12 @@
           "source_card_id": 10321110,
           "entry_kind": "add_card",
           "rule_file": "real_royal_gilded_last_words_batch.json",
+          "rule_group": "rules"
+        },
+        {
+          "source_card_id": 10322210,
+          "entry_kind": "add_card",
+          "rule_file": "real_royal_rune_bishop_mixed_batch.json",
           "rule_group": "rules"
         }
       ],
@@ -1210,6 +1270,12 @@
           "source_card_id": 10322110,
           "entry_kind": "add_card",
           "rule_file": "real_royal_gilded_last_words_batch.json",
+          "rule_group": "rules"
+        },
+        {
+          "source_card_id": 10322210,
+          "entry_kind": "add_card",
+          "rule_file": "real_royal_rune_bishop_mixed_batch.json",
           "rule_group": "rules"
         },
         {
@@ -1277,9 +1343,21 @@
           "rule_group": "rules"
         },
         {
+          "source_card_id": 10522120,
+          "entry_kind": "add_card",
+          "rule_file": "real_balanced_trigger_resource_batch.json",
+          "rule_group": "rules"
+        },
+        {
           "source_card_id": 10523310,
           "entry_kind": "add_card",
           "rule_file": "real_spell_enhance_batch.json",
+          "rule_group": "rules"
+        },
+        {
+          "source_card_id": 10822110,
+          "entry_kind": "add_card",
+          "rule_file": "real_royal_rune_bishop_mixed_batch.json",
           "rule_group": "rules"
         }
       ],
@@ -1588,6 +1666,18 @@
           "source_card_id": 10332310,
           "entry_kind": "summon",
           "rule_file": "real_spell_modes_and_earth_listener_batch.json",
+          "rule_group": "rules"
+        },
+        {
+          "source_card_id": 10531110,
+          "entry_kind": "summon",
+          "rule_file": "real_royal_rune_bishop_mixed_batch.json",
+          "rule_group": "rules"
+        },
+        {
+          "source_card_id": 10533110,
+          "entry_kind": "summon",
+          "rule_file": "real_balanced_trigger_resource_batch.json",
           "rule_group": "rules"
         },
         {
@@ -2266,6 +2356,18 @@
           "entry_kind": "summon",
           "rule_file": "real_token_producer_modes_activation_batch.json",
           "rule_group": "rules"
+        },
+        {
+          "source_card_id": 10143130,
+          "entry_kind": "summon",
+          "rule_file": "real_low_coverage_token_amulet_batch.json",
+          "rule_group": "rules"
+        },
+        {
+          "source_card_id": 10542110,
+          "entry_kind": "summon",
+          "rule_file": "real_balanced_trigger_resource_batch.json",
+          "rule_group": "rules"
         }
       ],
       "has_authored_behavior": true,
@@ -2675,6 +2777,12 @@
           "rule_group": "rules"
         },
         {
+          "source_card_id": 10552110,
+          "entry_kind": "summon",
+          "rule_file": "real_low_coverage_token_amulet_batch.json",
+          "rule_group": "rules"
+        },
+        {
           "source_card_id": 10751120,
           "entry_kind": "summon",
           "rule_file": "real_complete_token_board_batch.json",
@@ -2786,6 +2894,12 @@
           "rule_group": "rules"
         },
         {
+          "source_card_id": 10152130,
+          "entry_kind": "add_card",
+          "rule_file": "real_low_coverage_token_amulet_batch.json",
+          "rule_group": "rules"
+        },
+        {
           "source_card_id": 10252310,
           "entry_kind": "summon",
           "rule_file": "batch_basic_real_cards.json",
@@ -2807,6 +2921,12 @@
           "source_card_id": 10752310,
           "entry_kind": "summon",
           "rule_file": "real_spellboost_recycle_listener_batch.json",
+          "rule_group": "rules"
+        },
+        {
+          "source_card_id": 10851120,
+          "entry_kind": "add_card",
+          "rule_file": "real_low_coverage_token_amulet_batch.json",
           "rule_group": "rules"
         }
       ],
@@ -2882,6 +3002,12 @@
       ],
       "authored_producers": [
         {
+          "source_card_id": 10152130,
+          "entry_kind": "add_card",
+          "rule_file": "real_low_coverage_token_amulet_batch.json",
+          "rule_group": "rules"
+        },
+        {
           "source_card_id": 10152210,
           "entry_kind": "summon",
           "rule_file": "real_shadow_gain_batch.json",
@@ -2897,6 +3023,18 @@
           "source_card_id": 10251310,
           "entry_kind": "add_card",
           "rule_file": "batch_basic_real_cards.json",
+          "rule_group": "rules"
+        },
+        {
+          "source_card_id": 10552110,
+          "entry_kind": "summon",
+          "rule_file": "real_low_coverage_token_amulet_batch.json",
+          "rule_group": "rules"
+        },
+        {
+          "source_card_id": 10651120,
+          "entry_kind": "add_card",
+          "rule_file": "real_low_coverage_token_amulet_batch.json",
           "rule_group": "rules"
         },
         {
@@ -2966,6 +3104,18 @@
           "source_card_id": 10251310,
           "entry_kind": "add_card",
           "rule_file": "batch_basic_real_cards.json",
+          "rule_group": "rules"
+        },
+        {
+          "source_card_id": 10252120,
+          "entry_kind": "summon",
+          "rule_file": "real_low_coverage_token_amulet_batch.json",
+          "rule_group": "rules"
+        },
+        {
+          "source_card_id": 10552110,
+          "entry_kind": "summon",
+          "rule_file": "real_low_coverage_token_amulet_batch.json",
           "rule_group": "rules"
         },
         {
@@ -3272,9 +3422,27 @@
       ],
       "authored_producers": [
         {
+          "source_card_id": 10062210,
+          "entry_kind": "summon",
+          "rule_file": "real_royal_bishop_existing_primitives_batch.json",
+          "rule_group": "rules"
+        },
+        {
           "source_card_id": 10161310,
           "entry_kind": "summon",
           "rule_file": "real_token_producer_completion_batch.json",
+          "rule_group": "rules"
+        },
+        {
+          "source_card_id": 10362220,
+          "entry_kind": "summon",
+          "rule_file": "real_royal_bishop_existing_primitives_batch.json",
+          "rule_group": "rules"
+        },
+        {
+          "source_card_id": 10662120,
+          "entry_kind": "summon",
+          "rule_file": "real_royal_bishop_existing_primitives_batch.json",
           "rule_group": "rules"
         }
       ],
@@ -3318,6 +3486,12 @@
           "source_card_id": 10163210,
           "entry_kind": "summon",
           "rule_file": "real_token_producer_completion_batch.json",
+          "rule_group": "rules"
+        },
+        {
+          "source_card_id": 10362220,
+          "entry_kind": "summon",
+          "rule_file": "real_royal_bishop_existing_primitives_batch.json",
           "rule_group": "rules"
         }
       ],

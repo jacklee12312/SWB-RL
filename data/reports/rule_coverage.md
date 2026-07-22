@@ -8,26 +8,26 @@
 | Metric | Count |
 |---|---|
 | Total cards in DB | 826 |
-| Cards with rules | 642 |
+| Cards with rules | 657 |
 | Test/synthetic IDs with rules | 26 |
 
 ### Coverage Categories
 
 | Category | Count |
 |---|---|
-| covered_exact | 538 |
+| covered_exact | 553 |
 | text_unclear | 16 |
-| supported_missing_rule | 181 |
+| supported_missing_rule | 166 |
 | token_or_non_collectible | 91 |
 
 ### Clause Audit
 
 | Clause status | Count |
 |---|---:|
-| mapped_exact | 538 |
+| mapped_exact | 553 |
 | unverified_exact | 0 |
 | partial | 0 |
-| missing_rule | 181 |
+| missing_rule | 166 |
 | missing_primitive | 0 |
 | text_unclear | 16 |
 | token_separate_audit | 91 |
@@ -36,7 +36,7 @@
 
 | Blocker | Count |
 |---|---:|
-| missing_rule | 181 |
+| missing_rule | 166 |
 | missing_schema | 0 |
 | missing_primitive | 0 |
 | missing_targeting | 0 |
@@ -121,6 +121,6 @@
 | 15 | 10163110 | 终焉的白骨圣堂之主 | 主教 | 6 | 随从 | high | Covered keywords: 入场曲, 造成.*伤害, 破坏 |
 | 16 | 10321120 | 剑圣的同胞 | 皇家护卫 | 6 | 随从 | high | Covered keywords: 谢幕曲, 召唤 |
 | 17 | 10521110 | 好施的名人 | 皇家护卫 | 6 | 随从 | high | Covered keywords: 入场曲, 回复(?!自己\d+点(?:超进化点|进化点|能量点)), 舍弃 |
-| 18 | 10411110 | 爱恨舞者·晧&曜 | 精灵 | 7 | 随从 | high | Covered keywords: 攻击时, 回复(?!自己\d+点(?:超进化点|进化点|能量点)) |
-| 19 | 10522120 | 吉祥蛙 | 皇家护卫 | 7 | 随从 | high | Covered keywords: 进化时, 回合结束, 将.*加入手牌 |
-| 20 | 10543110 | 破灭屠戮者 | 龙族 | 7 | 随从 | high | Covered keywords: 进化时, 超进化, 消失 |
+| 18 | 10543110 | 破灭屠戮者 | 龙族 | 7 | 随从 | high | Covered keywords: 进化时, 超进化, 消失 |
+| 19 | 10113130 | 煌击战士·贝鲁 | 精灵 | 8 | 随从 | high | Covered keywords: 入场曲, 造成.*伤害 |
+| 20 | 10224120 | 雷维翁超越者·尤里乌斯 | 皇家护卫 | 8 | 随从 | high | Covered keywords: 入场曲, 回合结束, 回复(?!自己\d+点(?:超进化点|进化点|能量点)) |

@@ -10,13 +10,13 @@ code and tests as the source of truth when this file drifts.
 - Database: 826 cards, 735 collectible cards, 91 non-collectible/generated
   cards from set `90000`.
 - Latest SVA source: `https://sva.hypd.asia/data/cards.json`.
-- Tests: `python -m unittest discover -s tests -v` discovers 2140 behavioral
+- Tests: `python -m unittest discover -s tests -v` discovers 2157 behavioral
   contracts (2026-07-22 exact-rule batch verification).
 - RL adapter: fixed 111-action space; the default v1 observation is 294
   floats, opt-in v2 preserves the structured compatibility mapping, and v3
   supplies fixed-dtype NumPy arrays plus a Gymnasium observation space without
   changing action IDs. Hidden decklists are the v3 default.
-- The exact-audit `TrainableCardCatalog` currently admits all 538 exact
+- The exact-audit `TrainableCardCatalog` currently admits all 553 exact
   collectible cards, preloads all 826 definitions for SQLite-free matches, and
   provides deterministic class-valid deck sampling. Self-play no longer uses
   the legacy 2-to-5-card follower pool.
@@ -38,9 +38,9 @@ code and tests as the source of truth when this file drifts.
   step boundary.
 - Ability registry status: 18 implemented, 5 partial, 11 placeholder.
 - Explicit card and demo rules live in `data/rules/`; the current coverage
-  report classifies 642 card IDs with explicit rules, passives, fusion,
+  report classifies 657 card IDs with explicit rules, passives, fusion,
   invocation, activation, Faith, Union Burst, or listener definitions. Current
-  collectible coverage is 538 exact (73.20% of 735), 0 partial, 181 supported-but-missing-rule,
+  collectible coverage is 553 exact (75.24% of 735), 0 partial, 166 supported-but-missing-rule,
   0 missing-primitive, and 16 text-unclear cards.
 - `data/reports/token_audit.{json,md}` audits all 91 non-collectible/generated
   cards independently of collectible coverage. Database `card_references` and
@@ -55,7 +55,7 @@ code and tests as the source of truth when this file drifts.
   separate column and is covered for all 34; it does not automatically promote
   the 5 partial or 11 placeholder keyword statuses.
 - Coverage now has a backward-compatible clause audit. The legacy summary still
-  reports 538 exact collectible cards, and all 538 now have an explicit exact
+  reports 553 exact collectible cards, and all 553 now have an explicit exact
   text mapping plus named direct test evidence. The versioned sibling registry
   at `data/audits/rule_clauses.json` hashes every imported primary and
   alternate-mode clause; changed source text or stale test evidence invalidates
@@ -64,7 +64,7 @@ code and tests as the source of truth when this file drifts.
   rule version and errata metadata, structured trigger/operation evidence,
   explicit unsupported text, and a stable blocker taxonomy. There are zero
   unverified exact entries and no known missing schema, primitive, targeting,
-  or timing blocker among authored rules. The 181 supported-but-missing-rule
+  or timing blocker among authored rules. The 166 supported-but-missing-rule
   cards are now the per-card structured-content backlog; 16 unclear texts
   remain explicit.
 - RL observation v2 is available behind an explicit version switch. A
@@ -1199,6 +1199,20 @@ slice in this order:
   no-target illegal-command immutability, stale choice continuation, seeded
   random targets, simultaneous deaths, hand/board capacity, Trait mismatch,
   Token references, clause hashes, and RL action-mask parity.
+- Exact file `data/rules/real_balanced_trigger_resource_batch.json` closes
+  fifteen collectibles (`10411110`, `10212110`, `10811110`, `10611110`,
+  `10614110`, `10213110`, `10123110`, `10522120`, `10522110`, `10134310`,
+  `10632120`, `10132130`, `10533110`, `10542110`, `10661110`). The slice
+  balances Forest, Royal, Runecraft, Dragoncraft, and Bishop while reusing
+  attack capacity, intrinsic/runtime keywords, Trait-filtered buffs, seeded
+  repeat, draw and follower-entry listeners, Spellboost cost/value operations,
+  Earth Rite, Enhance, Crystallize, Countdown, Last Words, and source-form
+  guards. Direct tests cover capacity shortage, simultaneous deaths, no-target
+  and stale-target continuation, cost expiry, deterministic recycling/shuffle,
+  resource shortage, referenced Token behavior, clause hashes, and RL masks.
+  Card `10333110` remains unsupported because its “exact copy” clauses require
+  a board-entity clone primitive; ordinary definition-based summon is not used
+  as a substitute.
 
 ## Known Partial Or Unsupported Areas
 

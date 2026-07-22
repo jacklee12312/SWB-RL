@@ -5872,6 +5872,141 @@
       "source_text_sha256": "594bfc7f2f282cd2f603ac303f02f9c396e1ecc86492c380b3386a8ad0fe6d9f",
       "test_evidence": ["tests/test_real_low_coverage_token_amulet_batch.py"],
       "notes": "妖精 Token 生产、种族而非卡名过滤、非妖精不触发、随机空目标安全路径和倒数到期均有直接测试。"
+    },
+    {
+      "card_id": 10411110,
+      "coverage": "exact",
+      "implemented_text": "每回合可攻击2次；【攻击时】回复己方主战者及己方全体随从3点生命。",
+      "rule_version": 1,
+      "source_text_sha256": "c5fd18fce0d40afa663d9d8cd6e1ffa96fcfdc5453e7b485ec903b003525c57e",
+      "test_evidence": ["tests/test_real_balanced_trigger_resource_batch.py"],
+      "notes": "两次攻击容量、两次攻击触发、主战者和受伤随从的回复上限及战斗后的生命值均有直接测试。"
+    },
+    {
+      "card_id": 10212110,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】召唤2个幼年宝石兽；本体具有【守护】。",
+      "rule_version": 1,
+      "source_text_sha256": "5ee5e160f0a0f2f2f51bc1805119c2487ca0bc375c18867abff0725c22e11709",
+      "test_evidence": ["tests/test_real_balanced_trigger_resource_batch.py"],
+      "notes": "固有守护、双 Token 引用、召唤顺序和仅剩一个战场空位的容量路径均有直接测试。"
+    },
+    {
+      "card_id": 10811110,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】随机破坏X个敌方随从；X为敌方随从数减己方随从数，非正值时不破坏。",
+      "rule_version": 1,
+      "source_text_sha256": "50d87ed9254c655320831d2e2a4949bbfdacb3b3a03ef7ea5b199f85194cf904",
+      "test_evidence": ["tests/test_real_balanced_trigger_resource_batch.py"],
+      "notes": "来源本体计入己方随从数、随机破坏数量、固定种子复现、非正差值安全路径及不消耗随机数均有直接测试。"
+    },
+    {
+      "card_id": 10611110,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】将1张春花妖精加入手牌；【进化时】召唤1个春花妖精。",
+      "rule_version": 1,
+      "source_text_sha256": "945d9c9d8cd59c9c8d20521a1f7641fbfb7f063c8cfaa6b819bc8d4981f3fcbb",
+      "test_evidence": ["tests/test_real_balanced_trigger_resource_batch.py"],
+      "notes": "同一 Token 的手牌与战场生产路径、进化触发和引用关系均有直接测试。"
+    },
+    {
+      "card_id": 10614110,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】召唤3个春花妖精；每回合可攻击2次；【超进化时】选择并破坏1个敌方随从，无目标时破坏效果跳过。",
+      "rule_version": 1,
+      "source_text_sha256": "1fbb138a261daea912aaebe0b15e72df49777f8c714dec2371199a6f056cada2",
+      "test_evidence": ["tests/test_real_balanced_trigger_resource_batch.py"],
+      "notes": "三 Token 生产、攻击容量、超进化目标选择与无目标安全路径均有直接测试。"
+    },
+    {
+      "card_id": 10213110,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】召唤2个妖精；【进化时】使己方全体妖精 Trait 随从+1/+0。",
+      "rule_version": 1,
+      "source_text_sha256": "ace3c2f31898178382efdd8db388ce9abe0721ddd5dfa2fbe17b0d1d9fa68acc",
+      "test_evidence": ["tests/test_real_balanced_trigger_resource_batch.py"],
+      "notes": "妖精 Token 引用、双召唤、Trait 过滤和非妖精不受增益均有直接测试。"
+    },
+    {
+      "card_id": 10123110,
+      "coverage": "exact",
+      "implemented_text": "本体具有【突进】，每回合可攻击2次；【攻击时】本体获得【屏障】并召唤1个骑士。",
+      "rule_version": 1,
+      "source_text_sha256": "747170dc5cb1f40f21dd977d2840b1c2129e15745700d969bf5a92b2e1810cf0",
+      "test_evidence": ["tests/test_real_balanced_trigger_resource_batch.py"],
+      "notes": "固有突进、两次攻击、攻击前屏障防止战斗伤害和两次骑士生产均有直接测试。"
+    },
+    {
+      "card_id": 10522120,
+      "coverage": "exact",
+      "implemented_text": "己方回合结束时，手牌中至少有2张法术则对敌方全体随从造成5点伤害；【进化时】将2张璀璨的黄金加入手牌。",
+      "rule_version": 1,
+      "source_text_sha256": "9ed8f99ad12b94c314cd83a5fffe1d07ea914d55abc5095c81b5ae94a24970d9",
+      "test_evidence": ["tests/test_real_balanced_trigger_resource_batch.py"],
+      "notes": "法术阈值上下、回合结束范围伤害、进化 Token 双产出和满手牌溢出均有直接测试。"
+    },
+    {
+      "card_id": 10522110,
+      "coverage": "exact",
+      "implemented_text": "抽到本卡时将其费用设为3直到回合结束；【入场曲】抽1张卡并回复己方主战者3点生命；本体具有【突进】。",
+      "rule_version": 1,
+      "source_text_sha256": "dc296783bff5011ff86e0b7349803caa6f08ebe88b577022c5cc4068a7be84d1",
+      "test_evidence": ["tests/test_real_balanced_trigger_resource_batch.py"],
+      "notes": "抽牌事件的自身手牌监听、当回合改费、回合结束恢复费用、入场抽牌治疗和固有突进均有直接测试。"
+    },
+    {
+      "card_id": 10134310,
+      "coverage": "exact",
+      "implemented_text": "本卡每次魔力增幅费用-1；打出时将己方手牌返回牌堆并洗牌，抽5张卡，使手牌魔力增幅5次，并将可用PP完全恢复。",
+      "rule_version": 1,
+      "source_text_sha256": "64f345669caaab3eec0410dd2d6fed8e31e784c2629e96a137b57bd6115e7d57",
+      "test_evidence": ["tests/test_real_balanced_trigger_resource_batch.py"],
+      "notes": "增幅减费、整手回牌堆、洗牌后抽五、文本五次增幅加法术自身常规增幅、PP完全恢复和固定种子复现均有直接测试。"
+    },
+    {
+      "card_id": 10632120,
+      "coverage": "exact",
+      "implemented_text": "【爆能强化_6】召唤2个本卡副本；本体具有【突进】；【谢幕曲】使己方手牌魔力增幅1次。",
+      "rule_version": 1,
+      "source_text_sha256": "da97edcff3c71c0ee8df7df5c919e9e0a6766476f3a112c74680a2237e5d2aba",
+      "test_evidence": ["tests/test_real_balanced_trigger_resource_batch.py"],
+      "notes": "爆能模式、自引用双召唤、固有突进、容量不足和三个实体同时死亡后的三次谢幕曲均有直接测试。"
+    },
+    {
+      "card_id": 10132130,
+      "coverage": "exact",
+      "implemented_text": "X从0开始且每次魔力增幅+1；【入场曲】对敌方全体随从造成X点伤害；【进化时】使己方手牌魔力增幅2次。",
+      "rule_version": 1,
+      "source_text_sha256": "3cc17750b785ae0d8e9e0f2a436248f9f2ac4990262e870939e5420968962298",
+      "test_evidence": ["tests/test_real_balanced_trigger_resource_batch.py"],
+      "notes": "来源物理卡的增幅计数、范围伤害和进化后的两次手牌增幅均有直接测试。"
+    },
+    {
+      "card_id": 10533110,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】召唤2个守护巨像；每当己方巨像 Trait 随从进入战场，以【土之秘术_1】使其进化。",
+      "rule_version": 1,
+      "source_text_sha256": "e6937d03ed1561127bde505624300d02acc33ebf81c117935d1b0f5bf6b352e4",
+      "test_evidence": ["tests/test_real_balanced_trigger_resource_batch.py"],
+      "notes": "双 Token 生产、巨像 Trait 入场监听、每个实体独立支付土片、资源充足及仅够一次的路径均有直接测试。"
+    },
+    {
+      "card_id": 10542110,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】选择1个敌方随从造成7点伤害，并召唤1个巨翼飞龙；无目标或已选目标离场时仍执行召唤。",
+      "rule_version": 1,
+      "source_text_sha256": "5c821a8cf0997c46d5b6615b8041089af1c1035d5d5b29259855a72504a98d79",
+      "test_evidence": ["tests/test_real_balanced_trigger_resource_batch.py"],
+      "notes": "选择伤害、Token 引用、无目标可打出、目标离场及独立召唤继续解析均有直接测试。"
+    },
+    {
+      "card_id": 10661110,
+      "coverage": "exact",
+      "implemented_text": "本体进入战场时回复己方主战者2点生命，并具有【必杀】【守护】；【结晶_2】成为【吟唱_3】护符，其【谢幕曲】召唤本体。",
+      "rule_version": 1,
+      "source_text_sha256": "0638286c73db3ad2ecd9222236d994422dc91821e27688970aed3dd3576cf155",
+      "test_evidence": ["tests/test_real_balanced_trigger_resource_batch.py"],
+      "notes": "普通本体入场治疗、固有关键字、随从死亡不错误自召唤、结晶模式、倒数到期、结晶谢幕曲和被召唤本体再次治疗均有直接测试。"
     }
   ]
 }

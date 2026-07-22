@@ -38,14 +38,14 @@ covered generic boundary, but that never upgrades a partial or placeholder
 keyword whose full tagged-card semantics still require structured rules.
 
 The [rule coverage report](data/reports/rule_coverage.md) now includes a
-clause-audit layer without changing its legacy coverage categories. Of 538
-exact collectible cards (73.20% of 735), all 538 have explicit implemented text and named direct
+clause-audit layer without changing its legacy coverage categories. Of 553
+exact collectible cards (75.24% of 735), all 553 have explicit implemented text and named direct
 test evidence. The sibling `data/audits/rule_clauses.json` registry hashes every
 imported skill and alternate-mode clause, so a database text change or stale
 test reference invalidates the audit instead of silently retaining exact
 status. The current report has no unverified exact entry or missing generic
 schema, primitive, targeting, or timing blocker. Its remaining collectible gaps
-are 181 missing per-card structured rules plus 16 explicitly unclear texts.
+are 166 missing per-card structured rules plus 16 explicitly unclear texts.
 Rule metadata also supports version and errata fields, and the report
 records the complete imported source snapshot hash.
 
@@ -116,7 +116,7 @@ distributed learner, a policy-strength result, or a complete MCTS
 implementation. Multiprocess PPO currently uses current-policy self-play;
 random, fixed, and historical opponent mixing remains on the single-process
 collector. Snapshot/clone is the search foundation only. Card-rule
-coverage also remains deliberately separate: 181 collectible cards still lack
+coverage also remains deliberately separate: 166 collectible cards still lack
 per-card structured rules and 16 card texts remain explicitly unclear; neither
 group enters the exact training catalog or counts as supported.
 
@@ -169,6 +169,17 @@ The deterministic rules core supports:
   clauses. Direct tests cover Token order and references, simultaneous deaths,
   hand/board capacity, no-target atomicity, stale selections, post-buff damage,
   deterministic random targets, non-matching Traits, and RL action-mask parity;
+- a 15-card balanced exact batch covers Forest attack/Token chains, Royal draw
+  and turn-end interactions, Runecraft Spellboost and Earth Rite resources, a
+  Dragoncraft targeted summon, and a Bishop Crystallize chain (`10411110`,
+  `10212110`, `10811110`, `10611110`, `10614110`, `10213110`, `10123110`,
+  `10522120`, `10522110`, `10134310`, `10632120`, `10132130`, `10533110`,
+  `10542110`, `10661110`). It reuses attack capacity, Trait filters, seeded
+  repeat, hand and board listeners, source Spellboost values, Enhance,
+  Crystallize, Countdown, Last Words, and source-form guards. Direct tests cover
+  no-target and stale-target continuation, hand/board capacity, simultaneous
+  deaths, cost expiry, deterministic shuffling, resource shortage, Token
+  references, clause hashes, and RL mode masks;
 - seeded reset, shuffle, draw, turn progression, official immediate defeat when
   drawing from an empty deck, an auditable alternate victory outcome, atomic
   seeded replacement-deck shuffling,

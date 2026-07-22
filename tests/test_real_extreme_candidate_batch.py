@@ -216,7 +216,7 @@ class DatabaseAndAuditTests(unittest.TestCase):
                 self.assertEqual(token["explicit_coverage"], "exact")
                 self.assertEqual(
                     {producer["source_card_id"] for producer in token["authored_producers"]},
-                    {10611310, 10612110, 10613310}
+                    {10611110, 10611310, 10612110, 10613310, 10614110}
                     if card_id == 90011120
                     else {10822310},
                 )
