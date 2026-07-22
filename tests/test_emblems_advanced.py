@@ -266,6 +266,50 @@ class MaxActivationsTests(unittest.TestCase):
 
 
 class EventScopeTests(unittest.TestCase):
+    def test_turn_end_conditional_can_start_from_false_else_branch(self):
+        conditional = EffectOperation(
+            EffectKind.CONDITIONAL,
+            TargetKind.OWN_LEADER,
+            conditions=(
+                Condition(
+                    ConditionType.CONTROLLER_HAND_COUNT_AT_LEAST,
+                    value=6,
+                ),
+            ),
+            then_operations=(
+                EffectOperation(
+                    EffectKind.DAMAGE_LEADER,
+                    TargetKind.OWN_LEADER,
+                    1,
+                ),
+            ),
+            else_operations=(
+                EffectOperation(
+                    EffectKind.HEAL_LEADER,
+                    TargetKind.OWN_LEADER,
+                    1,
+                ),
+            ),
+        )
+        definition = EmblemDefinition(
+            "conditional_else",
+            999920,
+            triggers=(
+                EmblemTriggerRule(
+                    "turn_end",
+                    operations=(conditional,),
+                ),
+            ),
+        )
+        engine = _engine()
+        engine.reset(seed=42)
+        engine.players[0].health = 10
+        _add_emblem(engine, 0, definition)
+
+        engine.apply(EndTurn(0))
+
+        self.assertEqual(engine.players[0].health, 11)
+
     def test_event_source_is_available_as_self_target(self):
         ed = EmblemDefinition(
             "buff_summoned",

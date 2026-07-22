@@ -8903,6 +8903,31 @@ class GameEngine:
                 else operation.else_operations
             )
             return bool(branch_ops)
+        if operation.kind is EffectKind.CONDITIONAL:
+            condition_state = evaluate_conditions_without_target(
+                operation.conditions,
+                self._eval_context(
+                    controller,
+                    source_entity_id=source_entity_id,
+                ),
+            )
+            if condition_state is PartialConditionResult.TRUE:
+                branch_ops = operation.then_operations
+            elif condition_state is PartialConditionResult.FALSE:
+                branch_ops = operation.else_operations
+            else:
+                branch_ops = (
+                    operation.then_operations + operation.else_operations
+                )
+            return any(
+                self._emblem_operation_can_start(
+                    branch_operation,
+                    controller,
+                    source_entity_id,
+                    emblem_entity_id,
+                )
+                for branch_operation in branch_ops
+            )
         condition_state = evaluate_conditions_without_target(
             operation.conditions,
             self._eval_context(

@@ -10,13 +10,13 @@ code and tests as the source of truth when this file drifts.
 - Database: 826 cards, 735 collectible cards, 91 non-collectible/generated
   cards from set `90000`.
 - Latest SVA source: `https://sva.hypd.asia/data/cards.json`.
-- Tests: `python -m unittest discover -s tests -v` discovers 2196 behavioral
+- Tests: `python -m unittest discover -s tests -v` discovers 2215 behavioral
   contracts (2026-07-22 exact-rule batch verification).
 - RL adapter: fixed 111-action space; the default v1 observation is 294
   floats, opt-in v2 preserves the structured compatibility mapping, and v3
   supplies fixed-dtype NumPy arrays plus a Gymnasium observation space without
   changing action IDs. Hidden decklists are the v3 default.
-- The exact-audit `TrainableCardCatalog` currently admits all 577 exact
+- The exact-audit `TrainableCardCatalog` currently admits all 588 exact
   collectible cards, preloads all 826 definitions for SQLite-free matches, and
   provides deterministic class-valid deck sampling. Self-play no longer uses
   the legacy 2-to-5-card follower pool.
@@ -38,9 +38,9 @@ code and tests as the source of truth when this file drifts.
   step boundary.
 - Ability registry status: 18 implemented, 5 partial, 11 placeholder.
 - Explicit card and demo rules live in `data/rules/`; the current coverage
-  report classifies 681 card IDs with explicit rules, passives, fusion,
+  report classifies 692 card IDs with explicit rules, passives, fusion,
   invocation, activation, Faith, Union Burst, or listener definitions. Current
-  collectible coverage is 577 exact (78.50% of 735), 0 partial, 142 supported-but-missing-rule,
+  collectible coverage is 588 exact (80.00% of 735), 0 partial, 131 supported-but-missing-rule,
   0 missing-primitive, and 16 text-unclear cards.
 - `data/reports/token_audit.{json,md}` audits all 91 non-collectible/generated
   cards independently of collectible coverage. Database `card_references` and
@@ -55,7 +55,7 @@ code and tests as the source of truth when this file drifts.
   separate column and is covered for all 34; it does not automatically promote
   the 5 partial or 11 placeholder keyword statuses.
 - Coverage now has a backward-compatible clause audit. The legacy summary still
-  reports 577 exact collectible cards, and all 577 now have an explicit exact
+  reports 588 exact collectible cards, and all 588 now have an explicit exact
   text mapping plus named direct test evidence. The versioned sibling registry
   at `data/audits/rule_clauses.json` hashes every imported primary and
   alternate-mode clause; changed source text or stale test evidence invalidates
@@ -64,7 +64,7 @@ code and tests as the source of truth when this file drifts.
   rule version and errata metadata, structured trigger/operation evidence,
   explicit unsupported text, and a stable blocker taxonomy. There are zero
   unverified exact entries and no known missing schema, primitive, targeting,
-  or timing blocker among authored rules. The 142 supported-but-missing-rule
+  or timing blocker among authored rules. The 131 supported-but-missing-rule
   cards are now the per-card structured-content backlog; 16 unclear texts
   remain explicit.
 - RL observation v2 is available behind an explicit version switch. A
@@ -1244,6 +1244,20 @@ slice in this order:
   Mode, Token reference, target departure, empty candidates, hand/board
   capacity, Countdown expiry, seeded replay, backward JSON compatibility,
   clause hashes, and all four RL Mode-mask choices.
+- Exact file `data/rules/real_crest_token_activation_exact_batch.json` closes
+  eleven collectibles (`10403110`, `10702110`, `10114110`, `10513110`,
+  `10423110`, `10321120`, `10644110`, `10841130`, `10163130`, `10462210`,
+  `10174110`), bringing collectible exact coverage to 588/735 (80.00%). The
+  slice balances Neutral, Forestcraft, Swordcraft, Dragoncraft, Bishop, and
+  Portalcraft while covering a spell-like Mode decision on a follower, an
+  Engage amulet, four crest/Token chains, selected discard, filtered draw,
+  Skybound Art, Enhance-all replacement, effect evolution, and one-shot
+  self-replacement Last Words. Generic emblem startability now recursively
+  follows the selected branch of `conditional`, including a valid `else`
+  branch when its condition is false. Direct tests cover random determinism,
+  empty and stale targets, hand/board capacity, countdown timing, dynamic
+  non-intrinsic keywords, source/reference hashes, illegal-action immutability,
+  and RL Mode, Engage, and target-choice masks.
 
 ## Known Partial Or Unsupported Areas
 

@@ -12,25 +12,25 @@
   },
   "summary": {
     "total_cards": 826,
-    "total_with_rules": 681,
+    "total_with_rules": 692,
     "test_or_synthetic_ids_with_rules": 26,
     "coverage_counts": {
-      "covered_exact": 577,
+      "covered_exact": 588,
       "text_unclear": 16,
-      "supported_missing_rule": 142,
+      "supported_missing_rule": 131,
       "token_or_non_collectible": 91
     },
     "clause_audit_counts": {
-      "mapped_exact": 577,
+      "mapped_exact": 588,
       "unverified_exact": 0,
       "partial": 0,
-      "missing_rule": 142,
+      "missing_rule": 131,
       "missing_primitive": 0,
       "text_unclear": 16,
       "token_separate_audit": 91
     },
     "blocker_counts": {
-      "missing_rule": 142,
+      "missing_rule": 131,
       "missing_schema": 0,
       "missing_primitive": 0,
       "missing_targeting": 0,
@@ -5200,8 +5200,8 @@
       "cost": 6,
       "is_collectible": true,
       "card_set_id": 10001,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '进化时', '召唤', '纹章']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['fanfare', 'evolve', 'emblem_source'], Ops: ['gain_emblem', 'summon', 'summon', 'summon', 'add_keyword']",
       "hit_keywords": [
         "入场曲",
         "进化时",
@@ -5220,34 +5220,54 @@
         "【纹章_0】自己的妖精·随从进入战场时，使其获得【<color=Keyword>疾驰</color>】。"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【入场曲】获得永久纹章；纹章使进入己方战场的妖精随从获得【疾驰】；【进化时】召唤3个妖精。",
+        "notes": "纹章获得、妖精 Trait 事件过滤、事件来源疾驰、非妖精排除、三 Token 与容量均有直接测试。",
+        "rule_version": 1,
+        "source_text_sha256": "55ab51a70fc29dbd546f72aa615f271566f860e586389e40f20efb15e55055f2",
+        "test_evidence": [
+          "tests/test_real_crest_token_activation_exact_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10114110:0",
             "source_text": "【<color=Keyword>入场曲</color>】使自己获得『纹章：自然妖精公主·阿丽雅』。\n<hr><ev>【<color=Keyword>进化时</color>】召唤3个『<color=Keyword>妖精</color>』。</ev>",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           },
           {
             "clause_id": "10114110:1",
             "source_text": "【纹章_0】自己的妖精·随从进入战场时，使其获得【<color=Keyword>疾驰</color>】。",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "【入场曲】获得永久纹章；纹章使进入己方战场的妖精随从获得【疾驰】；【进化时】召唤3个妖精。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "55ab51a70fc29dbd546f72aa615f271566f860e586389e40f20efb15e55055f2",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "fanfare",
+            "evolve",
+            "emblem_source"
+          ],
+          "effect_kinds": [
+            "gain_emblem",
+            "summon",
+            "summon",
+            "summon",
+            "add_keyword"
+          ]
         },
         "test_evidence": [
-          "tests/test_database.py"
+          "tests/test_real_crest_token_activation_exact_batch.py"
         ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10114120": {
@@ -11037,8 +11057,8 @@
       "cost": 8,
       "is_collectible": true,
       "card_set_id": 10001,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['谢幕曲', '倒数', '召唤', '纹章']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['last_words', 'emblem_source'], Ops: ['gain_emblem', 'summon', 'add_keyword']",
       "hit_keywords": [
         "谢幕曲",
         "倒数",
@@ -11057,32 +11077,51 @@
         "【纹章_0】【<color=Keyword>吟唱</color>_2】\n【<color=Keyword>谢幕曲</color>】召唤1个『<color=Keyword>伟大的炽天使·勒碧丝</color>』，使其获得【<color=Keyword>疾驰</color>】。"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【谢幕曲】获得【吟唱_2】纹章；纹章到期时召唤1个本卡基础副本并使其获得【疾驰】。",
+        "notes": "谢幕曲纹章、倒数、敌方回合不衰减、到期召唤输出绑定、动态疾驰和满场失败均有直接测试。",
+        "rule_version": 1,
+        "source_text_sha256": "ad95d79108fffdbabe22c9f3ca22b325c702eeb70fe1353824cba519e8dcb3f9",
+        "test_evidence": [
+          "tests/test_real_crest_token_activation_exact_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10163130:0",
             "source_text": "【<color=Keyword>谢幕曲</color>】使自己获得『纹章：伟大的炽天使·勒碧丝』。",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           },
           {
             "clause_id": "10163130:1",
             "source_text": "【纹章_0】【<color=Keyword>吟唱</color>_2】\n【<color=Keyword>谢幕曲</color>】召唤1个『<color=Keyword>伟大的炽天使·勒碧丝</color>』，使其获得【<color=Keyword>疾驰</color>】。",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "【谢幕曲】获得【吟唱_2】纹章；纹章到期时召唤1个本卡基础副本并使其获得【疾驰】。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "ad95d79108fffdbabe22c9f3ca22b325c702eeb70fe1353824cba519e8dcb3f9",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "last_words",
+            "emblem_source"
+          ],
+          "effect_kinds": [
+            "gain_emblem",
+            "summon",
+            "add_keyword"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_crest_token_activation_exact_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10163210": {
@@ -12444,8 +12483,8 @@
       "cost": 3,
       "is_collectible": true,
       "card_set_id": 10001,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '进化时', '回合结束', '倒数', '抽取', '回复(?!自己\\\\d+点(?:超进化点|进化点|能量点))', '纹章']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['fanfare', 'evolve', 'emblem_source'], Ops: ['draw', 'gain_emblem', 'conditional', 'heal_leader', 'draw']",
       "hit_keywords": [
         "入场曲",
         "进化时",
@@ -12467,32 +12506,54 @@
         "【纹章_0】【<color=Keyword>吟唱</color>_3】\n自己的回合结束时，若自己的手牌的张数为5张或以下，则抽取1张卡牌。若为6张或以上，则回复自己的主战者1点生命值。"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【入场曲】抽取1张卡牌；【进化时】获得【吟唱_3】纹章；己方回合结束时，手牌至多5张则抽1，至少6张则回复主战者1点。",
+        "notes": "入场抽牌、纹章倒数、己方回合结束、手牌阈值两侧、抽牌/治疗分支和敌方回合边界均有直接测试。",
+        "rule_version": 1,
+        "source_text_sha256": "5f0433361132ae034117778c3d3db94e6195425f4dccd8b42d9f45c2806c8ed0",
+        "test_evidence": [
+          "tests/test_real_crest_token_activation_exact_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10174110:0",
             "source_text": "【<color=Keyword>入场曲</color>】抽取1张卡牌。\n<hr><ev>【<color=Keyword>进化时</color>】使自己获得『纹章：崭新的少女·欧丝』。</ev>",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           },
           {
             "clause_id": "10174110:1",
             "source_text": "【纹章_0】【<color=Keyword>吟唱</color>_3】\n自己的回合结束时，若自己的手牌的张数为5张或以下，则抽取1张卡牌。若为6张或以上，则回复自己的主战者1点生命值。",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "【入场曲】抽取1张卡牌；【进化时】获得【吟唱_3】纹章；己方回合结束时，手牌至多5张则抽1，至少6张则回复主战者1点。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "5f0433361132ae034117778c3d3db94e6195425f4dccd8b42d9f45c2806c8ed0",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "fanfare",
+            "evolve",
+            "emblem_source"
+          ],
+          "effect_kinds": [
+            "draw",
+            "gain_emblem",
+            "conditional",
+            "heal_leader",
+            "draw"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_crest_token_activation_exact_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10174120": {
@@ -18489,8 +18550,8 @@
       "cost": 6,
       "is_collectible": true,
       "card_set_id": 10003,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['谢幕曲', '召唤']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['last_words'], Ops: ['summon', 'remove_all_abilities']",
       "hit_keywords": [
         "谢幕曲",
         "召唤"
@@ -18503,27 +18564,44 @@
         "【<color=Keyword>谢幕曲</color>】召唤1个『<color=Keyword>剑圣的同胞</color>』，使其失去【<color=Keyword>谢幕曲</color>】。"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【谢幕曲】召唤1个本卡基础副本，并使所召唤副本失去其唯一的谢幕曲能力。",
+        "notes": "死亡腾出容量、召唤输出绑定、移除唯一能力和再次死亡不递归均有直接测试。",
+        "rule_version": 1,
+        "source_text_sha256": "3565dbac6bf1ad4a0dfe7956dfc1f7c66293ac347dc8774348f802ca73984b3e",
+        "test_evidence": [
+          "tests/test_real_crest_token_activation_exact_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10321120:0",
             "source_text": "【<color=Keyword>谢幕曲</color>】召唤1个『<color=Keyword>剑圣的同胞</color>』，使其失去【<color=Keyword>谢幕曲</color>】。",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "【谢幕曲】召唤1个本卡基础副本，并使所召唤副本失去其唯一的谢幕曲能力。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "3565dbac6bf1ad4a0dfe7956dfc1f7c66293ac347dc8774348f802ca73984b3e",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "last_words"
+          ],
+          "effect_kinds": [
+            "summon",
+            "remove_all_abilities"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_crest_token_activation_exact_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10321310": {
@@ -22367,8 +22445,8 @@
       "cost": 4,
       "is_collectible": true,
       "card_set_id": 10004,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '奥义', '抽取', '造成.*伤害', '选择一项|模式']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['fanfare', 'union_burst'], Ops: ['choose_one', 'damage_unit', 'draw_filtered', 'evolve_unit']",
       "hit_keywords": [
         "入场曲",
         "奥义",
@@ -22377,9 +22455,6 @@
         "选择一项|模式"
       ],
       "missing_primitives": [],
-      "missing_rule_mechanics": [
-        "奥义"
-      ],
       "ability_keywords": [
         "入场曲",
         "奥义",
@@ -22389,27 +22464,47 @@
         "【<color=Keyword>入场曲</color>】【<color=Keyword>模式</color>】选择1个能力发动。【<color=Keyword>奥义</color>】本随从进化。\n<ridx=0>（1）对对手的战场上的随机1个随从造成5点伤害。</ridx>\n<ridx=1>（2）抽取2张随从。</ridx>"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【入场曲】【模式】选择：对随机敌方随从造成5点伤害，或抽取2张随从；【奥义】额外使本体进化。",
+        "notes": "两种模式、随机确定性、空敌方战场、随从过滤抽牌、奥义阈值上下和效果进化均有直接测试。",
+        "rule_version": 1,
+        "source_text_sha256": "965cd4b3848f817571db5e52ad9535c73f0b8969d7d03acd457f9f6494ddef3d",
+        "test_evidence": [
+          "tests/test_real_crest_token_activation_exact_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10403110:0",
             "source_text": "【<color=Keyword>入场曲</color>】【<color=Keyword>模式</color>】选择1个能力发动。【<color=Keyword>奥义</color>】本随从进化。\n<ridx=0>（1）对对手的战场上的随机1个随从造成5点伤害。</ridx>\n<ridx=1>（2）抽取2张随从。</ridx>",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "【入场曲】【模式】选择：对随机敌方随从造成5点伤害，或抽取2张随从；【奥义】额外使本体进化。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "965cd4b3848f817571db5e52ad9535c73f0b8969d7d03acd457f9f6494ddef3d",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "fanfare",
+            "union_burst"
+          ],
+          "effect_kinds": [
+            "choose_one",
+            "damage_unit",
+            "draw_filtered",
+            "evolve_unit"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_crest_token_activation_exact_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10403120": {
@@ -23557,8 +23652,8 @@
       "cost": 7,
       "is_collectible": true,
       "card_set_id": 10004,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '超进化', '回复(?!自己\\\\d+点(?:超进化点|进化点|能量点))', '造成.*伤害', '爆能强化', '选择一项|模式']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['fanfare', 'play_modes'], Ops: ['choose_one', 'super_evolve_unit', 'damage_unit', 'heal_leader', 'play_mode', 'super_evolve_unit', 'damage_unit', 'heal_leader']",
       "hit_keywords": [
         "入场曲",
         "超进化",
@@ -23577,27 +23672,51 @@
         "【<color=Keyword>入场曲</color>】【<color=Keyword>模式</color>】选择1个能力发动。\n<ridx=0>（1）本随从超进化。</ridx>\n<ridx=1>（2）对对手的战场上的所有随从造成4点伤害。</ridx>\n<ridx=2>（3）回复自己的主战者4点生命值。</ridx>\n【<color=Keyword>爆能强化</color>_9】改为发动所有能力。"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【模式】选择本体超进化、对所有敌方随从造成4点伤害或回复主战者4点；【爆能强化_9】改为依序发动全部能力。",
+        "notes": "三种选择、爆能替换为全部效果、效果超进化、全体伤害、治疗和 RL 模式/选择掩码均有直接测试。",
+        "rule_version": 1,
+        "source_text_sha256": "aefaa6d85b5d9a12bdac67499f970e2a18887d15bcba693b9e642f0ecf17d16d",
+        "test_evidence": [
+          "tests/test_real_crest_token_activation_exact_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10423110:0",
             "source_text": "【<color=Keyword>入场曲</color>】【<color=Keyword>模式</color>】选择1个能力发动。\n<ridx=0>（1）本随从超进化。</ridx>\n<ridx=1>（2）对对手的战场上的所有随从造成4点伤害。</ridx>\n<ridx=2>（3）回复自己的主战者4点生命值。</ridx>\n【<color=Keyword>爆能强化</color>_9】改为发动所有能力。",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "【模式】选择本体超进化、对所有敌方随从造成4点伤害或回复主战者4点；【爆能强化_9】改为依序发动全部能力。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "aefaa6d85b5d9a12bdac67499f970e2a18887d15bcba693b9e642f0ecf17d16d",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "fanfare",
+            "play_modes"
+          ],
+          "effect_kinds": [
+            "choose_one",
+            "super_evolve_unit",
+            "damage_unit",
+            "heal_leader",
+            "play_mode",
+            "super_evolve_unit",
+            "damage_unit",
+            "heal_leader"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_crest_token_activation_exact_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10423310": {
@@ -26015,16 +26134,13 @@
       "cost": 4,
       "is_collectible": true,
       "card_set_id": 10004,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['策动', '破坏']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['activate', 'activation', 'listener:hand:amulet_activated'], Ops: ['destroy', 'evolve_unit', 'activation', 'change_cost']",
       "hit_keywords": [
         "策动",
         "破坏"
       ],
       "missing_primitives": [],
-      "missing_rule_mechanics": [
-        "策动"
-      ],
       "ability_keywords": [
         "策动"
       ],
@@ -26032,27 +26148,48 @@
         "在手牌中发动。自己【<color=Keyword>启动</color>】护符时，使本卡牌的费用-1。\n<hr>【<color=Keyword>启动</color>】破坏本卡牌。选择自己的战场上的1个进化前的随从，使其进化。"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "在手牌中监听己方护符启动并使自身费用-1；【启动】破坏本护符，选择1个进化前己方随从使其进化。",
+        "notes": "手牌区域启动监听、当前费用、选择进化、无合法目标禁止启动、目标离场、非法不变性和 RL 掩码均有直接测试。",
+        "rule_version": 1,
+        "source_text_sha256": "c1d58e4bee5c0edcde4353fd025d411f7440281c3f8a020ed7fd513d2180dc4e",
+        "test_evidence": [
+          "tests/test_real_crest_token_activation_exact_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10462210:0",
             "source_text": "在手牌中发动。自己【<color=Keyword>启动</color>】护符时，使本卡牌的费用-1。\n<hr>【<color=Keyword>启动</color>】破坏本卡牌。选择自己的战场上的1个进化前的随从，使其进化。",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "在手牌中监听己方护符启动并使自身费用-1；【启动】破坏本护符，选择1个进化前己方随从使其进化。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "c1d58e4bee5c0edcde4353fd025d411f7440281c3f8a020ed7fd513d2180dc4e",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "activate",
+            "activation",
+            "listener:hand:amulet_activated"
+          ],
+          "effect_kinds": [
+            "destroy",
+            "evolve_unit",
+            "activation",
+            "change_cost"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_crest_token_activation_exact_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10463110": {
@@ -27610,8 +27747,8 @@
       "cost": 5,
       "is_collectible": true,
       "card_set_id": 10005,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '进化时', '超进化', '召唤', '必杀']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['fanfare', 'evolve', 'super_evolve'], Ops: ['summon', 'summon', 'summon', 'summon', 'summon', 'summon', 'add_keyword']",
       "hit_keywords": [
         "入场曲",
         "进化时",
@@ -27630,27 +27767,51 @@
         "【<color=Keyword>入场曲</color>】召唤3个『<color=Keyword>妖精</color>』。\n<hr><ev>【<color=Keyword>进化时</color>】发动与【<color=Keyword>入场曲</color>】相同的能力。</ev>\n<sev>【<color=Keyword>超进化时</color>】使自己的战场上的所有妖精·随从获得【<color=Keyword>毁灭</color>】。</sev>"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【入场曲】召唤3个妖精；【进化时】重放入场曲；【超进化时】使己方所有妖精随从获得【必杀】。",
+        "notes": "入场/进化生产、超进化同时触发进化文本、满场截断和妖精 Trait 关键字过滤均有直接测试。",
+        "rule_version": 1,
+        "source_text_sha256": "a4b5c30743f64631e98d25aa601824d513a7fb0a40daa309da2c71316103466a",
+        "test_evidence": [
+          "tests/test_real_crest_token_activation_exact_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10513110:0",
             "source_text": "【<color=Keyword>入场曲</color>】召唤3个『<color=Keyword>妖精</color>』。\n<hr><ev>【<color=Keyword>进化时</color>】发动与【<color=Keyword>入场曲</color>】相同的能力。</ev>\n<sev>【<color=Keyword>超进化时</color>】使自己的战场上的所有妖精·随从获得【<color=Keyword>毁灭</color>】。</sev>",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "【入场曲】召唤3个妖精；【进化时】重放入场曲；【超进化时】使己方所有妖精随从获得【必杀】。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "a4b5c30743f64631e98d25aa601824d513a7fb0a40daa309da2c71316103466a",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "fanfare",
+            "evolve",
+            "super_evolve"
+          ],
+          "effect_kinds": [
+            "summon",
+            "summon",
+            "summon",
+            "summon",
+            "summon",
+            "summon",
+            "add_keyword"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_crest_token_activation_exact_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10513310": {
@@ -34296,8 +34457,8 @@
       "cost": 7,
       "is_collectible": true,
       "card_set_id": 10006,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '灵气', '将.*加入手牌', '舍弃', '必杀']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['fanfare', 'intrinsic_keywords'], Ops: ['discard', 'add_card', 'add_card', 'keyword:疾驰', 'keyword:必杀', 'keyword:灵气']",
       "hit_keywords": [
         "入场曲",
         "灵气",
@@ -34316,27 +34477,49 @@
         "【<color=Keyword>入场曲</color>】选择自己的1张手牌，舍弃该手牌。将2张『<color=Keyword>赤流</color>』加入手牌。\n<hr>【<color=Keyword>疾驰</color>】\n【<color=Keyword>毁灭</color>】\n【<color=Keyword>灵气</color>】"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "本体固有【疾驰】【必杀】【灵气】；【入场曲】必须选择并弃置1张己方手牌，再将2张赤流加入手牌。",
+        "notes": "三固有关键字、选择弃牌、两 Token 引用、无可弃手牌时跳过弃置并继续加牌，以及手牌容量均有直接测试。",
+        "rule_version": 1,
+        "source_text_sha256": "7e9d6d6ba8a3088abee97c81bd062c50b5d101bd6b1dd90754019f51cb331896",
+        "test_evidence": [
+          "tests/test_real_crest_token_activation_exact_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10644110:0",
             "source_text": "【<color=Keyword>入场曲</color>】选择自己的1张手牌，舍弃该手牌。将2张『<color=Keyword>赤流</color>』加入手牌。\n<hr>【<color=Keyword>疾驰</color>】\n【<color=Keyword>毁灭</color>】\n【<color=Keyword>灵气</color>】",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "本体固有【疾驰】【必杀】【灵气】；【入场曲】必须选择并弃置1张己方手牌，再将2张赤流加入手牌。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "7e9d6d6ba8a3088abee97c81bd062c50b5d101bd6b1dd90754019f51cb331896",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "fanfare",
+            "intrinsic_keywords"
+          ],
+          "effect_kinds": [
+            "discard",
+            "add_card",
+            "add_card",
+            "keyword:疾驰",
+            "keyword:必杀",
+            "keyword:灵气"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_crest_token_activation_exact_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10644120": {
@@ -36521,8 +36704,8 @@
       "cost": 3,
       "is_collectible": true,
       "card_set_id": 10007,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['谢幕曲', '进化时', '超进化', '抽取', '召唤']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['last_words', 'super_evolve'], Ops: ['draw', 'summon', 'summon']",
       "hit_keywords": [
         "谢幕曲",
         "进化时",
@@ -36539,27 +36722,46 @@
         "【<color=Keyword>谢幕曲</color>】抽取1张卡牌。\n<hr><sev>【<color=Keyword>超进化时</color>】召唤2个『<color=Keyword>神话记者</color>』。</sev>"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【谢幕曲】抽取1张卡牌；【超进化时】召唤2个本卡基础副本。",
+        "notes": "自引用生产链、超进化、有限空位、谢幕曲抽牌和副本行为均有直接测试。",
+        "rule_version": 1,
+        "source_text_sha256": "54b83c706140fb3ff20007aaa8d7d1f5a811c3181b0011588e84f1e9abd8ebb8",
+        "test_evidence": [
+          "tests/test_real_crest_token_activation_exact_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10702110:0",
             "source_text": "【<color=Keyword>谢幕曲</color>】抽取1张卡牌。\n<hr><sev>【<color=Keyword>超进化时</color>】召唤2个『<color=Keyword>神话记者</color>』。</sev>",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "【谢幕曲】抽取1张卡牌；【超进化时】召唤2个本卡基础副本。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "54b83c706140fb3ff20007aaa8d7d1f5a811c3181b0011588e84f1e9abd8ebb8",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "last_words",
+            "super_evolve"
+          ],
+          "effect_kinds": [
+            "draw",
+            "summon",
+            "summon"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_crest_token_activation_exact_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10703110": {
@@ -43765,8 +43967,8 @@
       "cost": 2,
       "is_collectible": true,
       "card_set_id": 10008,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '进化时', '将.*加入手牌', '纹章']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['fanfare', 'evolve', 'emblem_source'], Ops: ['add_card', 'gain_emblem', 'buff_unit']",
       "hit_keywords": [
         "入场曲",
         "进化时",
@@ -43784,32 +43986,52 @@
         "【纹章_0】自己的海洋·随从进入战场时，使其+1/+1。"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【入场曲】将1张大海虎鲸加入手牌；【进化时】获得永久纹章，使进入己方战场的海洋随从+1/+1。",
+        "notes": "Token 手牌生产、纹章、海洋 Trait 入场事件来源加成和非海洋排除均有直接测试。",
+        "rule_version": 1,
+        "source_text_sha256": "d03f9cd8d5d3e1774dc2986680685a56486ee97bf6d263d50e8e47434045834d",
+        "test_evidence": [
+          "tests/test_real_crest_token_activation_exact_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10841130:0",
             "source_text": "【<color=Keyword>入场曲</color>】将1张『<color=Keyword>大海虎鲸</color>』加入手牌。\n<hr><ev>【<color=Keyword>进化时</color>】使自己获得『纹章：沧海之精』。</ev>",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           },
           {
             "clause_id": "10841130:1",
             "source_text": "【纹章_0】自己的海洋·随从进入战场时，使其+1/+1。",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "【入场曲】将1张大海虎鲸加入手牌；【进化时】获得永久纹章，使进入己方战场的海洋随从+1/+1。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "d03f9cd8d5d3e1774dc2986680685a56486ee97bf6d263d50e8e47434045834d",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "fanfare",
+            "evolve",
+            "emblem_source"
+          ],
+          "effect_kinds": [
+            "add_card",
+            "gain_emblem",
+            "buff_unit"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_crest_token_activation_exact_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10842110": {
@@ -46547,6 +46769,7 @@
           "tests/test_real_balanced_trigger_resource_batch.py",
           "tests/test_real_card_rules_batch.py",
           "tests/test_real_complete_token_board_batch.py",
+          "tests/test_real_crest_token_activation_exact_batch.py",
           "tests/test_real_leftmost_golem_bat_crest_batch.py",
           "tests/test_real_spell_enhance_batch.py",
           "tests/test_real_spell_modes_and_earth_listener_batch.py",
@@ -47596,6 +47819,7 @@
         "test_evidence": [
           "tests/test_cross_class_trait_listeners.py",
           "tests/test_real_complete_token_board_batch.py",
+          "tests/test_real_crest_token_activation_exact_batch.py",
           "tests/test_real_spell_modes_and_earth_listener_batch.py",
           "tests/test_real_ward_marine_crest_listener_batch.py"
         ],
@@ -49266,27 +49490,6 @@
       "suggested_rule_file": "batch_中立.json"
     },
     {
-      "card_id": 10462210,
-      "name": "骑驰天空之艇",
-      "class_name": "主教",
-      "card_type": "护符",
-      "cost": 4,
-      "ability_keywords": [
-        "策动"
-      ],
-      "hit_keywords": [
-        "策动",
-        "破坏"
-      ],
-      "confidence": "high",
-      "why_recommended": "Covered keywords: 策动, 破坏",
-      "required_primitives": [
-        "策动",
-        "破坏"
-      ],
-      "suggested_rule_file": "batch_主教.json"
-    },
-    {
       "card_id": 10502120,
       "name": "手持军配团扇的伟丈夫",
       "class_name": "中立",
@@ -49402,27 +49605,6 @@
         "破坏"
       ],
       "suggested_rule_file": "batch_主教.json"
-    },
-    {
-      "card_id": 10321120,
-      "name": "剑圣的同胞",
-      "class_name": "皇家护卫",
-      "card_type": "随从",
-      "cost": 6,
-      "ability_keywords": [
-        "谢幕曲"
-      ],
-      "hit_keywords": [
-        "谢幕曲",
-        "召唤"
-      ],
-      "confidence": "high",
-      "why_recommended": "Covered keywords: 谢幕曲, 召唤",
-      "required_primitives": [
-        "谢幕曲",
-        "召唤"
-      ],
-      "suggested_rule_file": "batch_皇家护卫.json"
     },
     {
       "card_id": 10521110,
@@ -49587,6 +49769,52 @@
         "将.*加入手牌"
       ],
       "suggested_rule_file": "batch_超越者.json"
+    },
+    {
+      "card_id": 10272310,
+      "name": "伊卡洛斯的飞翔",
+      "class_name": "超越者",
+      "card_type": "法术",
+      "cost": 1,
+      "ability_keywords": [
+        "突进",
+        "谢幕曲"
+      ],
+      "hit_keywords": [
+        "谢幕曲",
+        "抽取"
+      ],
+      "confidence": "high",
+      "why_recommended": "Covered keywords: 谢幕曲, 抽取",
+      "required_primitives": [
+        "谢幕曲",
+        "抽取"
+      ],
+      "suggested_rule_file": "batch_超越者.json"
+    },
+    {
+      "card_id": 10503210,
+      "name": "大游戏世界",
+      "class_name": "中立",
+      "card_type": "护符",
+      "cost": 1,
+      "ability_keywords": [
+        "倒数",
+        "谢幕曲"
+      ],
+      "hit_keywords": [
+        "谢幕曲",
+        "倒数",
+        "抽取"
+      ],
+      "confidence": "high",
+      "why_recommended": "Covered keywords: 谢幕曲, 倒数, 抽取",
+      "required_primitives": [
+        "谢幕曲",
+        "倒数",
+        "抽取"
+      ],
+      "suggested_rule_file": "batch_中立.json"
     }
   ]
 }

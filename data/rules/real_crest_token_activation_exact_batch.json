@@ -1,0 +1,364 @@
+{
+  "passives": [
+    {
+      "card_id": 10114110,
+      "kind": "non_intrinsic_keyword",
+      "keyword": "疾驰",
+      "notes": "疾驰仅由纹章授予进入战场的妖精随从，不是本体固有关键词。"
+    },
+    {
+      "card_id": 10513110,
+      "kind": "non_intrinsic_keyword",
+      "keyword": "必杀",
+      "notes": "必杀仅由超进化能力授予己方妖精随从，不是本体固有关键词。"
+    },
+    {
+      "card_id": 10163130,
+      "kind": "non_intrinsic_keyword",
+      "keyword": "疾驰",
+      "notes": "疾驰仅由纹章到期后授予所召唤的勒碧丝，不是本体固有关键词。"
+    }
+  ],
+  "intrinsic_keywords": [
+    {"card_id": 10644110, "keywords": ["疾驰", "必杀", "灵气"]}
+  ],
+  "activations": [
+    {"card_id": 10462210, "cost": 0}
+  ],
+  "union_bursts": [
+    {
+      "card_id": 10403110,
+      "kind": "union_burst",
+      "operations": [
+        {"kind": "evolve_unit", "target": "self"}
+      ]
+    }
+  ],
+  "listeners": [
+    {
+      "card_id": 10462210,
+      "zone": "hand",
+      "event": "amulet_activated",
+      "event_scope": "owner_event",
+      "source_relation": "any",
+      "operations": [
+        {"kind": "change_cost", "target": "self", "mode": "subtract", "amount": 1}
+      ]
+    }
+  ],
+  "emblems": [
+    {
+      "id": "aria_lady_of_the_woods",
+      "source_card_id": 10114110,
+      "stacking": "allow",
+      "triggers": [
+        {
+          "trigger": "follower_summoned",
+          "event_scope": "owner_event",
+          "event_filter": {"card_type": "随从", "tribe_name": "妖精"},
+          "operations": [
+            {"kind": "add_keyword", "target": "self", "keyword": "疾驰"}
+          ]
+        }
+      ]
+    },
+    {
+      "id": "lapis_shining_seraph",
+      "source_card_id": 10163130,
+      "stacking": "allow",
+      "countdown": 2,
+      "on_expire": [
+        {
+          "kind": "summon",
+          "target": "own_leader",
+          "card_id": 10163130,
+          "target_key": "lapis_return"
+        },
+        {
+          "kind": "add_keyword",
+          "target": "previous_target",
+          "target_key": "lapis_return",
+          "keyword": "疾驰"
+        }
+      ]
+    },
+    {
+      "id": "eudie_maiden_reborn",
+      "source_card_id": 10174110,
+      "stacking": "allow",
+      "countdown": 3,
+      "triggers": [
+        {
+          "trigger": "turn_end",
+          "turn_scope": "owner_turn",
+          "operations": [
+            {
+              "kind": "conditional",
+              "target": "own_leader",
+              "conditions": [
+                {"type": "controller_hand_count_at_least", "value": 6}
+              ],
+              "then": [
+                {"kind": "heal_leader", "target": "own_leader", "amount": 1}
+              ],
+              "else": [
+                {"kind": "draw", "target": "own_leader", "amount": 1}
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "spirit_of_wadatsumi",
+      "source_card_id": 10841130,
+      "stacking": "allow",
+      "triggers": [
+        {
+          "trigger": "follower_summoned",
+          "event_scope": "owner_event",
+          "event_filter": {"card_type": "随从", "tribe_name": "海洋"},
+          "operations": [
+            {"kind": "buff_unit", "target": "self", "amount": 1, "secondary_amount": 1}
+          ]
+        }
+      ]
+    }
+  ],
+  "rules": [
+    {
+      "card_id": 10403110,
+      "trigger": "fanfare",
+      "operations": [
+        {
+          "kind": "choose_one",
+          "target": "own_leader",
+          "options": [
+            {
+              "id": "skyfarer_damage",
+              "label": "对随机1个敌方随从造成5点伤害",
+              "operations": [
+                {"kind": "damage_unit", "target": "random_enemy_unit", "amount": 5}
+              ]
+            },
+            {
+              "id": "skyfarer_draw",
+              "label": "抽取2张随从",
+              "operations": [
+                {
+                  "kind": "draw_filtered",
+                  "target": "own_leader",
+                  "amount": 2,
+                  "card_type_filter": "随从"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "card_id": 10702110,
+      "trigger": "last_words",
+      "operations": [
+        {"kind": "draw", "target": "own_leader", "amount": 1}
+      ]
+    },
+    {
+      "card_id": 10702110,
+      "trigger": "super_evolve",
+      "operations": [
+        {"kind": "summon", "target": "own_leader", "card_id": 10702110},
+        {"kind": "summon", "target": "own_leader", "card_id": 10702110}
+      ]
+    },
+    {
+      "card_id": 10114110,
+      "trigger": "fanfare",
+      "operations": [
+        {
+          "kind": "gain_emblem",
+          "target": "own_leader",
+          "emblem_id": "aria_lady_of_the_woods"
+        }
+      ]
+    },
+    {
+      "card_id": 10114110,
+      "trigger": "evolve",
+      "operations": [
+        {"kind": "summon", "target": "own_leader", "card_id": 90011110},
+        {"kind": "summon", "target": "own_leader", "card_id": 90011110},
+        {"kind": "summon", "target": "own_leader", "card_id": 90011110}
+      ]
+    },
+    {
+      "card_id": 10513110,
+      "trigger": "fanfare",
+      "operations": [
+        {"kind": "summon", "target": "own_leader", "card_id": 90011110},
+        {"kind": "summon", "target": "own_leader", "card_id": 90011110},
+        {"kind": "summon", "target": "own_leader", "card_id": 90011110}
+      ]
+    },
+    {
+      "card_id": 10513110,
+      "trigger": "evolve",
+      "operations": [
+        {"kind": "summon", "target": "own_leader", "card_id": 90011110},
+        {"kind": "summon", "target": "own_leader", "card_id": 90011110},
+        {"kind": "summon", "target": "own_leader", "card_id": 90011110}
+      ]
+    },
+    {
+      "card_id": 10513110,
+      "trigger": "super_evolve",
+      "operations": [
+        {
+          "kind": "add_keyword",
+          "target": "all_own_units",
+          "keyword": "必杀",
+          "target_card_type_filter": "随从",
+          "target_tribe_name_filter": "妖精"
+        }
+      ]
+    },
+    {
+      "card_id": 10423110,
+      "trigger": "fanfare",
+      "operations": [
+        {
+          "kind": "choose_one",
+          "target": "own_leader",
+          "options": [
+            {
+              "id": "golden_super_evolve",
+              "label": "本随从超进化",
+              "operations": [
+                {"kind": "super_evolve_unit", "target": "self"}
+              ]
+            },
+            {
+              "id": "golden_damage",
+              "label": "对所有敌方随从造成4点伤害",
+              "operations": [
+                {"kind": "damage_unit", "target": "all_enemy_units", "amount": 4}
+              ]
+            },
+            {
+              "id": "golden_heal",
+              "label": "回复己方主战者4点生命",
+              "operations": [
+                {"kind": "heal_leader", "target": "own_leader", "amount": 4}
+              ]
+            }
+          ]
+        }
+      ],
+      "play_modes": [
+        {
+          "id": "enhance_9",
+          "type": "enhance",
+          "cost": 9,
+          "replace_base_operations": true,
+          "operations": [
+            {"kind": "super_evolve_unit", "target": "self"},
+            {"kind": "damage_unit", "target": "all_enemy_units", "amount": 4},
+            {"kind": "heal_leader", "target": "own_leader", "amount": 4}
+          ]
+        }
+      ]
+    },
+    {
+      "card_id": 10321120,
+      "trigger": "last_words",
+      "operations": [
+        {
+          "kind": "summon",
+          "target": "own_leader",
+          "card_id": 10321120,
+          "target_key": "swordmasters_companion_return"
+        },
+        {
+          "kind": "remove_all_abilities",
+          "target": "previous_target",
+          "target_key": "swordmasters_companion_return"
+        }
+      ]
+    },
+    {
+      "card_id": 10644110,
+      "trigger": "fanfare",
+      "operations": [
+        {
+          "kind": "discard",
+          "target": "own_hand",
+          "requires_target": true,
+          "exclude_source": true
+        },
+        {"kind": "add_card", "target": "own_leader", "card_id": 10642310},
+        {"kind": "add_card", "target": "own_leader", "card_id": 10642310}
+      ]
+    },
+    {
+      "card_id": 10841130,
+      "trigger": "fanfare",
+      "operations": [
+        {"kind": "add_card", "target": "own_leader", "card_id": 90041130}
+      ]
+    },
+    {
+      "card_id": 10841130,
+      "trigger": "evolve",
+      "operations": [
+        {
+          "kind": "gain_emblem",
+          "target": "own_leader",
+          "emblem_id": "spirit_of_wadatsumi"
+        }
+      ]
+    },
+    {
+      "card_id": 10163130,
+      "trigger": "last_words",
+      "operations": [
+        {
+          "kind": "gain_emblem",
+          "target": "own_leader",
+          "emblem_id": "lapis_shining_seraph"
+        }
+      ]
+    },
+    {
+      "card_id": 10462210,
+      "trigger": "activate",
+      "operations": [
+        {"kind": "destroy", "target": "self"},
+        {
+          "kind": "evolve_unit",
+          "target": "own_unit",
+          "target_evolved_filter": false,
+          "requires_target": true
+        }
+      ]
+    },
+    {
+      "card_id": 10174110,
+      "trigger": "fanfare",
+      "operations": [
+        {"kind": "draw", "target": "own_leader", "amount": 1}
+      ]
+    },
+    {
+      "card_id": 10174110,
+      "trigger": "evolve",
+      "operations": [
+        {
+          "kind": "gain_emblem",
+          "target": "own_leader",
+          "emblem_id": "eudie_maiden_reborn"
+        }
+      ]
+    }
+  ]
+}

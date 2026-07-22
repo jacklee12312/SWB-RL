@@ -374,6 +374,12 @@
           "rule_group": "rules"
         },
         {
+          "source_card_id": 10114110,
+          "entry_kind": "summon",
+          "rule_file": "real_crest_token_activation_exact_batch.json",
+          "rule_group": "rules"
+        },
+        {
           "source_card_id": 10212120,
           "entry_kind": "add_card",
           "rule_file": "real_listener_spellboost_followup_batch.json",
@@ -419,6 +425,12 @@
           "source_card_id": 10511310,
           "entry_kind": "add_card",
           "rule_file": "real_generated_distributed_damage_crest_batch.json",
+          "rule_group": "rules"
+        },
+        {
+          "source_card_id": 10513110,
+          "entry_kind": "summon",
+          "rule_file": "real_crest_token_activation_exact_batch.json",
           "rule_group": "rules"
         },
         {
@@ -2511,6 +2523,12 @@
           "source_card_id": 10542120,
           "entry_kind": "add_card",
           "rule_file": "real_ward_marine_crest_listener_batch.json",
+          "rule_group": "rules"
+        },
+        {
+          "source_card_id": 10841130,
+          "entry_kind": "add_card",
+          "rule_file": "real_crest_token_activation_exact_batch.json",
           "rule_group": "rules"
         }
       ],

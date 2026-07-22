@@ -38,14 +38,14 @@ covered generic boundary, but that never upgrades a partial or placeholder
 keyword whose full tagged-card semantics still require structured rules.
 
 The [rule coverage report](data/reports/rule_coverage.md) now includes a
-clause-audit layer without changing its legacy coverage categories. Of 577
-exact collectible cards (78.50% of 735), all 577 have explicit implemented text and named direct
+clause-audit layer without changing its legacy coverage categories. Of 588
+exact collectible cards (80.00% of 735), all 588 have explicit implemented text and named direct
 test evidence. The sibling `data/audits/rule_clauses.json` registry hashes every
 imported skill and alternate-mode clause, so a database text change or stale
 test reference invalidates the audit instead of silently retaining exact
 status. The current report has no unverified exact entry or missing generic
 schema, primitive, targeting, or timing blocker. Its remaining collectible gaps
-are 142 missing per-card structured rules plus 16 explicitly unclear texts.
+are 131 missing per-card structured rules plus 16 explicitly unclear texts.
 Rule metadata also supports version and errata fields, and the report
 records the complete imported source snapshot hash.
 
@@ -116,7 +116,7 @@ distributed learner, a policy-strength result, or a complete MCTS
 implementation. Multiprocess PPO currently uses current-policy self-play;
 random, fixed, and historical opponent mixing remains on the single-process
 collector. Snapshot/clone is the search foundation only. Card-rule
-coverage also remains deliberately separate: 142 collectible cards still lack
+coverage also remains deliberately separate: 131 collectible cards still lack
 per-card structured rules and 16 card texts remain explicitly unclear; neither
 group enters the exact training catalog or counts as supported.
 
@@ -189,6 +189,17 @@ The deterministic rules core supports:
   exercises Earth Rite, Spellboost, Token chains, four- and two-way Modes,
   ability removal, crests, Countdown, simultaneous damage, EP/PP recovery,
   hand/board capacity, stale/no-target paths, seeded replay, and RL choice masks;
+- an 11-card exact cross-class crest, Token, Mode, and Engage batch covers
+  `10403110`, `10702110`, `10114110`, `10513110`, `10423110`, `10321120`,
+  `10644110`, `10841130`, `10163130`, `10462210`, and `10174110`. It reuses
+  Skybound Art, filtered draw, effect evolution, self-replacement Last Words,
+  selected discard, Enhance-all replacement, hand-zone Engage listeners,
+  Trait-filtered entry crests, and countdown expiry. Generic emblem preflight
+  now evaluates the executable `else` branch of a false `conditional` instead
+  of silently suppressing it. Direct tests cover every primary and crest text,
+  Token references, no-target continuation, illegal Engage immutability, stale
+  targets, hand/board capacity, seeded random damage, countdown timing, and RL
+  Mode/target masks;
 - seeded reset, shuffle, draw, turn progression, official immediate defeat when
   drawing from an empty deck, an auditable alternate victory outcome, atomic
   seeded replacement-deck shuffling,
