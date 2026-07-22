@@ -424,6 +424,16 @@ def evaluate_expression(expr: ValueExpression | None, ctx: EvalContext | None) -
             else ctx.bound_target_snapshots.get(expr.binding_key or "", ())
         )
         return snapshots[0].cost if len(snapshots) == 1 else 0
+    elif t == ExprType.BOUND_TARGET_HEALTH:
+        snapshots = (
+            ()
+            if ctx is None or ctx.bound_target_snapshots is None
+            else ctx.bound_target_snapshots.get(expr.binding_key or "", ())
+        )
+        if len(snapshots) != 1 or ctx is None:
+            return 0
+        target = ctx.find_board_entity(snapshots[0].entity_id)
+        return target.health if isinstance(target, Unit) else 0
     elif t == ExprType.SOURCE_ATTACK:
         if isinstance(source, Unit):
             return source.attack

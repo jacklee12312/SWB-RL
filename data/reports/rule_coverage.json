@@ -12,25 +12,25 @@
   },
   "summary": {
     "total_cards": 826,
-    "total_with_rules": 630,
+    "total_with_rules": 642,
     "test_or_synthetic_ids_with_rules": 26,
     "coverage_counts": {
-      "covered_exact": 526,
+      "covered_exact": 538,
       "text_unclear": 16,
-      "supported_missing_rule": 193,
+      "supported_missing_rule": 181,
       "token_or_non_collectible": 91
     },
     "clause_audit_counts": {
-      "mapped_exact": 526,
+      "mapped_exact": 538,
       "unverified_exact": 0,
       "partial": 0,
-      "missing_rule": 193,
+      "missing_rule": 181,
       "missing_primitive": 0,
       "text_unclear": 16,
       "token_separate_audit": 91
     },
     "blocker_counts": {
-      "missing_rule": 193,
+      "missing_rule": 181,
       "missing_schema": 0,
       "missing_primitive": 0,
       "missing_targeting": 0,
@@ -848,8 +848,8 @@
       "cost": 2,
       "is_collectible": true,
       "card_set_id": 10000,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '倒数', '将.*加入手牌', '造成.*伤害']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['play', 'listener:board:follower_summoned'], Ops: ['add_card', 'damage_unit']",
       "hit_keywords": [
         "入场曲",
         "倒数",
@@ -865,27 +865,45 @@
         "【<color=Keyword>入场曲</color>】将1张『<color=Keyword>妖精</color>』加入手牌。\n<hr>【<color=Keyword>吟唱</color>_2】\n自己的妖精·随从进入战场时，对对手的战场上的随机1个随从造成1点伤害。"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【入场曲】将1张妖精加入手牌；【吟唱_2】；己方妖精种族随从进入战场时随机对1个敌方随从造成1点伤害。",
+        "notes": "妖精 Token 生产、种族而非卡名过滤、非妖精不触发、随机空目标安全路径和倒数到期均有直接测试。",
+        "rule_version": 1,
+        "source_text_sha256": "594bfc7f2f282cd2f603ac303f02f9c396e1ecc86492c380b3386a8ad0fe6d9f",
+        "test_evidence": [
+          "tests/test_real_low_coverage_token_amulet_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10011210:0",
             "source_text": "【<color=Keyword>入场曲</color>】将1张『<color=Keyword>妖精</color>』加入手牌。\n<hr>【<color=Keyword>吟唱</color>_2】\n自己的妖精·随从进入战场时，对对手的战场上的随机1个随从造成1点伤害。",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "【入场曲】将1张妖精加入手牌；【吟唱_2】；己方妖精种族随从进入战场时随机对1个敌方随从造成1点伤害。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "594bfc7f2f282cd2f603ac303f02f9c396e1ecc86492c380b3386a8ad0fe6d9f",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "play",
+            "listener:board:follower_summoned"
+          ],
+          "effect_kinds": [
+            "add_card",
+            "damage_unit"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_low_coverage_token_amulet_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10012110": {
@@ -5088,8 +5106,8 @@
       "cost": 3,
       "is_collectible": true,
       "card_set_id": 10001,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['连击', '策动', '回合结束', '抽取', '破坏', '返回手牌']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['play', 'turn_end', 'activate', 'activation'], Ops: ['draw', 'destroy', 'return_to_hand', 'activation']",
       "hit_keywords": [
         "连击",
         "策动",
@@ -5099,9 +5117,6 @@
         "返回手牌"
       ],
       "missing_primitives": [],
-      "missing_rule_mechanics": [
-        "策动"
-      ],
       "ability_keywords": [
         "策动",
         "连击"
@@ -5110,27 +5125,49 @@
         "自己的回合结束时，【<color=Keyword>连击</color>_3】抽取1张卡牌。\n<hr>【<color=Keyword>启动</color>】破坏本卡牌。选择自己的战场上的1张其他卡牌，使其返回手牌。"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "己方回合结束时【连击_3】抽1张卡；【策动】破坏本护符并选择其他1张己方战场卡返回手牌。",
+        "notes": "连击阈值上下、无倒数、策动无目标非法原子性、来源先离场、随从回手及目标离场均有直接测试。",
+        "rule_version": 1,
+        "source_text_sha256": "3b0d9af6187a913f10a607384c374d3919765427a34c58fa4f4a64c14b876df3",
+        "test_evidence": [
+          "tests/test_real_low_coverage_token_amulet_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10113210:0",
             "source_text": "自己的回合结束时，【<color=Keyword>连击</color>_3】抽取1张卡牌。\n<hr>【<color=Keyword>启动</color>】破坏本卡牌。选择自己的战场上的1张其他卡牌，使其返回手牌。",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "己方回合结束时【连击_3】抽1张卡；【策动】破坏本护符并选择其他1张己方战场卡返回手牌。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "3b0d9af6187a913f10a607384c374d3919765427a34c58fa4f4a64c14b876df3",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "play",
+            "turn_end",
+            "activate",
+            "activation"
+          ],
+          "effect_kinds": [
+            "draw",
+            "destroy",
+            "return_to_hand",
+            "activation"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_low_coverage_token_amulet_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10114110": {
@@ -8472,8 +8509,8 @@
       "cost": 6,
       "is_collectible": true,
       "card_set_id": 10001,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '召唤']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['fanfare', 'intrinsic_keywords'], Ops: ['summon', 'keyword:守护']",
       "hit_keywords": [
         "入场曲",
         "召唤"
@@ -8487,27 +8524,45 @@
         "【<color=Keyword>入场曲</color>】召唤1个『<color=Keyword>巨翼飞龙</color>』。\n<hr>【<color=Keyword>守护</color>】"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【入场曲】召唤1个巨翼飞龙；本体具有【守护】。",
+        "notes": "固有守护、Token 引用、正常召唤和战场容量不足均有直接测试。",
+        "rule_version": 1,
+        "source_text_sha256": "a2ae2bea130ad1210f336f796f467927e038a5c626acc9e292220ad97f97e8da",
+        "test_evidence": [
+          "tests/test_real_low_coverage_token_amulet_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10143130:0",
             "source_text": "【<color=Keyword>入场曲</color>】召唤1个『<color=Keyword>巨翼飞龙</color>』。\n<hr>【<color=Keyword>守护</color>】",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "【入场曲】召唤1个巨翼飞龙；本体具有【守护】。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "a2ae2bea130ad1210f336f796f467927e038a5c626acc9e292220ad97f97e8da",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "fanfare",
+            "intrinsic_keywords"
+          ],
+          "effect_kinds": [
+            "summon",
+            "keyword:守护"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_low_coverage_token_amulet_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10143140": {
@@ -9356,8 +9411,8 @@
       "cost": 4,
       "is_collectible": true,
       "card_set_id": 10001,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['谢幕曲', '将.*加入手牌']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['last_words', 'intrinsic_keywords'], Ops: ['add_card', 'add_card', 'keyword:守护']",
       "hit_keywords": [
         "谢幕曲",
         "将.*加入手牌"
@@ -9371,27 +9426,46 @@
         "【<color=Keyword>守护</color>】\n【<color=Keyword>谢幕曲</color>】将1张『<color=Keyword>怨灵</color>』和1张『<color=Keyword>蝙蝠</color>』加入手牌。"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "本体具有【守护】；【谢幕曲】依次将1张怨灵和1张蝙蝠加入手牌。",
+        "notes": "固有守护、两个 Token 引用与加入顺序、满手牌溢出均有直接测试。",
+        "rule_version": 1,
+        "source_text_sha256": "4bf016c818feef26ff83536d407a96c7863b66e78cffe9564d314cf3f73229d7",
+        "test_evidence": [
+          "tests/test_real_low_coverage_token_amulet_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10152130:0",
             "source_text": "【<color=Keyword>守护</color>】\n【<color=Keyword>谢幕曲</color>】将1张『<color=Keyword>怨灵</color>』和1张『<color=Keyword>蝙蝠</color>』加入手牌。",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "本体具有【守护】；【谢幕曲】依次将1张怨灵和1张蝙蝠加入手牌。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "4bf016c818feef26ff83536d407a96c7863b66e78cffe9564d314cf3f73229d7",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "last_words",
+            "intrinsic_keywords"
+          ],
+          "effect_kinds": [
+            "add_card",
+            "add_card",
+            "keyword:守护"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_low_coverage_token_amulet_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10152140": {
@@ -9913,8 +9987,8 @@
       "cost": 7,
       "is_collectible": true,
       "card_set_id": 10001,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['攻击时', '破坏']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['attack', 'passive', 'intrinsic_keywords'], Ops: ['destroy', 'attacks_per_turn', 'keyword:突进']",
       "hit_keywords": [
         "攻击时",
         "破坏"
@@ -9928,27 +10002,47 @@
         "【<color=Keyword>突进</color>】\n1回合可以攻击3次。\n【<color=Keyword>攻击时</color>】若攻击随从，则破坏交战对手。"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "本体具有【突进】，每回合可攻击3次；【随从攻击时】破坏交战对手。",
+        "notes": "固有突进、三次攻击容量、仅随从目标和战斗前破坏均由命令与 RL 掩码直接测试。",
+        "rule_version": 1,
+        "source_text_sha256": "4e915929394ae016ddc2802d7071226afcba6226c332d2e18103f703fe1b07b4",
+        "test_evidence": [
+          "tests/test_real_low_coverage_token_amulet_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10154120:0",
             "source_text": "【<color=Keyword>突进</color>】\n1回合可以攻击3次。\n【<color=Keyword>攻击时</color>】若攻击随从，则破坏交战对手。",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "本体具有【突进】，每回合可攻击3次；【随从攻击时】破坏交战对手。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "4e915929394ae016ddc2802d7071226afcba6226c332d2e18103f703fe1b07b4",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "attack",
+            "passive",
+            "intrinsic_keywords"
+          ],
+          "effect_kinds": [
+            "destroy",
+            "attacks_per_turn",
+            "keyword:突进"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_low_coverage_token_amulet_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10154130": {
@@ -15493,8 +15587,8 @@
       "cost": 6,
       "is_collectible": true,
       "card_set_id": 10002,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '召唤']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['fanfare'], Ops: ['summon', 'summon']",
       "hit_keywords": [
         "入场曲",
         "召唤"
@@ -15507,27 +15601,44 @@
         "【<color=Keyword>入场曲</color>】召唤2个『<color=Keyword>腐臭的僵尸</color>』。"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【入场曲】召唤2个腐臭的僵尸。",
+        "notes": "双 Token 顺序、正常路径和只剩一个战场空位的容量路径均有直接测试。",
+        "rule_version": 1,
+        "source_text_sha256": "aa2575937758352cbd03dce271254104ae63633d6aeeb8db349cc4b6b13b0b53",
+        "test_evidence": [
+          "tests/test_real_low_coverage_token_amulet_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10252120:0",
             "source_text": "【<color=Keyword>入场曲</color>】召唤2个『<color=Keyword>腐臭的僵尸</color>』。",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "【入场曲】召唤2个腐臭的僵尸。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "aa2575937758352cbd03dce271254104ae63633d6aeeb8db349cc4b6b13b0b53",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "fanfare"
+          ],
+          "effect_kinds": [
+            "summon",
+            "summon"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_low_coverage_token_amulet_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10252310": {
@@ -16175,8 +16286,8 @@
       "cost": 1,
       "is_collectible": true,
       "card_set_id": 10002,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['造成.*伤害']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['play'], Ops: ['buff_unit', 'damage_unit']",
       "hit_keywords": [
         "造成.*伤害"
       ],
@@ -16188,27 +16299,44 @@
         "选择自己的战场上的1个拥有【<color=Keyword>守护</color>】的随从，使其+0/+1。对对手的战场上的随机1个随从造成X点伤害。X为选择的随从的生命值。"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "选择1个己方【守护】随从使其+0/+1，再对随机1个敌方随从造成等于所选随从当前生命值的伤害。",
+        "notes": "守护目标过滤、增益后动态生命值、无目标非法原子性、目标离场、空敌方场、随机确定性和 RL 掩码均有直接测试。",
+        "rule_version": 1,
+        "source_text_sha256": "89d284bc4e510e2b26981e685d0fd3e0dbfcdc477fb4ae495a0f04404312c972",
+        "test_evidence": [
+          "tests/test_real_low_coverage_token_amulet_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10262310:0",
             "source_text": "选择自己的战场上的1个拥有【<color=Keyword>守护</color>】的随从，使其+0/+1。对对手的战场上的随机1个随从造成X点伤害。X为选择的随从的生命值。",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "选择1个己方【守护】随从使其+0/+1，再对随机1个敌方随从造成等于所选随从当前生命值的伤害。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "89d284bc4e510e2b26981e685d0fd3e0dbfcdc477fb4ae495a0f04404312c972",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "play"
+          ],
+          "effect_kinds": [
+            "buff_unit",
+            "damage_unit"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_low_coverage_token_amulet_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10263110": {
@@ -29217,8 +29345,8 @@
       "cost": 3,
       "is_collectible": true,
       "card_set_id": 10005,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '进化时', '召唤']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['fanfare', 'evolve'], Ops: ['summon', 'summon', 'summon']",
       "hit_keywords": [
         "入场曲",
         "进化时",
@@ -29233,27 +29361,46 @@
         "【<color=Keyword>入场曲</color>】召唤1个『<color=Keyword>怨灵</color>』和1个『<color=Keyword>骸骨士兵</color>』。\n<hr><ev>【<color=Keyword>进化时</color>】召唤1个『<color=Keyword>腐臭的僵尸</color>』。</ev>"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【入场曲】依次召唤怨灵和骸骨士兵；【进化时】召唤1个腐臭的僵尸。",
+        "notes": "主文本、进化文本、三个 Token 引用、召唤顺序及容量路径均有直接测试。",
+        "rule_version": 1,
+        "source_text_sha256": "390796b896389e5d981c075adfa454faa62cbae9ddf6f3fafcf18485ea7233cd",
+        "test_evidence": [
+          "tests/test_real_low_coverage_token_amulet_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10552110:0",
             "source_text": "【<color=Keyword>入场曲</color>】召唤1个『<color=Keyword>怨灵</color>』和1个『<color=Keyword>骸骨士兵</color>』。\n<hr><ev>【<color=Keyword>进化时</color>】召唤1个『<color=Keyword>腐臭的僵尸</color>』。</ev>",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "【入场曲】依次召唤怨灵和骸骨士兵；【进化时】召唤1个腐臭的僵尸。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "390796b896389e5d981c075adfa454faa62cbae9ddf6f3fafcf18485ea7233cd",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "fanfare",
+            "evolve"
+          ],
+          "effect_kinds": [
+            "summon",
+            "summon",
+            "summon"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_low_coverage_token_amulet_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10552120": {
@@ -33081,8 +33228,8 @@
       "cost": 2,
       "is_collectible": true,
       "card_set_id": 10006,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['谢幕曲', '回复(?!自己\\\\d+点(?:超进化点|进化点|能量点))', '召唤', '爆能强化']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['fanfare', 'last_words', 'play_modes'], Ops: ['heal_leader', 'play_mode', 'summon', 'summon']",
       "hit_keywords": [
         "谢幕曲",
         "回复(?!自己\\d+点(?:超进化点|进化点|能量点))",
@@ -33098,27 +33245,48 @@
         "【<color=Keyword>爆能强化</color>_6】召唤2个『<color=Keyword>熟透的海鱼</color>』。\n<hr>【<color=Keyword>谢幕曲</color>】回复自己的主战者1点生命值。"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【爆能强化_6】召唤2个本卡副本；【谢幕曲】回复己方主战者1点生命。",
+        "notes": "爆能自引用生产、三个实体同时死亡、逐个谢幕曲治疗及容量语义均有直接测试。",
+        "rule_version": 1,
+        "source_text_sha256": "bdcaef57c4272ec3f466c6def0111dbc740978dd20ec0a2f0efa9879b64515bf",
+        "test_evidence": [
+          "tests/test_real_low_coverage_token_amulet_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10641120:0",
             "source_text": "【<color=Keyword>爆能强化</color>_6】召唤2个『<color=Keyword>熟透的海鱼</color>』。\n<hr>【<color=Keyword>谢幕曲</color>】回复自己的主战者1点生命值。",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "【爆能强化_6】召唤2个本卡副本；【谢幕曲】回复己方主战者1点生命。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "bdcaef57c4272ec3f466c6def0111dbc740978dd20ec0a2f0efa9879b64515bf",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "fanfare",
+            "last_words",
+            "play_modes"
+          ],
+          "effect_kinds": [
+            "heal_leader",
+            "play_mode",
+            "summon",
+            "summon"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_low_coverage_token_amulet_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10641310": {
@@ -33706,8 +33874,8 @@
       "cost": 3,
       "is_collectible": true,
       "card_set_id": 10006,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['谢幕曲', '将.*加入手牌']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['last_words', 'intrinsic_keywords'], Ops: ['add_card', 'keyword:突进']",
       "hit_keywords": [
         "谢幕曲",
         "将.*加入手牌"
@@ -33721,27 +33889,45 @@
         "【<color=Keyword>突进</color>】\n【<color=Keyword>谢幕曲</color>】将1张『<color=Keyword>怨灵</color>』加入手牌。"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "本体具有【突进】；【谢幕曲】将1张怨灵加入手牌。",
+        "notes": "固有突进、死亡触发、Token 引用和手牌产出均有直接测试。",
+        "rule_version": 1,
+        "source_text_sha256": "57aa0f4f4b34c275bbc7891af55bced3bd15a6678277957838eead17720a0df0",
+        "test_evidence": [
+          "tests/test_real_low_coverage_token_amulet_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10651120:0",
             "source_text": "【<color=Keyword>突进</color>】\n【<color=Keyword>谢幕曲</color>】将1张『<color=Keyword>怨灵</color>』加入手牌。",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "本体具有【突进】；【谢幕曲】将1张怨灵加入手牌。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "57aa0f4f4b34c275bbc7891af55bced3bd15a6678277957838eead17720a0df0",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "last_words",
+            "intrinsic_keywords"
+          ],
+          "effect_kinds": [
+            "add_card",
+            "keyword:突进"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_low_coverage_token_amulet_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10651310": {
@@ -37837,8 +38023,8 @@
       "cost": 2,
       "is_collectible": true,
       "card_set_id": 10007,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['召唤', '爆能强化']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['fanfare', 'play_modes', 'intrinsic_keywords'], Ops: ['play_mode', 'summon', 'summon', 'keyword:突进']",
       "hit_keywords": [
         "召唤",
         "爆能强化"
@@ -37852,27 +38038,48 @@
         "【<color=Keyword>爆能强化</color>_4】召唤2个『<color=Keyword>宣扬的龙人</color>』。\n<hr>【<color=Keyword>突进</color>】"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【爆能强化_4】召唤2个本卡副本；本体具有【突进】。",
+        "notes": "普通与爆能模式、自引用副本、固有突进、容量短缺和 RL 模式掩码均有直接测试。",
+        "rule_version": 1,
+        "source_text_sha256": "161941dfc9e6d5d0d5d782de8c57b35f4e00cbd72368d9b0cec04a2e10104723",
+        "test_evidence": [
+          "tests/test_real_low_coverage_token_amulet_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10741110:0",
             "source_text": "【<color=Keyword>爆能强化</color>_4】召唤2个『<color=Keyword>宣扬的龙人</color>』。\n<hr>【<color=Keyword>突进</color>】",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "【爆能强化_4】召唤2个本卡副本；本体具有【突进】。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "161941dfc9e6d5d0d5d782de8c57b35f4e00cbd72368d9b0cec04a2e10104723",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "fanfare",
+            "play_modes",
+            "intrinsic_keywords"
+          ],
+          "effect_kinds": [
+            "play_mode",
+            "summon",
+            "summon",
+            "keyword:突进"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_low_coverage_token_amulet_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10741120": {
@@ -43322,8 +43529,8 @@
       "cost": 1,
       "is_collectible": true,
       "card_set_id": 10008,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['谢幕曲', '攻击时', '将.*加入手牌', '造成.*伤害']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['attack', 'last_words'], Ops: ['damage_leader', 'damage_leader', 'add_card']",
       "hit_keywords": [
         "谢幕曲",
         "攻击时",
@@ -43339,27 +43546,46 @@
         "【<color=Keyword>攻击时</color>】对所有主战者造成1点伤害。\n【<color=Keyword>谢幕曲</color>】将1张『<color=Keyword>蝙蝠</color>』加入手牌。"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【攻击时】对双方主战者各造成1点伤害；【谢幕曲】将1张蝙蝠加入手牌。",
+        "notes": "攻击前双方主战者受伤、随后的战斗死亡和谢幕曲 Token 产出顺序均有直接测试。",
+        "rule_version": 1,
+        "source_text_sha256": "4e7fa39c53b4cba6b8c19d58087828b110dd7066687566238810f979e014f850",
+        "test_evidence": [
+          "tests/test_real_low_coverage_token_amulet_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10851120:0",
             "source_text": "【<color=Keyword>攻击时</color>】对所有主战者造成1点伤害。\n【<color=Keyword>谢幕曲</color>】将1张『<color=Keyword>蝙蝠</color>』加入手牌。",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "【攻击时】对双方主战者各造成1点伤害；【谢幕曲】将1张蝙蝠加入手牌。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "4e7fa39c53b4cba6b8c19d58087828b110dd7066687566238810f979e014f850",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "attack",
+            "last_words"
+          ],
+          "effect_kinds": [
+            "damage_leader",
+            "damage_leader",
+            "add_card"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_low_coverage_token_amulet_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10851130": {
@@ -48166,25 +48392,6 @@
       "suggested_rule_file": "batch_主教.json"
     },
     {
-      "card_id": 10262310,
-      "name": "神圣守护",
-      "class_name": "主教",
-      "card_type": "法术",
-      "cost": 1,
-      "ability_keywords": [
-        "守护"
-      ],
-      "hit_keywords": [
-        "造成.*伤害"
-      ],
-      "confidence": "high",
-      "why_recommended": "Covered keywords: 造成.*伤害",
-      "required_primitives": [
-        "造成.*伤害"
-      ],
-      "suggested_rule_file": "batch_主教.json"
-    },
-    {
       "card_id": 10532310,
       "name": "魔猫戏法",
       "class_name": "巫师",
@@ -48478,27 +48685,6 @@
       "suggested_rule_file": "batch_主教.json"
     },
     {
-      "card_id": 10252120,
-      "name": "尸兵",
-      "class_name": "梦魇",
-      "card_type": "随从",
-      "cost": 6,
-      "ability_keywords": [
-        "入场曲"
-      ],
-      "hit_keywords": [
-        "入场曲",
-        "召唤"
-      ],
-      "confidence": "high",
-      "why_recommended": "Covered keywords: 入场曲, 召唤",
-      "required_primitives": [
-        "入场曲",
-        "召唤"
-      ],
-      "suggested_rule_file": "batch_梦魇.json"
-    },
-    {
       "card_id": 10321120,
       "name": "剑圣的同胞",
       "class_name": "皇家护卫",
@@ -48562,6 +48748,54 @@
         "回复(?!自己\\d+点(?:超进化点|进化点|能量点))"
       ],
       "suggested_rule_file": "batch_精灵.json"
+    },
+    {
+      "card_id": 10522120,
+      "name": "吉祥蛙",
+      "class_name": "皇家护卫",
+      "card_type": "随从",
+      "cost": 7,
+      "ability_keywords": [
+        "进化时"
+      ],
+      "hit_keywords": [
+        "进化时",
+        "回合结束",
+        "将.*加入手牌",
+        "造成.*伤害"
+      ],
+      "confidence": "high",
+      "why_recommended": "Covered keywords: 进化时, 回合结束, 将.*加入手牌",
+      "required_primitives": [
+        "进化时",
+        "回合结束",
+        "将.*加入手牌",
+        "造成.*伤害"
+      ],
+      "suggested_rule_file": "batch_皇家护卫.json"
+    },
+    {
+      "card_id": 10543110,
+      "name": "破灭屠戮者",
+      "class_name": "龙族",
+      "card_type": "随从",
+      "cost": 7,
+      "ability_keywords": [
+        "超进化时"
+      ],
+      "hit_keywords": [
+        "进化时",
+        "超进化",
+        "消失"
+      ],
+      "confidence": "high",
+      "why_recommended": "Covered keywords: 进化时, 超进化, 消失",
+      "required_primitives": [
+        "进化时",
+        "超进化",
+        "消失"
+      ],
+      "suggested_rule_file": "batch_龙族.json"
     }
   ]
 }

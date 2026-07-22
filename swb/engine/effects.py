@@ -82,6 +82,7 @@ class ExprType(str, Enum):
     SOURCE_SPELLBOOST_COUNT = "source_spellboost_count"
     SOURCE_COST = "source_cost"
     BOUND_CARD_COST = "bound_card_cost"
+    BOUND_TARGET_HEALTH = "bound_target_health"
     SOURCE_ATTACK = "source_attack"
     SOURCE_HEALTH = "source_health"
     TARGET_ATTACK = "target_attack"

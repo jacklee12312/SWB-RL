@@ -5764,6 +5764,114 @@
       "source_text_sha256": "7abde1fa8f2c436a6805d99abe026718965b9776b4b5a2dffe05f57cd5b2776f",
       "test_evidence": ["tests/test_real_spell_amulet_crest_batch.py"],
       "notes": "固有突进及由魔力结晶法术生产时的实体关键字均有直接测试。"
+    },
+    {
+      "card_id": 10143130,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】召唤1个巨翼飞龙；本体具有【守护】。",
+      "rule_version": 1,
+      "source_text_sha256": "a2ae2bea130ad1210f336f796f467927e038a5c626acc9e292220ad97f97e8da",
+      "test_evidence": ["tests/test_real_low_coverage_token_amulet_batch.py"],
+      "notes": "固有守护、Token 引用、正常召唤和战场容量不足均有直接测试。"
+    },
+    {
+      "card_id": 10741110,
+      "coverage": "exact",
+      "implemented_text": "【爆能强化_4】召唤2个本卡副本；本体具有【突进】。",
+      "rule_version": 1,
+      "source_text_sha256": "161941dfc9e6d5d0d5d782de8c57b35f4e00cbd72368d9b0cec04a2e10104723",
+      "test_evidence": ["tests/test_real_low_coverage_token_amulet_batch.py"],
+      "notes": "普通与爆能模式、自引用副本、固有突进、容量短缺和 RL 模式掩码均有直接测试。"
+    },
+    {
+      "card_id": 10641120,
+      "coverage": "exact",
+      "implemented_text": "【爆能强化_6】召唤2个本卡副本；【谢幕曲】回复己方主战者1点生命。",
+      "rule_version": 1,
+      "source_text_sha256": "bdcaef57c4272ec3f466c6def0111dbc740978dd20ec0a2f0efa9879b64515bf",
+      "test_evidence": ["tests/test_real_low_coverage_token_amulet_batch.py"],
+      "notes": "爆能自引用生产、三个实体同时死亡、逐个谢幕曲治疗及容量语义均有直接测试。"
+    },
+    {
+      "card_id": 10651120,
+      "coverage": "exact",
+      "implemented_text": "本体具有【突进】；【谢幕曲】将1张怨灵加入手牌。",
+      "rule_version": 1,
+      "source_text_sha256": "57aa0f4f4b34c275bbc7891af55bced3bd15a6678277957838eead17720a0df0",
+      "test_evidence": ["tests/test_real_low_coverage_token_amulet_batch.py"],
+      "notes": "固有突进、死亡触发、Token 引用和手牌产出均有直接测试。"
+    },
+    {
+      "card_id": 10252120,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】召唤2个腐臭的僵尸。",
+      "rule_version": 1,
+      "source_text_sha256": "aa2575937758352cbd03dce271254104ae63633d6aeeb8db349cc4b6b13b0b53",
+      "test_evidence": ["tests/test_real_low_coverage_token_amulet_batch.py"],
+      "notes": "双 Token 顺序、正常路径和只剩一个战场空位的容量路径均有直接测试。"
+    },
+    {
+      "card_id": 10152130,
+      "coverage": "exact",
+      "implemented_text": "本体具有【守护】；【谢幕曲】依次将1张怨灵和1张蝙蝠加入手牌。",
+      "rule_version": 1,
+      "source_text_sha256": "4bf016c818feef26ff83536d407a96c7863b66e78cffe9564d314cf3f73229d7",
+      "test_evidence": ["tests/test_real_low_coverage_token_amulet_batch.py"],
+      "notes": "固有守护、两个 Token 引用与加入顺序、满手牌溢出均有直接测试。"
+    },
+    {
+      "card_id": 10552110,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】依次召唤怨灵和骸骨士兵；【进化时】召唤1个腐臭的僵尸。",
+      "rule_version": 1,
+      "source_text_sha256": "390796b896389e5d981c075adfa454faa62cbae9ddf6f3fafcf18485ea7233cd",
+      "test_evidence": ["tests/test_real_low_coverage_token_amulet_batch.py"],
+      "notes": "主文本、进化文本、三个 Token 引用、召唤顺序及容量路径均有直接测试。"
+    },
+    {
+      "card_id": 10851120,
+      "coverage": "exact",
+      "implemented_text": "【攻击时】对双方主战者各造成1点伤害；【谢幕曲】将1张蝙蝠加入手牌。",
+      "rule_version": 1,
+      "source_text_sha256": "4e7fa39c53b4cba6b8c19d58087828b110dd7066687566238810f979e014f850",
+      "test_evidence": ["tests/test_real_low_coverage_token_amulet_batch.py"],
+      "notes": "攻击前双方主战者受伤、随后的战斗死亡和谢幕曲 Token 产出顺序均有直接测试。"
+    },
+    {
+      "card_id": 10154120,
+      "coverage": "exact",
+      "implemented_text": "本体具有【突进】，每回合可攻击3次；【随从攻击时】破坏交战对手。",
+      "rule_version": 1,
+      "source_text_sha256": "4e915929394ae016ddc2802d7071226afcba6226c332d2e18103f703fe1b07b4",
+      "test_evidence": ["tests/test_real_low_coverage_token_amulet_batch.py"],
+      "notes": "固有突进、三次攻击容量、仅随从目标和战斗前破坏均由命令与 RL 掩码直接测试。"
+    },
+    {
+      "card_id": 10262310,
+      "coverage": "exact",
+      "implemented_text": "选择1个己方【守护】随从使其+0/+1，再对随机1个敌方随从造成等于所选随从当前生命值的伤害。",
+      "rule_version": 1,
+      "source_text_sha256": "89d284bc4e510e2b26981e685d0fd3e0dbfcdc477fb4ae495a0f04404312c972",
+      "test_evidence": ["tests/test_real_low_coverage_token_amulet_batch.py"],
+      "notes": "守护目标过滤、增益后动态生命值、无目标非法原子性、目标离场、空敌方场、随机确定性和 RL 掩码均有直接测试。"
+    },
+    {
+      "card_id": 10113210,
+      "coverage": "exact",
+      "implemented_text": "己方回合结束时【连击_3】抽1张卡；【策动】破坏本护符并选择其他1张己方战场卡返回手牌。",
+      "rule_version": 1,
+      "source_text_sha256": "3b0d9af6187a913f10a607384c374d3919765427a34c58fa4f4a64c14b876df3",
+      "test_evidence": ["tests/test_real_low_coverage_token_amulet_batch.py"],
+      "notes": "连击阈值上下、无倒数、策动无目标非法原子性、来源先离场、随从回手及目标离场均有直接测试。"
+    },
+    {
+      "card_id": 10011210,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】将1张妖精加入手牌；【吟唱_2】；己方妖精种族随从进入战场时随机对1个敌方随从造成1点伤害。",
+      "rule_version": 1,
+      "source_text_sha256": "594bfc7f2f282cd2f603ac303f02f9c396e1ecc86492c380b3386a8ad0fe6d9f",
+      "test_evidence": ["tests/test_real_low_coverage_token_amulet_batch.py"],
+      "notes": "妖精 Token 生产、种族而非卡名过滤、非妖精不触发、随机空目标安全路径和倒数到期均有直接测试。"
     }
   ]
 }

@@ -1,0 +1,203 @@
+{
+  "passives": [
+    {
+      "card_id": 10262310,
+      "kind": "non_intrinsic_keyword",
+      "keyword": "守护",
+      "notes": "守护仅用于筛选法术目标，不是法术本身的固有能力。"
+    },
+    {"card_id": 10154120, "kind": "attacks_per_turn", "amount": 3}
+  ],
+  "intrinsic_keywords": [
+    {"card_id": 10143130, "keywords": ["守护"]},
+    {"card_id": 10741110, "keywords": ["突进"]},
+    {"card_id": 10651120, "keywords": ["突进"]},
+    {"card_id": 10152130, "keywords": ["守护"]},
+    {"card_id": 10154120, "keywords": ["突进"]}
+  ],
+  "activations": [
+    {"card_id": 10113210, "cost": 0}
+  ],
+  "listeners": [
+    {
+      "card_id": 10011210,
+      "zone": "board",
+      "event": "follower_summoned",
+      "event_scope": "owner_event",
+      "source_relation": "any",
+      "event_filter": {"card_type": "随从", "tribe_name": "妖精"},
+      "operations": [
+        {"kind": "damage_unit", "target": "random_enemy_unit", "amount": 1}
+      ]
+    }
+  ],
+  "rules": [
+    {
+      "card_id": 10143130,
+      "trigger": "fanfare",
+      "operations": [
+        {"kind": "summon", "target": "own_leader", "card_id": 90041120}
+      ]
+    },
+    {
+      "card_id": 10741110,
+      "trigger": "fanfare",
+      "operations": [],
+      "play_modes": [
+        {
+          "id": "enhance_4",
+          "type": "enhance",
+          "cost": 4,
+          "operations": [
+            {"kind": "summon", "target": "own_leader", "card_id": 10741110},
+            {"kind": "summon", "target": "own_leader", "card_id": 10741110}
+          ]
+        }
+      ]
+    },
+    {
+      "card_id": 10641120,
+      "trigger": "fanfare",
+      "operations": [],
+      "play_modes": [
+        {
+          "id": "enhance_6",
+          "type": "enhance",
+          "cost": 6,
+          "operations": [
+            {"kind": "summon", "target": "own_leader", "card_id": 10641120},
+            {"kind": "summon", "target": "own_leader", "card_id": 10641120}
+          ]
+        }
+      ]
+    },
+    {
+      "card_id": 10641120,
+      "trigger": "last_words",
+      "operations": [
+        {"kind": "heal_leader", "target": "own_leader", "amount": 1}
+      ]
+    },
+    {
+      "card_id": 10651120,
+      "trigger": "last_words",
+      "operations": [
+        {"kind": "add_card", "target": "own_leader", "card_id": 90051130}
+      ]
+    },
+    {
+      "card_id": 10252120,
+      "trigger": "fanfare",
+      "operations": [
+        {"kind": "summon", "target": "own_leader", "card_id": 90051140},
+        {"kind": "summon", "target": "own_leader", "card_id": 90051140}
+      ]
+    },
+    {
+      "card_id": 10152130,
+      "trigger": "last_words",
+      "operations": [
+        {"kind": "add_card", "target": "own_leader", "card_id": 90051130},
+        {"kind": "add_card", "target": "own_leader", "card_id": 90051120}
+      ]
+    },
+    {
+      "card_id": 10552110,
+      "trigger": "fanfare",
+      "operations": [
+        {"kind": "summon", "target": "own_leader", "card_id": 90051130},
+        {"kind": "summon", "target": "own_leader", "card_id": 90051110}
+      ]
+    },
+    {
+      "card_id": 10552110,
+      "trigger": "evolve",
+      "operations": [
+        {"kind": "summon", "target": "own_leader", "card_id": 90051140}
+      ]
+    },
+    {
+      "card_id": 10851120,
+      "trigger": "attack",
+      "operations": [
+        {"kind": "damage_leader", "target": "own_leader", "amount": 1},
+        {"kind": "damage_leader", "target": "enemy_leader", "amount": 1}
+      ]
+    },
+    {
+      "card_id": 10851120,
+      "trigger": "last_words",
+      "operations": [
+        {"kind": "add_card", "target": "own_leader", "card_id": 90051120}
+      ]
+    },
+    {
+      "card_id": 10154120,
+      "trigger": "attack",
+      "operations": [
+        {"kind": "destroy", "target": "attack_target"}
+      ]
+    },
+    {
+      "card_id": 10262310,
+      "trigger": "play",
+      "operations": [
+        {
+          "kind": "buff_unit",
+          "target": "own_unit",
+          "target_keyword_filter": "守护",
+          "amount": 0,
+          "secondary_amount": 1,
+          "target_key": "ward_target",
+          "requires_target": true
+        },
+        {
+          "kind": "damage_unit",
+          "target": "random_enemy_unit",
+          "amount": {
+            "type": "bound_target_health",
+            "binding_key": "ward_target"
+          }
+        }
+      ]
+    },
+    {
+      "card_id": 10113210,
+      "trigger": "play",
+      "operations": []
+    },
+    {
+      "card_id": 10113210,
+      "trigger": "turn_end",
+      "operations": [
+        {
+          "kind": "draw",
+          "target": "own_leader",
+          "amount": 1,
+          "conditions": [{"type": "controller_combo_at_least", "value": 3}]
+        }
+      ]
+    },
+    {
+      "card_id": 10113210,
+      "trigger": "activate",
+      "operations": [
+        {"kind": "destroy", "target": "self"},
+        {
+          "kind": "return_to_hand",
+          "target": "own_board",
+          "exclude_source": true,
+          "requires_target": true
+        }
+      ]
+    },
+    {
+      "card_id": 10011210,
+      "trigger": "play",
+      "countdown": 2,
+      "operations": [
+        {"kind": "add_card", "target": "own_leader", "card_id": 90011110}
+      ]
+    }
+  ]
+}

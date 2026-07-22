@@ -1,6 +1,6 @@
 # SWB Engine Roadmap
 
-Last refreshed: 2026-07-21.
+Last refreshed: 2026-07-22.
 
 This file tracks implementation priorities and known gaps. Treat executable
 code and tests as the source of truth when this file drifts.
@@ -10,13 +10,13 @@ code and tests as the source of truth when this file drifts.
 - Database: 826 cards, 735 collectible cards, 91 non-collectible/generated
   cards from set `90000`.
 - Latest SVA source: `https://sva.hypd.asia/data/cards.json`.
-- Tests: `python -m unittest discover -s tests -v` discovers 2124 behavioral
-  contracts (2026-07-21 exact-rule batch verification).
+- Tests: `python -m unittest discover -s tests -v` discovers 2140 behavioral
+  contracts (2026-07-22 exact-rule batch verification).
 - RL adapter: fixed 111-action space; the default v1 observation is 294
   floats, opt-in v2 preserves the structured compatibility mapping, and v3
   supplies fixed-dtype NumPy arrays plus a Gymnasium observation space without
   changing action IDs. Hidden decklists are the v3 default.
-- The exact-audit `TrainableCardCatalog` currently admits all 526 exact
+- The exact-audit `TrainableCardCatalog` currently admits all 538 exact
   collectible cards, preloads all 826 definitions for SQLite-free matches, and
   provides deterministic class-valid deck sampling. Self-play no longer uses
   the legacy 2-to-5-card follower pool.
@@ -38,9 +38,9 @@ code and tests as the source of truth when this file drifts.
   step boundary.
 - Ability registry status: 18 implemented, 5 partial, 11 placeholder.
 - Explicit card and demo rules live in `data/rules/`; the current coverage
-  report classifies 630 card IDs with explicit rules, passives, fusion,
+  report classifies 642 card IDs with explicit rules, passives, fusion,
   invocation, activation, Faith, Union Burst, or listener definitions. Current
-  collectible coverage is 526 exact, 0 partial, 193 supported-but-missing-rule,
+  collectible coverage is 538 exact (73.20% of 735), 0 partial, 181 supported-but-missing-rule,
   0 missing-primitive, and 16 text-unclear cards.
 - `data/reports/token_audit.{json,md}` audits all 91 non-collectible/generated
   cards independently of collectible coverage. Database `card_references` and
@@ -55,7 +55,7 @@ code and tests as the source of truth when this file drifts.
   separate column and is covered for all 34; it does not automatically promote
   the 5 partial or 11 placeholder keyword statuses.
 - Coverage now has a backward-compatible clause audit. The legacy summary still
-  reports 526 exact collectible cards, and all 526 now have an explicit exact
+  reports 538 exact collectible cards, and all 538 now have an explicit exact
   text mapping plus named direct test evidence. The versioned sibling registry
   at `data/audits/rule_clauses.json` hashes every imported primary and
   alternate-mode clause; changed source text or stale test evidence invalidates
@@ -64,7 +64,7 @@ code and tests as the source of truth when this file drifts.
   rule version and errata metadata, structured trigger/operation evidence,
   explicit unsupported text, and a stable blocker taxonomy. There are zero
   unverified exact entries and no known missing schema, primitive, targeting,
-  or timing blocker among authored rules. The 193 supported-but-missing-rule
+  or timing blocker among authored rules. The 181 supported-but-missing-rule
   cards are now the per-card structured-content backlog; 16 unclear texts
   remain explicit.
 - RL observation v2 is available behind an explicit version switch. A
@@ -1187,6 +1187,18 @@ slice in this order:
   all primary and crest-mode clauses, paired/self generation, no-target paths,
   hand/board capacity, modified play cost, deterministic replay, RL action-mask
   parity, source hashes, and zero unverified exact entries.
+- Exact file `data/rules/real_low_coverage_token_amulet_batch.json` closes twelve
+  collectibles (`10143130`, `10741110`, `10641120`, `10651120`, `10252120`,
+  `10152130`, `10552110`, `10851120`, `10154120`, `10262310`, `10113210`,
+  `10011210`). Generic `bound_target_health` reads one earlier selected live
+  follower after intervening operations, and safely becomes zero if that entity
+  has left play. The slice reuses self-copy Enhance, intrinsic Rush/Ward,
+  Last Words, ordered Token production, evolution, Follower Strike, three-attack
+  capacity, Combo, Engage, Countdown, Trait listeners, and keyword-filtered
+  targets. Direct tests cover schema rejection, post-buff defense damage,
+  no-target illegal-command immutability, stale choice continuation, seeded
+  random targets, simultaneous deaths, hand/board capacity, Trait mismatch,
+  Token references, clause hashes, and RL action-mask parity.
 
 ## Known Partial Or Unsupported Areas
 

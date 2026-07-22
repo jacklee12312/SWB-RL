@@ -162,7 +162,10 @@ def _expression_binding_keys(
         return set()
     keys = (
         {expression.binding_key}
-        if expression.type is ExprType.BOUND_CARD_COST
+        if expression.type in {
+            ExprType.BOUND_CARD_COST,
+            ExprType.BOUND_TARGET_HEALTH,
+        }
         and expression.binding_key is not None
         else set()
     )
@@ -4694,16 +4697,16 @@ def _parse_expression(raw: dict, source_path: str, card_id: int) -> ValueExpress
     ]
 
     binding_key = raw.get("binding_key")
-    if t is ExprType.BOUND_CARD_COST:
+    if t in {ExprType.BOUND_CARD_COST, ExprType.BOUND_TARGET_HEALTH}:
         if not isinstance(binding_key, str) or not binding_key:
             raise ValueError(
                 f"{source_path}/binding_key card {card_id}: "
-                "bound_card_cost requires a non-empty binding_key"
+                f"{t.value} requires a non-empty binding_key"
             )
     elif binding_key is not None:
         raise ValueError(
             f"{source_path}/binding_key card {card_id}: binding_key is only "
-            "valid for bound_card_cost"
+            "valid for bound_card_cost or bound_target_health"
         )
 
     aggregate_types = {
@@ -4798,6 +4801,7 @@ def _parse_expression(raw: dict, source_path: str, card_id: int) -> ValueExpress
                ExprType.SOURCE_SPELLBOOST_COUNT,
                ExprType.SOURCE_COST,
                ExprType.BOUND_CARD_COST,
+               ExprType.BOUND_TARGET_HEALTH,
                ExprType.SOURCE_ATTACK, ExprType.SOURCE_HEALTH,
                ExprType.TARGET_ATTACK, ExprType.TARGET_HEALTH,
                ExprType.CONTROLLER_SHADOWS, ExprType.OPPONENT_SHADOWS,

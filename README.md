@@ -38,14 +38,14 @@ covered generic boundary, but that never upgrades a partial or placeholder
 keyword whose full tagged-card semantics still require structured rules.
 
 The [rule coverage report](data/reports/rule_coverage.md) now includes a
-clause-audit layer without changing its legacy coverage categories. Of 526
-exact collectible cards, all 526 have explicit implemented text and named direct
+clause-audit layer without changing its legacy coverage categories. Of 538
+exact collectible cards (73.20% of 735), all 538 have explicit implemented text and named direct
 test evidence. The sibling `data/audits/rule_clauses.json` registry hashes every
 imported skill and alternate-mode clause, so a database text change or stale
 test reference invalidates the audit instead of silently retaining exact
 status. The current report has no unverified exact entry or missing generic
 schema, primitive, targeting, or timing blocker. Its remaining collectible gaps
-are 193 missing per-card structured rules plus 16 explicitly unclear texts.
+are 181 missing per-card structured rules plus 16 explicitly unclear texts.
 Rule metadata also supports version and errata fields, and the report
 records the complete imported source snapshot hash.
 
@@ -116,7 +116,7 @@ distributed learner, a policy-strength result, or a complete MCTS
 implementation. Multiprocess PPO currently uses current-policy self-play;
 random, fixed, and historical opponent mixing remains on the single-process
 collector. Snapshot/clone is the search foundation only. Card-rule
-coverage also remains deliberately separate: 193 collectible cards still lack
+coverage also remains deliberately separate: 181 collectible cards still lack
 per-card structured rules and 16 card texts remain explicitly unclear; neither
 group enters the exact training catalog or counts as supported.
 
@@ -159,6 +159,16 @@ The deterministic rules core supports:
   Direct tests cover paired/self card generation, owner-turn scope, empty
   random targets, hand/board capacity, modified play cost, deterministic replay,
   and RL action-mask parity;
+- a 12-card exact Dragon/Nightmare Token-chain, Forest amulet, and Bishop spell
+  batch covers `10143130`, `10741110`, `10641120`, `10651120`, `10252120`,
+  `10152130`, `10552110`, `10851120`, `10154120`, `10262310`, `10113210`,
+  and `10011210`. A generic `bound_target_health` expression reads the current
+  live defense of one earlier selected target after intervening buffs, while
+  existing Enhance, intrinsic keyword, Last Words, Trait listener, Countdown,
+  Engage, Combo, attack-capacity, and output primitives express the remaining
+  clauses. Direct tests cover Token order and references, simultaneous deaths,
+  hand/board capacity, no-target atomicity, stale selections, post-buff damage,
+  deterministic random targets, non-matching Traits, and RL action-mask parity;
 - seeded reset, shuffle, draw, turn progression, official immediate defeat when
   drawing from an empty deck, an auditable alternate victory outcome, atomic
   seeded replacement-deck shuffling,

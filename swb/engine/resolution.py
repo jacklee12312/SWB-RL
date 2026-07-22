@@ -256,7 +256,10 @@ def _expression_binding_keys(
         return set()
     keys = (
         {expression.binding_key}
-        if expression.type is ExprType.BOUND_CARD_COST
+        if expression.type in {
+            ExprType.BOUND_CARD_COST,
+            ExprType.BOUND_TARGET_HEALTH,
+        }
         and expression.binding_key is not None
         else set()
     )
