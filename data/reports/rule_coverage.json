@@ -12,30 +12,30 @@
   },
   "summary": {
     "total_cards": 826,
-    "total_with_rules": 619,
+    "total_with_rules": 630,
     "test_or_synthetic_ids_with_rules": 26,
     "coverage_counts": {
-      "covered_exact": 515,
-      "text_unclear": 17,
-      "supported_missing_rule": 203,
+      "covered_exact": 526,
+      "text_unclear": 16,
+      "supported_missing_rule": 193,
       "token_or_non_collectible": 91
     },
     "clause_audit_counts": {
-      "mapped_exact": 515,
+      "mapped_exact": 526,
       "unverified_exact": 0,
       "partial": 0,
-      "missing_rule": 203,
+      "missing_rule": 193,
       "missing_primitive": 0,
-      "text_unclear": 17,
+      "text_unclear": 16,
       "token_separate_audit": 91
     },
     "blocker_counts": {
-      "missing_rule": 203,
+      "missing_rule": 193,
       "missing_schema": 0,
       "missing_primitive": 0,
       "missing_targeting": 0,
       "timing_unclear": 0,
-      "text_unclear": 17,
+      "text_unclear": 16,
       "external_blocker": 0,
       "audit_unverified": 0
     }
@@ -14471,8 +14471,8 @@
       "cost": 2,
       "is_collectible": true,
       "card_set_id": 10002,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['回合结束', '倒数', '抽取', '纹章', '土之秘术|土之印']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['play', 'emblem_source'], Ops: ['add_earth_sigils', 'gain_emblem', 'draw', 'earth_rite', 'set_stats']",
       "hit_keywords": [
         "回合结束",
         "倒数",
@@ -14491,32 +14491,53 @@
         "【纹章_0】【<color=Keyword>吟唱</color>_1】\n自己的回合结束时，抽取1张卡牌。【<color=Keyword>土之秘术</color>_10】使自己的战场上的所有随从的攻击力/生命值变为2倍。"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "增加1个土之印并获得倒数1的帕斯卡尔之舞纹章；己方回合结束时先抽1张卡，再以土之秘术10令己方全体随从当前攻击力与生命值加倍。",
+        "notes": "职业资源、纹章模式、操作顺序、土片充足与不足、受伤随从和战场容量均有直接测试。",
+        "rule_version": 1,
+        "source_text_sha256": "af2da2e610e1cda1dbbcccd840a41b96868296d7cd67ca5a3635a37bd5ef98c8",
+        "test_evidence": [
+          "tests/test_real_spell_amulet_crest_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10233310:0",
             "source_text": "使自己的战场上的土之印+1。使自己获得『纹章：帕梅拉的舞蹈』。",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           },
           {
             "clause_id": "10233310:1",
             "source_text": "【纹章_0】【<color=Keyword>吟唱</color>_1】\n自己的回合结束时，抽取1张卡牌。【<color=Keyword>土之秘术</color>_10】使自己的战场上的所有随从的攻击力/生命值变为2倍。",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "增加1个土之印并获得倒数1的帕斯卡尔之舞纹章；己方回合结束时先抽1张卡，再以土之秘术10令己方全体随从当前攻击力与生命值加倍。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "af2da2e610e1cda1dbbcccd840a41b96868296d7cd67ca5a3635a37bd5ef98c8",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "play",
+            "emblem_source"
+          ],
+          "effect_kinds": [
+            "add_earth_sigils",
+            "gain_emblem",
+            "draw",
+            "earth_rite",
+            "set_stats"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_spell_amulet_crest_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10234110": {
@@ -18907,8 +18928,8 @@
       "cost": 5,
       "is_collectible": true,
       "card_set_id": 10003,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '抽取', '造成.*伤害']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['fanfare'], Ops: ['damage_unit', 'draw']",
       "hit_keywords": [
         "入场曲",
         "抽取",
@@ -18922,27 +18943,44 @@
         "【<color=Keyword>入场曲</color>】对战场上的其他所有随从造成3点伤害。若本随从的费用不为5，则抽取2张卡牌。"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "入场时对其他所有随从同时造成3点伤害；本卡实际打出费用不为5时抽2张卡。",
+        "notes": "排除来源、双方同时死亡、打印费用与改费分支以及抽牌均有直接测试。",
+        "rule_version": 1,
+        "source_text_sha256": "807fa4f4113430557d247bee29ef4faa6dbc0a0cdbe481edce9b5adeb4261232",
+        "test_evidence": [
+          "tests/test_real_spell_amulet_crest_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10332110:0",
             "source_text": "【<color=Keyword>入场曲</color>】对战场上的其他所有随从造成3点伤害。若本随从的费用不为5，则抽取2张卡牌。",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "入场时对其他所有随从同时造成3点伤害；本卡实际打出费用不为5时抽2张卡。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "807fa4f4113430557d247bee29ef4faa6dbc0a0cdbe481edce9b5adeb4261232",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "fanfare"
+          ],
+          "effect_kinds": [
+            "damage_unit",
+            "draw"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_spell_amulet_crest_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10332210": {
@@ -20173,8 +20211,8 @@
       "cost": 2,
       "is_collectible": true,
       "card_set_id": 10003,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '策动', '抽取', '破坏', '选择一项|模式']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['play', 'activate', 'activation'], Ops: ['choose_one', 'draw', 'buff_unit', 'destroy', 'choose_one', 'draw', 'buff_unit', 'activation']",
       "hit_keywords": [
         "入场曲",
         "策动",
@@ -20183,9 +20221,6 @@
         "选择一项|模式"
       ],
       "missing_primitives": [],
-      "missing_rule_mechanics": [
-        "策动"
-      ],
       "ability_keywords": [
         "入场曲",
         "模式",
@@ -20195,27 +20230,52 @@
         "【<color=Keyword>入场曲</color>】【<color=Keyword>模式</color>】选择1个能力发动。\n<ridx=0>（1）抽取1张卡牌。</ridx>\n<ridx=1>（2）使自己的战场上的随机1个随从+1/+1。</ridx>\n<hr>费用1【<color=Keyword>启动</color>】破坏本卡牌。发动与【<color=Keyword>入场曲</color>】相同的能力。"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "入场时选择抽1张卡或随机使1个己方随从+1/+1；策动1先破坏本护符，再重现相同模式选择。",
+        "notes": "入场与策动的两种模式、费用、来源先离场、抽牌和空己方战场均有直接测试。",
+        "rule_version": 1,
+        "source_text_sha256": "4e10101732a5a65bf6bd363018c3c26d25ab15c294413d4fb22fe62772836f96",
+        "test_evidence": [
+          "tests/test_real_spell_amulet_crest_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10352210:0",
             "source_text": "【<color=Keyword>入场曲</color>】【<color=Keyword>模式</color>】选择1个能力发动。\n<ridx=0>（1）抽取1张卡牌。</ridx>\n<ridx=1>（2）使自己的战场上的随机1个随从+1/+1。</ridx>\n<hr>费用1【<color=Keyword>启动</color>】破坏本卡牌。发动与【<color=Keyword>入场曲</color>】相同的能力。",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "入场时选择抽1张卡或随机使1个己方随从+1/+1；策动1先破坏本护符，再重现相同模式选择。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "4e10101732a5a65bf6bd363018c3c26d25ab15c294413d4fb22fe62772836f96",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "play",
+            "activate",
+            "activation"
+          ],
+          "effect_kinds": [
+            "choose_one",
+            "draw",
+            "buff_unit",
+            "destroy",
+            "choose_one",
+            "draw",
+            "buff_unit",
+            "activation"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_spell_amulet_crest_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10353110": {
@@ -22419,8 +22479,8 @@
       "cost": 1,
       "is_collectible": true,
       "card_set_id": 10004,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['谢幕曲', '连击', '倒数', '将.*加入手牌', '造成.*伤害', '纹章']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['play', 'emblem_source'], Ops: ['damage_unit', 'gain_emblem', 'damage_leader', 'add_card']",
       "hit_keywords": [
         "谢幕曲",
         "连击",
@@ -22441,32 +22501,52 @@
         "【纹章_0】【<color=Keyword>吟唱</color>_1】\n【<color=Keyword>谢幕曲</color>】对对手的主战者造成1点伤害。将1张『<color=Keyword>绮罗星</color>』加入手牌。"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "随机对1个敌方随从造成2点伤害；连击5时获得倒数1的星空纹章；到期时对敌方主战者造成1点伤害并将星空加入手牌。",
+        "notes": "主文本与纹章模式、自引用生产、空目标、连击阈值、倒数到期和手牌容量均有直接测试。",
+        "rule_version": 1,
+        "source_text_sha256": "15dc339f1a185e71435ff6eb08c7622011f15e7886e95f69fd980ce82a742cb2",
+        "test_evidence": [
+          "tests/test_real_spell_amulet_crest_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10412310:0",
             "source_text": "对对手的战场上的随机1个随从造成2点伤害。【<color=Keyword>连击</color>_5】使自己获得『纹章：绮罗星』。",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           },
           {
             "clause_id": "10412310:1",
             "source_text": "【纹章_0】【<color=Keyword>吟唱</color>_1】\n【<color=Keyword>谢幕曲</color>】对对手的主战者造成1点伤害。将1张『<color=Keyword>绮罗星</color>』加入手牌。",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "随机对1个敌方随从造成2点伤害；连击5时获得倒数1的星空纹章；到期时对敌方主战者造成1点伤害并将星空加入手牌。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "15dc339f1a185e71435ff6eb08c7622011f15e7886e95f69fd980ce82a742cb2",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "play",
+            "emblem_source"
+          ],
+          "effect_kinds": [
+            "damage_unit",
+            "gain_emblem",
+            "damage_leader",
+            "add_card"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_spell_amulet_crest_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10413110": {
@@ -22528,8 +22608,8 @@
       "cost": 2,
       "is_collectible": true,
       "card_set_id": 10004,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['奥义', '抽取', '回复(?!自己\\\\d+点(?:超进化点|进化点|能量点))', '选择一项|模式']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['play', 'super_skybound_art'], Ops: ['choose_one', 'draw', 'heal_leader', 'buff_unit', 'add_keyword', 'buff_unit', 'add_keyword', 'draw', 'heal_leader', 'buff_unit', 'add_keyword', 'buff_unit', 'add_keyword']",
       "hit_keywords": [
         "奥义",
         "抽取",
@@ -22537,9 +22617,6 @@
         "选择一项|模式"
       ],
       "missing_primitives": [],
-      "missing_rule_mechanics": [
-        "奥义"
-      ],
       "ability_keywords": [
         "奥义",
         "守护",
@@ -22550,27 +22627,56 @@
         "【<color=Keyword>模式</color>】选择1个能力发动。【<color=Keyword>解放奥义</color>】改为发动所有能力。\n<ridx=0>（1）抽取1张卡牌。回复自己的主战者1点生命值。</ridx>\n<ridx=1>（2）使自己的战场上的所有随从+1/+0且获得【<color=Keyword>突进</color>】。</ridx>\n<ridx=2>（3）使自己的战场上的所有随从+0/+1且获得【<color=Keyword>守护</color>】。</ridx>"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "选择抽1张卡并治疗1点、使己方全体随从+1/+0并获得突进、或使己方全体随从+0/+1并获得守护；Super Skybound Art 改为执行全部模式。",
+        "notes": "三个普通模式、全模式爆发阈值、空战场安全路径、治疗上限和关键字授予均有直接测试。",
+        "rule_version": 1,
+        "source_text_sha256": "db6839a77c3b0c26e722440d421bfe9f3378532324c041592f9621b3abba1158",
+        "test_evidence": [
+          "tests/test_real_spell_amulet_crest_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10413310:0",
             "source_text": "【<color=Keyword>模式</color>】选择1个能力发动。【<color=Keyword>解放奥义</color>】改为发动所有能力。\n<ridx=0>（1）抽取1张卡牌。回复自己的主战者1点生命值。</ridx>\n<ridx=1>（2）使自己的战场上的所有随从+1/+0且获得【<color=Keyword>突进</color>】。</ridx>\n<ridx=2>（3）使自己的战场上的所有随从+0/+1且获得【<color=Keyword>守护</color>】。</ridx>",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "选择抽1张卡并治疗1点、使己方全体随从+1/+0并获得突进、或使己方全体随从+0/+1并获得守护；Super Skybound Art 改为执行全部模式。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "db6839a77c3b0c26e722440d421bfe9f3378532324c041592f9621b3abba1158",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "play",
+            "super_skybound_art"
+          ],
+          "effect_kinds": [
+            "choose_one",
+            "draw",
+            "heal_leader",
+            "buff_unit",
+            "add_keyword",
+            "buff_unit",
+            "add_keyword",
+            "draw",
+            "heal_leader",
+            "buff_unit",
+            "add_keyword",
+            "buff_unit",
+            "add_keyword"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_spell_amulet_crest_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10414110": {
@@ -23997,8 +24103,8 @@
       "cost": 2,
       "is_collectible": true,
       "card_set_id": 10004,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['回合结束', '倒数', '纹章']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['play', 'emblem_source'], Ops: ['gain_emblem', 'buff_unit']",
       "hit_keywords": [
         "回合结束",
         "倒数",
@@ -24014,32 +24120,50 @@
         "【纹章_0】【<color=Keyword>吟唱</color>_4】\n自己的回合结束时，使自己的战场上的随机1个随从+1/+1。"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "获得倒数4的新月水上乐园纹章；每个己方回合结束时随机使1个己方随从+1/+1。",
+        "notes": "纹章模式、己方回合域、倒数和随机随从增益均有直接测试。",
+        "rule_version": 1,
+        "source_text_sha256": "580b13dfc91a95c45056260215c78a87d7bc346a8123b04c6d1426d7a7bda27f",
+        "test_evidence": [
+          "tests/test_real_spell_amulet_crest_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10441310:0",
             "source_text": "使自己获得『纹章：破浪新月』。",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           },
           {
             "clause_id": "10441310:1",
             "source_text": "【纹章_0】【<color=Keyword>吟唱</color>_4】\n自己的回合结束时，使自己的战场上的随机1个随从+1/+1。",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "获得倒数4的新月水上乐园纹章；每个己方回合结束时随机使1个己方随从+1/+1。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "580b13dfc91a95c45056260215c78a87d7bc346a8123b04c6d1426d7a7bda27f",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "play",
+            "emblem_source"
+          ],
+          "effect_kinds": [
+            "gain_emblem",
+            "buff_unit"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_spell_amulet_crest_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10442110": {
@@ -24603,8 +24727,8 @@
       "cost": 2,
       "is_collectible": true,
       "card_set_id": 10004,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['回合结束', '倒数', '回复(?!自己\\\\d+点(?:超进化点|进化点|能量点))', '造成.*伤害', '纹章']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['play', 'emblem_source'], Ops: ['damage_leader', 'gain_emblem', 'damage_unit', 'heal_leader']",
       "hit_keywords": [
         "回合结束",
         "倒数",
@@ -24622,32 +24746,52 @@
         "【纹章_0】【<color=Keyword>吟唱</color>_2】\n自己的回合结束时，对对手的战场上的随机1个随从造成2点伤害。回复自己的主战者1点生命值。"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "对己方主战者造成2点伤害并获得倒数2的勇武锋刃纹章；每个己方回合结束时随机对1个敌方随从造成2点伤害并治疗己方主战者1点。",
+        "notes": "自伤、纹章模式、伤害后治疗、空敌方战场和己方回合域均有直接测试。",
+        "rule_version": 1,
+        "source_text_sha256": "d9f716a00206cdd3e95d94b09c85e7c00d2421dd5f67a356bc4cff4c67eccc83",
+        "test_evidence": [
+          "tests/test_real_spell_amulet_crest_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10451310:0",
             "source_text": "对自己的主战者造成2点伤害。使自己获得『纹章：妖异利刃』。",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           },
           {
             "clause_id": "10451310:1",
             "source_text": "【纹章_0】【<color=Keyword>吟唱</color>_2】\n自己的回合结束时，对对手的战场上的随机1个随从造成2点伤害。回复自己的主战者1点生命值。",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "对己方主战者造成2点伤害并获得倒数2的勇武锋刃纹章；每个己方回合结束时随机对1个敌方随从造成2点伤害并治疗己方主战者1点。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "d9f716a00206cdd3e95d94b09c85e7c00d2421dd5f67a356bc4cff4c67eccc83",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "play",
+            "emblem_source"
+          ],
+          "effect_kinds": [
+            "damage_leader",
+            "gain_emblem",
+            "damage_unit",
+            "heal_leader"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_spell_amulet_crest_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10452110": {
@@ -32229,8 +32373,8 @@
       "cost": 1,
       "is_collectible": true,
       "card_set_id": 10006,
-      "coverage": "text_unclear",
-      "reason": "Support: keyword",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['intrinsic_keywords'], Ops: ['keyword:突进']",
       "hit_keywords": [],
       "missing_primitives": [],
       "ability_keywords": [
@@ -32240,32 +32384,43 @@
         "【<color=Keyword>突进</color>】"
       ],
       "support_level": "keyword",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "本随从具有固有突进。",
+        "notes": "固有突进及由魔力结晶法术生产时的实体关键字均有直接测试。",
+        "rule_version": 1,
+        "source_text_sha256": "7abde1fa8f2c436a6805d99abe026718965b9776b4b5a2dffe05f57cd5b2776f",
+        "test_evidence": [
+          "tests/test_real_spell_amulet_crest_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "text_unclear",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10631110:0",
             "source_text": "【<color=Keyword>突进</color>】",
-            "mapping_status": "text_unclear"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "本随从具有固有突进。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "7abde1fa8f2c436a6805d99abe026718965b9776b4b5a2dffe05f57cd5b2776f",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "intrinsic_keywords"
+          ],
+          "effect_kinds": [
+            "keyword:突进"
+          ]
         },
         "test_evidence": [
-          "tests/test_real_card_rules_batch.py",
-          "tests/test_real_crystal_faith_random_distribution_batch.py",
-          "tests/test_real_royal_rune_bishop_mixed_batch.py",
-          "tests/test_trait_listeners.py"
+          "tests/test_real_spell_amulet_crest_batch.py"
         ],
         "audit_validation_error": null,
-        "blocker_type": "text_unclear"
+        "blocker_type": null
       }
     },
     "10631120": {
@@ -32641,8 +32796,8 @@
       "cost": 3,
       "is_collectible": true,
       "card_set_id": 10006,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['召唤', '爆能强化', '选择一项|模式']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['play', 'play_modes'], Ops: ['choose_one', 'summon', 'buff_unit', 'add_keyword', 'repeat', 'summon', 'buff_unit', 'play_mode', 'summon', 'buff_unit', 'add_keyword', 'repeat', 'summon', 'buff_unit']",
       "hit_keywords": [
         "召唤",
         "爆能强化",
@@ -32658,27 +32813,57 @@
         "【<color=Keyword>模式</color>】选择1个能力发动。\n<ridx=0>（1）召唤1个『<color=Keyword>天晶魔手</color>』，使其+1/+0且获得【<color=Keyword>疾驰</color>】。</ridx>\n<ridx=1>（2）召唤2个『<color=Keyword>天晶魔手</color>』，使其+1/+0。</ridx>\n【<color=Keyword>爆能强化</color>_5】改为发动所有能力。"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "选择召唤1个水晶魔物并使其+1/+0及获得疾驰，或召唤2个水晶魔物并使它们+1/+0；增幅5改为依次执行全部模式。",
+        "notes": "普通模式、增幅全部模式、引用卡生产链、输出绑定、突进/疾驰和战场容量均有直接测试。",
+        "rule_version": 1,
+        "source_text_sha256": "63d2a9136076b0a12cf1c02ee4b889fabf6b37f6a72218f5193dc589e54d491c",
+        "test_evidence": [
+          "tests/test_real_spell_amulet_crest_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10633310:0",
             "source_text": "【<color=Keyword>模式</color>】选择1个能力发动。\n<ridx=0>（1）召唤1个『<color=Keyword>天晶魔手</color>』，使其+1/+0且获得【<color=Keyword>疾驰</color>】。</ridx>\n<ridx=1>（2）召唤2个『<color=Keyword>天晶魔手</color>』，使其+1/+0。</ridx>\n【<color=Keyword>爆能强化</color>_5】改为发动所有能力。",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "选择召唤1个水晶魔物并使其+1/+0及获得疾驰，或召唤2个水晶魔物并使它们+1/+0；增幅5改为依次执行全部模式。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "63d2a9136076b0a12cf1c02ee4b889fabf6b37f6a72218f5193dc589e54d491c",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "play",
+            "play_modes"
+          ],
+          "effect_kinds": [
+            "choose_one",
+            "summon",
+            "buff_unit",
+            "add_keyword",
+            "repeat",
+            "summon",
+            "buff_unit",
+            "play_mode",
+            "summon",
+            "buff_unit",
+            "add_keyword",
+            "repeat",
+            "summon",
+            "buff_unit"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_spell_amulet_crest_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10634110": {
@@ -36084,8 +36269,8 @@
       "cost": 1,
       "is_collectible": true,
       "card_set_id": 10007,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['谢幕曲', '连击', '倒数', '将.*加入手牌', '回复(?!自己\\\\d+点(?:超进化点|进化点|能量点))', '纹章']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['play', 'emblem_source'], Ops: ['heal_leader', 'gain_emblem', 'add_card']",
       "hit_keywords": [
         "谢幕曲",
         "连击",
@@ -36106,32 +36291,51 @@
         "【纹章_0】【<color=Keyword>吟唱</color>_1】\n【<color=Keyword>谢幕曲</color>】将1张『<color=Keyword>恶意扩大</color>』加入手牌。"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "治疗己方主战者1点；连击3时获得倒数1的缩小焦虑纹章；到期时将放大恶意加入手牌。",
+        "notes": "治疗上限、连击阈值、纹章模式、倒数和配对卡生产链均有直接测试。",
+        "rule_version": 1,
+        "source_text_sha256": "8b645fdbc1fc7a2ca6ec377d35b9d1bb9996992f495c75cd0a3e286964e2bdd4",
+        "test_evidence": [
+          "tests/test_real_spell_amulet_crest_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10712310:0",
             "source_text": "回复自己的主战者1点生命值。【<color=Keyword>连击</color>_3】使自己获得『纹章：忧虑缩小』。",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           },
           {
             "clause_id": "10712310:1",
             "source_text": "【纹章_0】【<color=Keyword>吟唱</color>_1】\n【<color=Keyword>谢幕曲</color>】将1张『<color=Keyword>恶意扩大</color>』加入手牌。",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "治疗己方主战者1点；连击3时获得倒数1的缩小焦虑纹章；到期时将放大恶意加入手牌。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "8b645fdbc1fc7a2ca6ec377d35b9d1bb9996992f495c75cd0a3e286964e2bdd4",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "play",
+            "emblem_source"
+          ],
+          "effect_kinds": [
+            "heal_leader",
+            "gain_emblem",
+            "add_card"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_spell_amulet_crest_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10713110": {
@@ -36207,8 +36411,8 @@
       "cost": 1,
       "is_collectible": true,
       "card_set_id": 10007,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['谢幕曲', '连击', '倒数', '将.*加入手牌', '造成.*伤害', '纹章']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['play', 'emblem_source'], Ops: ['damage_unit', 'gain_emblem', 'add_card']",
       "hit_keywords": [
         "谢幕曲",
         "连击",
@@ -36229,32 +36433,51 @@
         "【纹章_0】【<color=Keyword>吟唱</color>_1】\n【<color=Keyword>谢幕曲</color>】将1张『<color=Keyword>忧虑缩小</color>』加入手牌。"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "随机对1个敌方随从造成2点伤害；连击3时获得倒数1的放大恶意纹章；到期时将缩小焦虑加入手牌。",
+        "notes": "随机伤害、空目标、连击阈值、纹章模式和配对卡生产链均有直接测试。",
+        "rule_version": 1,
+        "source_text_sha256": "fb507edccf4b2d6ed5ed487c22b247efe67fba3e9fe2a5b416d6914d459dadec",
+        "test_evidence": [
+          "tests/test_real_spell_amulet_crest_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10713310:0",
             "source_text": "对对手的战场上的随机1个随从造成2点伤害。【<color=Keyword>连击</color>_3】使自己获得『纹章：恶意扩大』。",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           },
           {
             "clause_id": "10713310:1",
             "source_text": "【纹章_0】【<color=Keyword>吟唱</color>_1】\n【<color=Keyword>谢幕曲</color>】将1张『<color=Keyword>忧虑缩小</color>』加入手牌。",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "随机对1个敌方随从造成2点伤害；连击3时获得倒数1的放大恶意纹章；到期时将缩小焦虑加入手牌。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "fb507edccf4b2d6ed5ed487c22b247efe67fba3e9fe2a5b416d6914d459dadec",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "play",
+            "emblem_source"
+          ],
+          "effect_kinds": [
+            "damage_unit",
+            "gain_emblem",
+            "add_card"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_spell_amulet_crest_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10714110": {
@@ -48165,29 +48388,6 @@
       "suggested_rule_file": "batch_超越者.json"
     },
     {
-      "card_id": 10332110,
-      "name": "真理的祈祷者",
-      "class_name": "巫师",
-      "card_type": "随从",
-      "cost": 5,
-      "ability_keywords": [
-        "入场曲"
-      ],
-      "hit_keywords": [
-        "入场曲",
-        "抽取",
-        "造成.*伤害"
-      ],
-      "confidence": "high",
-      "why_recommended": "Covered keywords: 入场曲, 抽取, 造成.*伤害",
-      "required_primitives": [
-        "入场曲",
-        "抽取",
-        "造成.*伤害"
-      ],
-      "suggested_rule_file": "batch_巫师.json"
-    },
-    {
       "card_id": 10502110,
       "name": "星辉女神",
       "class_name": "中立",
@@ -48341,6 +48541,27 @@
         "舍弃"
       ],
       "suggested_rule_file": "batch_皇家护卫.json"
+    },
+    {
+      "card_id": 10411110,
+      "name": "爱恨舞者·晧&曜",
+      "class_name": "精灵",
+      "card_type": "随从",
+      "cost": 7,
+      "ability_keywords": [
+        "攻击时"
+      ],
+      "hit_keywords": [
+        "攻击时",
+        "回复(?!自己\\d+点(?:超进化点|进化点|能量点))"
+      ],
+      "confidence": "high",
+      "why_recommended": "Covered keywords: 攻击时, 回复(?!自己\\d+点(?:超进化点|进化点|能量点))",
+      "required_primitives": [
+        "攻击时",
+        "回复(?!自己\\d+点(?:超进化点|进化点|能量点))"
+      ],
+      "suggested_rule_file": "batch_精灵.json"
     }
   ]
 }

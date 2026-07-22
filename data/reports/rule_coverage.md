@@ -8,40 +8,40 @@
 | Metric | Count |
 |---|---|
 | Total cards in DB | 826 |
-| Cards with rules | 619 |
+| Cards with rules | 630 |
 | Test/synthetic IDs with rules | 26 |
 
 ### Coverage Categories
 
 | Category | Count |
 |---|---|
-| covered_exact | 515 |
-| text_unclear | 17 |
-| supported_missing_rule | 203 |
+| covered_exact | 526 |
+| text_unclear | 16 |
+| supported_missing_rule | 193 |
 | token_or_non_collectible | 91 |
 
 ### Clause Audit
 
 | Clause status | Count |
 |---|---:|
-| mapped_exact | 515 |
+| mapped_exact | 526 |
 | unverified_exact | 0 |
 | partial | 0 |
-| missing_rule | 203 |
+| missing_rule | 193 |
 | missing_primitive | 0 |
-| text_unclear | 17 |
+| text_unclear | 16 |
 | token_separate_audit | 91 |
 
 ### Blocker Types
 
 | Blocker | Count |
 |---|---:|
-| missing_rule | 203 |
+| missing_rule | 193 |
 | missing_schema | 0 |
 | missing_primitive | 0 |
 | missing_targeting | 0 |
 | timing_unclear | 0 |
-| text_unclear | 17 |
+| text_unclear | 16 |
 | external_blocker | 0 |
 | audit_unverified | 0 |
 
@@ -116,11 +116,11 @@
 | 10 | 10523110 | 不动如山的将校 | 皇家护卫 | 4 | 随从 | high | Covered keywords: 进化时, 超进化, 回合结束 |
 | 11 | 10603210 | 黑暗次元 | 中立 | 4 | 护符 | high | Covered keywords: 回合结束, 倒数, 造成.*伤害 |
 | 12 | 10272120 | 绝望之王·阿基姆 | 超越者 | 5 | 随从 | high | Covered keywords: 进化时, 消失, 召唤 |
-| 13 | 10332110 | 真理的祈祷者 | 巫师 | 5 | 随从 | high | Covered keywords: 入场曲, 抽取, 造成.*伤害 |
-| 14 | 10502110 | 星辉女神 | 中立 | 5 | 随从 | high | Covered keywords: 进化时, 将.*加入手牌, 舍弃 |
-| 15 | 10613110 | 慈惠的心腹 | 精灵 | 5 | 随从 | high | Covered keywords: 入场曲, 进化时, 回复(?!自己\d+点(?:超进化点|进化点|能量点)) |
-| 16 | 10142110 | 煌牙的义勇·基德 | 龙族 | 6 | 随从 | high | Covered keywords: 舍弃 |
-| 17 | 10163110 | 终焉的白骨圣堂之主 | 主教 | 6 | 随从 | high | Covered keywords: 入场曲, 造成.*伤害, 破坏 |
-| 18 | 10252120 | 尸兵 | 梦魇 | 6 | 随从 | high | Covered keywords: 入场曲, 召唤 |
-| 19 | 10321120 | 剑圣的同胞 | 皇家护卫 | 6 | 随从 | high | Covered keywords: 谢幕曲, 召唤 |
-| 20 | 10521110 | 好施的名人 | 皇家护卫 | 6 | 随从 | high | Covered keywords: 入场曲, 回复(?!自己\d+点(?:超进化点|进化点|能量点)), 舍弃 |
+| 13 | 10502110 | 星辉女神 | 中立 | 5 | 随从 | high | Covered keywords: 进化时, 将.*加入手牌, 舍弃 |
+| 14 | 10613110 | 慈惠的心腹 | 精灵 | 5 | 随从 | high | Covered keywords: 入场曲, 进化时, 回复(?!自己\d+点(?:超进化点|进化点|能量点)) |
+| 15 | 10142110 | 煌牙的义勇·基德 | 龙族 | 6 | 随从 | high | Covered keywords: 舍弃 |
+| 16 | 10163110 | 终焉的白骨圣堂之主 | 主教 | 6 | 随从 | high | Covered keywords: 入场曲, 造成.*伤害, 破坏 |
+| 17 | 10252120 | 尸兵 | 梦魇 | 6 | 随从 | high | Covered keywords: 入场曲, 召唤 |
+| 18 | 10321120 | 剑圣的同胞 | 皇家护卫 | 6 | 随从 | high | Covered keywords: 谢幕曲, 召唤 |
+| 19 | 10521110 | 好施的名人 | 皇家护卫 | 6 | 随从 | high | Covered keywords: 入场曲, 回复(?!自己\d+点(?:超进化点|进化点|能量点)), 舍弃 |
+| 20 | 10411110 | 爱恨舞者·晧&曜 | 精灵 | 7 | 随从 | high | Covered keywords: 攻击时, 回复(?!自己\d+点(?:超进化点|进化点|能量点)) |

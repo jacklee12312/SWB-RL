@@ -10,13 +10,13 @@ code and tests as the source of truth when this file drifts.
 - Database: 826 cards, 735 collectible cards, 91 non-collectible/generated
   cards from set `90000`.
 - Latest SVA source: `https://sva.hypd.asia/data/cards.json`.
-- Tests: `python -m unittest discover -s tests -v` discovers 2111 behavioral
+- Tests: `python -m unittest discover -s tests -v` discovers 2124 behavioral
   contracts (2026-07-21 exact-rule batch verification).
 - RL adapter: fixed 111-action space; the default v1 observation is 294
   floats, opt-in v2 preserves the structured compatibility mapping, and v3
   supplies fixed-dtype NumPy arrays plus a Gymnasium observation space without
   changing action IDs. Hidden decklists are the v3 default.
-- The exact-audit `TrainableCardCatalog` currently admits all 515 exact
+- The exact-audit `TrainableCardCatalog` currently admits all 526 exact
   collectible cards, preloads all 826 definitions for SQLite-free matches, and
   provides deterministic class-valid deck sampling. Self-play no longer uses
   the legacy 2-to-5-card follower pool.
@@ -38,10 +38,10 @@ code and tests as the source of truth when this file drifts.
   step boundary.
 - Ability registry status: 18 implemented, 5 partial, 11 placeholder.
 - Explicit card and demo rules live in `data/rules/`; the current coverage
-  report classifies 619 card IDs with explicit rules, passives, fusion,
+  report classifies 630 card IDs with explicit rules, passives, fusion,
   invocation, activation, Faith, Union Burst, or listener definitions. Current
-  collectible coverage is 515 exact, 0 partial, 203 supported-but-missing-rule,
-  0 missing-primitive, and 17 text-unclear cards.
+  collectible coverage is 526 exact, 0 partial, 193 supported-but-missing-rule,
+  0 missing-primitive, and 16 text-unclear cards.
 - `data/reports/token_audit.{json,md}` audits all 91 non-collectible/generated
   cards independently of collectible coverage. Database `card_references` and
   executable structured producers are reported separately: all 91 tokens have a
@@ -55,7 +55,7 @@ code and tests as the source of truth when this file drifts.
   separate column and is covered for all 34; it does not automatically promote
   the 5 partial or 11 placeholder keyword statuses.
 - Coverage now has a backward-compatible clause audit. The legacy summary still
-  reports 515 exact collectible cards, and all 515 now have an explicit exact
+  reports 526 exact collectible cards, and all 526 now have an explicit exact
   text mapping plus named direct test evidence. The versioned sibling registry
   at `data/audits/rule_clauses.json` hashes every imported primary and
   alternate-mode clause; changed source text or stale test evidence invalidates
@@ -64,8 +64,8 @@ code and tests as the source of truth when this file drifts.
   rule version and errata metadata, structured trigger/operation evidence,
   explicit unsupported text, and a stable blocker taxonomy. There are zero
   unverified exact entries and no known missing schema, primitive, targeting,
-  or timing blocker among authored rules. The 203 supported-but-missing-rule
-  cards are now the per-card structured-content backlog; 17 unclear texts
+  or timing blocker among authored rules. The 193 supported-but-missing-rule
+  cards are now the per-card structured-content backlog; 16 unclear texts
   remain explicit.
 - RL observation v2 is available behind an explicit version switch. A
   configured card vocabulary supplies stable categorical indices for own-hand,
@@ -1178,6 +1178,15 @@ slice in this order:
   hand capacity, insufficient resources, deterministic random effects, source
   hashes, Token/mode references, backward-compatible filter parsing, and RL
   action-mask parity.
+- Exact file `data/rules/real_spell_amulet_crest_batch.json` closes eleven
+  collectibles (`10412310`, `10441310`, `10451310`, `10712310`, `10713310`,
+  `10233310`, `10352210`, `10633310`, `10413310`, `10332110`, `10631110`).
+  The slice reuses Combo, countdown crests, owner-turn listeners, Earth Rite,
+  Engage, choose-one, Enhance replacement, Super Skybound Art, source-cost
+  conditions, automatic repeat, and summon-output bindings. Direct tests cover
+  all primary and crest-mode clauses, paired/self generation, no-target paths,
+  hand/board capacity, modified play cost, deterministic replay, RL action-mask
+  parity, source hashes, and zero unverified exact entries.
 
 ## Known Partial Or Unsupported Areas
 

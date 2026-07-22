@@ -5665,6 +5665,105 @@
       "source_text_sha256": "348a546ea069a93573b26e23210f1c4801575ceaff3817a42894e118194cf396",
       "test_evidence": ["tests/test_real_royal_rune_bishop_mixed_batch.py"],
       "notes": "护符阈值上下、自我进化、条件屏障、固有守护和谢幕曲治疗均有直接测试。"
+    },
+    {
+      "card_id": 10412310,
+      "coverage": "exact",
+      "implemented_text": "随机对1个敌方随从造成2点伤害；连击5时获得倒数1的星空纹章；到期时对敌方主战者造成1点伤害并将星空加入手牌。",
+      "rule_version": 1,
+      "source_text_sha256": "15dc339f1a185e71435ff6eb08c7622011f15e7886e95f69fd980ce82a742cb2",
+      "test_evidence": ["tests/test_real_spell_amulet_crest_batch.py"],
+      "notes": "主文本与纹章模式、自引用生产、空目标、连击阈值、倒数到期和手牌容量均有直接测试。"
+    },
+    {
+      "card_id": 10441310,
+      "coverage": "exact",
+      "implemented_text": "获得倒数4的新月水上乐园纹章；每个己方回合结束时随机使1个己方随从+1/+1。",
+      "rule_version": 1,
+      "source_text_sha256": "580b13dfc91a95c45056260215c78a87d7bc346a8123b04c6d1426d7a7bda27f",
+      "test_evidence": ["tests/test_real_spell_amulet_crest_batch.py"],
+      "notes": "纹章模式、己方回合域、倒数和随机随从增益均有直接测试。"
+    },
+    {
+      "card_id": 10451310,
+      "coverage": "exact",
+      "implemented_text": "对己方主战者造成2点伤害并获得倒数2的勇武锋刃纹章；每个己方回合结束时随机对1个敌方随从造成2点伤害并治疗己方主战者1点。",
+      "rule_version": 1,
+      "source_text_sha256": "d9f716a00206cdd3e95d94b09c85e7c00d2421dd5f67a356bc4cff4c67eccc83",
+      "test_evidence": ["tests/test_real_spell_amulet_crest_batch.py"],
+      "notes": "自伤、纹章模式、伤害后治疗、空敌方战场和己方回合域均有直接测试。"
+    },
+    {
+      "card_id": 10712310,
+      "coverage": "exact",
+      "implemented_text": "治疗己方主战者1点；连击3时获得倒数1的缩小焦虑纹章；到期时将放大恶意加入手牌。",
+      "rule_version": 1,
+      "source_text_sha256": "8b645fdbc1fc7a2ca6ec377d35b9d1bb9996992f495c75cd0a3e286964e2bdd4",
+      "test_evidence": ["tests/test_real_spell_amulet_crest_batch.py"],
+      "notes": "治疗上限、连击阈值、纹章模式、倒数和配对卡生产链均有直接测试。"
+    },
+    {
+      "card_id": 10713310,
+      "coverage": "exact",
+      "implemented_text": "随机对1个敌方随从造成2点伤害；连击3时获得倒数1的放大恶意纹章；到期时将缩小焦虑加入手牌。",
+      "rule_version": 1,
+      "source_text_sha256": "fb507edccf4b2d6ed5ed487c22b247efe67fba3e9fe2a5b416d6914d459dadec",
+      "test_evidence": ["tests/test_real_spell_amulet_crest_batch.py"],
+      "notes": "随机伤害、空目标、连击阈值、纹章模式和配对卡生产链均有直接测试。"
+    },
+    {
+      "card_id": 10233310,
+      "coverage": "exact",
+      "implemented_text": "增加1个土之印并获得倒数1的帕斯卡尔之舞纹章；己方回合结束时先抽1张卡，再以土之秘术10令己方全体随从当前攻击力与生命值加倍。",
+      "rule_version": 1,
+      "source_text_sha256": "af2da2e610e1cda1dbbcccd840a41b96868296d7cd67ca5a3635a37bd5ef98c8",
+      "test_evidence": ["tests/test_real_spell_amulet_crest_batch.py"],
+      "notes": "职业资源、纹章模式、操作顺序、土片充足与不足、受伤随从和战场容量均有直接测试。"
+    },
+    {
+      "card_id": 10352210,
+      "coverage": "exact",
+      "implemented_text": "入场时选择抽1张卡或随机使1个己方随从+1/+1；策动1先破坏本护符，再重现相同模式选择。",
+      "rule_version": 1,
+      "source_text_sha256": "4e10101732a5a65bf6bd363018c3c26d25ab15c294413d4fb22fe62772836f96",
+      "test_evidence": ["tests/test_real_spell_amulet_crest_batch.py"],
+      "notes": "入场与策动的两种模式、费用、来源先离场、抽牌和空己方战场均有直接测试。"
+    },
+    {
+      "card_id": 10633310,
+      "coverage": "exact",
+      "implemented_text": "选择召唤1个水晶魔物并使其+1/+0及获得疾驰，或召唤2个水晶魔物并使它们+1/+0；增幅5改为依次执行全部模式。",
+      "rule_version": 1,
+      "source_text_sha256": "63d2a9136076b0a12cf1c02ee4b889fabf6b37f6a72218f5193dc589e54d491c",
+      "test_evidence": ["tests/test_real_spell_amulet_crest_batch.py"],
+      "notes": "普通模式、增幅全部模式、引用卡生产链、输出绑定、突进/疾驰和战场容量均有直接测试。"
+    },
+    {
+      "card_id": 10413310,
+      "coverage": "exact",
+      "implemented_text": "选择抽1张卡并治疗1点、使己方全体随从+1/+0并获得突进、或使己方全体随从+0/+1并获得守护；Super Skybound Art 改为执行全部模式。",
+      "rule_version": 1,
+      "source_text_sha256": "db6839a77c3b0c26e722440d421bfe9f3378532324c041592f9621b3abba1158",
+      "test_evidence": ["tests/test_real_spell_amulet_crest_batch.py"],
+      "notes": "三个普通模式、全模式爆发阈值、空战场安全路径、治疗上限和关键字授予均有直接测试。"
+    },
+    {
+      "card_id": 10332110,
+      "coverage": "exact",
+      "implemented_text": "入场时对其他所有随从同时造成3点伤害；本卡实际打出费用不为5时抽2张卡。",
+      "rule_version": 1,
+      "source_text_sha256": "807fa4f4113430557d247bee29ef4faa6dbc0a0cdbe481edce9b5adeb4261232",
+      "test_evidence": ["tests/test_real_spell_amulet_crest_batch.py"],
+      "notes": "排除来源、双方同时死亡、打印费用与改费分支以及抽牌均有直接测试。"
+    },
+    {
+      "card_id": 10631110,
+      "coverage": "exact",
+      "implemented_text": "本随从具有固有突进。",
+      "rule_version": 1,
+      "source_text_sha256": "7abde1fa8f2c436a6805d99abe026718965b9776b4b5a2dffe05f57cd5b2776f",
+      "test_evidence": ["tests/test_real_spell_amulet_crest_batch.py"],
+      "notes": "固有突进及由魔力结晶法术生产时的实体关键字均有直接测试。"
     }
   ]
 }

@@ -1,0 +1,356 @@
+{
+  "intrinsic_keywords": [
+    {"card_id": 10631110, "keywords": ["突进"]}
+  ],
+  "activations": [
+    {"card_id": 10352210, "cost": 1}
+  ],
+  "union_bursts": [
+    {
+      "card_id": 10413310,
+      "kind": "super_skybound_art",
+      "replace_base_operations": true,
+      "operations": [
+        {"kind": "draw", "target": "own_leader", "amount": 1},
+        {"kind": "heal_leader", "target": "own_leader", "amount": 1},
+        {"kind": "buff_unit", "target": "all_own_units", "amount": 1, "secondary_amount": 0},
+        {"kind": "add_keyword", "target": "all_own_units", "keyword": "突进"},
+        {"kind": "buff_unit", "target": "all_own_units", "amount": 0, "secondary_amount": 1},
+        {"kind": "add_keyword", "target": "all_own_units", "keyword": "守护"}
+      ]
+    }
+  ],
+  "emblems": [
+    {
+      "id": "starry_sky",
+      "source_card_id": 10412310,
+      "stacking": "allow",
+      "countdown": 1,
+      "triggers": [],
+      "on_expire": [
+        {"kind": "damage_leader", "target": "enemy_leader", "amount": 1},
+        {"kind": "add_card", "target": "own_leader", "card_id": 10412310}
+      ]
+    },
+    {
+      "id": "crescent_tube_ride",
+      "source_card_id": 10441310,
+      "stacking": "allow",
+      "countdown": 4,
+      "triggers": [
+        {
+          "trigger": "turn_end",
+          "turn_scope": "owner_turn",
+          "operations": [
+            {"kind": "buff_unit", "target": "random_own_unit", "amount": 1, "secondary_amount": 1}
+          ]
+        }
+      ]
+    },
+    {
+      "id": "valiant_edge",
+      "source_card_id": 10451310,
+      "stacking": "allow",
+      "countdown": 2,
+      "triggers": [
+        {
+          "trigger": "turn_end",
+          "turn_scope": "owner_turn",
+          "operations": [
+            {"kind": "damage_unit", "target": "random_enemy_unit", "amount": 2},
+            {"kind": "heal_leader", "target": "own_leader", "amount": 1}
+          ]
+        }
+      ]
+    },
+    {
+      "id": "minimized_anxiety",
+      "source_card_id": 10712310,
+      "stacking": "allow",
+      "countdown": 1,
+      "triggers": [],
+      "on_expire": [
+        {"kind": "add_card", "target": "own_leader", "card_id": 10713310}
+      ]
+    },
+    {
+      "id": "magnified_malice",
+      "source_card_id": 10713310,
+      "stacking": "allow",
+      "countdown": 1,
+      "triggers": [],
+      "on_expire": [
+        {"kind": "add_card", "target": "own_leader", "card_id": 10712310}
+      ]
+    },
+    {
+      "id": "pascales_dance",
+      "source_card_id": 10233310,
+      "stacking": "allow",
+      "countdown": 1,
+      "triggers": [
+        {
+          "trigger": "turn_end",
+          "turn_scope": "owner_turn",
+          "operations": [
+            {"kind": "draw", "target": "own_leader", "amount": 1},
+            {
+              "kind": "earth_rite",
+              "target": "own_leader",
+              "amount": 10,
+              "operations": [
+                {
+                  "kind": "set_stats",
+                  "target": "all_own_units",
+                  "amount": {
+                    "type": "multiply",
+                    "values": [
+                      {"type": "target_attack"},
+                      {"type": "constant", "value": 2}
+                    ]
+                  },
+                  "secondary_amount": {
+                    "type": "multiply",
+                    "values": [
+                      {"type": "target_health"},
+                      {"type": "constant", "value": 2}
+                    ]
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "rules": [
+    {
+      "card_id": 10412310,
+      "trigger": "play",
+      "operations": [
+        {"kind": "damage_unit", "target": "random_enemy_unit", "amount": 2},
+        {
+          "kind": "gain_emblem",
+          "target": "own_leader",
+          "emblem_id": "starry_sky",
+          "conditions": [{"type": "controller_combo_at_least", "value": 5}]
+        }
+      ]
+    },
+    {
+      "card_id": 10441310,
+      "trigger": "play",
+      "operations": [
+        {"kind": "gain_emblem", "target": "own_leader", "emblem_id": "crescent_tube_ride"}
+      ]
+    },
+    {
+      "card_id": 10451310,
+      "trigger": "play",
+      "operations": [
+        {"kind": "damage_leader", "target": "own_leader", "amount": 2},
+        {"kind": "gain_emblem", "target": "own_leader", "emblem_id": "valiant_edge"}
+      ]
+    },
+    {
+      "card_id": 10712310,
+      "trigger": "play",
+      "operations": [
+        {"kind": "heal_leader", "target": "own_leader", "amount": 1},
+        {
+          "kind": "gain_emblem",
+          "target": "own_leader",
+          "emblem_id": "minimized_anxiety",
+          "conditions": [{"type": "controller_combo_at_least", "value": 3}]
+        }
+      ]
+    },
+    {
+      "card_id": 10713310,
+      "trigger": "play",
+      "operations": [
+        {"kind": "damage_unit", "target": "random_enemy_unit", "amount": 2},
+        {
+          "kind": "gain_emblem",
+          "target": "own_leader",
+          "emblem_id": "magnified_malice",
+          "conditions": [{"type": "controller_combo_at_least", "value": 3}]
+        }
+      ]
+    },
+    {
+      "card_id": 10233310,
+      "trigger": "play",
+      "operations": [
+        {"kind": "add_earth_sigils", "target": "own_leader", "amount": 1},
+        {"kind": "gain_emblem", "target": "own_leader", "emblem_id": "pascales_dance"}
+      ]
+    },
+    {
+      "card_id": 10352210,
+      "trigger": "play",
+      "operations": [
+        {
+          "kind": "choose_one",
+          "target": "own_leader",
+          "options": [
+            {
+              "id": "draw_one",
+              "label": "抽取1张卡牌",
+              "operations": [
+                {"kind": "draw", "target": "own_leader", "amount": 1}
+              ]
+            },
+            {
+              "id": "buff_random",
+              "label": "随机使1个己方随从+1/+1",
+              "operations": [
+                {"kind": "buff_unit", "target": "random_own_unit", "amount": 1, "secondary_amount": 1}
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "card_id": 10352210,
+      "trigger": "activate",
+      "operations": [
+        {"kind": "destroy", "target": "self"},
+        {
+          "kind": "choose_one",
+          "target": "own_leader",
+          "options": [
+            {
+              "id": "draw_one",
+              "label": "抽取1张卡牌",
+              "operations": [
+                {"kind": "draw", "target": "own_leader", "amount": 1}
+              ]
+            },
+            {
+              "id": "buff_random",
+              "label": "随机使1个己方随从+1/+1",
+              "operations": [
+                {"kind": "buff_unit", "target": "random_own_unit", "amount": 1, "secondary_amount": 1}
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "card_id": 10633310,
+      "trigger": "play",
+      "operations": [
+        {
+          "kind": "choose_one",
+          "target": "own_leader",
+          "options": [
+            {
+              "id": "storm_spawn",
+              "label": "召唤1个天晶魔手，使其+1/+0并获得疾驰",
+              "operations": [
+                {"kind": "summon", "target": "own_leader", "card_id": 10631110, "target_key": "storm_spawn"},
+                {"kind": "buff_unit", "target": "previous_target", "target_key": "storm_spawn", "amount": 1, "secondary_amount": 0},
+                {"kind": "add_keyword", "target": "previous_target", "target_key": "storm_spawn", "keyword": "疾驰"}
+              ]
+            },
+            {
+              "id": "two_spawns",
+              "label": "召唤2个天晶魔手，使其+1/+0",
+              "operations": [
+                {
+                  "kind": "repeat",
+                  "target": "own_leader",
+                  "amount": 2,
+                  "operations": [
+                    {"kind": "summon", "target": "own_leader", "card_id": 10631110, "target_key": "two_spawns"},
+                    {"kind": "buff_unit", "target": "previous_target", "target_key": "two_spawns", "amount": 1, "secondary_amount": 0}
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "play_modes": [
+        {
+          "id": "enhance_5",
+          "type": "enhance",
+          "cost": 5,
+          "replace_base_operations": true,
+          "operations": [
+            {"kind": "summon", "target": "own_leader", "card_id": 10631110, "target_key": "storm_spawn"},
+            {"kind": "buff_unit", "target": "previous_target", "target_key": "storm_spawn", "amount": 1, "secondary_amount": 0},
+            {"kind": "add_keyword", "target": "previous_target", "target_key": "storm_spawn", "keyword": "疾驰"},
+            {
+              "kind": "repeat",
+              "target": "own_leader",
+              "amount": 2,
+              "operations": [
+                {"kind": "summon", "target": "own_leader", "card_id": 10631110, "target_key": "two_spawns"},
+                {"kind": "buff_unit", "target": "previous_target", "target_key": "two_spawns", "amount": 1, "secondary_amount": 0}
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "card_id": 10413310,
+      "trigger": "play",
+      "operations": [
+        {
+          "kind": "choose_one",
+          "target": "own_leader",
+          "options": [
+            {
+              "id": "draw_heal",
+              "label": "抽取1张卡牌并回复主战者1点生命",
+              "operations": [
+                {"kind": "draw", "target": "own_leader", "amount": 1},
+                {"kind": "heal_leader", "target": "own_leader", "amount": 1}
+              ]
+            },
+            {
+              "id": "attack_rush",
+              "label": "使所有己方随从+1/+0并获得突进",
+              "operations": [
+                {"kind": "buff_unit", "target": "all_own_units", "amount": 1, "secondary_amount": 0},
+                {"kind": "add_keyword", "target": "all_own_units", "keyword": "突进"}
+              ]
+            },
+            {
+              "id": "health_ward",
+              "label": "使所有己方随从+0/+1并获得守护",
+              "operations": [
+                {"kind": "buff_unit", "target": "all_own_units", "amount": 0, "secondary_amount": 1},
+                {"kind": "add_keyword", "target": "all_own_units", "keyword": "守护"}
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "card_id": 10332110,
+      "trigger": "fanfare",
+      "operations": [
+        {"kind": "damage_unit", "target": "all_units", "amount": 3, "exclude_source": true},
+        {
+          "kind": "draw",
+          "target": "own_leader",
+          "amount": 2,
+          "conditions": [
+            {
+              "type": "not",
+              "conditions": [{"type": "source_cost_equals", "value": 5}]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
