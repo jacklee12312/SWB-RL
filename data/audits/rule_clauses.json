@@ -6007,6 +6007,114 @@
       "source_text_sha256": "0638286c73db3ad2ecd9222236d994422dc91821e27688970aed3dd3576cf155",
       "test_evidence": ["tests/test_real_balanced_trigger_resource_batch.py"],
       "notes": "普通本体入场治疗、固有关键字、随从死亡不错误自召唤、结晶模式、倒数到期、结晶谢幕曲和被召唤本体再次治疗均有直接测试。"
+    },
+    {
+      "card_id": 10162110,
+      "coverage": "exact",
+      "implemented_text": "每当己方具有【守护】的随从被破坏，本体+1/+1；【进化时】本体获得【屏障】。",
+      "rule_version": 1,
+      "source_text_sha256": "7a6733fb672789a2a951c91c32d6c84bd7859279c4a5a4f244443765a725ab39",
+      "test_evidence": ["tests/test_real_ward_marine_crest_listener_batch.py"],
+      "notes": "死亡时关键字快照、己方与敌方事件范围、同时死亡中的非守护过滤、来源以外限制、+1/+1 和进化屏障均有直接测试。"
+    },
+    {
+      "card_id": 10361110,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】获得【吟唱_4】纹章；己方回合结束且本回合无己方随从攻击时，随机使1个己方随从-2/-0并获得【守护】。",
+      "rule_version": 1,
+      "source_text_sha256": "fc17baeca1fdde1daec8216de05c4cee04a7d7d039b22d9c42c137805eb4af3e",
+      "test_evidence": ["tests/test_real_ward_marine_crest_listener_batch.py"],
+      "notes": "纹章倒数、攻击历史阈值、随机目标单次绑定、负攻击下限、空场安全路径与固定种子复现均有直接测试。"
+    },
+    {
+      "card_id": 10362110,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】获得【吟唱_4】纹章；本体具有【守护】；己方回合结束且本回合无己方随从攻击时回复己方主战者1点生命。",
+      "rule_version": 1,
+      "source_text_sha256": "e810049efc9ce6b4561d6610c850f53edc57cdb377a1d0d68122794485ab79ea",
+      "test_evidence": ["tests/test_real_ward_marine_crest_listener_batch.py"],
+      "notes": "固有守护、纹章倒数、无攻击时治疗及发生攻击时跳过均有直接测试。"
+    },
+    {
+      "card_id": 10563110,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】回复己方主战者1点生命；本体具有【守护】；己方回合中主战者实际回复时召唤纯洁白狐；【进化时】与【超进化时】均重放入场治疗。",
+      "rule_version": 1,
+      "source_text_sha256": "ad24a7a76907912e0c0569dde751ddbe9d6769ce770fc930251e6cc96a5f21b0",
+      "test_evidence": ["tests/test_real_ward_marine_crest_listener_batch.py"],
+      "notes": "通用主战者回复监听、满血不触发、对手回合不触发、入场/进化/超进化治疗、超进化同时触发进化文本及满场容量均有直接测试。"
+    },
+    {
+      "card_id": 10663110,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】召唤1个本卡基础副本；本体具有【必杀】【灵气】；【进化时】选择并破坏1个敌方随从；【结晶_1】【吟唱_3】【谢幕曲】召唤本体。",
+      "rule_version": 1,
+      "source_text_sha256": "668516d68ed83813701f2d1b618688823e5bc7ed320021083742dc0dcaf7f1c6",
+      "test_evidence": ["tests/test_real_ward_marine_crest_listener_batch.py"],
+      "notes": "自引用召唤不递归、固有关键字、进化无目标与目标离场、满场容量、结晶倒数、谢幕曲及随从形态死亡守卫均有直接测试。"
+    },
+    {
+      "card_id": 10142110,
+      "coverage": "exact",
+      "implemented_text": "本卡被舍弃时随机使1个己方随从+1/+0；本体具有【突进】。",
+      "rule_version": 1,
+      "source_text_sha256": "060ea15ef33e955cd724e8be6ec13acdd824627ccbb960568929040e59c4765f",
+      "test_evidence": ["tests/test_real_ward_marine_crest_listener_batch.py"],
+      "notes": "舍弃触发、随机单目标、空场安全路径、固定种子复现及固有突进均有直接测试。"
+    },
+    {
+      "card_id": 10241110,
+      "coverage": "exact",
+      "implemented_text": "在手牌中每当己方随从超进化，本卡费用永久-3；【入场曲】召唤1个巨翼飞龙。",
+      "rule_version": 1,
+      "source_text_sha256": "4fe43356c001de4558ee50469cd6a54807e9b06ce76f284b62268679bfe9dfa8",
+      "test_evidence": ["tests/test_real_ward_marine_crest_listener_batch.py"],
+      "notes": "手牌区域超进化监听、当前费用与合法打出、Token 引用和满场召唤失败均有直接测试。"
+    },
+    {
+      "card_id": 10342120,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】召唤1个大海虎鲸，【觉醒】时改为召唤2个；每当己方海洋 Trait 随从进入战场，使其获得【守护】。",
+      "rule_version": 1,
+      "source_text_sha256": "563d66ffcfa95577cbcddededf12646712cdd8a51f2ad478032d1bf00ebc18f7",
+      "test_evidence": ["tests/test_real_ward_marine_crest_listener_batch.py"],
+      "notes": "觉醒阈值两侧、单/双 Token 生产、海洋 Trait 入场监听、事件来源加守护及仅剩一个空位均有直接测试。"
+    },
+    {
+      "card_id": 10542120,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】将1张大海虎鲸加入手牌；每当己方海洋 Trait 随从进入战场，本体获得【突进】【必杀】。",
+      "rule_version": 1,
+      "source_text_sha256": "e02cf844274bab699c15eb368d587efec1aeeb724ce3571278bb31daa888317f",
+      "test_evidence": ["tests/test_real_ward_marine_crest_listener_batch.py"],
+      "notes": "Token 手牌生产、非海洋不触发、海洋入场双关键字和满场召唤未发生时不触发均有直接测试。"
+    },
+    {
+      "card_id": 10424110,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】召唤1个本卡基础副本；【爆能强化_6】使所召唤副本获得【必杀】并使本体获得【疾驰】；本体及副本具有【突进】。",
+      "rule_version": 1,
+      "source_text_sha256": "e20e9f68142cacea722c3da69adaa7e20e4bd2741dd8188368882c9b3d21a824",
+      "test_evidence": ["tests/test_real_ward_marine_crest_listener_batch.py"],
+      "notes": "普通与爆能模式、召唤输出绑定、本体/副本关键字区分、满场输出缺失安全路径和 RL 掩码均有直接测试。"
+    },
+    {
+      "card_id": 10512110,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】【连击_5】召唤1个本卡基础副本，并使该副本与本体进化。",
+      "rule_version": 1,
+      "source_text_sha256": "c1e3d85d4d89c9c14251c7613d7b9afb5b7860733f70ed3801f6902ffce006ff",
+      "test_evidence": ["tests/test_real_ward_marine_crest_listener_batch.py"],
+      "notes": "连击阈值上下、召唤输出绑定、双实体效果进化、满场时副本缺失但本体仍进化及 RL 普通打出均有直接测试。"
+    },
+    {
+      "card_id": 10613110,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】召唤1个新绿的妖精；每当己方随从进化（包括超进化所含进化事件）时回复己方主战者1点生命。",
+      "rule_version": 1,
+      "source_text_sha256": "96377e4f366b77e7a6bd820c7e34e62761dd7b25f44f25aa9c2b3665782e4f3b",
+      "test_evidence": ["tests/test_real_ward_marine_crest_listener_batch.py"],
+      "notes": "Token 生产、普通进化、超进化仅计一次进化事件、敌方进化不触发和治疗量均有直接测试。"
     }
   ]
 }

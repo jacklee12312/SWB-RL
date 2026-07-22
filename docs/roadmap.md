@@ -10,13 +10,13 @@ code and tests as the source of truth when this file drifts.
 - Database: 826 cards, 735 collectible cards, 91 non-collectible/generated
   cards from set `90000`.
 - Latest SVA source: `https://sva.hypd.asia/data/cards.json`.
-- Tests: `python -m unittest discover -s tests -v` discovers 2157 behavioral
+- Tests: `python -m unittest discover -s tests -v` discovers 2175 behavioral
   contracts (2026-07-22 exact-rule batch verification).
 - RL adapter: fixed 111-action space; the default v1 observation is 294
   floats, opt-in v2 preserves the structured compatibility mapping, and v3
   supplies fixed-dtype NumPy arrays plus a Gymnasium observation space without
   changing action IDs. Hidden decklists are the v3 default.
-- The exact-audit `TrainableCardCatalog` currently admits all 553 exact
+- The exact-audit `TrainableCardCatalog` currently admits all 565 exact
   collectible cards, preloads all 826 definitions for SQLite-free matches, and
   provides deterministic class-valid deck sampling. Self-play no longer uses
   the legacy 2-to-5-card follower pool.
@@ -38,9 +38,9 @@ code and tests as the source of truth when this file drifts.
   step boundary.
 - Ability registry status: 18 implemented, 5 partial, 11 placeholder.
 - Explicit card and demo rules live in `data/rules/`; the current coverage
-  report classifies 657 card IDs with explicit rules, passives, fusion,
+  report classifies 669 card IDs with explicit rules, passives, fusion,
   invocation, activation, Faith, Union Burst, or listener definitions. Current
-  collectible coverage is 553 exact (75.24% of 735), 0 partial, 166 supported-but-missing-rule,
+  collectible coverage is 565 exact (76.87% of 735), 0 partial, 154 supported-but-missing-rule,
   0 missing-primitive, and 16 text-unclear cards.
 - `data/reports/token_audit.{json,md}` audits all 91 non-collectible/generated
   cards independently of collectible coverage. Database `card_references` and
@@ -55,7 +55,7 @@ code and tests as the source of truth when this file drifts.
   separate column and is covered for all 34; it does not automatically promote
   the 5 partial or 11 placeholder keyword statuses.
 - Coverage now has a backward-compatible clause audit. The legacy summary still
-  reports 553 exact collectible cards, and all 553 now have an explicit exact
+  reports 565 exact collectible cards, and all 565 now have an explicit exact
   text mapping plus named direct test evidence. The versioned sibling registry
   at `data/audits/rule_clauses.json` hashes every imported primary and
   alternate-mode clause; changed source text or stale test evidence invalidates
@@ -64,7 +64,7 @@ code and tests as the source of truth when this file drifts.
   rule version and errata metadata, structured trigger/operation evidence,
   explicit unsupported text, and a stable blocker taxonomy. There are zero
   unverified exact entries and no known missing schema, primitive, targeting,
-  or timing blocker among authored rules. The 166 supported-but-missing-rule
+  or timing blocker among authored rules. The 154 supported-but-missing-rule
   cards are now the per-card structured-content backlog; 16 unclear texts
   remain explicit.
 - RL observation v2 is available behind an explicit version switch. A
@@ -1213,6 +1213,23 @@ slice in this order:
   Card `10333110` remains unsupported because its “exact copy” clauses require
   a board-entity clone primitive; ordinary definition-based summon is not used
   as a substitute.
+- Exact file `data/rules/real_ward_marine_crest_listener_batch.json` closes
+  twelve collectibles (`10162110`, `10361110`, `10362110`, `10563110`,
+  `10663110`, `10142110`, `10241110`, `10342120`, `10542120`, `10424110`,
+  `10512110`, `10613110`). Ordinary card listeners now accept the generic
+  `leader_healed` event, allowing actual nonzero leader healing to trigger
+  board abilities with owner-event and owner-turn scopes. The slice reuses
+  destroyed-follower keyword snapshots, countdown crests, attack history,
+  random target bindings, hand cost listeners, Overflow, Marine Trait entry
+  listeners, discard triggers, summon-output bindings, Enhance, Combo,
+  Crystallize, Last Words, evolution events, and explicit non-intrinsic keyword
+  declarations. Direct tests cover no-target and stale-target evolution,
+  simultaneous filtered deaths, full-health non-events, opponent-turn scope,
+  board capacity, seeded randomness, Token references, source-form guards,
+  clause hashes, and RL masks. Card `10263110` remains unsupported because its
+  random attack trigger must exclude the current combat target; the existing
+  random-enemy primitive has no generic bound-target exclusion filter, so it is
+  not used as an inexact substitute.
 
 ## Known Partial Or Unsupported Areas
 

@@ -533,6 +533,12 @@
           "rule_group": "rules"
         },
         {
+          "source_card_id": 10613110,
+          "entry_kind": "summon",
+          "rule_file": "real_ward_marine_crest_listener_batch.json",
+          "rule_group": "rules"
+        },
+        {
           "source_card_id": 10613310,
           "entry_kind": "summon",
           "rule_file": "real_extreme_candidate_batch.json",
@@ -2364,6 +2370,12 @@
           "rule_group": "rules"
         },
         {
+          "source_card_id": 10241110,
+          "entry_kind": "summon",
+          "rule_file": "real_ward_marine_crest_listener_batch.json",
+          "rule_group": "rules"
+        },
+        {
           "source_card_id": 10542110,
           "entry_kind": "summon",
           "rule_file": "real_balanced_trigger_resource_batch.json",
@@ -2454,9 +2466,21 @@
           "rule_group": "rules"
         },
         {
+          "source_card_id": 10342120,
+          "entry_kind": "summon",
+          "rule_file": "real_ward_marine_crest_listener_batch.json",
+          "rule_group": "rules"
+        },
+        {
           "source_card_id": 10541120,
           "entry_kind": "summon",
           "rule_file": "cross_class_trait_listeners.json",
+          "rule_group": "rules"
+        },
+        {
+          "source_card_id": 10542120,
+          "entry_kind": "add_card",
+          "rule_file": "real_ward_marine_crest_listener_batch.json",
           "rule_group": "rules"
         }
       ],

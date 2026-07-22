@@ -1,0 +1,349 @@
+{
+  "passives": [
+    {
+      "card_id": 10162110,
+      "kind": "non_intrinsic_keyword",
+      "keyword": "屏障",
+      "notes": "屏障仅由进化时效果获得。"
+    },
+    {
+      "card_id": 10361110,
+      "kind": "non_intrinsic_keyword",
+      "keyword": "守护",
+      "notes": "守护由纹章随机授予目标，不是本体固有能力。"
+    },
+    {
+      "card_id": 10342120,
+      "kind": "non_intrinsic_keyword",
+      "keyword": "守护",
+      "notes": "守护由海洋随从入场监听授予事件来源。"
+    },
+    {
+      "card_id": 10542120,
+      "kind": "non_intrinsic_keyword",
+      "keyword": "突进",
+      "notes": "突进仅在己方海洋随从进入战场后获得。"
+    },
+    {
+      "card_id": 10542120,
+      "kind": "non_intrinsic_keyword",
+      "keyword": "必杀",
+      "notes": "必杀仅在己方海洋随从进入战场后获得。"
+    },
+    {
+      "card_id": 10424110,
+      "kind": "non_intrinsic_keyword",
+      "keyword": "必杀",
+      "notes": "必杀仅由爆能强化授予入场曲召唤的副本。"
+    },
+    {
+      "card_id": 10424110,
+      "kind": "non_intrinsic_keyword",
+      "keyword": "疾驰",
+      "notes": "疾驰仅由爆能强化授予本体。"
+    }
+  ],
+  "intrinsic_keywords": [
+    {"card_id": 10362110, "keywords": ["守护"]},
+    {"card_id": 10563110, "keywords": ["守护"]},
+    {"card_id": 10663110, "keywords": ["必杀", "灵气"]},
+    {"card_id": 10142110, "keywords": ["突进"]},
+    {"card_id": 10424110, "keywords": ["突进"]}
+  ],
+  "listeners": [
+    {
+      "card_id": 10162110,
+      "zone": "board",
+      "event": "follower_destroyed",
+      "event_scope": "owner_event",
+      "source_relation": "other",
+      "event_filter": {"card_type": "随从", "keyword": "守护"},
+      "operations": [
+        {"kind": "buff_unit", "target": "self", "amount": 1, "secondary_amount": 1}
+      ]
+    },
+    {
+      "card_id": 10563110,
+      "zone": "board",
+      "event": "leader_healed",
+      "event_scope": "owner_event",
+      "turn_scope": "owner_turn",
+      "source_relation": "any",
+      "operations": [
+        {"kind": "summon", "target": "own_leader", "card_id": 10061120}
+      ]
+    },
+    {
+      "card_id": 10241110,
+      "zone": "hand",
+      "event": "follower_super_evolved",
+      "event_scope": "owner_event",
+      "source_relation": "any",
+      "operations": [
+        {"kind": "change_cost", "target": "self", "mode": "subtract", "amount": 3}
+      ]
+    },
+    {
+      "card_id": 10342120,
+      "zone": "board",
+      "event": "follower_summoned",
+      "event_scope": "owner_event",
+      "source_relation": "any",
+      "event_filter": {"card_type": "随从", "tribe_name": "海洋"},
+      "operations": [
+        {"kind": "add_keyword", "target": "event_source", "keyword": "守护"}
+      ]
+    },
+    {
+      "card_id": 10542120,
+      "zone": "board",
+      "event": "follower_summoned",
+      "event_scope": "owner_event",
+      "source_relation": "any",
+      "event_filter": {"card_type": "随从", "tribe_name": "海洋"},
+      "operations": [
+        {"kind": "add_keyword", "target": "self", "keyword": "突进"},
+        {"kind": "add_keyword", "target": "self", "keyword": "必杀"}
+      ]
+    },
+    {
+      "card_id": 10613110,
+      "zone": "board",
+      "event": "follower_evolved",
+      "event_scope": "owner_event",
+      "source_relation": "any",
+      "operations": [
+        {"kind": "heal_leader", "target": "own_leader", "amount": 1}
+      ]
+    }
+  ],
+  "emblems": [
+    {
+      "id": "restful_affirmer",
+      "source_card_id": 10361110,
+      "stacking": "allow",
+      "countdown": 4,
+      "triggers": [
+        {
+          "trigger": "turn_end",
+          "conditions": [
+            {"type": "controller_follower_attacks_this_turn_at_most", "value": 0}
+          ],
+          "operations": [
+            {
+              "kind": "buff_unit",
+              "target": "random_own_unit",
+              "amount": -2,
+              "secondary_amount": 0,
+              "target_key": "restful_ward_target"
+            },
+            {
+              "kind": "add_keyword",
+              "target": "previous_target",
+              "target_key": "restful_ward_target",
+              "keyword": "守护"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "restful_prayer",
+      "source_card_id": 10362110,
+      "stacking": "allow",
+      "countdown": 4,
+      "triggers": [
+        {
+          "trigger": "turn_end",
+          "conditions": [
+            {"type": "controller_follower_attacks_this_turn_at_most", "value": 0}
+          ],
+          "operations": [
+            {"kind": "heal_leader", "target": "own_leader", "amount": 1}
+          ]
+        }
+      ]
+    }
+  ],
+  "rules": [
+    {
+      "card_id": 10162110,
+      "trigger": "evolve",
+      "operations": [
+        {"kind": "add_keyword", "target": "self", "keyword": "屏障"}
+      ]
+    },
+    {
+      "card_id": 10361110,
+      "trigger": "fanfare",
+      "operations": [
+        {"kind": "gain_emblem", "target": "own_leader", "emblem_id": "restful_affirmer"}
+      ]
+    },
+    {
+      "card_id": 10362110,
+      "trigger": "fanfare",
+      "operations": [
+        {"kind": "gain_emblem", "target": "own_leader", "emblem_id": "restful_prayer"}
+      ]
+    },
+    {
+      "card_id": 10563110,
+      "trigger": "fanfare",
+      "operations": [
+        {"kind": "heal_leader", "target": "own_leader", "amount": 1}
+      ]
+    },
+    {
+      "card_id": 10563110,
+      "trigger": "evolve",
+      "operations": [
+        {"kind": "heal_leader", "target": "own_leader", "amount": 1}
+      ]
+    },
+    {
+      "card_id": 10563110,
+      "trigger": "super_evolve",
+      "operations": [
+        {"kind": "heal_leader", "target": "own_leader", "amount": 1}
+      ]
+    },
+    {
+      "card_id": 10663110,
+      "trigger": "fanfare",
+      "operations": [
+        {"kind": "summon", "target": "own_leader", "card_id": 10663110}
+      ]
+    },
+    {
+      "card_id": 10663110,
+      "trigger": "evolve",
+      "operations": [
+        {"kind": "destroy", "target": "enemy_unit", "requires_target": true}
+      ]
+    },
+    {
+      "card_id": 10663110,
+      "trigger": "play",
+      "operations": [],
+      "play_modes": [
+        {
+          "id": "crystallize_1",
+          "type": "crystallize",
+          "cost": 1,
+          "resulting_card_type": "护符",
+          "countdown": 3,
+          "operations": []
+        }
+      ]
+    },
+    {
+      "card_id": 10663110,
+      "trigger": "last_words",
+      "operations": [
+        {
+          "kind": "summon",
+          "target": "own_leader",
+          "card_id": 10663110,
+          "conditions": [
+            {"type": "source_card_type_is", "card_type": "护符"}
+          ]
+        }
+      ]
+    },
+    {
+      "card_id": 10142110,
+      "trigger": "discarded",
+      "operations": [
+        {"kind": "buff_unit", "target": "random_own_unit", "amount": 1, "secondary_amount": 0}
+      ]
+    },
+    {
+      "card_id": 10241110,
+      "trigger": "fanfare",
+      "operations": [
+        {"kind": "summon", "target": "own_leader", "card_id": 90041120}
+      ]
+    },
+    {
+      "card_id": 10342120,
+      "trigger": "fanfare",
+      "operations": [
+        {"kind": "summon", "target": "own_leader", "card_id": 90041130},
+        {
+          "kind": "summon",
+          "target": "own_leader",
+          "card_id": 90041130,
+          "conditions": [{"type": "controller_overflow"}]
+        }
+      ]
+    },
+    {
+      "card_id": 10542120,
+      "trigger": "fanfare",
+      "operations": [
+        {"kind": "add_card", "target": "own_leader", "card_id": 90041130}
+      ]
+    },
+    {
+      "card_id": 10424110,
+      "trigger": "fanfare",
+      "operations": [
+        {
+          "kind": "summon",
+          "target": "own_leader",
+          "card_id": 10424110,
+          "target_key": "scarlet_and_blue_partner"
+        }
+      ],
+      "play_modes": [
+        {
+          "id": "enhance_6",
+          "type": "enhance",
+          "cost": 6,
+          "operations": [
+            {
+              "kind": "add_keyword",
+              "target": "previous_target",
+              "target_key": "scarlet_and_blue_partner",
+              "keyword": "必杀"
+            },
+            {"kind": "add_keyword", "target": "self", "keyword": "疾驰"}
+          ]
+        }
+      ]
+    },
+    {
+      "card_id": 10512110,
+      "trigger": "fanfare",
+      "operations": [
+        {
+          "kind": "conditional",
+          "target": "own_leader",
+          "conditions": [{"type": "controller_combo_at_least", "value": 5}],
+          "then": [
+            {
+              "kind": "summon",
+              "target": "own_leader",
+              "card_id": 10512110,
+              "target_key": "newfound_partner"
+            },
+            {
+              "kind": "evolve_unit",
+              "target": "previous_target",
+              "target_key": "newfound_partner"
+            },
+            {"kind": "evolve_unit", "target": "self"}
+          ]
+        }
+      ]
+    },
+    {
+      "card_id": 10613110,
+      "trigger": "fanfare",
+      "operations": [
+        {"kind": "summon", "target": "own_leader", "card_id": 90011120}
+      ]
+    }
+  ]
+}

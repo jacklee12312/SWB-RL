@@ -12,25 +12,25 @@
   },
   "summary": {
     "total_cards": 826,
-    "total_with_rules": 657,
+    "total_with_rules": 669,
     "test_or_synthetic_ids_with_rules": 26,
     "coverage_counts": {
-      "covered_exact": 553,
+      "covered_exact": 565,
       "text_unclear": 16,
-      "supported_missing_rule": 166,
+      "supported_missing_rule": 154,
       "token_or_non_collectible": 91
     },
     "clause_audit_counts": {
-      "mapped_exact": 553,
+      "mapped_exact": 565,
       "unverified_exact": 0,
       "partial": 0,
-      "missing_rule": 166,
+      "missing_rule": 154,
       "missing_primitive": 0,
       "text_unclear": 16,
       "token_separate_audit": 91
     },
     "blocker_counts": {
-      "missing_rule": 166,
+      "missing_rule": 154,
       "missing_schema": 0,
       "missing_primitive": 0,
       "missing_targeting": 0,
@@ -2828,7 +2828,9 @@
           "triggers": [],
           "effect_kinds": []
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_ward_marine_crest_listener_batch.py"
+        ],
         "audit_validation_error": null,
         "blocker_type": "text_unclear"
       }
@@ -8166,8 +8168,8 @@
       "cost": 6,
       "is_collectible": true,
       "card_set_id": 10001,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['舍弃']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['discarded', 'intrinsic_keywords'], Ops: ['buff_unit', 'keyword:突进']",
       "hit_keywords": [
         "舍弃"
       ],
@@ -8179,27 +8181,45 @@
         "本卡牌被舍弃时，使自己的战场上的随机1个随从+1/+0。\n<hr>【<color=Keyword>突进</color>】"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "本卡被舍弃时随机使1个己方随从+1/+0；本体具有【突进】。",
+        "notes": "舍弃触发、随机单目标、空场安全路径、固定种子复现及固有突进均有直接测试。",
+        "rule_version": 1,
+        "source_text_sha256": "060ea15ef33e955cd724e8be6ec13acdd824627ccbb960568929040e59c4765f",
+        "test_evidence": [
+          "tests/test_real_ward_marine_crest_listener_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10142110:0",
             "source_text": "本卡牌被舍弃时，使自己的战场上的随机1个随从+1/+0。\n<hr>【<color=Keyword>突进</color>】",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "本卡被舍弃时随机使1个己方随从+1/+0；本体具有【突进】。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "060ea15ef33e955cd724e8be6ec13acdd824627ccbb960568929040e59c4765f",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "discarded",
+            "intrinsic_keywords"
+          ],
+          "effect_kinds": [
+            "buff_unit",
+            "keyword:突进"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_ward_marine_crest_listener_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10142120": {
@@ -10562,8 +10582,8 @@
       "cost": 2,
       "is_collectible": true,
       "card_set_id": 10001,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['进化时', '破坏', '屏障']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['evolve', 'listener:board:follower_destroyed'], Ops: ['add_keyword', 'buff_unit']",
       "hit_keywords": [
         "进化时",
         "破坏",
@@ -10579,27 +10599,45 @@
         "自己的拥有【<color=Keyword>守护</color>】的随从被破坏时，本随从+1/+1。\n<hr><ev>【<color=Keyword>进化时</color>】本随从获得【<color=Keyword>屏障</color>】。</ev>"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "每当己方具有【守护】的随从被破坏，本体+1/+1；【进化时】本体获得【屏障】。",
+        "notes": "死亡时关键字快照、己方与敌方事件范围、同时死亡中的非守护过滤、来源以外限制、+1/+1 和进化屏障均有直接测试。",
+        "rule_version": 1,
+        "source_text_sha256": "7a6733fb672789a2a951c91c32d6c84bd7859279c4a5a4f244443765a725ab39",
+        "test_evidence": [
+          "tests/test_real_ward_marine_crest_listener_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10162110:0",
             "source_text": "自己的拥有【<color=Keyword>守护</color>】的随从被破坏时，本随从+1/+1。\n<hr><ev>【<color=Keyword>进化时</color>】本随从获得【<color=Keyword>屏障</color>】。</ev>",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "每当己方具有【守护】的随从被破坏，本体+1/+1；【进化时】本体获得【屏障】。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "7a6733fb672789a2a951c91c32d6c84bd7859279c4a5a4f244443765a725ab39",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "evolve",
+            "listener:board:follower_destroyed"
+          ],
+          "effect_kinds": [
+            "add_keyword",
+            "buff_unit"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_ward_marine_crest_listener_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10162120": {
@@ -14848,8 +14886,8 @@
       "cost": 10,
       "is_collectible": true,
       "card_set_id": 10002,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '进化时', '超进化', '召唤']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['fanfare', 'listener:hand:follower_super_evolved'], Ops: ['summon', 'change_cost']",
       "hit_keywords": [
         "入场曲",
         "进化时",
@@ -14864,27 +14902,45 @@
         "在手牌中发动。自己的随从超进化时，使本卡牌的费用-3。\n<hr>【<color=Keyword>入场曲</color>】召唤1个『<color=Keyword>巨翼飞龙</color>』。"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "在手牌中每当己方随从超进化，本卡费用永久-3；【入场曲】召唤1个巨翼飞龙。",
+        "notes": "手牌区域超进化监听、当前费用与合法打出、Token 引用和满场召唤失败均有直接测试。",
+        "rule_version": 1,
+        "source_text_sha256": "4fe43356c001de4558ee50469cd6a54807e9b06ce76f284b62268679bfe9dfa8",
+        "test_evidence": [
+          "tests/test_real_ward_marine_crest_listener_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10241110:0",
             "source_text": "在手牌中发动。自己的随从超进化时，使本卡牌的费用-3。\n<hr>【<color=Keyword>入场曲</color>】召唤1个『<color=Keyword>巨翼飞龙</color>』。",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "在手牌中每当己方随从超进化，本卡费用永久-3；【入场曲】召唤1个巨翼飞龙。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "4fe43356c001de4558ee50469cd6a54807e9b06ce76f284b62268679bfe9dfa8",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "fanfare",
+            "listener:hand:follower_super_evolved"
+          ],
+          "effect_kinds": [
+            "summon",
+            "change_cost"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_ward_marine_crest_listener_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10241120": {
@@ -19775,8 +19831,8 @@
       "cost": 3,
       "is_collectible": true,
       "card_set_id": 10003,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '觉醒', '召唤']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['fanfare', 'listener:board:follower_summoned'], Ops: ['summon', 'summon', 'add_keyword']",
       "hit_keywords": [
         "入场曲",
         "觉醒",
@@ -19792,27 +19848,46 @@
         "【<color=Keyword>入场曲</color>】召唤1个『<color=Keyword>大海虎鲸</color>』。若为【<color=Keyword>觉醒</color>】，则改为召唤2个。\n<hr>自己的海洋·随从进入战场时，使其获得【<color=Keyword>守护</color>】。"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【入场曲】召唤1个大海虎鲸，【觉醒】时改为召唤2个；每当己方海洋 Trait 随从进入战场，使其获得【守护】。",
+        "notes": "觉醒阈值两侧、单/双 Token 生产、海洋 Trait 入场监听、事件来源加守护及仅剩一个空位均有直接测试。",
+        "rule_version": 1,
+        "source_text_sha256": "563d66ffcfa95577cbcddededf12646712cdd8a51f2ad478032d1bf00ebc18f7",
+        "test_evidence": [
+          "tests/test_real_ward_marine_crest_listener_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10342120:0",
             "source_text": "【<color=Keyword>入场曲</color>】召唤1个『<color=Keyword>大海虎鲸</color>』。若为【<color=Keyword>觉醒</color>】，则改为召唤2个。\n<hr>自己的海洋·随从进入战场时，使其获得【<color=Keyword>守护</color>】。",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "【入场曲】召唤1个大海虎鲸，【觉醒】时改为召唤2个；每当己方海洋 Trait 随从进入战场，使其获得【守护】。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "563d66ffcfa95577cbcddededf12646712cdd8a51f2ad478032d1bf00ebc18f7",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "fanfare",
+            "listener:board:follower_summoned"
+          ],
+          "effect_kinds": [
+            "summon",
+            "summon",
+            "add_keyword"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_ward_marine_crest_listener_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10342210": {
@@ -20759,8 +20834,8 @@
       "cost": 2,
       "is_collectible": true,
       "card_set_id": 10003,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '回合结束', '倒数', '纹章']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['fanfare', 'emblem_source'], Ops: ['gain_emblem', 'buff_unit', 'add_keyword']",
       "hit_keywords": [
         "入场曲",
         "回合结束",
@@ -20779,32 +20854,51 @@
         "【纹章_0】【<color=Keyword>吟唱</color>_4】\n自己的回合结束时，若本回合中自己的随从没有进行过攻击，则使自己的战场上的随机1个随从-2/-0且获得【<color=Keyword>守护</color>】。"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【入场曲】获得【吟唱_4】纹章；己方回合结束且本回合无己方随从攻击时，随机使1个己方随从-2/-0并获得【守护】。",
+        "notes": "纹章倒数、攻击历史阈值、随机目标单次绑定、负攻击下限、空场安全路径与固定种子复现均有直接测试。",
+        "rule_version": 1,
+        "source_text_sha256": "fc17baeca1fdde1daec8216de05c4cee04a7d7d039b22d9c42c137805eb4af3e",
+        "test_evidence": [
+          "tests/test_real_ward_marine_crest_listener_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10361110:0",
             "source_text": "【<color=Keyword>入场曲</color>】使自己获得『纹章：安息的肯定者』。",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           },
           {
             "clause_id": "10361110:1",
             "source_text": "【纹章_0】【<color=Keyword>吟唱</color>_4】\n自己的回合结束时，若本回合中自己的随从没有进行过攻击，则使自己的战场上的随机1个随从-2/-0且获得【<color=Keyword>守护</color>】。",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "【入场曲】获得【吟唱_4】纹章；己方回合结束且本回合无己方随从攻击时，随机使1个己方随从-2/-0并获得【守护】。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "fc17baeca1fdde1daec8216de05c4cee04a7d7d039b22d9c42c137805eb4af3e",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "fanfare",
+            "emblem_source"
+          ],
+          "effect_kinds": [
+            "gain_emblem",
+            "buff_unit",
+            "add_keyword"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_ward_marine_crest_listener_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10361120": {
@@ -20944,8 +21038,8 @@
       "cost": 3,
       "is_collectible": true,
       "card_set_id": 10003,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '回合结束', '倒数', '回复(?!自己\\\\d+点(?:超进化点|进化点|能量点))', '纹章']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['fanfare', 'intrinsic_keywords', 'emblem_source'], Ops: ['gain_emblem', 'keyword:守护', 'heal_leader']",
       "hit_keywords": [
         "入场曲",
         "回合结束",
@@ -20965,32 +21059,52 @@
         "【纹章_0】【<color=Keyword>吟唱</color>_4】\n自己的回合结束时，若本回合中自己的随从没有进行过攻击，则回复自己的主战者1点生命值。"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【入场曲】获得【吟唱_4】纹章；本体具有【守护】；己方回合结束且本回合无己方随从攻击时回复己方主战者1点生命。",
+        "notes": "固有守护、纹章倒数、无攻击时治疗及发生攻击时跳过均有直接测试。",
+        "rule_version": 1,
+        "source_text_sha256": "e810049efc9ce6b4561d6610c850f53edc57cdb377a1d0d68122794485ab79ea",
+        "test_evidence": [
+          "tests/test_real_ward_marine_crest_listener_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10362110:0",
             "source_text": "【<color=Keyword>入场曲</color>】使自己获得『纹章：安息的祈祷者』。\n<hr>【<color=Keyword>守护</color>】",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           },
           {
             "clause_id": "10362110:1",
             "source_text": "【纹章_0】【<color=Keyword>吟唱</color>_4】\n自己的回合结束时，若本回合中自己的随从没有进行过攻击，则回复自己的主战者1点生命值。",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "【入场曲】获得【吟唱_4】纹章；本体具有【守护】；己方回合结束且本回合无己方随从攻击时回复己方主战者1点生命。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "e810049efc9ce6b4561d6610c850f53edc57cdb377a1d0d68122794485ab79ea",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "fanfare",
+            "intrinsic_keywords",
+            "emblem_source"
+          ],
+          "effect_kinds": [
+            "gain_emblem",
+            "keyword:守护",
+            "heal_leader"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_ward_marine_crest_listener_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10362210": {
@@ -23504,8 +23618,8 @@
       "cost": 4,
       "is_collectible": true,
       "card_set_id": 10004,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '召唤', '必杀', '爆能强化']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['fanfare', 'play_modes', 'intrinsic_keywords'], Ops: ['summon', 'play_mode', 'add_keyword', 'add_keyword', 'keyword:突进']",
       "hit_keywords": [
         "入场曲",
         "召唤",
@@ -23524,27 +23638,49 @@
         "【<color=Keyword>入场曲</color>】召唤1个『<color=Keyword>真红与群青·塞达&贝阿朵丽丝</color>』。\n【<color=Keyword>爆能强化</color>_6】使其获得【<color=Keyword>毁灭</color>】。本随从获得【<color=Keyword>疾驰</color>】。\n<hr>【<color=Keyword>突进</color>】"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【入场曲】召唤1个本卡基础副本；【爆能强化_6】使所召唤副本获得【必杀】并使本体获得【疾驰】；本体及副本具有【突进】。",
+        "notes": "普通与爆能模式、召唤输出绑定、本体/副本关键字区分、满场输出缺失安全路径和 RL 掩码均有直接测试。",
+        "rule_version": 1,
+        "source_text_sha256": "e20e9f68142cacea722c3da69adaa7e20e4bd2741dd8188368882c9b3d21a824",
+        "test_evidence": [
+          "tests/test_real_ward_marine_crest_listener_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10424110:0",
             "source_text": "【<color=Keyword>入场曲</color>】召唤1个『<color=Keyword>真红与群青·塞达&贝阿朵丽丝</color>』。\n【<color=Keyword>爆能强化</color>_6】使其获得【<color=Keyword>毁灭</color>】。本随从获得【<color=Keyword>疾驰</color>】。\n<hr>【<color=Keyword>突进</color>】",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "【入场曲】召唤1个本卡基础副本；【爆能强化_6】使所召唤副本获得【必杀】并使本体获得【疾驰】；本体及副本具有【突进】。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "e20e9f68142cacea722c3da69adaa7e20e4bd2741dd8188368882c9b3d21a824",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "fanfare",
+            "play_modes",
+            "intrinsic_keywords"
+          ],
+          "effect_kinds": [
+            "summon",
+            "play_mode",
+            "add_keyword",
+            "add_keyword",
+            "keyword:突进"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_ward_marine_crest_listener_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10424120": {
@@ -27177,8 +27313,8 @@
       "cost": 2,
       "is_collectible": true,
       "card_set_id": 10005,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '连击', '召唤']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['fanfare'], Ops: ['conditional', 'summon', 'evolve_unit', 'evolve_unit']",
       "hit_keywords": [
         "入场曲",
         "连击",
@@ -27193,27 +27329,46 @@
         "【<color=Keyword>入场曲</color>】【<color=Keyword>连击</color>_5】召唤1个『<color=Keyword>新晋搭档</color>』。该随从和本随从进化。"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【入场曲】【连击_5】召唤1个本卡基础副本，并使该副本与本体进化。",
+        "notes": "连击阈值上下、召唤输出绑定、双实体效果进化、满场时副本缺失但本体仍进化及 RL 普通打出均有直接测试。",
+        "rule_version": 1,
+        "source_text_sha256": "c1e3d85d4d89c9c14251c7613d7b9afb5b7860733f70ed3801f6902ffce006ff",
+        "test_evidence": [
+          "tests/test_real_ward_marine_crest_listener_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10512110:0",
             "source_text": "【<color=Keyword>入场曲</color>】【<color=Keyword>连击</color>_5】召唤1个『<color=Keyword>新晋搭档</color>』。该随从和本随从进化。",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "【入场曲】【连击_5】召唤1个本卡基础副本，并使该副本与本体进化。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "c1e3d85d4d89c9c14251c7613d7b9afb5b7860733f70ed3801f6902ffce006ff",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "fanfare"
+          ],
+          "effect_kinds": [
+            "conditional",
+            "summon",
+            "evolve_unit",
+            "evolve_unit"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_ward_marine_crest_listener_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10512120": {
@@ -29017,8 +29172,8 @@
       "cost": 2,
       "is_collectible": true,
       "card_set_id": 10005,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '将.*加入手牌', '必杀']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['fanfare', 'listener:board:follower_summoned'], Ops: ['add_card', 'add_keyword', 'add_keyword']",
       "hit_keywords": [
         "入场曲",
         "将.*加入手牌",
@@ -29034,27 +29189,46 @@
         "【<color=Keyword>入场曲</color>】将1张『<color=Keyword>大海虎鲸</color>』加入手牌。\n<hr>自己的海洋·随从进入战场时，本随从获得【<color=Keyword>突进</color>】和【<color=Keyword>毁灭</color>】。"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【入场曲】将1张大海虎鲸加入手牌；每当己方海洋 Trait 随从进入战场，本体获得【突进】【必杀】。",
+        "notes": "Token 手牌生产、非海洋不触发、海洋入场双关键字和满场召唤未发生时不触发均有直接测试。",
+        "rule_version": 1,
+        "source_text_sha256": "e02cf844274bab699c15eb368d587efec1aeeb724ce3571278bb31daa888317f",
+        "test_evidence": [
+          "tests/test_real_ward_marine_crest_listener_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10542120:0",
             "source_text": "【<color=Keyword>入场曲</color>】将1张『<color=Keyword>大海虎鲸</color>』加入手牌。\n<hr>自己的海洋·随从进入战场时，本随从获得【<color=Keyword>突进</color>】和【<color=Keyword>毁灭</color>】。",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "【入场曲】将1张大海虎鲸加入手牌；每当己方海洋 Trait 随从进入战场，本体获得【突进】【必杀】。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "e02cf844274bab699c15eb368d587efec1aeeb724ce3571278bb31daa888317f",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "fanfare",
+            "listener:board:follower_summoned"
+          ],
+          "effect_kinds": [
+            "add_card",
+            "add_keyword",
+            "add_keyword"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_ward_marine_crest_listener_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10542310": {
@@ -30341,8 +30515,8 @@
       "cost": 5,
       "is_collectible": true,
       "card_set_id": 10005,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '进化时', '超进化', '回复(?!自己\\\\d+点(?:超进化点|进化点|能量点))', '召唤']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['fanfare', 'evolve', 'super_evolve', 'listener:board:leader_healed', 'intrinsic_keywords'], Ops: ['heal_leader', 'heal_leader', 'heal_leader', 'summon', 'keyword:守护']",
       "hit_keywords": [
         "入场曲",
         "进化时",
@@ -30361,27 +30535,51 @@
         "【<color=Keyword>入场曲</color>】回复自己的主战者1点生命值。\n<hr>【<color=Keyword>守护</color>】\n自己的主战者回复时，若为自己的回合，则召唤1个『<color=Keyword>纯洁白狐</color>』。\n<hr><ev>【<color=Keyword>进化时</color>】发动与【<color=Keyword>入场曲</color>】相同的能力。</ev>\n<sev>【<color=Keyword>超进化时</color>】发动与【<color=Keyword>入场曲</color>】相同的能力。</sev>"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【入场曲】回复己方主战者1点生命；本体具有【守护】；己方回合中主战者实际回复时召唤纯洁白狐；【进化时】与【超进化时】均重放入场治疗。",
+        "notes": "通用主战者回复监听、满血不触发、对手回合不触发、入场/进化/超进化治疗、超进化同时触发进化文本及满场容量均有直接测试。",
+        "rule_version": 1,
+        "source_text_sha256": "ad24a7a76907912e0c0569dde751ddbe9d6769ce770fc930251e6cc96a5f21b0",
+        "test_evidence": [
+          "tests/test_real_ward_marine_crest_listener_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10563110:0",
             "source_text": "【<color=Keyword>入场曲</color>】回复自己的主战者1点生命值。\n<hr>【<color=Keyword>守护</color>】\n自己的主战者回复时，若为自己的回合，则召唤1个『<color=Keyword>纯洁白狐</color>』。\n<hr><ev>【<color=Keyword>进化时</color>】发动与【<color=Keyword>入场曲</color>】相同的能力。</ev>\n<sev>【<color=Keyword>超进化时</color>】发动与【<color=Keyword>入场曲</color>】相同的能力。</sev>",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "【入场曲】回复己方主战者1点生命；本体具有【守护】；己方回合中主战者实际回复时召唤纯洁白狐；【进化时】与【超进化时】均重放入场治疗。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "ad24a7a76907912e0c0569dde751ddbe9d6769ce770fc930251e6cc96a5f21b0",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "fanfare",
+            "evolve",
+            "super_evolve",
+            "listener:board:leader_healed",
+            "intrinsic_keywords"
+          ],
+          "effect_kinds": [
+            "heal_leader",
+            "heal_leader",
+            "heal_leader",
+            "summon",
+            "keyword:守护"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_ward_marine_crest_listener_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10563210": {
@@ -31840,8 +32038,8 @@
       "cost": 5,
       "is_collectible": true,
       "card_set_id": 10006,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '进化时', '回复(?!自己\\\\d+点(?:超进化点|进化点|能量点))', '召唤']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['fanfare', 'listener:board:follower_evolved'], Ops: ['summon', 'heal_leader']",
       "hit_keywords": [
         "入场曲",
         "进化时",
@@ -31856,27 +32054,45 @@
         "【<color=Keyword>入场曲</color>】召唤1个『<color=Keyword>新绿的妖精</color>』。\n<hr>自己的随从进化时，回复自己的主战者1点生命值。"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【入场曲】召唤1个新绿的妖精；每当己方随从进化（包括超进化所含进化事件）时回复己方主战者1点生命。",
+        "notes": "Token 生产、普通进化、超进化仅计一次进化事件、敌方进化不触发和治疗量均有直接测试。",
+        "rule_version": 1,
+        "source_text_sha256": "96377e4f366b77e7a6bd820c7e34e62761dd7b25f44f25aa9c2b3665782e4f3b",
+        "test_evidence": [
+          "tests/test_real_ward_marine_crest_listener_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10613110:0",
             "source_text": "【<color=Keyword>入场曲</color>】召唤1个『<color=Keyword>新绿的妖精</color>』。\n<hr>自己的随从进化时，回复自己的主战者1点生命值。",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "【入场曲】召唤1个新绿的妖精；每当己方随从进化（包括超进化所含进化事件）时回复己方主战者1点生命。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "96377e4f366b77e7a6bd820c7e34e62761dd7b25f44f25aa9c2b3665782e4f3b",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "fanfare",
+            "listener:board:follower_evolved"
+          ],
+          "effect_kinds": [
+            "summon",
+            "heal_leader"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_ward_marine_crest_listener_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10613310": {
@@ -35124,8 +35340,8 @@
       "cost": 6,
       "is_collectible": true,
       "card_set_id": 10006,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '谢幕曲', '进化时', '灵气', '倒数', '破坏', '召唤', '必杀', '结晶']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['fanfare', 'evolve', 'play', 'last_words', 'play_modes', 'intrinsic_keywords'], Ops: ['summon', 'destroy', 'summon', 'play_mode', 'keyword:必杀', 'keyword:灵气']",
       "hit_keywords": [
         "入场曲",
         "谢幕曲",
@@ -35151,32 +35367,58 @@
         "【结晶_1】【<color=Keyword>吟唱</color>_3】\n【<color=Keyword>谢幕曲</color>】召唤1个『<color=Keyword>崇拜的圣骑士</color>』。"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【入场曲】召唤1个本卡基础副本；本体具有【必杀】【灵气】；【进化时】选择并破坏1个敌方随从；【结晶_1】【吟唱_3】【谢幕曲】召唤本体。",
+        "notes": "自引用召唤不递归、固有关键字、进化无目标与目标离场、满场容量、结晶倒数、谢幕曲及随从形态死亡守卫均有直接测试。",
+        "rule_version": 1,
+        "source_text_sha256": "668516d68ed83813701f2d1b618688823e5bc7ed320021083742dc0dcaf7f1c6",
+        "test_evidence": [
+          "tests/test_real_ward_marine_crest_listener_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10663110:0",
             "source_text": "【<color=Keyword>入场曲</color>】召唤1个『<color=Keyword>崇拜的圣骑士</color>』。\n<hr>【<color=Keyword>毁灭</color>】\n【<color=Keyword>灵气</color>】\n<hr><ev>【<color=Keyword>进化时</color>】选择对手的战场上的1个随从，破坏该随从。</ev>",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           },
           {
             "clause_id": "10663110:1",
             "source_text": "【结晶_1】【<color=Keyword>吟唱</color>_3】\n【<color=Keyword>谢幕曲</color>】召唤1个『<color=Keyword>崇拜的圣骑士</color>』。",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "【入场曲】召唤1个本卡基础副本；本体具有【必杀】【灵气】；【进化时】选择并破坏1个敌方随从；【结晶_1】【吟唱_3】【谢幕曲】召唤本体。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "668516d68ed83813701f2d1b618688823e5bc7ed320021083742dc0dcaf7f1c6",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "fanfare",
+            "evolve",
+            "play",
+            "last_words",
+            "play_modes",
+            "intrinsic_keywords"
+          ],
+          "effect_kinds": [
+            "summon",
+            "destroy",
+            "summon",
+            "play_mode",
+            "keyword:必杀",
+            "keyword:灵气"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_ward_marine_crest_listener_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10663210": {
@@ -46064,6 +46306,7 @@
           "tests/test_real_complete_token_board_batch.py",
           "tests/test_real_spell_enhance_batch.py",
           "tests/test_real_spell_modes_and_earth_listener_batch.py",
+          "tests/test_real_ward_marine_crest_listener_batch.py",
           "tests/test_royal_trait_listeners.py"
         ],
         "audit_validation_error": null,
@@ -47108,7 +47351,8 @@
         "test_evidence": [
           "tests/test_cross_class_trait_listeners.py",
           "tests/test_real_complete_token_board_batch.py",
-          "tests/test_real_spell_modes_and_earth_listener_batch.py"
+          "tests/test_real_spell_modes_and_earth_listener_batch.py",
+          "tests/test_real_ward_marine_crest_listener_batch.py"
         ],
         "audit_validation_error": null,
         "blocker_type": null
@@ -48915,50 +49159,6 @@
       "suggested_rule_file": "batch_中立.json"
     },
     {
-      "card_id": 10613110,
-      "name": "慈惠的心腹",
-      "class_name": "精灵",
-      "card_type": "随从",
-      "cost": 5,
-      "ability_keywords": [
-        "入场曲"
-      ],
-      "hit_keywords": [
-        "入场曲",
-        "进化时",
-        "回复(?!自己\\d+点(?:超进化点|进化点|能量点))",
-        "召唤"
-      ],
-      "confidence": "high",
-      "why_recommended": "Covered keywords: 入场曲, 进化时, 回复(?!自己\\d+点(?:超进化点|进化点|能量点))",
-      "required_primitives": [
-        "入场曲",
-        "进化时",
-        "回复(?!自己\\d+点(?:超进化点|进化点|能量点))",
-        "召唤"
-      ],
-      "suggested_rule_file": "batch_精灵.json"
-    },
-    {
-      "card_id": 10142110,
-      "name": "煌牙的义勇·基德",
-      "class_name": "龙族",
-      "card_type": "随从",
-      "cost": 6,
-      "ability_keywords": [
-        "突进"
-      ],
-      "hit_keywords": [
-        "舍弃"
-      ],
-      "confidence": "high",
-      "why_recommended": "Covered keywords: 舍弃",
-      "required_primitives": [
-        "舍弃"
-      ],
-      "suggested_rule_file": "batch_龙族.json"
-    },
-    {
       "card_id": 10163110,
       "name": "终焉的白骨圣堂之主",
       "class_name": "主教",
@@ -49096,6 +49296,51 @@
         "召唤"
       ],
       "suggested_rule_file": "batch_皇家护卫.json"
+    },
+    {
+      "card_id": 10244120,
+      "name": "绚丽凤凰·小凤",
+      "class_name": "龙族",
+      "card_type": "随从",
+      "cost": 8,
+      "ability_keywords": [
+        "入场曲"
+      ],
+      "hit_keywords": [
+        "入场曲"
+      ],
+      "confidence": "high",
+      "why_recommended": "Covered keywords: 入场曲",
+      "required_primitives": [
+        "入场曲"
+      ],
+      "suggested_rule_file": "batch_龙族.json"
+    },
+    {
+      "card_id": 10242210,
+      "name": "炎龙之剑",
+      "class_name": "龙族",
+      "card_type": "护符",
+      "cost": 1,
+      "ability_keywords": [
+        "策动",
+        "谢幕曲"
+      ],
+      "hit_keywords": [
+        "谢幕曲",
+        "策动",
+        "破坏",
+        "召唤"
+      ],
+      "confidence": "high",
+      "why_recommended": "Covered keywords: 谢幕曲, 策动, 破坏",
+      "required_primitives": [
+        "谢幕曲",
+        "策动",
+        "破坏",
+        "召唤"
+      ],
+      "suggested_rule_file": "batch_龙族.json"
     }
   ]
 }

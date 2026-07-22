@@ -28,7 +28,7 @@ Total audited cards: **91**
 | 90004320 绝大的证明 | 中立 / 法术 | entry_behavior_complete | 1 | 1 | exact |
 | 90004330 涸绝的甘露 | 中立 / 法术 | entry_behavior_complete | 1 | 1 | exact |
 | 90011110 妖精 | 精灵 / 随从 | entry_behavior_complete | 18 | 20 | exact |
-| 90011120 新绿的妖精 | 精灵 / 随从 | entry_behavior_complete | 6 | 6 | exact |
+| 90011120 新绿的妖精 | 精灵 / 随从 | entry_behavior_complete | 6 | 7 | exact |
 | 90011310 森林的奥秘 | 精灵 / 法术 | entry_behavior_complete | 4 | 3 | exact |
 | 90014110 冰晶剑士·伊芙 | 精灵 / 随从 | entry_behavior_complete | 1 | 1 | exact |
 | 90014310 蔷薇之闪击 | 精灵 / 法术 | entry_behavior_complete | 1 | 1 | exact |
@@ -64,8 +64,8 @@ Total audited cards: **91**
 | 90034340 苍奏之四 | 巫师 / 法术 | entry_behavior_complete | 1 | 1 | exact |
 | 90034350 宏大的回归 | 巫师 / 法术 | entry_behavior_complete | 1 | 1 | exact |
 | 90041110 炽炎幼龙 | 龙族 / 随从 | entry_behavior_complete | 1 | 1 | exact |
-| 90041120 巨翼飞龙 | 龙族 / 随从 | entry_behavior_complete | 6 | 4 | exact |
-| 90041130 大海虎鲸 | 龙族 / 随从 | entry_behavior_complete | 9 | 3 | keyword |
+| 90041120 巨翼飞龙 | 龙族 / 随从 | entry_behavior_complete | 6 | 5 | exact |
+| 90041130 大海虎鲸 | 龙族 / 随从 | entry_behavior_complete | 9 | 5 | keyword |
 | 90043110 乙姬近卫队 | 龙族 / 随从 | entry_behavior_complete | 1 | 1 | exact |
 | 90044110 霸道之金龙 | 龙族 / 随从 | entry_behavior_complete | 1 | 1 | exact |
 | 90044120 霸道之银龙 | 龙族 / 随从 | entry_behavior_complete | 1 | 1 | exact |

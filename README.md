@@ -38,14 +38,14 @@ covered generic boundary, but that never upgrades a partial or placeholder
 keyword whose full tagged-card semantics still require structured rules.
 
 The [rule coverage report](data/reports/rule_coverage.md) now includes a
-clause-audit layer without changing its legacy coverage categories. Of 553
-exact collectible cards (75.24% of 735), all 553 have explicit implemented text and named direct
+clause-audit layer without changing its legacy coverage categories. Of 565
+exact collectible cards (76.87% of 735), all 565 have explicit implemented text and named direct
 test evidence. The sibling `data/audits/rule_clauses.json` registry hashes every
 imported skill and alternate-mode clause, so a database text change or stale
 test reference invalidates the audit instead of silently retaining exact
 status. The current report has no unverified exact entry or missing generic
 schema, primitive, targeting, or timing blocker. Its remaining collectible gaps
-are 166 missing per-card structured rules plus 16 explicitly unclear texts.
+are 154 missing per-card structured rules plus 16 explicitly unclear texts.
 Rule metadata also supports version and errata fields, and the report
 records the complete imported source snapshot hash.
 
@@ -116,7 +116,7 @@ distributed learner, a policy-strength result, or a complete MCTS
 implementation. Multiprocess PPO currently uses current-policy self-play;
 random, fixed, and historical opponent mixing remains on the single-process
 collector. Snapshot/clone is the search foundation only. Card-rule
-coverage also remains deliberately separate: 166 collectible cards still lack
+coverage also remains deliberately separate: 154 collectible cards still lack
 per-card structured rules and 16 card texts remain explicitly unclear; neither
 group enters the exact training catalog or counts as supported.
 
