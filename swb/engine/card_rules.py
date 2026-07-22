@@ -209,6 +209,7 @@ def _parse_board_filter(
     card_name_key = f"{prefix}card_name_filter"
     tribe_id_key = f"{prefix}tribe_id_filter"
     tribe_name_key = f"{prefix}tribe_name_filter"
+    exclude_tribe_name_key = f"{prefix}exclude_tribe_name_filter"
     keyword_key = f"{prefix}keyword_filter"
     evolved_key = f"{prefix}evolved_filter"
     super_evolved_key = f"{prefix}super_evolved_filter"
@@ -272,6 +273,14 @@ def _parse_board_filter(
     if tribe_name is not None and not isinstance(tribe_name, str):
         raise ValueError(
             f"{source_path}/{tribe_name_key} card {card_id}: must be a string"
+        )
+    exclude_tribe_name = raw.get(exclude_tribe_name_key)
+    if exclude_tribe_name is not None and (
+        not isinstance(exclude_tribe_name, str) or not exclude_tribe_name
+    ):
+        raise ValueError(
+            f"{source_path}/{exclude_tribe_name_key} card {card_id}: "
+            "must be a non-empty string"
         )
 
     keyword = raw.get(keyword_key)
@@ -340,6 +349,7 @@ def _parse_board_filter(
             card_name,
             tribe_id,
             tribe_name,
+            exclude_tribe_name,
             keyword,
             evolved,
             super_evolved,
@@ -357,6 +367,7 @@ def _parse_board_filter(
         card_name=card_name,
         tribe_id=tribe_id,
         tribe_name=tribe_name,
+        exclude_tribe_name=exclude_tribe_name,
         keyword=keyword,
         evolved=evolved,
         super_evolved=super_evolved,
@@ -2754,9 +2765,9 @@ def _parse_operation(
                 f"{source_file}/candidate_extreme card {card_id}: requires "
                 "a board candidate target or all_leaders"
             )
-        if target is TargetKind.ALL_LEADERS and candidate_extreme in {
-            CandidateExtreme.HIGHEST_ATTACK,
-            CandidateExtreme.LOWEST_ATTACK,
+        if target is TargetKind.ALL_LEADERS and candidate_extreme not in {
+            CandidateExtreme.HIGHEST_HEALTH,
+            CandidateExtreme.LOWEST_HEALTH,
         }:
             raise ValueError(
                 f"{source_file}/candidate_extreme card {card_id}: leader "
@@ -4738,6 +4749,7 @@ def _parse_expression(raw: dict, source_path: str, card_id: int) -> ValueExpress
                 "card_name",
                 "tribe_id",
                 "tribe_name",
+                "exclude_tribe_name",
                 "keyword",
                 "evolved",
                 "super_evolved",
@@ -4760,6 +4772,7 @@ def _parse_expression(raw: dict, source_path: str, card_id: int) -> ValueExpress
                     "card_name": "card_name_filter",
                     "tribe_id": "tribe_id_filter",
                     "tribe_name": "tribe_name_filter",
+                    "exclude_tribe_name": "exclude_tribe_name_filter",
                     "keyword": "keyword_filter",
                     "evolved": "evolved_filter",
                     "super_evolved": "super_evolved_filter",

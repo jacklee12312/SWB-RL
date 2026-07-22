@@ -211,6 +211,7 @@ class EffectKind(str, Enum):
 
 
 class CandidateExtreme(str, Enum):
+    LEFTMOST = "leftmost"
     HIGHEST_ATTACK = "highest_attack"
     LOWEST_ATTACK = "lowest_attack"
     HIGHEST_HEALTH = "highest_health"
@@ -378,6 +379,7 @@ class BoardFilter:
     card_name: str | None = None
     tribe_id: int | None = None
     tribe_name: str | None = None
+    exclude_tribe_name: str | None = None
     evolved: bool | None = None
     super_evolved: bool | None = None
     damaged: bool | None = None
@@ -394,6 +396,10 @@ class BoardFilter:
             and (self.card_name is None or card.name == self.card_name)
             and (self.tribe_id is None or card.tribe_id == self.tribe_id)
             and (self.tribe_name is None or card.tribe_name == self.tribe_name)
+            and (
+                self.exclude_tribe_name is None
+                or card.tribe_name != self.exclude_tribe_name
+            )
         )
 
     def matches(self, card: CardDefinition) -> bool:

@@ -6115,6 +6115,114 @@
       "source_text_sha256": "96377e4f366b77e7a6bd820c7e34e62761dd7b25f44f25aa9c2b3665782e4f3b",
       "test_evidence": ["tests/test_real_ward_marine_crest_listener_batch.py"],
       "notes": "Token 生产、普通进化、超进化仅计一次进化事件、敌方进化不触发和治疗量均有直接测试。"
+    },
+    {
+      "card_id": 10032110,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】【土之秘术_1】召唤守护者巨像；【超进化时】选择1个己方巨像随从，使其进化后+3/+3。",
+      "rule_version": 1,
+      "source_text_sha256": "8f0e44afabb64c1bc0bf0d9494acc821dea5ab0eeb84bca0e6256c2795f1e634",
+      "test_evidence": ["tests/test_real_leftmost_golem_bat_crest_batch.py"],
+      "notes": "土之印充足/不足、Token 引用、选择巨像、进化后同目标绑定加成和无合法目标安全路径均有直接测试。"
+    },
+    {
+      "card_id": 10132120,
+      "coverage": "exact",
+      "implemented_text": "每次魔力增幅使本卡费用-1；【进化时】召唤泥尘巨像，并按召唤后的己方巨像随从数对所有敌方随从造成X点伤害。",
+      "rule_version": 1,
+      "source_text_sha256": "8561bb6ffb15987528e01990e179efb934861d14ce8b1c1a1f79fbce6d9ee34e",
+      "test_evidence": ["tests/test_real_leftmost_golem_bat_crest_batch.py"],
+      "notes": "手牌魔力增幅减费、Token 生产、召唤后动态巨像计数、全体伤害和死亡结算均有直接测试。"
+    },
+    {
+      "card_id": 10433110,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】选择敌方随从，使其失去所有能力后受到3点伤害；【超进化时】获得永久纹章，于己方回合开始对敌方主战者造成1点伤害。",
+      "rule_version": 1,
+      "source_text_sha256": "89af88d2aa0d69f2198bece11158c8c7b0ef5f4abe2c88ed3a78bd552aab3800",
+      "test_evidence": ["tests/test_real_leftmost_golem_bat_crest_batch.py"],
+      "notes": "沉默后伤害顺序、无目标、目标离场、超进化纹章及敌我回合开始边界均有直接测试。"
+    },
+    {
+      "card_id": 10732110,
+      "coverage": "exact",
+      "implemented_text": "本体具有【突进】；【谢幕曲】使己方土之印+2；【超进化时】【土之秘术_2】召唤2个本卡基础副本。",
+      "rule_version": 1,
+      "source_text_sha256": "4efe0af42ee01ebec361f7ba2abf84d69809ffefc3c7dc115829004d2985858d",
+      "test_evidence": ["tests/test_real_leftmost_golem_bat_crest_batch.py"],
+      "notes": "固有突进、自引用 Token 生产不递归、土之秘术充足/不足、容量与谢幕曲土之印均有直接测试。"
+    },
+    {
+      "card_id": 10452130,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】【模式】选择：随机1个其他己方随从与本体+1/+1；或随机1个敌方随从受到3点伤害。",
+      "rule_version": 1,
+      "source_text_sha256": "5deb879060a30d4eb34c063b4440c1ad5f2fcbfba00c52cb39cd4b5a03328f27",
+      "test_evidence": ["tests/test_real_leftmost_golem_bat_crest_batch.py"],
+      "notes": "两种模式、排除本体、双方空目标集合以及固定种子的随机确定性均有直接测试。"
+    },
+    {
+      "card_id": 10752110,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】选择敌方随从造成3点伤害并召唤骸骨士兵；【进化时】重放相同能力。",
+      "rule_version": 1,
+      "source_text_sha256": "217aba869a6a1625a7b325e46264f28c95737758e75439086f9185003021093f",
+      "test_evidence": ["tests/test_real_leftmost_golem_bat_crest_batch.py"],
+      "notes": "选择伤害、无目标仍召唤、目标离场继续后续操作、满场容量和进化重放均有直接测试。"
+    },
+    {
+      "card_id": 10852110,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】召唤3个蝙蝠；每当己方蝙蝠进入战场，使该事件来源获得【突进】。",
+      "rule_version": 1,
+      "source_text_sha256": "d1542c0984fe5cc86e75d6cebe11049f9dbe092e5a6c068e75c212df0c8ecdb6",
+      "test_evidence": ["tests/test_real_leftmost_golem_bat_crest_batch.py"],
+      "notes": "三 Token 生产链、卡名事件过滤、事件来源关键字、本体不误获突进及有限空位均有直接测试。"
+    },
+    {
+      "card_id": 10852120,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】对所有敌方随从和双方主战者造成1点伤害；【进化时】重放相同能力。",
+      "rule_version": 1,
+      "source_text_sha256": "6c72c145827d3c9e5325da86958b1b16d9824c94dbc791b896ff4255f1d4f6de",
+      "test_evidence": ["tests/test_real_leftmost_golem_bat_crest_batch.py"],
+      "notes": "敌方全体随从、双方主战者、入场与进化重放及伤害结算均有直接测试。"
+    },
+    {
+      "card_id": 10423310,
+      "coverage": "exact",
+      "implemented_text": "【模式】选择：最左己方皇家护卫随从每回合可攻击2次；所有己方皇家护卫随从+1/+1并获得【屏障】；回复2PP与1EP；或回复主战者6点生命。",
+      "rule_version": 1,
+      "source_text_sha256": "7e11781b5396a1b845329f5d6cf3ca5c7ce00a694970710982a92d3d92a4cc6b",
+      "test_evidence": ["tests/test_real_leftmost_golem_bat_crest_batch.py"],
+      "notes": "四种模式、筛选后最左顺序、职业过滤、空候选、PP/EP/治疗和四个 RL 后续选择掩码均有直接测试。"
+    },
+    {
+      "card_id": 10524120,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】选择敌方随从使其消失，并将闪耀的金币加入手牌；【超进化时】获得【吟唱_4】纹章，于己方回合结束加入1张闪耀的金币。",
+      "rule_version": 1,
+      "source_text_sha256": "f781b4044bb25dbcde67047bcb746877b7105f6c17972c51e468fbfef9d0fd7f",
+      "test_evidence": ["tests/test_real_leftmost_golem_bat_crest_batch.py"],
+      "notes": "选择消失、无目标仍加牌、手牌已满、Token 引用、纹章倒数和己方回合结束触发均有直接测试。"
+    },
+    {
+      "card_id": 10723110,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】召唤3个骑士后选择模式：其他己方随从+1/+0并获得【突进】；或+0/+1并获得【守护】。",
+      "rule_version": 1,
+      "source_text_sha256": "7a964836514ae864b4a85fc4fd984070f3966ed409e1f610cf1ae7457f2bd6d0",
+      "test_evidence": ["tests/test_real_leftmost_golem_bat_crest_batch.py"],
+      "notes": "三 Token 生产、召唤后模式、两种全体加成、本体排除、有限空位与动态关键字均有直接测试。"
+    },
+    {
+      "card_id": 10603210,
+      "coverage": "exact",
+      "implemented_text": "【吟唱_2】；己方回合结束时，对战场上所有非侵蚀者随从造成2点伤害。",
+      "rule_version": 1,
+      "source_text_sha256": "1fd1c7f8161815474382b8565de896f830278127798862cecb72c855c34ef4d4",
+      "test_evidence": ["tests/test_real_leftmost_golem_bat_crest_batch.py"],
+      "notes": "通用排除种族筛选、双方普通/侵蚀者随从、己方回合结束、同步死亡及倒数到期均有直接测试。"
     }
   ]
 }

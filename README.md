@@ -38,14 +38,14 @@ covered generic boundary, but that never upgrades a partial or placeholder
 keyword whose full tagged-card semantics still require structured rules.
 
 The [rule coverage report](data/reports/rule_coverage.md) now includes a
-clause-audit layer without changing its legacy coverage categories. Of 565
-exact collectible cards (76.87% of 735), all 565 have explicit implemented text and named direct
+clause-audit layer without changing its legacy coverage categories. Of 577
+exact collectible cards (78.50% of 735), all 577 have explicit implemented text and named direct
 test evidence. The sibling `data/audits/rule_clauses.json` registry hashes every
 imported skill and alternate-mode clause, so a database text change or stale
 test reference invalidates the audit instead of silently retaining exact
 status. The current report has no unverified exact entry or missing generic
 schema, primitive, targeting, or timing blocker. Its remaining collectible gaps
-are 154 missing per-card structured rules plus 16 explicitly unclear texts.
+are 142 missing per-card structured rules plus 16 explicitly unclear texts.
 Rule metadata also supports version and errata fields, and the report
 records the complete imported source snapshot hash.
 
@@ -116,7 +116,7 @@ distributed learner, a policy-strength result, or a complete MCTS
 implementation. Multiprocess PPO currently uses current-policy self-play;
 random, fixed, and historical opponent mixing remains on the single-process
 collector. Snapshot/clone is the search foundation only. Card-rule
-coverage also remains deliberately separate: 154 collectible cards still lack
+coverage also remains deliberately separate: 142 collectible cards still lack
 per-card structured rules and 16 card texts remain explicitly unclear; neither
 group enters the exact training catalog or counts as supported.
 
@@ -180,6 +180,15 @@ The deterministic rules core supports:
   no-target and stale-target continuation, hand/board capacity, simultaneous
   deaths, cost expiry, deterministic shuffling, resource shortage, Token
   references, clause hashes, and RL mode masks;
+- a 12-card exact Rune/Nightmare/Royal/Neutral batch covers `10032110`,
+  `10132120`, `10433110`, `10732110`, `10452130`, `10752110`, `10852110`,
+  `10852120`, `10423310`, `10524120`, `10723110`, and `10603210`. Generic
+  `leftmost` candidate selection preserves filtered board order without RNG,
+  `exclude_tribe_name` expresses all non-Encroacher followers, and effect-
+  evolved target bindings remain valid for printed follow-up buffs. The slice
+  exercises Earth Rite, Spellboost, Token chains, four- and two-way Modes,
+  ability removal, crests, Countdown, simultaneous damage, EP/PP recovery,
+  hand/board capacity, stale/no-target paths, seeded replay, and RL choice masks;
 - seeded reset, shuffle, draw, turn progression, official immediate defeat when
   drawing from an empty deck, an auditable alternate victory outcome, atomic
   seeded replacement-deck shuffling,

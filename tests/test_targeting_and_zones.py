@@ -80,6 +80,18 @@ class TargetingTests(unittest.TestCase):
         )
         self.assertIs(operation.candidate_extreme, CandidateExtreme.HIGHEST_ATTACK)
 
+        leftmost = _parse_operation(
+            {
+                "kind": "grant_attacks_per_turn",
+                "target": "all_own_units",
+                "candidate_extreme": "leftmost",
+                "amount": 2,
+            },
+            "extreme.json",
+            77,
+        )
+        self.assertIs(leftmost.candidate_extreme, CandidateExtreme.LEFTMOST)
+
         invalid = (
             {
                 "kind": "destroy",
@@ -100,6 +112,11 @@ class TargetingTests(unittest.TestCase):
                 "kind": "damage_unit",
                 "target": "all_leaders",
                 "candidate_extreme": "highest_health",
+            },
+            {
+                "kind": "damage_leader",
+                "target": "all_leaders",
+                "candidate_extreme": "leftmost",
             },
         )
         for raw in invalid:
@@ -142,6 +159,36 @@ class TargetingTests(unittest.TestCase):
             )
             fingerprints.append(engine.deterministic_fingerprint())
         self.assertEqual(fingerprints[0], fingerprints[1])
+
+    def test_leftmost_extreme_uses_filtered_board_order(self):
+        operation = EffectOperation(
+            EffectKind.GRANT_ATTACKS_PER_TURN,
+            TargetKind.ALL_OWN_UNITS,
+            amount=2,
+            board_filter=BoardFilter(card_name="皇家随从"),
+            candidate_extreme=CandidateExtreme.LEFTMOST,
+        )
+        engine = GameEngine(
+            [card(i) for i in range(100, 140)],
+            [card(i) for i in range(200, 240)],
+            class_a=1,
+            class_b=1,
+            seed=30,
+            rulebook=RuleBook((CardRule(1, Trigger.PLAY, (operation,)),)),
+        )
+        engine.reset(seed=30)
+        neutral = Unit.summon(card(900, name="中立随从"), entity_id=900)
+        left_royal = Unit.summon(card(901, name="皇家随从"), entity_id=901)
+        right_royal = Unit.summon(card(902, name="皇家随从"), entity_id=902)
+        engine.players[0].board = [neutral, left_royal, right_royal]
+        engine.players[0].mana = 10
+        engine.players[0].hand[0] = card(1, card_type="法术", attack=None, life=None)
+
+        engine.apply(PlayCard(0, 0))
+
+        self.assertEqual(neutral.attacks_per_turn, 1)
+        self.assertEqual(left_royal.attacks_per_turn, 2)
+        self.assertEqual(right_royal.attacks_per_turn, 1)
 
     def test_all_extreme_snapshots_every_tied_follower(self):
         operation = EffectOperation(

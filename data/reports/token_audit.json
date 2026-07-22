@@ -902,6 +902,12 @@
           "entry_kind": "summon",
           "rule_file": "real_complete_token_board_batch.json",
           "rule_group": "rules"
+        },
+        {
+          "source_card_id": 10723110,
+          "entry_kind": "summon",
+          "rule_file": "real_leftmost_golem_bat_crest_batch.json",
+          "rule_group": "rules"
         }
       ],
       "has_authored_behavior": false,
@@ -1361,6 +1367,18 @@
           "rule_group": "rules"
         },
         {
+          "source_card_id": 10524120,
+          "entry_kind": "add_card",
+          "rule_file": "real_leftmost_golem_bat_crest_batch.json",
+          "rule_group": "emblems"
+        },
+        {
+          "source_card_id": 10524120,
+          "entry_kind": "add_card",
+          "rule_file": "real_leftmost_golem_bat_crest_batch.json",
+          "rule_group": "rules"
+        },
+        {
           "source_card_id": 10822110,
           "entry_kind": "add_card",
           "rule_file": "real_royal_rune_bishop_mixed_batch.json",
@@ -1608,6 +1626,12 @@
           "rule_group": "rules"
         },
         {
+          "source_card_id": 10132120,
+          "entry_kind": "summon",
+          "rule_file": "real_leftmost_golem_bat_crest_batch.json",
+          "rule_group": "rules"
+        },
+        {
           "source_card_id": 10332310,
           "entry_kind": "summon",
           "rule_file": "real_spell_modes_and_earth_listener_batch.json",
@@ -1668,6 +1692,12 @@
         }
       ],
       "authored_producers": [
+        {
+          "source_card_id": 10032110,
+          "entry_kind": "summon",
+          "rule_file": "real_leftmost_golem_bat_crest_batch.json",
+          "rule_group": "rules"
+        },
         {
           "source_card_id": 10332310,
           "entry_kind": "summon",
@@ -2813,6 +2843,12 @@
           "rule_group": "rules"
         },
         {
+          "source_card_id": 10752110,
+          "entry_kind": "summon",
+          "rule_file": "real_leftmost_golem_bat_crest_batch.json",
+          "rule_group": "rules"
+        },
+        {
           "source_card_id": 10752310,
           "entry_kind": "summon",
           "rule_file": "real_spellboost_recycle_listener_batch.json",
@@ -2951,6 +2987,12 @@
           "source_card_id": 10851120,
           "entry_kind": "add_card",
           "rule_file": "real_low_coverage_token_amulet_batch.json",
+          "rule_group": "rules"
+        },
+        {
+          "source_card_id": 10852110,
+          "entry_kind": "summon",
+          "rule_file": "real_leftmost_golem_bat_crest_batch.json",
           "rule_group": "rules"
         }
       ],

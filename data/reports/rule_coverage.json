@@ -12,25 +12,25 @@
   },
   "summary": {
     "total_cards": 826,
-    "total_with_rules": 669,
+    "total_with_rules": 681,
     "test_or_synthetic_ids_with_rules": 26,
     "coverage_counts": {
-      "covered_exact": 565,
+      "covered_exact": 577,
       "text_unclear": 16,
-      "supported_missing_rule": 154,
+      "supported_missing_rule": 142,
       "token_or_non_collectible": 91
     },
     "clause_audit_counts": {
-      "mapped_exact": 565,
+      "mapped_exact": 577,
       "unverified_exact": 0,
       "partial": 0,
-      "missing_rule": 154,
+      "missing_rule": 142,
       "missing_primitive": 0,
       "text_unclear": 16,
       "token_separate_audit": 91
     },
     "blocker_counts": {
-      "missing_rule": 154,
+      "missing_rule": 142,
       "missing_schema": 0,
       "missing_primitive": 0,
       "missing_targeting": 0,
@@ -1731,8 +1731,8 @@
       "cost": 4,
       "is_collectible": true,
       "card_set_id": 10000,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '进化时', '超进化', '召唤', '土之秘术|土之印']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['fanfare', 'super_evolve'], Ops: ['earth_rite', 'summon', 'evolve_unit', 'buff_unit']",
       "hit_keywords": [
         "入场曲",
         "进化时",
@@ -1750,27 +1750,47 @@
         "【<color=Keyword>入场曲</color>】【<color=Keyword>土之秘术</color>_1】召唤1个『<color=Keyword>守护者巨像</color>』。\n<hr><sev>【<color=Keyword>超进化时</color>】选择自己的战场上的1个巨像·随从，使其进化，使其+3/+3。</sev>"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【入场曲】【土之秘术_1】召唤守护者巨像；【超进化时】选择1个己方巨像随从，使其进化后+3/+3。",
+        "notes": "土之印充足/不足、Token 引用、选择巨像、进化后同目标绑定加成和无合法目标安全路径均有直接测试。",
+        "rule_version": 1,
+        "source_text_sha256": "8f0e44afabb64c1bc0bf0d9494acc821dea5ab0eeb84bca0e6256c2795f1e634",
+        "test_evidence": [
+          "tests/test_real_leftmost_golem_bat_crest_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10032110:0",
             "source_text": "【<color=Keyword>入场曲</color>】【<color=Keyword>土之秘术</color>_1】召唤1个『<color=Keyword>守护者巨像</color>』。\n<hr><sev>【<color=Keyword>超进化时</color>】选择自己的战场上的1个巨像·随从，使其进化，使其+3/+3。</sev>",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "【入场曲】【土之秘术_1】召唤守护者巨像；【超进化时】选择1个己方巨像随从，使其进化后+3/+3。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "8f0e44afabb64c1bc0bf0d9494acc821dea5ab0eeb84bca0e6256c2795f1e634",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "fanfare",
+            "super_evolve"
+          ],
+          "effect_kinds": [
+            "earth_rite",
+            "summon",
+            "evolve_unit",
+            "buff_unit"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_leftmost_golem_bat_crest_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10032120": {
@@ -7028,8 +7048,8 @@
       "cost": 5,
       "is_collectible": true,
       "card_set_id": 10001,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['进化时', '造成.*伤害', '召唤', '魔力增幅']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['evolve', 'passive'], Ops: ['summon', 'damage_unit', 'spellboost_cost_reduction']",
       "hit_keywords": [
         "进化时",
         "造成.*伤害",
@@ -7045,27 +7065,46 @@
         "【<color=Keyword>魔力增幅时</color>】使本卡牌的费用-1。\n<hr><ev>【<color=Keyword>进化时</color>】召唤1个『<color=Keyword>泥尘巨像</color>』。对对手的战场上的所有随从造成X点伤害。X为自己的战场上的巨像·随从的张数。</ev>"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "每次魔力增幅使本卡费用-1；【进化时】召唤泥尘巨像，并按召唤后的己方巨像随从数对所有敌方随从造成X点伤害。",
+        "notes": "手牌魔力增幅减费、Token 生产、召唤后动态巨像计数、全体伤害和死亡结算均有直接测试。",
+        "rule_version": 1,
+        "source_text_sha256": "8561bb6ffb15987528e01990e179efb934861d14ce8b1c1a1f79fbce6d9ee34e",
+        "test_evidence": [
+          "tests/test_real_leftmost_golem_bat_crest_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10132120:0",
             "source_text": "【<color=Keyword>魔力增幅时</color>】使本卡牌的费用-1。\n<hr><ev>【<color=Keyword>进化时</color>】召唤1个『<color=Keyword>泥尘巨像</color>』。对对手的战场上的所有随从造成X点伤害。X为自己的战场上的巨像·随从的张数。</ev>",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "每次魔力增幅使本卡费用-1；【进化时】召唤泥尘巨像，并按召唤后的己方巨像随从数对所有敌方随从造成X点伤害。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "8561bb6ffb15987528e01990e179efb934861d14ce8b1c1a1f79fbce6d9ee34e",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "evolve",
+            "passive"
+          ],
+          "effect_kinds": [
+            "summon",
+            "damage_unit",
+            "spellboost_cost_reduction"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_leftmost_golem_bat_crest_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10132130": {
@@ -23569,8 +23608,8 @@
       "cost": 5,
       "is_collectible": true,
       "card_set_id": 10004,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['回复自己\\\\d+点进化点', '回复自己\\\\d+点能量点', '回复(?!自己\\\\d+点(?:超进化点|进化点|能量点))', '屏障', '选择一项|模式']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['play'], Ops: ['choose_one', 'grant_attacks_per_turn', 'buff_unit', 'add_keyword', 'restore_mana', 'restore_evolution_points', 'heal_leader']",
       "hit_keywords": [
         "回复自己\\d+点进化点",
         "回复自己\\d+点能量点",
@@ -23587,27 +23626,49 @@
         "【<color=Keyword>模式</color>】选择1个能力发动。\n<ridx=0>（1）使自己的战场上的从左起的1个皇家护卫·随从获得「1回合可以攻击2次」。</ridx>\n<ridx=1>（2）使自己的战场上的所有皇家护卫·随从+1/+1且获得【<color=Keyword>屏障</color>】。</ridx>\n<ridx=2>（3）回复自己2点能量点。回复自己1点进化点。</ridx>\n<ridx=3>（4）回复自己的主战者6点生命值。</ridx>"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【模式】选择：最左己方皇家护卫随从每回合可攻击2次；所有己方皇家护卫随从+1/+1并获得【屏障】；回复2PP与1EP；或回复主战者6点生命。",
+        "notes": "四种模式、筛选后最左顺序、职业过滤、空候选、PP/EP/治疗和四个 RL 后续选择掩码均有直接测试。",
+        "rule_version": 1,
+        "source_text_sha256": "7e11781b5396a1b845329f5d6cf3ca5c7ce00a694970710982a92d3d92a4cc6b",
+        "test_evidence": [
+          "tests/test_real_leftmost_golem_bat_crest_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10423310:0",
             "source_text": "【<color=Keyword>模式</color>】选择1个能力发动。\n<ridx=0>（1）使自己的战场上的从左起的1个皇家护卫·随从获得「1回合可以攻击2次」。</ridx>\n<ridx=1>（2）使自己的战场上的所有皇家护卫·随从+1/+1且获得【<color=Keyword>屏障</color>】。</ridx>\n<ridx=2>（3）回复自己2点能量点。回复自己1点进化点。</ridx>\n<ridx=3>（4）回复自己的主战者6点生命值。</ridx>",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "【模式】选择：最左己方皇家护卫随从每回合可攻击2次；所有己方皇家护卫随从+1/+1并获得【屏障】；回复2PP与1EP；或回复主战者6点生命。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "7e11781b5396a1b845329f5d6cf3ca5c7ce00a694970710982a92d3d92a4cc6b",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "play"
+          ],
+          "effect_kinds": [
+            "choose_one",
+            "grant_attacks_per_turn",
+            "buff_unit",
+            "add_keyword",
+            "restore_mana",
+            "restore_evolution_points",
+            "heal_leader"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_leftmost_golem_bat_crest_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10424110": {
@@ -24102,8 +24163,8 @@
       "cost": 3,
       "is_collectible": true,
       "card_set_id": 10004,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '进化时', '超进化', '回合开始', '造成.*伤害', '失去所有能力', '纹章']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['fanfare', 'super_evolve', 'emblem_source'], Ops: ['remove_all_abilities', 'damage_unit', 'gain_emblem', 'damage_leader']",
       "hit_keywords": [
         "入场曲",
         "进化时",
@@ -24124,32 +24185,53 @@
         "【纹章_0】自己的回合开始时，对对手的主战者造成1点伤害。"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【入场曲】选择敌方随从，使其失去所有能力后受到3点伤害；【超进化时】获得永久纹章，于己方回合开始对敌方主战者造成1点伤害。",
+        "notes": "沉默后伤害顺序、无目标、目标离场、超进化纹章及敌我回合开始边界均有直接测试。",
+        "rule_version": 1,
+        "source_text_sha256": "89af88d2aa0d69f2198bece11158c8c7b0ef5f4abe2c88ed3a78bd552aab3800",
+        "test_evidence": [
+          "tests/test_real_leftmost_golem_bat_crest_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10433110:0",
             "source_text": "【<color=Keyword>入场曲</color>】选择对手的战场上的1个随从，使其失去所有能力，对其造成3点伤害。\n<hr><sev>【<color=Keyword>超进化时</color>】使自己获得『纹章：缅怀之火·埃尔默特』。</sev>",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           },
           {
             "clause_id": "10433110:1",
             "source_text": "【纹章_0】自己的回合开始时，对对手的主战者造成1点伤害。",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "【入场曲】选择敌方随从，使其失去所有能力后受到3点伤害；【超进化时】获得永久纹章，于己方回合开始对敌方主战者造成1点伤害。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "89af88d2aa0d69f2198bece11158c8c7b0ef5f4abe2c88ed3a78bd552aab3800",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "fanfare",
+            "super_evolve",
+            "emblem_source"
+          ],
+          "effect_kinds": [
+            "remove_all_abilities",
+            "damage_unit",
+            "gain_emblem",
+            "damage_leader"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_leftmost_golem_bat_crest_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10433310": {
@@ -25310,8 +25392,8 @@
       "cost": 3,
       "is_collectible": true,
       "card_set_id": 10004,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '造成.*伤害', '选择一项|模式']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['fanfare'], Ops: ['choose_one', 'buff_unit', 'buff_unit', 'damage_unit']",
       "hit_keywords": [
         "入场曲",
         "造成.*伤害",
@@ -25326,27 +25408,46 @@
         "【<color=Keyword>入场曲</color>】【<color=Keyword>模式</color>】选择1个能力发动。\n<ridx=0>（1）使自己的战场上的随机1个其他随从和本随从+1/+1。</ridx>\n<ridx=1>（2）对对手的战场上的随机1个随从造成3点伤害。</ridx>"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【入场曲】【模式】选择：随机1个其他己方随从与本体+1/+1；或随机1个敌方随从受到3点伤害。",
+        "notes": "两种模式、排除本体、双方空目标集合以及固定种子的随机确定性均有直接测试。",
+        "rule_version": 1,
+        "source_text_sha256": "5deb879060a30d4eb34c063b4440c1ad5f2fcbfba00c52cb39cd4b5a03328f27",
+        "test_evidence": [
+          "tests/test_real_leftmost_golem_bat_crest_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10452130:0",
             "source_text": "【<color=Keyword>入场曲</color>】【<color=Keyword>模式</color>】选择1个能力发动。\n<ridx=0>（1）使自己的战场上的随机1个其他随从和本随从+1/+1。</ridx>\n<ridx=1>（2）对对手的战场上的随机1个随从造成3点伤害。</ridx>",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "【入场曲】【模式】选择：随机1个其他己方随从与本体+1/+1；或随机1个敌方随从受到3点伤害。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "5deb879060a30d4eb34c063b4440c1ad5f2fcbfba00c52cb39cd4b5a03328f27",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "fanfare"
+          ],
+          "effect_kinds": [
+            "choose_one",
+            "buff_unit",
+            "buff_unit",
+            "damage_unit"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_leftmost_golem_bat_crest_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10453110": {
@@ -28284,8 +28385,8 @@
       "cost": 5,
       "is_collectible": true,
       "card_set_id": 10005,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '进化时', '超进化', '回合结束', '倒数', '将.*加入手牌', '消失', '纹章']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['fanfare', 'super_evolve', 'emblem_source'], Ops: ['banish', 'add_card', 'gain_emblem', 'add_card']",
       "hit_keywords": [
         "入场曲",
         "进化时",
@@ -28308,32 +28409,53 @@
         "【纹章_0】【<color=Keyword>吟唱</color>_4】\n自己的回合结束时，将1张『<color=Keyword>闪耀的金币</color>』加入手牌。"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【入场曲】选择敌方随从使其消失，并将闪耀的金币加入手牌；【超进化时】获得【吟唱_4】纹章，于己方回合结束加入1张闪耀的金币。",
+        "notes": "选择消失、无目标仍加牌、手牌已满、Token 引用、纹章倒数和己方回合结束触发均有直接测试。",
+        "rule_version": 1,
+        "source_text_sha256": "f781b4044bb25dbcde67047bcb746877b7105f6c17972c51e468fbfef9d0fd7f",
+        "test_evidence": [
+          "tests/test_real_leftmost_golem_bat_crest_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10524120:0",
             "source_text": "【<color=Keyword>入场曲</color>】选择对手的战场上的1个随从，使其消失。将1张『<color=Keyword>闪耀的金币</color>』加入自己的手牌。\n<hr><sev>【<color=Keyword>超进化时</color>】使自己获得『纹章：丽金花·云庆』。</sev>",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           },
           {
             "clause_id": "10524120:1",
             "source_text": "【纹章_0】【<color=Keyword>吟唱</color>_4】\n自己的回合结束时，将1张『<color=Keyword>闪耀的金币</color>』加入手牌。",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "【入场曲】选择敌方随从使其消失，并将闪耀的金币加入手牌；【超进化时】获得【吟唱_4】纹章，于己方回合结束加入1张闪耀的金币。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "f781b4044bb25dbcde67047bcb746877b7105f6c17972c51e468fbfef9d0fd7f",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "fanfare",
+            "super_evolve",
+            "emblem_source"
+          ],
+          "effect_kinds": [
+            "banish",
+            "add_card",
+            "gain_emblem",
+            "add_card"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_leftmost_golem_bat_crest_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10531110": {
@@ -31588,8 +31710,8 @@
       "cost": 4,
       "is_collectible": true,
       "card_set_id": 10006,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['回合结束', '倒数', '造成.*伤害']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['turn_end'], Ops: ['damage_unit']",
       "hit_keywords": [
         "回合结束",
         "倒数",
@@ -31603,27 +31725,43 @@
         "【<color=Keyword>吟唱</color>_2】\n自己的回合结束时，对战场上的所有非侵蚀者随从造成2点伤害。"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【吟唱_2】；己方回合结束时，对战场上所有非侵蚀者随从造成2点伤害。",
+        "notes": "通用排除种族筛选、双方普通/侵蚀者随从、己方回合结束、同步死亡及倒数到期均有直接测试。",
+        "rule_version": 1,
+        "source_text_sha256": "1fd1c7f8161815474382b8565de896f830278127798862cecb72c855c34ef4d4",
+        "test_evidence": [
+          "tests/test_real_leftmost_golem_bat_crest_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10603210:0",
             "source_text": "【<color=Keyword>吟唱</color>_2】\n自己的回合结束时，对战场上的所有非侵蚀者随从造成2点伤害。",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "【吟唱_2】；己方回合结束时，对战场上所有非侵蚀者随从造成2点伤害。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "1fd1c7f8161815474382b8565de896f830278127798862cecb72c855c34ef4d4",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "turn_end"
+          ],
+          "effect_kinds": [
+            "damage_unit"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_leftmost_golem_bat_crest_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10604110": {
@@ -37688,8 +37826,8 @@
       "cost": 5,
       "is_collectible": true,
       "card_set_id": 10007,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '召唤', '选择一项|模式']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['fanfare'], Ops: ['summon', 'summon', 'summon', 'choose_one', 'buff_unit', 'add_keyword', 'buff_unit', 'add_keyword']",
       "hit_keywords": [
         "入场曲",
         "召唤",
@@ -37706,27 +37844,50 @@
         "【<color=Keyword>入场曲</color>】召唤3个『<color=Keyword>骑士</color>』。【<color=Keyword>模式</color>】选择1个能力发动。\n<ridx=0>（1）使自己的战场上的其他所有随从+1/+0且获得【<color=Keyword>突进</color>】。</ridx>\n<ridx=1>（2）使自己的战场上的其他所有随从+0/+1且获得【<color=Keyword>守护</color>】。</ridx>"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【入场曲】召唤3个骑士后选择模式：其他己方随从+1/+0并获得【突进】；或+0/+1并获得【守护】。",
+        "notes": "三 Token 生产、召唤后模式、两种全体加成、本体排除、有限空位与动态关键字均有直接测试。",
+        "rule_version": 1,
+        "source_text_sha256": "7a964836514ae864b4a85fc4fd984070f3966ed409e1f610cf1ae7457f2bd6d0",
+        "test_evidence": [
+          "tests/test_real_leftmost_golem_bat_crest_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10723110:0",
             "source_text": "【<color=Keyword>入场曲</color>】召唤3个『<color=Keyword>骑士</color>』。【<color=Keyword>模式</color>】选择1个能力发动。\n<ridx=0>（1）使自己的战场上的其他所有随从+1/+0且获得【<color=Keyword>突进</color>】。</ridx>\n<ridx=1>（2）使自己的战场上的其他所有随从+0/+1且获得【<color=Keyword>守护</color>】。</ridx>",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "【入场曲】召唤3个骑士后选择模式：其他己方随从+1/+0并获得【突进】；或+0/+1并获得【守护】。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "7a964836514ae864b4a85fc4fd984070f3966ed409e1f610cf1ae7457f2bd6d0",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "fanfare"
+          ],
+          "effect_kinds": [
+            "summon",
+            "summon",
+            "summon",
+            "choose_one",
+            "buff_unit",
+            "add_keyword",
+            "buff_unit",
+            "add_keyword"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_leftmost_golem_bat_crest_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10723310": {
@@ -38132,8 +38293,8 @@
       "cost": 3,
       "is_collectible": true,
       "card_set_id": 10007,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['谢幕曲', '进化时', '超进化', '召唤', '土之秘术|土之印']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['last_words', 'super_evolve', 'intrinsic_keywords'], Ops: ['add_earth_sigils', 'earth_rite', 'summon', 'summon', 'keyword:突进']",
       "hit_keywords": [
         "谢幕曲",
         "进化时",
@@ -38152,27 +38313,49 @@
         "【<color=Keyword>突进</color>】\n【<color=Keyword>谢幕曲</color>】使自己的战场上的土之印+2。\n<hr><sev>【<color=Keyword>超进化时</color>】【<color=Keyword>土之秘术</color>_2】召唤2个『<color=Keyword>迷人怪兽</color>』。</sev>"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "本体具有【突进】；【谢幕曲】使己方土之印+2；【超进化时】【土之秘术_2】召唤2个本卡基础副本。",
+        "notes": "固有突进、自引用 Token 生产不递归、土之秘术充足/不足、容量与谢幕曲土之印均有直接测试。",
+        "rule_version": 1,
+        "source_text_sha256": "4efe0af42ee01ebec361f7ba2abf84d69809ffefc3c7dc115829004d2985858d",
+        "test_evidence": [
+          "tests/test_real_leftmost_golem_bat_crest_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10732110:0",
             "source_text": "【<color=Keyword>突进</color>】\n【<color=Keyword>谢幕曲</color>】使自己的战场上的土之印+2。\n<hr><sev>【<color=Keyword>超进化时</color>】【<color=Keyword>土之秘术</color>_2】召唤2个『<color=Keyword>迷人怪兽</color>』。</sev>",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "本体具有【突进】；【谢幕曲】使己方土之印+2；【超进化时】【土之秘术_2】召唤2个本卡基础副本。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "4efe0af42ee01ebec361f7ba2abf84d69809ffefc3c7dc115829004d2985858d",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "last_words",
+            "super_evolve",
+            "intrinsic_keywords"
+          ],
+          "effect_kinds": [
+            "add_earth_sigils",
+            "earth_rite",
+            "summon",
+            "summon",
+            "keyword:突进"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_leftmost_golem_bat_crest_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10732120": {
@@ -39339,8 +39522,8 @@
       "cost": 5,
       "is_collectible": true,
       "card_set_id": 10007,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '进化时', '造成.*伤害', '召唤']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['fanfare', 'evolve'], Ops: ['damage_unit', 'summon', 'damage_unit', 'summon']",
       "hit_keywords": [
         "入场曲",
         "进化时",
@@ -39356,27 +39539,47 @@
         "【<color=Keyword>入场曲</color>】选择对手的战场上的1个随从，对其造成3点伤害。召唤1个『<color=Keyword>骸骨士兵</color>』。\n<hr><ev>【<color=Keyword>进化时</color>】发动与【<color=Keyword>入场曲</color>】相同的能力。</ev>"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【入场曲】选择敌方随从造成3点伤害并召唤骸骨士兵；【进化时】重放相同能力。",
+        "notes": "选择伤害、无目标仍召唤、目标离场继续后续操作、满场容量和进化重放均有直接测试。",
+        "rule_version": 1,
+        "source_text_sha256": "217aba869a6a1625a7b325e46264f28c95737758e75439086f9185003021093f",
+        "test_evidence": [
+          "tests/test_real_leftmost_golem_bat_crest_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10752110:0",
             "source_text": "【<color=Keyword>入场曲</color>】选择对手的战场上的1个随从，对其造成3点伤害。召唤1个『<color=Keyword>骸骨士兵</color>』。\n<hr><ev>【<color=Keyword>进化时</color>】发动与【<color=Keyword>入场曲</color>】相同的能力。</ev>",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "【入场曲】选择敌方随从造成3点伤害并召唤骸骨士兵；【进化时】重放相同能力。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "217aba869a6a1625a7b325e46264f28c95737758e75439086f9185003021093f",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "fanfare",
+            "evolve"
+          ],
+          "effect_kinds": [
+            "damage_unit",
+            "summon",
+            "damage_unit",
+            "summon"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_leftmost_golem_bat_crest_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10752120": {
@@ -44181,8 +44384,8 @@
       "cost": 6,
       "is_collectible": true,
       "card_set_id": 10008,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '召唤']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['fanfare', 'listener:board:follower_summoned'], Ops: ['summon', 'summon', 'summon', 'add_keyword']",
       "hit_keywords": [
         "入场曲",
         "召唤"
@@ -44196,27 +44399,47 @@
         "【<color=Keyword>入场曲</color>】召唤3个『<color=Keyword>蝙蝠</color>』。\n<hr>自己的『<color=Keyword>蝙蝠</color>』进入战场时，使其获得【<color=Keyword>突进</color>】。"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【入场曲】召唤3个蝙蝠；每当己方蝙蝠进入战场，使该事件来源获得【突进】。",
+        "notes": "三 Token 生产链、卡名事件过滤、事件来源关键字、本体不误获突进及有限空位均有直接测试。",
+        "rule_version": 1,
+        "source_text_sha256": "d1542c0984fe5cc86e75d6cebe11049f9dbe092e5a6c068e75c212df0c8ecdb6",
+        "test_evidence": [
+          "tests/test_real_leftmost_golem_bat_crest_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10852110:0",
             "source_text": "【<color=Keyword>入场曲</color>】召唤3个『<color=Keyword>蝙蝠</color>』。\n<hr>自己的『<color=Keyword>蝙蝠</color>』进入战场时，使其获得【<color=Keyword>突进</color>】。",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "【入场曲】召唤3个蝙蝠；每当己方蝙蝠进入战场，使该事件来源获得【突进】。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "d1542c0984fe5cc86e75d6cebe11049f9dbe092e5a6c068e75c212df0c8ecdb6",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "fanfare",
+            "listener:board:follower_summoned"
+          ],
+          "effect_kinds": [
+            "summon",
+            "summon",
+            "summon",
+            "add_keyword"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_leftmost_golem_bat_crest_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10852120": {
@@ -44227,8 +44450,8 @@
       "cost": 5,
       "is_collectible": true,
       "card_set_id": 10008,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '进化时', '造成.*伤害']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['fanfare', 'evolve'], Ops: ['damage_unit', 'damage_leader', 'damage_unit', 'damage_leader']",
       "hit_keywords": [
         "入场曲",
         "进化时",
@@ -44243,27 +44466,47 @@
         "【<color=Keyword>入场曲</color>】对对手的战场上的所有随从和所有主战者造成1点伤害。\n<hr><ev>【<color=Keyword>进化时</color>】发动与【<color=Keyword>入场曲</color>】相同的能力。</ev>"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【入场曲】对所有敌方随从和双方主战者造成1点伤害；【进化时】重放相同能力。",
+        "notes": "敌方全体随从、双方主战者、入场与进化重放及伤害结算均有直接测试。",
+        "rule_version": 1,
+        "source_text_sha256": "6c72c145827d3c9e5325da86958b1b16d9824c94dbc791b896ff4255f1d4f6de",
+        "test_evidence": [
+          "tests/test_real_leftmost_golem_bat_crest_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10852120:0",
             "source_text": "【<color=Keyword>入场曲</color>】对对手的战场上的所有随从和所有主战者造成1点伤害。\n<hr><ev>【<color=Keyword>进化时</color>】发动与【<color=Keyword>入场曲</color>】相同的能力。</ev>",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "【入场曲】对所有敌方随从和双方主战者造成1点伤害；【进化时】重放相同能力。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "6c72c145827d3c9e5325da86958b1b16d9824c94dbc791b896ff4255f1d4f6de",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "fanfare",
+            "evolve"
+          ],
+          "effect_kinds": [
+            "damage_unit",
+            "damage_leader",
+            "damage_unit",
+            "damage_leader"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_leftmost_golem_bat_crest_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10852310": {
@@ -46304,6 +46547,7 @@
           "tests/test_real_balanced_trigger_resource_batch.py",
           "tests/test_real_card_rules_batch.py",
           "tests/test_real_complete_token_board_batch.py",
+          "tests/test_real_leftmost_golem_bat_crest_batch.py",
           "tests/test_real_spell_enhance_batch.py",
           "tests/test_real_spell_modes_and_earth_listener_batch.py",
           "tests/test_real_ward_marine_crest_listener_batch.py",
@@ -46736,6 +46980,7 @@
         },
         "test_evidence": [
           "tests/test_real_card_rules_batch.py",
+          "tests/test_real_leftmost_golem_bat_crest_batch.py",
           "tests/test_real_spell_modes_and_earth_listener_batch.py"
         ],
         "audit_validation_error": null,
@@ -49090,29 +49335,6 @@
       "suggested_rule_file": "batch_皇家护卫.json"
     },
     {
-      "card_id": 10603210,
-      "name": "黑暗次元",
-      "class_name": "中立",
-      "card_type": "护符",
-      "cost": 4,
-      "ability_keywords": [
-        "倒数"
-      ],
-      "hit_keywords": [
-        "回合结束",
-        "倒数",
-        "造成.*伤害"
-      ],
-      "confidence": "high",
-      "why_recommended": "Covered keywords: 回合结束, 倒数, 造成.*伤害",
-      "required_primitives": [
-        "回合结束",
-        "倒数",
-        "造成.*伤害"
-      ],
-      "suggested_rule_file": "batch_中立.json"
-    },
-    {
       "card_id": 10272120,
       "name": "绝望之王·阿基姆",
       "class_name": "超越者",
@@ -49341,6 +49563,30 @@
         "召唤"
       ],
       "suggested_rule_file": "batch_龙族.json"
+    },
+    {
+      "card_id": 10271120,
+      "name": "猫偶",
+      "class_name": "超越者",
+      "card_type": "随从",
+      "cost": 1,
+      "ability_keywords": [
+        "入场曲",
+        "突进"
+      ],
+      "hit_keywords": [
+        "入场曲",
+        "超进化",
+        "将.*加入手牌"
+      ],
+      "confidence": "high",
+      "why_recommended": "Covered keywords: 入场曲, 超进化, 将.*加入手牌",
+      "required_primitives": [
+        "入场曲",
+        "超进化",
+        "将.*加入手牌"
+      ],
+      "suggested_rule_file": "batch_超越者.json"
     }
   ]
 }

@@ -244,6 +244,18 @@ class DatabaseClauseAuditTests(unittest.TestCase):
                     "rule_group": "rules",
                 },
                 {
+                    "source_card_id": 10524120,
+                    "entry_kind": "add_card",
+                    "rule_file": "real_leftmost_golem_bat_crest_batch.json",
+                    "rule_group": "emblems",
+                },
+                {
+                    "source_card_id": 10524120,
+                    "entry_kind": "add_card",
+                    "rule_file": "real_leftmost_golem_bat_crest_batch.json",
+                    "rule_group": "rules",
+                },
+                {
                     "source_card_id": 10822110,
                     "entry_kind": "add_card",
                     "rule_file": "real_royal_rune_bishop_mixed_batch.json",

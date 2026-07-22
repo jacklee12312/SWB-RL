@@ -3466,6 +3466,11 @@ class GameEngine:
             operation.include_leader,
             (
                 None
+                if operation.candidate_extreme is None
+                else operation.candidate_extreme.value
+            ),
+            (
+                None
                 if operation.turn_end_destroy_timing is None
                 else operation.turn_end_destroy_timing.value
             ),
@@ -3541,6 +3546,7 @@ class GameEngine:
             board_filter.card_name,
             board_filter.tribe_id,
             board_filter.tribe_name,
+            board_filter.exclude_tribe_name,
             board_filter.evolved,
             board_filter.super_evolved,
             board_filter.damaged,
@@ -5418,6 +5424,8 @@ class GameEngine:
             EffectKind.SUMMON,
             EffectKind.SUMMON_HAND_COPY,
             EffectKind.SUMMON_FROM_DECK,
+            EffectKind.EVOLVE_UNIT,
+            EffectKind.SUPER_EVOLVE_UNIT,
         }:
             return True
         return f"entity:{target_id}" in {

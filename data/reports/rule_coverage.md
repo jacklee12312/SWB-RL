@@ -8,26 +8,26 @@
 | Metric | Count |
 |---|---|
 | Total cards in DB | 826 |
-| Cards with rules | 669 |
+| Cards with rules | 681 |
 | Test/synthetic IDs with rules | 26 |
 
 ### Coverage Categories
 
 | Category | Count |
 |---|---|
-| covered_exact | 565 |
+| covered_exact | 577 |
 | text_unclear | 16 |
-| supported_missing_rule | 154 |
+| supported_missing_rule | 142 |
 | token_or_non_collectible | 91 |
 
 ### Clause Audit
 
 | Clause status | Count |
 |---|---:|
-| mapped_exact | 565 |
+| mapped_exact | 577 |
 | unverified_exact | 0 |
 | partial | 0 |
-| missing_rule | 154 |
+| missing_rule | 142 |
 | missing_primitive | 0 |
 | text_unclear | 16 |
 | token_separate_audit | 91 |
@@ -36,7 +36,7 @@
 
 | Blocker | Count |
 |---|---:|
-| missing_rule | 154 |
+| missing_rule | 142 |
 | missing_schema | 0 |
 | missing_primitive | 0 |
 | missing_targeting | 0 |
@@ -113,14 +113,14 @@
 | 7 | 10462210 | 骑驰天空之艇 | 主教 | 4 | 护符 | high | Covered keywords: 策动, 破坏 |
 | 8 | 10502120 | 手持军配团扇的伟丈夫 | 中立 | 4 | 随从 | high | Covered keywords: 进化时, 破坏 |
 | 9 | 10523110 | 不动如山的将校 | 皇家护卫 | 4 | 随从 | high | Covered keywords: 进化时, 超进化, 回合结束 |
-| 10 | 10603210 | 黑暗次元 | 中立 | 4 | 护符 | high | Covered keywords: 回合结束, 倒数, 造成.*伤害 |
-| 11 | 10272120 | 绝望之王·阿基姆 | 超越者 | 5 | 随从 | high | Covered keywords: 进化时, 消失, 召唤 |
-| 12 | 10502110 | 星辉女神 | 中立 | 5 | 随从 | high | Covered keywords: 进化时, 将.*加入手牌, 舍弃 |
-| 13 | 10163110 | 终焉的白骨圣堂之主 | 主教 | 6 | 随从 | high | Covered keywords: 入场曲, 造成.*伤害, 破坏 |
-| 14 | 10321120 | 剑圣的同胞 | 皇家护卫 | 6 | 随从 | high | Covered keywords: 谢幕曲, 召唤 |
-| 15 | 10521110 | 好施的名人 | 皇家护卫 | 6 | 随从 | high | Covered keywords: 入场曲, 回复(?!自己\d+点(?:超进化点|进化点|能量点)), 舍弃 |
-| 16 | 10543110 | 破灭屠戮者 | 龙族 | 7 | 随从 | high | Covered keywords: 进化时, 超进化, 消失 |
-| 17 | 10113130 | 煌击战士·贝鲁 | 精灵 | 8 | 随从 | high | Covered keywords: 入场曲, 造成.*伤害 |
-| 18 | 10224120 | 雷维翁超越者·尤里乌斯 | 皇家护卫 | 8 | 随从 | high | Covered keywords: 入场曲, 回合结束, 回复(?!自己\d+点(?:超进化点|进化点|能量点)) |
-| 19 | 10244120 | 绚丽凤凰·小凤 | 龙族 | 8 | 随从 | high | Covered keywords: 入场曲 |
-| 20 | 10242210 | 炎龙之剑 | 龙族 | 1 | 护符 | high | Covered keywords: 谢幕曲, 策动, 破坏 |
+| 10 | 10272120 | 绝望之王·阿基姆 | 超越者 | 5 | 随从 | high | Covered keywords: 进化时, 消失, 召唤 |
+| 11 | 10502110 | 星辉女神 | 中立 | 5 | 随从 | high | Covered keywords: 进化时, 将.*加入手牌, 舍弃 |
+| 12 | 10163110 | 终焉的白骨圣堂之主 | 主教 | 6 | 随从 | high | Covered keywords: 入场曲, 造成.*伤害, 破坏 |
+| 13 | 10321120 | 剑圣的同胞 | 皇家护卫 | 6 | 随从 | high | Covered keywords: 谢幕曲, 召唤 |
+| 14 | 10521110 | 好施的名人 | 皇家护卫 | 6 | 随从 | high | Covered keywords: 入场曲, 回复(?!自己\d+点(?:超进化点|进化点|能量点)), 舍弃 |
+| 15 | 10543110 | 破灭屠戮者 | 龙族 | 7 | 随从 | high | Covered keywords: 进化时, 超进化, 消失 |
+| 16 | 10113130 | 煌击战士·贝鲁 | 精灵 | 8 | 随从 | high | Covered keywords: 入场曲, 造成.*伤害 |
+| 17 | 10224120 | 雷维翁超越者·尤里乌斯 | 皇家护卫 | 8 | 随从 | high | Covered keywords: 入场曲, 回合结束, 回复(?!自己\d+点(?:超进化点|进化点|能量点)) |
+| 18 | 10244120 | 绚丽凤凰·小凤 | 龙族 | 8 | 随从 | high | Covered keywords: 入场曲 |
+| 19 | 10242210 | 炎龙之剑 | 龙族 | 1 | 护符 | high | Covered keywords: 谢幕曲, 策动, 破坏 |
+| 20 | 10271120 | 猫偶 | 超越者 | 1 | 随从 | high | Covered keywords: 入场曲, 超进化, 将.*加入手牌 |

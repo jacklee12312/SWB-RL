@@ -354,6 +354,8 @@ def apply_candidate_extreme(
 
     if extreme is None or not candidates:
         return candidates
+    if extreme is CandidateExtreme.LEFTMOST:
+        return candidates[:1]
     attribute = (
         "attack"
         if extreme in {CandidateExtreme.HIGHEST_ATTACK, CandidateExtreme.LOWEST_ATTACK}

@@ -1,0 +1,367 @@
+{
+  "passives": [
+    {
+      "card_id": 10132120,
+      "kind": "spellboost_cost_reduction",
+      "amount": 1
+    },
+    {
+      "card_id": 10423310,
+      "kind": "non_intrinsic_keyword",
+      "keyword": "屏障",
+      "notes": "屏障仅由模式（2）授予皇家护卫随从。"
+    },
+    {
+      "card_id": 10723110,
+      "kind": "non_intrinsic_keyword",
+      "keyword": "突进",
+      "notes": "突进仅由模式（1）授予其他己方随从。"
+    },
+    {
+      "card_id": 10723110,
+      "kind": "non_intrinsic_keyword",
+      "keyword": "守护",
+      "notes": "守护仅由模式（2）授予其他己方随从。"
+    },
+    {
+      "card_id": 10852110,
+      "kind": "non_intrinsic_keyword",
+      "keyword": "突进",
+      "notes": "突进仅由蝙蝠入场监听授予事件来源。"
+    }
+  ],
+  "intrinsic_keywords": [
+    {"card_id": 10732110, "keywords": ["突进"]}
+  ],
+  "listeners": [
+    {
+      "card_id": 10852110,
+      "zone": "board",
+      "event": "follower_summoned",
+      "event_scope": "owner_event",
+      "source_relation": "any",
+      "event_filter": {"card_type": "随从", "card_name": "蝙蝠"},
+      "operations": [
+        {"kind": "add_keyword", "target": "event_source", "keyword": "突进"}
+      ]
+    }
+  ],
+  "emblems": [
+    {
+      "id": "elmott_remembrance_aflame",
+      "source_card_id": 10433110,
+      "stacking": "allow",
+      "triggers": [
+        {
+          "trigger": "turn_start",
+          "operations": [
+            {"kind": "damage_leader", "target": "enemy_leader", "amount": 1}
+          ]
+        }
+      ]
+    },
+    {
+      "id": "unkei_goldbloom",
+      "source_card_id": 10524120,
+      "stacking": "allow",
+      "countdown": 4,
+      "triggers": [
+        {
+          "trigger": "turn_end",
+          "operations": [
+            {"kind": "add_card", "target": "own_leader", "card_id": 90021350}
+          ]
+        }
+      ]
+    }
+  ],
+  "rules": [
+    {
+      "card_id": 10032110,
+      "trigger": "fanfare",
+      "operations": [
+        {
+          "kind": "earth_rite",
+          "target": "own_leader",
+          "amount": 1,
+          "operations": [
+            {"kind": "summon", "target": "own_leader", "card_id": 90031120}
+          ]
+        }
+      ]
+    },
+    {
+      "card_id": 10032110,
+      "trigger": "super_evolve",
+      "operations": [
+        {
+          "kind": "evolve_unit",
+          "target": "own_unit",
+          "target_tribe_name_filter": "巨像",
+          "target_key": "remi_rami_golem"
+        },
+        {
+          "kind": "buff_unit",
+          "target": "previous_target",
+          "target_key": "remi_rami_golem",
+          "amount": 3,
+          "secondary_amount": 3
+        }
+      ]
+    },
+    {
+      "card_id": 10132120,
+      "trigger": "evolve",
+      "operations": [
+        {"kind": "summon", "target": "own_leader", "card_id": 90031110},
+        {
+          "kind": "damage_unit",
+          "target": "all_enemy_units",
+          "amount": {
+            "type": "controller_board_count",
+            "filter": {"card_type": "随从", "tribe_name": "巨像"}
+          }
+        }
+      ]
+    },
+    {
+      "card_id": 10433110,
+      "trigger": "fanfare",
+      "operations": [
+        {
+          "kind": "remove_all_abilities",
+          "target": "enemy_unit",
+          "target_key": "elmott_target"
+        },
+        {
+          "kind": "damage_unit",
+          "target": "previous_target",
+          "target_key": "elmott_target",
+          "amount": 3
+        }
+      ]
+    },
+    {
+      "card_id": 10433110,
+      "trigger": "super_evolve",
+      "operations": [
+        {
+          "kind": "gain_emblem",
+          "target": "own_leader",
+          "emblem_id": "elmott_remembrance_aflame"
+        }
+      ]
+    },
+    {
+      "card_id": 10732110,
+      "trigger": "last_words",
+      "operations": [
+        {"kind": "add_earth_sigils", "target": "own_leader", "amount": 2}
+      ]
+    },
+    {
+      "card_id": 10732110,
+      "trigger": "super_evolve",
+      "operations": [
+        {
+          "kind": "earth_rite",
+          "target": "own_leader",
+          "amount": 2,
+          "operations": [
+            {"kind": "summon", "target": "own_leader", "card_id": 10732110},
+            {"kind": "summon", "target": "own_leader", "card_id": 10732110}
+          ]
+        }
+      ]
+    },
+    {
+      "card_id": 10452130,
+      "trigger": "fanfare",
+      "operations": [
+        {
+          "kind": "choose_one",
+          "options": [
+            {
+              "id": "resonant_growth",
+              "label": "随机其他己方随从与本体+1/+1",
+              "operations": [
+                {
+                  "kind": "buff_unit",
+                  "target": "random_own_unit",
+                  "exclude_source": true,
+                  "amount": 1,
+                  "secondary_amount": 1
+                },
+                {"kind": "buff_unit", "target": "self", "amount": 1, "secondary_amount": 1}
+              ]
+            },
+            {
+              "id": "resonant_damage",
+              "label": "随机敌方随从受到3点伤害",
+              "operations": [
+                {"kind": "damage_unit", "target": "random_enemy_unit", "amount": 3}
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "card_id": 10752110,
+      "trigger": "fanfare",
+      "operations": [
+        {"kind": "damage_unit", "target": "enemy_unit", "amount": 3},
+        {"kind": "summon", "target": "own_leader", "card_id": 90051110}
+      ]
+    },
+    {
+      "card_id": 10752110,
+      "trigger": "evolve",
+      "operations": [
+        {"kind": "damage_unit", "target": "enemy_unit", "amount": 3},
+        {"kind": "summon", "target": "own_leader", "card_id": 90051110}
+      ]
+    },
+    {
+      "card_id": 10852110,
+      "trigger": "fanfare",
+      "operations": [
+        {"kind": "summon", "target": "own_leader", "card_id": 90051120},
+        {"kind": "summon", "target": "own_leader", "card_id": 90051120},
+        {"kind": "summon", "target": "own_leader", "card_id": 90051120}
+      ]
+    },
+    {
+      "card_id": 10852120,
+      "trigger": "fanfare",
+      "operations": [
+        {"kind": "damage_unit", "target": "all_enemy_units", "amount": 1},
+        {"kind": "damage_leader", "target": "all_leaders", "amount": 1}
+      ]
+    },
+    {
+      "card_id": 10852120,
+      "trigger": "evolve",
+      "operations": [
+        {"kind": "damage_unit", "target": "all_enemy_units", "amount": 1},
+        {"kind": "damage_leader", "target": "all_leaders", "amount": 1}
+      ]
+    },
+    {
+      "card_id": 10423310,
+      "trigger": "play",
+      "operations": [
+        {
+          "kind": "choose_one",
+          "options": [
+            {
+              "id": "leftmost_double_attack",
+              "label": "最左皇家护卫随从每回合可攻击2次",
+              "operations": [
+                {
+                  "kind": "grant_attacks_per_turn",
+                  "target": "all_own_units",
+                  "amount": 2,
+                  "target_class_name_filter": "皇家护卫",
+                  "candidate_extreme": "leftmost"
+                }
+              ]
+            },
+            {
+              "id": "royal_barrier",
+              "label": "所有皇家护卫随从+1/+1并获得屏障",
+              "operations": [
+                {
+                  "kind": "buff_unit",
+                  "target": "all_own_units",
+                  "target_class_name_filter": "皇家护卫",
+                  "amount": 1,
+                  "secondary_amount": 1
+                },
+                {
+                  "kind": "add_keyword",
+                  "target": "all_own_units",
+                  "target_class_name_filter": "皇家护卫",
+                  "keyword": "屏障"
+                }
+              ]
+            },
+            {
+              "id": "restore_pp_ep",
+              "label": "回复2点PP与1点EP",
+              "operations": [
+                {"kind": "restore_mana", "target": "own_leader", "amount": 2},
+                {"kind": "restore_evolution_points", "target": "own_leader", "amount": 1}
+              ]
+            },
+            {
+              "id": "restore_leader",
+              "label": "回复主战者6点生命值",
+              "operations": [
+                {"kind": "heal_leader", "target": "own_leader", "amount": 6}
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "card_id": 10524120,
+      "trigger": "fanfare",
+      "operations": [
+        {"kind": "banish", "target": "enemy_unit"},
+        {"kind": "add_card", "target": "own_leader", "card_id": 90021350}
+      ]
+    },
+    {
+      "card_id": 10524120,
+      "trigger": "super_evolve",
+      "operations": [
+        {"kind": "gain_emblem", "target": "own_leader", "emblem_id": "unkei_goldbloom"}
+      ]
+    },
+    {
+      "card_id": 10723110,
+      "trigger": "fanfare",
+      "operations": [
+        {"kind": "summon", "target": "own_leader", "card_id": 90021110},
+        {"kind": "summon", "target": "own_leader", "card_id": 90021110},
+        {"kind": "summon", "target": "own_leader", "card_id": 90021110},
+        {
+          "kind": "choose_one",
+          "options": [
+            {
+              "id": "squad_rush",
+              "label": "其他己方随从+1/+0并获得突进",
+              "operations": [
+                {"kind": "buff_unit", "target": "all_own_units", "exclude_source": true, "amount": 1, "secondary_amount": 0},
+                {"kind": "add_keyword", "target": "all_own_units", "exclude_source": true, "keyword": "突进"}
+              ]
+            },
+            {
+              "id": "squad_ward",
+              "label": "其他己方随从+0/+1并获得守护",
+              "operations": [
+                {"kind": "buff_unit", "target": "all_own_units", "exclude_source": true, "amount": 0, "secondary_amount": 1},
+                {"kind": "add_keyword", "target": "all_own_units", "exclude_source": true, "keyword": "守护"}
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "card_id": 10603210,
+      "trigger": "turn_end",
+      "countdown": 2,
+      "operations": [
+        {
+          "kind": "damage_unit",
+          "target": "all_units",
+          "target_exclude_tribe_name_filter": "侵蚀者",
+          "amount": 2
+        }
+      ]
+    }
+  ]
+}
