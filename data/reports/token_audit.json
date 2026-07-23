@@ -626,6 +626,18 @@
           "entry_kind": "add_card",
           "rule_file": "real_generated_hand_last_words_batch.json",
           "rule_group": "rules"
+        },
+        {
+          "source_card_id": 10714120,
+          "entry_kind": "add_card",
+          "rule_file": "real_crest_listener_burst_existing_fifth_batch.json",
+          "rule_group": "emblems"
+        },
+        {
+          "source_card_id": 10714120,
+          "entry_kind": "add_card",
+          "rule_file": "real_crest_listener_burst_existing_fifth_batch.json",
+          "rule_group": "rules"
         }
       ],
       "has_authored_behavior": true,
@@ -1053,6 +1065,12 @@
           "source_card_id": 10721120,
           "entry_kind": "add_card",
           "rule_file": "real_complete_token_board_batch.json",
+          "rule_group": "rules"
+        },
+        {
+          "source_card_id": 10724110,
+          "entry_kind": "summon",
+          "rule_file": "real_crest_listener_burst_existing_fifth_batch.json",
           "rule_group": "rules"
         },
         {
@@ -1735,6 +1753,12 @@
           "rule_group": "rules"
         },
         {
+          "source_card_id": 10133110,
+          "entry_kind": "summon",
+          "rule_file": "real_crest_listener_burst_existing_fifth_batch.json",
+          "rule_group": "emblems"
+        },
+        {
           "source_card_id": 10234120,
           "entry_kind": "summon",
           "rule_file": "real_existing_primitives_third_completion_batch.json",
@@ -1948,6 +1972,12 @@
           "source_card_id": 10831120,
           "entry_kind": "add_card",
           "rule_file": "real_token_producer_completion_batch.json",
+          "rule_group": "rules"
+        },
+        {
+          "source_card_id": 10833110,
+          "entry_kind": "add_card",
+          "rule_file": "real_crest_listener_burst_existing_fifth_batch.json",
           "rule_group": "rules"
         }
       ],
@@ -2535,6 +2565,12 @@
           "source_card_id": 10242120,
           "entry_kind": "summon",
           "rule_file": "real_complete_token_board_batch.json",
+          "rule_group": "rules"
+        },
+        {
+          "source_card_id": 10243110,
+          "entry_kind": "summon",
+          "rule_file": "real_crest_listener_burst_existing_fifth_batch.json",
           "rule_group": "rules"
         },
         {

@@ -434,7 +434,7 @@ class RealCardCooperationTests(unittest.TestCase):
         self.assertEqual(enemy.health, 2)
         self.assertEqual(enemy.attack_restrictions, [])
 
-    def test_unsupported_real_card_has_no_fabricated_rule(self):
+    def test_supported_real_card_has_structured_cooperation_rule(self):
         with closing(sqlite3.connect(self.DATABASE)) as connection:
             text = connection.execute(
                 """
@@ -446,9 +446,17 @@ class RealCardCooperationTests(unittest.TestCase):
 
         self.assertIn("纹章", text)
         self.assertIn("本随从进化", text)
+        operations = rulebook.operations_for(10724110, Trigger.FANFARE)
+        self.assertEqual(len(operations), 1)
+        cooperation = operations[0]
+        self.assertEqual(cooperation.kind, EffectKind.CONDITIONAL)
         self.assertEqual(
-            rulebook.operations_for(10724110, Trigger.FANFARE),
-            (),
+            cooperation.conditions,
+            (Condition(ConditionType.CONTROLLER_COOPERATION_AT_LEAST, 20),),
+        )
+        self.assertEqual(
+            [operation.kind for operation in cooperation.then_operations],
+            [EffectKind.GAIN_EMBLEM, EffectKind.EVOLVE_UNIT],
         )
 
 def _make_player(coop=0):

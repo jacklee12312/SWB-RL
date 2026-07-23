@@ -6655,6 +6655,78 @@
       "source_text_sha256": "ef86c20de8b2577eed1f6c27edbd60817b0eb2ac26fc46ab6d4dd9640bfb0f44",
       "test_evidence": ["tests/test_real_existing_primitives_fourth_completion_batch.py"],
       "notes": "超进化解禁条件、无资源效果进化、固有突进、随从攻击对象、进化前后重复次数及攻击主战者安全跳过均有直接测试。"
+    },
+    {
+      "card_id": 10124130,
+      "coverage": "exact",
+      "implemented_text": "【谢幕曲】获得倒数2的纹章；纹章谢幕时召唤常在战场·景光；【超进化时】本随从获得疾驰。",
+      "rule_version": 1,
+      "source_text_sha256": "dfedfd62cf78c9a12a17ce576abd40745e130bac023c40f3e450bbfd270caf32",
+      "test_evidence": ["tests/test_real_crest_listener_burst_existing_fifth_batch.py"],
+      "notes": "谢幕曲来源快照、纹章倒数与满场谢幕、同名关联卡、疾驰非固有归属和超进化均有直接测试。"
+    },
+    {
+      "card_id": 10133110,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】按己方土之印数对所选敌方随从造成伤害；【进化时】获得倒数3的纹章；己方回合结束时土之秘术1召唤守护者巨像。",
+      "rule_version": 1,
+      "source_text_sha256": "ca7112e1bb353ddb7e55b7a8a7208c729b8949671fde9993842fb374245771f6",
+      "test_evidence": ["tests/test_real_crest_listener_burst_existing_fifth_batch.py"],
+      "notes": "动态土之印伤害、无目标非法不变性、纹章、土之秘术资源不足与守护者巨像关联均有直接测试。"
+    },
+    {
+      "card_id": 10243110,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】获得纹章并召唤2个大海虎鲸；固有守护；【超进化时】再召唤2个大海虎鲸；己方海洋随从进场时回复主战者1点生命值。",
+      "rule_version": 1,
+      "source_text_sha256": "ad2345bdd0e8b3b4fb370106b5776f263d716970c818353a2f460c597aaff878",
+      "test_evidence": ["tests/test_real_crest_listener_burst_existing_fifth_batch.py"],
+      "notes": "纹章先于关联Token召唤、海洋过滤、成功召唤才治疗、场面容量、固有守护和超进化均有直接测试。"
+    },
+    {
+      "card_id": 10414120,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】连续2次对随机敌方随从造成4点伤害；【超进化时】获得倒数4的纹章；己方每回合首次使用随从时使其进化。",
+      "rule_version": 1,
+      "source_text_sha256": "08218ae56ceed8594e741f389d1de9cfac796ebe31f5e832b98c77570046db16",
+      "test_evidence": ["tests/test_real_crest_listener_burst_existing_fifth_batch.py"],
+      "notes": "重复随机伤害、无目标跳过、固定种子、纹章的leader-area来源和每回合一次进化均有直接测试。"
+    },
+    {
+      "card_id": 10714120,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】将2张森林的奥秘加入手牌；己方回合结束时按本随从攻击力向所有敌方随从分配伤害；【超进化时】获得倒数3的纹章；回合结束时连击3则再加入1张森林的奥秘。",
+      "rule_version": 1,
+      "source_text_sha256": "58c238be4ca264678829aa9524871f428888d82a087b8f3cc92fe691d31a0b1e",
+      "test_evidence": ["tests/test_real_crest_listener_burst_existing_fifth_batch.py"],
+      "notes": "关联法术、手牌容量、来源攻击力动态分配、无目标安全、固定种子、纹章与连击阈值均有直接测试。"
+    },
+    {
+      "card_id": 10724110,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】【协作20】获得倒数1的纹章并进化；其他己方随从在己方回合进场时获得突进；本随从进化时召唤2个铁甲骑士；纹章使己方回合进场随从对敌方主战者造成1点伤害。",
+      "rule_version": 1,
+      "source_text_sha256": "36094cf64bfd07909fa6202243ccc866939381fd83e638b5b62894d662d32a4d",
+      "test_evidence": ["tests/test_real_crest_listener_burst_existing_fifth_batch.py"],
+      "notes": "协作成立/不成立、效果进化、两张关联Token、突进非固有归属、场面容量、来源离场和纹章独立存续均有直接测试。"
+    },
+    {
+      "card_id": 10833110,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】将2张玛纳利亚魔弹加入手牌；【进化时】己方所有玛纳利亚法术永久减费1；【超进化时】获得纹章；使用玛纳利亚法术时对敌方主战者造成1点伤害。",
+      "rule_version": 1,
+      "source_text_sha256": "0c2bb49c4ccafb1b510c7ebea12461333c8602a0b2018fa4865214179c171bdd",
+      "test_evidence": ["tests/test_real_crest_listener_burst_existing_fifth_batch.py"],
+      "notes": "两张关联法术、手牌容量、类型与特征双重过滤、费用下限、超进化同时触发进化文本和纹章事件过滤均有直接测试。"
+    },
+    {
+      "card_id": 10864120,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】【模式】在全体随从伤害、主战者伤害或治疗中选择1项，之后对自身造成3点伤害；【进化时】获得倒数1的纹章；纹章谢幕时召唤并进化希望的光彩·莉迪耶尔。",
+      "rule_version": 1,
+      "source_text_sha256": "3e57c69e40414444332057f758222c9017f85341711fdf3ce2d25398a912d9fb",
+      "test_evidence": ["tests/test_real_crest_listener_burst_existing_fifth_batch.py"],
+      "notes": "三个模式、非法选择不变性、选择后自身伤害、无目标路径、纹章输出绑定、满场谢幕及行动掩码均有直接测试。"
     }
   ]
 }

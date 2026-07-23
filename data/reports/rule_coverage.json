@@ -12,25 +12,25 @@
   },
   "summary": {
     "total_cards": 826,
-    "total_with_rules": 729,
+    "total_with_rules": 737,
     "test_or_synthetic_ids_with_rules": 26,
     "coverage_counts": {
-      "covered_exact": 625,
+      "covered_exact": 633,
       "text_unclear": 16,
-      "supported_missing_rule": 94,
+      "supported_missing_rule": 86,
       "token_or_non_collectible": 91
     },
     "clause_audit_counts": {
-      "mapped_exact": 625,
+      "mapped_exact": 633,
       "unverified_exact": 0,
       "partial": 0,
-      "missing_rule": 94,
+      "missing_rule": 86,
       "missing_primitive": 0,
       "text_unclear": 16,
       "token_separate_audit": 91
     },
     "blocker_counts": {
-      "missing_rule": 94,
+      "missing_rule": 86,
       "missing_schema": 0,
       "missing_primitive": 0,
       "missing_targeting": 0,
@@ -6615,8 +6615,8 @@
       "cost": 3,
       "is_collectible": true,
       "card_set_id": 10001,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['谢幕曲', '进化时', '超进化', '倒数', '召唤', '纹章']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['last_words', 'super_evolve', 'emblem_source'], Ops: ['gain_emblem', 'add_keyword', 'summon']",
       "hit_keywords": [
         "谢幕曲",
         "进化时",
@@ -6638,32 +6638,52 @@
         "【纹章_0】【<color=Keyword>吟唱</color>_2】\n【<color=Keyword>谢幕曲</color>】召唤1个『<color=Keyword>常在战场·景光</color>』。"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【谢幕曲】获得倒数2的纹章；纹章谢幕时召唤常在战场·景光；【超进化时】本随从获得疾驰。",
+        "notes": "谢幕曲来源快照、纹章倒数与满场谢幕、同名关联卡、疾驰非固有归属和超进化均有直接测试。",
+        "rule_version": 1,
+        "source_text_sha256": "dfedfd62cf78c9a12a17ce576abd40745e130bac023c40f3e450bbfd270caf32",
+        "test_evidence": [
+          "tests/test_real_crest_listener_burst_existing_fifth_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10124130:0",
             "source_text": "【<color=Keyword>谢幕曲</color>】使自己获得『纹章：常在战场·景光』。\n<hr><sev>【<color=Keyword>超进化时</color>】本随从获得【<color=Keyword>疾驰</color>】。</sev>",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           },
           {
             "clause_id": "10124130:1",
             "source_text": "【纹章_0】【<color=Keyword>吟唱</color>_2】\n【<color=Keyword>谢幕曲</color>】召唤1个『<color=Keyword>常在战场·景光</color>』。",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "【谢幕曲】获得倒数2的纹章；纹章谢幕时召唤常在战场·景光；【超进化时】本随从获得疾驰。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "dfedfd62cf78c9a12a17ce576abd40745e130bac023c40f3e450bbfd270caf32",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "last_words",
+            "super_evolve",
+            "emblem_source"
+          ],
+          "effect_kinds": [
+            "gain_emblem",
+            "add_keyword",
+            "summon"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_crest_listener_burst_existing_fifth_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10131110": {
@@ -7375,8 +7395,8 @@
       "cost": 5,
       "is_collectible": true,
       "card_set_id": 10001,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '进化时', '回合结束', '倒数', '造成.*伤害', '召唤', '纹章', '土之秘术|土之印']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['fanfare', 'evolve', 'emblem_source'], Ops: ['damage_unit', 'gain_emblem', 'earth_rite', 'summon']",
       "hit_keywords": [
         "入场曲",
         "进化时",
@@ -7400,32 +7420,53 @@
         "【纹章_0】【<color=Keyword>吟唱</color>_3】\n自己的回合结束时，【<color=Keyword>土之秘术</color>_1】召唤1个『<color=Keyword>守护者巨像</color>』。"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【入场曲】按己方土之印数对所选敌方随从造成伤害；【进化时】获得倒数3的纹章；己方回合结束时土之秘术1召唤守护者巨像。",
+        "notes": "动态土之印伤害、无目标非法不变性、纹章、土之秘术资源不足与守护者巨像关联均有直接测试。",
+        "rule_version": 1,
+        "source_text_sha256": "ca7112e1bb353ddb7e55b7a8a7208c729b8949671fde9993842fb374245771f6",
+        "test_evidence": [
+          "tests/test_real_crest_listener_burst_existing_fifth_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10133110:0",
             "source_text": "【<color=Keyword>入场曲</color>】选择对手的战场上的1个随从，对其造成X点伤害。X为自己的战场上的土之印数。\n<hr><ev>【<color=Keyword>进化时</color>】使自己获得『纹章：黎明炼金术师·诺诺』。</ev>",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           },
           {
             "clause_id": "10133110:1",
             "source_text": "【纹章_0】【<color=Keyword>吟唱</color>_3】\n自己的回合结束时，【<color=Keyword>土之秘术</color>_1】召唤1个『<color=Keyword>守护者巨像</color>』。",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "【入场曲】按己方土之印数对所选敌方随从造成伤害；【进化时】获得倒数3的纹章；己方回合结束时土之秘术1召唤守护者巨像。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "ca7112e1bb353ddb7e55b7a8a7208c729b8949671fde9993842fb374245771f6",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "fanfare",
+            "evolve",
+            "emblem_source"
+          ],
+          "effect_kinds": [
+            "damage_unit",
+            "gain_emblem",
+            "earth_rite",
+            "summon"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_crest_listener_burst_existing_fifth_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10133120": {
@@ -15526,8 +15567,8 @@
       "cost": 7,
       "is_collectible": true,
       "card_set_id": 10002,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '进化时', '超进化', '回复(?!自己\\\\d+点(?:超进化点|进化点|能量点))', '召唤', '纹章']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['fanfare', 'super_evolve', 'intrinsic_keywords', 'emblem_source'], Ops: ['gain_emblem', 'summon', 'summon', 'summon', 'summon', 'keyword:守护', 'heal_leader']",
       "hit_keywords": [
         "入场曲",
         "进化时",
@@ -15548,32 +15589,57 @@
         "【纹章_0】自己的海洋·随从进入战场时，回复自己的主战者1点生命值。"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【入场曲】获得纹章并召唤2个大海虎鲸；固有守护；【超进化时】再召唤2个大海虎鲸；己方海洋随从进场时回复主战者1点生命值。",
+        "notes": "纹章先于关联Token召唤、海洋过滤、成功召唤才治疗、场面容量、固有守护和超进化均有直接测试。",
+        "rule_version": 1,
+        "source_text_sha256": "ad2345bdd0e8b3b4fb370106b5776f263d716970c818353a2f460c597aaff878",
+        "test_evidence": [
+          "tests/test_real_crest_listener_burst_existing_fifth_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10243110:0",
             "source_text": "【<color=Keyword>入场曲</color>】使自己获得『纹章：苍海的制裁·尼普顿』。召唤2个『<color=Keyword>大海虎鲸</color>』。\n<hr>【<color=Keyword>守护</color>】\n<hr><sev>【<color=Keyword>超进化时</color>】召唤2个『<color=Keyword>大海虎鲸</color>』。</sev>",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           },
           {
             "clause_id": "10243110:1",
             "source_text": "【纹章_0】自己的海洋·随从进入战场时，回复自己的主战者1点生命值。",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "【入场曲】获得纹章并召唤2个大海虎鲸；固有守护；【超进化时】再召唤2个大海虎鲸；己方海洋随从进场时回复主战者1点生命值。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "ad2345bdd0e8b3b4fb370106b5776f263d716970c818353a2f460c597aaff878",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "fanfare",
+            "super_evolve",
+            "intrinsic_keywords",
+            "emblem_source"
+          ],
+          "effect_kinds": [
+            "gain_emblem",
+            "summon",
+            "summon",
+            "summon",
+            "summon",
+            "keyword:守护",
+            "heal_leader"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_crest_listener_burst_existing_fifth_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10243310": {
@@ -23548,8 +23614,8 @@
       "cost": 5,
       "is_collectible": true,
       "card_set_id": 10004,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '进化时', '超进化', '倒数', '造成.*伤害', '纹章']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['fanfare', 'super_evolve', 'listener:leader_area:card_played', 'emblem_source'], Ops: ['repeat', 'damage_unit', 'gain_emblem', 'evolve_unit']",
       "hit_keywords": [
         "入场曲",
         "进化时",
@@ -23570,32 +23636,54 @@
         "【纹章_0】【<color=Keyword>吟唱</color>_4】\n自己使用随从时，自己的每回合中可触发1次，使其进化。"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【入场曲】连续2次对随机敌方随从造成4点伤害；【超进化时】获得倒数4的纹章；己方每回合首次使用随从时使其进化。",
+        "notes": "重复随机伤害、无目标跳过、固定种子、纹章的leader-area来源和每回合一次进化均有直接测试。",
+        "rule_version": 1,
+        "source_text_sha256": "08218ae56ceed8594e741f389d1de9cfac796ebe31f5e832b98c77570046db16",
+        "test_evidence": [
+          "tests/test_real_crest_listener_burst_existing_fifth_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10414120:0",
             "source_text": "【<color=Keyword>入场曲</color>】发动2次「对对手的战场上的随机1个随从造成4点伤害」。\n<hr><sev>【<color=Keyword>超进化时</color>】使自己获得『纹章：调和的舞者·尤艾尔&苏丝雅』。</sev>",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           },
           {
             "clause_id": "10414120:1",
             "source_text": "【纹章_0】【<color=Keyword>吟唱</color>_4】\n自己使用随从时，自己的每回合中可触发1次，使其进化。",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "【入场曲】连续2次对随机敌方随从造成4点伤害；【超进化时】获得倒数4的纹章；己方每回合首次使用随从时使其进化。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "08218ae56ceed8594e741f389d1de9cfac796ebe31f5e832b98c77570046db16",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "fanfare",
+            "super_evolve",
+            "listener:leader_area:card_played",
+            "emblem_source"
+          ],
+          "effect_kinds": [
+            "repeat",
+            "damage_unit",
+            "gain_emblem",
+            "evolve_unit"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_crest_listener_burst_existing_fifth_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10421110": {
@@ -38103,8 +38191,8 @@
       "cost": 6,
       "is_collectible": true,
       "card_set_id": 10007,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '进化时', '超进化', '连击', '回合结束', '倒数', '将.*加入手牌', '纹章']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['fanfare', 'turn_end', 'super_evolve', 'emblem_source'], Ops: ['add_card', 'add_card', 'distribute_damage', 'gain_emblem', 'add_card']",
       "hit_keywords": [
         "入场曲",
         "进化时",
@@ -38128,32 +38216,55 @@
         "【纹章_0】【<color=Keyword>吟唱</color>_3】\n自己的回合结束时，【<color=Keyword>连击</color>_3】将1张『<color=Keyword>森林的奥秘</color>』加入手牌。"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【入场曲】将2张森林的奥秘加入手牌；己方回合结束时按本随从攻击力向所有敌方随从分配伤害；【超进化时】获得倒数3的纹章；回合结束时连击3则再加入1张森林的奥秘。",
+        "notes": "关联法术、手牌容量、来源攻击力动态分配、无目标安全、固定种子、纹章与连击阈值均有直接测试。",
+        "rule_version": 1,
+        "source_text_sha256": "58c238be4ca264678829aa9524871f428888d82a087b8f3cc92fe691d31a0b1e",
+        "test_evidence": [
+          "tests/test_real_crest_listener_burst_existing_fifth_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10714120:0",
             "source_text": "【<color=Keyword>入场曲</color>】将2张『<color=Keyword>森林的奥秘</color>』加入手牌。\n<hr>自己的回合结束时，对对手的战场上的所有随从分配X点伤害。X为本随从的攻击力。\n<hr><sev>【<color=Keyword>超进化时</color>】使自己获得『纹章：冰界鹿王』。</sev>",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           },
           {
             "clause_id": "10714120:1",
             "source_text": "【纹章_0】【<color=Keyword>吟唱</color>_3】\n自己的回合结束时，【<color=Keyword>连击</color>_3】将1张『<color=Keyword>森林的奥秘</color>』加入手牌。",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "【入场曲】将2张森林的奥秘加入手牌；己方回合结束时按本随从攻击力向所有敌方随从分配伤害；【超进化时】获得倒数3的纹章；回合结束时连击3则再加入1张森林的奥秘。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "58c238be4ca264678829aa9524871f428888d82a087b8f3cc92fe691d31a0b1e",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "fanfare",
+            "turn_end",
+            "super_evolve",
+            "emblem_source"
+          ],
+          "effect_kinds": [
+            "add_card",
+            "add_card",
+            "distribute_damage",
+            "gain_emblem",
+            "add_card"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_crest_listener_burst_existing_fifth_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10721110": {
@@ -38671,8 +38782,8 @@
       "cost": 4,
       "is_collectible": true,
       "card_set_id": 10007,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '进化时', '倒数', '造成.*伤害', '召唤', '协作', '纹章']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['fanfare', 'evolve', 'listener:board:follower_summoned', 'emblem_source'], Ops: ['conditional', 'gain_emblem', 'evolve_unit', 'summon', 'summon', 'add_keyword', 'damage_leader']",
       "hit_keywords": [
         "入场曲",
         "进化时",
@@ -38695,34 +38806,57 @@
         "【纹章_0】【<color=Keyword>吟唱</color>_1】\n自己的随从进入战场时，若为自己的回合，则对对手的主战者造成1点伤害。"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【入场曲】【协作20】获得倒数1的纹章并进化；其他己方随从在己方回合进场时获得突进；本随从进化时召唤2个铁甲骑士；纹章使己方回合进场随从对敌方主战者造成1点伤害。",
+        "notes": "协作成立/不成立、效果进化、两张关联Token、突进非固有归属、场面容量、来源离场和纹章独立存续均有直接测试。",
+        "rule_version": 1,
+        "source_text_sha256": "36094cf64bfd07909fa6202243ccc866939381fd83e638b5b62894d662d32a4d",
+        "test_evidence": [
+          "tests/test_real_crest_listener_burst_existing_fifth_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10724110:0",
             "source_text": "【<color=Keyword>入场曲</color>】【<color=Keyword>协作</color>_20】使自己获得『纹章：统音的安纳提玛·吉尔达利娅』。本随从进化。\n<hr>自己的其他随从进入战场时，若为自己的回合，则使其获得【<color=Keyword>突进</color>】。\n<hr><ev>本随从进化时，召唤2个『<color=Keyword>铁甲骑士</color>』。</ev>",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           },
           {
             "clause_id": "10724110:1",
             "source_text": "【纹章_0】【<color=Keyword>吟唱</color>_1】\n自己的随从进入战场时，若为自己的回合，则对对手的主战者造成1点伤害。",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "【入场曲】【协作20】获得倒数1的纹章并进化；其他己方随从在己方回合进场时获得突进；本随从进化时召唤2个铁甲骑士；纹章使己方回合进场随从对敌方主战者造成1点伤害。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "36094cf64bfd07909fa6202243ccc866939381fd83e638b5b62894d662d32a4d",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "fanfare",
+            "evolve",
+            "listener:board:follower_summoned",
+            "emblem_source"
+          ],
+          "effect_kinds": [
+            "conditional",
+            "gain_emblem",
+            "evolve_unit",
+            "summon",
+            "summon",
+            "add_keyword",
+            "damage_leader"
+          ]
         },
         "test_evidence": [
-          "tests/test_cooperation.py"
+          "tests/test_real_crest_listener_burst_existing_fifth_batch.py"
         ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10724120": {
@@ -44288,8 +44422,8 @@
       "cost": 3,
       "is_collectible": true,
       "card_set_id": 10008,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '进化时', '超进化', '将.*加入手牌', '造成.*伤害', '纹章']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['fanfare', 'evolve', 'super_evolve', 'emblem_source'], Ops: ['add_card', 'add_card', 'change_cost', 'gain_emblem', 'damage_leader']",
       "hit_keywords": [
         "入场曲",
         "进化时",
@@ -44310,32 +44444,55 @@
         "【纹章_0】自己使用玛纳利亚·法术时，对对手的主战者造成1点伤害。"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【入场曲】将2张玛纳利亚魔弹加入手牌；【进化时】己方所有玛纳利亚法术永久减费1；【超进化时】获得纹章；使用玛纳利亚法术时对敌方主战者造成1点伤害。",
+        "notes": "两张关联法术、手牌容量、类型与特征双重过滤、费用下限、超进化同时触发进化文本和纹章事件过滤均有直接测试。",
+        "rule_version": 1,
+        "source_text_sha256": "0c2bb49c4ccafb1b510c7ebea12461333c8602a0b2018fa4865214179c171bdd",
+        "test_evidence": [
+          "tests/test_real_crest_listener_burst_existing_fifth_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10833110:0",
             "source_text": "【<color=Keyword>入场曲</color>】将2张『<color=Keyword>玛纳利亚魔弹</color>』加入手牌。\n<hr><ev>【<color=Keyword>进化时</color>】使自己的手牌中的所有玛纳利亚·法术的费用-1。</ev>\n<sev>【<color=Keyword>超进化时</color>】使自己获得『纹章：玛纳利亚文书官·琪可』。</sev>",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           },
           {
             "clause_id": "10833110:1",
             "source_text": "【纹章_0】自己使用玛纳利亚·法术时，对对手的主战者造成1点伤害。",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "【入场曲】将2张玛纳利亚魔弹加入手牌；【进化时】己方所有玛纳利亚法术永久减费1；【超进化时】获得纹章；使用玛纳利亚法术时对敌方主战者造成1点伤害。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "0c2bb49c4ccafb1b510c7ebea12461333c8602a0b2018fa4865214179c171bdd",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "fanfare",
+            "evolve",
+            "super_evolve",
+            "emblem_source"
+          ],
+          "effect_kinds": [
+            "add_card",
+            "add_card",
+            "change_cost",
+            "gain_emblem",
+            "damage_leader"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_crest_listener_burst_existing_fifth_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10833310": {
@@ -46404,8 +46561,8 @@
       "cost": 5,
       "is_collectible": true,
       "card_set_id": 10008,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '谢幕曲', '进化时', '倒数', '回复(?!自己\\\\d+点(?:超进化点|进化点|能量点))', '造成.*伤害', '召唤', '纹章', '选择一项|模式']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['fanfare', 'evolve', 'emblem_source'], Ops: ['choose_one', 'damage_unit', 'damage_leader', 'heal_leader', 'damage_unit', 'gain_emblem', 'summon', 'evolve_unit']",
       "hit_keywords": [
         "入场曲",
         "谢幕曲",
@@ -46431,32 +46588,57 @@
         "【纹章_0】【<color=Keyword>吟唱</color>_1】\n【<color=Keyword>谢幕曲</color>】召唤1个『<color=Keyword>希望的光彩·莉迪耶尔</color>』，使其进化。"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【入场曲】【模式】在全体随从伤害、主战者伤害或治疗中选择1项，之后对自身造成3点伤害；【进化时】获得倒数1的纹章；纹章谢幕时召唤并进化希望的光彩·莉迪耶尔。",
+        "notes": "三个模式、非法选择不变性、选择后自身伤害、无目标路径、纹章输出绑定、满场谢幕及行动掩码均有直接测试。",
+        "rule_version": 1,
+        "source_text_sha256": "3e57c69e40414444332057f758222c9017f85341711fdf3ce2d25398a912d9fb",
+        "test_evidence": [
+          "tests/test_real_crest_listener_burst_existing_fifth_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10864120:0",
             "source_text": "【<color=Keyword>入场曲</color>】【<color=Keyword>模式</color>】选择1个能力发动。对本随从造成3点伤害。\n<ridx=0>（1）对对手的战场上的所有随从造成3点伤害。</ridx>\n<ridx=1>（2）对对手的主战者造成3点伤害。</ridx>\n<ridx=2>（3）回复自己的主战者3点生命值。</ridx>\n<hr><ev>【<color=Keyword>进化时</color>】使自己获得『纹章：希望的光彩·莉迪耶尔』。</ev>",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           },
           {
             "clause_id": "10864120:1",
             "source_text": "【纹章_0】【<color=Keyword>吟唱</color>_1】\n【<color=Keyword>谢幕曲</color>】召唤1个『<color=Keyword>希望的光彩·莉迪耶尔</color>』，使其进化。",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "【入场曲】【模式】在全体随从伤害、主战者伤害或治疗中选择1项，之后对自身造成3点伤害；【进化时】获得倒数1的纹章；纹章谢幕时召唤并进化希望的光彩·莉迪耶尔。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "3e57c69e40414444332057f758222c9017f85341711fdf3ce2d25398a912d9fb",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "fanfare",
+            "evolve",
+            "emblem_source"
+          ],
+          "effect_kinds": [
+            "choose_one",
+            "damage_unit",
+            "damage_leader",
+            "heal_leader",
+            "damage_unit",
+            "gain_emblem",
+            "summon",
+            "evolve_unit"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_crest_listener_burst_existing_fifth_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10871110": {
@@ -47561,6 +47743,7 @@
           "tests/test_real_balanced_trigger_resource_batch.py",
           "tests/test_real_card_rules_batch.py",
           "tests/test_real_complete_token_board_batch.py",
+          "tests/test_real_crest_listener_burst_existing_fifth_batch.py",
           "tests/test_real_crest_token_activation_exact_batch.py",
           "tests/test_real_existing_primitives_fourth_completion_batch.py",
           "tests/test_real_existing_primitives_third_completion_batch.py",
@@ -48613,6 +48796,7 @@
         "test_evidence": [
           "tests/test_cross_class_trait_listeners.py",
           "tests/test_real_complete_token_board_batch.py",
+          "tests/test_real_crest_listener_burst_existing_fifth_batch.py",
           "tests/test_real_crest_token_activation_exact_batch.py",
           "tests/test_real_existing_primitives_second_completion_batch.py",
           "tests/test_real_spell_modes_and_earth_listener_batch.py",

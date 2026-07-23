@@ -10,13 +10,13 @@ code and tests as the source of truth when this file drifts.
 - Database: 826 cards, 735 collectible cards, 91 non-collectible/generated
   cards from set `90000`.
 - Latest SVA source: `https://sva.hypd.asia/data/cards.json`.
-- Tests: `python -m unittest discover -s tests -v` discovers 2281 behavioral
+- Tests: `python -m unittest discover -s tests -v` discovers 2293 behavioral
   contracts (2026-07-23 exact-rule and seven-class RL verification).
 - RL adapter: fixed 111-action space; the default v1 observation is 294
   floats, opt-in v2 preserves the structured compatibility mapping, and v3
   supplies fixed-dtype NumPy arrays plus a Gymnasium observation space without
   changing action IDs. Hidden decklists are the v3 default.
-- The exact-audit `TrainableCardCatalog` currently admits all 625 exact
+- The exact-audit `TrainableCardCatalog` currently admits all 633 exact
   collectible cards, preloads all 826 definitions for SQLite-free matches, and
   provides deterministic class-valid deck sampling. Self-play no longer uses
   the legacy 2-to-5-card follower pool.
@@ -48,9 +48,9 @@ code and tests as the source of truth when this file drifts.
   and distribution acceptance results, not policy-strength evidence.
 - Ability registry status: 18 implemented, 5 partial, 11 placeholder.
 - Explicit card and demo rules live in `data/rules/`; the current coverage
-  report classifies 729 card IDs with explicit rules, passives, fusion,
+  report classifies 737 card IDs with explicit rules, passives, fusion,
   invocation, activation, Faith, Union Burst, or listener definitions. Current
-  collectible coverage is 625 exact (85.03% of 735), 0 partial, 94 supported-but-missing-rule,
+  collectible coverage is 633 exact (86.12% of 735), 0 partial, 86 supported-but-missing-rule,
   0 missing-primitive, and 16 text-unclear cards.
 - `data/reports/token_audit.{json,md}` audits all 91 non-collectible/generated
   cards independently of collectible coverage. Database `card_references` and
@@ -65,7 +65,7 @@ code and tests as the source of truth when this file drifts.
   separate column and is covered for all 34; it does not automatically promote
   the 5 partial or 11 placeholder keyword statuses.
 - Coverage now has a backward-compatible clause audit. The legacy summary still
-  reports 625 exact collectible cards, and all 625 now have an explicit exact
+  reports 633 exact collectible cards, and all 633 now have an explicit exact
   text mapping plus named direct test evidence. The versioned sibling registry
   at `data/audits/rule_clauses.json` hashes every imported primary and
   alternate-mode clause; changed source text or stale test evidence invalidates
@@ -74,7 +74,7 @@ code and tests as the source of truth when this file drifts.
   rule version and errata metadata, structured trigger/operation evidence,
   explicit unsupported text, and a stable blocker taxonomy. There are zero
   unverified exact entries and no known missing schema, primitive, targeting,
-  or timing blocker among authored rules. The 94 supported-but-missing-rule
+  or timing blocker among authored rules. The 86 supported-but-missing-rule
   cards are now the per-card structured-content backlog; 16 unclear texts
   remain explicit.
 - RL observation v2 is available behind an explicit version switch. A
@@ -1316,6 +1316,17 @@ slice in this order:
   branches. Direct tests cover every referenced card and embedded Enhance
   clause, resource shortage, no/stale/duplicate targets, hand/board capacity,
   source departure, fixed-seed random replay, multilingual source hashes,
+  Clause/Token consistency, and command/RL action-mask agreement.
+- Exact file `data/rules/real_crest_listener_burst_existing_fifth_batch.json`
+  closes eight collectibles (`10124130`, `10133110`, `10243110`, `10414120`,
+  `10714120`, `10724110`, `10833110`, `10864120`), bringing collectible exact
+  coverage to 633/735 (86.12%). The slice reuses Countdown crests, Earth Rite,
+  Combo, Rally, Trait-filtered summon/spell listeners, dynamic Earth Sigil
+  damage, repeated random distribution, selected evolution, Choose One, and
+  intrinsic/runtime keywords without shared-engine changes or card-ID branches.
+  Direct tests cover every reference and alternate clause, no-target
+  continuation, stale/illegal choices, hand/board capacity, source departure,
+  once-per-turn behavior, fixed-seed replay, multilingual source hashes,
   Clause/Token consistency, and command/RL action-mask agreement.
 
 ## Known Partial Or Unsupported Areas

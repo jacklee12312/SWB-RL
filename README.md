@@ -38,14 +38,14 @@ covered generic boundary, but that never upgrades a partial or placeholder
 keyword whose full tagged-card semantics still require structured rules.
 
 The [rule coverage report](data/reports/rule_coverage.md) now includes a
-clause-audit layer without changing its legacy coverage categories. Of 625
-exact collectible cards (85.03% of 735), all 625 have explicit implemented text and named direct
+clause-audit layer without changing its legacy coverage categories. Of 633
+exact collectible cards (86.12% of 735), all 633 have explicit implemented text and named direct
 test evidence. The sibling `data/audits/rule_clauses.json` registry hashes every
 imported skill and alternate-mode clause, so a database text change or stale
 test reference invalidates the audit instead of silently retaining exact
 status. The current report has no unverified exact entry or missing generic
 schema, primitive, targeting, or timing blocker. Its remaining collectible gaps
-are 94 missing per-card structured rules plus 16 explicitly unclear texts.
+are 86 missing per-card structured rules plus 16 explicitly unclear texts.
 Rule metadata also supports version and errata fields, and the report
 records the complete imported source snapshot hash.
 
@@ -128,7 +128,7 @@ random, fixed, and historical opponent mixing remains on the single-process
 collector. The balanced class schedule is not an adaptive curriculum, and the
 same-class fixed evaluation suite is not yet a 7x7 cross-class policy-strength
 matrix. Snapshot/clone is the search foundation only. Card-rule
-coverage also remains deliberately separate: 94 collectible cards still lack
+coverage also remains deliberately separate: 86 collectible cards still lack
 per-card structured rules and 16 card texts remain explicitly unclear; neither
 group enters the exact training catalog or counts as supported.
 
@@ -252,6 +252,16 @@ The deterministic rules core supports:
   referenced cards and embedded tiers, resource shortage, hand/board capacity,
   no/stale/duplicate targets, source departure, fixed-seed replay, multilingual
   clause hashes, Token Audit continuity, and command/RL action-mask agreement;
+- an 8-card exact crest/listener batch covers `10124130`, `10133110`,
+  `10243110`, `10414120`, `10714120`, `10724110`, `10833110`, and `10864120`.
+  It composes Countdown crests, Earth Rite, Combo, Rally, Trait-filtered summon
+  and spell listeners, dynamic Earth Sigil damage, repeated distributed random
+  damage, selected evolution, Choose One, and intrinsic/runtime keywords using
+  existing generic primitives. Direct tests cover all referenced Tokens and
+  alternate clauses, no-target continuation, stale and illegal choices,
+  hand/board capacity, source departure, once-per-turn listeners, fixed-seed
+  replay, multilingual clause hashes, Token Audit continuity, and command/RL
+  action-mask agreement;
 - seeded reset, shuffle, draw, turn progression, official immediate defeat when
   drawing from an empty deck, an auditable alternate victory outcome, atomic
   seeded replacement-deck shuffling,
