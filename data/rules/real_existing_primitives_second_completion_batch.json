@@ -1,0 +1,360 @@
+{
+  "passives": [
+    {"card_id": 10654110, "kind": "cannot_be_destroyed_by_effects"}
+  ],
+  "intrinsic_keywords": [
+    {"card_id": 10654110, "keywords": ["灵气"]},
+    {"card_id": 10734120, "keywords": ["守护"]},
+    {"card_id": 10842110, "keywords": ["突进"]}
+  ],
+  "activations": [
+    {"card_id": 10461210, "cost": 2}
+  ],
+  "rules": [
+    {
+      "card_id": 10113130,
+      "trigger": "fanfare",
+      "operations": [
+        {"kind": "damage_unit", "target": "enemy_unit", "amount": 4}
+      ]
+    },
+    {
+      "card_id": 10133130,
+      "trigger": "fanfare",
+      "operations": [
+        {
+          "kind": "earth_rite",
+          "target": "own_leader",
+          "amount": 2,
+          "operations": [
+            {"kind": "evolve_unit", "target": "self"}
+          ]
+        }
+      ]
+    },
+    {
+      "card_id": 10133130,
+      "trigger": "evolve",
+      "operations": [
+        {"kind": "damage_unit", "target": "random_enemy_unit", "amount": 4},
+        {"kind": "restore_mana", "target": "own_leader", "amount": 2}
+      ]
+    },
+    {
+      "card_id": 10272120,
+      "trigger": "evolve",
+      "operations": [
+        {
+          "kind": "banish",
+          "target": "enemy_unit",
+          "conditions": [{"type": "target_attack_at_most", "value": 4}],
+          "target_key": "banished_follower"
+        },
+        {
+          "kind": "summon_copy",
+          "target": "previous_target",
+          "target_key": "banished_follower"
+        }
+      ]
+    },
+    {
+      "card_id": 10351110,
+      "trigger": "fanfare",
+      "operations": [
+        {
+          "kind": "choose_one",
+          "target": "own_leader",
+          "options": [
+            {
+              "id": "damage_all",
+              "label": "对所有敌方随从造成1点伤害",
+              "operations": [
+                {"kind": "damage_unit", "target": "all_enemy_units", "amount": 1}
+              ]
+            },
+            {
+              "id": "buff_self",
+              "label": "本随从+2/+2",
+              "operations": [
+                {"kind": "buff_unit", "target": "self", "amount": 2, "secondary_amount": 2}
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "card_id": 10351110,
+      "trigger": "evolve",
+      "operations": [
+        {
+          "kind": "choose_one",
+          "target": "own_leader",
+          "options": [
+            {
+              "id": "damage_all",
+              "label": "对所有敌方随从造成1点伤害",
+              "operations": [
+                {"kind": "damage_unit", "target": "all_enemy_units", "amount": 1}
+              ]
+            },
+            {
+              "id": "buff_self",
+              "label": "本随从+2/+2",
+              "operations": [
+                {"kind": "buff_unit", "target": "self", "amount": 2, "secondary_amount": 2}
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "card_id": 10461210,
+      "trigger": "activate",
+      "operations": [
+        {"kind": "destroy", "target": "self"},
+        {
+          "kind": "transform",
+          "target": "own_unit",
+          "card_id": 10461210,
+          "requires_target": true
+        },
+        {"kind": "draw", "target": "own_leader", "amount": 1}
+      ]
+    },
+    {
+      "card_id": 10523110,
+      "trigger": "super_evolve",
+      "operations": [
+        {
+          "kind": "buff_unit",
+          "target": "all_own_units",
+          "amount": 3,
+          "secondary_amount": 3,
+          "exclude_source": true
+        }
+      ]
+    },
+    {
+      "card_id": 10654110,
+      "trigger": "clash",
+      "operations": [
+        {"kind": "destroy", "target": "attack_target"}
+      ]
+    },
+    {
+      "card_id": 10654110,
+      "trigger": "super_evolve",
+      "operations": [
+        {"kind": "grant_attacks_per_turn", "target": "self", "amount": 3}
+      ]
+    },
+    {
+      "card_id": 10733110,
+      "trigger": "fanfare",
+      "operations": [
+        {
+          "kind": "earth_rite",
+          "target": "own_leader",
+          "amount": 1,
+          "operations": [
+            {
+              "kind": "choose_one",
+              "target": "own_leader",
+              "options": [
+                {
+                  "id": "damage_all",
+                  "label": "对所有敌方随从造成3点伤害",
+                  "operations": [
+                    {"kind": "damage_unit", "target": "all_enemy_units", "amount": 3}
+                  ]
+                },
+                {
+                  "id": "draw_two",
+                  "label": "抽取2张卡牌",
+                  "operations": [
+                    {"kind": "draw", "target": "own_leader", "amount": 2}
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "card_id": 10733110,
+      "trigger": "evolve",
+      "operations": [
+        {
+          "kind": "earth_rite",
+          "target": "own_leader",
+          "amount": 1,
+          "operations": [
+            {
+              "kind": "choose_one",
+              "target": "own_leader",
+              "options": [
+                {
+                  "id": "damage_all",
+                  "label": "对所有敌方随从造成3点伤害",
+                  "operations": [
+                    {"kind": "damage_unit", "target": "all_enemy_units", "amount": 3}
+                  ]
+                },
+                {
+                  "id": "draw_two",
+                  "label": "抽取2张卡牌",
+                  "operations": [
+                    {"kind": "draw", "target": "own_leader", "amount": 2}
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "card_id": 10734120,
+      "trigger": "fanfare",
+      "operations": [
+        {"kind": "damage_unit", "target": "all_enemy_units", "amount": 6}
+      ]
+    },
+    {
+      "card_id": 10734120,
+      "trigger": "last_words",
+      "operations": [
+        {
+          "kind": "earth_rite",
+          "target": "own_leader",
+          "amount": 2,
+          "operations": [
+            {"kind": "damage_leader", "target": "enemy_leader", "amount": 3}
+          ]
+        }
+      ]
+    },
+    {
+      "card_id": 10734120,
+      "trigger": "super_evolve",
+      "operations": [
+        {"kind": "summon", "target": "own_leader", "card_id": 10734120}
+      ]
+    },
+    {
+      "card_id": 10803110,
+      "trigger": "fanfare",
+      "operations": [
+        {
+          "kind": "copy_destroyed_followers_to_hand",
+          "target": "own_leader",
+          "amount": 1,
+          "history_filter": {"card_type": "随从"}
+        }
+      ]
+    },
+    {
+      "card_id": 10803110,
+      "trigger": "evolve",
+      "operations": [
+        {
+          "kind": "copy_destroyed_followers_to_hand",
+          "target": "own_leader",
+          "amount": 1,
+          "history_filter": {"card_type": "随从"}
+        }
+      ]
+    },
+    {
+      "card_id": 10842110,
+      "trigger": "fanfare",
+      "operations": [
+        {"kind": "summon", "target": "own_leader", "card_id": 10842110}
+      ]
+    },
+    {
+      "card_id": 10844120,
+      "trigger": "fanfare",
+      "operations": [
+        {
+          "kind": "discard",
+          "target": "own_hand",
+          "target_count": 2
+        },
+        {"kind": "damage_unit", "target": "all_enemy_units", "amount": 4},
+        {"kind": "damage_leader", "target": "enemy_leader", "amount": 4}
+      ],
+      "play_modes": [
+        {
+          "id": "accelerate_3",
+          "type": "accelerate",
+          "cost": 3,
+          "operations": [
+            {"kind": "change_max_mana", "target": "own_leader", "amount": 1}
+          ]
+        }
+      ]
+    },
+    {
+      "card_id": 10844120,
+      "trigger": "super_evolve",
+      "operations": [
+        {"kind": "draw", "target": "own_leader", "amount": 3}
+      ]
+    }
+  ],
+  "listeners": [
+    {
+      "card_id": 10113130,
+      "zone": "hand",
+      "event": "entity_left_play",
+      "event_scope": "owner_event",
+      "source_relation": "any",
+      "event_filter": {"card_type": "随从"},
+      "operations": [
+        {
+          "kind": "change_cost",
+          "target": "self",
+          "amount": 1,
+          "mode": "subtract"
+        }
+      ]
+    },
+    {
+      "card_id": 10523110,
+      "zone": "board",
+      "event": "follower_summoned",
+      "event_scope": "owner_event",
+      "source_relation": "self",
+      "operations": [
+        {
+          "kind": "add_attack_restriction",
+          "target": "self",
+          "restriction": "cannot_attack",
+          "duration": "permanent"
+        }
+      ]
+    },
+    {
+      "card_id": 10523110,
+      "zone": "board",
+      "event": "turn_ended",
+      "turn_scope": "owner_turn",
+      "operations": [
+        {"kind": "summon", "target": "own_leader", "card_id": 90021120}
+      ]
+    },
+    {
+      "card_id": 10842110,
+      "zone": "board",
+      "event": "turn_ended",
+      "turn_scope": "owner_turn",
+      "operations": [
+        {"kind": "add_card", "target": "own_leader", "card_id": 90041130}
+      ]
+    }
+  ]
+}

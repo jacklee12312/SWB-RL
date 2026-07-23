@@ -6385,6 +6385,114 @@
       "source_text_sha256": "4590d34d1bd8efc2484f4b866f31da38ac6cc9c4a9ea785d61660d3f536c4ad8",
       "test_evidence": ["tests/test_real_existing_primitives_completion_batch.py"],
       "notes": "引用卡、召唤输出绑定、同名旧实体不受影响、动态疾驰和满场失败均有直接测试。"
+    },
+    {
+      "card_id": 10113130,
+      "coverage": "exact",
+      "implemented_text": "己方随从离场时，使手牌中的本卡费用-1；【入场曲】选择1个敌方随从并造成4点伤害。",
+      "rule_version": 1,
+      "source_text_sha256": "f272c627f88f6f0786626abf93103c62f990e47b26039f176d83ed6f4db6943f",
+      "test_evidence": ["tests/test_real_existing_primitives_second_completion_batch.py"],
+      "notes": "己方与敌方离场归属、同批多次减费、选择伤害和目标路径均有直接测试。"
+    },
+    {
+      "card_id": 10133130,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】【土之秘术_2】使本随从进化；【进化时】随机对1个敌方随从造成4点伤害，并回复2点PP。",
+      "rule_version": 1,
+      "source_text_sha256": "7f3e57aab85ed5d57e1f77fb4dcb95e2a4e88f2b3f9c4d53272ed0c0b0bad1ec",
+      "test_evidence": ["tests/test_real_existing_primitives_second_completion_batch.py"],
+      "notes": "土之秘术消耗、自进化、固定种子随机伤害、无敌方目标及PP回复均有直接测试。"
+    },
+    {
+      "card_id": 10272120,
+      "coverage": "exact",
+      "implemented_text": "【进化时】选择1个攻击力不大于4的敌方随从，将其放逐，并召唤1个该随从的基础副本到己方战场。",
+      "rule_version": 1,
+      "source_text_sha256": "bda4ad0a050b32dc94aef7bbe925c80d850c19444769dda75da7a3afa7701c51",
+      "test_evidence": ["tests/test_real_existing_primitives_second_completion_batch.py"],
+      "notes": "攻击力筛选、放逐、目标快照副本、无目标和目标离场均有直接测试。"
+    },
+    {
+      "card_id": 10351110,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】【模式】对所有敌方随从造成1点伤害，或使本随从+2/+2；【进化时】再次发动同一入场曲模式选择。",
+      "rule_version": 1,
+      "source_text_sha256": "2dbcbc478e569ee4d965ae9399a5df7294bf9f125da26e329f4a6e38dc3cd2b0",
+      "test_evidence": ["tests/test_real_existing_primitives_second_completion_batch.py"],
+      "notes": "入场曲和进化时的两种独立模式、全体伤害与自身加成均有直接测试。"
+    },
+    {
+      "card_id": 10461210,
+      "coverage": "exact",
+      "implemented_text": "【启动_2】破坏本护符，选择1个己方随从，将其变身为本卡同名护符，然后抽取1张卡牌。",
+      "rule_version": 1,
+      "source_text_sha256": "41928ef92875f4823d1d2aedb15dbeb27c4cc6cf38f9ac393a47b42dfa8b1a0b",
+      "test_evidence": ["tests/test_real_existing_primitives_second_completion_batch.py"],
+      "notes": "原子启动合法性、自毁、同名变身、抽牌、无目标、目标离场、非法不变性和RL掩码均有直接测试。"
+    },
+    {
+      "card_id": 10523110,
+      "coverage": "exact",
+      "implemented_text": "本随从不能攻击；己方回合结束时召唤1个钢甲骑士；【超进化时】使除此随从外的所有己方随从+3/+3。",
+      "rule_version": 1,
+      "source_text_sha256": "b09eda2cc334cb901b2b84dd8ffb9a1b1dd77e1e058ad6edefc0538bea90e387",
+      "test_evidence": ["tests/test_real_existing_primitives_second_completion_batch.py"],
+      "notes": "使用与效果召唤的攻击限制、回合归属、Token召唤、满场及超进化排除自身均有直接测试。"
+    },
+    {
+      "card_id": 10654110,
+      "coverage": "exact",
+      "implemented_text": "固有【灵气】；不会被能力破坏；【交战时】破坏交战的敌方随从；【超进化时】本回合可攻击3次。",
+      "rule_version": 1,
+      "source_text_sha256": "a66db86d0d27011134d0708ddc88348d2fe69be1378f54d1ba0d569cdffde370",
+      "test_evidence": ["tests/test_real_existing_primitives_second_completion_batch.py"],
+      "notes": "灵气目标保护、能力破坏免疫、交战对象破坏和超进化三次攻击均有直接测试。"
+    },
+    {
+      "card_id": 10733110,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】【土之秘术_1】【模式】对所有敌方随从造成3点伤害，或抽取2张卡牌；【进化时】再次发动同一入场曲。",
+      "rule_version": 1,
+      "source_text_sha256": "88bbe9ddb0333abbf0964695ab325313742cb5c763613a62bfe96943d25fa663",
+      "test_evidence": ["tests/test_real_existing_primitives_second_completion_batch.py"],
+      "notes": "入场与进化的土之秘术消耗、两种模式、资源不足和全体伤害/抽牌均有直接测试。"
+    },
+    {
+      "card_id": 10734120,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】对所有敌方随从造成6点伤害；固有【守护】；【谢幕曲】【土之秘术_2】对敌方主战者造成3点伤害；【超进化时】召唤1个本卡同名基础副本。",
+      "rule_version": 1,
+      "source_text_sha256": "23916ea38e8ae3496f179d840e068a828268ab0be14a8a34834f64fbed7915f6",
+      "test_evidence": ["tests/test_real_existing_primitives_second_completion_batch.py"],
+      "notes": "入场全伤、固有守护、谢幕曲土之秘术、敌方主战者伤害、同名召唤和满场均有直接测试。"
+    },
+    {
+      "card_id": 10803110,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】随机将1张本对战中已被破坏的己方随从同名卡加入手牌；【进化时】再次发动同一入场曲。",
+      "rule_version": 1,
+      "source_text_sha256": "0540d93eca308f58dfe315bf79fb298d3854584bbbfa6ffa61c361bbaebe9a02",
+      "test_evidence": ["tests/test_real_existing_primitives_second_completion_batch.py"],
+      "notes": "已破坏历史池、固定种子随机、无历史、入场/进化重复、对手观察隐私均有直接测试。"
+    },
+    {
+      "card_id": 10842110,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】召唤1个本卡同名基础副本；固有【突进】；己方回合结束时，每个在场本体各将1张大海虎鲸加入手牌。",
+      "rule_version": 1,
+      "source_text_sha256": "677b3d019705d4197cfd7bcea09877e1b3fe584fd04fffce63fff0af39626f24",
+      "test_evidence": ["tests/test_real_existing_primitives_second_completion_batch.py"],
+      "notes": "同名召唤不递归入场曲、固有突进、多个来源的回合结束触发和手牌容量均有直接测试。"
+    },
+    {
+      "card_id": 10844120,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】选择至多2张己方手牌并舍弃，然后对所有敌方随从及敌方主战者造成4点伤害；【超进化时】抽取3张卡牌；【激奏_3】使PP最大值+1。",
+      "rule_version": 1,
+      "source_text_sha256": "36d247cc628bb3b1a1ca01d422d2a6cfc9fb15b0bb6cbd6381ca0c7e7e078b69",
+      "test_evidence": ["tests/test_real_existing_primitives_second_completion_batch.py"],
+      "notes": "0至2张手牌选择、舍弃后全体及主战者伤害、超进化抽牌、激奏模式和RL掩码均有直接测试。"
     }
   ]
 }

@@ -35,7 +35,7 @@ Total audited cards: **91**
 | 90014320 绝命的痛击 | 精灵 / 法术 | entry_behavior_complete | 1 | 1 | exact |
 | 90014330 天枪深渊 | 精灵 / 法术 | entry_behavior_complete | 1 | 1 | exact |
 | 90021110 骑士 | 皇家护卫 / 随从 | entry_behavior_complete | 13 | 11 | basic |
-| 90021120 铁甲骑士 | 皇家护卫 / 随从 | entry_behavior_complete | 12 | 9 | exact |
+| 90021120 铁甲骑士 | 皇家护卫 / 随从 | entry_behavior_complete | 12 | 10 | exact |
 | 90021130 娜哈特的私兵 | 皇家护卫 / 随从 | entry_behavior_complete | 1 | 1 | exact |
 | 90021310 黄金短剑 | 皇家护卫 / 法术 | entry_behavior_complete | 4 | 4 | exact |
 | 90021320 黄金之杯 | 皇家护卫 / 法术 | entry_behavior_complete | 3 | 2 | exact |
@@ -65,7 +65,7 @@ Total audited cards: **91**
 | 90034350 宏大的回归 | 巫师 / 法术 | entry_behavior_complete | 1 | 1 | exact |
 | 90041110 炽炎幼龙 | 龙族 / 随从 | entry_behavior_complete | 1 | 1 | exact |
 | 90041120 巨翼飞龙 | 龙族 / 随从 | entry_behavior_complete | 6 | 5 | exact |
-| 90041130 大海虎鲸 | 龙族 / 随从 | entry_behavior_complete | 9 | 6 | keyword |
+| 90041130 大海虎鲸 | 龙族 / 随从 | entry_behavior_complete | 9 | 7 | keyword |
 | 90043110 乙姬近卫队 | 龙族 / 随从 | entry_behavior_complete | 1 | 1 | exact |
 | 90044110 霸道之金龙 | 龙族 / 随从 | entry_behavior_complete | 1 | 1 | exact |
 | 90044120 霸道之银龙 | 龙族 / 随从 | entry_behavior_complete | 1 | 1 | exact |

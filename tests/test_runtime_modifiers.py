@@ -19,8 +19,9 @@ from swb.engine.effects import (
 )
 from swb.engine.environment import ShadowverseEnv
 from swb.engine.events import EventType
+from swb.engine.origin import CardOrigin
 from swb.engine.resolution import GameEngine, IllegalCommand
-from swb.engine.state import CostModifier, HandCard, StatModifier, Unit
+from swb.engine.state import Amulet, CostModifier, HandCard, StatModifier, Unit
 
 
 def card(
@@ -520,6 +521,96 @@ class TransformAndStatModifierTests(unittest.TestCase):
                 for event in engine.event_history
             )
         )
+
+    def test_transform_unit_to_amulet_preserves_identity_origin_and_countdown(self):
+        transform_spell = card(10, card_type="法术", attack=None, life=None)
+        old = card(20, attack=5, life=6, name="old follower")
+        replacement = card(
+            30,
+            card_type="护符",
+            attack=None,
+            life=None,
+            name="replacement amulet",
+        )
+        rules = (
+            CardRule(
+                10,
+                Trigger.PLAY,
+                (
+                    EffectOperation(
+                        EffectKind.TRANSFORM,
+                        TargetKind.OWN_UNIT,
+                        card_id=30,
+                    ),
+                ),
+            ),
+            CardRule(30, Trigger.PLAY, (), countdown=3),
+        )
+        engine = engine_with_rules(
+            rules,
+            resolver=lambda card_id: replacement if card_id == 30 else None,
+        )
+        target = Unit.summon(old, entity_id=777, origin=CardOrigin.DECK)
+        target.fused_material_ids = [41, 42]
+        engine.players[0].board = [target]
+
+        play_spell(engine, transform_spell, target_id=target.entity_id)
+
+        transformed = engine.players[0].board[0]
+        self.assertIsInstance(transformed, Amulet)
+        self.assertIsNot(transformed, target)
+        self.assertEqual(transformed.entity_id, 777)
+        self.assertEqual(transformed.definition.card_id, 30)
+        self.assertIs(transformed.origin, CardOrigin.TRANSFORMED)
+        self.assertIs(transformed.source_origin, CardOrigin.DECK)
+        self.assertEqual(transformed.fused_material_ids, [41, 42])
+        self.assertEqual(transformed.countdown, 3)
+        self.assertEqual(transformed.entered_turn, engine.turn)
+        transform_event = next(
+            event
+            for event in engine.event_history
+            if event.type is EventType.BOARD_CARD_TRANSFORMED
+        )
+        self.assertIs(transform_event.metadata["source"], transformed)
+        self.assertEqual(transform_event.metadata["old_card_type"], "随从")
+        self.assertEqual(transform_event.metadata["new_card_type"], "护符")
+        self.assertFalse(
+            any(event.type is EventType.AMULET_ENTERED for event in engine.event_history)
+        )
+
+    def test_transform_board_card_to_spell_is_explicitly_rejected(self):
+        transform_spell = card(10, card_type="法术", attack=None, life=None)
+        replacement = card(30, card_type="法术", attack=None, life=None)
+        rule = CardRule(
+            10,
+            Trigger.PLAY,
+            (
+                EffectOperation(
+                    EffectKind.TRANSFORM,
+                    TargetKind.OWN_UNIT,
+                    card_id=30,
+                ),
+            ),
+        )
+        engine = engine_with_rules(
+            (rule,),
+            resolver=lambda card_id: replacement if card_id == 30 else None,
+        )
+        target = Unit.summon(card(20), entity_id=777)
+        engine.players[0].board = [target]
+        engine.players[0].hand[0] = transform_spell
+        engine.apply(PlayCard(0, 0))
+        choice = next(
+            command
+            for command in engine.legal_commands()
+            if isinstance(command, Choose)
+        )
+
+        with self.assertRaisesRegex(
+            IllegalCommand,
+            "board replacement must be a follower or amulet",
+        ):
+            engine.apply(choice)
 
     def test_transform_missing_or_non_follower_definition_is_explicit(self):
         spell = card(10, card_type="法术", attack=None, life=None)

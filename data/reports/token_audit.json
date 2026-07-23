@@ -1038,6 +1038,12 @@
           "rule_group": "rules"
         },
         {
+          "source_card_id": 10523110,
+          "entry_kind": "summon",
+          "rule_file": "real_existing_primitives_second_completion_batch.json",
+          "rule_group": "listeners"
+        },
+        {
           "source_card_id": 10721120,
           "entry_kind": "add_card",
           "rule_file": "real_complete_token_board_batch.json",
@@ -2530,6 +2536,12 @@
           "entry_kind": "add_card",
           "rule_file": "real_crest_token_activation_exact_batch.json",
           "rule_group": "rules"
+        },
+        {
+          "source_card_id": 10842110,
+          "entry_kind": "add_card",
+          "rule_file": "real_existing_primitives_second_completion_batch.json",
+          "rule_group": "listeners"
         }
       ],
       "has_authored_behavior": false,

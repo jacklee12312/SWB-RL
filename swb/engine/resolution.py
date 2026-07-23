@@ -8321,13 +8321,49 @@ class GameEngine:
             return
 
         target = self._find_board_entity(target_id)
-        if replacement.card_type != "随从":
+        if replacement.card_type not in {"随从", "护符"}:
             raise IllegalCommand(
-                "TRANSFORM currently supports board-card-to-follower only"
+                "TRANSFORM board replacement must be a follower or amulet"
             )
         old_name = target.definition.name
         old_definition = target.definition
         owner = self._entity_owner(target.entity_id)
+        if replacement.card_type == "护符":
+            previous_origin = target.source_origin or target.origin
+            fresh = Amulet(
+                definition=replacement,
+                entity_id=target.entity_id,
+                countdown=self.rulebook.countdown_for(replacement.card_id),
+                entered_turn=self.turn,
+                origin=CardOrigin.TRANSFORMED,
+                source_origin=previous_origin,
+                fused_material_ids=list(target.fused_material_ids),
+            )
+            board = self.players[owner].board
+            board[board.index(target)] = fresh
+            self._death_causes.pop(fresh.entity_id, None)
+            self._emit(
+                GameEvent(
+                    EventType.BOARD_CARD_TRANSFORMED,
+                    owner,
+                    source_id=fresh.entity_id,
+                    metadata={
+                        "source": fresh,
+                        "old_definition": old_definition,
+                        "new_definition": replacement,
+                        "old_card_id": old_definition.card_id,
+                        "new_card_id": replacement.card_id,
+                        "old_card_type": old_definition.card_type,
+                        "new_card_type": replacement.card_type,
+                    },
+                )
+            )
+            self._initialize_earth_sigil(fresh, owner)
+            self._log(
+                frame.controller,
+                f"{old_name} 变形为护符 {replacement.name}",
+            )
+            return
         if isinstance(target, Amulet):
             previous_origin = target.source_origin or target.origin
             fresh = Unit.summon(

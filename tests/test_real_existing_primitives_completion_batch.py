@@ -372,8 +372,11 @@ class ExistingPrimitivesCompletionAuditTests(unittest.TestCase):
 
     def test_all_seven_cards_have_exact_clause_evidence_and_reports_remain_consistent(self):
         report = _build_coverage_report("data/cards.sqlite3", "data/rules")
-        self.assertEqual(report["summary"]["coverage_counts"]["covered_exact"], 595)
-        self.assertEqual(report["summary"]["coverage_counts"]["supported_missing_rule"], 124)
+        coverage_counts = report["summary"]["coverage_counts"]
+        clause_counts = report["summary"]["clause_audit_counts"]
+        self.assertEqual(coverage_counts["covered_exact"], clause_counts["mapped_exact"])
+        self.assertEqual(coverage_counts["supported_missing_rule"], clause_counts["missing_rule"])
+        self.assertEqual(sum(coverage_counts.values()), report["summary"]["total_cards"])
         self.assertFalse(report["rule_consistency_issues"])
         self.assertFalse(report["clause_audit_issues"])
         for card_id in CARD_IDS:
@@ -388,8 +391,10 @@ class ExistingPrimitivesCompletionAuditTests(unittest.TestCase):
                 )
 
         token_report = _build_token_audit("data/cards.sqlite3", "data/rules")
-        self.assertEqual(token_report["summary"]["total"], 91)
-        self.assertEqual(token_report["summary"]["categories"]["entry_behavior_complete"], 91)
+        token_total = token_report["summary"]["total"]
+        token_categories = token_report["summary"]["categories"]
+        self.assertEqual(token_categories["entry_behavior_complete"], token_total)
+        self.assertEqual(sum(token_categories.values()), token_total)
         self.assertTrue(all(card["category"] == "entry_behavior_complete" for card in token_report["cards"]))
 
 

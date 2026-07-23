@@ -38,14 +38,14 @@ covered generic boundary, but that never upgrades a partial or placeholder
 keyword whose full tagged-card semantics still require structured rules.
 
 The [rule coverage report](data/reports/rule_coverage.md) now includes a
-clause-audit layer without changing its legacy coverage categories. Of 595
-exact collectible cards (80.95% of 735), all 595 have explicit implemented text and named direct
+clause-audit layer without changing its legacy coverage categories. Of 607
+exact collectible cards (82.59% of 735), all 607 have explicit implemented text and named direct
 test evidence. The sibling `data/audits/rule_clauses.json` registry hashes every
 imported skill and alternate-mode clause, so a database text change or stale
 test reference invalidates the audit instead of silently retaining exact
 status. The current report has no unverified exact entry or missing generic
 schema, primitive, targeting, or timing blocker. Its remaining collectible gaps
-are 124 missing per-card structured rules plus 16 explicitly unclear texts.
+are 112 missing per-card structured rules plus 16 explicitly unclear texts.
 Rule metadata also supports version and errata fields, and the report
 records the complete imported source snapshot hash.
 
@@ -128,7 +128,7 @@ random, fixed, and historical opponent mixing remains on the single-process
 collector. The balanced class schedule is not an adaptive curriculum, and the
 same-class fixed evaluation suite is not yet a 7x7 cross-class policy-strength
 matrix. Snapshot/clone is the search foundation only. Card-rule
-coverage also remains deliberately separate: 124 collectible cards still lack
+coverage also remains deliberately separate: 112 collectible cards still lack
 per-card structured rules and 16 card texts remain explicitly unclear; neither
 group enters the exact training catalog or counts as supported.
 
@@ -221,6 +221,18 @@ The deterministic rules core supports:
   full-board capacity, dynamic keywords, discard/draw ordering, illegal command
   rollback, fixed-seed replay, clause hashes, Token Audit, and RL action-mask
   agreement;
+- a 12-card exact cross-class existing-primitive batch covers `10113130`,
+  `10133130`, `10272120`, `10351110`, `10461210`, `10523110`, `10654110`,
+  `10733110`, `10734120`, `10803110`, `10842110`, and `10844120`. The generic
+  board transform operation now accepts follower-to-amulet replacement while
+  preserving stable entity identity, source origin, fused materials, and
+  countdown state without emitting a false enter-play event. Structured rules
+  compose hand/board/turn listeners, Earth Rite, Mode, Engage, random destroyed-
+  history copies, multi-target discard, alternate Accelerate, intrinsic/static
+  traits, and summon/copy bindings. Direct tests cover no/stale targets,
+  illegal-command rollback, hand/board capacity, simultaneous damage, seeded
+  replay and hidden-information parity, multilingual/Mode/reference clauses,
+  Token Audit continuity, and command/RL action-mask agreement;
 - seeded reset, shuffle, draw, turn progression, official immediate defeat when
   drawing from an empty deck, an auditable alternate victory outcome, atomic
   seeded replacement-deck shuffling,
