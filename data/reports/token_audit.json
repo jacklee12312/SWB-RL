@@ -1210,6 +1210,12 @@
           "entry_kind": "add_card",
           "rule_file": "real_royal_rune_bishop_mixed_batch.json",
           "rule_group": "rules"
+        },
+        {
+          "source_card_id": 10323110,
+          "entry_kind": "add_card",
+          "rule_file": "real_existing_primitives_fourth_completion_batch.json",
+          "rule_group": "rules"
         }
       ],
       "has_authored_behavior": true,
@@ -1258,6 +1264,12 @@
           "source_card_id": 10322210,
           "entry_kind": "add_card",
           "rule_file": "real_royal_rune_bishop_mixed_batch.json",
+          "rule_group": "rules"
+        },
+        {
+          "source_card_id": 10323110,
+          "entry_kind": "add_card",
+          "rule_file": "real_existing_primitives_fourth_completion_batch.json",
           "rule_group": "rules"
         }
       ],
@@ -3128,6 +3140,12 @@
           "rule_group": "rules"
         },
         {
+          "source_card_id": 10153130,
+          "entry_kind": "summon",
+          "rule_file": "real_existing_primitives_fourth_completion_batch.json",
+          "rule_group": "rules"
+        },
+        {
           "source_card_id": 10251120,
           "entry_kind": "add_card",
           "rule_file": "batch_basic_real_cards.json",
@@ -3236,6 +3254,12 @@
           "source_card_id": 10753110,
           "entry_kind": "summon",
           "rule_file": "real_summon_output_trait_batch.json",
+          "rule_group": "rules"
+        },
+        {
+          "source_card_id": 10754120,
+          "entry_kind": "summon",
+          "rule_file": "real_existing_primitives_fourth_completion_batch.json",
           "rule_group": "rules"
         },
         {

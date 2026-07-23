@@ -1,0 +1,305 @@
+{
+  "passives": [
+    {
+      "card_id": 10153130,
+      "kind": "non_intrinsic_keyword",
+      "keyword": "必杀",
+      "notes": "必杀由战场监听授予进场的己方亡者随从，并非本随从的初始关键词。"
+    },
+    {
+      "card_id": 10442120,
+      "kind": "non_intrinsic_keyword",
+      "keyword": "疾驰",
+      "notes": "疾驰仅在解放奥义成立时授予本随从。"
+    },
+    {
+      "card_id": 10624110,
+      "kind": "non_intrinsic_keyword",
+      "keyword": "必杀",
+      "notes": "必杀仅授予入场曲召唤的勇烈的士兵。"
+    },
+    {
+      "card_id": 10624110,
+      "kind": "non_intrinsic_keyword",
+      "keyword": "虹吸",
+      "notes": "虹吸仅授予爆能强化7召唤的勇烈的士兵。"
+    },
+    {
+      "card_id": 10624110,
+      "kind": "non_intrinsic_keyword",
+      "keyword": "疾驰",
+      "notes": "疾驰仅授予爆能强化8召唤的勇烈的士兵。"
+    },
+    {
+      "card_id": 10754120,
+      "kind": "non_intrinsic_keyword",
+      "keyword": "突进",
+      "notes": "突进由战场监听授予己方回合进场的亡者随从。"
+    },
+    {
+      "card_id": 10754120,
+      "kind": "non_intrinsic_keyword",
+      "keyword": "守护",
+      "notes": "守护由战场监听授予己方回合进场的亡者随从。"
+    }
+  ],
+  "intrinsic_keywords": [
+    {"card_id": 10823110, "keywords": ["突进"]}
+  ],
+  "union_bursts": [
+    {
+      "card_id": 10413110,
+      "kind": "union_burst",
+      "operations": [
+        {"kind": "evolve_unit", "target": "self"}
+      ]
+    },
+    {
+      "card_id": 10413110,
+      "kind": "super_skybound_art",
+      "operations": [
+        {"kind": "damage_leader", "target": "enemy_leader", "amount": 3}
+      ]
+    },
+    {
+      "card_id": 10442120,
+      "kind": "super_skybound_art",
+      "operations": [
+        {"kind": "add_keyword", "target": "self", "keyword": "疾驰"}
+      ]
+    }
+  ],
+  "listeners": [
+    {
+      "card_id": 10153130,
+      "zone": "board",
+      "event": "follower_summoned",
+      "event_scope": "owner_event",
+      "source_relation": "any",
+      "event_filter": {"card_type": "随从", "tribe_name": "亡者"},
+      "operations": [
+        {"kind": "add_keyword", "target": "event_source", "keyword": "必杀"}
+      ]
+    },
+    {
+      "card_id": 10323110,
+      "zone": "board",
+      "event": "card_played",
+      "event_scope": "owner_event",
+      "source_relation": "any",
+      "event_filter": {"tribe_name": "财宝"},
+      "operations": [
+        {"kind": "damage_unit", "target": "random_enemy_unit", "amount": 3}
+      ]
+    },
+    {
+      "card_id": 10323110,
+      "zone": "board",
+      "event": "card_fused",
+      "event_scope": "owner_event",
+      "source_relation": "any",
+      "event_filter": {"tribe_name": "财宝"},
+      "operations": [
+        {"kind": "damage_unit", "target": "random_enemy_unit", "amount": 3}
+      ]
+    },
+    {
+      "card_id": 10674110,
+      "zone": "board",
+      "event": "follower_summoned",
+      "event_scope": "owner_event",
+      "source_relation": "other",
+      "event_filter": {"card_type": "随从", "cost_min": 5},
+      "operations": [
+        {"kind": "evolve_unit", "target": "event_source"}
+      ]
+    },
+    {
+      "card_id": 10754120,
+      "zone": "board",
+      "event": "follower_summoned",
+      "event_scope": "owner_event",
+      "turn_scope": "owner_turn",
+      "source_relation": "any",
+      "event_filter": {"card_type": "随从", "tribe_name": "亡者"},
+      "operations": [
+        {"kind": "buff_unit", "target": "event_source", "amount": 1, "secondary_amount": 0},
+        {"kind": "add_keyword", "target": "event_source", "keyword": "突进"},
+        {"kind": "add_keyword", "target": "event_source", "keyword": "守护"},
+        {"kind": "damage_leader", "target": "enemy_leader", "amount": 1}
+      ]
+    }
+  ],
+  "rules": [
+    {
+      "card_id": 10153130,
+      "trigger": "fanfare",
+      "operations": [
+        {
+          "kind": "necromancy",
+          "target": "own_leader",
+          "amount": 8,
+          "operations": [
+            {"kind": "evolve_unit", "target": "self"}
+          ]
+        }
+      ]
+    },
+    {
+      "card_id": 10153130,
+      "trigger": "evolve",
+      "operations": [
+        {"kind": "summon", "target": "own_leader", "card_id": 90051130}
+      ]
+    },
+    {
+      "card_id": 10323110,
+      "trigger": "fanfare",
+      "operations": [
+        {"kind": "add_card", "target": "own_leader", "card_id": 90021320},
+        {"kind": "add_card", "target": "own_leader", "card_id": 90021330}
+      ]
+    },
+    {
+      "card_id": 10323110,
+      "trigger": "evolve",
+      "operations": [
+        {"kind": "restore_mana", "target": "own_leader", "amount": 1}
+      ]
+    },
+    {
+      "card_id": 10413110,
+      "trigger": "evolve",
+      "operations": [
+        {
+          "kind": "repeat",
+          "amount": 7,
+          "operations": [
+            {"kind": "damage_unit", "target": "random_enemy_unit", "amount": 1}
+          ]
+        }
+      ]
+    },
+    {
+      "card_id": 10442120,
+      "trigger": "super_evolve",
+      "operations": [
+        {"kind": "destroy", "target": "enemy_unit", "target_count": 2}
+      ]
+    },
+    {
+      "card_id": 10624110,
+      "trigger": "fanfare",
+      "operations": [
+        {"kind": "summon", "target": "own_leader", "card_id": 10621110, "target_key": "bane_soldier"},
+        {"kind": "add_keyword", "target": "previous_target", "target_key": "bane_soldier", "keyword": "必杀"}
+      ],
+      "play_modes": [
+        {
+          "id": "enhance_7",
+          "type": "enhance",
+          "cost": 7,
+          "operations": [
+            {"kind": "summon", "target": "own_leader", "card_id": 10621110, "target_key": "drain_soldier"},
+            {"kind": "add_keyword", "target": "previous_target", "target_key": "drain_soldier", "keyword": "虹吸"}
+          ]
+        },
+        {
+          "id": "enhance_8",
+          "type": "enhance",
+          "cost": 8,
+          "operations": [
+            {"kind": "summon", "target": "own_leader", "card_id": 10621110, "target_key": "drain_soldier"},
+            {"kind": "add_keyword", "target": "previous_target", "target_key": "drain_soldier", "keyword": "虹吸"},
+            {"kind": "summon", "target": "own_leader", "card_id": 10621110, "target_key": "storm_soldier"},
+            {"kind": "add_keyword", "target": "previous_target", "target_key": "storm_soldier", "keyword": "疾驰"}
+          ]
+        }
+      ]
+    },
+    {
+      "card_id": 10624110,
+      "trigger": "super_evolve",
+      "operations": [
+        {"kind": "buff_unit", "target": "all_own_units", "exclude_source": true, "amount": 1, "secondary_amount": 1}
+      ]
+    },
+    {
+      "card_id": 10674110,
+      "trigger": "fanfare",
+      "operations": [
+        {"kind": "summon", "target": "own_leader", "card_id": 10671110},
+        {"kind": "summon", "target": "own_leader", "card_id": 10672110}
+      ]
+    },
+    {
+      "card_id": 10674110,
+      "trigger": "super_evolve",
+      "operations": [
+        {
+          "kind": "damage_leader",
+          "target": "enemy_leader",
+          "amount": {
+            "type": "controller_board_count",
+            "filter": {"card_type": "随从", "cost_min": 5}
+          }
+        }
+      ]
+    },
+    {
+      "card_id": 10754120,
+      "trigger": "fanfare",
+      "operations": [
+        {
+          "kind": "necromancy",
+          "target": "own_leader",
+          "amount": 10,
+          "operations": [
+            {"kind": "summon", "target": "own_leader", "card_id": 90051140},
+            {"kind": "summon", "target": "own_leader", "card_id": 90051140},
+            {"kind": "summon", "target": "own_leader", "card_id": 90051140}
+          ]
+        }
+      ]
+    },
+    {
+      "card_id": 10823110,
+      "trigger": "fanfare",
+      "operations": [
+        {
+          "kind": "conditional",
+          "target": "own_leader",
+          "conditions": [
+            {"type": "controller_super_evolution_unlocked"}
+          ],
+          "then": [
+            {"kind": "evolve_unit", "target": "self"}
+          ]
+        }
+      ]
+    },
+    {
+      "card_id": 10823110,
+      "trigger": "attack",
+      "operations": [
+        {
+          "kind": "conditional",
+          "target": "own_leader",
+          "conditions": [{"type": "source_evolved"}],
+          "then": [
+            {
+              "kind": "repeat",
+              "amount": 3,
+              "operations": [
+                {"kind": "damage_unit", "target": "attack_target", "amount": 3}
+              ]
+            }
+          ],
+          "else": [
+            {"kind": "damage_unit", "target": "attack_target", "amount": 3}
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -272,6 +272,12 @@ class DatabaseClauseAuditTests(unittest.TestCase):
                     "rule_file": "real_royal_rune_bishop_mixed_batch.json",
                     "rule_group": "rules",
                 },
+                {
+                    "source_card_id": 10323110,
+                    "entry_kind": "add_card",
+                    "rule_file": "real_existing_primitives_fourth_completion_batch.json",
+                    "rule_group": "rules",
+                },
             ],
             90021330: [
                 {
@@ -284,6 +290,12 @@ class DatabaseClauseAuditTests(unittest.TestCase):
                     "source_card_id": 10322210,
                     "entry_kind": "add_card",
                     "rule_file": "real_royal_rune_bishop_mixed_batch.json",
+                    "rule_group": "rules",
+                },
+                {
+                    "source_card_id": 10323110,
+                    "entry_kind": "add_card",
+                    "rule_file": "real_existing_primitives_fourth_completion_batch.json",
                     "rule_group": "rules",
                 },
             ],
