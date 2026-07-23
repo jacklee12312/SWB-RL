@@ -907,7 +907,6 @@ class TargetBindingTests(unittest.TestCase):
         cases = (
             ("all_enemy_units", "all_targets"),
             ("own_leader", "leader"),
-            ("own_hand", "hand"),
         )
         for target, key in cases:
             with self.subTest(target=target), tempfile.TemporaryDirectory() as tmp:

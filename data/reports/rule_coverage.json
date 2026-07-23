@@ -12,25 +12,25 @@
   },
   "summary": {
     "total_cards": 826,
-    "total_with_rules": 744,
+    "total_with_rules": 751,
     "test_or_synthetic_ids_with_rules": 26,
     "coverage_counts": {
-      "covered_exact": 640,
+      "covered_exact": 647,
       "text_unclear": 16,
-      "supported_missing_rule": 79,
+      "supported_missing_rule": 72,
       "token_or_non_collectible": 91
     },
     "clause_audit_counts": {
-      "mapped_exact": 640,
+      "mapped_exact": 647,
       "unverified_exact": 0,
       "partial": 0,
-      "missing_rule": 79,
+      "missing_rule": 72,
       "missing_primitive": 0,
       "text_unclear": 16,
       "token_separate_audit": 91
     },
     "blocker_counts": {
-      "missing_rule": 79,
+      "missing_rule": 72,
       "missing_schema": 0,
       "missing_primitive": 0,
       "missing_targeting": 0,
@@ -19773,8 +19773,8 @@
       "cost": 3,
       "is_collectible": true,
       "card_set_id": 10003,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '进化时', '超进化', '召唤']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['fanfare', 'super_evolve', 'intrinsic_keywords'], Ops: ['conditional', 'summon_copy', 'summon_copy', 'summon_copy', 'keyword:突进']",
       "hit_keywords": [
         "入场曲",
         "进化时",
@@ -19791,27 +19791,49 @@
         "【<color=Keyword>入场曲</color>】若本随从的费用不为3，则召唤2个本随从的复制随从。\n<hr>【<color=Keyword>突进</color>】\n<hr><sev>【<color=Keyword>超进化时</color>】召唤1个本随从的复制随从。</sev>"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【入场曲】若本张实体手牌的实际费用不为3，则召唤2个本随从的复制随从；固有【突进】；【超进化时】召唤1个本随从的复制随从。",
+        "notes": "原始与变更后实体费用、两次复制、固有突进、超进化复制和场面容量均有直接测试。",
+        "rule_version": 1,
+        "source_text_sha256": "87d3d5b84f95289bcc3984d839d031a5c4309f85b303ea77b7495e53ede453da",
+        "test_evidence": [
+          "tests/test_real_keyed_crest_existing_seventh_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10333110:0",
             "source_text": "【<color=Keyword>入场曲</color>】若本随从的费用不为3，则召唤2个本随从的复制随从。\n<hr>【<color=Keyword>突进</color>】\n<hr><sev>【<color=Keyword>超进化时</color>】召唤1个本随从的复制随从。</sev>",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "【入场曲】若本张实体手牌的实际费用不为3，则召唤2个本随从的复制随从；固有【突进】；【超进化时】召唤1个本随从的复制随从。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "87d3d5b84f95289bcc3984d839d031a5c4309f85b303ea77b7495e53ede453da",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "fanfare",
+            "super_evolve",
+            "intrinsic_keywords"
+          ],
+          "effect_kinds": [
+            "conditional",
+            "summon_copy",
+            "summon_copy",
+            "summon_copy",
+            "keyword:突进"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_keyed_crest_existing_seventh_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10333310": {
@@ -24578,8 +24600,8 @@
       "cost": 5,
       "is_collectible": true,
       "card_set_id": 10004,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '召唤', '土之秘术|土之印']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['fanfare'], Ops: ['summon', 'earth_rite', 'evolve_unit', 'evolve_unit']",
       "hit_keywords": [
         "入场曲",
         "召唤",
@@ -24594,27 +24616,46 @@
         "【<color=Keyword>入场曲</color>】召唤1个『<color=Keyword>荆棘旅途·米蕾耶&莉赛特</color>』。【<color=Keyword>土之秘术</color>_2】该随从和本随从进化。"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【入场曲】召唤1个荆棘旅途·米蕾耶&莉赛特；【土之秘术_2】使该次成功召唤的随从和本随从进化。",
+        "notes": "同名关联卡、召唤输出跨土之秘术作用域绑定、资源充足与不足、满场召唤失败及来源进化均有直接测试。",
+        "rule_version": 1,
+        "source_text_sha256": "f1ece335bf36f94d490815bb3454dfecbe31a365b5a50ce8e0d30373a9bb2847",
+        "test_evidence": [
+          "tests/test_real_keyed_crest_existing_seventh_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10432120:0",
             "source_text": "【<color=Keyword>入场曲</color>】召唤1个『<color=Keyword>荆棘旅途·米蕾耶&莉赛特</color>』。【<color=Keyword>土之秘术</color>_2】该随从和本随从进化。",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "【入场曲】召唤1个荆棘旅途·米蕾耶&莉赛特；【土之秘术_2】使该次成功召唤的随从和本随从进化。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "f1ece335bf36f94d490815bb3454dfecbe31a365b5a50ce8e0d30373a9bb2847",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "fanfare"
+          ],
+          "effect_kinds": [
+            "summon",
+            "earth_rite",
+            "evolve_unit",
+            "evolve_unit"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_keyed_crest_existing_seventh_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10432310": {
@@ -26068,8 +26109,8 @@
       "cost": 5,
       "is_collectible": true,
       "card_set_id": 10004,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['奥义', '回合结束', '倒数', '造成.*伤害', '破坏', '纹章']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['play', 'super_skybound_art', 'emblem_source'], Ops: ['buff_unit', 'gain_emblem', 'gain_emblem', 'remove_emblem', 'damage_leader']",
       "hit_keywords": [
         "奥义",
         "回合结束",
@@ -26079,9 +26120,6 @@
         "纹章"
       ],
       "missing_primitives": [],
-      "missing_rule_mechanics": [
-        "奥义"
-      ],
       "ability_keywords": [
         "倒数",
         "奥义",
@@ -26092,32 +26130,54 @@
         "【纹章_0】【<color=Keyword>吟唱</color>_4】\n自己的回合结束时，对自己的主战者造成2点伤害。"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "使场上所有随从-2/-2；使双方主战者各获得倒数4的纹章：堕落；纹章在持有者回合结束时对其造成2点伤害；【解放奥义】破坏自己的纹章：堕落。",
+        "notes": "双方全体减益与同时死亡、纹章归属、双方各自回合结束伤害、解放奥义阈值和仅破坏己方同名纹章均有直接测试。",
+        "rule_version": 1,
+        "source_text_sha256": "708858f5fe413dcb368bb393b52c313c10e645f6b53c6c005a50cfed60b79f00",
+        "test_evidence": [
+          "tests/test_real_keyed_crest_existing_seventh_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10453310:0",
             "source_text": "使战场上的所有随从-2/-2。使自己和对手获得『纹章：堕落』。【<color=Keyword>解放奥义</color>】破坏自己的『纹章：堕落』。",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           },
           {
             "clause_id": "10453310:1",
             "source_text": "【纹章_0】【<color=Keyword>吟唱</color>_4】\n自己的回合结束时，对自己的主战者造成2点伤害。",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "使场上所有随从-2/-2；使双方主战者各获得倒数4的纹章：堕落；纹章在持有者回合结束时对其造成2点伤害；【解放奥义】破坏自己的纹章：堕落。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "708858f5fe413dcb368bb393b52c313c10e645f6b53c6c005a50cfed60b79f00",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "play",
+            "super_skybound_art",
+            "emblem_source"
+          ],
+          "effect_kinds": [
+            "buff_unit",
+            "gain_emblem",
+            "gain_emblem",
+            "remove_emblem",
+            "damage_leader"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_keyed_crest_existing_seventh_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10454110": {
@@ -26199,8 +26259,8 @@
       "cost": 7,
       "is_collectible": true,
       "card_set_id": 10004,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '谢幕曲', '进化时', '超进化', '奥义', '倒数', '造成.*伤害', '纹章']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['fanfare', 'super_evolve', 'super_skybound_art', 'emblem_source'], Ops: ['damage_unit', 'reduce_countdown', 'gain_emblem', 'damage_leader']",
       "hit_keywords": [
         "入场曲",
         "谢幕曲",
@@ -26212,9 +26272,6 @@
         "纹章"
       ],
       "missing_primitives": [],
-      "missing_rule_mechanics": [
-        "奥义"
-      ],
       "ability_keywords": [
         "倒数",
         "入场曲",
@@ -26228,32 +26285,54 @@
         "【纹章_0】【<color=Keyword>吟唱</color>_4】\n【<color=Keyword>谢幕曲</color>】对对手的主战者造成20点伤害。"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【入场曲】对场上其他所有随从造成10点伤害；【解放奥义】获得倒数4的纹章：狡诈的堕天司·彼列；【超进化时】使自己的同名纹章倒数-1；纹章【谢幕曲】对敌方主战者造成20点伤害。",
+        "notes": "排除来源的双方同时伤害、解放奥义、同名纹章倒数过滤、其他纹章不变，以及自然归零和效果破坏均触发纹章谢幕曲均有直接测试。",
+        "rule_version": 1,
+        "source_text_sha256": "fdcbaa6ab1b285f8bec0b7289953888dbe310119d0c143cd6853a592f60b4cf9",
+        "test_evidence": [
+          "tests/test_real_keyed_crest_existing_seventh_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10454120:0",
             "source_text": "【<color=Keyword>入场曲</color>】对战场上的其他所有随从造成10点伤害。【<color=Keyword>解放奥义</color>】使自己获得『纹章：狡诈的堕天司·彼列』。\n<hr><sev>【<color=Keyword>超进化时</color>】使自己的『纹章：狡诈的堕天司·彼列』的倒计数-1。</sev>",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           },
           {
             "clause_id": "10454120:1",
             "source_text": "【纹章_0】【<color=Keyword>吟唱</color>_4】\n【<color=Keyword>谢幕曲</color>】对对手的主战者造成20点伤害。",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "【入场曲】对场上其他所有随从造成10点伤害；【解放奥义】获得倒数4的纹章：狡诈的堕天司·彼列；【超进化时】使自己的同名纹章倒数-1；纹章【谢幕曲】对敌方主战者造成20点伤害。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "fdcbaa6ab1b285f8bec0b7289953888dbe310119d0c143cd6853a592f60b4cf9",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "fanfare",
+            "super_evolve",
+            "super_skybound_art",
+            "emblem_source"
+          ],
+          "effect_kinds": [
+            "damage_unit",
+            "reduce_countdown",
+            "gain_emblem",
+            "damage_leader"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_keyed_crest_existing_seventh_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10461110": {
@@ -28492,8 +28571,8 @@
       "cost": 6,
       "is_collectible": true,
       "card_set_id": 10005,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '回复(?!自己\\\\d+点(?:超进化点|进化点|能量点))', '舍弃']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['fanfare'], Ops: ['discard', 'conditional', 'heal_leader', 'heal_leader']",
       "hit_keywords": [
         "入场曲",
         "回复(?!自己\\d+点(?:超进化点|进化点|能量点))",
@@ -28507,27 +28586,46 @@
         "【<color=Keyword>入场曲</color>】选择自己的1张手牌，舍弃该手牌。回复自己的主战者3点生命值。若选择了法术，则改为回复6点。"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【入场曲】选择并舍弃1张自己的手牌，依据被舍弃实体的快照回复主战者3点生命值；若其为法术则改为回复6点。",
+        "notes": "法术与非法术分支、舍弃后的手牌快照绑定、无其他手牌、目标离场、治疗上限、非法选择不变性和RL行动掩码均有直接测试。",
+        "rule_version": 1,
+        "source_text_sha256": "a9432569ca6b127b3b9fa7dfb2b35c79a8553c6e6db2e65661d643c14925c20e",
+        "test_evidence": [
+          "tests/test_real_keyed_crest_existing_seventh_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10521110:0",
             "source_text": "【<color=Keyword>入场曲</color>】选择自己的1张手牌，舍弃该手牌。回复自己的主战者3点生命值。若选择了法术，则改为回复6点。",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "【入场曲】选择并舍弃1张自己的手牌，依据被舍弃实体的快照回复主战者3点生命值；若其为法术则改为回复6点。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "a9432569ca6b127b3b9fa7dfb2b35c79a8553c6e6db2e65661d643c14925c20e",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "fanfare"
+          ],
+          "effect_kinds": [
+            "discard",
+            "conditional",
+            "heal_leader",
+            "heal_leader"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_keyed_crest_existing_seventh_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10521120": {
@@ -39563,8 +39661,8 @@
       "cost": 7,
       "is_collectible": true,
       "card_set_id": 10007,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '进化时', '灵气', '回合结束', '倒数', '破坏', '召唤', '纹章', '土之秘术|土之印']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['fanfare', 'evolve', 'intrinsic_keywords', 'emblem_source'], Ops: ['earth_rite', 'gain_emblem', 'earth_rite', 'destroy', 'keyword:灵气', 'summon', 'evolve_unit']",
       "hit_keywords": [
         "入场曲",
         "进化时",
@@ -39590,32 +39688,57 @@
         "【纹章_0】【<color=Keyword>吟唱</color>_1】\n对手的回合结束时，在自己的战场上召唤1个『<color=Keyword>万食的安纳提玛·拉拉安瑟姆</color>』，使其进化。"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【入场曲】【土之秘术_1】获得倒数1的纹章：万食的安纳提玛·拉拉安瑟姆；固有【灵气】；【进化时】【土之秘术_1】选择并破坏1个敌方随从；纹章在对手回合结束时召唤同名随从并使其进化。",
+        "notes": "两段独立土之秘术、目标成立/不足/离场、固有灵气、纹章回合范围、同名召唤输出绑定、效果进化、满场与固定种子均有直接测试。",
+        "rule_version": 1,
+        "source_text_sha256": "3575fec154ba700653db55e0055528a236a8e755bd2389983c2a07e2605ab2d4",
+        "test_evidence": [
+          "tests/test_real_keyed_crest_existing_seventh_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10734110:0",
             "source_text": "【<color=Keyword>入场曲</color>】【<color=Keyword>土之秘术</color>_1】使自己获得『纹章：万食的安纳提玛·拉拉安瑟姆』。\n<hr>【<color=Keyword>灵气</color>】\n<hr><ev>【<color=Keyword>进化时</color>】【<color=Keyword>土之秘术</color>_1】选择对手的战场上的1个随从，破坏该随从。</ev>",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           },
           {
             "clause_id": "10734110:1",
             "source_text": "【纹章_0】【<color=Keyword>吟唱</color>_1】\n对手的回合结束时，在自己的战场上召唤1个『<color=Keyword>万食的安纳提玛·拉拉安瑟姆</color>』，使其进化。",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "【入场曲】【土之秘术_1】获得倒数1的纹章：万食的安纳提玛·拉拉安瑟姆；固有【灵气】；【进化时】【土之秘术_1】选择并破坏1个敌方随从；纹章在对手回合结束时召唤同名随从并使其进化。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "3575fec154ba700653db55e0055528a236a8e755bd2389983c2a07e2605ab2d4",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "fanfare",
+            "evolve",
+            "intrinsic_keywords",
+            "emblem_source"
+          ],
+          "effect_kinds": [
+            "earth_rite",
+            "gain_emblem",
+            "earth_rite",
+            "destroy",
+            "keyword:灵气",
+            "summon",
+            "evolve_unit"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_keyed_crest_existing_seventh_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10734120": {
@@ -40272,8 +40395,8 @@
       "cost": 10,
       "is_collectible": true,
       "card_set_id": 10007,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '进化时', '超进化', '回合结束', '倒数', '召唤', '纹章']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['fanfare', 'super_evolve', 'intrinsic_keywords', 'emblem_source'], Ops: ['summon', 'gain_emblem', 'increase_countdown', 'keyword:守护', 'summon']",
       "hit_keywords": [
         "入场曲",
         "进化时",
@@ -40296,32 +40419,55 @@
         "【纹章_0】【<color=Keyword>吟唱</color>_2】\n自己的回合结束时，召唤1个『<color=Keyword>巨翼飞龙</color>』。"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【入场曲】召唤巨翼飞龙并获得倒数2的纹章：龙峪的古龙；固有【守护】；【超进化时】使自己的同名纹章倒数+2；纹章在己方回合结束时召唤巨翼飞龙。",
+        "notes": "关联Token、固有守护、纹章回合结束召唤、场面容量、超进化同名倒数过滤和其他纹章保持不变均有直接测试。",
+        "rule_version": 1,
+        "source_text_sha256": "364f2ca6add1f150a1aa320141756fee6f5641b6b457c1ef959cf14a1167a7eb",
+        "test_evidence": [
+          "tests/test_real_keyed_crest_existing_seventh_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10744120:0",
             "source_text": "【<color=Keyword>入场曲</color>】召唤1个『<color=Keyword>巨翼飞龙</color>』。使自己获得『纹章：龙峪的古龙』。\n<hr>【<color=Keyword>守护</color>】\n<hr><sev>【<color=Keyword>超进化时</color>】使自己的『纹章：龙峪的古龙』的倒计数+2。</sev>",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           },
           {
             "clause_id": "10744120:1",
             "source_text": "【纹章_0】【<color=Keyword>吟唱</color>_2】\n自己的回合结束时，召唤1个『<color=Keyword>巨翼飞龙</color>』。",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "【入场曲】召唤巨翼飞龙并获得倒数2的纹章：龙峪的古龙；固有【守护】；【超进化时】使自己的同名纹章倒数+2；纹章在己方回合结束时召唤巨翼飞龙。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "364f2ca6add1f150a1aa320141756fee6f5641b6b457c1ef959cf14a1167a7eb",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "fanfare",
+            "super_evolve",
+            "intrinsic_keywords",
+            "emblem_source"
+          ],
+          "effect_kinds": [
+            "summon",
+            "gain_emblem",
+            "increase_countdown",
+            "keyword:守护",
+            "summon"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_keyed_crest_existing_seventh_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10751110": {
@@ -50659,29 +50805,6 @@
       "suggested_rule_file": "batch_主教.json"
     },
     {
-      "card_id": 10521110,
-      "name": "好施的名人",
-      "class_name": "皇家护卫",
-      "card_type": "随从",
-      "cost": 6,
-      "ability_keywords": [
-        "入场曲"
-      ],
-      "hit_keywords": [
-        "入场曲",
-        "回复(?!自己\\d+点(?:超进化点|进化点|能量点))",
-        "舍弃"
-      ],
-      "confidence": "high",
-      "why_recommended": "Covered keywords: 入场曲, 回复(?!自己\\d+点(?:超进化点|进化点|能量点)), 舍弃",
-      "required_primitives": [
-        "入场曲",
-        "回复(?!自己\\d+点(?:超进化点|进化点|能量点))",
-        "舍弃"
-      ],
-      "suggested_rule_file": "batch_皇家护卫.json"
-    },
-    {
       "card_id": 10543110,
       "name": "破灭屠戮者",
       "class_name": "龙族",
@@ -50942,6 +51065,35 @@
       "required_primitives": [
         "入场曲",
         "奥义"
+      ],
+      "suggested_rule_file": "batch_超越者.json"
+    },
+    {
+      "card_id": 10574120,
+      "name": "尽小花·伊鞠",
+      "class_name": "超越者",
+      "card_type": "随从",
+      "cost": 2,
+      "ability_keywords": [
+        "入场曲",
+        "超进化时"
+      ],
+      "hit_keywords": [
+        "入场曲",
+        "进化时",
+        "超进化",
+        "抽取",
+        "召唤",
+        "舍弃"
+      ],
+      "confidence": "high",
+      "why_recommended": "Covered keywords: 入场曲, 进化时, 超进化",
+      "required_primitives": [
+        "入场曲",
+        "进化时",
+        "超进化",
+        "抽取",
+        "召唤"
       ],
       "suggested_rule_file": "batch_超越者.json"
     }

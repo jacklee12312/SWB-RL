@@ -10,13 +10,13 @@ code and tests as the source of truth when this file drifts.
 - Database: 826 cards, 735 collectible cards, 91 non-collectible/generated
   cards from set `90000`.
 - Latest SVA source: `https://sva.hypd.asia/data/cards.json`.
-- Tests: `python -m unittest discover -s tests -v` discovers 2304 behavioral
-  contracts (2026-07-23 exact-rule and seven-class RL verification).
+- Tests: `python -m unittest discover -s tests -v` discovers 2316 behavioral
+  contracts (2026-07-23 keyed-crest and hand-binding verification).
 - RL adapter: fixed 111-action space; the default v1 observation is 294
   floats, opt-in v2 preserves the structured compatibility mapping, and v3
   supplies fixed-dtype NumPy arrays plus a Gymnasium observation space without
   changing action IDs. Hidden decklists are the v3 default.
-- The exact-audit `TrainableCardCatalog` currently admits all 640 exact
+- The exact-audit `TrainableCardCatalog` currently admits all 647 exact
   collectible cards, preloads all 826 definitions for SQLite-free matches, and
   provides deterministic class-valid deck sampling. Self-play no longer uses
   the legacy 2-to-5-card follower pool.
@@ -48,9 +48,9 @@ code and tests as the source of truth when this file drifts.
   and distribution acceptance results, not policy-strength evidence.
 - Ability registry status: 18 implemented, 5 partial, 11 placeholder.
 - Explicit card and demo rules live in `data/rules/`; the current coverage
-  report classifies 744 card IDs with explicit rules, passives, fusion,
+  report classifies 751 card IDs with explicit rules, passives, fusion,
   invocation, activation, Faith, Union Burst, or listener definitions. Current
-  collectible coverage is 640 exact (87.07% of 735), 0 partial, 79 supported-but-missing-rule,
+  collectible coverage is 647 exact (88.03% of 735), 0 partial, 72 supported-but-missing-rule,
   0 missing-primitive, and 16 text-unclear cards.
 - `data/reports/token_audit.{json,md}` audits all 91 non-collectible/generated
   cards independently of collectible coverage. Database `card_references` and
@@ -65,7 +65,7 @@ code and tests as the source of truth when this file drifts.
   separate column and is covered for all 34; it does not automatically promote
   the 5 partial or 11 placeholder keyword statuses.
 - Coverage now has a backward-compatible clause audit. The legacy summary still
-  reports 640 exact collectible cards, and all 640 now have an explicit exact
+  reports 647 exact collectible cards, and all 647 now have an explicit exact
   text mapping plus named direct test evidence. The versioned sibling registry
   at `data/audits/rule_clauses.json` hashes every imported primary and
   alternate-mode clause; changed source text or stale test evidence invalidates
@@ -74,7 +74,7 @@ code and tests as the source of truth when this file drifts.
   rule version and errata metadata, structured trigger/operation evidence,
   explicit unsupported text, and a stable blocker taxonomy. There are zero
   unverified exact entries and no known missing schema, primitive, targeting,
-  or timing blocker among authored rules. The 79 supported-but-missing-rule
+  or timing blocker among authored rules. The 72 supported-but-missing-rule
   cards are now the per-card structured-content backlog; 16 unclear texts
   remain explicit.
 - RL observation v2 is available behind an explicit version switch. A
@@ -1339,6 +1339,18 @@ slice in this order:
   stale-choice no-mutation, command/RL masks, full hand/board, simultaneous
   deaths, source departure, fixed-seed replay, multilingual source hashes, and
   Clause/Token audit consistency without card-ID branches.
+- Exact file `data/rules/real_keyed_crest_existing_seventh_batch.json` closes
+  seven collectibles (`10333110`, `10432120`, `10453310`, `10454120`,
+  `10521110`, `10734110`, `10744120`), bringing collectible exact coverage to
+  647/735 (88.03%). Generic additions include selected-hand snapshot bindings,
+  cross-scope summon-output bindings inside Earth Rite, source-cost propagation
+  through conditional frames, keyed crest countdown changes, and a distinct
+  crest Last Words lifecycle that fires on both countdown expiry and effect
+  destruction without changing legacy `on_expire` semantics. Direct tests
+  cover every main/evolved/crest clause and reference, no/stale target paths,
+  hand/board capacity, simultaneous deaths, source cost changes, fixed-seed
+  replay, command/RL masks, multilingual source hashes, and Clause/Token audit
+  consistency without card-ID branches.
 
 ## Known Partial Or Unsupported Areas
 

@@ -1360,7 +1360,7 @@ def _parse_emblem_definition(raw: dict, source_file: str, ops_parser) -> EmblemD
         raise ValueError(f"{error_prefix}: emblem definition must be an object")
     unknown_keys = set(raw) - {
         "id", "source_card_id", "stacking", "countdown", "triggers", "on_gain",
-        "on_expire",
+        "on_expire", "last_words",
     }
     if unknown_keys:
         raise ValueError(
@@ -1530,6 +1530,17 @@ def _parse_emblem_definition(raw: dict, source_file: str, ops_parser) -> EmblemD
         )
         _validate_target_keys(on_expire, f"{error_prefix}/on_expire")
 
+    last_words: tuple = ()
+    raw_last_words = raw.get("last_words")
+    if raw_last_words is not None:
+        if not isinstance(raw_last_words, list):
+            raise ValueError(f"{error_prefix}/last_words: must be a list")
+        last_words = tuple(
+            ops_parser(op, f"{error_prefix}/last_words[{idx}]", source_card_id)
+            for idx, op in enumerate(raw_last_words)
+        )
+        _validate_target_keys(last_words, f"{error_prefix}/last_words")
+
     return EmblemDefinition(
         emblem_id=emblem_id,
         source_card_id=source_card_id,
@@ -1538,6 +1549,7 @@ def _parse_emblem_definition(raw: dict, source_file: str, ops_parser) -> EmblemD
         triggers=tuple(triggers),
         on_gain=on_gain,
         on_expire=on_expire,
+        last_words=last_words,
     )
 
 
@@ -1579,7 +1591,13 @@ def _validate_emblem_references(
                 EffectKind.GAIN_EMBLEM,
                 EffectKind.ADD_EMBLEM,
                 EffectKind.REMOVE_EMBLEM,
-            }:
+            } or (
+                operation.kind in {
+                    EffectKind.REDUCE_COUNTDOWN,
+                    EffectKind.INCREASE_COUNTDOWN,
+                }
+                and operation.emblem_id is not None
+            ):
                 references.append((card_id, operation.emblem_id or ""))
 
     for rule in rules:
@@ -1592,6 +1610,7 @@ def _validate_emblem_references(
         for trigger in definition.triggers:
             collect(definition.source_card_id, trigger.operations)
         collect(definition.source_card_id, definition.on_expire)
+        collect(definition.source_card_id, definition.last_words)
 
     for card_id, emblem_id in references:
         if emblem_id not in emblem_defs:
@@ -2321,6 +2340,7 @@ _BINDABLE_TARGETS = frozenset({
     TargetKind.RANDOM_ENEMY_UNIT,
     TargetKind.RANDOM_OWN_BOARD,
     TargetKind.RANDOM_ENEMY_BOARD,
+    TargetKind.OWN_HAND,
 })
 
 _REQUIRES_TARGET_TARGETS = frozenset({
@@ -2513,6 +2533,7 @@ def _validate_target_keys(
     source: str,
     *,
     initial_bindings: dict[str, EffectOperation] | None = None,
+    allow_undefined_external_bindings: bool = False,
 ) -> None:
     binding_operations = dict(initial_bindings or {})
     defined: set[str] = set(binding_operations)
@@ -2523,6 +2544,8 @@ def _validate_target_keys(
         ):
             for binding_key in _expression_binding_keys(expression):
                 if binding_key not in defined:
+                    if allow_undefined_external_bindings:
+                        continue
                     raise ValueError(
                         f"{source}/operations[{i}]/{expression_name}: "
                         f"binding_key {binding_key!r} was not defined by a "
@@ -2564,50 +2587,57 @@ def _validate_target_keys(
                     f"{source}/operations[{i}]: condition_target_key is only "
                     "valid for conditional operations"
                 )
-            if op.condition_target_key not in defined:
-                raise ValueError(
-                    f"{source}/operations[{i}]: condition_target_key "
-                    f"{op.condition_target_key!r} was not defined by a previous operation"
+            condition_binding_defined = op.condition_target_key in defined
+            if not condition_binding_defined:
+                if allow_undefined_external_bindings:
+                    binding_operation = None
+                else:
+                    raise ValueError(
+                        f"{source}/operations[{i}]: condition_target_key "
+                        f"{op.condition_target_key!r} was not defined by a previous operation"
+                    )
+            else:
+                binding_operation = binding_operations[op.condition_target_key]
+            if binding_operation is not None:
+                output_binding_is_single = (
+                    binding_operation.kind is EffectKind.SUMMON
+                    or binding_operation.kind is EffectKind.REANIMATE
+                    or (
+                        binding_operation.kind is EffectKind.SUMMON_HAND_COPY
+                        and binding_operation.target_count == 1
+                        and binding_operation.target_count_expr is None
+                    )
+                    or (
+                        binding_operation.kind
+                        in {
+                            EffectKind.SUMMON_FROM_DECK,
+                            EffectKind.DRAW,
+                            EffectKind.DRAW_FILTERED,
+                        }
+                        and binding_operation.amount == 1
+                    )
                 )
-            binding_operation = binding_operations[op.condition_target_key]
-            output_binding_is_single = (
-                binding_operation.kind is EffectKind.SUMMON
-                or binding_operation.kind is EffectKind.REANIMATE
-                or (
-                    binding_operation.kind is EffectKind.SUMMON_HAND_COPY
+                selected_binding_is_single = (
+                    binding_operation.kind not in _OUTPUT_BINDING_EFFECTS
                     and binding_operation.target_count == 1
                     and binding_operation.target_count_expr is None
                 )
-                or (
-                    binding_operation.kind
-                    in {
-                        EffectKind.SUMMON_FROM_DECK,
-                        EffectKind.DRAW,
-                        EffectKind.DRAW_FILTERED,
-                    }
-                    and binding_operation.amount == 1
-                )
-            )
-            selected_binding_is_single = (
-                binding_operation.kind not in _OUTPUT_BINDING_EFFECTS
-                and binding_operation.target_count == 1
-                and binding_operation.target_count_expr is None
-            )
-            if not (output_binding_is_single or selected_binding_is_single):
-                raise ValueError(
-                    f"{source}/operations[{i}]: condition_target_key requires "
-                    "a binding that selects exactly one target"
-                )
+                if not (output_binding_is_single or selected_binding_is_single):
+                    raise ValueError(
+                        f"{source}/operations[{i}]: condition_target_key requires "
+                        "a binding that selects exactly one target"
+                    )
         if op.target is TargetKind.PREVIOUS_TARGET:
             if not op.target_key:
                 raise ValueError(
                     f"{source}/operations[{i}]: PREVIOUS_TARGET requires target_key"
                 )
             if op.target_key not in defined:
-                raise ValueError(
-                    f"{source}/operations[{i}]: target_key "
-                    f"{op.target_key!r} was not defined by a previous operation"
-                )
+                if not allow_undefined_external_bindings:
+                    raise ValueError(
+                        f"{source}/operations[{i}]: target_key "
+                        f"{op.target_key!r} was not defined by a previous operation"
+                    )
         elif op.target_key:
             if (
                 op.kind not in _OUTPUT_BINDING_EFFECTS
@@ -2616,7 +2646,8 @@ def _validate_target_keys(
                 raise ValueError(
                     f"{source}/operations[{i}]: target {op.target.value!r} "
                     f"cannot define target_key {op.target_key!r}; "
-                    "target_key requires selected board-entity targets or "
+                    "target_key requires selected board-entity or hand-card "
+                    "targets, or "
                     "a supported output-producing operation"
                 )
             if op.target_key in defined:
@@ -2635,6 +2666,7 @@ def _validate_target_keys(
             _validate_target_keys(
                 op.earth_rite_operations,
                 f"{source}/operations[{i}]/earth_rite",
+                initial_bindings=binding_operations,
             )
         if op.faith_operations:
             _validate_target_keys(
@@ -2743,11 +2775,23 @@ def _parse_operation(
         )
     if (
         target is TargetKind.ALL_OWN_EMBLEMS
-        and kind is not EffectKind.INCREASE_COUNTDOWN
+        and kind not in {
+            EffectKind.REDUCE_COUNTDOWN,
+            EffectKind.INCREASE_COUNTDOWN,
+        }
     ):
         raise ValueError(
             f"{source_file}/target card {card_id}: all_own_emblems is only "
-            "valid for increase_countdown"
+            "valid for countdown changes"
+        )
+    if (
+        target is TargetKind.ALL_OWN_EMBLEMS
+        and kind is EffectKind.REDUCE_COUNTDOWN
+        and not isinstance(raw.get("emblem_id"), str)
+    ):
+        raise ValueError(
+            f"{source_file}/emblem_id card {card_id}: reducing "
+            "all_own_emblems requires a specific emblem_id"
         )
     if (
         target is TargetKind.RANDOM_ENEMY_UNIT_OR_LEADER
@@ -3297,7 +3341,11 @@ def _parse_operation(
         )
 
     emblem_id = raw.get("emblem_id")
-    if kind in (EffectKind.GAIN_EMBLEM, EffectKind.ADD_EMBLEM, EffectKind.REMOVE_EMBLEM):
+    if kind in (
+        EffectKind.GAIN_EMBLEM,
+        EffectKind.ADD_EMBLEM,
+        EffectKind.REMOVE_EMBLEM,
+    ):
         if not isinstance(emblem_id, str) or not emblem_id:
             raise ValueError(
                 f"{source_file}/emblem_id card {card_id}: "
@@ -3308,11 +3356,25 @@ def _parse_operation(
                 f"{source_file}/target card {card_id}: {kind.value} "
                 "requires own_leader or enemy_leader"
             )
+    elif kind in {EffectKind.REDUCE_COUNTDOWN, EffectKind.INCREASE_COUNTDOWN}:
+        if emblem_id is not None and (
+            not isinstance(emblem_id, str) or not emblem_id
+        ):
+            raise ValueError(
+                f"{source_file}/emblem_id card {card_id}: countdown filters "
+                "require a non-empty emblem_id string"
+            )
+        if emblem_id is not None and target is not TargetKind.ALL_OWN_EMBLEMS:
+            raise ValueError(
+                f"{source_file}/emblem_id card {card_id}: countdown emblem "
+                "filters require target all_own_emblems"
+            )
     else:
         if emblem_id is not None:
             raise ValueError(
                 f"{source_file}/emblem_id card {card_id}: "
-                f"emblem_id is only valid for GAIN_EMBLEM/ADD_EMBLEM/REMOVE_EMBLEM"
+                "emblem_id is only valid for emblem operations or keyed "
+                "countdown changes"
             )
     emblem_remove_mode = raw.get("remove_mode", "first")
     if kind is EffectKind.REMOVE_EMBLEM:
@@ -3492,6 +3554,7 @@ def _parse_operation(
         _validate_target_keys(
             earth_rite_ops,
             f"{source_file} card {card_id} (earth_rite)",
+            allow_undefined_external_bindings=True,
         )
 
     if kind in (EffectKind.ADD_EARTH_SIGILS, EffectKind.EARTH_RITE):
@@ -3861,6 +3924,7 @@ def _parse_operation(
             )
     if kind is EffectKind.SUMMON_COPY:
         if target not in {
+            TargetKind.SELF,
             TargetKind.OWN_UNIT,
             TargetKind.ENEMY_UNIT,
             TargetKind.ANY_UNIT,
@@ -3870,7 +3934,7 @@ def _parse_operation(
         }:
             raise ValueError(
                 f"{source_file}/target card {card_id}: summon_copy requires "
-                f"a follower or previous target, got {target.value!r}"
+                f"a follower, self, or previous target, got {target.value!r}"
             )
     if kind is EffectKind.SUMMON_HAND_COPY and target is not TargetKind.OWN_HAND:
         raise ValueError(

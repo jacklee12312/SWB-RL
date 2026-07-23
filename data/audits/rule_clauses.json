@@ -6790,6 +6790,69 @@
       "source_text_sha256": "5ec56f4e333c6e2db635d2f7ec3a55e30ec3bba778c5d033a703f21d89107c18",
       "test_evidence": ["tests/test_real_listener_condition_output_binding_sixth_batch.py"],
       "notes": "严格生命比较、相等不触发、两次关联Token召唤、进化复现和场面容量均有直接测试。"
+    },
+    {
+      "card_id": 10333110,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】若本张实体手牌的实际费用不为3，则召唤2个本随从的复制随从；固有【突进】；【超进化时】召唤1个本随从的复制随从。",
+      "rule_version": 1,
+      "source_text_sha256": "87d3d5b84f95289bcc3984d839d031a5c4309f85b303ea77b7495e53ede453da",
+      "test_evidence": ["tests/test_real_keyed_crest_existing_seventh_batch.py"],
+      "notes": "原始与变更后实体费用、两次复制、固有突进、超进化复制和场面容量均有直接测试。"
+    },
+    {
+      "card_id": 10432120,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】召唤1个荆棘旅途·米蕾耶&莉赛特；【土之秘术_2】使该次成功召唤的随从和本随从进化。",
+      "rule_version": 1,
+      "source_text_sha256": "f1ece335bf36f94d490815bb3454dfecbe31a365b5a50ce8e0d30373a9bb2847",
+      "test_evidence": ["tests/test_real_keyed_crest_existing_seventh_batch.py"],
+      "notes": "同名关联卡、召唤输出跨土之秘术作用域绑定、资源充足与不足、满场召唤失败及来源进化均有直接测试。"
+    },
+    {
+      "card_id": 10453310,
+      "coverage": "exact",
+      "implemented_text": "使场上所有随从-2/-2；使双方主战者各获得倒数4的纹章：堕落；纹章在持有者回合结束时对其造成2点伤害；【解放奥义】破坏自己的纹章：堕落。",
+      "rule_version": 1,
+      "source_text_sha256": "708858f5fe413dcb368bb393b52c313c10e645f6b53c6c005a50cfed60b79f00",
+      "test_evidence": ["tests/test_real_keyed_crest_existing_seventh_batch.py"],
+      "notes": "双方全体减益与同时死亡、纹章归属、双方各自回合结束伤害、解放奥义阈值和仅破坏己方同名纹章均有直接测试。"
+    },
+    {
+      "card_id": 10454120,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】对场上其他所有随从造成10点伤害；【解放奥义】获得倒数4的纹章：狡诈的堕天司·彼列；【超进化时】使自己的同名纹章倒数-1；纹章【谢幕曲】对敌方主战者造成20点伤害。",
+      "rule_version": 1,
+      "source_text_sha256": "fdcbaa6ab1b285f8bec0b7289953888dbe310119d0c143cd6853a592f60b4cf9",
+      "test_evidence": ["tests/test_real_keyed_crest_existing_seventh_batch.py"],
+      "notes": "排除来源的双方同时伤害、解放奥义、同名纹章倒数过滤、其他纹章不变，以及自然归零和效果破坏均触发纹章谢幕曲均有直接测试。"
+    },
+    {
+      "card_id": 10521110,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】选择并舍弃1张自己的手牌，依据被舍弃实体的快照回复主战者3点生命值；若其为法术则改为回复6点。",
+      "rule_version": 1,
+      "source_text_sha256": "a9432569ca6b127b3b9fa7dfb2b35c79a8553c6e6db2e65661d643c14925c20e",
+      "test_evidence": ["tests/test_real_keyed_crest_existing_seventh_batch.py"],
+      "notes": "法术与非法术分支、舍弃后的手牌快照绑定、无其他手牌、目标离场、治疗上限、非法选择不变性和RL行动掩码均有直接测试。"
+    },
+    {
+      "card_id": 10734110,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】【土之秘术_1】获得倒数1的纹章：万食的安纳提玛·拉拉安瑟姆；固有【灵气】；【进化时】【土之秘术_1】选择并破坏1个敌方随从；纹章在对手回合结束时召唤同名随从并使其进化。",
+      "rule_version": 1,
+      "source_text_sha256": "3575fec154ba700653db55e0055528a236a8e755bd2389983c2a07e2605ab2d4",
+      "test_evidence": ["tests/test_real_keyed_crest_existing_seventh_batch.py"],
+      "notes": "两段独立土之秘术、目标成立/不足/离场、固有灵气、纹章回合范围、同名召唤输出绑定、效果进化、满场与固定种子均有直接测试。"
+    },
+    {
+      "card_id": 10744120,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】召唤巨翼飞龙并获得倒数2的纹章：龙峪的古龙；固有【守护】；【超进化时】使自己的同名纹章倒数+2；纹章在己方回合结束时召唤巨翼飞龙。",
+      "rule_version": 1,
+      "source_text_sha256": "364f2ca6add1f150a1aa320141756fee6f5641b6b457c1ef959cf14a1167a7eb",
+      "test_evidence": ["tests/test_real_keyed_crest_existing_seventh_batch.py"],
+      "notes": "关联Token、固有守护、纹章回合结束召唤、场面容量、超进化同名倒数过滤和其他纹章保持不变均有直接测试。"
     }
   ]
 }

@@ -395,6 +395,8 @@ def _build_coverage_report(db_path: str, rules_dir: str) -> dict:
                 ruled_ops[ed.source_card_id]["effect_kinds"].append(op.kind.value)
         for op in _iter_nested_operations(ed.on_expire):
             ruled_ops[ed.source_card_id]["effect_kinds"].append(op.kind.value)
+        for op in _iter_nested_operations(ed.last_words):
+            ruled_ops[ed.source_card_id]["effect_kinds"].append(op.kind.value)
 
     ability_map: dict[int, list[str]] = {}
     skill_text_map: dict[int, list[str]] = {}

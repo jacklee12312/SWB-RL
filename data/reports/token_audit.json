@@ -2482,6 +2482,18 @@
           "entry_kind": "summon",
           "rule_file": "real_balanced_trigger_resource_batch.json",
           "rule_group": "rules"
+        },
+        {
+          "source_card_id": 10744120,
+          "entry_kind": "summon",
+          "rule_file": "real_keyed_crest_existing_seventh_batch.json",
+          "rule_group": "emblems"
+        },
+        {
+          "source_card_id": 10744120,
+          "entry_kind": "summon",
+          "rule_file": "real_keyed_crest_existing_seventh_batch.json",
+          "rule_group": "rules"
         }
       ],
       "has_authored_behavior": true,

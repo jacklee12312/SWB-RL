@@ -3738,6 +3738,10 @@ class GameEngine:
                 self._operation_fingerprint(operation)
                 for operation in definition.on_expire
             ),
+            tuple(
+                self._operation_fingerprint(operation)
+                for operation in definition.last_words
+            ),
         )
 
     def _cost_modifier_fingerprint(
@@ -4585,6 +4589,10 @@ class GameEngine:
                         emblem.entity_id
                         for emblem in self.players[frame.controller].emblems
                         if emblem.countdown is not None
+                        and (
+                            operation.emblem_id is None
+                            or emblem.emblem_id == operation.emblem_id
+                        )
                     )
                     if not target_ids:
                         frame.next_index += 1
@@ -4680,6 +4688,7 @@ class GameEngine:
                 frame.next_index += 1
                 continue
 
+            pending_snapshots = None
             if is_random_target(operation.target) and frame.pending_target_id is None:
                 if operation.target in {
                     TargetKind.RANDOM_OWN_HAND,
@@ -4781,6 +4790,10 @@ class GameEngine:
             else:
                 target_id = frame.pending_target_id
                 frame.pending_target_id = None
+                pending_snapshots = frame._decision_meta.pop(
+                    "pending_target_snapshots",
+                    None,
+                )
 
             if (
                 operation.target_key
@@ -4789,19 +4802,21 @@ class GameEngine:
             ):
                 if target_id is None:
                     raise IllegalCommand(
-                        "target_key requires a resolved board entity"
+                        "target_key requires a resolved board or hand entity"
                     )
-                try:
-                    self._find_board_entity(target_id)
-                except IllegalCommand as exc:
-                    raise IllegalCommand(
-                        "target_key requires a resolved board entity"
-                    ) from exc
+                if pending_snapshots is None:
+                    try:
+                        self._find_board_entity(target_id)
+                    except IllegalCommand as exc:
+                        raise IllegalCommand(
+                            "target_key requires a resolved board or hand entity"
+                        ) from exc
                 self._bind_targets(
                     frame,
                     operation.target_key,
                     (target_id,),
                     operation,
+                    snapshots=pending_snapshots,
                 )
             self._checked_execute(operation, frame, target_id)
             frame.next_index += 1
@@ -5313,6 +5328,28 @@ class GameEngine:
         ]
         if any(target_id is None for target_id in target_ids):
             raise IllegalCommand("Selected target option has no target identity")
+        if (
+            operation.target_key
+            and operation.kind not in _OUTPUT_BINDING_EFFECTS
+        ):
+            if operation.target is TargetKind.OWN_HAND:
+                cards_by_id = {
+                    card.entity_id: card
+                    for card in self._hand_cards(frame.controller)
+                }
+                snapshots = tuple(
+                    self._bound_hand_snapshot(
+                        frame.controller,
+                        cards_by_id[target_id],
+                    )
+                    for target_id in target_ids
+                )
+            else:
+                snapshots = tuple(
+                    self._bound_target_snapshot(target_id)
+                    for target_id in target_ids
+                )
+            frame._decision_meta["pending_target_snapshots"] = snapshots
         if target_count == 1:
             frame.pending_target_id = target_ids[0]
         else:
@@ -6272,11 +6309,25 @@ class GameEngine:
                 self._continue_effects()
                 self._try_spellboost_hand()
                 return
-            frame.pending_target_id = (
+            selected_target_id = (
                 _leader_target_id(option.leader_player_index)
                 if option.leader_player_index is not None
                 else option.entity_id
             )
+            frame.pending_target_id = selected_target_id
+            operation = frame.operations[frame.next_index]
+            if (
+                selected_target_id is not None
+                and operation.target_key
+                and operation.kind not in _OUTPUT_BINDING_EFFECTS
+            ):
+                frame._decision_meta["pending_target_snapshots"] = (
+                    self._bound_choice_snapshot(
+                        frame,
+                        request,
+                        selected_target_id,
+                    ),
+                )
         self.state.pending_choice = None
         self.state.phase = Phase.MAIN
         if self.state.effect_stack:
@@ -8889,6 +8940,28 @@ class GameEngine:
                 target,
                 removal_cause="effect",
             )
+        for target in reversed(targets):
+            if target.definition.last_words:
+                self._queue_effects(
+                    self._emblem_effect_source_card(target.definition),
+                    None,
+                    target.definition.last_words,
+                    controller=player_index,
+                    label="纹章 谢幕曲",
+                )
+
+    def _emblem_effect_source_card(self, definition):
+        source_card = (
+            self.card_resolver(definition.source_card_id)
+            if self.card_resolver
+            else None
+        )
+        if source_card is not None:
+            return source_card
+        return type("_EmblemCard", (), {
+            "card_id": definition.source_card_id,
+            "name": f"纹章_{definition.emblem_id}",
+        })()
 
     def _remove_emblem_instance(
         self,
@@ -9063,6 +9136,10 @@ class GameEngine:
         if operation.target is TargetKind.ALL_OWN_EMBLEMS:
             return any(
                 emblem.countdown is not None
+                and (
+                    operation.emblem_id is None
+                    or emblem.emblem_id == operation.emblem_id
+                )
                 for emblem in self.players[controller].emblems
             )
         if is_graveyard_target(operation.target):
@@ -9760,6 +9837,12 @@ class GameEngine:
                 effect.condition_target_key,
                 (),
             )
+            if not snapshots:
+                self._log(
+                    frame.controller,
+                    f"{frame.source_name} 的条件目标已离开，跳过条件分支",
+                )
+                return
             if len(snapshots) != 1:
                 raise IllegalCommand(
                     "condition_target_key requires exactly one bound target snapshot"
@@ -9768,9 +9851,15 @@ class GameEngine:
         ctx = self._eval_context(
             frame.controller,
             source_entity_id=frame.source_entity_id,
+            source_card_id=frame.source_card_id,
             source_fusion_count=len(frame.fusion_materials),
+            source_spellboost_count=frame.source_spellboost_count,
+            source_cost=frame.source_cost,
+            distributed_value=frame.distributed_value,
+            source_snapshot=frame.source_snapshot,
             attack_target_entity_id=frame.attack_target_entity_id,
             target_snapshot=target_snapshot,
+            bound_target_snapshots=frame._target_binding_snapshots,
         )
         if target_snapshot is None:
             condition_matches = (
@@ -10028,23 +10117,14 @@ class GameEngine:
                 "source_card_id": definition.source_card_id,
             },
         ))
-        if definition.on_expire:
-            source_card_id = definition.source_card_id
-            source_card = (
-                self.card_resolver(source_card_id)
-                if self.card_resolver
-                else None
-            )
-            if source_card is None:
-                source_card = type("_EmblemCard", (), {
-                    "card_id": source_card_id,
-                    "name": f"纹章_{ei.emblem_id}",
-                })()
+        expiration_operations = definition.on_expire + definition.last_words
+        if expiration_operations:
             frame = self._queue_effects(
-                source_card, None,
-                definition.on_expire,
+                self._emblem_effect_source_card(definition),
+                None,
+                expiration_operations,
                 controller=player_index,
-                label=f"纹章 on_expire",
+                label="纹章 到期/谢幕曲",
             )
             frame.emblem_expiration_batch_id = batch_id
             frame.expiring_emblem_owner = player_index

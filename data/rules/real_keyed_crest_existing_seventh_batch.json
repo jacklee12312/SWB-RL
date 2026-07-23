@@ -1,0 +1,305 @@
+{
+  "intrinsic_keywords": [
+    {"card_id": 10333110, "keywords": ["突进"]},
+    {"card_id": 10734110, "keywords": ["灵气"]},
+    {"card_id": 10744120, "keywords": ["守护"]}
+  ],
+  "union_bursts": [
+    {
+      "card_id": 10453310,
+      "kind": "super_skybound_art",
+      "operations": [
+        {
+          "kind": "remove_emblem",
+          "target": "own_leader",
+          "emblem_id": "corruption"
+        }
+      ]
+    },
+    {
+      "card_id": 10454120,
+      "kind": "super_skybound_art",
+      "operations": [
+        {
+          "kind": "gain_emblem",
+          "target": "own_leader",
+          "emblem_id": "belial_archangel_of_cunning"
+        }
+      ]
+    }
+  ],
+  "emblems": [
+    {
+      "id": "laralem_anathema_of_gluttony",
+      "source_card_id": 10734110,
+      "stacking": "allow",
+      "countdown": 1,
+      "triggers": [
+        {
+          "trigger": "turn_end",
+          "turn_scope": "opponent_turn",
+          "operations": [
+            {
+              "kind": "summon",
+              "target": "own_leader",
+              "card_id": 10734110,
+              "target_key": "laralem_crest_summon"
+            },
+            {
+              "kind": "evolve_unit",
+              "target": "previous_target",
+              "target_key": "laralem_crest_summon"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "dragons_vale_elder",
+      "source_card_id": 10744120,
+      "stacking": "allow",
+      "countdown": 2,
+      "triggers": [
+        {
+          "trigger": "turn_end",
+          "turn_scope": "owner_turn",
+          "operations": [
+            {
+              "kind": "summon",
+              "target": "own_leader",
+              "card_id": 90041120
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "corruption",
+      "source_card_id": 10453310,
+      "stacking": "allow",
+      "countdown": 4,
+      "triggers": [
+        {
+          "trigger": "turn_end",
+          "turn_scope": "owner_turn",
+          "operations": [
+            {
+              "kind": "damage_leader",
+              "target": "own_leader",
+              "amount": 2
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "belial_archangel_of_cunning",
+      "source_card_id": 10454120,
+      "stacking": "allow",
+      "countdown": 4,
+      "triggers": [],
+      "last_words": [
+        {
+          "kind": "damage_leader",
+          "target": "enemy_leader",
+          "amount": 20
+        }
+      ]
+    }
+  ],
+  "rules": [
+    {
+      "card_id": 10521110,
+      "trigger": "fanfare",
+      "operations": [
+        {
+          "kind": "discard",
+          "target": "own_hand",
+          "requires_target": true,
+          "target_key": "altruistic_aristocrat_discard"
+        },
+        {
+          "kind": "conditional",
+          "target": "own_leader",
+          "condition_target_key": "altruistic_aristocrat_discard",
+          "conditions": [
+            {
+              "type": "target_card_type_is",
+              "card_type": "法术"
+            }
+          ],
+          "then": [
+            {"kind": "heal_leader", "target": "own_leader", "amount": 6}
+          ],
+          "else": [
+            {"kind": "heal_leader", "target": "own_leader", "amount": 3}
+          ]
+        }
+      ]
+    },
+    {
+      "card_id": 10333110,
+      "trigger": "fanfare",
+      "operations": [
+        {
+          "kind": "conditional",
+          "target": "own_leader",
+          "conditions": [
+            {
+              "type": "not",
+              "conditions": [
+                {"type": "source_cost_equals", "value": 3}
+              ]
+            }
+          ],
+          "then": [
+            {"kind": "summon_copy", "target": "self"},
+            {"kind": "summon_copy", "target": "self"}
+          ]
+        }
+      ]
+    },
+    {
+      "card_id": 10333110,
+      "trigger": "super_evolve",
+      "operations": [
+        {"kind": "summon_copy", "target": "self"}
+      ]
+    },
+    {
+      "card_id": 10432120,
+      "trigger": "fanfare",
+      "operations": [
+        {
+          "kind": "summon",
+          "target": "own_leader",
+          "card_id": 10432120,
+          "target_key": "mireille_risette_summon"
+        },
+        {
+          "kind": "earth_rite",
+          "target": "own_leader",
+          "amount": 2,
+          "operations": [
+            {
+              "kind": "evolve_unit",
+              "target": "previous_target",
+              "target_key": "mireille_risette_summon"
+            },
+            {"kind": "evolve_unit", "target": "self"}
+          ]
+        }
+      ]
+    },
+    {
+      "card_id": 10734110,
+      "trigger": "fanfare",
+      "operations": [
+        {
+          "kind": "earth_rite",
+          "target": "own_leader",
+          "amount": 1,
+          "operations": [
+            {
+              "kind": "gain_emblem",
+              "target": "own_leader",
+              "emblem_id": "laralem_anathema_of_gluttony"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "card_id": 10734110,
+      "trigger": "evolve",
+      "operations": [
+        {
+          "kind": "earth_rite",
+          "target": "own_leader",
+          "amount": 1,
+          "operations": [
+            {
+              "kind": "destroy",
+              "target": "enemy_unit",
+              "requires_target": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "card_id": 10744120,
+      "trigger": "fanfare",
+      "operations": [
+        {
+          "kind": "summon",
+          "target": "own_leader",
+          "card_id": 90041120
+        },
+        {
+          "kind": "gain_emblem",
+          "target": "own_leader",
+          "emblem_id": "dragons_vale_elder"
+        }
+      ]
+    },
+    {
+      "card_id": 10744120,
+      "trigger": "super_evolve",
+      "operations": [
+        {
+          "kind": "increase_countdown",
+          "target": "all_own_emblems",
+          "emblem_id": "dragons_vale_elder",
+          "amount": 2
+        }
+      ]
+    },
+    {
+      "card_id": 10453310,
+      "trigger": "play",
+      "operations": [
+        {
+          "kind": "buff_unit",
+          "target": "all_units",
+          "amount": -2,
+          "secondary_amount": -2
+        },
+        {
+          "kind": "gain_emblem",
+          "target": "own_leader",
+          "emblem_id": "corruption"
+        },
+        {
+          "kind": "gain_emblem",
+          "target": "enemy_leader",
+          "emblem_id": "corruption"
+        }
+      ]
+    },
+    {
+      "card_id": 10454120,
+      "trigger": "fanfare",
+      "operations": [
+        {
+          "kind": "damage_unit",
+          "target": "all_units",
+          "exclude_source": true,
+          "amount": 10
+        }
+      ]
+    },
+    {
+      "card_id": 10454120,
+      "trigger": "super_evolve",
+      "operations": [
+        {
+          "kind": "reduce_countdown",
+          "target": "all_own_emblems",
+          "emblem_id": "belial_archangel_of_cunning",
+          "amount": 1
+        }
+      ]
+    }
+  ]
+}

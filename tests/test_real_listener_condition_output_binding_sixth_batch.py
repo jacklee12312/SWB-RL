@@ -569,10 +569,13 @@ class ListenerConditionOutputBindingSixthAuditTests(unittest.TestCase):
 
     def test_coverage_clause_hashes_and_token_audit_are_exact(self):
         report = _build_coverage_report("data/cards.sqlite3", "data/rules")
-        self.assertEqual(report["summary"]["coverage_counts"]["covered_exact"], 640)
+        self.assertEqual(
+            report["summary"]["coverage_counts"]["covered_exact"],
+            report["summary"]["clause_audit_counts"]["mapped_exact"],
+        )
         self.assertEqual(
             report["summary"]["coverage_counts"]["supported_missing_rule"],
-            79,
+            report["summary"]["clause_audit_counts"]["missing_rule"],
         )
         self.assertFalse(report["rule_consistency_issues"])
         self.assertFalse(report["clause_audit_issues"])

@@ -479,10 +479,16 @@ class CoverageReportTests(unittest.TestCase):
     def test_ability_status_reports_handler_and_primitive_columns(self):
         """Ability status distinguishes handler state from primitive support."""
         result = subprocess.run(
-            [sys.executable, os.path.join(self.project_root, "scripts", "ability_status.py")],
+            [
+                sys.executable,
+                "-X",
+                "utf8",
+                os.path.join(self.project_root, "scripts", "ability_status.py"),
+            ],
             cwd=self.project_root,
             capture_output=True,
             text=True,
+            encoding="utf-8",
             timeout=60,
         )
         self.assertEqual(

@@ -47,6 +47,7 @@ class EmblemDefinition:
     countdown: int | None = None
     triggers: tuple[EmblemTriggerRule, ...] = ()
     on_expire: tuple["EffectOperation", ...] = ()
+    last_words: tuple["EffectOperation", ...] = ()
     on_gain: tuple["EffectOperation", ...] = ()
 
     @property

@@ -64,7 +64,7 @@ Total audited cards: **91**
 | 90034340 苍奏之四 | 巫师 / 法术 | entry_behavior_complete | 1 | 1 | exact |
 | 90034350 宏大的回归 | 巫师 / 法术 | entry_behavior_complete | 1 | 1 | exact |
 | 90041110 炽炎幼龙 | 龙族 / 随从 | entry_behavior_complete | 1 | 1 | exact |
-| 90041120 巨翼飞龙 | 龙族 / 随从 | entry_behavior_complete | 6 | 5 | exact |
+| 90041120 巨翼飞龙 | 龙族 / 随从 | entry_behavior_complete | 6 | 7 | exact |
 | 90041130 大海虎鲸 | 龙族 / 随从 | entry_behavior_complete | 9 | 10 | keyword |
 | 90043110 乙姬近卫队 | 龙族 / 随从 | entry_behavior_complete | 1 | 1 | exact |
 | 90044110 霸道之金龙 | 龙族 / 随从 | entry_behavior_complete | 1 | 1 | exact |
