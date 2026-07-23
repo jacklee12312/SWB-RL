@@ -1,0 +1,236 @@
+{
+  "passives": [
+    {
+      "card_id": 10052120,
+      "kind": "non_intrinsic_keyword",
+      "keyword": "虹吸",
+      "notes": "虹吸仅授予超进化时实际召唤成功的怨灵。"
+    },
+    {
+      "card_id": 10153110,
+      "kind": "non_intrinsic_keyword",
+      "keyword": "屏障",
+      "notes": "屏障仅在本随从超进化后的己方回合结束能力中获得。"
+    },
+    {
+      "card_id": 10813110,
+      "kind": "non_intrinsic_keyword",
+      "keyword": "屏障",
+      "notes": "屏障由入场曲授予当时自己战场上的所有随从。"
+    },
+    {
+      "card_id": 10861120,
+      "kind": "non_intrinsic_keyword",
+      "keyword": "疾驰",
+      "notes": "疾驰仅授予入场曲实际召唤成功的治愈的修女。"
+    }
+  ],
+  "intrinsic_keywords": [
+    {"card_id": 10153110, "keywords": ["必杀"]},
+    {"card_id": 10812120, "keywords": ["突进", "必杀"]},
+    {"card_id": 10813110, "keywords": ["守护"]}
+  ],
+  "rules": [
+    {
+      "card_id": 10052120,
+      "trigger": "evolve",
+      "operations": [
+        {
+          "kind": "summon",
+          "target": "own_leader",
+          "card_id": 90051130,
+          "conditions": [
+            {
+              "type": "not",
+              "conditions": [{"type": "source_super_evolved"}]
+            }
+          ]
+        },
+        {
+          "kind": "summon",
+          "target": "own_leader",
+          "card_id": 90051130,
+          "conditions": [
+            {
+              "type": "not",
+              "conditions": [{"type": "source_super_evolved"}]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "card_id": 10052120,
+      "trigger": "super_evolve",
+      "operations": [
+        {
+          "kind": "summon",
+          "target": "own_leader",
+          "card_id": 90051130,
+          "target_key": "first_super_ghost"
+        },
+        {
+          "kind": "summon",
+          "target": "own_leader",
+          "card_id": 90051130,
+          "target_key": "second_super_ghost"
+        },
+        {
+          "kind": "add_keyword",
+          "target": "previous_target",
+          "target_key": "first_super_ghost",
+          "keyword": "虹吸"
+        },
+        {
+          "kind": "add_keyword",
+          "target": "previous_target",
+          "target_key": "second_super_ghost",
+          "keyword": "虹吸"
+        }
+      ]
+    },
+    {
+      "card_id": 10211120,
+      "trigger": "fanfare",
+      "operations": [
+        {
+          "kind": "conditional",
+          "target": "own_leader",
+          "conditions": [
+            {"type": "controller_combo_at_least", "value": 3}
+          ],
+          "then": [
+            {
+              "kind": "damage_unit",
+              "target": "all_enemy_units",
+              "amount": 4
+            }
+          ],
+          "else": [
+            {
+              "kind": "damage_unit",
+              "target": "enemy_unit",
+              "amount": 4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "card_id": 10504110,
+      "trigger": "fanfare",
+      "operations": [
+        {"kind": "discard", "target": "all_own_hand"},
+        {
+          "kind": "choose_one",
+          "target": "own_leader",
+          "options": [
+            {
+              "id": "draw_eight",
+              "label": "抽取8张卡牌",
+              "operations": [
+                {"kind": "draw", "target": "own_leader", "amount": 8}
+              ]
+            },
+            {
+              "id": "draw_two_discount_eight",
+              "label": "抽取2张卡牌，使其费用-8",
+              "operations": [
+                {
+                  "kind": "draw",
+                  "target": "own_leader",
+                  "amount": 2,
+                  "target_key": "drawn_cards"
+                },
+                {
+                  "kind": "change_cost",
+                  "target": "previous_target",
+                  "target_key": "drawn_cards",
+                  "amount": 8,
+                  "mode": "subtract"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "card_id": 10812120,
+      "trigger": "fanfare",
+      "operations": [
+        {"kind": "summon", "target": "own_leader", "card_id": 10813110}
+      ]
+    },
+    {
+      "card_id": 10813110,
+      "trigger": "fanfare",
+      "operations": [
+        {"kind": "summon", "target": "own_leader", "card_id": 10812120},
+        {
+          "kind": "add_keyword",
+          "target": "all_own_units",
+          "keyword": "屏障"
+        }
+      ]
+    },
+    {
+      "card_id": 10861120,
+      "trigger": "fanfare",
+      "operations": [
+        {
+          "kind": "summon",
+          "target": "own_leader",
+          "card_id": 10061110,
+          "target_key": "summoned_soulcure_sister"
+        },
+        {
+          "kind": "buff_unit",
+          "target": "previous_target",
+          "target_key": "summoned_soulcure_sister",
+          "amount": 2,
+          "secondary_amount": -2
+        },
+        {
+          "kind": "add_keyword",
+          "target": "previous_target",
+          "target_key": "summoned_soulcure_sister",
+          "keyword": "疾驰"
+        }
+      ]
+    }
+  ],
+  "listeners": [
+    {
+      "card_id": 10153110,
+      "zone": "board",
+      "event": "turn_ended",
+      "turn_scope": "owner_turn",
+      "operations": [
+        {
+          "kind": "heal_leader",
+          "target": "own_leader",
+          "amount": 2,
+          "conditions": [
+            {
+              "type": "not",
+              "conditions": [{"type": "source_super_evolved"}]
+            }
+          ]
+        },
+        {
+          "kind": "heal_leader",
+          "target": "own_leader",
+          "amount": 4,
+          "conditions": [{"type": "source_super_evolved"}]
+        },
+        {
+          "kind": "add_keyword",
+          "target": "self",
+          "keyword": "屏障",
+          "conditions": [{"type": "source_super_evolved"}]
+        }
+      ]
+    }
+  ]
+}

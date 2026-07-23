@@ -12,25 +12,25 @@
   },
   "summary": {
     "total_cards": 826,
-    "total_with_rules": 692,
+    "total_with_rules": 699,
     "test_or_synthetic_ids_with_rules": 26,
     "coverage_counts": {
-      "covered_exact": 588,
+      "covered_exact": 595,
       "text_unclear": 16,
-      "supported_missing_rule": 131,
+      "supported_missing_rule": 124,
       "token_or_non_collectible": 91
     },
     "clause_audit_counts": {
-      "mapped_exact": 588,
+      "mapped_exact": 595,
       "unverified_exact": 0,
       "partial": 0,
-      "missing_rule": 131,
+      "missing_rule": 124,
       "missing_primitive": 0,
       "text_unclear": 16,
       "token_separate_audit": 91
     },
     "blocker_counts": {
-      "missing_rule": 131,
+      "missing_rule": 124,
       "missing_schema": 0,
       "missing_primitive": 0,
       "missing_targeting": 0,
@@ -2650,8 +2650,8 @@
       "cost": 4,
       "is_collectible": true,
       "card_set_id": 10000,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['进化时', '超进化', '召唤', '吸血']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['evolve', 'super_evolve'], Ops: ['summon', 'summon', 'summon', 'summon', 'add_keyword', 'add_keyword']",
       "hit_keywords": [
         "进化时",
         "超进化",
@@ -2668,27 +2668,49 @@
         "<ev>【<color=Keyword>进化时</color>】召唤2个『<color=Keyword>怨灵</color>』。</ev>\n<sev>【<color=Keyword>超进化时</color>】使其获得【<color=Keyword>虹吸</color>】。</sev>"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【进化时】召唤2个怨灵；【超进化时】使这次实际召唤成功的怨灵获得【虹吸】。",
+        "notes": "普通进化与超进化替换链、召唤输出绑定、单一空位及动态虹吸均有直接测试。",
+        "rule_version": 1,
+        "source_text_sha256": "ab89fcd5f438770b024224a1ff1614bf4c0a27f526d5723e6318e7d2b77e4a78",
+        "test_evidence": [
+          "tests/test_real_existing_primitives_completion_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10052120:0",
             "source_text": "<ev>【<color=Keyword>进化时</color>】召唤2个『<color=Keyword>怨灵</color>』。</ev>\n<sev>【<color=Keyword>超进化时</color>】使其获得【<color=Keyword>虹吸</color>】。</sev>",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "【进化时】召唤2个怨灵；【超进化时】使这次实际召唤成功的怨灵获得【虹吸】。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "ab89fcd5f438770b024224a1ff1614bf4c0a27f526d5723e6318e7d2b77e4a78",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "evolve",
+            "super_evolve"
+          ],
+          "effect_kinds": [
+            "summon",
+            "summon",
+            "summon",
+            "summon",
+            "add_keyword",
+            "add_keyword"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_existing_primitives_completion_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10052310": {
@@ -9748,8 +9770,8 @@
       "cost": 4,
       "is_collectible": true,
       "card_set_id": 10001,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['超进化', '回合结束', '回复(?!自己\\\\d+点(?:超进化点|进化点|能量点))', '必杀', '屏障']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['listener:board:turn_ended', 'intrinsic_keywords'], Ops: ['heal_leader', 'heal_leader', 'add_keyword', 'keyword:必杀']",
       "hit_keywords": [
         "超进化",
         "回合结束",
@@ -9766,27 +9788,47 @@
         "【<color=Keyword>毁灭</color>】\n自己的回合结束时，回复自己的主战者2点生命值。若本随从为超进化后，则改为回复4点。本随从获得【<color=Keyword>屏障</color>】。"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "固有【必杀】；己方回合结束时回复主战者2点；若本随从已超进化则改为回复4点并使本随从获得【屏障】。",
+        "notes": "普通与超进化分支、仅己方回合结束触发、治疗值和条件屏障均有直接测试。",
+        "rule_version": 1,
+        "source_text_sha256": "e09c6c96661b632bef332efd4e0434cc1cd21e12a629158b8395a32201c5e623",
+        "test_evidence": [
+          "tests/test_real_existing_primitives_completion_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10153110:0",
             "source_text": "【<color=Keyword>毁灭</color>】\n自己的回合结束时，回复自己的主战者2点生命值。若本随从为超进化后，则改为回复4点。本随从获得【<color=Keyword>屏障</color>】。",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "固有【必杀】；己方回合结束时回复主战者2点；若本随从已超进化则改为回复4点并使本随从获得【屏障】。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "e09c6c96661b632bef332efd4e0434cc1cd21e12a629158b8395a32201c5e623",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "listener:board:turn_ended",
+            "intrinsic_keywords"
+          ],
+          "effect_kinds": [
+            "heal_leader",
+            "heal_leader",
+            "add_keyword",
+            "keyword:必杀"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_existing_primitives_completion_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10153120": {
@@ -13177,8 +13219,8 @@
       "cost": 5,
       "is_collectible": true,
       "card_set_id": 10002,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '连击', '造成.*伤害']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['fanfare'], Ops: ['conditional', 'damage_unit', 'damage_unit']",
       "hit_keywords": [
         "入场曲",
         "连击",
@@ -13193,27 +13235,45 @@
         "【<color=Keyword>入场曲</color>】选择对手的战场上的1个随从，对其造成4点伤害。【<color=Keyword>连击</color>_3】改为对对手的战场上的所有随从造成4点伤害。"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【入场曲】选择1个敌方随从并造成4点伤害；【连击_3】改为对所有敌方随从造成4点伤害。",
+        "notes": "单体选择、无目标、目标离场、连击替换、全体同时死亡和固定种子均有直接测试。",
+        "rule_version": 1,
+        "source_text_sha256": "f956037f1c90463dbe7f498cbb454e13c7c34b1f03543949a0820d6763297b68",
+        "test_evidence": [
+          "tests/test_real_existing_primitives_completion_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10211120:0",
             "source_text": "【<color=Keyword>入场曲</color>】选择对手的战场上的1个随从，对其造成4点伤害。【<color=Keyword>连击</color>_3】改为对对手的战场上的所有随从造成4点伤害。",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "【入场曲】选择1个敌方随从并造成4点伤害；【连击_3】改为对所有敌方随从造成4点伤害。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "f956037f1c90463dbe7f498cbb454e13c7c34b1f03543949a0820d6763297b68",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "fanfare"
+          ],
+          "effect_kinds": [
+            "conditional",
+            "damage_unit",
+            "damage_unit"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_existing_primitives_completion_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10211310": {
@@ -27315,8 +27375,8 @@
       "cost": 8,
       "is_collectible": true,
       "card_set_id": 10005,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '抽取', '舍弃', '选择一项|模式']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['fanfare'], Ops: ['discard', 'choose_one', 'draw', 'draw', 'change_cost']",
       "hit_keywords": [
         "入场曲",
         "抽取",
@@ -27332,27 +27392,47 @@
         "【<color=Keyword>入场曲</color>】舍弃自己的所有手牌。【<color=Keyword>模式</color>】选择1个能力发动。\n<ridx=0>（1）抽取8张卡牌。</ridx>\n<ridx=1>（2）抽取2张卡牌，使其费用-8。</ridx>"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【入场曲】先舍弃全部手牌；【模式】选择抽8张，或抽2张并使实际抽到的卡费用-8。",
+        "notes": "舍弃顺序、两种模式、抽牌输出绑定、费用下限、非法选择不变性和 RL action mask 均有直接测试。",
+        "rule_version": 1,
+        "source_text_sha256": "4b662efadf0987635bad729b66e1dfdc8df4c48e3bc4db63c25328d43260525a",
+        "test_evidence": [
+          "tests/test_real_existing_primitives_completion_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10504110:0",
             "source_text": "【<color=Keyword>入场曲</color>】舍弃自己的所有手牌。【<color=Keyword>模式</color>】选择1个能力发动。\n<ridx=0>（1）抽取8张卡牌。</ridx>\n<ridx=1>（2）抽取2张卡牌，使其费用-8。</ridx>",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "【入场曲】先舍弃全部手牌；【模式】选择抽8张，或抽2张并使实际抽到的卡费用-8。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "4b662efadf0987635bad729b66e1dfdc8df4c48e3bc4db63c25328d43260525a",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "fanfare"
+          ],
+          "effect_kinds": [
+            "discard",
+            "choose_one",
+            "draw",
+            "draw",
+            "change_cost"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_existing_primitives_completion_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10511110": {
@@ -42212,8 +42292,8 @@
       "cost": 4,
       "is_collectible": true,
       "card_set_id": 10008,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '召唤', '必杀']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['fanfare', 'intrinsic_keywords'], Ops: ['summon', 'keyword:突进', 'keyword:必杀']",
       "hit_keywords": [
         "入场曲",
         "召唤",
@@ -42229,27 +42309,46 @@
         "【<color=Keyword>入场曲</color>】召唤1个『<color=Keyword>温柔读心者·米榭儿</color>』。\n<hr>【<color=Keyword>突进</color>】\n【<color=Keyword>毁灭</color>】"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【入场曲】召唤1个温柔读心者·米榭儿；本体固有【突进】【必杀】。",
+        "notes": "双向引用卡、固有关键字、召唤不触发入场曲及场面容量均与关联卡一起直接测试。",
+        "rule_version": 1,
+        "source_text_sha256": "022fc17933bdab3eff29d0ae261f4456d7322f74986b52b7866efff6764d794d",
+        "test_evidence": [
+          "tests/test_real_existing_primitives_completion_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10812120:0",
             "source_text": "【<color=Keyword>入场曲</color>】召唤1个『<color=Keyword>温柔读心者·米榭儿</color>』。\n<hr>【<color=Keyword>突进</color>】\n【<color=Keyword>毁灭</color>】",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "【入场曲】召唤1个温柔读心者·米榭儿；本体固有【突进】【必杀】。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "022fc17933bdab3eff29d0ae261f4456d7322f74986b52b7866efff6764d794d",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "fanfare",
+            "intrinsic_keywords"
+          ],
+          "effect_kinds": [
+            "summon",
+            "keyword:突进",
+            "keyword:必杀"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_existing_primitives_completion_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10812310": {
@@ -42320,8 +42419,8 @@
       "cost": 6,
       "is_collectible": true,
       "card_set_id": 10008,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '召唤', '屏障']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['fanfare', 'intrinsic_keywords'], Ops: ['summon', 'add_keyword', 'keyword:守护']",
       "hit_keywords": [
         "入场曲",
         "召唤",
@@ -42337,27 +42436,46 @@
         "【<color=Keyword>入场曲</color>】召唤1个『<color=Keyword>情念的毒荆·莉柯瑞丝</color>』。使自己的战场上的所有随从获得【<color=Keyword>屏障</color>】。\n<hr>【<color=Keyword>守护</color>】"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【入场曲】召唤1个情念的毒荆·莉柯瑞丝，并使当时己方战场上的所有随从获得【屏障】；本体固有【守护】。",
+        "notes": "双向引用、全体屏障、已存在随从、所召唤随从、召唤失败和固有守护均有直接测试。",
+        "rule_version": 1,
+        "source_text_sha256": "a4956c77c12a5bbce6926eb3152392b7cf635d2b3dbf2bb3c67ba7ad94e47e2a",
+        "test_evidence": [
+          "tests/test_real_existing_primitives_completion_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10813110:0",
             "source_text": "【<color=Keyword>入场曲</color>】召唤1个『<color=Keyword>情念的毒荆·莉柯瑞丝</color>』。使自己的战场上的所有随从获得【<color=Keyword>屏障</color>】。\n<hr>【<color=Keyword>守护</color>】",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "【入场曲】召唤1个情念的毒荆·莉柯瑞丝，并使当时己方战场上的所有随从获得【屏障】；本体固有【守护】。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "a4956c77c12a5bbce6926eb3152392b7cf635d2b3dbf2bb3c67ba7ad94e47e2a",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "fanfare",
+            "intrinsic_keywords"
+          ],
+          "effect_kinds": [
+            "summon",
+            "add_keyword",
+            "keyword:守护"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_existing_primitives_completion_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10813310": {
@@ -45127,8 +45245,8 @@
       "cost": 7,
       "is_collectible": true,
       "card_set_id": 10008,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '召唤']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['fanfare'], Ops: ['summon', 'buff_unit', 'add_keyword']",
       "hit_keywords": [
         "入场曲",
         "召唤"
@@ -45142,27 +45260,45 @@
         "【<color=Keyword>入场曲</color>】召唤1个『<color=Keyword>治愈的修女</color>』，使其+2/-2且获得【<color=Keyword>疾驰</color>】。"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【入场曲】召唤1个治愈的修女，使该新召唤实体+2/-2并获得【疾驰】。",
+        "notes": "引用卡、召唤输出绑定、同名旧实体不受影响、动态疾驰和满场失败均有直接测试。",
+        "rule_version": 1,
+        "source_text_sha256": "4590d34d1bd8efc2484f4b866f31da38ac6cc9c4a9ea785d61660d3f536c4ad8",
+        "test_evidence": [
+          "tests/test_real_existing_primitives_completion_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10861120:0",
             "source_text": "【<color=Keyword>入场曲</color>】召唤1个『<color=Keyword>治愈的修女</color>』，使其+2/-2且获得【<color=Keyword>疾驰</color>】。",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "【入场曲】召唤1个治愈的修女，使该新召唤实体+2/-2并获得【疾驰】。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "4590d34d1bd8efc2484f4b866f31da38ac6cc9c4a9ea785d61660d3f536c4ad8",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "fanfare"
+          ],
+          "effect_kinds": [
+            "summon",
+            "buff_unit",
+            "add_keyword"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_existing_primitives_completion_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10861130": {

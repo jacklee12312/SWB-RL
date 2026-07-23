@@ -74,7 +74,7 @@ Total audited cards: **91**
 | 90044330 天刀深渊 | 龙族 / 法术 | entry_behavior_complete | 1 | 1 | exact |
 | 90051110 骸骨士兵 | 梦魇 / 随从 | entry_behavior_complete | 10 | 8 | exact |
 | 90051120 蝙蝠 | 梦魇 / 随从 | entry_behavior_complete | 11 | 10 | exact |
-| 90051130 怨灵 | 梦魇 / 随从 | entry_behavior_complete | 9 | 7 | exact |
+| 90051130 怨灵 | 梦魇 / 随从 | entry_behavior_complete | 9 | 8 | exact |
 | 90051140 腐臭的僵尸 | 梦魇 / 随从 | entry_behavior_complete | 6 | 5 | exact |
 | 90054110 守卫犬的右腕·米米 | 梦魇 / 随从 | entry_behavior_complete | 1 | 1 | exact |
 | 90054120 守卫犬的左腕·可可 | 梦魇 / 随从 | entry_behavior_complete | 1 | 1 | exact |

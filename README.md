@@ -38,14 +38,14 @@ covered generic boundary, but that never upgrades a partial or placeholder
 keyword whose full tagged-card semantics still require structured rules.
 
 The [rule coverage report](data/reports/rule_coverage.md) now includes a
-clause-audit layer without changing its legacy coverage categories. Of 588
-exact collectible cards (80.00% of 735), all 588 have explicit implemented text and named direct
+clause-audit layer without changing its legacy coverage categories. Of 595
+exact collectible cards (80.95% of 735), all 595 have explicit implemented text and named direct
 test evidence. The sibling `data/audits/rule_clauses.json` registry hashes every
 imported skill and alternate-mode clause, so a database text change or stale
 test reference invalidates the audit instead of silently retaining exact
 status. The current report has no unverified exact entry or missing generic
 schema, primitive, targeting, or timing blocker. Its remaining collectible gaps
-are 131 missing per-card structured rules plus 16 explicitly unclear texts.
+are 124 missing per-card structured rules plus 16 explicitly unclear texts.
 Rule metadata also supports version and errata fields, and the report
 records the complete imported source snapshot hash.
 
@@ -128,7 +128,7 @@ random, fixed, and historical opponent mixing remains on the single-process
 collector. The balanced class schedule is not an adaptive curriculum, and the
 same-class fixed evaluation suite is not yet a 7x7 cross-class policy-strength
 matrix. Snapshot/clone is the search foundation only. Card-rule
-coverage also remains deliberately separate: 131 collectible cards still lack
+coverage also remains deliberately separate: 124 collectible cards still lack
 per-card structured rules and 16 card texts remain explicitly unclear; neither
 group enters the exact training catalog or counts as supported.
 
@@ -212,6 +212,15 @@ The deterministic rules core supports:
   Token references, no-target continuation, illegal Engage immutability, stale
   targets, hand/board capacity, seeded random damage, countdown timing, and RL
   Mode/target masks;
+- a 7-card exact existing-primitive batch covers `10052120`, `10153110`,
+  `10211120`, `10504110`, `10812120`, `10813110`, and `10861120`. It composes
+  evolution/super-evolution replacement, summon and draw output bindings,
+  Combo replacement, owner-turn listeners, reciprocal referenced followers,
+  whole-hand discard, and a two-way Mode without card-ID engine branches.
+  Direct tests cover stale/no-target paths, simultaneous deaths, one-slot and
+  full-board capacity, dynamic keywords, discard/draw ordering, illegal command
+  rollback, fixed-seed replay, clause hashes, Token Audit, and RL action-mask
+  agreement;
 - seeded reset, shuffle, draw, turn progression, official immediate defeat when
   drawing from an empty deck, an auditable alternate victory outcome, atomic
   seeded replacement-deck shuffling,

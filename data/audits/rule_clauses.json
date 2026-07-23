@@ -6322,6 +6322,69 @@
       "source_text_sha256": "5f0433361132ae034117778c3d3db94e6195425f4dccd8b42d9f45c2806c8ed0",
       "test_evidence": ["tests/test_real_crest_token_activation_exact_batch.py"],
       "notes": "入场抽牌、纹章倒数、己方回合结束、手牌阈值两侧、抽牌/治疗分支和敌方回合边界均有直接测试。"
+    },
+    {
+      "card_id": 10052120,
+      "coverage": "exact",
+      "implemented_text": "【进化时】召唤2个怨灵；【超进化时】使这次实际召唤成功的怨灵获得【虹吸】。",
+      "rule_version": 1,
+      "source_text_sha256": "ab89fcd5f438770b024224a1ff1614bf4c0a27f526d5723e6318e7d2b77e4a78",
+      "test_evidence": ["tests/test_real_existing_primitives_completion_batch.py"],
+      "notes": "普通进化与超进化替换链、召唤输出绑定、单一空位及动态虹吸均有直接测试。"
+    },
+    {
+      "card_id": 10153110,
+      "coverage": "exact",
+      "implemented_text": "固有【必杀】；己方回合结束时回复主战者2点；若本随从已超进化则改为回复4点并使本随从获得【屏障】。",
+      "rule_version": 1,
+      "source_text_sha256": "e09c6c96661b632bef332efd4e0434cc1cd21e12a629158b8395a32201c5e623",
+      "test_evidence": ["tests/test_real_existing_primitives_completion_batch.py"],
+      "notes": "普通与超进化分支、仅己方回合结束触发、治疗值和条件屏障均有直接测试。"
+    },
+    {
+      "card_id": 10211120,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】选择1个敌方随从并造成4点伤害；【连击_3】改为对所有敌方随从造成4点伤害。",
+      "rule_version": 1,
+      "source_text_sha256": "f956037f1c90463dbe7f498cbb454e13c7c34b1f03543949a0820d6763297b68",
+      "test_evidence": ["tests/test_real_existing_primitives_completion_batch.py"],
+      "notes": "单体选择、无目标、目标离场、连击替换、全体同时死亡和固定种子均有直接测试。"
+    },
+    {
+      "card_id": 10504110,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】先舍弃全部手牌；【模式】选择抽8张，或抽2张并使实际抽到的卡费用-8。",
+      "rule_version": 1,
+      "source_text_sha256": "4b662efadf0987635bad729b66e1dfdc8df4c48e3bc4db63c25328d43260525a",
+      "test_evidence": ["tests/test_real_existing_primitives_completion_batch.py"],
+      "notes": "舍弃顺序、两种模式、抽牌输出绑定、费用下限、非法选择不变性和 RL action mask 均有直接测试。"
+    },
+    {
+      "card_id": 10812120,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】召唤1个温柔读心者·米榭儿；本体固有【突进】【必杀】。",
+      "rule_version": 1,
+      "source_text_sha256": "022fc17933bdab3eff29d0ae261f4456d7322f74986b52b7866efff6764d794d",
+      "test_evidence": ["tests/test_real_existing_primitives_completion_batch.py"],
+      "notes": "双向引用卡、固有关键字、召唤不触发入场曲及场面容量均与关联卡一起直接测试。"
+    },
+    {
+      "card_id": 10813110,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】召唤1个情念的毒荆·莉柯瑞丝，并使当时己方战场上的所有随从获得【屏障】；本体固有【守护】。",
+      "rule_version": 1,
+      "source_text_sha256": "a4956c77c12a5bbce6926eb3152392b7cf635d2b3dbf2bb3c67ba7ad94e47e2a",
+      "test_evidence": ["tests/test_real_existing_primitives_completion_batch.py"],
+      "notes": "双向引用、全体屏障、已存在随从、所召唤随从、召唤失败和固有守护均有直接测试。"
+    },
+    {
+      "card_id": 10861120,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】召唤1个治愈的修女，使该新召唤实体+2/-2并获得【疾驰】。",
+      "rule_version": 1,
+      "source_text_sha256": "4590d34d1bd8efc2484f4b866f31da38ac6cc9c4a9ea785d61660d3f536c4ad8",
+      "test_evidence": ["tests/test_real_existing_primitives_completion_batch.py"],
+      "notes": "引用卡、召唤输出绑定、同名旧实体不受影响、动态疾驰和满场失败均有直接测试。"
     }
   ]
 }

@@ -3086,6 +3086,12 @@
       ],
       "authored_producers": [
         {
+          "source_card_id": 10052120,
+          "entry_kind": "summon",
+          "rule_file": "real_existing_primitives_completion_batch.json",
+          "rule_group": "rules"
+        },
+        {
           "source_card_id": 10152130,
           "entry_kind": "add_card",
           "rule_file": "real_low_coverage_token_amulet_batch.json",
