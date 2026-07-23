@@ -12,25 +12,25 @@
   },
   "summary": {
     "total_cards": 826,
-    "total_with_rules": 737,
+    "total_with_rules": 744,
     "test_or_synthetic_ids_with_rules": 26,
     "coverage_counts": {
-      "covered_exact": 633,
+      "covered_exact": 640,
       "text_unclear": 16,
-      "supported_missing_rule": 86,
+      "supported_missing_rule": 79,
       "token_or_non_collectible": 91
     },
     "clause_audit_counts": {
-      "mapped_exact": 633,
+      "mapped_exact": 640,
       "unverified_exact": 0,
       "partial": 0,
-      "missing_rule": 86,
+      "missing_rule": 79,
       "missing_primitive": 0,
       "text_unclear": 16,
       "token_separate_audit": 91
     },
     "blocker_counts": {
-      "missing_rule": 86,
+      "missing_rule": 79,
       "missing_schema": 0,
       "missing_primitive": 0,
       "missing_targeting": 0,
@@ -21708,8 +21708,8 @@
       "cost": 5,
       "is_collectible": true,
       "card_set_id": 10003,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '进化时', '回合结束', '倒数', '抽取', '破坏', '纹章']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['fanfare', 'evolve', 'emblem_source'], Ops: ['destroy', 'gain_emblem', 'draw_filtered']",
       "hit_keywords": [
         "入场曲",
         "进化时",
@@ -21731,32 +21731,52 @@
         "【纹章_0】【<color=Keyword>吟唱</color>_4】\n自己的回合结束时，若本回合中自己的随从没有进行过攻击，则抽取1张生命值为4的随从。"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【入场曲】选择并破坏1个敌方随从；【进化时】获得倒数4的纹章；己方回合结束时若本回合己方随从未攻击，则从牌组随机抽取1张基础生命值恰为4的随从。",
+        "notes": "目标选择、非法选择不变性、无目标安全路径、纹章倒数、攻击历史门槛、基础生命过滤和行动掩码均有直接测试。",
+        "rule_version": 1,
+        "source_text_sha256": "dbddc8894b5bf8e8b58210e780714dfb5e94de478818cc0fb2ad96823465d5c9",
+        "test_evidence": [
+          "tests/test_real_listener_condition_output_binding_sixth_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10363110:0",
             "source_text": "【<color=Keyword>入场曲</color>】选择对手的战场上的1个随从，破坏该随从。\n<hr><ev>【<color=Keyword>进化时</color>】使自己获得『纹章：安息的团结者』。</ev>",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           },
           {
             "clause_id": "10363110:1",
             "source_text": "【纹章_0】【<color=Keyword>吟唱</color>_4】\n自己的回合结束时，若本回合中自己的随从没有进行过攻击，则抽取1张生命值为4的随从。",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "【入场曲】选择并破坏1个敌方随从；【进化时】获得倒数4的纹章；己方回合结束时若本回合己方随从未攻击，则从牌组随机抽取1张基础生命值恰为4的随从。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "dbddc8894b5bf8e8b58210e780714dfb5e94de478818cc0fb2ad96823465d5c9",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "fanfare",
+            "evolve",
+            "emblem_source"
+          ],
+          "effect_kinds": [
+            "destroy",
+            "gain_emblem",
+            "draw_filtered"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_listener_condition_output_binding_sixth_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10363210": {
@@ -26108,8 +26128,8 @@
       "cost": 7,
       "is_collectible": true,
       "card_set_id": 10004,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '回合结束', '亡者召还', '死灵术|唤灵']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['fanfare', 'turn_end'], Ops: ['necromancy', 'reanimate', 'evolve_unit', 'reanimate', 'evolve_unit', 'buff_unit']",
       "hit_keywords": [
         "入场曲",
         "回合结束",
@@ -26126,27 +26146,49 @@
         "【<color=Keyword>入场曲</color>】【<color=Keyword>唤灵</color>_6】发动【<color=Keyword>亡者召还</color>_2】和【<color=Keyword>亡者召还</color>_1】，使其进化。\n<hr>自己的回合结束时，使对手的战场上的所有随从-2/-2。"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【入场曲】【唤灵6】依次发动亡者召还2与亡者召还1并使各自成功召还的随从进化；己方回合结束时使所有敌方随从-2/-2。",
+        "notes": "唤灵资源、两段亡者召还输出绑定、无候选、场面容量、效果进化、固定种子和来源离场均有直接测试。",
+        "rule_version": 1,
+        "source_text_sha256": "4ce06718c8798a47c7beaf2516260d87135695e339fa072fa4e5d128ac929c82",
+        "test_evidence": [
+          "tests/test_real_listener_condition_output_binding_sixth_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10454110:0",
             "source_text": "【<color=Keyword>入场曲</color>】【<color=Keyword>唤灵</color>_6】发动【<color=Keyword>亡者召还</color>_2】和【<color=Keyword>亡者召还</color>_1】，使其进化。\n<hr>自己的回合结束时，使对手的战场上的所有随从-2/-2。",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "【入场曲】【唤灵6】依次发动亡者召还2与亡者召还1并使各自成功召还的随从进化；己方回合结束时使所有敌方随从-2/-2。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "4ce06718c8798a47c7beaf2516260d87135695e339fa072fa4e5d128ac929c82",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "fanfare",
+            "turn_end"
+          ],
+          "effect_kinds": [
+            "necromancy",
+            "reanimate",
+            "evolve_unit",
+            "reanimate",
+            "evolve_unit",
+            "buff_unit"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_listener_condition_output_binding_sixth_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10454120": {
@@ -30245,8 +30287,8 @@
       "cost": 3,
       "is_collectible": true,
       "card_set_id": 10005,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '进化时', '攻击时', '回合结束', '将.*加入手牌', '召唤', '舍弃', '纹章']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['fanfare', 'evolve', 'emblem_source'], Ops: ['summon', 'discard', 'gain_emblem', 'buff_unit', 'add_card']",
       "hit_keywords": [
         "入场曲",
         "进化时",
@@ -30268,32 +30310,54 @@
         "【纹章_0】自己的海洋·随从攻击时，回合结束前，使其+1/+0。自己的每回合中可触发1次，将1张『<color=Keyword>大海虎鲸</color>』加入手牌。"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【入场曲】召唤大海虎鲸；【进化时】选择并舍弃1张手牌后获得纹章；己方海洋随从攻击时本回合+1/+0，且己方每回合首次触发时将1张大海虎鲸加入手牌。",
+        "notes": "关联Token召唤、舍弃选择与非法不变性、纹章独立存续、每次攻击临时增攻、每回合一次加牌、手牌容量和行动掩码均有直接测试。",
+        "rule_version": 1,
+        "source_text_sha256": "abf4fc74c773b0acab2682ac51929ce7f6f9d873895af60bffb405b34fad21d4",
+        "test_evidence": [
+          "tests/test_real_listener_condition_output_binding_sixth_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10544120:0",
             "source_text": "【<color=Keyword>入场曲</color>】召唤1个『<color=Keyword>大海虎鲸</color>』。\n<hr><ev>【<color=Keyword>进化时</color>】选择自己的1张手牌，舍弃该手牌。使自己获得『纹章：波摇花·夕夜』。</ev>",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           },
           {
             "clause_id": "10544120:1",
             "source_text": "【纹章_0】自己的海洋·随从攻击时，回合结束前，使其+1/+0。自己的每回合中可触发1次，将1张『<color=Keyword>大海虎鲸</color>』加入手牌。",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "【入场曲】召唤大海虎鲸；【进化时】选择并舍弃1张手牌后获得纹章；己方海洋随从攻击时本回合+1/+0，且己方每回合首次触发时将1张大海虎鲸加入手牌。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "abf4fc74c773b0acab2682ac51929ce7f6f9d873895af60bffb405b34fad21d4",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "fanfare",
+            "evolve",
+            "emblem_source"
+          ],
+          "effect_kinds": [
+            "summon",
+            "discard",
+            "gain_emblem",
+            "buff_unit",
+            "add_card"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_listener_condition_output_binding_sixth_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10551110": {
@@ -30693,8 +30757,8 @@
       "cost": 9,
       "is_collectible": true,
       "card_set_id": 10005,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '进化时', '回复(?!自己\\\\d+点(?:超进化点|进化点|能量点))', '造成.*伤害', '破坏']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['fanfare', 'evolve', 'listener:board:follower_destroyed'], Ops: ['transform', 'damage_unit', 'heal_leader']",
       "hit_keywords": [
         "入场曲",
         "进化时",
@@ -30711,27 +30775,47 @@
         "【<color=Keyword>入场曲</color>】使战场上的其他所有随从变身为『<color=Keyword>骸骨士兵</color>』。\n<hr>『<color=Keyword>骸骨士兵</color>』被破坏时，回复自己的主战者1点生命值。\n<hr><ev>【<color=Keyword>进化时</color>】对战场上的其他所有随从造成1点伤害。</ev>"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【入场曲】将场上其他所有随从变身为骸骨士兵；骸骨士兵被破坏时回复己方主战者1点；【进化时】对场上其他所有随从造成1点伤害。",
+        "notes": "双方场面变身、排除来源、关联Token、进化范围伤害、逐个破坏监听和来源同时死亡不触发均有直接测试。",
+        "rule_version": 1,
+        "source_text_sha256": "56d3c2febbebe1a28f50218f635c9acca5070d53f34e6dc281d169d5a0b653e9",
+        "test_evidence": [
+          "tests/test_real_listener_condition_output_binding_sixth_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10553110:0",
             "source_text": "【<color=Keyword>入场曲</color>】使战场上的其他所有随从变身为『<color=Keyword>骸骨士兵</color>』。\n<hr>『<color=Keyword>骸骨士兵</color>』被破坏时，回复自己的主战者1点生命值。\n<hr><ev>【<color=Keyword>进化时</color>】对战场上的其他所有随从造成1点伤害。</ev>",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "【入场曲】将场上其他所有随从变身为骸骨士兵；骸骨士兵被破坏时回复己方主战者1点；【进化时】对场上其他所有随从造成1点伤害。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "56d3c2febbebe1a28f50218f635c9acca5070d53f34e6dc281d169d5a0b653e9",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "fanfare",
+            "evolve",
+            "listener:board:follower_destroyed"
+          ],
+          "effect_kinds": [
+            "transform",
+            "damage_unit",
+            "heal_leader"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_listener_condition_output_binding_sixth_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10553310": {
@@ -40109,8 +40193,8 @@
       "cost": 9,
       "is_collectible": true,
       "card_set_id": 10007,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '进化时', '超进化', '回合开始', '回复(?!自己\\\\d+点(?:超进化点|进化点|能量点))', '造成.*伤害', '纹章']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['fanfare', 'super_evolve', 'emblem_source'], Ops: ['damage_unit', 'gain_emblem', 'damage_leader', 'damage_leader']",
       "hit_keywords": [
         "入场曲",
         "进化时",
@@ -40131,32 +40215,53 @@
         "【纹章_0】自己的回合开始时，对自己的主战者造成2点伤害。\n自己的主战者回复时，自己的每回合中可触发1次，对自己的主战者造成1点伤害。"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【入场曲】对所有敌方随从造成9点伤害；【超进化时】使对手获得纹章；纹章在持有者回合开始时对其主战者造成2点伤害，并在其每回合首次回复时再造成1点伤害。",
+        "notes": "全体伤害、对手纹章归属、回合开始伤害、真实回复事件、持有者回合范围和每回合一次限制均有直接测试。",
+        "rule_version": 1,
+        "source_text_sha256": "188e5cdd98e6e43262ac69791405a9515d399e5229d5981bb2bc2ea423d89c4b",
+        "test_evidence": [
+          "tests/test_real_listener_condition_output_binding_sixth_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10744110:0",
             "source_text": "【<color=Keyword>入场曲</color>】对对手的战场上的所有随从造成9点伤害。\n<hr><sev>【<color=Keyword>超进化时</color>】使对手获得『纹章：焦灰的安纳提玛·班德奈特』。</sev>",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           },
           {
             "clause_id": "10744110:1",
             "source_text": "【纹章_0】自己的回合开始时，对自己的主战者造成2点伤害。\n自己的主战者回复时，自己的每回合中可触发1次，对自己的主战者造成1点伤害。",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "【入场曲】对所有敌方随从造成9点伤害；【超进化时】使对手获得纹章；纹章在持有者回合开始时对其主战者造成2点伤害，并在其每回合首次回复时再造成1点伤害。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "188e5cdd98e6e43262ac69791405a9515d399e5229d5981bb2bc2ea423d89c4b",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "fanfare",
+            "super_evolve",
+            "emblem_source"
+          ],
+          "effect_kinds": [
+            "damage_unit",
+            "gain_emblem",
+            "damage_leader",
+            "damage_leader"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_listener_condition_output_binding_sixth_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10744120": {
@@ -45107,8 +45212,8 @@
       "cost": 6,
       "is_collectible": true,
       "card_set_id": 10008,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['攻击时', '威慑', '回合结束', '屏障']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['attack'], Ops: ['add_keyword', 'conditional', 'grant_attacks_per_turn']",
       "hit_keywords": [
         "攻击时",
         "威慑",
@@ -45126,27 +45231,45 @@
         "【<color=Keyword>突进</color>】\n【<color=Keyword>威慑</color>】\n【<color=Keyword>攻击时</color>】本随从获得【<color=Keyword>屏障</color>】。若攻击随从，则回合结束前，本随从获得「1回合可以攻击2次」。"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "固有【突进】【威慑】；【攻击时】获得【屏障】，若攻击随从则在本回合获得每回合可攻击2次。",
+        "notes": "固有关键词、屏障非固有归属、攻击随从与主战者分支、追加攻击次数及回合结束失效均有直接测试。",
+        "rule_version": 1,
+        "source_text_sha256": "1c132af6507a49c2efea1b764805b1f105fc1676646abe6409aae12d6d2ef915",
+        "test_evidence": [
+          "tests/test_real_listener_condition_output_binding_sixth_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10843110:0",
             "source_text": "【<color=Keyword>突进</color>】\n【<color=Keyword>威慑</color>】\n【<color=Keyword>攻击时</color>】本随从获得【<color=Keyword>屏障</color>】。若攻击随从，则回合结束前，本随从获得「1回合可以攻击2次」。",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "固有【突进】【威慑】；【攻击时】获得【屏障】，若攻击随从则在本回合获得每回合可攻击2次。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "1c132af6507a49c2efea1b764805b1f105fc1676646abe6409aae12d6d2ef915",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "attack"
+          ],
+          "effect_kinds": [
+            "add_keyword",
+            "conditional",
+            "grant_attacks_per_turn"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_listener_condition_output_binding_sixth_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10843310": {
@@ -45469,8 +45592,8 @@
       "cost": 2,
       "is_collectible": true,
       "card_set_id": 10008,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '进化时', '召唤']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['fanfare', 'evolve'], Ops: ['conditional', 'summon', 'summon', 'conditional', 'summon', 'summon']",
       "hit_keywords": [
         "入场曲",
         "进化时",
@@ -45485,27 +45608,49 @@
         "【<color=Keyword>入场曲</color>】若自己的主战者的生命值大于对手的主战者的生命值，则召唤2个『<color=Keyword>蝙蝠</color>』。\n<hr><ev>【<color=Keyword>进化时</color>】发动与【<color=Keyword>入场曲</color>】相同的能力。</ev>"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【入场曲】若己方主战者生命值严格高于对手，则召唤2个蝙蝠；【进化时】再次发动相同入场曲能力。",
+        "notes": "严格生命比较、相等不触发、两次关联Token召唤、进化复现和场面容量均有直接测试。",
+        "rule_version": 1,
+        "source_text_sha256": "5ec56f4e333c6e2db635d2f7ec3a55e30ec3bba778c5d033a703f21d89107c18",
+        "test_evidence": [
+          "tests/test_real_listener_condition_output_binding_sixth_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10851130:0",
             "source_text": "【<color=Keyword>入场曲</color>】若自己的主战者的生命值大于对手的主战者的生命值，则召唤2个『<color=Keyword>蝙蝠</color>』。\n<hr><ev>【<color=Keyword>进化时</color>】发动与【<color=Keyword>入场曲</color>】相同的能力。</ev>",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "【入场曲】若己方主战者生命值严格高于对手，则召唤2个蝙蝠；【进化时】再次发动相同入场曲能力。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "5ec56f4e333c6e2db635d2f7ec3a55e30ec3bba778c5d033a703f21d89107c18",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "fanfare",
+            "evolve"
+          ],
+          "effect_kinds": [
+            "conditional",
+            "summon",
+            "summon",
+            "conditional",
+            "summon",
+            "summon"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_listener_condition_output_binding_sixth_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10852110": {
@@ -48799,6 +48944,7 @@
           "tests/test_real_crest_listener_burst_existing_fifth_batch.py",
           "tests/test_real_crest_token_activation_exact_batch.py",
           "tests/test_real_existing_primitives_second_completion_batch.py",
+          "tests/test_real_listener_condition_output_binding_sixth_batch.py",
           "tests/test_real_spell_modes_and_earth_listener_batch.py",
           "tests/test_real_ward_marine_crest_listener_batch.py"
         ],

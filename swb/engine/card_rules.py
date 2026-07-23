@@ -82,6 +82,7 @@ _OUTPUT_BINDING_EFFECTS = frozenset({
     EffectKind.SUMMON_FROM_DECK,
     EffectKind.DRAW,
     EffectKind.DRAW_FILTERED,
+    EffectKind.REANIMATE,
 })
 
 _BOARD_EXTREME_TARGETS = frozenset({
@@ -1398,7 +1399,7 @@ def _parse_emblem_definition(raw: dict, source_file: str, ops_parser) -> EmblemD
         "turn_start", "turn_end", "follower_summoned",
         "follower_evolved", "follower_destroyed", "amulet_destroyed",
         "card_played", "leader_healed", "death_batch_end",
-        "amulet_activated", "card_fused",
+        "amulet_activated", "card_fused", "attack_declared",
     })
     for i, rt in enumerate(raw_triggers):
         t_source = f"{error_prefix}/triggers[{i}]"
@@ -1459,7 +1460,12 @@ def _parse_emblem_definition(raw: dict, source_file: str, ops_parser) -> EmblemD
         if not isinstance(raw_ops, list):
             raise ValueError(f"{t_source}: 'operations' must be a list")
         operations = tuple(
-            ops_parser(op, f"{t_source}/operations[{idx}]", source_card_id)
+            ops_parser(
+                op,
+                f"{t_source}/operations[{idx}]",
+                source_card_id,
+                _allow_event_source=True,
+            )
             for idx, op in enumerate(raw_ops)
         )
         _validate_target_keys(operations, t_source)
@@ -2525,6 +2531,7 @@ def _validate_target_keys(
                 binding_operation = binding_operations[binding_key]
                 output_binding_is_single = (
                     binding_operation.kind is EffectKind.SUMMON
+                    or binding_operation.kind is EffectKind.REANIMATE
                     or (
                         binding_operation.kind is EffectKind.SUMMON_HAND_COPY
                         and binding_operation.target_count == 1
@@ -2565,6 +2572,7 @@ def _validate_target_keys(
             binding_operation = binding_operations[op.condition_target_key]
             output_binding_is_single = (
                 binding_operation.kind is EffectKind.SUMMON
+                or binding_operation.kind is EffectKind.REANIMATE
                 or (
                     binding_operation.kind is EffectKind.SUMMON_HAND_COPY
                     and binding_operation.target_count == 1
@@ -3295,6 +3303,11 @@ def _parse_operation(
                 f"{source_file}/emblem_id card {card_id}: "
                 f"'{kind.value}' requires a non-empty emblem_id string"
             )
+        if target not in {TargetKind.OWN_LEADER, TargetKind.ENEMY_LEADER}:
+            raise ValueError(
+                f"{source_file}/target card {card_id}: {kind.value} "
+                "requires own_leader or enemy_leader"
+            )
     else:
         if emblem_id is not None:
             raise ValueError(
@@ -3778,6 +3791,30 @@ def _parse_operation(
         raise ValueError(
             f"{source_file}/tribe_name_filter card {card_id}: must be a string"
         )
+    deck_life_min = raw.get("life_min_filter")
+    if deck_life_min is not None:
+        deck_life_min = _parse_non_negative_int(
+            deck_life_min,
+            f"{source_file}/life_min_filter",
+            card_id,
+        )
+    deck_life_max = raw.get("life_max_filter")
+    if deck_life_max is not None:
+        deck_life_max = _parse_non_negative_int(
+            deck_life_max,
+            f"{source_file}/life_max_filter",
+            card_id,
+        )
+    if (
+        deck_life_min is not None
+        and deck_life_max is not None
+        and deck_life_min > deck_life_max
+    ):
+        raise ValueError(
+            f"{source_file} card {card_id}: life_min_filter "
+            f"({deck_life_min}) must not exceed life_max_filter "
+            f"({deck_life_max})"
+        )
     operation_board_filter = _parse_board_filter(
         raw,
         source_path=source_file,
@@ -4015,6 +4052,8 @@ def _parse_operation(
             card_name=deck_card_name,
             tribe_id=deck_tribe_id,
             tribe_name=deck_tribe_name,
+            life_min=deck_life_min,
+            life_max=deck_life_max,
         )
     if not _is_deck_filter_kind and any([
         raw.get("class_id_filter") is not None,
@@ -4023,6 +4062,8 @@ def _parse_operation(
         raw.get("card_name_filter") is not None,
         raw.get("tribe_id_filter") is not None,
         raw.get("tribe_name_filter") is not None,
+        raw.get("life_min_filter") is not None,
+        raw.get("life_max_filter") is not None,
     ]):
         raise ValueError(
             f"{source_file} card {card_id}: deck filter fields "

@@ -31,6 +31,7 @@ class EvalContext:
     players: list[PlayerState]
     source_entity_id: int | None = None
     target_entity_id: int | None = None
+    attack_target_entity_id: int | None = None
     source_card_id: int | None = None
     source_fusion_count: int = 0
     source_spellboost_count: int = 0
@@ -212,6 +213,8 @@ def evaluate_condition(cond: Condition | None, ctx: EvalContext | None) -> bool:
         return player.health <= cond.value
     elif t == ConditionType.CONTROLLER_HEALTH_AT_LEAST:
         return player.health >= cond.value
+    elif t == ConditionType.CONTROLLER_HEALTH_GREATER_THAN_OPPONENT:
+        return player.health > opponent.health
     elif t == ConditionType.OPPONENT_HEALTH_AT_MOST:
         return opponent.health <= cond.value
     elif t == ConditionType.OPPONENT_HEALTH_AT_LEAST:
@@ -276,6 +279,11 @@ def evaluate_condition(cond: Condition | None, ctx: EvalContext | None) -> bool:
         return ctx.source_spellboost_count >= cond.value
     elif t == ConditionType.SOURCE_COST_EQUALS:
         return ctx.source_cost == cond.value
+    elif t == ConditionType.ATTACK_TARGET_EXISTS:
+        return isinstance(
+            ctx.find_board_entity(ctx.attack_target_entity_id),
+            Unit,
+        )
     elif t == ConditionType.CONTROLLER_ENTERED_FOLLOWER_DISTINCT_COUNT_AT_LEAST:
         return (
             _distinct_entered_follower_count(

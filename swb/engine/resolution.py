@@ -211,6 +211,7 @@ _OUTPUT_BINDING_EFFECTS = frozenset({
     EffectKind.SUMMON_FROM_DECK,
     EffectKind.DRAW,
     EffectKind.DRAW_FILTERED,
+    EffectKind.REANIMATE,
 })
 
 _SOURCE_CONDITION_TYPES = frozenset({
@@ -1169,6 +1170,7 @@ class GameEngine:
         *,
         source_entity_id: int | None = None,
         target_entity_id: int | None = None,
+        attack_target_entity_id: int | None = None,
         source_card_id: int | None = None,
         source_fusion_count: int = 0,
         source_spellboost_count: int = 0,
@@ -1191,6 +1193,7 @@ class GameEngine:
             ),
             source_entity_id=source_entity_id,
             target_entity_id=target_entity_id,
+            attack_target_entity_id=attack_target_entity_id,
             source_card_id=source_card_id,
             source_fusion_count=source_fusion_count,
             source_spellboost_count=source_spellboost_count,
@@ -3528,6 +3531,8 @@ class GameEngine:
             deck_filter.card_name,
             deck_filter.tribe_id,
             deck_filter.tribe_name,
+            deck_filter.life_min,
+            deck_filter.life_max,
         )
 
     def _board_filter_fingerprint(
@@ -5424,6 +5429,7 @@ class GameEngine:
             EffectKind.SUMMON,
             EffectKind.SUMMON_HAND_COPY,
             EffectKind.SUMMON_FROM_DECK,
+            EffectKind.REANIMATE,
             EffectKind.EVOLVE_UNIT,
             EffectKind.SUPER_EVOLVE_UNIT,
         }:
@@ -6749,6 +6755,8 @@ class GameEngine:
                         "cost_max_filter": None if deck_filter is None else deck_filter.cost_max,
                         "card_id_filter": None if deck_filter is None else deck_filter.card_id,
                         "card_name_filter": None if deck_filter is None else deck_filter.card_name,
+                        "life_min_filter": None if deck_filter is None else deck_filter.life_min,
+                        "life_max_filter": None if deck_filter is None else deck_filter.life_max,
                     },
                 )
             )
@@ -6823,6 +6831,7 @@ class GameEngine:
             source_cost=frame.source_cost,
             distributed_value=frame.distributed_value,
             source_snapshot=frame.source_snapshot,
+            attack_target_entity_id=frame.attack_target_entity_id,
             bound_target_snapshots=frame._target_binding_snapshots,
         )
 
@@ -8631,6 +8640,8 @@ class GameEngine:
             and is_reanimate_eligible(record)
         ]
         if not candidates:
+            if effect.target_key:
+                self._bind_targets(frame, effect.target_key, (), effect)
             return
         max_c = max(r.definition.cost for r in candidates)
         best = [r for r in candidates if r.definition.cost == max_c]
@@ -8643,7 +8654,16 @@ class GameEngine:
             source_origin=chosen.source_origin or chosen.origin,
         )
         if unit is None:
+            if effect.target_key:
+                self._bind_targets(frame, effect.target_key, (), effect)
             return
+        if effect.target_key:
+            self._bind_targets(
+                frame,
+                effect.target_key,
+                (unit.entity_id,),
+                effect,
+            )
         self._emit(GameEvent(EventType.REANIMATE_RESOLVED, frame.controller,
             amount=max_cost,
             metadata={"reanimated_card_id": chosen.definition.card_id, "new_entity_id": unit.entity_id,
@@ -8761,7 +8781,12 @@ class GameEngine:
         if emblem_def is None:
             self._log(frame.controller, f"[未实现] 纹章 '{emblem_id}' 未定义")
             return
-        self._add_emblem_to_player(frame.controller, emblem_def, frame.source_card)
+        player_index = (
+            1 - frame.controller
+            if effect.target is TargetKind.ENEMY_LEADER
+            else frame.controller
+        )
+        self._add_emblem_to_player(player_index, emblem_def, frame.source_card)
 
     def _add_emblem_to_player(
         self,
@@ -8848,14 +8873,19 @@ class GameEngine:
         emblem_id = effect.emblem_id
         if not emblem_id:
             raise IllegalCommand("REMOVE_EMBLEM requires emblem_id")
-        player = self.players[frame.controller]
+        player_index = (
+            1 - frame.controller
+            if effect.target is TargetKind.ENEMY_LEADER
+            else frame.controller
+        )
+        player = self.players[player_index]
         removed = [e for e in player.emblems if e.emblem_id == emblem_id]
         if not removed:
             return
         targets = removed if effect.emblem_remove_mode == "all" else removed[:1]
         for target in targets:
             self._remove_emblem_instance(
-                frame.controller,
+                player_index,
                 target,
                 removal_cause="effect",
             )
@@ -9739,6 +9769,7 @@ class GameEngine:
             frame.controller,
             source_entity_id=frame.source_entity_id,
             source_fusion_count=len(frame.fusion_materials),
+            attack_target_entity_id=frame.attack_target_entity_id,
             target_snapshot=target_snapshot,
         )
         if target_snapshot is None:
@@ -11267,6 +11298,7 @@ class GameEngine:
             EventType.DEATH_BATCH_END: "death_batch_end",
             EventType.LEADER_HEALED: "leader_healed",
             EventType.AMULET_ACTIVATED: "amulet_activated",
+            EventType.ATTACK_DECLARED: "attack_declared",
         }.get(event.type)
         if (
             event.type is EventType.FOLLOWER_SUPER_EVOLVED

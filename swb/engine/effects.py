@@ -20,6 +20,9 @@ class ConditionType(str, Enum):
     NOT = "not"
     CONTROLLER_HEALTH_AT_MOST = "controller_health_at_most"
     CONTROLLER_HEALTH_AT_LEAST = "controller_health_at_least"
+    CONTROLLER_HEALTH_GREATER_THAN_OPPONENT = (
+        "controller_health_greater_than_opponent"
+    )
     OPPONENT_HEALTH_AT_MOST = "opponent_health_at_most"
     OPPONENT_HEALTH_AT_LEAST = "opponent_health_at_least"
     CONTROLLER_BOARD_COUNT_AT_LEAST = "controller_board_count_at_least"
@@ -63,6 +66,7 @@ class ConditionType(str, Enum):
     SOURCE_FUSION_COUNT_AT_LEAST = "source_fusion_count_at_least"
     SOURCE_SPELLBOOST_COUNT_AT_LEAST = "source_spellboost_count_at_least"
     SOURCE_COST_EQUALS = "source_cost_equals"
+    ATTACK_TARGET_EXISTS = "attack_target_exists"
     CONTROLLER_ENTERED_FOLLOWER_DISTINCT_COUNT_AT_LEAST = (
         "controller_entered_follower_distinct_count_at_least"
     )
@@ -311,6 +315,8 @@ class DeckFilter:
     card_name: str | None = None
     tribe_id: int | None = None
     tribe_name: str | None = None
+    life_min: int | None = None
+    life_max: int | None = None
 
     def matches(self, card: CardDefinition) -> bool:
         return (
@@ -324,6 +330,20 @@ class DeckFilter:
             and (self.card_name is None or card.name == self.card_name)
             and (self.tribe_id is None or card.tribe_id == self.tribe_id)
             and (self.tribe_name is None or card.tribe_name == self.tribe_name)
+            and (
+                self.life_min is None
+                or (
+                    card.life is not None
+                    and card.life >= self.life_min
+                )
+            )
+            and (
+                self.life_max is None
+                or (
+                    card.life is not None
+                    and card.life <= self.life_max
+                )
+            )
         )
 
 

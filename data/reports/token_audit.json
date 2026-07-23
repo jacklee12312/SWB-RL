@@ -2592,6 +2592,18 @@
           "rule_group": "rules"
         },
         {
+          "source_card_id": 10544120,
+          "entry_kind": "add_card",
+          "rule_file": "real_listener_condition_output_binding_sixth_batch.json",
+          "rule_group": "emblems"
+        },
+        {
+          "source_card_id": 10544120,
+          "entry_kind": "summon",
+          "rule_file": "real_listener_condition_output_binding_sixth_batch.json",
+          "rule_group": "rules"
+        },
+        {
           "source_card_id": 10841130,
           "entry_kind": "add_card",
           "rule_file": "real_crest_token_activation_exact_batch.json",
@@ -2927,6 +2939,12 @@
           "rule_group": "rules"
         },
         {
+          "source_card_id": 10553110,
+          "entry_kind": "transform",
+          "rule_file": "real_listener_condition_output_binding_sixth_batch.json",
+          "rule_group": "rules"
+        },
+        {
           "source_card_id": 10751120,
           "entry_kind": "summon",
           "rule_file": "real_complete_token_board_batch.json",
@@ -3077,6 +3095,12 @@
           "source_card_id": 10851120,
           "entry_kind": "add_card",
           "rule_file": "real_low_coverage_token_amulet_batch.json",
+          "rule_group": "rules"
+        },
+        {
+          "source_card_id": 10851130,
+          "entry_kind": "summon",
+          "rule_file": "real_listener_condition_output_binding_sixth_batch.json",
           "rule_group": "rules"
         },
         {

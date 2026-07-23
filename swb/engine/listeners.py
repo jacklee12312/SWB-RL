@@ -42,6 +42,7 @@ LISTENER_EVENT_TYPES = frozenset({
     EventType.SPELLBOOSTED,
     EventType.CARD_PLAYED,
     EventType.LEADER_HEALED,
+    EventType.ATTACK_DECLARED,
     EventType.TURN_STARTED,
     EventType.TURN_ENDED,
 })

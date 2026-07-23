@@ -6727,6 +6727,69 @@
       "source_text_sha256": "3e57c69e40414444332057f758222c9017f85341711fdf3ce2d25398a912d9fb",
       "test_evidence": ["tests/test_real_crest_listener_burst_existing_fifth_batch.py"],
       "notes": "三个模式、非法选择不变性、选择后自身伤害、无目标路径、纹章输出绑定、满场谢幕及行动掩码均有直接测试。"
+    },
+    {
+      "card_id": 10363110,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】选择并破坏1个敌方随从；【进化时】获得倒数4的纹章；己方回合结束时若本回合己方随从未攻击，则从牌组随机抽取1张基础生命值恰为4的随从。",
+      "rule_version": 1,
+      "source_text_sha256": "dbddc8894b5bf8e8b58210e780714dfb5e94de478818cc0fb2ad96823465d5c9",
+      "test_evidence": ["tests/test_real_listener_condition_output_binding_sixth_batch.py"],
+      "notes": "目标选择、非法选择不变性、无目标安全路径、纹章倒数、攻击历史门槛、基础生命过滤和行动掩码均有直接测试。"
+    },
+    {
+      "card_id": 10454110,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】【唤灵6】依次发动亡者召还2与亡者召还1并使各自成功召还的随从进化；己方回合结束时使所有敌方随从-2/-2。",
+      "rule_version": 1,
+      "source_text_sha256": "4ce06718c8798a47c7beaf2516260d87135695e339fa072fa4e5d128ac929c82",
+      "test_evidence": ["tests/test_real_listener_condition_output_binding_sixth_batch.py"],
+      "notes": "唤灵资源、两段亡者召还输出绑定、无候选、场面容量、效果进化、固定种子和来源离场均有直接测试。"
+    },
+    {
+      "card_id": 10544120,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】召唤大海虎鲸；【进化时】选择并舍弃1张手牌后获得纹章；己方海洋随从攻击时本回合+1/+0，且己方每回合首次触发时将1张大海虎鲸加入手牌。",
+      "rule_version": 1,
+      "source_text_sha256": "abf4fc74c773b0acab2682ac51929ce7f6f9d873895af60bffb405b34fad21d4",
+      "test_evidence": ["tests/test_real_listener_condition_output_binding_sixth_batch.py"],
+      "notes": "关联Token召唤、舍弃选择与非法不变性、纹章独立存续、每次攻击临时增攻、每回合一次加牌、手牌容量和行动掩码均有直接测试。"
+    },
+    {
+      "card_id": 10553110,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】将场上其他所有随从变身为骸骨士兵；骸骨士兵被破坏时回复己方主战者1点；【进化时】对场上其他所有随从造成1点伤害。",
+      "rule_version": 1,
+      "source_text_sha256": "56d3c2febbebe1a28f50218f635c9acca5070d53f34e6dc281d169d5a0b653e9",
+      "test_evidence": ["tests/test_real_listener_condition_output_binding_sixth_batch.py"],
+      "notes": "双方场面变身、排除来源、关联Token、进化范围伤害、逐个破坏监听和来源同时死亡不触发均有直接测试。"
+    },
+    {
+      "card_id": 10744110,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】对所有敌方随从造成9点伤害；【超进化时】使对手获得纹章；纹章在持有者回合开始时对其主战者造成2点伤害，并在其每回合首次回复时再造成1点伤害。",
+      "rule_version": 1,
+      "source_text_sha256": "188e5cdd98e6e43262ac69791405a9515d399e5229d5981bb2bc2ea423d89c4b",
+      "test_evidence": ["tests/test_real_listener_condition_output_binding_sixth_batch.py"],
+      "notes": "全体伤害、对手纹章归属、回合开始伤害、真实回复事件、持有者回合范围和每回合一次限制均有直接测试。"
+    },
+    {
+      "card_id": 10843110,
+      "coverage": "exact",
+      "implemented_text": "固有【突进】【威慑】；【攻击时】获得【屏障】，若攻击随从则在本回合获得每回合可攻击2次。",
+      "rule_version": 1,
+      "source_text_sha256": "1c132af6507a49c2efea1b764805b1f105fc1676646abe6409aae12d6d2ef915",
+      "test_evidence": ["tests/test_real_listener_condition_output_binding_sixth_batch.py"],
+      "notes": "固有关键词、屏障非固有归属、攻击随从与主战者分支、追加攻击次数及回合结束失效均有直接测试。"
+    },
+    {
+      "card_id": 10851130,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】若己方主战者生命值严格高于对手，则召唤2个蝙蝠；【进化时】再次发动相同入场曲能力。",
+      "rule_version": 1,
+      "source_text_sha256": "5ec56f4e333c6e2db635d2f7ec3a55e30ec3bba778c5d033a703f21d89107c18",
+      "test_evidence": ["tests/test_real_listener_condition_output_binding_sixth_batch.py"],
+      "notes": "严格生命比较、相等不触发、两次关联Token召唤、进化复现和场面容量均有直接测试。"
     }
   ]
 }
