@@ -34,7 +34,7 @@ Total audited cards: **91**
 | 90014310 蔷薇之闪击 | 精灵 / 法术 | entry_behavior_complete | 1 | 1 | exact |
 | 90014320 绝命的痛击 | 精灵 / 法术 | entry_behavior_complete | 1 | 1 | exact |
 | 90014330 天枪深渊 | 精灵 / 法术 | entry_behavior_complete | 1 | 1 | exact |
-| 90021110 骑士 | 皇家护卫 / 随从 | entry_behavior_complete | 13 | 11 | basic |
+| 90021110 骑士 | 皇家护卫 / 随从 | entry_behavior_complete | 13 | 12 | basic |
 | 90021120 铁甲骑士 | 皇家护卫 / 随从 | entry_behavior_complete | 12 | 10 | exact |
 | 90021130 娜哈特的私兵 | 皇家护卫 / 随从 | entry_behavior_complete | 1 | 1 | exact |
 | 90021310 黄金短剑 | 皇家护卫 / 法术 | entry_behavior_complete | 4 | 4 | exact |
@@ -48,7 +48,7 @@ Total audited cards: **91**
 | 90024320 天剑深渊 | 皇家护卫 / 法术 | entry_behavior_complete | 1 | 1 | exact |
 | 90024330 亡命者的枪击 | 皇家护卫 / 法术 | entry_behavior_complete | 1 | 1 | exact |
 | 90031110 泥尘巨像 | 巫师 / 随从 | entry_behavior_complete | 4 | 3 | basic |
-| 90031120 守护者巨像 | 巫师 / 随从 | entry_behavior_complete | 7 | 5 | exact |
+| 90031120 守护者巨像 | 巫师 / 随从 | entry_behavior_complete | 7 | 6 | exact |
 | 90031130 式神·小纸人 | 巫师 / 随从 | entry_behavior_complete | 2 | 2 | exact |
 | 90031140 式神·暴鬼 | 巫师 / 随从 | entry_behavior_complete | 2 | 2 | exact |
 | 90031210 大地之魔片 | 巫师 / 护符 | entry_behavior_complete | 0 | 1 | exact |
@@ -84,7 +84,7 @@ Total audited cards: **91**
 | 90054330 天眼深渊 | 梦魇 / 法术 | entry_behavior_complete | 1 | 1 | exact |
 | 90061110 神圣猎鹰 | 主教 / 随从 | entry_behavior_complete | 5 | 4 | exact |
 | 90061120 圣炎猛虎 | 主教 / 随从 | entry_behavior_complete | 2 | 2 | exact |
-| 90061130 壮丽大神隼 | 主教 / 随从 | entry_behavior_complete | 2 | 1 | exact |
+| 90061130 壮丽大神隼 | 主教 / 随从 | entry_behavior_complete | 2 | 2 | exact |
 | 90064110 圣骑兵 | 主教 / 随从 | entry_behavior_complete | 1 | 1 | exact |
 | 90064210 月影指环 | 主教 / 护符 | entry_behavior_complete | 1 | 1 | exact |
 | 90064310 绝望的奔流 | 主教 / 法术 | entry_behavior_complete | 1 | 1 | exact |

@@ -1,0 +1,531 @@
+{
+  "passives": [
+    {
+      "card_id": 10534120,
+      "kind": "spellboost_cost_reduction",
+      "amount": 1
+    }
+  ],
+  "intrinsic_keywords": [
+    {"card_id": 10234110, "keywords": ["灵气"]},
+    {"card_id": 10544110, "keywords": ["守护"]},
+    {"card_id": 10564110, "keywords": ["守护"]},
+    {"card_id": 10764120, "keywords": ["守护", "灵气"]},
+    {"card_id": 10824120, "keywords": ["疾驰", "必杀"]}
+  ],
+  "listeners": [
+    {
+      "card_id": 10824120,
+      "zone": "board",
+      "event": "follower_summoned",
+      "event_scope": "owner_event",
+      "source_relation": "any",
+      "event_filter": {"card_type": "随从", "tribe_name": "士兵"},
+      "operations": [
+        {"kind": "buff_unit", "target": "event_source", "amount": 2, "secondary_amount": 0},
+        {"kind": "add_keyword", "target": "event_source", "keyword": "突进"},
+        {"kind": "buff_unit", "target": "self", "amount": 1, "secondary_amount": 0}
+      ]
+    }
+  ],
+  "rules": [
+    {
+      "card_id": 10234110,
+      "trigger": "last_words",
+      "operations": [
+        {
+          "kind": "earth_rite",
+          "target": "own_leader",
+          "amount": 2,
+          "operations": [
+            {"kind": "summon", "target": "own_leader", "card_id": 10234110}
+          ]
+        }
+      ]
+    },
+    {
+      "card_id": 10234110,
+      "trigger": "super_evolve",
+      "operations": [
+        {
+          "kind": "destroy",
+          "target": "enemy_unit",
+          "target_count": 2
+        }
+      ]
+    },
+    {
+      "card_id": 10234120,
+      "trigger": "fanfare",
+      "operations": [
+        {
+          "kind": "earth_rite",
+          "target": "own_leader",
+          "amount": 1,
+          "operations": [
+            {
+              "kind": "choose_one",
+              "target": "own_leader",
+              "options": [
+                {
+                  "id": "guardian_golem",
+                  "label": "召唤守护者巨像并使其获得屏障",
+                  "operations": [
+                    {
+                      "kind": "summon",
+                      "target": "own_leader",
+                      "card_id": 90031120,
+                      "target_key": "guardian_golem"
+                    },
+                    {
+                      "kind": "add_keyword",
+                      "target": "previous_target",
+                      "target_key": "guardian_golem",
+                      "keyword": "屏障"
+                    }
+                  ]
+                },
+                {
+                  "id": "draw_three",
+                  "label": "抽取3张卡牌",
+                  "operations": [
+                    {"kind": "draw", "target": "own_leader", "amount": 3}
+                  ]
+                },
+                {
+                  "id": "heal_four",
+                  "label": "回复自己的主战者4点生命值",
+                  "operations": [
+                    {"kind": "heal_leader", "target": "own_leader", "amount": 4}
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "card_id": 10234120,
+      "trigger": "evolve",
+      "operations": [
+        {
+          "kind": "earth_rite",
+          "target": "own_leader",
+          "amount": 1,
+          "operations": [
+            {
+              "kind": "choose_one",
+              "target": "own_leader",
+              "options": [
+                {
+                  "id": "guardian_golem",
+                  "label": "召唤守护者巨像并使其获得屏障",
+                  "operations": [
+                    {
+                      "kind": "summon",
+                      "target": "own_leader",
+                      "card_id": 90031120,
+                      "target_key": "guardian_golem"
+                    },
+                    {
+                      "kind": "add_keyword",
+                      "target": "previous_target",
+                      "target_key": "guardian_golem",
+                      "keyword": "屏障"
+                    }
+                  ]
+                },
+                {
+                  "id": "draw_three",
+                  "label": "抽取3张卡牌",
+                  "operations": [
+                    {"kind": "draw", "target": "own_leader", "amount": 3}
+                  ]
+                },
+                {
+                  "id": "heal_four",
+                  "label": "回复自己的主战者4点生命值",
+                  "operations": [
+                    {"kind": "heal_leader", "target": "own_leader", "amount": 4}
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "card_id": 10352110,
+      "trigger": "fanfare",
+      "operations": [
+        {
+          "kind": "choose_one",
+          "target": "own_leader",
+          "options": [
+            {
+              "id": "random_damage",
+              "label": "对随机1个敌方随从造成3点伤害",
+              "operations": [
+                {"kind": "damage_unit", "target": "random_enemy_unit", "amount": 3}
+              ]
+            },
+            {
+              "id": "heal_two",
+              "label": "回复自己的主战者2点生命值",
+              "operations": [
+                {"kind": "heal_leader", "target": "own_leader", "amount": 2}
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "card_id": 10352110,
+      "trigger": "evolve",
+      "operations": [
+        {
+          "kind": "choose_one",
+          "target": "own_leader",
+          "options": [
+            {
+              "id": "random_damage",
+              "label": "对随机1个敌方随从造成3点伤害",
+              "operations": [
+                {"kind": "damage_unit", "target": "random_enemy_unit", "amount": 3}
+              ]
+            },
+            {
+              "id": "heal_two",
+              "label": "回复自己的主战者2点生命值",
+              "operations": [
+                {"kind": "heal_leader", "target": "own_leader", "amount": 2}
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "card_id": 10353110,
+      "trigger": "fanfare",
+      "operations": [
+        {
+          "kind": "choose_one",
+          "target": "own_leader",
+          "options": [
+            {
+              "id": "summon_rush",
+              "label": "召唤同名随从并使该随从和本随从获得突进",
+              "operations": [
+                {
+                  "kind": "summon",
+                  "target": "own_leader",
+                  "card_id": 10353110,
+                  "target_key": "summoned_congregant"
+                },
+                {
+                  "kind": "add_keyword",
+                  "target": "previous_target",
+                  "target_key": "summoned_congregant",
+                  "keyword": "突进"
+                },
+                {"kind": "add_keyword", "target": "self", "keyword": "突进"}
+              ]
+            },
+            {
+              "id": "summon_ward",
+              "label": "召唤同名随从并使该随从和本随从获得守护",
+              "operations": [
+                {
+                  "kind": "summon",
+                  "target": "own_leader",
+                  "card_id": 10353110,
+                  "target_key": "summoned_congregant"
+                },
+                {
+                  "kind": "add_keyword",
+                  "target": "previous_target",
+                  "target_key": "summoned_congregant",
+                  "keyword": "守护"
+                },
+                {"kind": "add_keyword", "target": "self", "keyword": "守护"}
+              ]
+            },
+            {
+              "id": "buff_copies",
+              "label": "使所有己方混融的团结者+2/+2",
+              "operations": [
+                {
+                  "kind": "buff_unit",
+                  "target": "all_own_units",
+                  "target_card_id_filter": 10353110,
+                  "amount": 2,
+                  "secondary_amount": 2
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "card_id": 10353110,
+      "trigger": "super_evolve",
+      "operations": [
+        {
+          "kind": "choose_one",
+          "target": "own_leader",
+          "options": [
+            {
+              "id": "summon_rush",
+              "label": "召唤同名随从并使该随从和本随从获得突进",
+              "operations": [
+                {
+                  "kind": "summon",
+                  "target": "own_leader",
+                  "card_id": 10353110,
+                  "target_key": "summoned_congregant"
+                },
+                {
+                  "kind": "add_keyword",
+                  "target": "previous_target",
+                  "target_key": "summoned_congregant",
+                  "keyword": "突进"
+                },
+                {"kind": "add_keyword", "target": "self", "keyword": "突进"}
+              ]
+            },
+            {
+              "id": "summon_ward",
+              "label": "召唤同名随从并使该随从和本随从获得守护",
+              "operations": [
+                {
+                  "kind": "summon",
+                  "target": "own_leader",
+                  "card_id": 10353110,
+                  "target_key": "summoned_congregant"
+                },
+                {
+                  "kind": "add_keyword",
+                  "target": "previous_target",
+                  "target_key": "summoned_congregant",
+                  "keyword": "守护"
+                },
+                {"kind": "add_keyword", "target": "self", "keyword": "守护"}
+              ]
+            },
+            {
+              "id": "buff_copies",
+              "label": "使所有己方混融的团结者+2/+2",
+              "operations": [
+                {
+                  "kind": "buff_unit",
+                  "target": "all_own_units",
+                  "target_card_id_filter": 10353110,
+                  "amount": 2,
+                  "secondary_amount": 2
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "card_id": 10534120,
+      "trigger": "fanfare",
+      "operations": [
+        {"kind": "damage_unit", "target": "enemy_unit", "amount": 10}
+      ]
+    },
+    {
+      "card_id": 10534120,
+      "trigger": "evolve",
+      "operations": [
+        {
+          "kind": "transform",
+          "target": "any_unit",
+          "exclude_source": true,
+          "card_id": 90061130,
+          "requires_target": true
+        }
+      ]
+    },
+    {
+      "card_id": 10544110,
+      "trigger": "turn_end",
+      "operations": [
+        {
+          "kind": "conditional",
+          "target": "own_leader",
+          "conditions": [{"type": "source_evolved"}],
+          "then": [
+            {"kind": "damage_leader", "target": "enemy_leader", "amount": 8}
+          ],
+          "else": [
+            {
+              "kind": "damage_unit",
+              "target": "random_enemy_unit",
+              "target_count": 2,
+              "amount": 8
+            },
+            {"kind": "heal_leader", "target": "own_leader", "amount": 8}
+          ]
+        }
+      ]
+    },
+    {
+      "card_id": 10544110,
+      "trigger": "evolve",
+      "operations": [
+        {"kind": "remove_keyword", "target": "self", "keyword": "守护"},
+        {"kind": "add_keyword", "target": "self", "keyword": "威慑"}
+      ]
+    },
+    {
+      "card_id": 10564110,
+      "trigger": "fanfare",
+      "operations": [
+        {
+          "kind": "choose_one",
+          "target": "own_leader",
+          "options": [
+            {
+              "id": "evolve_self",
+              "label": "使本随从进化",
+              "operations": [
+                {"kind": "evolve_unit", "target": "self"}
+              ]
+            },
+            {
+              "id": "evolve_random_ward",
+              "label": "使随机1个其他进化前守护随从进化并+1/+1",
+              "operations": [
+                {
+                  "kind": "evolve_unit",
+                  "target": "random_own_unit",
+                  "exclude_source": true,
+                  "target_keyword_filter": "守护",
+                  "target_evolved_filter": false,
+                  "target_key": "evolved_ward"
+                },
+                {
+                  "kind": "buff_unit",
+                  "target": "previous_target",
+                  "target_key": "evolved_ward",
+                  "amount": 1,
+                  "secondary_amount": 1
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "card_id": 10564110,
+      "trigger": "turn_end",
+      "operations": [
+        {
+          "kind": "buff_unit",
+          "target": "all_units",
+          "exclude_source": true,
+          "amount": -1,
+          "secondary_amount": -1,
+          "conditions": [{"type": "source_evolved"}]
+        }
+      ]
+    },
+    {
+      "card_id": 10764120,
+      "trigger": "fanfare",
+      "operations": [
+        {"kind": "banish", "target": "enemy_unit"},
+        {
+          "kind": "heal_leader",
+          "target": "own_leader",
+          "amount": 3,
+          "conditions": [
+            {
+              "type": "controller_board_has",
+              "value": 3,
+              "card_type_filter": "护符"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "card_id": 10764120,
+      "trigger": "super_evolve",
+      "operations": [
+        {"kind": "banish", "target": "enemy_unit"},
+        {
+          "kind": "heal_leader",
+          "target": "own_leader",
+          "amount": 3,
+          "conditions": [
+            {
+              "type": "controller_board_has",
+              "value": 3,
+              "card_type_filter": "护符"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "card_id": 10824120,
+      "trigger": "fanfare",
+      "operations": [
+        {"kind": "summon", "target": "own_leader", "card_id": 90021110},
+        {"kind": "summon", "target": "own_leader", "card_id": 90021110},
+        {"kind": "summon", "target": "own_leader", "card_id": 90021110}
+      ]
+    },
+    {
+      "card_id": 10824120,
+      "trigger": "super_evolve",
+      "operations": [
+        {"kind": "summon", "target": "own_leader", "card_id": 90021110}
+      ]
+    },
+    {
+      "card_id": 10854120,
+      "trigger": "fanfare",
+      "operations": [
+        {
+          "kind": "necromancy",
+          "target": "own_leader",
+          "amount": 20,
+          "operations": [
+            {
+              "kind": "change_cost",
+              "target": "all_own_hand",
+              "amount": 2,
+              "mode": "subtract",
+              "hand_filter": {"class_id": 5}
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "card_id": 10854120,
+      "trigger": "clash",
+      "operations": [
+        {"kind": "damage_unit", "target": "attack_target", "amount": 4}
+      ]
+    },
+    {
+      "card_id": 10854120,
+      "trigger": "turn_end",
+      "operations": [
+        {"kind": "heal_leader", "target": "own_leader", "amount": 4}
+      ]
+    }
+  ]
+}

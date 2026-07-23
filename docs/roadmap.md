@@ -10,13 +10,13 @@ code and tests as the source of truth when this file drifts.
 - Database: 826 cards, 735 collectible cards, 91 non-collectible/generated
   cards from set `90000`.
 - Latest SVA source: `https://sva.hypd.asia/data/cards.json`.
-- Tests: `python -m unittest discover -s tests -v` discovers 2254 behavioral
+- Tests: `python -m unittest discover -s tests -v` discovers 2268 behavioral
   contracts (2026-07-23 exact-rule and seven-class RL verification).
 - RL adapter: fixed 111-action space; the default v1 observation is 294
   floats, opt-in v2 preserves the structured compatibility mapping, and v3
   supplies fixed-dtype NumPy arrays plus a Gymnasium observation space without
   changing action IDs. Hidden decklists are the v3 default.
-- The exact-audit `TrainableCardCatalog` currently admits all 607 exact
+- The exact-audit `TrainableCardCatalog` currently admits all 617 exact
   collectible cards, preloads all 826 definitions for SQLite-free matches, and
   provides deterministic class-valid deck sampling. Self-play no longer uses
   the legacy 2-to-5-card follower pool.
@@ -48,9 +48,9 @@ code and tests as the source of truth when this file drifts.
   and distribution acceptance results, not policy-strength evidence.
 - Ability registry status: 18 implemented, 5 partial, 11 placeholder.
 - Explicit card and demo rules live in `data/rules/`; the current coverage
-  report classifies 711 card IDs with explicit rules, passives, fusion,
+  report classifies 721 card IDs with explicit rules, passives, fusion,
   invocation, activation, Faith, Union Burst, or listener definitions. Current
-  collectible coverage is 607 exact (82.59% of 735), 0 partial, 112 supported-but-missing-rule,
+  collectible coverage is 617 exact (83.95% of 735), 0 partial, 102 supported-but-missing-rule,
   0 missing-primitive, and 16 text-unclear cards.
 - `data/reports/token_audit.{json,md}` audits all 91 non-collectible/generated
   cards independently of collectible coverage. Database `card_references` and
@@ -65,7 +65,7 @@ code and tests as the source of truth when this file drifts.
   separate column and is covered for all 34; it does not automatically promote
   the 5 partial or 11 placeholder keyword statuses.
 - Coverage now has a backward-compatible clause audit. The legacy summary still
-  reports 607 exact collectible cards, and all 607 now have an explicit exact
+  reports 617 exact collectible cards, and all 617 now have an explicit exact
   text mapping plus named direct test evidence. The versioned sibling registry
   at `data/audits/rule_clauses.json` hashes every imported primary and
   alternate-mode clause; changed source text or stale test evidence invalidates
@@ -74,7 +74,7 @@ code and tests as the source of truth when this file drifts.
   rule version and errata metadata, structured trigger/operation evidence,
   explicit unsupported text, and a stable blocker taxonomy. There are zero
   unverified exact entries and no known missing schema, primitive, targeting,
-  or timing blocker among authored rules. The 112 supported-but-missing-rule
+  or timing blocker among authored rules. The 102 supported-but-missing-rule
   cards are now the per-card structured-content backlog; 16 unclear texts
   remain explicit.
 - RL observation v2 is available behind an explicit version switch. A
@@ -1293,6 +1293,19 @@ slice in this order:
   replay, hidden observation parity, multilingual Mode/reference clauses,
   command/RL action-mask agreement, clause hashes, and the unchanged 91/91
   complete Token Audit.
+- Exact file `data/rules/real_existing_primitives_third_completion_batch.json`
+  closes ten collectibles (`10234110`, `10234120`, `10352110`, `10353110`,
+  `10534120`, `10544110`, `10564110`, `10764120`, `10824120`, `10854120`),
+  bringing collectible exact coverage to 617/735 (83.95%). The slice reuses
+  Earth Rite, Necromancy, Mode, multi-target choice, summon output bindings,
+  random filtered evolution, class-filtered hand cost changes, conditional
+  owner-turn effects, board-wide stat changes, and Trait-filtered entry
+  listeners. Direct tests cover every Mode and reference, insufficient
+  resources, no/stale/duplicate targets, hand/board capacity, simultaneous
+  deaths, seeded replay, intrinsic keywords, multilingual source hashes,
+  Clause/Token consistency, and command/RL action-mask agreement. Cards whose
+  Strike/Clash clauses need a damaged or typed `attack_target` remain in the
+  visible backlog until that generic binding boundary is implemented.
 
 ## Known Partial Or Unsupported Areas
 

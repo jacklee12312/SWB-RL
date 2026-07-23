@@ -38,14 +38,14 @@ covered generic boundary, but that never upgrades a partial or placeholder
 keyword whose full tagged-card semantics still require structured rules.
 
 The [rule coverage report](data/reports/rule_coverage.md) now includes a
-clause-audit layer without changing its legacy coverage categories. Of 607
-exact collectible cards (82.59% of 735), all 607 have explicit implemented text and named direct
+clause-audit layer without changing its legacy coverage categories. Of 617
+exact collectible cards (83.95% of 735), all 617 have explicit implemented text and named direct
 test evidence. The sibling `data/audits/rule_clauses.json` registry hashes every
 imported skill and alternate-mode clause, so a database text change or stale
 test reference invalidates the audit instead of silently retaining exact
 status. The current report has no unverified exact entry or missing generic
 schema, primitive, targeting, or timing blocker. Its remaining collectible gaps
-are 112 missing per-card structured rules plus 16 explicitly unclear texts.
+are 102 missing per-card structured rules plus 16 explicitly unclear texts.
 Rule metadata also supports version and errata fields, and the report
 records the complete imported source snapshot hash.
 
@@ -128,7 +128,7 @@ random, fixed, and historical opponent mixing remains on the single-process
 collector. The balanced class schedule is not an adaptive curriculum, and the
 same-class fixed evaluation suite is not yet a 7x7 cross-class policy-strength
 matrix. Snapshot/clone is the search foundation only. Card-rule
-coverage also remains deliberately separate: 112 collectible cards still lack
+coverage also remains deliberately separate: 102 collectible cards still lack
 per-card structured rules and 16 card texts remain explicitly unclear; neither
 group enters the exact training catalog or counts as supported.
 
@@ -232,6 +232,16 @@ The deterministic rules core supports:
   traits, and summon/copy bindings. Direct tests cover no/stale targets,
   illegal-command rollback, hand/board capacity, simultaneous damage, seeded
   replay and hidden-information parity, multilingual/Mode/reference clauses,
+  Token Audit continuity, and command/RL action-mask agreement;
+- a 10-card exact cross-class existing-primitive batch covers `10234110`,
+  `10234120`, `10352110`, `10353110`, `10534120`, `10544110`, `10564110`,
+  `10764120`, `10824120`, and `10854120`. It composes Earth Rite and
+  Necromancy gates, repeated Mode abilities, multi-target selection, summon
+  output binding, random filtered evolution, class-filtered hand cost changes,
+  owner-turn branches, intrinsic traits, and a Soldier-entry listener without
+  card-ID engine branches. Direct tests cover all modes and referenced cards,
+  insufficient resources, no/stale/duplicate targets, hand/board capacity,
+  simultaneous deaths, fixed-seed randomness, multilingual clause hashes,
   Token Audit continuity, and command/RL action-mask agreement;
 - seeded reset, shuffle, draw, turn progression, official immediate defeat when
   drawing from an empty deck, an auditable alternate victory outcome, atomic

@@ -920,6 +920,12 @@
           "entry_kind": "summon",
           "rule_file": "real_leftmost_golem_bat_crest_batch.json",
           "rule_group": "rules"
+        },
+        {
+          "source_card_id": 10824120,
+          "entry_kind": "summon",
+          "rule_file": "real_existing_primitives_third_completion_batch.json",
+          "rule_group": "rules"
         }
       ],
       "has_authored_behavior": false,
@@ -1714,6 +1720,12 @@
           "source_card_id": 10032110,
           "entry_kind": "summon",
           "rule_file": "real_leftmost_golem_bat_crest_batch.json",
+          "rule_group": "rules"
+        },
+        {
+          "source_card_id": 10234120,
+          "entry_kind": "summon",
+          "rule_file": "real_existing_primitives_third_completion_batch.json",
           "rule_group": "rules"
         },
         {
@@ -3637,6 +3649,12 @@
           "source_card_id": 10061210,
           "entry_kind": "summon",
           "rule_file": "real_token_producer_modes_activation_batch.json",
+          "rule_group": "rules"
+        },
+        {
+          "source_card_id": 10534120,
+          "entry_kind": "transform",
+          "rule_file": "real_existing_primitives_third_completion_batch.json",
           "rule_group": "rules"
         }
       ],

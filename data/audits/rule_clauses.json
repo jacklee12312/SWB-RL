@@ -6493,6 +6493,96 @@
       "source_text_sha256": "36d247cc628bb3b1a1ca01d422d2a6cfc9fb15b0bb6cbd6381ca0c7e7e078b69",
       "test_evidence": ["tests/test_real_existing_primitives_second_completion_batch.py"],
       "notes": "0至2张手牌选择、舍弃后全体及主战者伤害、超进化抽牌、激奏模式和RL掩码均有直接测试。"
+    },
+    {
+      "card_id": 10234110,
+      "coverage": "exact",
+      "implemented_text": "固有【灵气】；【谢幕曲】【土之秘术_2】召唤1个本卡同名基础副本；【超进化时】选择至多2个敌方随从并破坏。",
+      "rule_version": 1,
+      "source_text_sha256": "d07c1399dc81449a2c9973996a42917a4eb3b4b6ca61c8053adf180a8968d600",
+      "test_evidence": ["tests/test_real_existing_primitives_third_completion_batch.py"],
+      "notes": "固有灵气、谢幕曲土之秘术、同名召唤、土不足、多目标不足、重复目标非法与离场目标重验均有直接测试。"
+    },
+    {
+      "card_id": 10234120,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】【土之秘术_1】【模式】召唤守护者巨像并授予屏障、抽3张或回复4点；【进化时】再次发动同一入场曲。",
+      "rule_version": 1,
+      "source_text_sha256": "f7c7bd02f65ca5c0a070bb7a1151d5f0857e22c97d54de14f7dd7652e7bdb79b",
+      "test_evidence": ["tests/test_real_existing_primitives_third_completion_batch.py"],
+      "notes": "三种模式、召唤输出绑定、屏障、手牌容量、回复上限、进化重复与土不足均有直接测试。"
+    },
+    {
+      "card_id": 10352110,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】【模式】对随机1个敌方随从造成3点伤害或回复己方主战者2点；【进化时】再次发动同一入场曲。",
+      "rule_version": 1,
+      "source_text_sha256": "1a766d0a4ccf1e3cbc61e0a5b15f6ad276896f31cd3bfc974bea176684b0c374",
+      "test_evidence": ["tests/test_real_existing_primitives_third_completion_batch.py"],
+      "notes": "两种模式、无敌方目标、进化重复与固定种子随机复现均有直接测试。"
+    },
+    {
+      "card_id": 10353110,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】【模式】召唤同名副本并使其与本体获得突进、召唤同名副本并使其与本体获得守护，或使所有己方同名随从+2/+2；【超进化时】再次发动同一入场曲。",
+      "rule_version": 1,
+      "source_text_sha256": "d832231aa10967873f5ec29af76234007ed49d2ae1e6733c1c92c3018a5676f5",
+      "test_evidence": ["tests/test_real_existing_primitives_third_completion_batch.py"],
+      "notes": "三种模式、召唤输出绑定、同名过滤、满场、超进化重复与关键词授予均有直接测试。"
+    },
+    {
+      "card_id": 10534120,
+      "coverage": "exact",
+      "implemented_text": "每次魔力增幅使本卡费用-1；【入场曲】选择1个敌方随从造成10点伤害；【进化时】选择其他任意随从并变身为壮丽大神隼。",
+      "rule_version": 1,
+      "source_text_sha256": "e708299120d79a072156d63cdbb727d481d2db7789cbdbe9b96a5a3af466a824",
+      "test_evidence": ["tests/test_real_existing_primitives_third_completion_batch.py"],
+      "notes": "手牌魔力增幅减费、入场目标、无目标安全跳过、变身双方目标、排除来源、目标离场和实体身份均有直接测试。"
+    },
+    {
+      "card_id": 10544110,
+      "coverage": "exact",
+      "implemented_text": "固有【守护】；己方回合结束时，进化前对至多2个随机敌方随从各造成8点伤害并回复8点，进化后改为对敌方主战者造成8点伤害；【进化时】失去守护并获得威慑。",
+      "rule_version": 1,
+      "source_text_sha256": "a05c3775dfc17662c22fe2ff9947bbcecf0c23db5f47eb8bbae654f845ab5561",
+      "test_evidence": ["tests/test_real_existing_primitives_third_completion_batch.py"],
+      "notes": "进化前后分支、0至2个敌方目标、固定种子随机、回复上限、守护移除与威慑授予均有直接测试。"
+    },
+    {
+      "card_id": 10564110,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】【模式】使本体进化，或使随机1个其他进化前守护随从进化并+1/+1；固有【守护】；己方回合结束时，若已进化，使其他所有随从-1/-1。",
+      "rule_version": 1,
+      "source_text_sha256": "3809a45f13a3ed0208b914b1d6c48afd49e0436e69780f6b1b994dc8b0b420db",
+      "test_evidence": ["tests/test_real_existing_primitives_third_completion_batch.py"],
+      "notes": "两种模式、随机过滤、无合法守护目标、目标离场、来源排除、双方单位与同时死亡均有直接测试。"
+    },
+    {
+      "card_id": 10764120,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】选择1个敌方随从使其消失；己方护符至少3张则回复3点；固有【守护】【灵气】；【超进化时】再次发动同一入场曲。",
+      "rule_version": 1,
+      "source_text_sha256": "9c77f424f7ad3d4e339a57af7443b742936dfd85067a4442de322bd507f7e9e3",
+      "test_evidence": ["tests/test_real_existing_primitives_third_completion_batch.py"],
+      "notes": "放逐目标、护符阈值、无敌方目标仍结算独立回复、超进化重复、守护与灵气均有直接测试。"
+    },
+    {
+      "card_id": 10824120,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】召唤3个骑士；固有【疾驰】【必杀】；己方士兵随从入场时，使其+2/+0并获得突进，同时本体+1/+0；【超进化时】召唤1个骑士。",
+      "rule_version": 1,
+      "source_text_sha256": "f2509623d6c89a960c9ecb6c669e341189a73b230ad4c8321b81a00bcf80c119",
+      "test_evidence": ["tests/test_real_existing_primitives_third_completion_batch.py"],
+      "notes": "骑士关联卡、士兵过滤、逐次入场监听、来源成长、非士兵排除、场面容量、超进化召唤与固有关键词均有直接测试。"
+    },
+    {
+      "card_id": 10854120,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】【唤灵_20】使己方手牌所有梦魇卡费用-2；【交战时】对交战对手造成4点伤害；己方回合结束时回复4点。",
+      "rule_version": 1,
+      "source_text_sha256": "df424d87ad7949b48c77e6be058a3e1a39ce5b35c03cf0a388cd81ef0a795b9e",
+      "test_evidence": ["tests/test_real_existing_primitives_third_completion_batch.py"],
+      "notes": "唤灵足量与不足、职业手牌过滤、费用下限、交战目标、来源离场及己方回合结束回复均有直接测试。"
     }
   ]
 }
