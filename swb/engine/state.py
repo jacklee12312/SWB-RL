@@ -290,6 +290,14 @@ class HandCard:
     fused_material_ids: list[int] = field(default_factory=list)
     fusion_used_turn: int | None = None
     evolutions_while_in_hand: int = 0
+    union_burst_gauge_bonus: int = 0
+    printed_keyword_overrides: set[str] = field(default_factory=set)
+    permanent_keywords: set[str] = field(default_factory=set)
+    temporary_keywords: list[KeywordModifier] = field(default_factory=list)
+    removed_keywords: set[str] = field(default_factory=set)
+    temporary_keyword_removals: list[KeywordRemovalModifier] = field(
+        default_factory=list
+    )
 
     @property
     def current_cost(self) -> int:
@@ -310,7 +318,11 @@ class HandCard:
         self.spellboost_count += amount
 
     def union_burst_gauge(self, turns_started: int) -> int:
-        return turns_started + self.evolutions_while_in_hand
+        return (
+            turns_started
+            + self.evolutions_while_in_hand
+            + self.union_burst_gauge_bonus
+        )
 
     @property
     def cost(self) -> int:
@@ -350,7 +362,113 @@ class HandCard:
 
     @property
     def keywords(self) -> frozenset[str]:
-        return self.definition.keywords
+        return self.effective_keywords
+
+    @property
+    def original_keywords(self) -> frozenset[str]:
+        return frozenset(
+            normalize_keyword_name(keyword)
+            for keyword in self.definition.keywords
+        )
+
+    @property
+    def effective_keywords(self) -> frozenset[str]:
+        temporary = {modifier.keyword for modifier in self.temporary_keywords}
+        temporarily_removed = {
+            modifier.keyword for modifier in self.temporary_keyword_removals
+        }
+        return frozenset(
+            (
+                (set(self.original_keywords) - self.printed_keyword_overrides)
+                | self.permanent_keywords
+                | temporary
+            )
+            - self.removed_keywords
+            - temporarily_removed
+        )
+
+    def has_keyword(self, keyword: str) -> bool:
+        return normalize_keyword_name(keyword) in self.effective_keywords
+
+    def add_keyword(
+        self,
+        keyword: str,
+        *,
+        duration: str = "permanent",
+        expires_for_player: int | None = None,
+    ) -> None:
+        if self.definition.card_type != "随从":
+            raise ValueError("Only follower cards can receive hand keywords")
+        canonical = normalize_keyword_name(keyword, strict=True)
+        if canonical not in RUNTIME_UNIT_KEYWORDS:
+            raise ValueError(
+                f"Keyword {canonical!r} is not a supported runtime unit keyword"
+            )
+        self.removed_keywords.discard(canonical)
+        self.temporary_keyword_removals = [
+            modifier
+            for modifier in self.temporary_keyword_removals
+            if modifier.keyword != canonical
+        ]
+        if duration == "permanent":
+            self.permanent_keywords.add(canonical)
+        else:
+            self.temporary_keywords.append(
+                KeywordModifier(canonical, duration, expires_for_player)
+            )
+
+    def remove_keyword(
+        self,
+        keyword: str,
+        *,
+        duration: str = "permanent",
+        expires_for_player: int | None = None,
+    ) -> None:
+        if self.definition.card_type != "随从":
+            raise ValueError("Only follower cards can lose hand keywords")
+        canonical = normalize_keyword_name(keyword, strict=True)
+        if canonical not in RUNTIME_UNIT_KEYWORDS:
+            raise ValueError(
+                f"Keyword {canonical!r} is not a supported runtime unit keyword"
+            )
+        if duration == "permanent":
+            self.permanent_keywords.discard(canonical)
+            self.temporary_keywords = [
+                modifier
+                for modifier in self.temporary_keywords
+                if modifier.keyword != canonical
+            ]
+            self.removed_keywords.add(canonical)
+        else:
+            if expires_for_player is None:
+                raise ValueError(
+                    "Temporary keyword removal requires expires_for_player"
+                )
+            self.temporary_keyword_removals.append(
+                KeywordRemovalModifier(
+                    keyword=canonical,
+                    duration=duration,
+                    expires_for_player=expires_for_player,
+                )
+            )
+
+    def expire_keywords(self, duration: str, player_index: int) -> None:
+        self.temporary_keywords = [
+            modifier
+            for modifier in self.temporary_keywords
+            if not (
+                modifier.duration == duration
+                and modifier.expires_for_player == player_index
+            )
+        ]
+        self.temporary_keyword_removals = [
+            modifier
+            for modifier in self.temporary_keyword_removals
+            if not (
+                modifier.duration == duration
+                and modifier.expires_for_player == player_index
+            )
+        ]
 
     @property
     def abilities(self):

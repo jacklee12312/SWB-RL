@@ -1068,6 +1068,12 @@
           "rule_group": "rules"
         },
         {
+          "source_card_id": 10722310,
+          "entry_kind": "add_card",
+          "rule_file": "real_hand_runtime_existing_eighth_batch.json",
+          "rule_group": "rules"
+        },
+        {
           "source_card_id": 10724110,
           "entry_kind": "summon",
           "rule_file": "real_crest_listener_burst_existing_fifth_batch.json",
@@ -3983,6 +3989,12 @@
           "source_card_id": 10172130,
           "entry_kind": "add_card",
           "rule_file": "real_hand_follower_buff_batch.json",
+          "rule_group": "rules"
+        },
+        {
+          "source_card_id": 10271120,
+          "entry_kind": "add_card",
+          "rule_file": "real_hand_runtime_existing_eighth_batch.json",
           "rule_group": "rules"
         },
         {

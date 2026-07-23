@@ -20,6 +20,7 @@ if __package__ in (None, ""):
 
 from swb.db.repository import CardDefinition, CardRepository
 from swb.engine.card_rules import RuleBook, _iter_nested_operations
+from swb.engine.effects import EffectKind
 
 
 # ---------------------------------------------------------------------------
@@ -440,7 +441,15 @@ def _build_coverage_report(db_path: str, rules_dir: str) -> dict:
                 }
             ),
             faith_cards=set(rulebook._faith_defs),
-            union_burst_cards=set(rulebook._union_burst_defs),
+            union_burst_cards=(
+                set(rulebook._union_burst_defs)
+                | {
+                    candidate_id
+                    for candidate_id, evidence in ruled_ops.items()
+                    if EffectKind.ADD_UNION_BURST_GAUGE.value
+                    in evidence.get("effect_kinds", [])
+                }
+            ),
         )
 
     test_sources = {

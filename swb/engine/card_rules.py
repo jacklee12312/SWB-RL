@@ -83,6 +83,7 @@ _OUTPUT_BINDING_EFFECTS = frozenset({
     EffectKind.DRAW,
     EffectKind.DRAW_FILTERED,
     EffectKind.REANIMATE,
+    EffectKind.ADD_CARD,
 })
 
 _BOARD_EXTREME_TARGETS = frozenset({
@@ -2555,6 +2556,7 @@ def _validate_target_keys(
                 output_binding_is_single = (
                     binding_operation.kind is EffectKind.SUMMON
                     or binding_operation.kind is EffectKind.REANIMATE
+                    or binding_operation.kind is EffectKind.ADD_CARD
                     or (
                         binding_operation.kind is EffectKind.SUMMON_HAND_COPY
                         and binding_operation.target_count == 1
@@ -2602,6 +2604,7 @@ def _validate_target_keys(
                 output_binding_is_single = (
                     binding_operation.kind is EffectKind.SUMMON
                     or binding_operation.kind is EffectKind.REANIMATE
+                    or binding_operation.kind is EffectKind.ADD_CARD
                     or (
                         binding_operation.kind is EffectKind.SUMMON_HAND_COPY
                         and binding_operation.target_count == 1
@@ -3778,6 +3781,29 @@ def _parse_operation(
                 card_id,
             )
 
+    if kind is EffectKind.ADD_UNION_BURST_GAUGE:
+        if target not in {
+            TargetKind.OWN_HAND,
+            TargetKind.RANDOM_OWN_HAND,
+            TargetKind.ALL_OWN_HAND,
+            TargetKind.PREVIOUS_TARGET,
+        }:
+            raise ValueError(
+                f"{source_file}/target card {card_id}: "
+                "add_union_burst_gauge requires an own-hand target"
+            )
+        if (
+            raw_amount is None
+            or isinstance(raw_amount, bool)
+            or isinstance(raw_amount, dict)
+            or not isinstance(raw_amount, int)
+            or raw_amount < 1
+        ):
+            raise ValueError(
+                f"{source_file}/amount card {card_id}: "
+                "add_union_burst_gauge requires a positive integer"
+            )
+
     raw_cost_max = raw.get("cost_max")
     raw_cost_min = raw.get("cost_min")
     graveyard_cost_max = raw_cost_max if kind in _GRAVEYARD_EFFECT_KINDS else None
@@ -4059,12 +4085,16 @@ def _parse_operation(
             TargetKind.OWN_HAND,
             TargetKind.RANDOM_OWN_HAND,
             TargetKind.ALL_OWN_HAND,
+            TargetKind.PREVIOUS_TARGET,
         }:
             raise ValueError(
                 f"{source_file}/target card {card_id}: buff_hand_card requires "
                 "an own-hand target"
             )
-        if hand_filter is None or hand_filter.card_type != "随从":
+        if (
+            target is not TargetKind.PREVIOUS_TARGET
+            and (hand_filter is None or hand_filter.card_type != "随从")
+        ):
             raise ValueError(
                 f"{source_file}/hand_filter card {card_id}: buff_hand_card "
                 "requires card_type='随从'"

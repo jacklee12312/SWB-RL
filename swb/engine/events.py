@@ -90,6 +90,7 @@ class EventType(str, Enum):
     EMBLEM_EXPIRED = "emblem_expired"
     FOLLOWER_ATTACK_CAPACITY_GRANTED = "follower_attack_capacity_granted"
     HAND_FOLLOWER_STATS_INCREASED = "hand_follower_stats_increased"
+    UNION_BURST_GAUGE_CHANGED = "union_burst_gauge_changed"
     FOLLOWER_TURN_END_DESTROY_GRANTED = "follower_turn_end_destroy_granted"
 
 

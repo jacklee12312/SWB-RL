@@ -6853,6 +6853,69 @@
       "source_text_sha256": "364f2ca6add1f150a1aa320141756fee6f5641b6b457c1ef959cf14a1167a7eb",
       "test_evidence": ["tests/test_real_keyed_crest_existing_seventh_batch.py"],
       "notes": "关联Token、固有守护、纹章回合结束召唤、场面容量、超进化同名倒数过滤和其他纹章保持不变均有直接测试。"
+    },
+    {
+      "card_id": 10302110,
+      "coverage": "exact",
+      "implemented_text": "固有【守护】；此卡位于手牌时，敌方随从超进化则此卡永久获得【必杀】。",
+      "rule_version": 1,
+      "source_text_sha256": "55be12acd325d6369de598f6641eda87beb7d1e278b0471f31708c92ad8ac1f1",
+      "test_evidence": ["tests/test_real_hand_runtime_existing_eighth_batch.py"],
+      "notes": "敌我事件范围、手牌来源存续、必杀非固有归属、上场运行时关键字继承、非法动作不变性和状态不变量均有直接测试。"
+    },
+    {
+      "card_id": 10303110,
+      "coverage": "exact",
+      "implemented_text": "固有【突进】；此卡位于手牌时，敌方随从超进化则此卡永久获得【疾驰】。",
+      "rule_version": 1,
+      "source_text_sha256": "ba6a335ac042585c4e540d4262036c1e326ab5d1dfc783219fb4bb515fb7975f",
+      "test_evidence": ["tests/test_real_hand_runtime_existing_eighth_batch.py"],
+      "notes": "敌我事件范围、疾驰非固有归属、手牌关键字与上场攻击权限继承、攻击主战者命令及RL行动掩码均有直接测试。"
+    },
+    {
+      "card_id": 10022120,
+      "coverage": "exact",
+      "implemented_text": "固有【突进】；【超进化时】从牌堆抽取所有『魔煌的诡谲者·拉斯提』，使成功进入手牌的这些实体获得【疾驰】。",
+      "rule_version": 1,
+      "source_text_sha256": "fb74c6affd1bd42b080d906cbd7b7e5b43c2cc6761b20a1938664c89805c267a",
+      "test_evidence": ["tests/test_real_hand_runtime_existing_eighth_batch.py"],
+      "notes": "同名卡ID过滤、至多三张牌组副本、抽取输出绑定、满手牌过抽、仅成功入手实体获得疾驰、固有突进和固定种子均有直接测试。"
+    },
+    {
+      "card_id": 10722310,
+      "coverage": "exact",
+      "implemented_text": "将1张钢铁骑士加入手牌并使其获得【突进】；【协作_10】改为加入2张并分别使其获得【突进】。",
+      "rule_version": 1,
+      "source_text_sha256": "1e7936c429e505c31cd03c4fe8d5fc2441024b1bbba2af1ee35b66b73e9be9ae",
+      "test_evidence": ["tests/test_real_hand_runtime_existing_eighth_batch.py"],
+      "notes": "关联Token、协作成立与不成立、两次独立加牌输出绑定、满手牌烧毁、上场突进继承、目标离手后的安全跳过和固定种子均有直接测试。"
+    },
+    {
+      "card_id": 10271120,
+      "coverage": "exact",
+      "implemented_text": "固有【突进】；【入场曲】若己方场上有已超进化随从，则将1张悬丝傀儡加入手牌，并使该实体+3/+0。",
+      "rule_version": 1,
+      "source_text_sha256": "83a61a08f645e918061614b061d4d5a325c2f56a1cc8a4e6a56d24fd673fc867",
+      "test_evidence": ["tests/test_real_hand_runtime_existing_eighth_batch.py"],
+      "notes": "超进化场面条件成立/不成立、关联Token、加牌输出绑定、仅生成实体获得手牌属性加成及固有突进均有直接测试。"
+    },
+    {
+      "card_id": 10471120,
+      "coverage": "exact",
+      "implemented_text": "固有【突进】；【入场曲】使手牌中所有具有奥义、解放奥义或超级解放奥义的卡牌之奥义计量+1。",
+      "rule_version": 1,
+      "source_text_sha256": "1b5c9f7185bd82b6961c3a95b8163b43fb889861771d36ed77107969bd3d638d",
+      "test_evidence": ["tests/test_real_hand_runtime_existing_eighth_batch.py"],
+      "notes": "仅具有结构化奥义定义的手牌实体获得计量、普通卡不变、计量事件、状态指纹、固定种子及固有突进均有直接测试。"
+    },
+    {
+      "card_id": 10223110,
+      "coverage": "exact",
+      "implemented_text": "【爆能强化_5】从牌堆抽取1张原始费用2以下的皇家护卫随从并使其费用变为0；固有【突进】；【攻击时】若攻击目标在攻击宣告时已受伤，则破坏交战对手。",
+      "rule_version": 1,
+      "source_text_sha256": "68c9115eb365cd9112b6f4124134a568ba93df3040c62e12f74ce4cb9c8125f4",
+      "test_evidence": ["tests/test_real_hand_runtime_existing_eighth_batch.py"],
+      "notes": "职业/类型/原始费用过滤、抽取输出设费、无匹配、爆能强化非法不变性、攻击目标受伤重验、未受伤路径、固有突进和RL掩码均有直接测试。"
     }
   ]
 }

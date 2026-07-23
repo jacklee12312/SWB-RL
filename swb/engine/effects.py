@@ -157,6 +157,7 @@ class EffectKind(str, Enum):
     CHANGE_MAX_MANA = "change_max_mana"
     BUFF_UNIT = "buff_unit"
     BUFF_HAND_CARD = "buff_hand_card"
+    ADD_UNION_BURST_GAUGE = "add_union_burst_gauge"
     SUMMON = "summon"
     SUMMON_COPY = "summon_copy"
     SUMMON_HAND_COPY = "summon_hand_copy"

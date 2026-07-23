@@ -35,7 +35,7 @@ Total audited cards: **91**
 | 90014320 绝命的痛击 | 精灵 / 法术 | entry_behavior_complete | 1 | 1 | exact |
 | 90014330 天枪深渊 | 精灵 / 法术 | entry_behavior_complete | 1 | 1 | exact |
 | 90021110 骑士 | 皇家护卫 / 随从 | entry_behavior_complete | 13 | 12 | basic |
-| 90021120 铁甲骑士 | 皇家护卫 / 随从 | entry_behavior_complete | 12 | 11 | exact |
+| 90021120 铁甲骑士 | 皇家护卫 / 随从 | entry_behavior_complete | 12 | 12 | exact |
 | 90021130 娜哈特的私兵 | 皇家护卫 / 随从 | entry_behavior_complete | 1 | 1 | exact |
 | 90021310 黄金短剑 | 皇家护卫 / 法术 | entry_behavior_complete | 4 | 4 | exact |
 | 90021320 黄金之杯 | 皇家护卫 / 法术 | entry_behavior_complete | 3 | 3 | exact |
@@ -89,7 +89,7 @@ Total audited cards: **91**
 | 90064210 月影指环 | 主教 / 护符 | entry_behavior_complete | 1 | 1 | exact |
 | 90064310 绝望的奔流 | 主教 / 法术 | entry_behavior_complete | 1 | 1 | exact |
 | 90064320 天书深渊 | 主教 / 法术 | entry_behavior_complete | 2 | 2 | exact |
-| 90071110 悬丝傀儡 | 超越者 / 随从 | entry_behavior_complete | 6 | 5 | exact |
+| 90071110 悬丝傀儡 | 超越者 / 随从 | entry_behavior_complete | 6 | 6 | exact |
 | 90071120 改良型·悬丝傀儡 | 超越者 / 随从 | entry_behavior_complete | 7 | 6 | exact |
 | 90071130 解析的创造物 | 超越者 / 随从 | entry_behavior_complete | 3 | 3 | exact |
 | 90071140 古老的创造物 | 超越者 / 随从 | entry_behavior_complete | 5 | 5 | exact |

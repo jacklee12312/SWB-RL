@@ -13,6 +13,7 @@ from swb.engine.abilities import (
     AbilityHandlers,
     AbilityKeyword,
     PlaceholderAbilityEvent,
+    RUNTIME_UNIT_KEYWORDS,
 )
 from swb.engine.card_rules import RuleBook, Trigger
 from swb.engine.commands import (
@@ -212,6 +213,7 @@ _OUTPUT_BINDING_EFFECTS = frozenset({
     EffectKind.DRAW,
     EffectKind.DRAW_FILTERED,
     EffectKind.REANIMATE,
+    EffectKind.ADD_CARD,
 })
 
 _SOURCE_CONDITION_TYPES = frozenset({
@@ -1516,6 +1518,14 @@ class GameEngine:
         hand_card.definition = replacement
         hand_card.cost_modifiers.clear()
         hand_card.stat_modifiers.clear()
+        hand_card.printed_keyword_overrides.clear()
+        hand_card.printed_keyword_overrides.update(
+            self.rulebook.non_intrinsic_keywords(replacement.card_id)
+        )
+        hand_card.permanent_keywords.clear()
+        hand_card.temporary_keywords.clear()
+        hand_card.removed_keywords.clear()
+        hand_card.temporary_keyword_removals.clear()
         hand_card.spellboost_count = 0
         hand_card.spellboost_cost_reduction = (
             self.rulebook.spellboost_cost_reduction(replacement.card_id)
@@ -1528,6 +1538,7 @@ class GameEngine:
         hand_card.fused_material_ids = fused_material_ids
         hand_card.fusion_used_turn = None
         hand_card.evolutions_while_in_hand = 0
+        hand_card.union_burst_gauge_bonus = 0
         return GameEvent(
             EventType.HAND_CARD_TRANSFORMED,
             player_index,
@@ -1946,6 +1957,7 @@ class GameEngine:
             raise IllegalCommand("Board is full")
         for modifier in hand_stat_modifiers:
             unit.add_stat_modifier(modifier)
+        self._apply_hand_card_runtime_to_unit(hand_card, unit)
         self._log(
             self.current_player,
             f"打出 {card.name} ({play_cost}费 {unit.attack}/{unit.health})",
@@ -3109,6 +3121,29 @@ class GameEngine:
             "fused_material_ids": tuple(card.fused_material_ids),
             "fusion_used_turn": card.fusion_used_turn,
             "evolutions_while_in_hand": card.evolutions_while_in_hand,
+            "union_burst_gauge_bonus": card.union_burst_gauge_bonus,
+            "effective_keywords": tuple(sorted(card.effective_keywords)),
+            "printed_keyword_overrides": tuple(
+                sorted(card.printed_keyword_overrides)
+            ),
+            "permanent_keywords": tuple(sorted(card.permanent_keywords)),
+            "temporary_keywords": tuple(
+                (
+                    modifier.keyword,
+                    modifier.duration,
+                    modifier.expires_for_player,
+                )
+                for modifier in card.temporary_keywords
+            ),
+            "removed_keywords": tuple(sorted(card.removed_keywords)),
+            "temporary_keyword_removals": tuple(
+                (
+                    modifier.keyword,
+                    modifier.duration,
+                    modifier.expires_for_player,
+                )
+                for modifier in card.temporary_keyword_removals
+            ),
         }
 
     def _board_entity_fingerprint(
@@ -5444,6 +5479,7 @@ class GameEngine:
         if binding_operation is not None and binding_operation.kind in {
             EffectKind.DRAW,
             EffectKind.DRAW_FILTERED,
+            EffectKind.ADD_CARD,
         }:
             if snapshot is None or snapshot.zone != "hand":
                 return False
@@ -6999,6 +7035,13 @@ class GameEngine:
                 self._find_board_entity(target_id)
             except IllegalCommand:
                 return
+        if operation.board_filter is not None and target_id is not None:
+            try:
+                filtered_target = self._find_board_entity(target_id)
+            except IllegalCommand:
+                return
+            if not operation.board_filter.matches_entity(filtered_target):
+                return
         ctx = self._build_eval_context(frame, target_id)
         is_meta = operation.kind in (
             EffectKind.CONDITIONAL,
@@ -7377,6 +7420,40 @@ class GameEngine:
                 f"手牌 {hand_card.name} 属性变化 "
                 f"{effect.amount}/{effect.secondary_amount}",
             )
+        elif effect.kind is EffectKind.ADD_UNION_BURST_GAUGE:
+            owner, hand_card = self._find_hand_card_with_owner(target_id)
+            if owner != frame.controller:
+                raise IllegalCommand(
+                    "Union Burst gauge target must be in the controller's hand"
+                )
+            if not self.rulebook.union_bursts_for(hand_card.card_id):
+                return
+            before = hand_card.union_burst_gauge(
+                self.players[owner].turns_started
+            )
+            hand_card.union_burst_gauge_bonus += effect.amount
+            after = hand_card.union_burst_gauge(
+                self.players[owner].turns_started
+            )
+            self._emit(
+                GameEvent(
+                    EventType.UNION_BURST_GAUGE_CHANGED,
+                    owner,
+                    source_id=frame.source_entity_id,
+                    target_id=hand_card.entity_id,
+                    amount=effect.amount,
+                    metadata={
+                        "card_id": hand_card.card_id,
+                        "gauge_before": before,
+                        "gauge_after": after,
+                        "source_card_id": frame.source_card_id,
+                    },
+                )
+            )
+            self._log(
+                frame.controller,
+                f"手牌 {hand_card.name} 的奥义计量 +{effect.amount}",
+            )
         elif effect.kind is EffectKind.DESTROY:
             target = self._find_board_entity(target_id)
             if isinstance(target, Unit):
@@ -7661,10 +7738,61 @@ class GameEngine:
         if effect.keyword is None:
             raise IllegalCommand(f"{effect.kind.value} requires a keyword")
         resolved_id = (
-            frame.source_entity_id
+            (
+                frame.listener_activation_entity_id
+                if frame.listener_activation_zone == ListenerZone.HAND.value
+                else frame.source_entity_id
+            )
             if effect.target is TargetKind.SELF
             else target_id
         )
+        hand_target: HandCard | None = None
+        hand_target_required = (
+            effect.target in {
+                TargetKind.OWN_HAND,
+                TargetKind.RANDOM_OWN_HAND,
+                TargetKind.RANDOM_ENEMY_HAND,
+                TargetKind.ALL_OWN_HAND,
+                TargetKind.ALL_ENEMY_HAND,
+            }
+            or (
+                effect.target is TargetKind.SELF
+                and frame.listener_activation_zone == ListenerZone.HAND.value
+            )
+        )
+        if hand_target_required or effect.target is TargetKind.PREVIOUS_TARGET:
+            try:
+                _, hand_target = self._find_hand_card_with_owner(resolved_id)
+            except IllegalCommand:
+                if hand_target_required:
+                    raise
+        expires_for_player = _expires_for_player(
+            effect.duration,
+            frame.controller,
+            self.state.active_player,
+        )
+        if hand_target is not None:
+            if hand_target.card_type != "随从":
+                raise IllegalCommand("Keyword target must be a follower")
+            if add:
+                hand_target.add_keyword(
+                    effect.keyword,
+                    duration=effect.duration.value,
+                    expires_for_player=expires_for_player,
+                )
+                verb = "获得"
+            else:
+                hand_target.remove_keyword(
+                    effect.keyword,
+                    duration=effect.duration.value,
+                    expires_for_player=expires_for_player,
+                )
+                verb = "失去"
+            self._log(
+                frame.controller,
+                f"手牌 {hand_target.name} {verb}关键词 {effect.keyword}",
+            )
+            return
         target = self._find_board_entity(resolved_id)
         if not isinstance(target, Unit):
             raise IllegalCommand("Keyword target must be a follower")
@@ -7672,22 +7800,14 @@ class GameEngine:
             target.add_keyword(
                 effect.keyword,
                 duration=effect.duration.value,
-                expires_for_player=_expires_for_player(
-                    effect.duration,
-                    frame.controller,
-                    self.state.active_player,
-                ),
+                expires_for_player=expires_for_player,
             )
             verb = "获得"
         else:
             target.remove_keyword(
                 effect.keyword,
                 duration=effect.duration.value,
-                expires_for_player=_expires_for_player(
-                    effect.duration,
-                    frame.controller,
-                    self.state.active_player,
-                ),
+                expires_for_player=expires_for_player,
             )
             verb = "失去"
         self._log(
@@ -8284,6 +8404,7 @@ class GameEngine:
                     modifier_id=self._allocate_modifier_id(),
                 )
             )
+        self._apply_hand_card_runtime_to_unit(hand_card, unit)
         if effect.target_key:
             previous_outputs = frame._target_bindings.get(
                 effect.target_key,
@@ -10880,6 +11001,8 @@ class GameEngine:
             )
         player = self.players[frame.controller]
         if len(player.hand) >= self.config.max_hand:
+            if effect.target_key:
+                self._bind_targets(frame, effect.target_key, (), effect)
             self._log(
                 frame.controller,
                 f"{frame.source_name} 加牌失败：手牌已满，{card_def.name} 被弃置",
@@ -10893,6 +11016,16 @@ class GameEngine:
             return
         origin = origin_for_added_card(card_def)
         added = self._append_hand_card(player, card_def, origin=origin)
+        if effect.target_key:
+            self._bind_targets(
+                frame,
+                effect.target_key,
+                (added.entity_id,),
+                effect,
+                snapshots=(
+                    self._bound_hand_snapshot(frame.controller, added),
+                ),
+            )
         if effect.mode is not None:
             added.cost_modifiers.append(
                 CostModifier(
@@ -10917,6 +11050,7 @@ class GameEngine:
                 frame.controller,
                 metadata={
                     "card_id": card_def.card_id,
+                    "entity_id": added.entity_id,
                     "card": card_def,
                     "origin": origin.value,
                     "derived": is_derived(origin),
@@ -12572,6 +12706,51 @@ class GameEngine:
                         f"Invariant failed: {prefix} hand[{hand_index}] has "
                         "stat modifiers but is not a follower"
                     )
+                runtime_keyword_values = (
+                    set(hand_card.permanent_keywords)
+                    | set(hand_card.removed_keywords)
+                    | {
+                        modifier.keyword
+                        for modifier in hand_card.temporary_keywords
+                    }
+                    | {
+                        modifier.keyword
+                        for modifier in hand_card.temporary_keyword_removals
+                    }
+                )
+                if not hand_card.printed_keyword_overrides.issubset(
+                    RUNTIME_UNIT_KEYWORDS
+                ):
+                    raise IllegalCommand(
+                        f"Invariant failed: {prefix} hand[{hand_index}] has "
+                        "an unsupported printed keyword override"
+                    )
+                if runtime_keyword_values and hand_card.card_type != "随从":
+                    raise IllegalCommand(
+                        f"Invariant failed: {prefix} hand[{hand_index}] has "
+                        "runtime keywords but is not a follower"
+                    )
+                if not runtime_keyword_values.issubset(RUNTIME_UNIT_KEYWORDS):
+                    raise IllegalCommand(
+                        f"Invariant failed: {prefix} hand[{hand_index}] has "
+                        "an unsupported runtime keyword"
+                    )
+                if hand_card.permanent_keywords & hand_card.removed_keywords:
+                    raise IllegalCommand(
+                        f"Invariant failed: {prefix} hand[{hand_index}] has "
+                        "contradictory permanent keyword state"
+                    )
+                for modifier in (
+                    *hand_card.temporary_keywords,
+                    *hand_card.temporary_keyword_removals,
+                ):
+                    if modifier.duration not in {
+                        duration.value for duration in ModifierDuration
+                    } or modifier.duration == ModifierDuration.PERMANENT.value:
+                        raise IllegalCommand(
+                            f"Invariant failed: {prefix} hand[{hand_index}] has "
+                            "an invalid temporary keyword duration"
+                        )
                 if len(hand_card.fused_material_ids) != len(set(hand_card.fused_material_ids)):
                     raise IllegalCommand(
                         f"Invariant failed: {prefix} hand[{hand_index}] has duplicate fused materials"
@@ -12584,6 +12763,15 @@ class GameEngine:
                     raise IllegalCommand(
                         f"Invariant failed: {prefix} hand[{hand_index}] has invalid "
                         "evolutions_while_in_hand"
+                    )
+                if (
+                    not isinstance(hand_card.union_burst_gauge_bonus, int)
+                    or isinstance(hand_card.union_burst_gauge_bonus, bool)
+                    or hand_card.union_burst_gauge_bonus < 0
+                ):
+                    raise IllegalCommand(
+                        f"Invariant failed: {prefix} hand[{hand_index}] has invalid "
+                        "union_burst_gauge_bonus"
                     )
                 if any(
                     material_id not in fusion_material_id_set
@@ -13590,6 +13778,9 @@ class GameEngine:
             origin=origin,
             source_origin=source_origin,
             fused_material_ids=list(fused_material_ids),
+            printed_keyword_overrides=set(
+                self.rulebook.non_intrinsic_keywords(definition.card_id)
+            ),
         )
 
     def _hand_cards(self, player_index: int) -> list[HandCard]:
@@ -13609,6 +13800,39 @@ class GameEngine:
             if card.entity_id == entity_id:
                 return card
         raise IllegalCommand(f"Hand entity {entity_id} does not exist")
+
+    def _find_hand_card_with_owner(
+        self, entity_id: int | None
+    ) -> tuple[int, HandCard]:
+        if entity_id is None:
+            raise IllegalCommand("A hand target is required")
+        for owner in (0, 1):
+            for card in self._hand_cards(owner):
+                if card.entity_id == entity_id:
+                    return owner, card
+        raise IllegalCommand(f"Hand entity {entity_id} does not exist")
+
+    @staticmethod
+    def _apply_hand_card_runtime_to_unit(
+        hand_card: HandCard,
+        unit: Unit,
+    ) -> None:
+        for keyword in sorted(hand_card.permanent_keywords):
+            unit.add_keyword(keyword)
+        for modifier in hand_card.temporary_keywords:
+            unit.add_keyword(
+                modifier.keyword,
+                duration=modifier.duration,
+                expires_for_player=modifier.expires_for_player,
+            )
+        for keyword in sorted(hand_card.removed_keywords):
+            unit.remove_keyword(keyword)
+        for modifier in hand_card.temporary_keyword_removals:
+            unit.remove_keyword(
+                modifier.keyword,
+                duration=modifier.duration,
+                expires_for_player=modifier.expires_for_player,
+            )
 
     def _allocate_modifier_id(self) -> int:
         modifier_id = self._next_modifier_id
@@ -13635,6 +13859,7 @@ class GameEngine:
                 for dur_str in expire_durations:
                     hand_card.expire_cost_modifiers(dur_str, player_index)
                     hand_card.expire_stat_modifiers(dur_str, player_index)
+                    hand_card.expire_keywords(dur_str, player_index)
 
     def _find_board_entity(self, entity_id: int | None) -> BoardCard:
         if entity_id is None:

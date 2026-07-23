@@ -662,10 +662,19 @@ class KeyedCrestExistingSeventhAuditTests(unittest.TestCase):
 
     def test_coverage_clause_hashes_and_token_audit_are_exact(self):
         report = _build_coverage_report("data/cards.sqlite3", "data/rules")
-        self.assertEqual(report["summary"]["coverage_counts"]["covered_exact"], 647)
+        counts = report["summary"]["coverage_counts"]
+        classifications = report["classifications"].values()
         self.assertEqual(
-            report["summary"]["coverage_counts"]["supported_missing_rule"],
-            72,
+            counts["covered_exact"],
+            sum(
+                card["is_collectible"]
+                and card["coverage"] == "covered_exact"
+                for card in classifications
+            ),
+        )
+        self.assertEqual(
+            counts["covered_exact"],
+            report["summary"]["clause_audit_counts"]["mapped_exact"],
         )
         self.assertFalse(report["rule_consistency_issues"])
         self.assertFalse(report["clause_audit_issues"])

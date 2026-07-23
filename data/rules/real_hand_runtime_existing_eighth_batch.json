@@ -1,0 +1,196 @@
+{
+  "passives": [
+    {
+      "card_id": 10302110,
+      "kind": "non_intrinsic_keyword",
+      "keyword": "必杀",
+      "notes": "必杀仅在此卡位于手牌且敌方随从超进化时获得。"
+    },
+    {
+      "card_id": 10303110,
+      "kind": "non_intrinsic_keyword",
+      "keyword": "疾驰",
+      "notes": "疾驰仅在此卡位于手牌且敌方随从超进化时获得。"
+    },
+    {
+      "card_id": 10022120,
+      "kind": "non_intrinsic_keyword",
+      "keyword": "疾驰",
+      "notes": "疾驰仅授予超进化时从牌堆抽取的同名卡。"
+    },
+    {
+      "card_id": 10722310,
+      "kind": "non_intrinsic_keyword",
+      "keyword": "突进",
+      "notes": "突进授予由本法术加入手牌的钢铁骑士，而非本法术自身。"
+    }
+  ],
+  "intrinsic_keywords": [
+    {"card_id": 10302110, "keywords": ["守护"]},
+    {"card_id": 10303110, "keywords": ["突进"]},
+    {"card_id": 10022120, "keywords": ["突进"]},
+    {"card_id": 10271120, "keywords": ["突进"]},
+    {"card_id": 10471120, "keywords": ["突进"]},
+    {"card_id": 10223110, "keywords": ["突进"]}
+  ],
+  "listeners": [
+    {
+      "card_id": 10302110,
+      "zone": "hand",
+      "event": "follower_super_evolved",
+      "event_scope": "opponent_event",
+      "operations": [
+        {"kind": "add_keyword", "target": "self", "keyword": "必杀"}
+      ]
+    },
+    {
+      "card_id": 10303110,
+      "zone": "hand",
+      "event": "follower_super_evolved",
+      "event_scope": "opponent_event",
+      "operations": [
+        {"kind": "add_keyword", "target": "self", "keyword": "疾驰"}
+      ]
+    }
+  ],
+  "rules": [
+    {
+      "card_id": 10022120,
+      "trigger": "super_evolve",
+      "operations": [
+        {
+          "kind": "draw_filtered",
+          "target": "own_leader",
+          "amount": 3,
+          "card_id_filter": 10022120,
+          "target_key": "drawn_rustys"
+        },
+        {
+          "kind": "add_keyword",
+          "target": "previous_target",
+          "target_key": "drawn_rustys",
+          "keyword": "疾驰"
+        }
+      ]
+    },
+    {
+      "card_id": 10722310,
+      "trigger": "play",
+      "operations": [
+        {
+          "kind": "add_card",
+          "target": "own_leader",
+          "card_id": 90021120,
+          "target_key": "first_steelclad"
+        },
+        {
+          "kind": "add_keyword",
+          "target": "previous_target",
+          "target_key": "first_steelclad",
+          "keyword": "突进"
+        },
+        {
+          "kind": "conditional",
+          "target": "own_leader",
+          "conditions": [
+            {"type": "controller_cooperation_at_least", "value": 10}
+          ],
+          "then": [
+            {
+              "kind": "add_card",
+              "target": "own_leader",
+              "card_id": 90021120,
+              "target_key": "second_steelclad"
+            },
+            {
+              "kind": "add_keyword",
+              "target": "previous_target",
+              "target_key": "second_steelclad",
+              "keyword": "突进"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "card_id": 10271120,
+      "trigger": "fanfare",
+      "operations": [
+        {
+          "kind": "conditional",
+          "target": "own_leader",
+          "conditions": [
+            {"type": "controller_board_has", "super_evolved_filter": true}
+          ],
+          "then": [
+            {
+              "kind": "add_card",
+              "target": "own_leader",
+              "card_id": 90071110,
+              "target_key": "puppet_cat_token"
+            },
+            {
+              "kind": "buff_hand_card",
+              "target": "previous_target",
+              "target_key": "puppet_cat_token",
+              "amount": 3,
+              "secondary_amount": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "card_id": 10471120,
+      "trigger": "fanfare",
+      "operations": [
+        {
+          "kind": "add_union_burst_gauge",
+          "target": "all_own_hand",
+          "amount": 1
+        }
+      ]
+    },
+    {
+      "card_id": 10223110,
+      "trigger": "fanfare",
+      "operations": [],
+      "play_modes": [
+        {
+          "id": "enhance_5",
+          "type": "enhance",
+          "cost": 5,
+          "operations": [
+            {
+              "kind": "draw_filtered",
+              "target": "own_leader",
+              "amount": 1,
+              "card_type_filter": "随从",
+              "class_id_filter": 2,
+              "cost_max": 2,
+              "target_key": "rose_drawn_follower"
+            },
+            {
+              "kind": "change_cost",
+              "target": "previous_target",
+              "target_key": "rose_drawn_follower",
+              "amount": 0,
+              "mode": "set"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "card_id": 10223110,
+      "trigger": "attack",
+      "operations": [
+        {
+          "kind": "destroy",
+          "target": "attack_target",
+          "target_damaged_filter": true
+        }
+      ]
+    }
+  ]
+}

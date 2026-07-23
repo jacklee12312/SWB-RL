@@ -12,25 +12,25 @@
   },
   "summary": {
     "total_cards": 826,
-    "total_with_rules": 751,
+    "total_with_rules": 758,
     "test_or_synthetic_ids_with_rules": 26,
     "coverage_counts": {
-      "covered_exact": 647,
+      "covered_exact": 654,
       "text_unclear": 16,
-      "supported_missing_rule": 72,
+      "supported_missing_rule": 65,
       "token_or_non_collectible": 91
     },
     "clause_audit_counts": {
-      "mapped_exact": 647,
+      "mapped_exact": 654,
       "unverified_exact": 0,
       "partial": 0,
-      "missing_rule": 72,
+      "missing_rule": 65,
       "missing_primitive": 0,
       "text_unclear": 16,
       "token_separate_audit": 91
     },
     "blocker_counts": {
-      "missing_rule": 72,
+      "missing_rule": 65,
       "missing_schema": 0,
       "missing_primitive": 0,
       "missing_targeting": 0,
@@ -1368,8 +1368,8 @@
       "cost": 3,
       "is_collectible": true,
       "card_set_id": 10000,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['进化时', '超进化', '抽取']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['super_evolve', 'intrinsic_keywords'], Ops: ['draw_filtered', 'add_keyword', 'keyword:突进']",
       "hit_keywords": [
         "进化时",
         "超进化",
@@ -1384,27 +1384,46 @@
         "<sev>【<color=Keyword>超进化时</color>】抽取所有『<color=Keyword>魔煌的诡谲者·拉斯提</color>』，使其获得【<color=Keyword>疾驰</color>】。</sev>"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "固有【突进】；【超进化时】从牌堆抽取所有『魔煌的诡谲者·拉斯提』，使成功进入手牌的这些实体获得【疾驰】。",
+        "notes": "同名卡ID过滤、至多三张牌组副本、抽取输出绑定、满手牌过抽、仅成功入手实体获得疾驰、固有突进和固定种子均有直接测试。",
+        "rule_version": 1,
+        "source_text_sha256": "fb74c6affd1bd42b080d906cbd7b7e5b43c2cc6761b20a1938664c89805c267a",
+        "test_evidence": [
+          "tests/test_real_hand_runtime_existing_eighth_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10022120:0",
             "source_text": "<sev>【<color=Keyword>超进化时</color>】抽取所有『<color=Keyword>魔煌的诡谲者·拉斯提</color>』，使其获得【<color=Keyword>疾驰</color>】。</sev>",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "固有【突进】；【超进化时】从牌堆抽取所有『魔煌的诡谲者·拉斯提』，使成功进入手牌的这些实体获得【疾驰】。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "fb74c6affd1bd42b080d906cbd7b7e5b43c2cc6761b20a1938664c89805c267a",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "super_evolve",
+            "intrinsic_keywords"
+          ],
+          "effect_kinds": [
+            "draw_filtered",
+            "add_keyword",
+            "keyword:突进"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_hand_runtime_existing_eighth_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10022210": {
@@ -14252,8 +14271,8 @@
       "cost": 3,
       "is_collectible": true,
       "card_set_id": 10002,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['攻击时', '抽取', '破坏', '爆能强化']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['fanfare', 'attack', 'play_modes', 'intrinsic_keywords'], Ops: ['destroy', 'play_mode', 'draw_filtered', 'change_cost', 'keyword:突进']",
       "hit_keywords": [
         "攻击时",
         "抽取",
@@ -14270,27 +14289,50 @@
         "【<color=Keyword>爆能强化</color>_5】抽取1张费用为2或以下的皇家护卫·随从，使其费用变为0。\n<hr>【<color=Keyword>突进</color>】\n【<color=Keyword>攻击时</color>】若攻击受伤的随从，则破坏交战对手。"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【爆能强化_5】从牌堆抽取1张原始费用2以下的皇家护卫随从并使其费用变为0；固有【突进】；【攻击时】若攻击目标在攻击宣告时已受伤，则破坏交战对手。",
+        "notes": "职业/类型/原始费用过滤、抽取输出设费、无匹配、爆能强化非法不变性、攻击目标受伤重验、未受伤路径、固有突进和RL掩码均有直接测试。",
+        "rule_version": 1,
+        "source_text_sha256": "68c9115eb365cd9112b6f4124134a568ba93df3040c62e12f74ce4cb9c8125f4",
+        "test_evidence": [
+          "tests/test_real_hand_runtime_existing_eighth_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10223110:0",
             "source_text": "【<color=Keyword>爆能强化</color>_5】抽取1张费用为2或以下的皇家护卫·随从，使其费用变为0。\n<hr>【<color=Keyword>突进</color>】\n【<color=Keyword>攻击时</color>】若攻击受伤的随从，则破坏交战对手。",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "【爆能强化_5】从牌堆抽取1张原始费用2以下的皇家护卫随从并使其费用变为0；固有【突进】；【攻击时】若攻击目标在攻击宣告时已受伤，则破坏交战对手。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "68c9115eb365cd9112b6f4124134a568ba93df3040c62e12f74ce4cb9c8125f4",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "fanfare",
+            "attack",
+            "play_modes",
+            "intrinsic_keywords"
+          ],
+          "effect_kinds": [
+            "destroy",
+            "play_mode",
+            "draw_filtered",
+            "change_cost",
+            "keyword:突进"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_hand_runtime_existing_eighth_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10223120": {
@@ -17176,8 +17218,8 @@
       "cost": 1,
       "is_collectible": true,
       "card_set_id": 10002,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '超进化', '将.*加入手牌']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['fanfare', 'intrinsic_keywords'], Ops: ['conditional', 'add_card', 'buff_hand_card', 'keyword:突进']",
       "hit_keywords": [
         "入场曲",
         "超进化",
@@ -17192,27 +17234,47 @@
         "【<color=Keyword>入场曲</color>】若自己的战场上有超进化后的随从，则将1张『<color=Keyword>悬丝傀儡</color>』加入手牌，使其+3/+0。\n<hr>【<color=Keyword>突进</color>】"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "固有【突进】；【入场曲】若己方场上有已超进化随从，则将1张悬丝傀儡加入手牌，并使该实体+3/+0。",
+        "notes": "超进化场面条件成立/不成立、关联Token、加牌输出绑定、仅生成实体获得手牌属性加成及固有突进均有直接测试。",
+        "rule_version": 1,
+        "source_text_sha256": "83a61a08f645e918061614b061d4d5a325c2f56a1cc8a4e6a56d24fd673fc867",
+        "test_evidence": [
+          "tests/test_real_hand_runtime_existing_eighth_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10271120:0",
             "source_text": "【<color=Keyword>入场曲</color>】若自己的战场上有超进化后的随从，则将1张『<color=Keyword>悬丝傀儡</color>』加入手牌，使其+3/+0。\n<hr>【<color=Keyword>突进</color>】",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "固有【突进】；【入场曲】若己方场上有已超进化随从，则将1张悬丝傀儡加入手牌，并使该实体+3/+0。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "83a61a08f645e918061614b061d4d5a325c2f56a1cc8a4e6a56d24fd673fc867",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "fanfare",
+            "intrinsic_keywords"
+          ],
+          "effect_kinds": [
+            "conditional",
+            "add_card",
+            "buff_hand_card",
+            "keyword:突进"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_hand_runtime_existing_eighth_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10271210": {
@@ -17831,8 +17893,8 @@
       "cost": 2,
       "is_collectible": true,
       "card_set_id": 10003,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['进化时', '超进化', '必杀']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['listener:hand:follower_super_evolved', 'intrinsic_keywords'], Ops: ['add_keyword', 'keyword:守护']",
       "hit_keywords": [
         "进化时",
         "超进化",
@@ -17847,27 +17909,45 @@
         "在手牌中发动。对手的随从超进化时，本随从获得【<color=Keyword>毁灭</color>】。\n<hr>【<color=Keyword>守护</color>】"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "固有【守护】；此卡位于手牌时，敌方随从超进化则此卡永久获得【必杀】。",
+        "notes": "敌我事件范围、手牌来源存续、必杀非固有归属、上场运行时关键字继承、非法动作不变性和状态不变量均有直接测试。",
+        "rule_version": 1,
+        "source_text_sha256": "55be12acd325d6369de598f6641eda87beb7d1e278b0471f31708c92ad8ac1f1",
+        "test_evidence": [
+          "tests/test_real_hand_runtime_existing_eighth_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10302110:0",
             "source_text": "在手牌中发动。对手的随从超进化时，本随从获得【<color=Keyword>毁灭</color>】。\n<hr>【<color=Keyword>守护</color>】",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "固有【守护】；此卡位于手牌时，敌方随从超进化则此卡永久获得【必杀】。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "55be12acd325d6369de598f6641eda87beb7d1e278b0471f31708c92ad8ac1f1",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "listener:hand:follower_super_evolved",
+            "intrinsic_keywords"
+          ],
+          "effect_kinds": [
+            "add_keyword",
+            "keyword:守护"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_hand_runtime_existing_eighth_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10303110": {
@@ -17878,8 +17958,8 @@
       "cost": 3,
       "is_collectible": true,
       "card_set_id": 10003,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['进化时', '超进化']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['listener:hand:follower_super_evolved', 'intrinsic_keywords'], Ops: ['add_keyword', 'keyword:突进']",
       "hit_keywords": [
         "进化时",
         "超进化"
@@ -17893,27 +17973,45 @@
         "在手牌中发动。对手的随从超进化时，本随从获得【<color=Keyword>疾驰</color>】。\n<hr>【<color=Keyword>突进</color>】"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "固有【突进】；此卡位于手牌时，敌方随从超进化则此卡永久获得【疾驰】。",
+        "notes": "敌我事件范围、疾驰非固有归属、手牌关键字与上场攻击权限继承、攻击主战者命令及RL行动掩码均有直接测试。",
+        "rule_version": 1,
+        "source_text_sha256": "ba6a335ac042585c4e540d4262036c1e326ab5d1dfc783219fb4bb515fb7975f",
+        "test_evidence": [
+          "tests/test_real_hand_runtime_existing_eighth_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10303110:0",
             "source_text": "在手牌中发动。对手的随从超进化时，本随从获得【<color=Keyword>疾驰</color>】。\n<hr>【<color=Keyword>突进</color>】",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "固有【突进】；此卡位于手牌时，敌方随从超进化则此卡永久获得【疾驰】。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "ba6a335ac042585c4e540d4262036c1e326ab5d1dfc783219fb4bb515fb7975f",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "listener:hand:follower_super_evolved",
+            "intrinsic_keywords"
+          ],
+          "effect_kinds": [
+            "add_keyword",
+            "keyword:突进"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_hand_runtime_existing_eighth_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10303210": {
@@ -27043,16 +27141,13 @@
       "cost": 2,
       "is_collectible": true,
       "card_set_id": 10004,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '奥义']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['fanfare', 'intrinsic_keywords'], Ops: ['add_union_burst_gauge', 'keyword:突进']",
       "hit_keywords": [
         "入场曲",
         "奥义"
       ],
       "missing_primitives": [],
-      "missing_rule_mechanics": [
-        "奥义"
-      ],
       "ability_keywords": [
         "入场曲",
         "突进"
@@ -27061,27 +27156,45 @@
         "【<color=Keyword>入场曲</color>】使自己的所有手牌的奥义槽+1。\n<hr>【<color=Keyword>突进</color>】"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "固有【突进】；【入场曲】使手牌中所有具有奥义、解放奥义或超级解放奥义的卡牌之奥义计量+1。",
+        "notes": "仅具有结构化奥义定义的手牌实体获得计量、普通卡不变、计量事件、状态指纹、固定种子及固有突进均有直接测试。",
+        "rule_version": 1,
+        "source_text_sha256": "1b5c9f7185bd82b6961c3a95b8163b43fb889861771d36ed77107969bd3d638d",
+        "test_evidence": [
+          "tests/test_real_hand_runtime_existing_eighth_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10471120:0",
             "source_text": "【<color=Keyword>入场曲</color>】使自己的所有手牌的奥义槽+1。\n<hr>【<color=Keyword>突进</color>】",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "固有【突进】；【入场曲】使手牌中所有具有奥义、解放奥义或超级解放奥义的卡牌之奥义计量+1。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "1b5c9f7185bd82b6961c3a95b8163b43fb889861771d36ed77107969bd3d638d",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "fanfare",
+            "intrinsic_keywords"
+          ],
+          "effect_kinds": [
+            "add_union_burst_gauge",
+            "keyword:突进"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_hand_runtime_existing_eighth_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10471130": {
@@ -38784,8 +38897,8 @@
       "cost": 1,
       "is_collectible": true,
       "card_set_id": 10007,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['将.*加入手牌', '协作']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['play'], Ops: ['add_card', 'add_keyword', 'conditional', 'add_card', 'add_keyword']",
       "hit_keywords": [
         "将.*加入手牌",
         "协作"
@@ -38799,27 +38912,47 @@
         "将1张『<color=Keyword>铁甲骑士</color>』加入手牌，使其获得【<color=Keyword>突进</color>】。【<color=Keyword>协作</color>_10】改为2张。"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "将1张钢铁骑士加入手牌并使其获得【突进】；【协作_10】改为加入2张并分别使其获得【突进】。",
+        "notes": "关联Token、协作成立与不成立、两次独立加牌输出绑定、满手牌烧毁、上场突进继承、目标离手后的安全跳过和固定种子均有直接测试。",
+        "rule_version": 1,
+        "source_text_sha256": "1e7936c429e505c31cd03c4fe8d5fc2441024b1bbba2af1ee35b66b73e9be9ae",
+        "test_evidence": [
+          "tests/test_real_hand_runtime_existing_eighth_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10722310:0",
             "source_text": "将1张『<color=Keyword>铁甲骑士</color>』加入手牌，使其获得【<color=Keyword>突进</color>】。【<color=Keyword>协作</color>_10】改为2张。",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "将1张钢铁骑士加入手牌并使其获得【突进】；【协作_10】改为加入2张并分别使其获得【突进】。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "1e7936c429e505c31cd03c4fe8d5fc2441024b1bbba2af1ee35b66b73e9be9ae",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "play"
+          ],
+          "effect_kinds": [
+            "add_card",
+            "add_keyword",
+            "conditional",
+            "add_card",
+            "add_keyword"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_hand_runtime_existing_eighth_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10723110": {
@@ -50901,30 +51034,6 @@
       "suggested_rule_file": "batch_龙族.json"
     },
     {
-      "card_id": 10271120,
-      "name": "猫偶",
-      "class_name": "超越者",
-      "card_type": "随从",
-      "cost": 1,
-      "ability_keywords": [
-        "入场曲",
-        "突进"
-      ],
-      "hit_keywords": [
-        "入场曲",
-        "超进化",
-        "将.*加入手牌"
-      ],
-      "confidence": "high",
-      "why_recommended": "Covered keywords: 入场曲, 超进化, 将.*加入手牌",
-      "required_primitives": [
-        "入场曲",
-        "超进化",
-        "将.*加入手牌"
-      ],
-      "suggested_rule_file": "batch_超越者.json"
-    },
-    {
       "card_id": 10272310,
       "name": "伊卡洛斯的飞翔",
       "class_name": "超越者",
@@ -51001,74 +51110,6 @@
       "suggested_rule_file": "batch_中立.json"
     },
     {
-      "card_id": 10722310,
-      "name": "无音的包围",
-      "class_name": "皇家护卫",
-      "card_type": "法术",
-      "cost": 1,
-      "ability_keywords": [
-        "协作",
-        "突进"
-      ],
-      "hit_keywords": [
-        "将.*加入手牌",
-        "协作"
-      ],
-      "confidence": "high",
-      "why_recommended": "Covered keywords: 将.*加入手牌, 协作",
-      "required_primitives": [
-        "将.*加入手牌",
-        "协作"
-      ],
-      "suggested_rule_file": "batch_皇家护卫.json"
-    },
-    {
-      "card_id": 10302110,
-      "name": "抗拒叹息之人",
-      "class_name": "中立",
-      "card_type": "随从",
-      "cost": 2,
-      "ability_keywords": [
-        "守护",
-        "必杀"
-      ],
-      "hit_keywords": [
-        "进化时",
-        "超进化",
-        "必杀"
-      ],
-      "confidence": "high",
-      "why_recommended": "Covered keywords: 进化时, 超进化, 必杀",
-      "required_primitives": [
-        "进化时",
-        "超进化",
-        "必杀"
-      ],
-      "suggested_rule_file": "batch_中立.json"
-    },
-    {
-      "card_id": 10471120,
-      "name": "爆燃老大·翼",
-      "class_name": "超越者",
-      "card_type": "随从",
-      "cost": 2,
-      "ability_keywords": [
-        "入场曲",
-        "突进"
-      ],
-      "hit_keywords": [
-        "入场曲",
-        "奥义"
-      ],
-      "confidence": "high",
-      "why_recommended": "Covered keywords: 入场曲, 奥义",
-      "required_primitives": [
-        "入场曲",
-        "奥义"
-      ],
-      "suggested_rule_file": "batch_超越者.json"
-    },
-    {
       "card_id": 10574120,
       "name": "尽小花·伊鞠",
       "class_name": "超越者",
@@ -51096,6 +51137,104 @@
         "召唤"
       ],
       "suggested_rule_file": "batch_超越者.json"
+    },
+    {
+      "card_id": 10111140,
+      "name": "勤劳的蚂蚱",
+      "class_name": "精灵",
+      "card_type": "随从",
+      "cost": 3,
+      "ability_keywords": [
+        "入场曲",
+        "连击"
+      ],
+      "hit_keywords": [
+        "入场曲",
+        "连击",
+        "抽取"
+      ],
+      "confidence": "high",
+      "why_recommended": "Covered keywords: 入场曲, 连击, 抽取",
+      "required_primitives": [
+        "入场曲",
+        "连击",
+        "抽取"
+      ],
+      "suggested_rule_file": "batch_精灵.json"
+    },
+    {
+      "card_id": 10303210,
+      "name": "试炼的石板",
+      "class_name": "中立",
+      "card_type": "护符",
+      "cost": 3,
+      "ability_keywords": [
+        "入场曲",
+        "策动"
+      ],
+      "hit_keywords": [
+        "入场曲",
+        "策动",
+        "抽取",
+        "消失"
+      ],
+      "confidence": "high",
+      "why_recommended": "Covered keywords: 入场曲, 策动, 抽取",
+      "required_primitives": [
+        "入场曲",
+        "策动",
+        "抽取",
+        "消失"
+      ],
+      "suggested_rule_file": "batch_中立.json"
+    },
+    {
+      "card_id": 10332210,
+      "name": "真理的研究设施",
+      "class_name": "巫师",
+      "card_type": "护符",
+      "cost": 3,
+      "ability_keywords": [
+        "倒数",
+        "策动"
+      ],
+      "hit_keywords": [
+        "策动",
+        "倒数",
+        "抽取"
+      ],
+      "confidence": "high",
+      "why_recommended": "Covered keywords: 策动, 倒数, 抽取",
+      "required_primitives": [
+        "策动",
+        "倒数",
+        "抽取"
+      ],
+      "suggested_rule_file": "batch_巫师.json"
+    },
+    {
+      "card_id": 10424120,
+      "name": "十天众统领·希耶提",
+      "class_name": "皇家护卫",
+      "card_type": "随从",
+      "cost": 4,
+      "ability_keywords": [
+        "入场曲",
+        "奥义"
+      ],
+      "hit_keywords": [
+        "入场曲",
+        "超进化",
+        "奥义"
+      ],
+      "confidence": "high",
+      "why_recommended": "Covered keywords: 入场曲, 超进化, 奥义",
+      "required_primitives": [
+        "入场曲",
+        "超进化",
+        "奥义"
+      ],
+      "suggested_rule_file": "batch_皇家护卫.json"
     }
   ]
 }
