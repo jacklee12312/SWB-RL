@@ -442,6 +442,13 @@ def evaluate_expression(expr: ValueExpression | None, ctx: EvalContext | None) -
             return 0
         target = ctx.find_board_entity(snapshots[0].entity_id)
         return target.health if isinstance(target, Unit) else 0
+    elif t == ExprType.BOUND_TARGET_COUNT:
+        snapshots = (
+            ()
+            if ctx is None or ctx.bound_target_snapshots is None
+            else ctx.bound_target_snapshots.get(expr.binding_key or "", ())
+        )
+        return len(snapshots)
     elif t == ExprType.SOURCE_ATTACK:
         if isinstance(source, Unit):
             return source.attack

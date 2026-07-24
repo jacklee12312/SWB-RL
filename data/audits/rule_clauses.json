@@ -6997,6 +6997,41 @@
       "source_text_sha256": "97bfb3aac677317ed1d67edb876dd63e96bedfca261060ab4abd0ce9f9439e1f",
       "test_evidence": ["tests/test_real_existing_primitives_ninth_batch.py"],
       "notes": "复生体只移除谢幕曲并保留守护、再次死亡不递归、与另一谢幕曲同时死亡的稳定顺序及状态不变量均有直接测试。"
+    },
+    {
+      "card_id": 10163110,
+      "rule_version": 1,
+      "source_text_sha256": "0e5f43bac960dd359ea23c63479fe9e9d0ed211896e6ac8c65ad918871705d58",
+      "test_evidence": ["tests/test_real_damage_replacement_binding_tenth_batch.py"],
+      "notes": "破坏输出绑定仅统计实际成功破坏的护符；大地之印替代消耗、X=0、敌方全体同时死亡及主战者伤害均有直接测试。"
+    },
+    {
+      "card_id": 10401110,
+      "rule_version": 1,
+      "source_text_sha256": "b6c40f7a9a2068431bd76ecb580e5736e8c0d97d0209e4a74e61edfbcbcae8db",
+      "test_evidence": ["tests/test_real_damage_replacement_binding_tenth_batch.py"],
+      "notes": "固有守护、4点以上伤害替换、屏障次序、能力移除、奥义阈值、固定种子随机且互异的2目标均有直接测试。"
+    },
+    {
+      "card_id": 10464120,
+      "rule_version": 1,
+      "source_text_sha256": "3045f81c75950cafce1a53c1354038c7a229ecd4b795400893b1c6ed170f075a",
+      "test_evidence": ["tests/test_real_damage_replacement_binding_tenth_batch.py"],
+      "notes": "固有守护、伤害替换、入场曲双目标选择、无目标解放奥义超进化、pending choice、非法动作原子性及action mask一致性均有直接测试。"
+    },
+    {
+      "card_id": 10711110,
+      "rule_version": 1,
+      "source_text_sha256": "9fdb2f32125d533e142e001d929dc0d9a83fd80313ec5b4075e31861cf363b29",
+      "test_evidence": ["tests/test_real_damage_replacement_binding_tenth_batch.py"],
+      "notes": "完全相同复制、复制体当回合突进就绪、固有守护、伤害替换、场面容量及实际攻击均有直接测试。"
+    },
+    {
+      "card_id": 10804110,
+      "rule_version": 1,
+      "source_text_sha256": "7af0d47c8162fdf781c5f383e022533509a039b71ec11662d9c2208b5715db8b",
+      "test_evidence": ["tests/test_real_damage_replacement_binding_tenth_batch.py"],
+      "notes": "三种Mode分别覆盖其他所有随从、双方所有护符、双方全部纹章；来源保留、空集合、非法选择原子性及action mask一致性均有直接测试。"
     }
   ]
 }

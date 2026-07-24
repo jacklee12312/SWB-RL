@@ -220,6 +220,19 @@ _OUTPUT_BINDING_EFFECTS = frozenset({
     EffectKind.ADD_CARD,
 })
 
+
+def _operation_produces_output_binding(
+    operation: EffectOperation,
+) -> bool:
+    return (
+        operation.kind in _OUTPUT_BINDING_EFFECTS
+        or (
+            operation.kind is EffectKind.DESTROY
+            and operation.bind_successful_targets
+        )
+    )
+
+
 _SOURCE_CONDITION_TYPES = frozenset({
     ConditionType.SOURCE_EVOLVED,
     ConditionType.SOURCE_HAS_KEYWORD,
@@ -266,6 +279,7 @@ def _expression_binding_keys(
         if expression.type in {
             ExprType.BOUND_CARD_COST,
             ExprType.BOUND_TARGET_HEALTH,
+            ExprType.BOUND_TARGET_COUNT,
         }
         and expression.binding_key is not None
         else set()
@@ -273,6 +287,27 @@ def _expression_binding_keys(
     for child in expression.values:
         keys.update(_expression_binding_keys(child))
     return keys
+
+
+def _expression_bindings_available(
+    expression: ValueExpression | None,
+    bindings: dict[str, tuple[BoundTargetSnapshot, ...]],
+) -> bool:
+    if expression is None:
+        return True
+    if expression.type is ExprType.BOUND_TARGET_COUNT:
+        if expression.binding_key not in bindings:
+            return False
+    elif expression.type in {
+        ExprType.BOUND_CARD_COST,
+        ExprType.BOUND_TARGET_HEALTH,
+    }:
+        if len(bindings.get(expression.binding_key or "", ())) != 1:
+            return False
+    return all(
+        _expression_bindings_available(child, bindings)
+        for child in expression.values
+    )
 
 
 def _expire_duration_values(duration: ModifierDuration) -> tuple[str, ...]:
@@ -2577,6 +2612,8 @@ class GameEngine:
             summary["faith_stacking"] = operation.faith_stacking
         if operation.target_key is not None:
             summary["target_key"] = operation.target_key
+        if operation.bind_successful_targets:
+            summary["bind_successful_targets"] = True
         if operation.condition_target_key is not None:
             summary["condition_target_key"] = operation.condition_target_key
         if operation.keyword is not None:
@@ -4013,6 +4050,16 @@ class GameEngine:
             )
         )
 
+    def _printed_incoming_damage_replacement(
+        self,
+        target: Unit,
+    ) -> tuple[int, int] | None:
+        if target.printed_abilities_removed:
+            return None
+        return self.rulebook.incoming_damage_replacement(
+            target.definition.card_id
+        )
+
     def _super_evolution_protection_active(self, target: Unit) -> bool:
         return (
             target.super_evolved
@@ -4029,6 +4076,7 @@ class GameEngine:
         *,
         attacker: Unit | None = None,
     ) -> DamageResult:
+        requested_amount = amount
         health_before = target.health
         prevented = 0
         barrier_consumed = False
@@ -4058,9 +4106,41 @@ class GameEngine:
                 lethal=False,
             )
 
+        replacement = self._printed_incoming_damage_replacement(target)
+        if replacement is not None:
+            threshold, replacement_amount = replacement
+            if amount >= threshold:
+                prevented_by_replacement = amount - replacement_amount
+                amount = replacement_amount
+                prevented += prevented_by_replacement
+                self._emit(GameEvent(
+                    EventType.DAMAGE_PREVENTED,
+                    controller,
+                    source_id=(
+                        source.entity_id
+                        if hasattr(source, "entity_id")
+                        else None
+                    ),
+                    target_id=target.entity_id,
+                    amount=prevented_by_replacement,
+                    metadata={
+                        "incoming_damage_replacement": True,
+                        "damage_type": damage_type.value,
+                        "threshold": threshold,
+                        "requested_amount": requested_amount,
+                        "replacement_amount": replacement_amount,
+                        "card_id": target.definition.card_id,
+                    },
+                ))
+                self._log(
+                    controller,
+                    f"{target.definition.name} 将 {requested_amount} 点伤害"
+                    f"变为 {replacement_amount} 点",
+                )
+
         if amount > 0 and target.barrier_charges > 0:
             target.barrier_charges -= 1
-            prevented = amount
+            prevented += amount
             barrier_consumed = True
             self._emit(GameEvent(
                 EventType.DAMAGE_PREVENTED, controller,
@@ -4075,7 +4155,7 @@ class GameEngine:
                 metadata={"card_id": target.definition.card_id},
             ))
 
-        actual = min(amount - prevented, health_before) if not barrier_consumed else 0
+        actual = min(amount, health_before) if not barrier_consumed else 0
         target.health -= actual
         health_after = target.health
         lethal = health_after <= 0
@@ -4175,7 +4255,7 @@ class GameEngine:
         )
 
         return DamageResult(
-            requested_amount=amount,
+            requested_amount=requested_amount,
             prevented_amount=prevented,
             actual_amount=actual,
             target_health_before=health_before,
@@ -4417,7 +4497,7 @@ class GameEngine:
             if (
                 operation.target_key
                 and operation.target is not TargetKind.PREVIOUS_TARGET
-                and operation.kind in _OUTPUT_BINDING_EFFECTS
+                and _operation_produces_output_binding(operation)
                 and operation.target_key not in frame._target_bindings
             ):
                 self._bind_targets(
@@ -4570,7 +4650,7 @@ class GameEngine:
                     "pending_target_snapshots",
                     None,
                 )
-                output_binding = operation.kind in _OUTPUT_BINDING_EFFECTS
+                output_binding = _operation_produces_output_binding(operation)
                 if operation.target_key and not output_binding:
                     self._bind_targets(
                         frame,
@@ -4837,8 +4917,7 @@ class GameEngine:
 
             if (
                 operation.target_key
-                and operation.kind
-                not in _OUTPUT_BINDING_EFFECTS
+                and not _operation_produces_output_binding(operation)
             ):
                 if target_id is None:
                     raise IllegalCommand(
@@ -5370,7 +5449,7 @@ class GameEngine:
             raise IllegalCommand("Selected target option has no target identity")
         if (
             operation.target_key
-            and operation.kind not in _OUTPUT_BINDING_EFFECTS
+            and not _operation_produces_output_binding(operation)
         ):
             if operation.target is TargetKind.OWN_HAND:
                 cards_by_id = {
@@ -6361,7 +6440,7 @@ class GameEngine:
             if (
                 selected_target_id is not None
                 and operation.target_key
-                and operation.kind not in _OUTPUT_BINDING_EFFECTS
+                and not _operation_produces_output_binding(operation)
             ):
                 frame._decision_meta["pending_target_snapshots"] = (
                     self._bound_choice_snapshot(
@@ -6938,12 +7017,15 @@ class GameEngine:
         operation: EffectOperation,
         frame: EffectFrame,
     ) -> bool:
-        binding_keys = set()
-        for expression in (operation.amount_expr, operation.secondary_expr):
-            binding_keys.update(_expression_binding_keys(expression))
         return all(
-            len(frame._target_binding_snapshots.get(key, ())) == 1
-            for key in binding_keys
+            _expression_bindings_available(
+                expression,
+                frame._target_binding_snapshots,
+            )
+            for expression in (
+                operation.amount_expr,
+                operation.secondary_expr,
+            )
         )
 
     def _resolve_secondary(self, operation: EffectOperation, ctx: EvalContext) -> int:
@@ -7462,6 +7544,11 @@ class GameEngine:
             )
         elif effect.kind is EffectKind.DESTROY:
             target = self._find_board_entity(target_id)
+            target_snapshot = (
+                self._bound_target_snapshot(target.entity_id)
+                if effect.bind_successful_targets
+                else None
+            )
             if isinstance(target, Unit):
                 if self._printed_effect_destroy_immunity_active(target):
                     self._emit(GameEvent(
@@ -7505,6 +7592,22 @@ class GameEngine:
                     )
                     return
                 target.pending_destroy = True
+            if effect.bind_successful_targets and target_snapshot is not None:
+                previous_ids = frame._target_bindings.get(
+                    effect.target_key,
+                    (),
+                )
+                previous_snapshots = frame._target_binding_snapshots.get(
+                    effect.target_key,
+                    (),
+                )
+                self._bind_targets(
+                    frame,
+                    effect.target_key,
+                    (*previous_ids, target.entity_id),
+                    effect,
+                    snapshots=(*previous_snapshots, target_snapshot),
+                )
         elif effect.kind is EffectKind.SUMMON:
             self._execute_summon(effect, frame)
         elif effect.kind is EffectKind.SUMMON_COPY:
@@ -7603,6 +7706,8 @@ class GameEngine:
             self._execute_gain_emblem(effect, frame)
         elif effect.kind is EffectKind.REMOVE_EMBLEM:
             self._execute_remove_emblem(effect, frame)
+        elif effect.kind is EffectKind.REMOVE_ALL_EMBLEMS:
+            self._execute_remove_all_emblems(frame, target_id)
         elif effect.kind is EffectKind.CONDITIONAL:
             self._execute_conditional(effect, frame)
         elif effect.kind is EffectKind.CHOOSE_ONE:
@@ -8448,10 +8553,20 @@ class GameEngine:
         unit.barrier_charges = source.barrier_charges
         unit.ambush_active = source.ambush_active
         unit.attacks_remaining = unit.attacks_per_turn
-        unit.can_attack = False
-        unit.rush_only = False
         unit.summoned_this_turn = True
         unit._synchronize_keyword_state()
+        unit.can_attack = (
+            unit.attacks_remaining > 0
+            and (
+                unit.has_keyword("疾驰")
+                or unit.has_keyword("突进")
+            )
+        )
+        unit.rush_only = (
+            unit.can_attack
+            and unit.has_keyword("突进")
+            and not unit.has_keyword("疾驰")
+        )
 
         if effect.amount or effect.secondary_amount:
             unit.add_stat_modifier(StatModifier(
@@ -9196,6 +9311,33 @@ class GameEngine:
         if not removed:
             return
         targets = removed if effect.emblem_remove_mode == "all" else removed[:1]
+        for target in targets:
+            self._remove_emblem_instance(
+                player_index,
+                target,
+                removal_cause="effect",
+            )
+        for target in reversed(targets):
+            if target.definition.last_words:
+                self._queue_effects(
+                    self._emblem_effect_source_card(target.definition),
+                    None,
+                    target.definition.last_words,
+                    controller=player_index,
+                    label="纹章 谢幕曲",
+                )
+
+    def _execute_remove_all_emblems(
+        self,
+        frame: EffectFrame,
+        target_id: int | None,
+    ) -> None:
+        if not _is_leader_target_id(target_id):
+            raise IllegalCommand(
+                "REMOVE_ALL_EMBLEMS requires a leader target"
+            )
+        player_index = _leader_index_from_target_id(target_id)
+        targets = tuple(self.players[player_index].emblems)
         for target in targets:
             self._remove_emblem_instance(
                 player_index,
@@ -13351,7 +13493,7 @@ class GameEngine:
                     )
                 if (
                     not frame._target_bindings[key]
-                    and operation.kind not in _OUTPUT_BINDING_EFFECTS
+                    and not _operation_produces_output_binding(operation)
                 ):
                     raise IllegalCommand(
                         f"Invariant failed: {zone} selected target binding is empty"

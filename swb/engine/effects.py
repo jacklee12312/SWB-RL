@@ -87,6 +87,7 @@ class ExprType(str, Enum):
     SOURCE_COST = "source_cost"
     BOUND_CARD_COST = "bound_card_cost"
     BOUND_TARGET_HEALTH = "bound_target_health"
+    BOUND_TARGET_COUNT = "bound_target_count"
     SOURCE_ATTACK = "source_attack"
     SOURCE_HEALTH = "source_health"
     TARGET_ATTACK = "target_attack"
@@ -185,6 +186,7 @@ class EffectKind(str, Enum):
     GAIN_EMBLEM = "gain_emblem"
     ADD_EMBLEM = "add_emblem"
     REMOVE_EMBLEM = "remove_emblem"
+    REMOVE_ALL_EMBLEMS = "remove_all_emblems"
     RETURN_TO_HAND = "return_to_hand"
     RETURN_TO_DECK = "return_to_deck"
     REDUCE_COUNTDOWN = "reduce_countdown"
@@ -481,6 +483,7 @@ class EffectOperation:
     set_attack: bool = False
     set_health: bool = False
     target_key: str | None = None
+    bind_successful_targets: bool = False
     condition_target_key: str | None = None
     earth_rite_operations: tuple["EffectOperation", ...] = ()
     necromancy_operations: tuple["EffectOperation", ...] = ()

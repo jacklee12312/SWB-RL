@@ -1,0 +1,150 @@
+{
+  "passives": [
+    {
+      "card_id": 10401110,
+      "kind": "incoming_damage_replacement",
+      "threshold": 4,
+      "amount": 3
+    },
+    {
+      "card_id": 10464120,
+      "kind": "incoming_damage_replacement",
+      "threshold": 4,
+      "amount": 3
+    },
+    {
+      "card_id": 10711110,
+      "kind": "incoming_damage_replacement",
+      "threshold": 4,
+      "amount": 3
+    }
+  ],
+  "intrinsic_keywords": [
+    {"card_id": 10401110, "keywords": ["守护"]},
+    {"card_id": 10464120, "keywords": ["守护"]},
+    {"card_id": 10711110, "keywords": ["突进", "守护"]}
+  ],
+  "union_bursts": [
+    {
+      "card_id": 10401110,
+      "kind": "union_burst",
+      "coverage": "exact",
+      "implemented_text": "【<color=Keyword>入场曲</color>】【<color=Keyword>奥义</color>】对对手的战场上的随机2个随从造成5点伤害。\n<hr>【<color=Keyword>守护</color>】\n受到的4点或以上的伤害变为3点。",
+      "operations": [
+        {
+          "kind": "damage_unit",
+          "target": "random_enemy_unit",
+          "target_count": 2,
+          "amount": 5
+        }
+      ]
+    },
+    {
+      "card_id": 10464120,
+      "kind": "super_skybound_art",
+      "operations": [
+        {"kind": "super_evolve_unit", "target": "self"}
+      ]
+    }
+  ],
+  "rules": [
+    {
+      "card_id": 10163110,
+      "trigger": "fanfare",
+      "coverage": "exact",
+      "implemented_text": "【<color=Keyword>入场曲</color>】破坏自己的战场上的所有护符。对对手的战场上的所有随从和对手的主战者造成X点伤害。X为因本能力破坏的张数。",
+      "operations": [
+        {
+          "kind": "destroy",
+          "target": "all_own_amulets",
+          "target_key": "destroyed_amulets",
+          "bind_successful_targets": true
+        },
+        {
+          "kind": "damage_unit",
+          "target": "all_enemy_units",
+          "amount": {
+            "type": "bound_target_count",
+            "binding_key": "destroyed_amulets"
+          }
+        },
+        {
+          "kind": "damage_leader",
+          "target": "enemy_leader",
+          "amount": {
+            "type": "bound_target_count",
+            "binding_key": "destroyed_amulets"
+          }
+        }
+      ]
+    },
+    {
+      "card_id": 10464120,
+      "trigger": "fanfare",
+      "coverage": "exact",
+      "implemented_text": "【<color=Keyword>入场曲</color>】选择对手的战场上的2个随从，使其消失。【<color=Keyword>解放奥义</color>】本随从超进化。\n<hr>【<color=Keyword>守护</color>】\n受到的4点或以上的伤害变为3点。",
+      "operations": [
+        {
+          "kind": "banish",
+          "target": "enemy_unit",
+          "target_count": 2
+        }
+      ]
+    },
+    {
+      "card_id": 10711110,
+      "trigger": "fanfare",
+      "coverage": "exact",
+      "implemented_text": "【<color=Keyword>入场曲</color>】召唤1个本随从的复制随从。\n<hr>【<color=Keyword>突进</color>】\n【<color=Keyword>守护</color>】\n受到的4点或以上的伤害变为3点。",
+      "operations": [
+        {"kind": "summon_exact_copy", "target": "self"}
+      ]
+    },
+    {
+      "card_id": 10804110,
+      "trigger": "fanfare",
+      "coverage": "exact",
+      "implemented_text": "【<color=Keyword>入场曲</color>】【<color=Keyword>模式</color>】选择1个能力发动。\n<ridx=0>（1）使战场上的其他所有随从消失。</ridx>\n<ridx=1>（2）使战场上的所有护符消失。</ridx>\n<ridx=2>（3）使所有纹章消失。</ridx>",
+      "operations": [
+        {
+          "kind": "choose_one",
+          "target": "own_leader",
+          "options": [
+            {
+              "id": "banish_followers",
+              "label": "使战场上的其他所有随从消失",
+              "operations": [
+                {
+                  "kind": "banish",
+                  "target": "all_units",
+                  "exclude_source": true
+                }
+              ]
+            },
+            {
+              "id": "banish_amulets",
+              "label": "使战场上的所有护符消失",
+              "operations": [
+                {
+                  "kind": "banish",
+                  "target": "all_board",
+                  "target_card_type_filter": "护符"
+                }
+              ]
+            },
+            {
+              "id": "banish_emblems",
+              "label": "使所有纹章消失",
+              "operations": [
+                {
+                  "kind": "remove_all_emblems",
+                  "target": "all_leaders"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

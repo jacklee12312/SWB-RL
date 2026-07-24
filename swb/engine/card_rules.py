@@ -76,6 +76,22 @@ _HAND_TARGETS = frozenset({
     TargetKind.ALL_ENEMY_HAND,
 })
 
+_ALL_TARGETS = frozenset({
+    TargetKind.ALL_OWN_UNITS,
+    TargetKind.ALL_ENEMY_UNITS,
+    TargetKind.ALL_UNITS,
+    TargetKind.ALL_OWN_BOARD,
+    TargetKind.ALL_ENEMY_BOARD,
+    TargetKind.ALL_BOARD,
+    TargetKind.ALL_OWN_AMULETS,
+    TargetKind.ALL_ENEMY_AMULETS,
+    TargetKind.ALL_OWN_EMBLEMS,
+    TargetKind.ALL_OWN_HAND,
+    TargetKind.ALL_ENEMY_HAND,
+    TargetKind.ALL_OWN_GRAVEYARD_CARDS,
+    TargetKind.ALL_LEADERS,
+})
+
 _OUTPUT_BINDING_EFFECTS = frozenset({
     EffectKind.SUMMON,
     EffectKind.SUMMON_EXACT_COPY,
@@ -86,6 +102,19 @@ _OUTPUT_BINDING_EFFECTS = frozenset({
     EffectKind.REANIMATE,
     EffectKind.ADD_CARD,
 })
+
+
+def _operation_produces_output_binding(
+    operation: EffectOperation,
+) -> bool:
+    return (
+        operation.kind in _OUTPUT_BINDING_EFFECTS
+        or (
+            operation.kind is EffectKind.DESTROY
+            and operation.bind_successful_targets
+        )
+    )
+
 
 _BOARD_EXTREME_TARGETS = frozenset({
     TargetKind.OWN_UNIT,
@@ -168,6 +197,7 @@ def _expression_binding_keys(
         if expression.type in {
             ExprType.BOUND_CARD_COST,
             ExprType.BOUND_TARGET_HEALTH,
+            ExprType.BOUND_TARGET_COUNT,
         }
         and expression.binding_key is not None
         else set()
@@ -175,6 +205,27 @@ def _expression_binding_keys(
     for value in expression.values:
         keys.update(_expression_binding_keys(value))
     return keys
+
+
+def _expression_binding_requires_single(
+    expression: ValueExpression | None,
+    binding_key: str,
+) -> bool:
+    if expression is None:
+        return False
+    if (
+        expression.binding_key == binding_key
+        and expression.type
+        in {
+            ExprType.BOUND_CARD_COST,
+            ExprType.BOUND_TARGET_HEALTH,
+        }
+    ):
+        return True
+    return any(
+        _expression_binding_requires_single(value, binding_key)
+        for value in expression.values
+    )
 
 
 def _check_target_conditions(conditions: tuple[Condition, ...], source: str) -> set[str]:
@@ -549,6 +600,7 @@ class CardPassive:
     kind: str
     amount: int
     keyword: str | None = None
+    threshold: int | None = None
 
 
 @dataclass(frozen=True)
@@ -828,6 +880,19 @@ class RuleBook:
             p.kind == "cannot_be_destroyed_by_effects"
             for p in self._passives.get(card_id, [])
         )
+
+    def incoming_damage_replacement(
+        self,
+        card_id: int,
+    ) -> tuple[int, int] | None:
+        for passive in self._passives.get(card_id, ()):
+            if passive.kind == "incoming_damage_replacement":
+                if passive.threshold is None:
+                    raise ValueError(
+                        "incoming_damage_replacement passive lacks threshold"
+                    )
+                return passive.threshold, passive.amount
+        return None
 
     def forces_enemy_ability_target(self, card_id: int) -> bool:
         return any(
@@ -2207,9 +2272,16 @@ def _parse_passive(raw: dict, source_file: str) -> CardPassive:
         "non_intrinsic_keyword",
         "attacks_per_turn",
         "forces_enemy_ability_target",
+        "incoming_damage_replacement",
     ):
         raise ValueError(f"{source_file} card {card_id}: unknown passive kind {kind!r}")
     keyword = raw.get("keyword")
+    threshold = raw.get("threshold")
+    if kind != "incoming_damage_replacement" and threshold is not None:
+        raise ValueError(
+            f"{source_file} card {card_id}/threshold: only valid for "
+            "'incoming_damage_replacement'"
+        )
     if kind == "non_intrinsic_keyword":
         if not isinstance(keyword, str) or not keyword:
             raise ValueError(
@@ -2242,6 +2314,37 @@ def _parse_passive(raw: dict, source_file: str) -> CardPassive:
         raise ValueError(
             f"{source_file} card {card_id}/keyword: only valid for "
             "'non_intrinsic_keyword'"
+        )
+    if kind == "incoming_damage_replacement":
+        amount = raw.get("amount")
+        if (
+            isinstance(threshold, bool)
+            or not isinstance(threshold, int)
+            or threshold <= 0
+        ):
+            raise ValueError(
+                f"{source_file} card {card_id}/threshold: "
+                "incoming_damage_replacement requires a positive integer"
+            )
+        if (
+            isinstance(amount, bool)
+            or not isinstance(amount, int)
+            or amount < 0
+        ):
+            raise ValueError(
+                f"{source_file} card {card_id}/amount: "
+                "incoming_damage_replacement requires a non-negative integer"
+            )
+        if amount >= threshold:
+            raise ValueError(
+                f"{source_file} card {card_id}: incoming damage replacement "
+                "amount must be lower than its threshold"
+            )
+        return CardPassive(
+            card_id=int(card_id),
+            kind=kind,
+            amount=amount,
+            threshold=threshold,
         )
     if kind in {
         "cannot_be_played",
@@ -2344,6 +2447,20 @@ _BINDABLE_TARGETS = frozenset({
     TargetKind.RANDOM_OWN_BOARD,
     TargetKind.RANDOM_ENEMY_BOARD,
     TargetKind.OWN_HAND,
+})
+
+_SUCCESSFUL_DESTROY_BINDING_TARGETS = (
+    _BINDABLE_TARGETS - {TargetKind.OWN_HAND}
+) | frozenset({
+    TargetKind.SELF,
+    TargetKind.ALL_OWN_UNITS,
+    TargetKind.ALL_ENEMY_UNITS,
+    TargetKind.ALL_UNITS,
+    TargetKind.ALL_OWN_BOARD,
+    TargetKind.ALL_ENEMY_BOARD,
+    TargetKind.ALL_BOARD,
+    TargetKind.ALL_OWN_AMULETS,
+    TargetKind.ALL_ENEMY_AMULETS,
 })
 
 _REQUIRES_TARGET_TARGETS = frozenset({
@@ -2559,6 +2676,13 @@ def _validate_target_keys(
                 output_binding_is_single = (
                     binding_operation.kind
                     in {EffectKind.SUMMON, EffectKind.SUMMON_EXACT_COPY}
+                    or (
+                        binding_operation.kind is EffectKind.DESTROY
+                        and binding_operation.bind_successful_targets
+                        and binding_operation.target not in _ALL_TARGETS
+                        and binding_operation.target_count == 1
+                        and binding_operation.target_count_expr is None
+                    )
                     or binding_operation.kind is EffectKind.REANIMATE
                     or binding_operation.kind is EffectKind.ADD_CARD
                     or (
@@ -2577,15 +2701,24 @@ def _validate_target_keys(
                     )
                 )
                 selected_binding_is_single = (
-                    binding_operation.kind not in _OUTPUT_BINDING_EFFECTS
+                    not _operation_produces_output_binding(binding_operation)
                     and binding_operation.target_count == 1
                     and binding_operation.target_count_expr is None
                 )
-                if not (output_binding_is_single or selected_binding_is_single):
+                if (
+                    _expression_binding_requires_single(
+                        expression,
+                        binding_key,
+                    )
+                    and not (
+                        output_binding_is_single
+                        or selected_binding_is_single
+                    )
+                ):
                     raise ValueError(
                         f"{source}/operations[{i}]/{expression_name}: "
-                        "bound_card_cost requires a binding that produces or "
-                        "selects exactly one card"
+                        "bound-card expressions require a binding that "
+                        "produces or selects exactly one card"
                     )
         if op.condition_target_key:
             if op.kind is not EffectKind.CONDITIONAL:
@@ -2608,6 +2741,13 @@ def _validate_target_keys(
                 output_binding_is_single = (
                     binding_operation.kind
                     in {EffectKind.SUMMON, EffectKind.SUMMON_EXACT_COPY}
+                    or (
+                        binding_operation.kind is EffectKind.DESTROY
+                        and binding_operation.bind_successful_targets
+                        and binding_operation.target not in _ALL_TARGETS
+                        and binding_operation.target_count == 1
+                        and binding_operation.target_count_expr is None
+                    )
                     or binding_operation.kind is EffectKind.REANIMATE
                     or binding_operation.kind is EffectKind.ADD_CARD
                     or (
@@ -2626,7 +2766,7 @@ def _validate_target_keys(
                     )
                 )
                 selected_binding_is_single = (
-                    binding_operation.kind not in _OUTPUT_BINDING_EFFECTS
+                    not _operation_produces_output_binding(binding_operation)
                     and binding_operation.target_count == 1
                     and binding_operation.target_count_expr is None
                 )
@@ -2648,7 +2788,7 @@ def _validate_target_keys(
                     )
         elif op.target_key:
             if (
-                op.kind not in _OUTPUT_BINDING_EFFECTS
+                not _operation_produces_output_binding(op)
                 and op.target not in _BINDABLE_TARGETS
             ):
                 raise ValueError(
@@ -2837,10 +2977,11 @@ def _parse_operation(
     if target is TargetKind.ALL_LEADERS and kind not in {
         EffectKind.DAMAGE_LEADER,
         EffectKind.HEAL_LEADER,
+        EffectKind.REMOVE_ALL_EMBLEMS,
     }:
         raise ValueError(
             f"{source_file}/target card {card_id}: all_leaders requires "
-            "damage_leader or heal_leader"
+            "a leader-wide effect"
         )
 
     include_leader = raw.get("include_leader", False)
@@ -3368,6 +3509,17 @@ def _parse_operation(
                 f"{source_file}/target card {card_id}: {kind.value} "
                 "requires own_leader or enemy_leader"
             )
+    elif kind is EffectKind.REMOVE_ALL_EMBLEMS:
+        if emblem_id is not None:
+            raise ValueError(
+                f"{source_file}/emblem_id card {card_id}: "
+                "remove_all_emblems does not accept an emblem filter"
+            )
+        if target is not TargetKind.ALL_LEADERS:
+            raise ValueError(
+                f"{source_file}/target card {card_id}: "
+                "remove_all_emblems requires all_leaders"
+            )
     elif kind in {EffectKind.REDUCE_COUNTDOWN, EffectKind.INCREASE_COUNTDOWN}:
         if emblem_id is not None and (
             not isinstance(emblem_id, str) or not emblem_id
@@ -3406,6 +3558,28 @@ def _parse_operation(
         raise ValueError(
             f"{source_file}/target_key card {card_id}: must be a string"
         )
+    bind_successful_targets = raw.get("bind_successful_targets", False)
+    if not isinstance(bind_successful_targets, bool):
+        raise ValueError(
+            f"{source_file}/bind_successful_targets card {card_id}: "
+            "must be boolean"
+        )
+    if "bind_successful_targets" in raw and kind is not EffectKind.DESTROY:
+        raise ValueError(
+            f"{source_file}/bind_successful_targets card {card_id}: "
+            "is only valid for destroy"
+        )
+    if bind_successful_targets:
+        if not target_key:
+            raise ValueError(
+                f"{source_file}/bind_successful_targets card {card_id}: "
+                "requires a non-empty target_key"
+            )
+        if target not in _SUCCESSFUL_DESTROY_BINDING_TARGETS:
+            raise ValueError(
+                f"{source_file}/bind_successful_targets card {card_id}: "
+                "requires board-entity destroy targets"
+            )
     if target is TargetKind.PREVIOUS_TARGET:
         if not target_key:
             raise ValueError(
@@ -4648,6 +4822,7 @@ def _parse_operation(
             and (raw.get("secondary_amount") is not None or raw.get("health") is not None or secondary_expr is not None)
         ),
         target_key=target_key,
+        bind_successful_targets=bind_successful_targets,
         condition_target_key=condition_target_key,
         earth_rite_operations=earth_rite_ops,
         necromancy_operations=necromancy_ops,
@@ -4870,7 +5045,11 @@ def _parse_expression(raw: dict, source_path: str, card_id: int) -> ValueExpress
     ]
 
     binding_key = raw.get("binding_key")
-    if t in {ExprType.BOUND_CARD_COST, ExprType.BOUND_TARGET_HEALTH}:
+    if t in {
+        ExprType.BOUND_CARD_COST,
+        ExprType.BOUND_TARGET_HEALTH,
+        ExprType.BOUND_TARGET_COUNT,
+    }:
         if not isinstance(binding_key, str) or not binding_key:
             raise ValueError(
                 f"{source_path}/binding_key card {card_id}: "
@@ -4879,7 +5058,7 @@ def _parse_expression(raw: dict, source_path: str, card_id: int) -> ValueExpress
     elif binding_key is not None:
         raise ValueError(
             f"{source_path}/binding_key card {card_id}: binding_key is only "
-            "valid for bound_card_cost or bound_target_health"
+            "valid for a bound-target expression"
         )
 
     aggregate_types = {
@@ -4977,6 +5156,7 @@ def _parse_expression(raw: dict, source_path: str, card_id: int) -> ValueExpress
                ExprType.SOURCE_COST,
                ExprType.BOUND_CARD_COST,
                ExprType.BOUND_TARGET_HEALTH,
+               ExprType.BOUND_TARGET_COUNT,
                ExprType.SOURCE_ATTACK, ExprType.SOURCE_HEALTH,
                ExprType.TARGET_ATTACK, ExprType.TARGET_HEALTH,
                ExprType.CONTROLLER_SHADOWS, ExprType.OPPONENT_SHADOWS,

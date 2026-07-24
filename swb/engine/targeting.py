@@ -43,6 +43,7 @@ _BOARD_TARGETS = frozenset({
     TargetKind.RANDOM_ENEMY_BOARD,
     TargetKind.ALL_OWN_BOARD,
     TargetKind.ALL_ENEMY_BOARD,
+    TargetKind.ALL_BOARD,
 })
 
 _MANUAL_TARGETS = frozenset({

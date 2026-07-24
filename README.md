@@ -38,14 +38,14 @@ covered generic boundary, but that never upgrades a partial or placeholder
 keyword whose full tagged-card semantics still require structured rules.
 
 The [rule coverage report](data/reports/rule_coverage.md) now includes a
-clause-audit layer without changing its legacy coverage categories. Of 663
-exact collectible cards (90.20% of 735), all 663 have explicit implemented text and named direct
+clause-audit layer without changing its legacy coverage categories. Of 668
+exact collectible cards (90.88% of 735), all 668 have explicit implemented text and named direct
 test evidence. The sibling `data/audits/rule_clauses.json` registry hashes every
 imported skill and alternate-mode clause, so a database text change or stale
 test reference invalidates the audit instead of silently retaining exact
 status. The current report has no unverified exact entry or missing generic
 schema, primitive, targeting, or timing blocker. Its remaining collectible gaps
-are 56 missing per-card structured rules plus 16 explicitly unclear texts.
+are 51 missing per-card structured rules plus 16 explicitly unclear texts.
 Rule metadata also supports version and errata fields, and the report
 records the complete imported source snapshot hash.
 
@@ -447,6 +447,19 @@ The deterministic rules core supports:
   per-follower Last-Words-removal bit (160 public-board runtime values instead
   of 150); the derived formal observation manifest is versioned as
   `observation-v3.1` without changing the 111 action IDs;
+- generic destroy output bindings retain only targets actually destroyed, and
+  `bound_target_count` exposes that successful-result cardinality to later
+  effects. Structured incoming-damage replacement applies before Barrier and
+  is disabled by printed-ability removal. Global `all_board` filters and
+  `remove_all_emblems` cover both leaders without card-ID branches, while exact
+  Rush/Storm copies receive the normal same-turn attack readiness. Exact
+  `10163110`, `10401110`, `10464120`, `10711110`, and `10804110` cover
+  destroyed-amulet damage, thresholded damage replacement, seeded distinct
+  Union Burst targets, selected double banish, Super Skybound Art, exact-copy
+  readiness, and all three global banish Modes. Direct tests cover prevention,
+  zero/no/stale/illegal targets, board capacity, simultaneous deaths,
+  deterministic randomness, Clause/Token audits, pending choices, and
+  command/action-mask parity without changing observation or action schemas;
 - filtered hand-count conditions reuse the same type/class/identity/trait
   definition filters as hand targeting. Exact `10521120` counts only spells
   before conditionally gaining +1/+1 and Ward, while exact `10741120` and
