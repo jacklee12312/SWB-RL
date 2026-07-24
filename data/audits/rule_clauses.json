@@ -6916,6 +6916,87 @@
       "source_text_sha256": "68c9115eb365cd9112b6f4124134a568ba93df3040c62e12f74ce4cb9c8125f4",
       "test_evidence": ["tests/test_real_hand_runtime_existing_eighth_batch.py"],
       "notes": "职业/类型/原始费用过滤、抽取输出设费、无匹配、爆能强化非法不变性、攻击目标受伤重验、未受伤路径、固有突进和RL掩码均有直接测试。"
+    },
+    {
+      "card_id": 10131110,
+      "coverage": "exact",
+      "implemented_text": "【魔力增幅时】本随从+1/+1；【入场曲】选择1个敌方随从并造成等同本随从当前攻击力的伤害。",
+      "rule_version": 1,
+      "source_text_sha256": "612855ae9602ad0f8ea1f3f833426fa459fba180c65bbd3b44ced596efb7eb76",
+      "test_evidence": ["tests/test_real_existing_primitives_ninth_batch.py"],
+      "notes": "手牌来源自身监听、连续魔力增幅、运行时攻击力取值、目标成立与不存在以及来源入场后的状态均有直接测试。"
+    },
+    {
+      "card_id": 10144110,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】选择并舍弃1张自己的手牌，对敌方全体随从造成等同被舍弃实体费用快照的伤害；【超进化时】使对手获得纹章：灼热的安纳提玛·班德奈特；该纹章在持有者回合开始时对其主战者造成1点伤害，并在持有者回合中每回合限1次于其主战者回复时再造成1点伤害。",
+      "rule_version": 1,
+      "source_text_sha256": "4f7fb512146a0029ee084ffe179faf2c1ac9a303299a2b6c92e2774ec129f77e",
+      "test_evidence": ["tests/test_real_existing_primitives_ninth_batch.py"],
+      "notes": "舍弃实体费用绑定、无其他手牌、选择后离手、全体伤害、敌方纹章归属、回合范围、回合开始及回复每回合一次均有直接测试。"
+    },
+    {
+      "card_id": 10254120,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】依次发动亡者召还2与亡者召还1；自己的亡者随从进入战场时使其获得【守护】；【超进化时】获得倒数2的纹章：流动堕落的冥河·凯伦；该纹章在自己的回合开始时发动亡者召还3。",
+      "rule_version": 1,
+      "source_text_sha256": "1f92fd41a9347c1b437c8e8d23d373e8e5d5166b0ba49bd90f35259a253e767d",
+      "test_evidence": ["tests/test_real_existing_primitives_ninth_batch.py"],
+      "notes": "两段亡者召还、亡者特性过滤、入场来源守护、纹章倒数、己方回合开始、场面实体与不变量均有直接测试。"
+    },
+    {
+      "card_id": 10313110,
+      "coverage": "exact",
+      "implemented_text": "本随从进入战场时召唤1个本随从的完全相同复制品，并在其入场事件公开前使复制品-0/-1；固有【突进】【守护】。",
+      "rule_version": 1,
+      "source_text_sha256": "1fa2b6be56b29648e0e01950847f3296c996ae3a9406f6ef9ac95af50c627902",
+      "test_evidence": ["tests/test_real_existing_primitives_ninth_batch.py"],
+      "notes": "运行时属性与能力复制、递归入场的6/5/4/3/2生命链、满场终止、来源离场安全跳过、固有关键字及固定种子均有直接测试。"
+    },
+    {
+      "card_id": 10434110,
+      "coverage": "exact",
+      "implemented_text": "【魔力增幅时】本随从+1/+1；【入场曲】使自己的所有手牌发动1次魔力增幅；【超进化时】【模式】选择：使其他所有己方随从获得【屏障】，或按本随从当前攻击力向敌方全体随从分配伤害。",
+      "rule_version": 1,
+      "source_text_sha256": "d9b2eff4d8c499acde0ddb7ce8eedeac834150e91cc345e1939a747383dac8c4",
+      "test_evidence": ["tests/test_real_existing_primitives_ninth_batch.py"],
+      "notes": "手牌自身增幅监听、全手牌增幅、两种Mode、排除来源、固定种子分配总量、选择非法不变性及action mask一致性均有直接测试。"
+    },
+    {
+      "card_id": 10532110,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】获得倒数2的纹章：失眠女巫；【进化时】破坏自己的该纹章；纹章【谢幕曲】对场上所有随从造成3点伤害。",
+      "rule_version": 1,
+      "source_text_sha256": "f2d8219ff2fe110b45deb3b42f4d356e008cdc56543c80097ffe7b4b14c5a101",
+      "test_evidence": ["tests/test_real_existing_primitives_ninth_batch.py"],
+      "notes": "纹章获得与效果破坏、谢幕曲、双方全体伤害、同时死亡收集、进化来源存活和状态不变量均有直接测试。"
+    },
+    {
+      "card_id": 10634110,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】召唤2个天晶魔手；固有【虹吸】；【超进化时】获得纹章：魔恋的爱慕·希姆；该纹章在己方天晶魔手攻击宣告时使该攻击来源+1/+0。",
+      "rule_version": 1,
+      "source_text_sha256": "b6301b0e837e0d1bb8dbfd1602040b5d4cf6ce4fd6b311a8e3fae6e03bf47b78",
+      "test_evidence": ["tests/test_real_existing_primitives_ninth_batch.py"],
+      "notes": "关联Token两次召唤、场面容量、固有虹吸、纹章获得、卡ID事件过滤、攻击前加成与战斗伤害均有直接测试。"
+    },
+    {
+      "card_id": 10862110,
+      "coverage": "exact",
+      "implemented_text": "固有【守护】【灵气】；【谢幕曲】召唤1个天阳的使徒·艾迪特并仅使其失去【谢幕曲】；【超进化时】选择并破坏1个敌方随从。",
+      "rule_version": 1,
+      "source_text_sha256": "3b33d0f47acbb79f803df7c5bcaa109e24e3c303ee32204a791112ec724bb7e6",
+      "test_evidence": ["tests/test_real_existing_primitives_ninth_batch.py"],
+      "notes": "复生体只移除谢幕曲且保留守护与灵气、再次死亡不递归、同时死亡、超进化目标成立/不存在/离场及状态不变量均有直接测试。"
+    },
+    {
+      "card_id": 10871110,
+      "coverage": "exact",
+      "implemented_text": "固有【守护】；【谢幕曲】召唤1个满溢的幸福·库伦特司并仅使其失去【谢幕曲】。",
+      "rule_version": 1,
+      "source_text_sha256": "97bfb3aac677317ed1d67edb876dd63e96bedfca261060ab4abd0ce9f9439e1f",
+      "test_evidence": ["tests/test_real_existing_primitives_ninth_batch.py"],
+      "notes": "复生体只移除谢幕曲并保留守护、再次死亡不递归、与另一谢幕曲同时死亡的稳定顺序及状态不变量均有直接测试。"
     }
   ]
 }

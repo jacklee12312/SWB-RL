@@ -130,7 +130,7 @@ def observation_v3_space(env: ShadowverseEnv) -> spaces.Dict:
         "own_hand_origins": categorical((env.MAX_HAND,)),
         "public_board_origins": categorical((2 * env.MAX_BOARD,)),
         "own_hand_runtime": continuous((env.MAX_HAND * 10,)),
-        "public_board_runtime": continuous((2 * env.MAX_BOARD * 15,)),
+        "public_board_runtime": continuous((2 * env.MAX_BOARD * 16,)),
         "public_board_keywords": continuous(
             (2 * env.MAX_BOARD * len(RUNTIME_KEYWORDS),)
         ),

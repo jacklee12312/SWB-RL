@@ -87,7 +87,7 @@ class ObservationV2Tests(unittest.TestCase):
         self.assertEqual(len(observation["card_indices"]["public_board"]), 10)
         self.assertEqual(len(observation["card_indices"]["initial_decks"][0]), 140)
         self.assertEqual(len(observation["own_hand_runtime"]), 90)
-        self.assertEqual(len(observation["public_board_runtime"]), 150)
+        self.assertEqual(len(observation["public_board_runtime"]), 160)
         self.assertEqual(len(observation["choice"]["option_references"]), 16)
         self.assertEqual(len(observation["public_history"]["event_types"]), 16)
         self.assertEqual(
@@ -152,6 +152,10 @@ class ObservationV2Tests(unittest.TestCase):
         second_unit.origin = CardOrigin.TRANSFORMED
         second_unit.printed_abilities_removed = True
         self.assertNotEqual(first.observation(), second.observation())
+
+        before_last_words = first.observation()
+        first_unit.last_words_removed = True
+        self.assertNotEqual(before_last_words, first.observation())
 
         before_scope = first.observation()
         first_unit.turn_end_destroy_timings.add(

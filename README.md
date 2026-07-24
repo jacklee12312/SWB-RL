@@ -38,14 +38,14 @@ covered generic boundary, but that never upgrades a partial or placeholder
 keyword whose full tagged-card semantics still require structured rules.
 
 The [rule coverage report](data/reports/rule_coverage.md) now includes a
-clause-audit layer without changing its legacy coverage categories. Of 654
-exact collectible cards (88.98% of 735), all 654 have explicit implemented text and named direct
+clause-audit layer without changing its legacy coverage categories. Of 663
+exact collectible cards (90.20% of 735), all 663 have explicit implemented text and named direct
 test evidence. The sibling `data/audits/rule_clauses.json` registry hashes every
 imported skill and alternate-mode clause, so a database text change or stale
 test reference invalidates the audit instead of silently retaining exact
 status. The current report has no unverified exact entry or missing generic
 schema, primitive, targeting, or timing blocker. Its remaining collectible gaps
-are 65 missing per-card structured rules plus 16 explicitly unclear texts.
+are 56 missing per-card structured rules plus 16 explicitly unclear texts.
 Rule metadata also supports version and errata fields, and the report
 records the complete imported source snapshot hash.
 
@@ -128,7 +128,7 @@ random, fixed, and historical opponent mixing remains on the single-process
 collector. The balanced class schedule is not an adaptive curriculum, and the
 same-class fixed evaluation suite is not yet a 7x7 cross-class policy-strength
 matrix. Snapshot/clone is the search foundation only. Card-rule
-coverage also remains deliberately separate: 65 collectible cards still lack
+coverage also remains deliberately separate: 56 collectible cards still lack
 per-card structured rules and 16 card texts remain explicitly unclear; neither
 group enters the exact training catalog or counts as supported.
 
@@ -428,6 +428,25 @@ The deterministic rules core supports:
   generated-card keyword/stat grants, Rally capacity, gauge increments,
   Enhance draw/set-cost, damaged-target Follower Strike, stale outputs,
   deterministic replay, and RL command-mask parity;
+- generic `summon_exact_copy` copies a live follower's runtime stats,
+  evolution state, keyword/ability modifiers, restrictions, and selective
+  Last Words-removal state into a newly entered entity before emitting its
+  summon event; optional stat deltas allow recursive exact-copy clauses to
+  observe the already-adjusted copy. Generic `remove_last_words` suppresses
+  only the follower's Last Words while preserving Ward, Aura, and unrelated
+  printed/runtime abilities. Hand-listener `buff_hand_card(target=self)` is
+  schema-scoped to the hand-listener context. Exact `10131110`, `10144110`,
+  `10254120`, `10313110`, `10434110`, `10532110`, `10634110`, `10862110`,
+  and `10871110` cover hand Spellboost stats, bound discard cost, four crests,
+  Reanimate/Trait Ward, recursive exact copies, both Super-Evolve Modes,
+  simultaneous crest damage, a referenced follower chain, and self-replacing
+  Last Words that retain non-Last-Words abilities. Direct tests cover
+  no/stale/illegal targets, hand/board capacity, source departure,
+  simultaneous deaths, deterministic replay, multilingual hashes, Clause and
+  Token audits, and action-mask parity. Observation v2 now exposes the public
+  per-follower Last-Words-removal bit (160 public-board runtime values instead
+  of 150); the derived formal observation manifest is versioned as
+  `observation-v3.1` without changing the 111 action IDs;
 - filtered hand-count conditions reuse the same type/class/identity/trait
   definition filters as hand targeting. Exact `10521120` counts only spells
   before conditionally gaining +1/+1 and Ward, while exact `10741120` and

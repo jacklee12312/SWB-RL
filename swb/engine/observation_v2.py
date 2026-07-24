@@ -64,7 +64,7 @@ def _hand_runtime(card: HandCard | None, turn: int) -> tuple[float, ...]:
 
 def _board_runtime(entity) -> tuple[float, ...]:
     if entity is None:
-        return (0.0,) * 15
+        return (0.0,) * 16
     if isinstance(entity, Amulet):
         return (
             1.0,
@@ -73,6 +73,7 @@ def _board_runtime(entity) -> tuple[float, ...]:
             min(entity.earth_sigil_count, 20) / 20,
             float(entity.pending_destroy),
             min(len(entity.fused_material_ids), 9) / 9,
+            0.0,
             0.0,
             0.0,
             0.0,
@@ -95,6 +96,7 @@ def _board_runtime(entity) -> tuple[float, ...]:
         min(len(entity.attack_restrictions), 3) / 3,
         min(len(entity.targeting_restrictions), 3) / 3,
         float(entity.printed_abilities_removed),
+        float(entity.last_words_removed),
         float(entity.evolved),
         float(entity.super_evolved),
         float(
@@ -397,7 +399,7 @@ def observation_v2_spec(env: ShadowverseEnv) -> dict[str, object]:
         "graveyard_histograms": (2, len(env.card_vocabulary)),
         "banished_histograms": (2, len(env.card_vocabulary)),
         "own_hand_runtime": env.MAX_HAND * 10,
-        "public_board_runtime": 2 * env.MAX_BOARD * 15,
+        "public_board_runtime": 2 * env.MAX_BOARD * 16,
         "public_board_keyword_bits": 2 * env.MAX_BOARD * len(RUNTIME_KEYWORDS),
         "leader_area_slots_per_player": MAX_LEADER_AREA_SLOTS,
         "leader_damage_modifier_runtime": (

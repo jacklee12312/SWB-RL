@@ -529,6 +529,7 @@ class Unit(BoardEntity):
     attack_restrictions: list[AttackRestrictionModifier] = field(default_factory=list)
     targeting_restrictions: list[TargetingRestrictionModifier] = field(default_factory=list)
     printed_abilities_removed: bool = False
+    last_words_removed: bool = False
     turn_end_destroy_timings: set[TurnEndDestroyTiming] = field(
         default_factory=set
     )
@@ -602,6 +603,9 @@ class Unit(BoardEntity):
         self.turn_end_destroy_timings.clear()
         self._adjust_attack_capacity(old_capacity)
         self._synchronize_keyword_state()
+
+    def remove_last_words(self) -> None:
+        self.last_words_removed = True
 
     @property
     def attacks_per_turn(self) -> int:

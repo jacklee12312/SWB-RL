@@ -78,6 +78,7 @@ _HAND_TARGETS = frozenset({
 
 _OUTPUT_BINDING_EFFECTS = frozenset({
     EffectKind.SUMMON,
+    EffectKind.SUMMON_EXACT_COPY,
     EffectKind.SUMMON_HAND_COPY,
     EffectKind.SUMMON_FROM_DECK,
     EffectKind.DRAW,
@@ -1217,6 +1218,7 @@ def _parse_listener_definition(
             f"{source_path}/operations[{index}]",
             card_id,
             _allow_event_source=True,
+            _allow_hand_self=zone is ListenerZone.HAND,
         )
         for index, operation in enumerate(raw_operations)
     )
@@ -2486,6 +2488,7 @@ _EVENT_SOURCE_TARGET_EFFECTS = frozenset({
     EffectKind.ADD_KEYWORD,
     EffectKind.REMOVE_KEYWORD,
     EffectKind.REMOVE_ALL_ABILITIES,
+    EffectKind.REMOVE_LAST_WORDS,
     EffectKind.GRANT_ATTACKS_PER_TURN,
     EffectKind.TRANSFORM,
     EffectKind.SET_STATS,
@@ -2554,7 +2557,8 @@ def _validate_target_keys(
                     )
                 binding_operation = binding_operations[binding_key]
                 output_binding_is_single = (
-                    binding_operation.kind is EffectKind.SUMMON
+                    binding_operation.kind
+                    in {EffectKind.SUMMON, EffectKind.SUMMON_EXACT_COPY}
                     or binding_operation.kind is EffectKind.REANIMATE
                     or binding_operation.kind is EffectKind.ADD_CARD
                     or (
@@ -2602,7 +2606,8 @@ def _validate_target_keys(
                 binding_operation = binding_operations[op.condition_target_key]
             if binding_operation is not None:
                 output_binding_is_single = (
-                    binding_operation.kind is EffectKind.SUMMON
+                    binding_operation.kind
+                    in {EffectKind.SUMMON, EffectKind.SUMMON_EXACT_COPY}
                     or binding_operation.kind is EffectKind.REANIMATE
                     or binding_operation.kind is EffectKind.ADD_CARD
                     or (
@@ -2719,6 +2724,7 @@ def _parse_operation(
     *,
     _allow_event_source: bool = False,
     _allow_distributed_value: bool = False,
+    _allow_hand_self: bool = False,
 ) -> EffectOperation:
     if _depth > 16:
         raise ValueError(f"{source_file} card {card_id}: nested effect depth exceeds maximum of 16")
@@ -3074,7 +3080,10 @@ def _parse_operation(
                 f"{keyword!r} is not a supported runtime unit keyword"
             )
 
-    if kind is EffectKind.REMOVE_ALL_ABILITIES and target not in (
+    if kind in {
+        EffectKind.REMOVE_ALL_ABILITIES,
+        EffectKind.REMOVE_LAST_WORDS,
+    } and target not in (
         TargetKind.SELF,
         TargetKind.EVENT_SOURCE,
         TargetKind.OWN_UNIT,
@@ -3088,7 +3097,7 @@ def _parse_operation(
         TargetKind.PREVIOUS_TARGET,
     ):
         raise ValueError(
-            f"{source_file}/target card {card_id}: remove_all_abilities "
+            f"{source_file}/target card {card_id}: {kind.value} "
             "requires a follower target"
         )
     if kind is EffectKind.GRANT_ATTACKS_PER_TURN:
@@ -3551,6 +3560,7 @@ def _parse_operation(
                 card_id,
                 _depth + 1,
                 _allow_event_source=_allow_event_source,
+                _allow_hand_self=_allow_hand_self,
             )
             for i, op in enumerate(raw_inner)
         )
@@ -3616,6 +3626,7 @@ def _parse_operation(
                 card_id,
                 _depth + 1,
                 _allow_event_source=_allow_event_source,
+                _allow_hand_self=_allow_hand_self,
             )
             for i, op in enumerate(raw_inner)
         )
@@ -3664,6 +3675,7 @@ def _parse_operation(
                 card_id,
                 _depth + 1,
                 _allow_event_source=_allow_event_source,
+                _allow_hand_self=_allow_hand_self,
             )
             for i, op in enumerate(raw_inner)
         )
@@ -3706,6 +3718,7 @@ def _parse_operation(
                 card_id,
                 _depth + 1,
                 _allow_event_source=_allow_event_source,
+                _allow_hand_self=_allow_hand_self,
             )
             for i, op in enumerate(raw_inner)
         )
@@ -3948,7 +3961,7 @@ def _parse_operation(
                 f"{source_file}/amount card {card_id}: copy_to_hand "
                 "requires a non-negative integer cost-change amount"
             )
-    if kind is EffectKind.SUMMON_COPY:
+    if kind in {EffectKind.SUMMON_COPY, EffectKind.SUMMON_EXACT_COPY}:
         if target not in {
             TargetKind.SELF,
             TargetKind.OWN_UNIT,
@@ -3959,7 +3972,7 @@ def _parse_operation(
             TargetKind.PREVIOUS_TARGET,
         }:
             raise ValueError(
-                f"{source_file}/target card {card_id}: summon_copy requires "
+                f"{source_file}/target card {card_id}: {kind.value} requires "
                 f"a follower, self, or previous target, got {target.value!r}"
             )
     if kind is EffectKind.SUMMON_HAND_COPY and target is not TargetKind.OWN_HAND:
@@ -4082,6 +4095,7 @@ def _parse_operation(
             )
     if kind is EffectKind.BUFF_HAND_CARD:
         if target not in {
+            TargetKind.SELF,
             TargetKind.OWN_HAND,
             TargetKind.RANDOM_OWN_HAND,
             TargetKind.ALL_OWN_HAND,
@@ -4091,8 +4105,13 @@ def _parse_operation(
                 f"{source_file}/target card {card_id}: buff_hand_card requires "
                 "an own-hand target"
             )
+        if target is TargetKind.SELF and not _allow_hand_self:
+            raise ValueError(
+                f"{source_file}/target card {card_id}: buff_hand_card target "
+                "'self' is only valid inside a hand listener"
+            )
         if (
-            target is not TargetKind.PREVIOUS_TARGET
+            target not in {TargetKind.SELF, TargetKind.PREVIOUS_TARGET}
             and (hand_filter is None or hand_filter.card_type != "随从")
         ):
             raise ValueError(
@@ -4276,6 +4295,7 @@ def _parse_operation(
                     _depth + 1,
                     _allow_event_source=_allow_event_source,
                     _allow_distributed_value=True,
+                    _allow_hand_self=_allow_hand_self,
                 )
                 for operation_index, operation in enumerate(raw_bucket)
             ))
@@ -4341,6 +4361,7 @@ def _parse_operation(
                 card_id,
                 _depth + 1,
                 _allow_event_source=_allow_event_source,
+                _allow_hand_self=_allow_hand_self,
             )
             for idx, op in enumerate(raw_repeat_ops)
         )
@@ -4390,6 +4411,7 @@ def _parse_operation(
                 card_id,
                 _depth + 1,
                 _allow_event_source=_allow_event_source,
+                _allow_hand_self=_allow_hand_self,
             )
             for idx, op in enumerate(raw_then)
         )
@@ -4405,6 +4427,7 @@ def _parse_operation(
                     card_id,
                     _depth + 1,
                     _allow_event_source=_allow_event_source,
+                    _allow_hand_self=_allow_hand_self,
                 )
                 for idx, op in enumerate(raw_else)
             )
@@ -4456,6 +4479,7 @@ def _parse_operation(
                 card_id,
                 _depth + 1,
                 _allow_event_source=_allow_event_source,
+                _allow_hand_self=_allow_hand_self,
             )
             for idx, op in enumerate(raw_then)
         )
@@ -4470,6 +4494,7 @@ def _parse_operation(
                 card_id,
                 _depth + 1,
                 _allow_event_source=_allow_event_source,
+                _allow_hand_self=_allow_hand_self,
             )
             for idx, op in enumerate(raw_else)
         )
@@ -4538,6 +4563,7 @@ def _parse_operation(
                     card_id,
                     _depth + 1,
                     _allow_event_source=_allow_event_source,
+                    _allow_hand_self=_allow_hand_self,
                 )
                 for j, op in enumerate(raw_opt_ops)
             )
@@ -4585,6 +4611,7 @@ def _parse_operation(
                 card_id,
                 _depth + 1,
                 _allow_event_source=_allow_event_source,
+                _allow_hand_self=_allow_hand_self,
             )
             for idx, op in enumerate(raw_ops)
         )

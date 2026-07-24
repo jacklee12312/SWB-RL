@@ -192,7 +192,10 @@ _SOURCE_REQUIRED_SELF_TARGET_EFFECTS = frozenset({
     EffectKind.INCREASE_COUNTDOWN,
     EffectKind.ADD_KEYWORD,
     EffectKind.REMOVE_KEYWORD,
+    EffectKind.REMOVE_ALL_ABILITIES,
+    EffectKind.REMOVE_LAST_WORDS,
     EffectKind.GRANT_ATTACKS_PER_TURN,
+    EffectKind.SUMMON_EXACT_COPY,
     EffectKind.TRANSFORM,
     EffectKind.SET_STATS,
     EffectKind.ADD_ATTACK_RESTRICTION,
@@ -208,6 +211,7 @@ _EVENT_SOURCE_BOARD_EFFECTS = _SOURCE_REQUIRED_SELF_TARGET_EFFECTS | frozenset({
 
 _OUTPUT_BINDING_EFFECTS = frozenset({
     EffectKind.SUMMON,
+    EffectKind.SUMMON_EXACT_COPY,
     EffectKind.SUMMON_HAND_COPY,
     EffectKind.SUMMON_FROM_DECK,
     EffectKind.DRAW,
@@ -3208,6 +3212,7 @@ class GameEngine:
                     for modifier in entity.targeting_restrictions
                 ),
                 "printed_abilities_removed": entity.printed_abilities_removed,
+                "last_words_removed": entity.last_words_removed,
                 "turn_end_destroy_timings": tuple(
                     sorted(
                         timing.value
@@ -5500,6 +5505,7 @@ class GameEngine:
             return True
         if binding_operation.kind in {
             EffectKind.SUMMON,
+            EffectKind.SUMMON_EXACT_COPY,
             EffectKind.SUMMON_HAND_COPY,
             EffectKind.SUMMON_FROM_DECK,
             EffectKind.REANIMATE,
@@ -7503,6 +7509,8 @@ class GameEngine:
             self._execute_summon(effect, frame)
         elif effect.kind is EffectKind.SUMMON_COPY:
             self._execute_summon_copy(effect, frame, target_id)
+        elif effect.kind is EffectKind.SUMMON_EXACT_COPY:
+            self._execute_summon_exact_copy(effect, frame, target_id)
         elif effect.kind is EffectKind.SUMMON_HAND_COPY:
             self._execute_summon_hand_copy(effect, frame, target_id)
         elif effect.kind is EffectKind.SUMMON_FROM_DECK:
@@ -7533,6 +7541,8 @@ class GameEngine:
             self._execute_keyword_change(effect, frame, target_id, add=False)
         elif effect.kind is EffectKind.REMOVE_ALL_ABILITIES:
             self._execute_remove_all_abilities(frame, target_id)
+        elif effect.kind is EffectKind.REMOVE_LAST_WORDS:
+            self._execute_remove_last_words(frame, target_id)
         elif effect.kind is EffectKind.GRANT_ATTACKS_PER_TURN:
             self._execute_grant_attacks_per_turn(effect, frame, target_id)
         elif effect.kind is EffectKind.GRANT_TURN_END_DESTROY:
@@ -7830,6 +7840,22 @@ class GameEngine:
             metadata={"card_id": target.definition.card_id},
         ))
         self._log(frame.controller, f"{target.definition.name} 失去所有能力")
+
+    def _execute_remove_last_words(
+        self, frame: EffectFrame, target_id: int | None
+    ) -> None:
+        target = self._find_board_entity(target_id)
+        if not isinstance(target, Unit):
+            raise IllegalCommand("remove_last_words target must be a follower")
+        target.remove_last_words()
+        self._emit(GameEvent(
+            EventType.FOLLOWER_LAST_WORDS_REMOVED,
+            frame.controller,
+            source_id=frame.source_entity_id,
+            target_id=target.entity_id,
+            metadata={"card_id": target.definition.card_id},
+        ))
+        self._log(frame.controller, f"{target.definition.name} 失去谢幕曲")
 
     def _execute_add_leader_damage_modifier(
         self, effect: EffectOperation, frame: EffectFrame
@@ -8358,6 +8384,120 @@ class GameEngine:
             )
         )
 
+    def _execute_summon_exact_copy(
+        self,
+        effect: EffectOperation,
+        frame: EffectFrame,
+        target_id: int | None,
+    ) -> None:
+        try:
+            source = self._find_board_entity(target_id)
+        except IllegalCommand:
+            return
+        if not isinstance(source, Unit):
+            raise IllegalCommand(
+                "SUMMON_EXACT_COPY requires a live follower target"
+            )
+        player = self.players[frame.controller]
+        if len(player.board) >= self.config.max_board:
+            self._log(
+                frame.controller,
+                f"{frame.source_name} 完全相同复制召唤失败：场地已满",
+            )
+            return
+
+        unit = self._summon_follower_to_board(
+            frame.controller,
+            source.definition,
+            summon_cause="exact_copy_summon",
+            origin=origin_for_summoned_card(source.definition),
+            source_origin=source.source_origin or source.origin,
+        )
+        if unit is None:
+            return
+
+        unit.base_attack = source.base_attack
+        unit.base_health = source.base_health
+        unit.attack = source.attack
+        unit.health = source.health
+        unit.max_health = source.max_health
+        unit.evolved = source.evolved
+        unit.super_evolved = source.super_evolved
+        unit.super_evolved_turn = source.super_evolved_turn
+        unit.permanent_keywords = set(source.permanent_keywords)
+        unit.temporary_keywords = list(source.temporary_keywords)
+        unit.removed_keywords = set(source.removed_keywords)
+        unit.temporary_keyword_removals = list(
+            source.temporary_keyword_removals
+        )
+        unit.stat_modifiers = [
+            replace(
+                modifier,
+                modifier_id=self._allocate_modifier_id(),
+            )
+            for modifier in source.stat_modifiers
+        ]
+        unit.attack_capacity_modifiers = list(
+            source.attack_capacity_modifiers
+        )
+        unit.attack_restrictions = list(source.attack_restrictions)
+        unit.targeting_restrictions = list(source.targeting_restrictions)
+        unit.printed_abilities_removed = source.printed_abilities_removed
+        unit.last_words_removed = source.last_words_removed
+        unit.turn_end_destroy_timings = set(source.turn_end_destroy_timings)
+        unit.barrier_charges = source.barrier_charges
+        unit.ambush_active = source.ambush_active
+        unit.attacks_remaining = unit.attacks_per_turn
+        unit.can_attack = False
+        unit.rush_only = False
+        unit.summoned_this_turn = True
+        unit._synchronize_keyword_state()
+
+        if effect.amount or effect.secondary_amount:
+            unit.add_stat_modifier(StatModifier(
+                modifier_id=self._allocate_modifier_id(),
+                attack_delta=effect.amount,
+                health_delta=effect.secondary_amount,
+                duration=effect.duration.value,
+                expires_for_player=_expires_for_player(
+                    effect.duration,
+                    frame.controller,
+                    self.state.active_player,
+                ),
+            ))
+
+        if effect.target_key:
+            previous_outputs = frame._target_bindings.get(
+                effect.target_key,
+                (),
+            )
+            self._bind_targets(
+                frame,
+                effect.target_key,
+                (*previous_outputs, unit.entity_id),
+                effect,
+            )
+        self._log(
+            frame.controller,
+            f"{frame.source_name} 召唤 {source.definition.name} 的完全相同复制品 "
+            f"({unit.attack}/{unit.health})",
+        )
+        self._emit(GameEvent(
+            EventType.FOLLOWER_SUMMONED,
+            frame.controller,
+            source_id=unit.entity_id,
+            metadata={
+                "source": unit,
+                "card_id": unit.definition.card_id,
+                "origin": unit.origin.value,
+                "derived": True,
+                "token": is_token_definition(unit.definition),
+                "via": "exact_copy_summon",
+                "copied_from_entity_id": source.entity_id,
+                "source_card_id": frame.source_card_id,
+            },
+        ))
+
     def _execute_summon_hand_copy(
         self,
         effect: EffectOperation,
@@ -8623,6 +8763,7 @@ class GameEngine:
         target.attack_restrictions.clear()
         target.targeting_restrictions.clear()
         target.printed_abilities_removed = False
+        target.last_words_removed = False
         self._apply_initial_keyword_overrides(target)
         self._apply_initial_passives(target)
         target._synchronize_keyword_state()
@@ -11953,7 +12094,10 @@ class GameEngine:
                         definition=entity.definition,
                         cause=cause,
                         board_position=pos,
-                        allows_last_words=not entity.printed_abilities_removed,
+                        allows_last_words=not (
+                            entity.printed_abilities_removed
+                            or entity.last_words_removed
+                        ),
                         effective_keywords=entity.effective_keywords,
                         attack=entity.attack,
                         health=entity.health,
@@ -12811,6 +12955,10 @@ class GameEngine:
                     if not isinstance(entity.printed_abilities_removed, bool):
                         raise IllegalCommand(
                             f"Invariant failed: {zone} ability-removal flag is invalid"
+                        )
+                    if not isinstance(entity.last_words_removed, bool):
+                        raise IllegalCommand(
+                            f"Invariant failed: {zone} last-words-removal flag is invalid"
                         )
                     if (
                         not isinstance(entity.turn_end_destroy_timings, set)
