@@ -174,6 +174,7 @@ class UnionBurstSchemaTests(unittest.TestCase):
                 "card_id": 123,
                 "kind": "super_skybound_art",
                 "replace_base_operations": True,
+                "replace_lower_bursts": True,
                 "operations": [
                     {
                         "kind": "damage_leader",
@@ -189,6 +190,7 @@ class UnionBurstSchemaTests(unittest.TestCase):
         self.assertEqual(super_art.threshold, 15)
         self.assertFalse(union.replace_base_operations)
         self.assertTrue(super_art.replace_base_operations)
+        self.assertTrue(super_art.replace_lower_bursts)
         self.assertIs(
             union.operations[0].target,
             TargetKind.RANDOM_ENEMY_UNIT_OR_LEADER,
@@ -224,6 +226,18 @@ class UnionBurstSchemaTests(unittest.TestCase):
                 "card_id": 123,
                 "kind": "super_skybound_art",
                 "replace_base_operations": 1,
+                "operations": [
+                    {
+                        "kind": "damage_leader",
+                        "target": "enemy_leader",
+                        "amount": 1,
+                    }
+                ],
+            },
+            {
+                "card_id": 123,
+                "kind": "super_skybound_art",
+                "replace_lower_bursts": 1,
                 "operations": [
                     {
                         "kind": "damage_leader",
@@ -551,6 +565,43 @@ class UnionBurstResolutionTests(unittest.TestCase):
         self.assertEqual(
             [event.metadata["kind"] for event in events],
             ["union_burst", "super_skybound_art"],
+        )
+
+    def test_super_skybound_art_can_replace_lower_burst(self):
+        union = _definition(
+            operations=(
+                EffectOperation(
+                    EffectKind.DAMAGE_LEADER,
+                    TargetKind.ENEMY_LEADER,
+                    1,
+                ),
+            )
+        )
+        super_art = UnionBurstDefinition(
+            card_id=100,
+            kind=UnionBurstKind.SUPER_SKYBOUND_ART,
+            operations=(
+                EffectOperation(
+                    EffectKind.DAMAGE_LEADER,
+                    TargetKind.ENEMY_LEADER,
+                    2,
+                ),
+            ),
+            replace_lower_bursts=True,
+        )
+        engine = _engine(union, super_art)
+
+        _play_burst(engine, turns_started=15)
+
+        self.assertEqual(engine.players[1].health, 18)
+        events = [
+            event
+            for event in engine.event_history
+            if event.type is EventType.UNION_BURST_ACTIVATED
+        ]
+        self.assertEqual(
+            [event.metadata["kind"] for event in events],
+            ["super_skybound_art"],
         )
 
     def test_random_enemy_unit_or_leader_uses_leader_when_board_empty(self):

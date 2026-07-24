@@ -34,7 +34,7 @@ Total audited cards: **91**
 | 90014310 蔷薇之闪击 | 精灵 / 法术 | entry_behavior_complete | 1 | 1 | exact |
 | 90014320 绝命的痛击 | 精灵 / 法术 | entry_behavior_complete | 1 | 1 | exact |
 | 90014330 天枪深渊 | 精灵 / 法术 | entry_behavior_complete | 1 | 1 | exact |
-| 90021110 骑士 | 皇家护卫 / 随从 | entry_behavior_complete | 13 | 12 | basic |
+| 90021110 骑士 | 皇家护卫 / 随从 | entry_behavior_complete | 13 | 13 | basic |
 | 90021120 铁甲骑士 | 皇家护卫 / 随从 | entry_behavior_complete | 12 | 12 | exact |
 | 90021130 娜哈特的私兵 | 皇家护卫 / 随从 | entry_behavior_complete | 1 | 1 | exact |
 | 90021310 黄金短剑 | 皇家护卫 / 法术 | entry_behavior_complete | 4 | 4 | exact |
@@ -106,7 +106,7 @@ Total audited cards: **91**
 | 90074110 卓越创造物Ω | 超越者 / 随从 | entry_behavior_complete | 1 | 1 | exact |
 | 90074120 洛伊德 | 超越者 / 随从 | entry_behavior_complete | 2 | 2 | exact |
 | 90074130 维多利亚 | 超越者 / 随从 | entry_behavior_complete | 2 | 2 | exact |
-| 90074140 伊鞠的小鬼 | 超越者 / 随从 | entry_behavior_complete | 2 | 1 | exact |
+| 90074140 伊鞠的小鬼 | 超越者 / 随从 | entry_behavior_complete | 2 | 2 | exact |
 | 90074210 新约·白之章 | 超越者 / 护符 | entry_behavior_complete | 3 | 3 | exact |
 | 90074220 新约·黑之章 | 超越者 / 护符 | entry_behavior_complete | 1 | 1 | exact |
 | 90074310 奏绝的独唱 | 超越者 / 法术 | entry_behavior_complete | 1 | 1 | exact |

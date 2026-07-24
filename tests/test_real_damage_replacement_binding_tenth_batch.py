@@ -627,9 +627,9 @@ class DamageReplacementBindingTenthAuditTests(unittest.TestCase):
         self.assertEqual(
             report["summary"]["coverage_counts"],
             {
-                "covered_exact": 668,
+                "covered_exact": 673,
                 "text_unclear": 16,
-                "supported_missing_rule": 51,
+                "supported_missing_rule": 46,
                 "token_or_non_collectible": 91,
             },
         )

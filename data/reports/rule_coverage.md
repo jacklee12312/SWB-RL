@@ -8,26 +8,26 @@
 | Metric | Count |
 |---|---|
 | Total cards in DB | 826 |
-| Cards with rules | 772 |
+| Cards with rules | 777 |
 | Test/synthetic IDs with rules | 26 |
 
 ### Coverage Categories
 
 | Category | Count |
 |---|---|
-| covered_exact | 668 |
+| covered_exact | 673 |
 | text_unclear | 16 |
-| supported_missing_rule | 51 |
+| supported_missing_rule | 46 |
 | token_or_non_collectible | 91 |
 
 ### Clause Audit
 
 | Clause status | Count |
 |---|---:|
-| mapped_exact | 668 |
+| mapped_exact | 673 |
 | unverified_exact | 0 |
 | partial | 0 |
-| missing_rule | 51 |
+| missing_rule | 46 |
 | missing_primitive | 0 |
 | text_unclear | 16 |
 | token_separate_audit | 91 |
@@ -36,7 +36,7 @@
 
 | Blocker | Count |
 |---|---:|
-| missing_rule | 51 |
+| missing_rule | 46 |
 | missing_schema | 0 |
 | missing_primitive | 0 |
 | missing_targeting | 0 |
@@ -112,15 +112,15 @@
 | 6 | 10502120 | 手持军配团扇的伟丈夫 | 中立 | 4 | 随从 | high | Covered keywords: 进化时, 破坏 |
 | 7 | 10502110 | 星辉女神 | 中立 | 5 | 随从 | high | Covered keywords: 进化时, 将.*加入手牌, 舍弃 |
 | 8 | 10543110 | 破灭屠戮者 | 龙族 | 7 | 随从 | high | Covered keywords: 进化时, 超进化, 消失 |
-| 9 | 10224120 | 雷维翁超越者·尤里乌斯 | 皇家护卫 | 8 | 随从 | high | Covered keywords: 入场曲, 回合结束, 回复(?!自己\d+点(?:超进化点|进化点|能量点)) |
-| 10 | 10244120 | 绚丽凤凰·小凤 | 龙族 | 8 | 随从 | high | Covered keywords: 入场曲 |
-| 11 | 10242210 | 炎龙之剑 | 龙族 | 1 | 护符 | high | Covered keywords: 谢幕曲, 策动, 破坏 |
-| 12 | 10272310 | 伊卡洛斯的飞翔 | 超越者 | 1 | 法术 | high | Covered keywords: 谢幕曲, 抽取 |
-| 13 | 10503210 | 大游戏世界 | 中立 | 1 | 护符 | high | Covered keywords: 谢幕曲, 倒数, 抽取 |
-| 14 | 10703210 | 巴别隆城 | 中立 | 1 | 护符 | high | Covered keywords: 策动, 回合结束, 倒数 |
-| 15 | 10574120 | 尽小花·伊鞠 | 超越者 | 2 | 随从 | high | Covered keywords: 入场曲, 进化时, 超进化 |
-| 16 | 10111140 | 勤劳的蚂蚱 | 精灵 | 3 | 随从 | high | Covered keywords: 入场曲, 连击, 抽取 |
-| 17 | 10303210 | 试炼的石板 | 中立 | 3 | 护符 | high | Covered keywords: 入场曲, 策动, 抽取 |
-| 18 | 10332210 | 真理的研究设施 | 巫师 | 3 | 护符 | high | Covered keywords: 策动, 倒数, 抽取 |
-| 19 | 10424120 | 十天众统领·希耶提 | 皇家护卫 | 4 | 随从 | high | Covered keywords: 入场曲, 超进化, 奥义 |
-| 20 | 10263110 | 速断之刃·阿尼耶丝 | 主教 | 5 | 随从 | high | Covered keywords: 攻击时, 破坏 |
+| 9 | 10244120 | 绚丽凤凰·小凤 | 龙族 | 8 | 随从 | high | Covered keywords: 入场曲 |
+| 10 | 10242210 | 炎龙之剑 | 龙族 | 1 | 护符 | high | Covered keywords: 谢幕曲, 策动, 破坏 |
+| 11 | 10272310 | 伊卡洛斯的飞翔 | 超越者 | 1 | 法术 | high | Covered keywords: 谢幕曲, 抽取 |
+| 12 | 10503210 | 大游戏世界 | 中立 | 1 | 护符 | high | Covered keywords: 谢幕曲, 倒数, 抽取 |
+| 13 | 10703210 | 巴别隆城 | 中立 | 1 | 护符 | high | Covered keywords: 策动, 回合结束, 倒数 |
+| 14 | 10111140 | 勤劳的蚂蚱 | 精灵 | 3 | 随从 | high | Covered keywords: 入场曲, 连击, 抽取 |
+| 15 | 10303210 | 试炼的石板 | 中立 | 3 | 护符 | high | Covered keywords: 入场曲, 策动, 抽取 |
+| 16 | 10332210 | 真理的研究设施 | 巫师 | 3 | 护符 | high | Covered keywords: 策动, 倒数, 抽取 |
+| 17 | 10263110 | 速断之刃·阿尼耶丝 | 主教 | 5 | 随从 | high | Covered keywords: 攻击时, 破坏 |
+| 18 | 10342110 | 侮蔑的祈祷者 | 龙族 | 5 | 随从 | high | Covered keywords: 回合结束, 回复(?!自己\d+点(?:超进化点|进化点|能量点)) |
+| 19 | 10473110 | 向往天空的回归者·卡西乌斯 | 超越者 | 5 | 随从 | high | Covered keywords: 入场曲, 谢幕曲, 将.*加入手牌 |
+| 20 | 10162130 | 大地守护神·米维 | 主教 | 7 | 随从 | high | Covered keywords: 谢幕曲, 破坏, 召唤 |

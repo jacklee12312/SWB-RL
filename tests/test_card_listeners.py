@@ -394,6 +394,43 @@ class ListenerEventTests(unittest.TestCase):
 
 
 class ListenerZoneAndLifecycleTests(unittest.TestCase):
+    def test_source_entering_after_event_emission_does_not_trigger_retroactively(self):
+        listener_card = _card(300)
+        definition = _listener(
+            300,
+            ListenerZone.BOARD,
+            EventType.CARD_PLAYED,
+            EffectOperation(
+                EffectKind.DAMAGE_LEADER,
+                TargetKind.ENEMY_LEADER,
+                1,
+            ),
+        )
+        engine = _engine(definition)
+        event = GameEvent(
+            EventType.CARD_PLAYED,
+            0,
+            source_id=engine.state.allocate_entity_id(),
+            metadata={"definition": _card(400)},
+        )
+
+        engine._emit(event)
+        _place(engine, 0, listener_card)
+        engine._resolve_event_queue()
+        engine._stabilize()
+
+        self.assertEqual(engine.players[1].health, 20)
+        _resolve_event(
+            engine,
+            GameEvent(
+                EventType.CARD_PLAYED,
+                0,
+                source_id=engine.state.allocate_entity_id(),
+                metadata={"definition": _card(401)},
+            ),
+        )
+        self.assertEqual(engine.players[1].health, 19)
+
     def test_board_hand_and_leader_area_sources_all_activate(self):
         cards = {card_id: _card(card_id) for card_id in (300, 301, 302)}
         listeners = tuple(

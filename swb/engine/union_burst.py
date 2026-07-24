@@ -21,6 +21,7 @@ class UnionBurstDefinition:
     kind: UnionBurstKind
     operations: tuple[EffectOperation, ...]
     replace_base_operations: bool = False
+    replace_lower_bursts: bool = False
 
     @property
     def threshold(self) -> int:

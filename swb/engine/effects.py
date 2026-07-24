@@ -171,6 +171,7 @@ class EffectKind(str, Enum):
     COPY_TO_HAND = "copy_to_hand"
     COPY_DESTROYED_FOLLOWERS_TO_HAND = "copy_destroyed_followers_to_hand"
     ADD_KEYWORD = "add_keyword"
+    ADD_RANDOM_KEYWORDS = "add_random_keywords"
     REMOVE_KEYWORD = "remove_keyword"
     REMOVE_ALL_ABILITIES = "remove_all_abilities"
     REMOVE_LAST_WORDS = "remove_last_words"
@@ -474,6 +475,7 @@ class EffectOperation:
     empty_deck_outcome: EmptyDeckOutcome | None = None
     emblem_id: str | None = None
     keyword: str | None = None
+    keywords: tuple[str, ...] = ()
     restriction: str | None = None
     conditions: tuple[Condition, ...] = ()
     amount_expr: ValueExpression | None = None

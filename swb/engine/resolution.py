@@ -191,6 +191,7 @@ _SOURCE_REQUIRED_SELF_TARGET_EFFECTS = frozenset({
     EffectKind.REDUCE_COUNTDOWN,
     EffectKind.INCREASE_COUNTDOWN,
     EffectKind.ADD_KEYWORD,
+    EffectKind.ADD_RANDOM_KEYWORDS,
     EffectKind.REMOVE_KEYWORD,
     EffectKind.REMOVE_ALL_ABILITIES,
     EffectKind.REMOVE_LAST_WORDS,
@@ -1911,6 +1912,18 @@ class GameEngine:
             for definition in self.rulebook.union_bursts_for(card.card_id)
             if burst_gauge >= definition.threshold
         )
+        replacing_thresholds = tuple(
+            definition.threshold
+            for definition in active_bursts
+            if definition.replace_lower_bursts
+        )
+        if replacing_thresholds:
+            replacement_threshold = max(replacing_thresholds)
+            active_bursts = tuple(
+                definition
+                for definition in active_bursts
+                if definition.threshold >= replacement_threshold
+            )
         burst_operations = tuple(
             operation
             for definition in active_bursts
@@ -2618,6 +2631,8 @@ class GameEngine:
             summary["condition_target_key"] = operation.condition_target_key
         if operation.keyword is not None:
             summary["keyword"] = operation.keyword
+        if operation.keywords:
+            summary["keywords"] = operation.keywords
         if operation.amount_expr is not None:
             summary["amount_expr"] = operation.amount_expr.type.value
         if operation.secondary_expr is not None:
@@ -3334,6 +3349,8 @@ class GameEngine:
             event.target_id,
             event.amount,
             self._fingerprint_value(event.metadata),
+            event.listener_sources,
+            event.emblem_sources,
         )
 
     def _choice_fingerprint(
@@ -3458,6 +3475,7 @@ class GameEngine:
             ),
             operation.emblem_id,
             operation.keyword,
+            operation.keywords,
             operation.restriction,
             tuple(
                 self._condition_fingerprint(condition)
@@ -3470,6 +3488,7 @@ class GameEngine:
             operation.set_attack,
             operation.set_health,
             operation.target_key,
+            operation.bind_successful_targets,
             operation.condition_target_key,
             tuple(
                 self._operation_fingerprint(nested)
@@ -3744,6 +3763,7 @@ class GameEngine:
                             trigger.event_filter.card_id,
                             trigger.event_filter.card_name,
                             trigger.event_filter.keyword,
+                            trigger.event_filter.enhanced,
                         )
                     ),
                 )
@@ -3802,6 +3822,7 @@ class GameEngine:
                             trigger.event_filter.card_id,
                             trigger.event_filter.card_name,
                             trigger.event_filter.keyword,
+                            trigger.event_filter.enhanced,
                         )
                     ),
                 )
@@ -6891,13 +6912,17 @@ class GameEngine:
         player_index: int,
         *,
         deck_filter: DeckFilter | None = None,
+        excluded_card_names: frozenset[str] = frozenset(),
         reason: str,
     ) -> BoundTargetSnapshot | None:
         player = self.players[player_index]
         candidates = [
             index
             for index, card in enumerate(player.deck)
-            if deck_filter is None or deck_filter.matches(card)
+            if (
+                card.name not in excluded_card_names
+                and (deck_filter is None or deck_filter.matches(card))
+            )
         ]
         if not candidates:
             self._log(player_index, f"{reason}：没有符合条件的卡牌")
@@ -7199,14 +7224,21 @@ class GameEngine:
                 else frame.controller
             )
             drawn_snapshots = []
+            drawn_card_names: set[str] = set()
             for _ in range(effect.amount):
                 snapshot = self._draw_filtered(
                     draw_player,
                     deck_filter=effect.deck_filter,
+                    excluded_card_names=(
+                        frozenset(drawn_card_names)
+                        if effect.distinct_card_names
+                        else frozenset()
+                    ),
                     reason=f"{name} {frame.label}抽牌",
                 )
                 if snapshot is not None:
                     drawn_snapshots.append(snapshot)
+                    drawn_card_names.add(snapshot.card_name)
             if effect.target_key:
                 self._bind_targets(
                     frame,
@@ -7640,6 +7672,8 @@ class GameEngine:
             self._execute_discard(target_id, frame)
         elif effect.kind is EffectKind.ADD_KEYWORD:
             self._execute_keyword_change(effect, frame, target_id, add=True)
+        elif effect.kind is EffectKind.ADD_RANDOM_KEYWORDS:
+            self._execute_add_random_keywords(effect, frame, target_id)
         elif effect.kind is EffectKind.REMOVE_KEYWORD:
             self._execute_keyword_change(effect, frame, target_id, add=False)
         elif effect.kind is EffectKind.REMOVE_ALL_ABILITIES:
@@ -7929,6 +7963,30 @@ class GameEngine:
             frame.controller,
             f"{target.definition.name} {verb}关键词 {effect.keyword}",
         )
+
+    def _execute_add_random_keywords(
+        self,
+        effect: EffectOperation,
+        frame: EffectFrame,
+        target_id: int | None,
+    ) -> None:
+        if not effect.keywords or effect.amount > len(effect.keywords):
+            raise IllegalCommand(
+                "add_random_keywords requires enough keyword candidates"
+            )
+        selected = self.random.sample(effect.keywords, effect.amount)
+        for keyword in selected:
+            self._execute_keyword_change(
+                replace(
+                    effect,
+                    kind=EffectKind.ADD_KEYWORD,
+                    keyword=keyword,
+                    keywords=(),
+                ),
+                frame,
+                target_id,
+                add=True,
+            )
 
     def _execute_remove_all_abilities(
         self, frame: EffectFrame, target_id: int | None
@@ -9802,6 +9860,17 @@ class GameEngine:
                     if zone_order == 1
                     else ListenerZone.LEADER_AREA
                 )
+                if (
+                    event.listener_sources is not None
+                    and (
+                        owner,
+                        zone.value,
+                        entity_id,
+                        source_card.card_id,
+                    )
+                    not in event.listener_sources
+                ):
+                    continue
                 for definition_index, definition in enumerate(
                     self.rulebook.listeners_for(source_card.card_id)
                 ):
@@ -9977,11 +10046,17 @@ class GameEngine:
         event_player: int | None = None,
         source_id: int | None = None,
         event_metadata: dict[str, object] | None = None,
+        eligible_sources: tuple[tuple[int, int], ...] | None = None,
     ) -> None:
         records: list[tuple[int, int, int, str]] = []
         for pi in (0, 1):
             player = self.players[pi]
             for ei in player.emblems:
+                if (
+                    eligible_sources is not None
+                    and (pi, ei.entity_id) not in eligible_sources
+                ):
+                    continue
                 for ti, tr in enumerate(ei.definition.triggers):
                     if tr.trigger == event_type:
                         if ei.can_activate(ti) and self._check_emblem_trigger_scope(
@@ -10024,8 +10099,8 @@ class GameEngine:
         self._queue_next_emblem_trigger(batch_id)
         self._continue_effects()
 
-    @staticmethod
     def _event_card_filter_matches(
+        self,
         event_filter,
         event_type: str,
         event_metadata: dict[str, object] | None,
@@ -10050,10 +10125,24 @@ class GameEngine:
             if isinstance(source, CardDefinition)
             else getattr(source, "definition", None)
         )
+        enhanced = False
+        if event_type == EventType.CARD_PLAYED.value:
+            card_id = metadata.get("card_id")
+            mode_id = metadata.get("mode_id")
+            if (
+                isinstance(card_id, int)
+                and not isinstance(card_id, bool)
+                and isinstance(mode_id, str)
+            ):
+                enhanced = any(
+                    mode.mode_id == mode_id and mode.is_enhance
+                    for mode in self.rulebook.modes_for(card_id)
+                )
         return event_filter.matches(
             definition if isinstance(definition, CardDefinition) else None,
             source,
             metadata.get("keywords"),
+            enhanced=enhanced,
         )
 
     def _emblem_order_key(
@@ -10571,7 +10660,12 @@ class GameEngine:
             raise IllegalCommand(
                 f"Card {effect.card_id} not found for SUMMON"
             )
-        player = self.players[frame.controller]
+        summon_owner = (
+            1 - frame.controller
+            if effect.target is TargetKind.ENEMY_LEADER
+            else frame.controller
+        )
+        player = self.players[summon_owner]
         if len(player.board) >= self.config.max_board:
             if effect.target_key:
                 self._bind_targets(frame, effect.target_key, (), effect)
@@ -10580,7 +10674,7 @@ class GameEngine:
         if card_def.card_type == "随从":
             origin = origin_for_summoned_card(card_def)
             unit = self._summon_follower_to_board(
-                frame.controller,
+                summon_owner,
                 card_def,
                 summon_cause="effect_summon",
                 origin=origin,
@@ -10604,7 +10698,7 @@ class GameEngine:
             self._emit(
                 GameEvent(
                     EventType.FOLLOWER_SUMMONED,
-                    frame.controller,
+                    summon_owner,
                     source_id=unit.entity_id,
                     metadata={
                         "source": unit,
@@ -10637,12 +10731,12 @@ class GameEngine:
             self._emit(
                 GameEvent(
                     EventType.AMULET_ENTERED,
-                    frame.controller,
+                    summon_owner,
                     source_id=amulet.entity_id,
                     metadata={"source": amulet},
                 )
             )
-            self._initialize_earth_sigil(amulet, frame.controller)
+            self._initialize_earth_sigil(amulet, summon_owner)
         else:
             if effect.target_key:
                 self._bind_targets(frame, effect.target_key, (), effect)
@@ -11922,6 +12016,7 @@ class GameEngine:
                     event_player=event.player_index,
                     source_id=event.source_id,
                     event_metadata=event.metadata,
+                    eligible_sources=event.emblem_sources,
                 )
                 if self.state.pending_choice is not None:
                     self._save_event_continuation(
@@ -12060,6 +12155,7 @@ class GameEngine:
                     event_player=event.player_index,
                     source_id=event.source_id,
                     event_metadata=event.metadata,
+                    eligible_sources=event.emblem_sources,
                 )
                 if self.state.pending_choice is not None:
                     state["phase"] = "emblems_done"
@@ -13592,6 +13688,20 @@ class GameEngine:
                     raise IllegalCommand(
                         f"Invariant failed: {operation_zone} distinct-name policy is invalid"
                     )
+                if not isinstance(operation.bind_successful_targets, bool):
+                    raise IllegalCommand(
+                        f"Invariant failed: {operation_zone} successful-binding policy is invalid"
+                    )
+                if (
+                    not isinstance(operation.keywords, tuple)
+                    or any(
+                        not isinstance(keyword, str) or not keyword
+                        for keyword in operation.keywords
+                    )
+                ):
+                    raise IllegalCommand(
+                        f"Invariant failed: {operation_zone} keyword candidates are invalid"
+                    )
                 if (
                     operation.history_filter is not None
                     and not isinstance(operation.history_filter, HandFilter)
@@ -13773,6 +13883,50 @@ class GameEngine:
                 raise IllegalCommand(
                     f"Invariant failed: event_queue[{event_index}] player out of range"
                 )
+            if (
+                event.listener_sources is not None
+                and (
+                    not isinstance(event.listener_sources, tuple)
+                    or any(
+                        not isinstance(record, tuple)
+                        or len(record) != 4
+                        or record[0] not in (0, 1)
+                        or record[1] not in {
+                            zone.value for zone in ListenerZone
+                        }
+                        or not isinstance(record[2], int)
+                        or isinstance(record[2], bool)
+                        or record[2] <= 0
+                        or not isinstance(record[3], int)
+                        or isinstance(record[3], bool)
+                        or record[3] <= 0
+                        for record in event.listener_sources
+                    )
+                )
+            ):
+                raise IllegalCommand(
+                    f"Invariant failed: event_queue[{event_index}] "
+                    "listener source snapshot is invalid"
+                )
+            if (
+                event.emblem_sources is not None
+                and (
+                    not isinstance(event.emblem_sources, tuple)
+                    or any(
+                        not isinstance(record, tuple)
+                        or len(record) != 2
+                        or record[0] not in (0, 1)
+                        or not isinstance(record[1], int)
+                        or isinstance(record[1], bool)
+                        or record[1] <= 0
+                        for record in event.emblem_sources
+                    )
+                )
+            ):
+                raise IllegalCommand(
+                    f"Invariant failed: event_queue[{event_index}] "
+                    "emblem source snapshot is invalid"
+                )
         for record in state.destroyed_followers:
             if record.owner not in (0, 1):
                 raise IllegalCommand("Invariant failed: destroyed follower owner out of range")
@@ -13874,6 +14028,66 @@ class GameEngine:
             del self.event_history[:-limit]
 
     def _emit(self, event: GameEvent) -> None:
+        if event.listener_sources is None:
+            listener_sources: list[tuple[int, str, int, int]] = []
+            for owner, player in enumerate(self.players):
+                listener_sources.extend(
+                    (
+                        owner,
+                        ListenerZone.BOARD.value,
+                        entity.entity_id,
+                        entity.definition.card_id,
+                    )
+                    for entity in player.board
+                    if self.rulebook.listeners_for(entity.definition.card_id)
+                )
+                listener_sources.extend(
+                    (
+                        owner,
+                        ListenerZone.HAND.value,
+                        card.entity_id,
+                        card.definition.card_id,
+                    )
+                    for card in player.hand
+                    if (
+                        isinstance(card, HandCard)
+                        and self.rulebook.listeners_for(card.definition.card_id)
+                    )
+                )
+                for _, _, entity_id in self._leader_area_listener_sources(owner):
+                    card_id = next(
+                        (
+                            instance.source_card_id
+                            for instance in (*player.emblems, *player.faiths)
+                            if instance.entity_id == entity_id
+                        ),
+                        None,
+                    )
+                    if (
+                        isinstance(card_id, int)
+                        and self.rulebook.listeners_for(card_id)
+                    ):
+                        listener_sources.append(
+                            (
+                                owner,
+                                ListenerZone.LEADER_AREA.value,
+                                entity_id,
+                                card_id,
+                            )
+                        )
+            event = replace(
+                event,
+                listener_sources=tuple(listener_sources),
+            )
+        if event.emblem_sources is None:
+            event = replace(
+                event,
+                emblem_sources=tuple(
+                    (owner, emblem.entity_id)
+                    for owner, player in enumerate(self.players)
+                    for emblem in player.emblems
+                ),
+            )
         self.state.event_queue.append(event)
 
     def _dispatch_ability(

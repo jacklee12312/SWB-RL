@@ -103,3 +103,5 @@ class GameEvent:
     target_id: int | None = None
     amount: int = 0
     metadata: dict[str, object] = field(default_factory=dict)
+    listener_sources: tuple[tuple[int, str, int, int], ...] | None = None
+    emblem_sources: tuple[tuple[int, int], ...] | None = None

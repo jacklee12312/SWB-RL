@@ -10,13 +10,13 @@ code and tests as the source of truth when this file drifts.
 - Database: 826 cards, 735 collectible cards, 91 non-collectible/generated
   cards from set `90000`.
 - Latest SVA source: `https://sva.hypd.asia/data/cards.json`.
-- Tests: `python -m unittest discover -s tests -v` discovers 2360 behavioral
-  contracts (2026-07-24 tenth damage-replacement/binding verification).
+- Tests: `python -m unittest discover -s tests -v` discovers 2373 behavioral
+  contracts (2026-07-24 eleventh listener/Enhance/random-keyword verification).
 - RL adapter: fixed 111-action space; the default v1 observation is 294
   floats, opt-in v2 preserves the structured compatibility mapping, and v3
   supplies fixed-dtype NumPy arrays plus a Gymnasium observation space without
   changing action IDs. Hidden decklists are the v3 default.
-- The exact-audit `TrainableCardCatalog` currently admits all 668 exact
+- The exact-audit `TrainableCardCatalog` currently admits all 673 exact
   collectible cards, preloads all 826 definitions for SQLite-free matches, and
   provides deterministic class-valid deck sampling. Self-play no longer uses
   the legacy 2-to-5-card follower pool.
@@ -48,9 +48,9 @@ code and tests as the source of truth when this file drifts.
   and distribution acceptance results, not policy-strength evidence.
 - Ability registry status: 18 implemented, 5 partial, 11 placeholder.
 - Explicit card and demo rules live in `data/rules/`; the current coverage
-  report classifies 772 card IDs with explicit rules, passives, fusion,
+  report classifies 777 card IDs with explicit rules, passives, fusion,
   invocation, activation, Faith, Union Burst, or listener definitions. Current
-  collectible coverage is 668 exact (90.88% of 735), 0 partial, 51 supported-but-missing-rule,
+  collectible coverage is 673 exact (91.56% of 735), 0 partial, 46 supported-but-missing-rule,
   0 missing-primitive, and 16 text-unclear cards.
 - `data/reports/token_audit.{json,md}` audits all 91 non-collectible/generated
   cards independently of collectible coverage. Database `card_references` and
@@ -65,7 +65,7 @@ code and tests as the source of truth when this file drifts.
   separate column and is covered for all 34; it does not automatically promote
   the 5 partial or 11 placeholder keyword statuses.
 - Coverage now has a backward-compatible clause audit. The legacy summary still
-  reports 668 exact collectible cards, and all 668 now have an explicit exact
+  reports 673 exact collectible cards, and all 673 now have an explicit exact
   text mapping plus named direct test evidence. The versioned sibling registry
   at `data/audits/rule_clauses.json` hashes every imported primary and
   alternate-mode clause; changed source text or stale test evidence invalidates
@@ -74,7 +74,7 @@ code and tests as the source of truth when this file drifts.
   rule version and errata metadata, structured trigger/operation evidence,
   explicit unsupported text, and a stable blocker taxonomy. There are zero
   unverified exact entries and no known missing schema, primitive, targeting,
-  or timing blocker among authored rules. The 51 supported-but-missing-rule
+  or timing blocker among authored rules. The 46 supported-but-missing-rule
   cards are now the per-card structured-content backlog; 16 unclear texts
   remain explicit.
 - RL observation v2 is available behind an explicit version switch. A
@@ -1395,6 +1395,23 @@ slice in this order:
   illegal targets, board capacity, source retention, multilingual hashes,
   Clause/Token/Ability consistency, and command/RL action-mask parity without
   changing observation or action schemas.
+- Exact file
+  `data/rules/real_listener_enhance_random_keyword_eleventh_batch.json` closes
+  five collectibles (`10224120`, `10424120`, `10574120`, `10603110`,
+  `10622310`), bringing collectible exact coverage to 673/735 (91.56%).
+  Generic summons can place the resolved card on either leader's board while
+  retaining correct ownership and event attribution. Card and emblem event
+  sources are snapshotted at emission, preventing later sources from reacting
+  retroactively. Event filters can distinguish Enhance plays; filtered draws
+  can require different printed names; Super Skybound Art can explicitly
+  replace lower active tiers; and `add_random_keywords` samples a fixed number
+  of distinct canonical runtime abilities through engine-owned RNG. Direct
+  tests cover enemy-board capacity and trigger order, attack-restriction
+  expiry, source departure, 9/10/15 burst thresholds, no/stale/illegal hand
+  choices, hand overdraw, first-versus-existing crest activation, multiple
+  countdown crests, deterministic replay, multilingual/reference hashes,
+  Clause/Token/Ability consistency, and command/RL action-mask parity without
+  card-ID branches or observation/action schema changes.
 
 ## Known Partial Or Unsupported Areas
 

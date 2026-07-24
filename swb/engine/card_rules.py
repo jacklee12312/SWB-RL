@@ -1301,6 +1301,15 @@ def _parse_listener_definition(
         raise ValueError(
             f"{source_path}/event_filter: turn events have no card source"
         )
+    if (
+        event_filter is not None
+        and event_filter.enhanced is not None
+        and event is not EventType.CARD_PLAYED
+    ):
+        raise ValueError(
+            f"{source_path}/event_filter/enhanced: is only valid for "
+            "card_played"
+        )
     return CardListenerDefinition(
         card_id=card_id,
         zone=zone,
@@ -1336,6 +1345,7 @@ def _parse_event_card_filter(
         "card_id",
         "card_name",
         "keyword",
+        "enhanced",
     }
     unknown = sorted(set(raw) - allowed)
     if unknown:
@@ -1408,6 +1418,11 @@ def _parse_event_card_filter(
         raise ValueError(
             f"{source_path}/event_filter/keyword: must be a non-empty string"
         )
+    enhanced = raw.get("enhanced")
+    if enhanced is not None and not isinstance(enhanced, bool):
+        raise ValueError(
+            f"{source_path}/event_filter/enhanced: must be boolean"
+        )
     return EventCardFilter(
         card_type=card_type,
         class_id=class_id,
@@ -1419,6 +1434,7 @@ def _parse_event_card_filter(
         card_id=filter_card_id,
         card_name=card_name,
         keyword=keyword,
+        enhanced=enhanced,
     )
 
 
@@ -1564,6 +1580,15 @@ def _parse_emblem_definition(raw: dict, source_file: str, ops_parser) -> EmblemD
         }:
             raise ValueError(
                 f"{t_source}/event_filter: {trigger_name} has no card source"
+            )
+        if (
+            event_filter is not None
+            and event_filter.enhanced is not None
+            and trigger_name != "card_played"
+        ):
+            raise ValueError(
+                f"{t_source}/event_filter/enhanced: is only valid for "
+                "card_played"
             )
         triggers.append(EmblemTriggerRule(
             trigger=trigger_name,
@@ -2185,6 +2210,11 @@ def _parse_faith_definition(
                 f"{trigger_path}/event_filter: is currently only valid for "
                 "follower_summoned Faith triggers"
             )
+        if event_filter is not None and event_filter.enhanced is not None:
+            raise ValueError(
+                f"{trigger_path}/event_filter/enhanced: is only valid for "
+                "card_played"
+            )
         triggers.append(FaithTriggerRule(
             trigger=trigger,
             amount=amount,
@@ -2212,6 +2242,7 @@ def _parse_union_burst_definition(
         "kind",
         "operations",
         "replace_base_operations",
+        "replace_lower_bursts",
         "coverage",
         "implemented_text",
         "unsupported_text",
@@ -2245,11 +2276,17 @@ def _parse_union_burst_definition(
         raise ValueError(
             f"{source_path}/replace_base_operations: must be a boolean"
         )
+    replace_lower_bursts = raw.get("replace_lower_bursts", False)
+    if not isinstance(replace_lower_bursts, bool):
+        raise ValueError(
+            f"{source_path}/replace_lower_bursts: must be a boolean"
+        )
     return UnionBurstDefinition(
         card_id=card_id,
         kind=kind,
         operations=operations,
         replace_base_operations=replace_base_operations,
+        replace_lower_bursts=replace_lower_bursts,
     )
 
 
@@ -2603,6 +2640,7 @@ _EVENT_SOURCE_TARGET_EFFECTS = frozenset({
     EffectKind.REDUCE_COUNTDOWN,
     EffectKind.INCREASE_COUNTDOWN,
     EffectKind.ADD_KEYWORD,
+    EffectKind.ADD_RANDOM_KEYWORDS,
     EffectKind.REMOVE_KEYWORD,
     EffectKind.REMOVE_ALL_ABILITIES,
     EffectKind.REMOVE_LAST_WORDS,
@@ -3220,6 +3258,76 @@ def _parse_operation(
                 f"{source_file}/keyword card {card_id}: keyword "
                 f"{keyword!r} is not a supported runtime unit keyword"
             )
+    raw_keywords = raw.get("keywords")
+    keywords: tuple[str, ...] = ()
+    if kind is EffectKind.ADD_RANDOM_KEYWORDS:
+        follower_targets = {
+            TargetKind.SELF,
+            TargetKind.EVENT_SOURCE,
+            TargetKind.OWN_UNIT,
+            TargetKind.ENEMY_UNIT,
+            TargetKind.ANY_UNIT,
+            TargetKind.RANDOM_OWN_UNIT,
+            TargetKind.RANDOM_ENEMY_UNIT,
+            TargetKind.ALL_OWN_UNITS,
+            TargetKind.ALL_ENEMY_UNITS,
+            TargetKind.ALL_UNITS,
+            TargetKind.PREVIOUS_TARGET,
+        }
+        if target not in follower_targets:
+            raise ValueError(
+                f"{source_file}/target card {card_id}: "
+                "add_random_keywords requires a follower target"
+            )
+        if (
+            not isinstance(raw_keywords, list)
+            or not raw_keywords
+        ):
+            raise ValueError(
+                f"{source_file}/keywords card {card_id}: "
+                "add_random_keywords requires a non-empty list"
+            )
+        parsed_keywords: list[str] = []
+        for index, raw_keyword in enumerate(raw_keywords):
+            if not isinstance(raw_keyword, str) or not raw_keyword:
+                raise ValueError(
+                    f"{source_file}/keywords[{index}] card {card_id}: "
+                    "must be a non-empty string"
+                )
+            try:
+                canonical = normalize_keyword_name(raw_keyword, strict=True)
+            except ValueError as exc:
+                raise ValueError(
+                    f"{source_file}/keywords[{index}] card {card_id}: {exc}"
+                ) from exc
+            if canonical not in RUNTIME_UNIT_KEYWORDS:
+                raise ValueError(
+                    f"{source_file}/keywords[{index}] card {card_id}: "
+                    f"keyword {canonical!r} is not a supported runtime unit keyword"
+                )
+            parsed_keywords.append(canonical)
+        if len(parsed_keywords) != len(set(parsed_keywords)):
+            raise ValueError(
+                f"{source_file}/keywords card {card_id}: "
+                "must not contain duplicate normalized keywords"
+            )
+        if (
+            not isinstance(raw_amount, int)
+            or isinstance(raw_amount, bool)
+            or raw_amount < 1
+            or raw_amount > len(parsed_keywords)
+        ):
+            raise ValueError(
+                f"{source_file}/amount card {card_id}: "
+                "add_random_keywords requires a positive integer no greater "
+                "than the keyword candidate count"
+            )
+        keywords = tuple(parsed_keywords)
+    elif raw_keywords is not None:
+        raise ValueError(
+            f"{source_file}/keywords card {card_id}: is only valid for "
+            "add_random_keywords"
+        )
 
     if kind in {
         EffectKind.REMOVE_ALL_ABILITIES,
@@ -3419,10 +3527,13 @@ def _parse_operation(
             raise ValueError(
                 f"{source_file}/card_id card {card_id}: expected an integer"
             ) from exc
-    if kind is EffectKind.SUMMON and target is not TargetKind.OWN_LEADER:
+    if kind is EffectKind.SUMMON and target not in {
+        TargetKind.OWN_LEADER,
+        TargetKind.ENEMY_LEADER,
+    }:
         raise ValueError(
             f"{source_file}/target card {card_id}: summon requires "
-            "target 'own_leader'"
+            "a leader target"
         )
     if kind is EffectKind.ADD_CARD_TO_DECK and target is not TargetKind.OWN_LEADER:
         raise ValueError(
@@ -4239,11 +4350,14 @@ def _parse_operation(
             )
     distinct_card_names = raw.get("distinct_card_names", False)
     if "distinct_card_names" in raw and (
-        kind is not EffectKind.COPY_DESTROYED_FOLLOWERS_TO_HAND
+        kind not in {
+            EffectKind.COPY_DESTROYED_FOLLOWERS_TO_HAND,
+            EffectKind.DRAW_FILTERED,
+        }
     ):
         raise ValueError(
             f"{source_file}/distinct_card_names card {card_id}: requires "
-            "copy_destroyed_followers_to_hand"
+            "copy_destroyed_followers_to_hand or draw_filtered"
         )
     if not isinstance(distinct_card_names, bool):
         raise ValueError(
@@ -4807,6 +4921,7 @@ def _parse_operation(
         emblem_id=emblem_id,
         emblem_remove_mode=emblem_remove_mode if kind is EffectKind.REMOVE_EMBLEM else "first",
         keyword=keyword,
+        keywords=keywords,
         restriction=restriction,
         conditions=conditions,
         amount_expr=amount_expr,

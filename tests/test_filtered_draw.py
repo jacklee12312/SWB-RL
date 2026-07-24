@@ -223,6 +223,38 @@ class FilteredDrawTests(unittest.TestCase):
         self.assertTrue(any(h.card_id == 91 and h.definition.name == "target" for h in eng.players[0].hand))
         self.assertEqual(len(eng.players[0].deck), 3)
 
+    def test_draw_filtered_can_require_distinct_card_names(self):
+        rb = RuleBook((
+            spell_rule(
+                1,
+                EffectOperation(
+                    EffectKind.DRAW_FILTERED,
+                    TargetKind.OWN_LEADER,
+                    amount=3,
+                    deck_filter=DeckFilter(card_type="法术"),
+                    distinct_card_names=True,
+                ),
+            ),
+        ))
+        eng = engine_with(rb)
+        eng.players[0].deck = [
+            card(70, name="same", card_type="法术", attack=None, life=None),
+            card(71, name="same", card_type="法术", attack=None, life=None),
+            card(72, name="other", card_type="法术", attack=None, life=None),
+            card(73, name="follower", card_type="随从"),
+        ]
+        put_spell_in_hand(eng, 1)
+
+        eng.apply(PlayCard(0, 0))
+
+        drawn_names = [
+            hand_card.definition.name
+            for hand_card in eng.players[0].hand
+            if hand_card.card_id in {70, 71, 72}
+        ]
+        self.assertCountEqual(drawn_names, ["same", "other"])
+        self.assertEqual(len(eng.players[0].deck), 2)
+
 
 class FilteredDrawSchemaTests(unittest.TestCase):
     def _load_payload(self, payload):
@@ -278,6 +310,24 @@ class FilteredDrawSchemaTests(unittest.TestCase):
         self.assertEqual(op.deck_filter.cost_max, 4)
         self.assertEqual(op.deck_filter.card_id, 123)
         self.assertEqual(op.deck_filter.card_name, "目标")
+
+    def test_json_parses_distinct_filtered_draw(self):
+        rb = self._load_payload({
+            "rules": [{
+                "card_id": 1,
+                "trigger": "play",
+                "operations": [{
+                    "kind": "draw_filtered",
+                    "target": "own_leader",
+                    "amount": 2,
+                    "card_type_filter": "法术",
+                    "distinct_card_names": True,
+                }],
+            }],
+        })
+
+        op = rb.operations_for(1, Trigger.PLAY)[0]
+        self.assertTrue(op.distinct_card_names)
 
     def test_json_rejects_draw_filtered_board_target(self):
         payload = {

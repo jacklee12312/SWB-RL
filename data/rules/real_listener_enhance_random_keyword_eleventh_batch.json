@@ -1,0 +1,172 @@
+{
+  "emblems": [
+    {
+      "id": "majestic_conquest",
+      "source_card_id": 10622310,
+      "stacking": "allow",
+      "countdown": 2,
+      "triggers": [
+        {
+          "trigger": "card_played",
+          "event_scope": "owner_event",
+          "event_filter": {"enhanced": true},
+          "operations": [
+            {
+              "kind": "summon",
+              "target": "own_leader",
+              "card_id": 10621110
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "union_bursts": [
+    {
+      "card_id": 10424120,
+      "kind": "union_burst",
+      "coverage": "exact",
+      "implemented_text": "【<color=Keyword>入场曲</color>】【<color=Keyword>奥义</color>】使自己的战场上的所有进化前的随从进化。【<color=Keyword>解放奥义</color>】改为超进化。",
+      "operations": [
+        {
+          "kind": "evolve_unit",
+          "target": "all_own_units",
+          "target_evolved_filter": false
+        }
+      ]
+    },
+    {
+      "card_id": 10424120,
+      "kind": "super_skybound_art",
+      "replace_base_operations": true,
+      "replace_lower_bursts": true,
+      "operations": [
+        {
+          "kind": "super_evolve_unit",
+          "target": "all_own_units",
+          "target_evolved_filter": false
+        }
+      ]
+    }
+  ],
+  "listeners": [
+    {
+      "card_id": 10224120,
+      "zone": "board",
+      "event": "follower_summoned",
+      "event_scope": "opponent_event",
+      "source_relation": "any",
+      "event_filter": {"card_type": "随从"},
+      "operations": [
+        {
+          "kind": "add_attack_restriction",
+          "target": "event_source",
+          "restriction": "cannot_attack",
+          "duration": "until_end_of_opponent_turn"
+        },
+        {"kind": "damage_leader", "target": "enemy_leader", "amount": 1},
+        {"kind": "heal_leader", "target": "own_leader", "amount": 1}
+      ]
+    },
+    {
+      "card_id": 10574120,
+      "zone": "board",
+      "event": "card_played",
+      "event_scope": "owner_event",
+      "source_relation": "other",
+      "event_filter": {"card_type": "法术"},
+      "conditions": [{"type": "source_evolved"}],
+      "operations": [
+        {"kind": "summon", "target": "own_leader", "card_id": 90074140}
+      ]
+    }
+  ],
+  "rules": [
+    {
+      "card_id": 10224120,
+      "trigger": "fanfare",
+      "coverage": "exact",
+      "implemented_text": "【<color=Keyword>入场曲</color>】在对手的战场上召唤2个『<color=Keyword>骑士</color>』。\n<hr>对手的随从进入战场时，对手的回合结束前，使其获得「无法攻击随从或主战者」。对对手的主战者造成1点伤害。回复自己的主战者1点生命值。",
+      "operations": [
+        {"kind": "summon", "target": "enemy_leader", "card_id": 90021110},
+        {"kind": "summon", "target": "enemy_leader", "card_id": 90021110}
+      ]
+    },
+    {
+      "card_id": 10574120,
+      "trigger": "fanfare",
+      "coverage": "exact",
+      "implemented_text": "【<color=Keyword>入场曲</color>】选择自己的1张手牌，舍弃该手牌。抽取1张法术。\n<hr>自己使用法术时，若本随从为进化后，则召唤1个『<color=Keyword>伊鞠的小鬼</color>』。\n<hr><sev>【<color=Keyword>超进化时</color>】抽取2种费用为1的法术。</sev>",
+      "operations": [
+        {
+          "kind": "discard",
+          "target": "own_hand",
+          "requires_target": true
+        },
+        {
+          "kind": "draw_filtered",
+          "target": "own_leader",
+          "amount": 1,
+          "deck_filter": {"card_type": "法术"}
+        }
+      ]
+    },
+    {
+      "card_id": 10574120,
+      "trigger": "super_evolve",
+      "operations": [
+        {
+          "kind": "draw_filtered",
+          "target": "own_leader",
+          "amount": 2,
+          "distinct_card_names": true,
+          "card_type_filter": "法术",
+          "cost_min": 1,
+          "cost_max": 1
+        }
+      ]
+    },
+    {
+      "card_id": 10603110,
+      "trigger": "fanfare",
+      "coverage": "exact",
+      "implemented_text": "【<color=Keyword>入场曲</color>】本随从获得【<color=Keyword>疾驰</color>】【<color=Keyword>毁灭</color>】【<color=Keyword>威慑</color>】【<color=Keyword>虹吸</color>】【<color=Keyword>灵气</color>】【<color=Keyword>屏障</color>】中随机3个能力。",
+      "operations": [
+        {
+          "kind": "add_random_keywords",
+          "target": "self",
+          "amount": 3,
+          "keywords": ["疾驰", "毁灭", "威慑", "虹吸", "灵气", "屏障"]
+        }
+      ]
+    },
+    {
+      "card_id": 10622310,
+      "trigger": "play",
+      "coverage": "exact",
+      "implemented_text": "使自己获得『纹章：威风的行军』。\n【<color=Keyword>爆能强化</color>_3】使自己的『纹章：威风的行军』的倒计数+2。",
+      "operations": [
+        {
+          "kind": "gain_emblem",
+          "target": "own_leader",
+          "emblem_id": "majestic_conquest"
+        }
+      ],
+      "play_modes": [
+        {
+          "id": "enhance_3",
+          "type": "enhance",
+          "cost": 3,
+          "operations": [
+            {
+              "kind": "increase_countdown",
+              "target": "all_own_emblems",
+              "emblem_id": "majestic_conquest",
+              "amount": 2
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

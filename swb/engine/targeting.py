@@ -130,6 +130,7 @@ _EFFECT_UNIT_ONLY = frozenset({
     EffectKind.GRANT_TURN_END_DESTROY,
     EffectKind.BUFF_UNIT,
     EffectKind.ADD_KEYWORD,
+    EffectKind.ADD_RANDOM_KEYWORDS,
     EffectKind.REMOVE_KEYWORD,
     EffectKind.SET_STATS,
     EffectKind.EVOLVE_UNIT,

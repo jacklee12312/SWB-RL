@@ -904,6 +904,12 @@
           "rule_group": "rules"
         },
         {
+          "source_card_id": 10224120,
+          "entry_kind": "summon",
+          "rule_file": "real_listener_enhance_random_keyword_eleventh_batch.json",
+          "rule_group": "rules"
+        },
+        {
           "source_card_id": 10522310,
           "entry_kind": "summon",
           "rule_file": "real_spell_enhance_batch.json",
@@ -5170,6 +5176,12 @@
           "entry_kind": "transform",
           "rule_file": "real_generated_hidden_copy_discard_batch.json",
           "rule_group": "rules"
+        },
+        {
+          "source_card_id": 10574120,
+          "entry_kind": "summon",
+          "rule_file": "real_listener_enhance_random_keyword_eleventh_batch.json",
+          "rule_group": "listeners"
         }
       ],
       "has_authored_behavior": true,

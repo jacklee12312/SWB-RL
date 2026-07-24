@@ -7032,6 +7032,41 @@
       "source_text_sha256": "7af0d47c8162fdf781c5f383e022533509a039b71ec11662d9c2208b5715db8b",
       "test_evidence": ["tests/test_real_damage_replacement_binding_tenth_batch.py"],
       "notes": "三种Mode分别覆盖其他所有随从、双方所有护符、双方全部纹章；来源保留、空集合、非法选择原子性及action mask一致性均有直接测试。"
+    },
+    {
+      "card_id": 10224120,
+      "rule_version": 1,
+      "source_text_sha256": "3797884bf0c276db7b8ce3e367b3c5efe10d4d7bee3c748b2093d905fb3049e0",
+      "test_evidence": ["tests/test_real_listener_enhance_random_keyword_eleventh_batch.py"],
+      "notes": "敌方战场召唤、逐次入场监听、攻击封锁期限、伤害与回复、场面容量、来源离场及关联骑士均有直接测试。"
+    },
+    {
+      "card_id": 10424120,
+      "rule_version": 1,
+      "source_text_sha256": "122456b1bb6db26f8078b68804692b2c43310015b3f4c6ef990a711ca36ea475",
+      "test_evidence": ["tests/test_real_listener_enhance_random_keyword_eleventh_batch.py"],
+      "notes": "奥义值9/10/15阈值、全体未进化随从、已进化随从跳过，以及解放奥义替代低阶奥义并直接超进化均有直接测试。"
+    },
+    {
+      "card_id": 10574120,
+      "rule_version": 1,
+      "source_text_sha256": "c8ed7291167d1e8981df89dfd8b2c7aa8cc5ebfd884af52b1b07ffa3ac3208f0",
+      "test_evidence": ["tests/test_real_listener_enhance_random_keyword_eleventh_batch.py"],
+      "notes": "选择弃牌、无目标与失效目标、法术过滤抽取、进化后法术监听、来源离场、超进化两种不同名称1费法术、手牌溢出及action mask均有直接测试。"
+    },
+    {
+      "card_id": 10603110,
+      "rule_version": 1,
+      "source_text_sha256": "e1ba3b31431eccfdc411ae79b8b0667d5c8f6c829bc7efd9ee9156489a7daf0b",
+      "test_evidence": ["tests/test_real_listener_enhance_random_keyword_eleventh_batch.py"],
+      "notes": "六项候选能力、毁灭到必杀的规范化、固定种子复现、互异抽样、不同种子及状态不变量均有直接测试。"
+    },
+    {
+      "card_id": 10622310,
+      "rule_version": 1,
+      "source_text_sha256": "e32a640d04b074a2a976312e5b9eb52fd87c82ded68dc3a7ae2d6bca996cf3d4",
+      "test_evidence": ["tests/test_real_listener_enhance_random_keyword_eleventh_batch.py"],
+      "notes": "纹章倒计数2、首次强化不回看旧事件、强化过滤、关联士兵召唤、强化倒计数+2、多个纹章、场面容量、模式合法性与action mask均有直接测试。"
     }
   ]
 }

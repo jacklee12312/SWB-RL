@@ -12,25 +12,25 @@
   },
   "summary": {
     "total_cards": 826,
-    "total_with_rules": 772,
+    "total_with_rules": 777,
     "test_or_synthetic_ids_with_rules": 26,
     "coverage_counts": {
-      "covered_exact": 668,
+      "covered_exact": 673,
       "text_unclear": 16,
-      "supported_missing_rule": 51,
+      "supported_missing_rule": 46,
       "token_or_non_collectible": 91
     },
     "clause_audit_counts": {
-      "mapped_exact": 668,
+      "mapped_exact": 673,
       "unverified_exact": 0,
       "partial": 0,
-      "missing_rule": 51,
+      "missing_rule": 46,
       "missing_primitive": 0,
       "text_unclear": 16,
       "token_separate_audit": 91
     },
     "blocker_counts": {
-      "missing_rule": 51,
+      "missing_rule": 46,
       "missing_schema": 0,
       "missing_primitive": 0,
       "missing_targeting": 0,
@@ -14548,8 +14548,8 @@
       "cost": 8,
       "is_collectible": true,
       "card_set_id": 10002,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '回合结束', '回复(?!自己\\\\d+点(?:超进化点|进化点|能量点))', '造成.*伤害', '召唤', '不能攻击|无法攻击']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['fanfare', 'listener:board:follower_summoned'], Ops: ['summon', 'summon', 'add_attack_restriction', 'damage_leader', 'heal_leader']",
       "hit_keywords": [
         "入场曲",
         "回合结束",
@@ -14566,27 +14566,48 @@
         "【<color=Keyword>入场曲</color>】在对手的战场上召唤2个『<color=Keyword>骑士</color>』。\n<hr>对手的随从进入战场时，对手的回合结束前，使其获得「无法攻击随从或主战者」。对对手的主战者造成1点伤害。回复自己的主战者1点生命值。"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【<color=Keyword>入场曲</color>】在对手的战场上召唤2个『<color=Keyword>骑士</color>』。\n<hr>对手的随从进入战场时，对手的回合结束前，使其获得「无法攻击随从或主战者」。对对手的主战者造成1点伤害。回复自己的主战者1点生命值。",
+        "notes": "敌方战场召唤、逐次入场监听、攻击封锁期限、伤害与回复、场面容量、来源离场及关联骑士均有直接测试。",
+        "rule_version": 1,
+        "source_text_sha256": "3797884bf0c276db7b8ce3e367b3c5efe10d4d7bee3c748b2093d905fb3049e0",
+        "test_evidence": [
+          "tests/test_real_listener_enhance_random_keyword_eleventh_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10224120:0",
             "source_text": "【<color=Keyword>入场曲</color>】在对手的战场上召唤2个『<color=Keyword>骑士</color>』。\n<hr>对手的随从进入战场时，对手的回合结束前，使其获得「无法攻击随从或主战者」。对对手的主战者造成1点伤害。回复自己的主战者1点生命值。",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "【<color=Keyword>入场曲</color>】在对手的战场上召唤2个『<color=Keyword>骑士</color>』。\n<hr>对手的随从进入战场时，对手的回合结束前，使其获得「无法攻击随从或主战者」。对对手的主战者造成1点伤害。回复自己的主战者1点生命值。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "3797884bf0c276db7b8ce3e367b3c5efe10d4d7bee3c748b2093d905fb3049e0",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "fanfare",
+            "listener:board:follower_summoned"
+          ],
+          "effect_kinds": [
+            "summon",
+            "summon",
+            "add_attack_restriction",
+            "damage_leader",
+            "heal_leader"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_listener_enhance_random_keyword_eleventh_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10231110": {
@@ -24518,17 +24539,14 @@
       "cost": 4,
       "is_collectible": true,
       "card_set_id": 10004,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '超进化', '奥义']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['union_burst', 'super_skybound_art'], Ops: ['evolve_unit', 'super_evolve_unit']",
       "hit_keywords": [
         "入场曲",
         "超进化",
         "奥义"
       ],
       "missing_primitives": [],
-      "missing_rule_mechanics": [
-        "奥义"
-      ],
       "ability_keywords": [
         "入场曲",
         "奥义"
@@ -24537,27 +24555,45 @@
         "【<color=Keyword>入场曲</color>】【<color=Keyword>奥义</color>】使自己的战场上的所有进化前的随从进化。【<color=Keyword>解放奥义</color>】改为超进化。"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【<color=Keyword>入场曲</color>】【<color=Keyword>奥义</color>】使自己的战场上的所有进化前的随从进化。【<color=Keyword>解放奥义</color>】改为超进化。",
+        "notes": "奥义值9/10/15阈值、全体未进化随从、已进化随从跳过，以及解放奥义替代低阶奥义并直接超进化均有直接测试。",
+        "rule_version": 1,
+        "source_text_sha256": "122456b1bb6db26f8078b68804692b2c43310015b3f4c6ef990a711ca36ea475",
+        "test_evidence": [
+          "tests/test_real_listener_enhance_random_keyword_eleventh_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10424120:0",
             "source_text": "【<color=Keyword>入场曲</color>】【<color=Keyword>奥义</color>】使自己的战场上的所有进化前的随从进化。【<color=Keyword>解放奥义</color>】改为超进化。",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "【<color=Keyword>入场曲</color>】【<color=Keyword>奥义</color>】使自己的战场上的所有进化前的随从进化。【<color=Keyword>解放奥义</color>】改为超进化。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "122456b1bb6db26f8078b68804692b2c43310015b3f4c6ef990a711ca36ea475",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "union_burst",
+            "super_skybound_art"
+          ],
+          "effect_kinds": [
+            "evolve_unit",
+            "super_evolve_unit"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_listener_enhance_random_keyword_eleventh_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10431110": {
@@ -32592,8 +32628,8 @@
       "cost": 2,
       "is_collectible": true,
       "card_set_id": 10005,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '进化时', '超进化', '抽取', '召唤', '舍弃']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['fanfare', 'super_evolve', 'listener:board:card_played'], Ops: ['discard', 'draw_filtered', 'draw_filtered', 'summon']",
       "hit_keywords": [
         "入场曲",
         "进化时",
@@ -32611,27 +32647,48 @@
         "【<color=Keyword>入场曲</color>】选择自己的1张手牌，舍弃该手牌。抽取1张法术。\n<hr>自己使用法术时，若本随从为进化后，则召唤1个『<color=Keyword>伊鞠的小鬼</color>』。\n<hr><sev>【<color=Keyword>超进化时</color>】抽取2种费用为1的法术。</sev>"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【<color=Keyword>入场曲</color>】选择自己的1张手牌，舍弃该手牌。抽取1张法术。\n<hr>自己使用法术时，若本随从为进化后，则召唤1个『<color=Keyword>伊鞠的小鬼</color>』。\n<hr><sev>【<color=Keyword>超进化时</color>】抽取2种费用为1的法术。</sev>",
+        "notes": "选择弃牌、无目标与失效目标、法术过滤抽取、进化后法术监听、来源离场、超进化两种不同名称1费法术、手牌溢出及action mask均有直接测试。",
+        "rule_version": 1,
+        "source_text_sha256": "c8ed7291167d1e8981df89dfd8b2c7aa8cc5ebfd884af52b1b07ffa3ac3208f0",
+        "test_evidence": [
+          "tests/test_real_listener_enhance_random_keyword_eleventh_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10574120:0",
             "source_text": "【<color=Keyword>入场曲</color>】选择自己的1张手牌，舍弃该手牌。抽取1张法术。\n<hr>自己使用法术时，若本随从为进化后，则召唤1个『<color=Keyword>伊鞠的小鬼</color>』。\n<hr><sev>【<color=Keyword>超进化时</color>】抽取2种费用为1的法术。</sev>",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "【<color=Keyword>入场曲</color>】选择自己的1张手牌，舍弃该手牌。抽取1张法术。\n<hr>自己使用法术时，若本随从为进化后，则召唤1个『<color=Keyword>伊鞠的小鬼</color>』。\n<hr><sev>【<color=Keyword>超进化时</color>】抽取2种费用为1的法术。</sev>",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "c8ed7291167d1e8981df89dfd8b2c7aa8cc5ebfd884af52b1b07ffa3ac3208f0",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "fanfare",
+            "super_evolve",
+            "listener:board:card_played"
+          ],
+          "effect_kinds": [
+            "discard",
+            "draw_filtered",
+            "draw_filtered",
+            "summon"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_listener_enhance_random_keyword_eleventh_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10601110": {
@@ -32813,8 +32870,8 @@
       "cost": 6,
       "is_collectible": true,
       "card_set_id": 10006,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '威慑', '灵气', '必杀', '吸血', '屏障']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['fanfare'], Ops: ['add_random_keywords']",
       "hit_keywords": [
         "入场曲",
         "威慑",
@@ -32837,30 +32894,43 @@
         "【<color=Keyword>入场曲</color>】本随从获得【<color=Keyword>疾驰</color>】【<color=Keyword>毁灭</color>】【<color=Keyword>威慑</color>】【<color=Keyword>虹吸</color>】【<color=Keyword>灵气</color>】【<color=Keyword>屏障</color>】中随机3个能力。"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【<color=Keyword>入场曲</color>】本随从获得【<color=Keyword>疾驰</color>】【<color=Keyword>毁灭</color>】【<color=Keyword>威慑</color>】【<color=Keyword>虹吸</color>】【<color=Keyword>灵气</color>】【<color=Keyword>屏障</color>】中随机3个能力。",
+        "notes": "六项候选能力、毁灭到必杀的规范化、固定种子复现、互异抽样、不同种子及状态不变量均有直接测试。",
+        "rule_version": 1,
+        "source_text_sha256": "e1ba3b31431eccfdc411ae79b8b0667d5c8f6c829bc7efd9ee9156489a7daf0b",
+        "test_evidence": [
+          "tests/test_real_listener_enhance_random_keyword_eleventh_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10603110:0",
             "source_text": "【<color=Keyword>入场曲</color>】本随从获得【<color=Keyword>疾驰</color>】【<color=Keyword>毁灭</color>】【<color=Keyword>威慑</color>】【<color=Keyword>虹吸</color>】【<color=Keyword>灵气</color>】【<color=Keyword>屏障</color>】中随机3个能力。",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "【<color=Keyword>入场曲</color>】本随从获得【<color=Keyword>疾驰</color>】【<color=Keyword>毁灭</color>】【<color=Keyword>威慑</color>】【<color=Keyword>虹吸</color>】【<color=Keyword>灵气</color>】【<color=Keyword>屏障</color>】中随机3个能力。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "e1ba3b31431eccfdc411ae79b8b0667d5c8f6c829bc7efd9ee9156489a7daf0b",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "fanfare"
+          ],
+          "effect_kinds": [
+            "add_random_keywords"
+          ]
         },
         "test_evidence": [
-          "tests/test_aura.py",
-          "tests/test_intimidate.py"
+          "tests/test_real_listener_enhance_random_keyword_eleventh_batch.py"
         ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10603210": {
@@ -33941,8 +34011,8 @@
       "cost": 1,
       "is_collectible": true,
       "card_set_id": 10006,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['倒数', '召唤', '纹章', '爆能强化']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['play', 'play_modes', 'emblem_source'], Ops: ['gain_emblem', 'play_mode', 'increase_countdown', 'summon']",
       "hit_keywords": [
         "倒数",
         "召唤",
@@ -33960,32 +34030,53 @@
         "【纹章_0】【<color=Keyword>吟唱</color>_2】\n自己通过【<color=Keyword>爆能强化</color>】使用卡牌时，召唤1个『<color=Keyword>勇烈的士兵</color>』。"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "使自己获得『纹章：威风的行军』。\n【<color=Keyword>爆能强化</color>_3】使自己的『纹章：威风的行军』的倒计数+2。",
+        "notes": "纹章倒计数2、首次强化不回看旧事件、强化过滤、关联士兵召唤、强化倒计数+2、多个纹章、场面容量、模式合法性与action mask均有直接测试。",
+        "rule_version": 1,
+        "source_text_sha256": "e32a640d04b074a2a976312e5b9eb52fd87c82ded68dc3a7ae2d6bca996cf3d4",
+        "test_evidence": [
+          "tests/test_real_listener_enhance_random_keyword_eleventh_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10622310:0",
             "source_text": "使自己获得『纹章：威风的行军』。\n【<color=Keyword>爆能强化</color>_3】使自己的『纹章：威风的行军』的倒计数+2。",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           },
           {
             "clause_id": "10622310:1",
             "source_text": "【纹章_0】【<color=Keyword>吟唱</color>_2】\n自己通过【<color=Keyword>爆能强化</color>】使用卡牌时，召唤1个『<color=Keyword>勇烈的士兵</color>』。",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "使自己获得『纹章：威风的行军』。\n【<color=Keyword>爆能强化</color>_3】使自己的『纹章：威风的行军』的倒计数+2。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "e32a640d04b074a2a976312e5b9eb52fd87c82ded68dc3a7ae2d6bca996cf3d4",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "play",
+            "play_modes",
+            "emblem_source"
+          ],
+          "effect_kinds": [
+            "gain_emblem",
+            "play_mode",
+            "increase_countdown",
+            "summon"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_listener_enhance_random_keyword_eleventh_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10623110": {
@@ -48454,6 +48545,7 @@
           "tests/test_real_existing_primitives_fourth_completion_batch.py",
           "tests/test_real_existing_primitives_third_completion_batch.py",
           "tests/test_real_leftmost_golem_bat_crest_batch.py",
+          "tests/test_real_listener_enhance_random_keyword_eleventh_batch.py",
           "tests/test_real_spell_enhance_batch.py",
           "tests/test_real_spell_modes_and_earth_listener_batch.py",
           "tests/test_real_ward_marine_crest_listener_batch.py",
@@ -51220,34 +51312,6 @@
       "suggested_rule_file": "batch_龙族.json"
     },
     {
-      "card_id": 10224120,
-      "name": "雷维翁超越者·尤里乌斯",
-      "class_name": "皇家护卫",
-      "card_type": "随从",
-      "cost": 8,
-      "ability_keywords": [
-        "入场曲"
-      ],
-      "hit_keywords": [
-        "入场曲",
-        "回合结束",
-        "回复(?!自己\\d+点(?:超进化点|进化点|能量点))",
-        "造成.*伤害",
-        "召唤",
-        "不能攻击|无法攻击"
-      ],
-      "confidence": "high",
-      "why_recommended": "Covered keywords: 入场曲, 回合结束, 回复(?!自己\\d+点(?:超进化点|进化点|能量点))",
-      "required_primitives": [
-        "入场曲",
-        "回合结束",
-        "回复(?!自己\\d+点(?:超进化点|进化点|能量点))",
-        "造成.*伤害",
-        "召唤"
-      ],
-      "suggested_rule_file": "batch_皇家护卫.json"
-    },
-    {
       "card_id": 10244120,
       "name": "绚丽凤凰·小凤",
       "class_name": "龙族",
@@ -51369,35 +51433,6 @@
       "suggested_rule_file": "batch_中立.json"
     },
     {
-      "card_id": 10574120,
-      "name": "尽小花·伊鞠",
-      "class_name": "超越者",
-      "card_type": "随从",
-      "cost": 2,
-      "ability_keywords": [
-        "入场曲",
-        "超进化时"
-      ],
-      "hit_keywords": [
-        "入场曲",
-        "进化时",
-        "超进化",
-        "抽取",
-        "召唤",
-        "舍弃"
-      ],
-      "confidence": "high",
-      "why_recommended": "Covered keywords: 入场曲, 进化时, 超进化",
-      "required_primitives": [
-        "入场曲",
-        "进化时",
-        "超进化",
-        "抽取",
-        "召唤"
-      ],
-      "suggested_rule_file": "batch_超越者.json"
-    },
-    {
       "card_id": 10111140,
       "name": "勤劳的蚂蚱",
       "class_name": "精灵",
@@ -51472,30 +51507,6 @@
       "suggested_rule_file": "batch_巫师.json"
     },
     {
-      "card_id": 10424120,
-      "name": "十天众统领·希耶提",
-      "class_name": "皇家护卫",
-      "card_type": "随从",
-      "cost": 4,
-      "ability_keywords": [
-        "入场曲",
-        "奥义"
-      ],
-      "hit_keywords": [
-        "入场曲",
-        "超进化",
-        "奥义"
-      ],
-      "confidence": "high",
-      "why_recommended": "Covered keywords: 入场曲, 超进化, 奥义",
-      "required_primitives": [
-        "入场曲",
-        "超进化",
-        "奥义"
-      ],
-      "suggested_rule_file": "batch_皇家护卫.json"
-    },
-    {
       "card_id": 10263110,
       "name": "速断之刃·阿尼耶丝",
       "class_name": "主教",
@@ -51514,6 +51525,78 @@
       "required_primitives": [
         "攻击时",
         "破坏"
+      ],
+      "suggested_rule_file": "batch_主教.json"
+    },
+    {
+      "card_id": 10342110,
+      "name": "侮蔑的祈祷者",
+      "class_name": "龙族",
+      "card_type": "随从",
+      "cost": 5,
+      "ability_keywords": [
+        "守护",
+        "突进"
+      ],
+      "hit_keywords": [
+        "回合结束",
+        "回复(?!自己\\d+点(?:超进化点|进化点|能量点))"
+      ],
+      "confidence": "high",
+      "why_recommended": "Covered keywords: 回合结束, 回复(?!自己\\d+点(?:超进化点|进化点|能量点))",
+      "required_primitives": [
+        "回合结束",
+        "回复(?!自己\\d+点(?:超进化点|进化点|能量点))"
+      ],
+      "suggested_rule_file": "batch_龙族.json"
+    },
+    {
+      "card_id": 10473110,
+      "name": "向往天空的回归者·卡西乌斯",
+      "class_name": "超越者",
+      "card_type": "随从",
+      "cost": 5,
+      "ability_keywords": [
+        "入场曲",
+        "谢幕曲"
+      ],
+      "hit_keywords": [
+        "入场曲",
+        "谢幕曲",
+        "将.*加入手牌",
+        "造成.*伤害"
+      ],
+      "confidence": "high",
+      "why_recommended": "Covered keywords: 入场曲, 谢幕曲, 将.*加入手牌",
+      "required_primitives": [
+        "入场曲",
+        "谢幕曲",
+        "将.*加入手牌",
+        "造成.*伤害"
+      ],
+      "suggested_rule_file": "batch_超越者.json"
+    },
+    {
+      "card_id": 10162130,
+      "name": "大地守护神·米维",
+      "class_name": "主教",
+      "card_type": "随从",
+      "cost": 7,
+      "ability_keywords": [
+        "守护",
+        "谢幕曲"
+      ],
+      "hit_keywords": [
+        "谢幕曲",
+        "破坏",
+        "召唤"
+      ],
+      "confidence": "high",
+      "why_recommended": "Covered keywords: 谢幕曲, 破坏, 召唤",
+      "required_primitives": [
+        "谢幕曲",
+        "破坏",
+        "召唤"
       ],
       "suggested_rule_file": "batch_主教.json"
     }
