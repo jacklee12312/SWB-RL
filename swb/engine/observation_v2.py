@@ -64,6 +64,16 @@ def _hand_runtime(card: HandCard | None, turn: int) -> tuple[float, ...]:
     )
 
 
+def _turn_end_removal_code(
+    entity: Unit,
+    timing: TurnEndDestroyTiming,
+) -> float:
+    return float(
+        int(timing in entity.turn_end_destroy_timings)
+        + 2 * int(timing in entity.turn_end_banish_timings)
+    )
+
+
 def _board_runtime(entity) -> tuple[float, ...]:
     if entity is None:
         return (0.0,) * 18
@@ -103,14 +113,8 @@ def _board_runtime(entity) -> tuple[float, ...]:
         float(entity.last_words_removed),
         float(entity.evolved),
         float(entity.super_evolved),
-        float(
-            TurnEndDestroyTiming.OWNER_TURN
-            in entity.turn_end_destroy_timings
-        ),
-        float(
-            TurnEndDestroyTiming.OPPONENT_TURN
-            in entity.turn_end_destroy_timings
-        ),
+        _turn_end_removal_code(entity, TurnEndDestroyTiming.OWNER_TURN),
+        _turn_end_removal_code(entity, TurnEndDestroyTiming.OPPONENT_TURN),
         min(len(entity.granted_last_words), 4) / 4,
         float(entity.effect_destroy_immunity),
     )

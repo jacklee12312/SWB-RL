@@ -30,6 +30,9 @@ class ConditionType(str, Enum):
     CONTROLLER_BOARD_HAS = "controller_board_has"
     OPPONENT_BOARD_HAS = "opponent_board_has"
     CONTROLLER_HAND_COUNT_AT_LEAST = "controller_hand_count_at_least"
+    CONTROLLER_HAND_TOP_BASE_COST_SUM_GREATER_THAN_OPPONENT = (
+        "controller_hand_top_base_cost_sum_greater_than_opponent"
+    )
     CONTROLLER_MAX_MANA_AT_LEAST = "controller_max_mana_at_least"
     OPPONENT_MAX_MANA_AT_LEAST = "opponent_max_mana_at_least"
     CONTROLLER_DECK_HAS_NO_DUPLICATES = "controller_deck_has_no_duplicates"
@@ -187,14 +190,20 @@ class EffectKind(str, Enum):
     REMOVE_LAST_WORDS = "remove_last_words"
     GRANT_ATTACKS_PER_TURN = "grant_attacks_per_turn"
     GRANT_TURN_END_DESTROY = "grant_turn_end_destroy"
+    GRANT_TURN_END_BANISH = "grant_turn_end_banish"
     ADD_LEADER_DAMAGE_MODIFIER = "add_leader_damage_modifier"
     CHANGE_COST = "change_cost"
     CHANGE_DECK_COST = "change_deck_cost"
+    BANISH_DECK_DUPLICATES = "banish_deck_duplicates"
     REPLACE_DECK = "replace_deck"
     SET_EMPTY_DECK_OUTCOME = "set_empty_deck_outcome"
     SET_LEADER_MAX_HEALTH = "set_leader_max_health"
     CHANGE_LEADER_MAX_HEALTH = "change_leader_max_health"
     TRANSFORM = "transform"
+    TRANSFORM_HAND_FROM_RANDOM_ENEMY_DECK = (
+        "transform_hand_from_random_enemy_deck"
+    )
+    COPY_LEFTMOST_HAND_TO_HAND = "copy_leftmost_hand_to_hand"
     GAIN_EMBLEM = "gain_emblem"
     ADD_EMBLEM = "add_emblem"
     REMOVE_EMBLEM = "remove_emblem"
@@ -540,6 +549,7 @@ class EffectOperation:
     distinct_card_names: bool = False
     include_leader: bool = False
     turn_end_destroy_timing: TurnEndDestroyTiming | None = None
+    turn_end_banish_timing: TurnEndDestroyTiming | None = None
 
 
 @dataclass(frozen=True)

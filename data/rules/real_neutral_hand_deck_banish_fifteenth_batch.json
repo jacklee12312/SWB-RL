@@ -1,0 +1,142 @@
+{
+  "activations": [
+    {"card_id": 10303210, "cost": 1},
+    {"card_id": 10602210, "cost": 0}
+  ],
+  "passives": [
+    {
+      "card_id": 10704110,
+      "kind": "non_intrinsic_keyword",
+      "keyword": "屏障",
+      "notes": "屏障仅由攻击随从时的结构化效果获得，并非初始关键词。"
+    }
+  ],
+  "emblems": [
+    {
+      "id": "illamrita_designated_target",
+      "source_card_id": 10704110,
+      "stacking": "allow",
+      "countdown": 2,
+      "on_expire": [
+        {
+          "kind": "summon",
+          "target": "own_leader",
+          "card_id": 10704110,
+          "target_key": "returned_illamrita"
+        },
+        {
+          "kind": "evolve_unit",
+          "target": "previous_target",
+          "target_key": "returned_illamrita"
+        }
+      ]
+    }
+  ],
+  "rules": [
+    {
+      "card_id": 10303210,
+      "trigger": "play",
+      "coverage": "exact",
+      "implemented_text": "【<color=Keyword>入场曲</color>】使自己的牌组中的重复卡牌消失并只保留1张。\n<hr>费用1【<color=Keyword>启动</color>】抽取1张卡牌。",
+      "operations": [
+        {"kind": "banish_deck_duplicates", "target": "own_leader"}
+      ]
+    },
+    {
+      "card_id": 10303210,
+      "trigger": "activate",
+      "operations": [
+        {"kind": "draw", "target": "own_leader", "amount": 1}
+      ]
+    },
+    {
+      "card_id": 10502110,
+      "trigger": "evolve",
+      "coverage": "exact",
+      "implemented_text": "<ev>【<color=Keyword>进化时</color>】选择自己的3张手牌，舍弃这些手牌。将自己的手牌中从左起的3张卡牌的复制卡牌各1张以非公开形式加入手牌。</ev>",
+      "operations": [
+        {
+          "kind": "discard",
+          "target": "own_hand",
+          "requires_target": true,
+          "target_count": 3,
+          "requires_full_target_count": true
+        },
+        {
+          "kind": "copy_leftmost_hand_to_hand",
+          "target": "own_leader",
+          "amount": 3
+        }
+      ]
+    },
+    {
+      "card_id": 10502120,
+      "trigger": "evolve",
+      "coverage": "exact",
+      "implemented_text": "<ev>【<color=Keyword>进化时</color>】若自己的手牌中原始费用最大的3张卡牌的费用合计大于对手的手牌中原始费用最大的3张卡牌的费用合计，则破坏对手的战场上的所有随从。</ev>",
+      "operations": [
+        {
+          "kind": "destroy",
+          "target": "all_enemy_units",
+          "conditions": [
+            {
+              "type": "controller_hand_top_base_cost_sum_greater_than_opponent",
+              "value": 3
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "card_id": 10602210,
+      "trigger": "activate",
+      "coverage": "exact",
+      "implemented_text": "【<color=Keyword>启动</color>】选择自己的1张手牌，使其变身为对手的牌组中的随机1张卡牌的复制卡牌。",
+      "operations": [
+        {
+          "kind": "transform_hand_from_random_enemy_deck",
+          "target": "own_hand",
+          "requires_target": true
+        }
+      ]
+    },
+    {
+      "card_id": 10704110,
+      "trigger": "attack",
+      "coverage": "exact",
+      "implemented_text": "【<color=Keyword>攻击时</color>】若攻击随从，则本随从获得【<color=Keyword>屏障</color>】。使交战对手获得「无法攻击随从或主战者」和「自己的回合结束时，使本随从消失」。\n【<color=Keyword>谢幕曲</color>】使自己获得『纹章：特殊目标·海雷姆哈妮』。\n【纹章_0】【<color=Keyword>吟唱</color>_2】\n【<color=Keyword>谢幕曲</color>】召唤1个『<color=Keyword>特殊目标·海雷姆哈妮</color>』，使其进化。",
+      "operations": [
+        {
+          "kind": "add_keyword",
+          "target": "self",
+          "keyword": "屏障",
+          "conditions": [{"type": "attack_target_exists"}]
+        },
+        {
+          "kind": "add_attack_restriction",
+          "target": "attack_target",
+          "restriction": "cannot_attack",
+          "duration": "permanent",
+          "conditions": [{"type": "attack_target_exists"}]
+        },
+        {
+          "kind": "grant_turn_end_banish",
+          "target": "attack_target",
+          "turn_end_banish_timing": "owner_turn",
+          "conditions": [{"type": "attack_target_exists"}]
+        }
+      ]
+    },
+    {
+      "card_id": 10704110,
+      "trigger": "last_words",
+      "operations": [
+        {
+          "kind": "gain_emblem",
+          "target": "own_leader",
+          "emblem_id": "illamrita_designated_target"
+        }
+      ]
+    }
+  ]
+}

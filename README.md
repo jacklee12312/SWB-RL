@@ -38,14 +38,14 @@ covered generic boundary, but that never upgrades a partial or placeholder
 keyword whose full tagged-card semantics still require structured rules.
 
 The [rule coverage report](data/reports/rule_coverage.md) now includes a
-clause-audit layer without changing its legacy coverage categories. Of 688
-exact collectible cards (93.61% of 735), all 688 have explicit implemented text and named direct
+clause-audit layer without changing its legacy coverage categories. Of 693
+exact collectible cards (94.29% of 735), all 693 have explicit implemented text and named direct
 test evidence. The sibling `data/audits/rule_clauses.json` registry hashes every
 imported skill and alternate-mode clause, so a database text change or stale
 test reference invalidates the audit instead of silently retaining exact
 status. The current report has no unverified exact entry or missing generic
 schema, primitive, targeting, or timing blocker. Its remaining collectible gaps
-are 31 missing per-card structured rules plus 16 explicitly unclear texts.
+are 26 missing per-card structured rules plus 16 explicitly unclear texts.
 Rule metadata also supports version and errata fields, and the report
 records the complete imported source snapshot hash.
 
@@ -498,6 +498,18 @@ The deterministic rules core supports:
   stale and illegal targets, seeded branch uniqueness, Earth Rite shortage,
   multilingual hashes, Clause/Token consistency, and command/action-mask
   parity without changing observation or action schemas;
+- generic deck-duplicate banish, exact leftmost-hand copy, printed-cost top-N
+  comparison, enemy-deck random hand transform, and owner-turn-end banish
+  primitives close exact Neutral cards `10303210`, `10502110`, `10502120`,
+  `10602210`, and `10704110`, bringing exact collectible coverage to 693/735
+  (94.29%). The two existing public turn-end-removal runtime slots encode
+  destroy and banish as a bitmask without changing their shape; the formal
+  schema advances to `observation-v3.3` while all 111 action IDs remain
+  stable. Direct tests cover empty decks and target shortages, physical
+  deck-cost modifiers, complete hidden hand-copy state, silence, source/target
+  departure, crest expiry, hand/board capacity, deterministic replay,
+  multilingual/Mode/reference hashes, Clause/Token audits, illegal choices,
+  and command/action-mask parity without card-ID branches;
 - filtered hand-count conditions reuse the same type/class/identity/trait
   definition filters as hand targeting. Exact `10521120` counts only spells
   before conditionally gaining +1/+1 and Ward, while exact `10741120` and

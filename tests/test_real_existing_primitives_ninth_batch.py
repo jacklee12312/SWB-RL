@@ -758,9 +758,9 @@ class ExistingPrimitivesNinthDatabaseAuditTests(unittest.TestCase):
         self.assertEqual(
             report["summary"]["coverage_counts"],
             {
-                "covered_exact": 688,
+                "covered_exact": 693,
                 "text_unclear": 16,
-                "supported_missing_rule": 31,
+                "supported_missing_rule": 26,
                 "token_or_non_collectible": 91,
             },
         )

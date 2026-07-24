@@ -2653,6 +2653,7 @@ _EVENT_SOURCE_TARGET_EFFECTS = frozenset({
     EffectKind.REMOVE_ALL_ABILITIES,
     EffectKind.REMOVE_LAST_WORDS,
     EffectKind.GRANT_ATTACKS_PER_TURN,
+    EffectKind.GRANT_TURN_END_BANISH,
     EffectKind.TRANSFORM,
     EffectKind.SET_STATS,
     EffectKind.EVOLVE_UNIT,
@@ -3244,6 +3245,48 @@ def _parse_operation(
             raise ValueError(
                 f"{source_file}/amount card {card_id}: summon_from_deck "
                 "requires a positive integer amount"
+            )
+
+    if kind is EffectKind.COPY_LEFTMOST_HAND_TO_HAND:
+        if target is not TargetKind.OWN_LEADER:
+            raise ValueError(
+                f"{source_file}/target card {card_id}: "
+                "copy_leftmost_hand_to_hand requires own_leader"
+            )
+        if (
+            not isinstance(raw_amount, int)
+            or isinstance(raw_amount, bool)
+            or raw_amount < 1
+            or raw_amount > MAX_REPEAT_COUNT
+        ):
+            raise ValueError(
+                f"{source_file}/amount card {card_id}: "
+                "copy_leftmost_hand_to_hand requires an integer from 1 to "
+                f"{MAX_REPEAT_COUNT}"
+            )
+
+    if kind is EffectKind.BANISH_DECK_DUPLICATES:
+        if target is not TargetKind.OWN_LEADER:
+            raise ValueError(
+                f"{source_file}/target card {card_id}: "
+                "banish_deck_duplicates requires own_leader"
+            )
+        if raw_amount is not None:
+            raise ValueError(
+                f"{source_file}/amount card {card_id}: "
+                "banish_deck_duplicates does not accept amount"
+            )
+
+    if kind is EffectKind.TRANSFORM_HAND_FROM_RANDOM_ENEMY_DECK:
+        if target is not TargetKind.OWN_HAND:
+            raise ValueError(
+                f"{source_file}/target card {card_id}: "
+                "transform_hand_from_random_enemy_deck requires own_hand"
+            )
+        if raw_amount is not None:
+            raise ValueError(
+                f"{source_file}/amount card {card_id}: "
+                "transform_hand_from_random_enemy_deck does not accept amount"
             )
 
     if kind is EffectKind.CHANGE_MAX_MANA:
@@ -4419,6 +4462,39 @@ def _parse_operation(
             f"{source_file}/turn_end_destroy_timing card {card_id}: is only "
             "valid for grant_turn_end_destroy"
         )
+    raw_turn_end_banish_timing = raw.get("turn_end_banish_timing")
+    turn_end_banish_timing = None
+    if kind is EffectKind.GRANT_TURN_END_BANISH:
+        try:
+            turn_end_banish_timing = TurnEndDestroyTiming(
+                raw_turn_end_banish_timing
+            )
+        except (TypeError, ValueError) as exc:
+            raise ValueError(
+                f"{source_file}/turn_end_banish_timing card {card_id}: "
+                "grant_turn_end_banish requires owner_turn or opponent_turn"
+            ) from exc
+        if target not in {
+            TargetKind.SELF,
+            TargetKind.EVENT_SOURCE,
+            TargetKind.ATTACK_TARGET,
+            TargetKind.OWN_UNIT,
+            TargetKind.ENEMY_UNIT,
+            TargetKind.ANY_UNIT,
+            TargetKind.OWN_BOARD,
+            TargetKind.ENEMY_BOARD,
+            TargetKind.ANY_BOARD,
+            TargetKind.PREVIOUS_TARGET,
+        }:
+            raise ValueError(
+                f"{source_file}/target card {card_id}: "
+                "grant_turn_end_banish requires a follower target"
+            )
+    elif raw_turn_end_banish_timing is not None:
+        raise ValueError(
+            f"{source_file}/turn_end_banish_timing card {card_id}: is only "
+            "valid for grant_turn_end_banish"
+        )
     if (
         kind in {EffectKind.REDUCE_COUNTDOWN, EffectKind.INCREASE_COUNTDOWN}
         and target in {TargetKind.RANDOM_OWN_BOARD, TargetKind.RANDOM_ENEMY_BOARD}
@@ -5243,6 +5319,7 @@ def _parse_operation(
         exclude_attack_target=exclude_attack_target,
         include_leader=include_leader,
         turn_end_destroy_timing=turn_end_destroy_timing,
+        turn_end_banish_timing=turn_end_banish_timing,
     )
 
 
@@ -5293,6 +5370,7 @@ def _parse_condition(raw: dict, source_path: str, card_id: int) -> Condition:
         ConditionType.SOURCE_HEALTH_AT_MOST,
         ConditionType.SOURCE_HEALTH_AT_LEAST,
         ConditionType.CONTROLLER_HAND_COUNT_AT_LEAST,
+        ConditionType.CONTROLLER_HAND_TOP_BASE_COST_SUM_GREATER_THAN_OPPONENT,
         ConditionType.CONTROLLER_ENTERED_FOLLOWER_DISTINCT_COUNT_AT_LEAST,
         ConditionType.CONTROLLER_ENTERED_FOLLOWER_COUNT_AT_LEAST,
     )
@@ -5307,6 +5385,15 @@ def _parse_condition(raw: dict, source_path: str, card_id: int) -> Condition:
     else:
         value = _parse_optional_int(
             raw.get("value"), f"{source_path}/value", card_id
+        )
+    if (
+        t
+        == ConditionType.CONTROLLER_HAND_TOP_BASE_COST_SUM_GREATER_THAN_OPPONENT
+        and value < 1
+    ):
+        raise ValueError(
+            f"{source_path}/value card {card_id}: {t.value!r} requires a "
+            "positive integer"
         )
 
     keyword = raw.get("keyword")

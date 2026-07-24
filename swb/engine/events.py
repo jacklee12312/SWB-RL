@@ -60,6 +60,7 @@ class EventType(str, Enum):
     HAND_CARD_SUMMONED = "hand_card_summoned"
     CARD_ABILITY_GRANTED = "card_ability_granted"
     DECK_CARD_COST_CHANGED = "deck_card_cost_changed"
+    DECK_DUPLICATES_BANISHED = "deck_duplicates_banished"
     DECK_REPLACED = "deck_replaced"
     EMPTY_DECK_OUTCOME_CHANGED = "empty_deck_outcome_changed"
     EMPTY_DECK_DRAW_RESOLVED = "empty_deck_draw_resolved"
@@ -96,6 +97,7 @@ class EventType(str, Enum):
     HAND_FOLLOWER_STATS_INCREASED = "hand_follower_stats_increased"
     UNION_BURST_GAUGE_CHANGED = "union_burst_gauge_changed"
     FOLLOWER_TURN_END_DESTROY_GRANTED = "follower_turn_end_destroy_granted"
+    FOLLOWER_TURN_END_BANISH_GRANTED = "follower_turn_end_banish_granted"
 
 
 @dataclass(frozen=True)

@@ -542,6 +542,9 @@ class Unit(BoardEntity):
     turn_end_destroy_timings: set[TurnEndDestroyTiming] = field(
         default_factory=set
     )
+    turn_end_banish_timings: set[TurnEndDestroyTiming] = field(
+        default_factory=set
+    )
     granted_last_words: list[tuple[EffectOperation, ...]] = field(
         default_factory=list
     )
@@ -614,6 +617,7 @@ class Unit(BoardEntity):
         self.targeting_restrictions.clear()
         self.attack_capacity_modifiers.clear()
         self.turn_end_destroy_timings.clear()
+        self.turn_end_banish_timings.clear()
         self.granted_last_words.clear()
         self.effect_destroy_immunity = False
         self._adjust_attack_capacity(old_capacity)

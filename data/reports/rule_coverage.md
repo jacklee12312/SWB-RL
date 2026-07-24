@@ -8,26 +8,26 @@
 | Metric | Count |
 |---|---|
 | Total cards in DB | 826 |
-| Cards with rules | 792 |
+| Cards with rules | 797 |
 | Test/synthetic IDs with rules | 26 |
 
 ### Coverage Categories
 
 | Category | Count |
 |---|---|
-| covered_exact | 688 |
+| covered_exact | 693 |
 | text_unclear | 16 |
-| supported_missing_rule | 31 |
+| supported_missing_rule | 26 |
 | token_or_non_collectible | 91 |
 
 ### Clause Audit
 
 | Clause status | Count |
 |---|---:|
-| mapped_exact | 688 |
+| mapped_exact | 693 |
 | unverified_exact | 0 |
 | partial | 0 |
-| missing_rule | 31 |
+| missing_rule | 26 |
 | missing_primitive | 0 |
 | text_unclear | 16 |
 | token_separate_audit | 91 |
@@ -36,7 +36,7 @@
 
 | Blocker | Count |
 |---|---:|
-| missing_rule | 31 |
+| missing_rule | 26 |
 | missing_schema | 0 |
 | missing_primitive | 0 |
 | missing_targeting | 0 |
@@ -106,21 +106,21 @@
 |---|---|---|---|---|---|---|---|
 | 1 | 10524110 | 威猛的《战车》·奥辂昂 | 皇家护卫 | 9 | 随从 | high | Covered keywords: 回合结束, 造成.*伤害 |
 | 2 | 10464110 | 土之法则·伽莱翁 | 主教 | 3 | 随从 | high | Covered keywords: 超进化, 回合结束, 不能攻击|无法攻击 |
-| 3 | 10602210 | 被侵略的世界 | 中立 | 3 | 护符 | high | Covered keywords: 策动 |
-| 4 | 10502120 | 手持军配团扇的伟丈夫 | 中立 | 4 | 随从 | high | Covered keywords: 进化时, 破坏 |
-| 5 | 10502110 | 星辉女神 | 中立 | 5 | 随从 | high | Covered keywords: 进化时, 将.*加入手牌, 舍弃 |
-| 6 | 10543110 | 破灭屠戮者 | 龙族 | 7 | 随从 | high | Covered keywords: 进化时, 超进化, 消失 |
-| 7 | 10503210 | 大游戏世界 | 中立 | 1 | 护符 | high | Covered keywords: 谢幕曲, 倒数, 抽取 |
-| 8 | 10703210 | 巴别隆城 | 中立 | 1 | 护符 | high | Covered keywords: 策动, 回合结束, 倒数 |
-| 9 | 10303210 | 试炼的石板 | 中立 | 3 | 护符 | high | Covered keywords: 入场曲, 策动, 抽取 |
-| 10 | 10332210 | 真理的研究设施 | 巫师 | 3 | 护符 | high | Covered keywords: 策动, 倒数, 抽取 |
-| 11 | 10342110 | 侮蔑的祈祷者 | 龙族 | 5 | 随从 | high | Covered keywords: 回合结束, 回复(?!自己\d+点(?:超进化点|进化点|能量点)) |
-| 12 | 10162130 | 大地守护神·米维 | 主教 | 7 | 随从 | high | Covered keywords: 谢幕曲, 破坏, 召唤 |
-| 13 | 10214120 | 缠绕密林·丽梅格 | 精灵 | 7 | 随从 | high | Covered keywords: 入场曲, 进化时, 超进化 |
-| 14 | 10604110 | 恐惧的象征·欧米伽奥提普 | 中立 | 9 | 随从 | high | Covered keywords: 入场曲, 进化时, 超进化 |
-| 15 | 10554120 | 奥夜花·释藤 | 梦魇 | 10 | 随从 | high | Covered keywords: 入场曲, 进化时, 超进化 |
-| 16 | 10514110 | 脚踩天穹的《倒吊人》·罗弗拉德 | 精灵 | 2 | 随从 | high | Covered keywords: 入场曲, 进化时, 连击 |
-| 17 | 10553310 | 严酷的奥夜花 | 梦魇 | 2 | 法术 | high | Covered keywords: 回合结束, 倒数, 抽取 |
-| 18 | 10574110 | 转动的《命运之轮》·斯洛士 | 超越者 | 3 | 随从 | high | Covered keywords: 回合开始, 回合结束, 倒数 |
-| 19 | 10663210 | 崇高的天书 | 主教 | 4 | 护符 | high | Covered keywords: 入场曲, 谢幕曲, 倒数 |
-| 20 | 10664110 | 崇高的憎恶·康蒂玛 | 主教 | 4 | 随从 | high | Covered keywords: 入场曲, 谢幕曲, 进化时 |
+| 3 | 10543110 | 破灭屠戮者 | 龙族 | 7 | 随从 | high | Covered keywords: 进化时, 超进化, 消失 |
+| 4 | 10503210 | 大游戏世界 | 中立 | 1 | 护符 | high | Covered keywords: 谢幕曲, 倒数, 抽取 |
+| 5 | 10703210 | 巴别隆城 | 中立 | 1 | 护符 | high | Covered keywords: 策动, 回合结束, 倒数 |
+| 6 | 10332210 | 真理的研究设施 | 巫师 | 3 | 护符 | high | Covered keywords: 策动, 倒数, 抽取 |
+| 7 | 10342110 | 侮蔑的祈祷者 | 龙族 | 5 | 随从 | high | Covered keywords: 回合结束, 回复(?!自己\d+点(?:超进化点|进化点|能量点)) |
+| 8 | 10162130 | 大地守护神·米维 | 主教 | 7 | 随从 | high | Covered keywords: 谢幕曲, 破坏, 召唤 |
+| 9 | 10214120 | 缠绕密林·丽梅格 | 精灵 | 7 | 随从 | high | Covered keywords: 入场曲, 进化时, 超进化 |
+| 10 | 10604110 | 恐惧的象征·欧米伽奥提普 | 中立 | 9 | 随从 | high | Covered keywords: 入场曲, 进化时, 超进化 |
+| 11 | 10554120 | 奥夜花·释藤 | 梦魇 | 10 | 随从 | high | Covered keywords: 入场曲, 进化时, 超进化 |
+| 12 | 10514110 | 脚踩天穹的《倒吊人》·罗弗拉德 | 精灵 | 2 | 随从 | high | Covered keywords: 入场曲, 进化时, 连击 |
+| 13 | 10553310 | 严酷的奥夜花 | 梦魇 | 2 | 法术 | high | Covered keywords: 回合结束, 倒数, 抽取 |
+| 14 | 10574110 | 转动的《命运之轮》·斯洛士 | 超越者 | 3 | 随从 | high | Covered keywords: 回合开始, 回合结束, 倒数 |
+| 15 | 10663210 | 崇高的天书 | 主教 | 4 | 护符 | high | Covered keywords: 入场曲, 谢幕曲, 倒数 |
+| 16 | 10664110 | 崇高的憎恶·康蒂玛 | 主教 | 4 | 随从 | high | Covered keywords: 入场曲, 谢幕曲, 进化时 |
+| 17 | 10444120 | 世界的伙伴·佐伊 | 龙族 | 5 | 随从 | high | Covered keywords: 入场曲, 回合结束, 爆能强化 |
+| 18 | 10324110 | 篡夺的继承者·辛瑟莱兹 | 皇家护卫 | 6 | 随从 | high | Covered keywords: 入场曲, 进化时, 超进化 |
+| 19 | 10564120 | 雾卷花·茎白 | 主教 | 7 | 随从 | high | Covered keywords: 入场曲, 抽取, 召唤 |
+| 20 | 10354110 | 混融的继承者·莎木·纳克雅 | 梦魇 | 2 | 随从 | medium | Covered keywords: 入场曲, 进化时, 超进化 |

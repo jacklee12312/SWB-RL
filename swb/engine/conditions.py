@@ -236,6 +236,28 @@ def evaluate_condition(cond: Condition | None, ctx: EvalContext | None) -> bool:
             if cond.card_filter is None
             or cond.card_filter.matches(getattr(card, "definition", card))
         ) >= cond.value
+    elif (
+        t
+        == ConditionType.CONTROLLER_HAND_TOP_BASE_COST_SUM_GREATER_THAN_OPPONENT
+    ):
+        controller_costs = sorted(
+            (
+                getattr(card, "definition", card).cost
+                for card in player.hand
+            ),
+            reverse=True,
+        )
+        opponent_costs = sorted(
+            (
+                getattr(card, "definition", card).cost
+                for card in opponent.hand
+            ),
+            reverse=True,
+        )
+        return (
+            sum(controller_costs[: cond.value])
+            > sum(opponent_costs[: cond.value])
+        )
     elif t == ConditionType.CONTROLLER_MAX_MANA_AT_LEAST:
         return player.max_mana >= cond.value
     elif t == ConditionType.OPPONENT_MAX_MANA_AT_LEAST:

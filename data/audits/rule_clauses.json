@@ -7179,6 +7179,41 @@
       "source_text_sha256": "45d98b4b499088b3c1ae17d5ebb17e514dde1aa6469800b0cb2daca01d1ed6bc",
       "test_evidence": ["tests/test_real_crest_entry_source_health_fourteenth_batch.py"],
       "notes": "固定种子牌组随机召唤、费用与随从过滤、无候选/满场不消耗随机数、效果超进化不消耗点数、超进化纹章、攻击随从与主战者分流、回合末临时二次攻击均有直接测试。"
+    },
+    {
+      "card_id": 10303210,
+      "rule_version": 1,
+      "source_text_sha256": "b069f189e8db96393bb78f6bee0d22ede01f657feffe243e58da6721d2058c9f",
+      "test_evidence": ["tests/test_real_neutral_hand_deck_banish_fifteenth_batch.py"],
+      "notes": "入场牌库物理副本去重、保留顺序中首张、后续重复牌放逐、牌库费用修正副本、无重复不消耗随机数、启动费用与抽牌均有直接测试。"
+    },
+    {
+      "card_id": 10502110,
+      "rule_version": 1,
+      "source_text_sha256": "61594c632bed115c9de38d75610536570e0aaa84eae759548e027455934b689f",
+      "test_evidence": ["tests/test_real_neutral_hand_deck_banish_fifteenth_batch.py"],
+      "notes": "进化选择并舍弃恰好3张手牌、选择不足时舍弃分支跳过并复制现有最左手牌、舍弃后重新确定最左3张、完整运行时状态精确复制、新实体及修正ID、非公开事件均有直接测试。"
+    },
+    {
+      "card_id": 10502120,
+      "rule_version": 1,
+      "source_text_sha256": "25b62cc601c551947b2b4791870baede87597aa16575397df44051331ff944bc",
+      "test_evidence": ["tests/test_real_neutral_hand_deck_banish_fifteenth_batch.py"],
+      "notes": "双方手牌原始费用前三高求和、忽略当前费用修正、严格大于全灭敌方随从及相等不触发均有直接测试。"
+    },
+    {
+      "card_id": 10602210,
+      "rule_version": 1,
+      "source_text_sha256": "597d7f4411c2f25d787b179e249aa1a2de8fc5dc608b9d57e8510128156b0e91",
+      "test_evidence": ["tests/test_real_neutral_hand_deck_banish_fifteenth_batch.py"],
+      "notes": "零费用启动、必选己方手牌、固定种子从敌方牌库随机、稳定手牌实体、精确继承物理牌库费用、空牌库不消耗随机数、无目标原子性及action mask均有直接测试。"
+    },
+    {
+      "card_id": 10704110,
+      "rule_version": 1,
+      "source_text_sha256": "57ca8c5e1fa5adbacda8f453c94f9b344dc20052ebe1e25269d0c9bed0c1bdb2",
+      "test_evidence": ["tests/test_real_neutral_hand_deck_banish_fifteenth_batch.py"],
+      "notes": "攻击随从与主战者分流、动态屏障、永久攻击封锁、目标控制者回合末放逐、沉默清除、Observation编码、谢幕曲纹章、倒计数2、自身关联召唤并进化及满场均有直接测试。"
     }
   ]
 }

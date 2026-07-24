@@ -10,13 +10,13 @@ code and tests as the source of truth when this file drifts.
 - Database: 826 cards, 735 collectible cards, 91 non-collectible/generated
   cards from set `90000`.
 - Latest SVA source: `https://sva.hypd.asia/data/cards.json`.
-- Tests: `python -m unittest discover -s tests -v` discovers 2414 behavioral
-  contracts (2026-07-24 fourteenth crest/entry/source-health verification).
+- Tests: `python -m unittest discover -s tests -v` discovers 2429 behavioral
+  contracts (2026-07-24 fifteenth neutral hand/deck/banish verification).
 - RL adapter: fixed 111-action space; the default v1 observation is 294
   floats, opt-in v2 preserves the structured compatibility mapping, and v3
   supplies fixed-dtype NumPy arrays plus a Gymnasium observation space without
   changing action IDs. Hidden decklists are the v3 default.
-- The exact-audit `TrainableCardCatalog` currently admits all 688 exact
+- The exact-audit `TrainableCardCatalog` currently admits all 693 exact
   collectible cards, preloads all 826 definitions for SQLite-free matches, and
   provides deterministic class-valid deck sampling. Self-play no longer uses
   the legacy 2-to-5-card follower pool.
@@ -48,9 +48,9 @@ code and tests as the source of truth when this file drifts.
   and distribution acceptance results, not policy-strength evidence.
 - Ability registry status: 18 implemented, 5 partial, 11 placeholder.
 - Explicit card and demo rules live in `data/rules/`; the current coverage
-  report classifies 787 card IDs with explicit rules, passives, fusion,
+  report classifies 797 card IDs with explicit rules, passives, fusion,
   invocation, activation, Faith, Union Burst, or listener definitions. Current
-  collectible coverage is 688 exact (93.61% of 735), 0 partial, 31 supported-but-missing-rule,
+  collectible coverage is 693 exact (94.29% of 735), 0 partial, 26 supported-but-missing-rule,
   0 missing-primitive, and 16 text-unclear cards.
 - `data/reports/token_audit.{json,md}` audits all 91 non-collectible/generated
   cards independently of collectible coverage. Database `card_references` and
@@ -65,7 +65,7 @@ code and tests as the source of truth when this file drifts.
   separate column and is covered for all 34; it does not automatically promote
   the 5 partial or 11 placeholder keyword statuses.
 - Coverage now has a backward-compatible clause audit. The legacy summary still
-  reports 688 exact collectible cards, and all 688 now have an explicit exact
+  reports 693 exact collectible cards, and all 693 now have an explicit exact
   text mapping plus named direct test evidence. The versioned sibling registry
   at `data/audits/rule_clauses.json` hashes every imported primary and
   alternate-mode clause; changed source text or stale test evidence invalidates
@@ -74,7 +74,7 @@ code and tests as the source of truth when this file drifts.
   rule version and errata metadata, structured trigger/operation evidence,
   explicit unsupported text, and a stable blocker taxonomy. There are zero
   unverified exact entries and no known missing schema, primitive, targeting,
-  or timing blocker among authored rules. The 31 supported-but-missing-rule
+  or timing blocker among authored rules. The 26 supported-but-missing-rule
   cards are now the per-card structured-content backlog; 16 unclear texts
   remain explicit.
 - RL observation v2 is available behind an explicit version switch. A
@@ -1459,6 +1459,20 @@ slice in this order:
   second attacks, multilingual/Mode/reference/raw-source hashes, Clause/Token/
   Ability consistency, deterministic replay, and command/RL action-mask parity
   without observation or action schema changes.
+- Exact file
+  `data/rules/real_neutral_hand_deck_banish_fifteenth_batch.json` closes five
+  Neutral collectibles (`10303210`, `10502110`, `10502120`, `10602210`,
+  `10704110`), bringing collectible exact coverage to 693/735 (94.29%).
+  Generic deck-duplicate banish, exact leftmost-hand copy, printed-cost top-N
+  comparison, enemy-deck random hand transform, and owner-turn-end banish
+  primitives remain data-driven and use only engine-owned RNG. Turn-end
+  destroy/banish public runtime slots now use a two-bit code at their existing
+  positions, so v2/v3 shapes and all 111 action IDs remain fixed while the
+  formal schema advances to `observation-v3.3`. Direct tests cover normal,
+  shortage, empty-deck, stale/illegal choice, source/target departure, silence,
+  hand/board capacity, exact physical modifiers, state-based checks,
+  deterministic replay, multilingual/Mode/reference/raw-source hashes,
+  Clause/Token consistency, and command/action-mask parity.
 
 ## Known Partial Or Unsupported Areas
 

@@ -10,6 +10,7 @@ from swb.engine.environment import ShadowverseEnv
 from swb.engine.effects import TurnEndDestroyTiming
 from swb.engine.events import EventType, GameEvent
 from swb.engine.faith import FaithDefinition, FaithInstance
+from swb.engine.observation_v2 import _board_runtime
 from swb.engine.origin import CardOrigin
 from swb.engine.state import (
     EmblemInstance,
@@ -98,6 +99,17 @@ class ObservationV2Tests(unittest.TestCase):
         self.assertEqual(spec["action_size"], 111)
         self.assertEqual(spec["card_vocabulary_size"], 140)
         self.assertEqual(spec["categorical_vocabulary"]["cards"], self.vocabulary)
+
+    def test_turn_end_removal_runtime_slots_encode_destroy_and_banish(self):
+        unit = Unit.summon(card(138), entity_id=1)
+        unit.turn_end_destroy_timings.add(TurnEndDestroyTiming.OWNER_TURN)
+        unit.turn_end_banish_timings.add(TurnEndDestroyTiming.OPPONENT_TURN)
+        runtime = _board_runtime(unit)
+        self.assertEqual(len(runtime), 18)
+        self.assertEqual(runtime[14:16], (1.0, 2.0))
+
+        unit.turn_end_banish_timings.add(TurnEndDestroyTiming.OWNER_TURN)
+        self.assertEqual(_board_runtime(unit)[14], 3.0)
 
     def test_own_hand_and_public_board_identity_are_categorical(self):
         env = self.make_env()

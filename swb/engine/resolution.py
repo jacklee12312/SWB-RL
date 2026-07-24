@@ -196,6 +196,7 @@ _SOURCE_REQUIRED_SELF_TARGET_EFFECTS = frozenset({
     EffectKind.REMOVE_ALL_ABILITIES,
     EffectKind.REMOVE_LAST_WORDS,
     EffectKind.GRANT_ATTACKS_PER_TURN,
+    EffectKind.GRANT_TURN_END_BANISH,
     EffectKind.SUMMON_EXACT_COPY,
     EffectKind.TRANSFORM,
     EffectKind.SET_STATS,
@@ -2657,6 +2658,10 @@ class GameEngine:
             summary["turn_end_destroy_timing"] = (
                 operation.turn_end_destroy_timing.value
             )
+        if operation.turn_end_banish_timing is not None:
+            summary["turn_end_banish_timing"] = (
+                operation.turn_end_banish_timing.value
+            )
         nested_counts = {
             "earth_rite": len(operation.earth_rite_operations),
             "necromancy": len(operation.necromancy_operations),
@@ -3306,6 +3311,12 @@ class GameEngine:
                         for timing in entity.turn_end_destroy_timings
                     )
                 ),
+                "turn_end_banish_timings": tuple(
+                    sorted(
+                        timing.value
+                        for timing in entity.turn_end_banish_timings
+                    )
+                ),
             })
         elif isinstance(entity, Amulet):
             base.update({
@@ -3624,6 +3635,11 @@ class GameEngine:
                 None
                 if operation.turn_end_destroy_timing is None
                 else operation.turn_end_destroy_timing.value
+            ),
+            (
+                None
+                if operation.turn_end_banish_timing is None
+                else operation.turn_end_banish_timing.value
             ),
         )
 
@@ -5896,7 +5912,6 @@ class GameEngine:
                 raise IllegalCommand("No evolution points")
             if player.turns_started < self.config.evolution_unlock_turn:
                 raise IllegalCommand("Evolution is not unlocked")
-
         if super_evolve:
             player.super_evolution_points -= 1
             player.super_evolved_this_turn = True
@@ -6381,6 +6396,16 @@ class GameEngine:
             operations.append(
                 EffectOperation(
                     kind=EffectKind.DESTROY,
+                    target=TargetKind.SELF,
+                )
+            )
+        if (
+            isinstance(unit, Unit)
+            and matching_timing in unit.turn_end_banish_timings
+        ):
+            operations.append(
+                EffectOperation(
+                    kind=EffectKind.BANISH,
                     target=TargetKind.SELF,
                 )
             )
@@ -7791,6 +7816,8 @@ class GameEngine:
             self._execute_add_card_to_deck(effect, frame)
         elif effect.kind is EffectKind.COPY_TO_HAND:
             self._execute_copy_to_hand(effect, frame, target_id)
+        elif effect.kind is EffectKind.COPY_LEFTMOST_HAND_TO_HAND:
+            self._execute_copy_leftmost_hand_to_hand(effect, frame)
         elif effect.kind is EffectKind.COPY_DESTROYED_FOLLOWERS_TO_HAND:
             self._execute_copy_destroyed_followers_to_hand(effect, frame)
         elif effect.kind is EffectKind.RETURN_TO_HAND:
@@ -7821,6 +7848,8 @@ class GameEngine:
             self._execute_grant_attacks_per_turn(effect, frame, target_id)
         elif effect.kind is EffectKind.GRANT_TURN_END_DESTROY:
             self._execute_grant_turn_end_destroy(effect, frame, target_id)
+        elif effect.kind is EffectKind.GRANT_TURN_END_BANISH:
+            self._execute_grant_turn_end_banish(effect, frame, target_id)
         elif effect.kind is EffectKind.ADD_LEADER_DAMAGE_MODIFIER:
             self._execute_add_leader_damage_modifier(effect, frame)
         elif effect.kind is EffectKind.CHANGE_COST:
@@ -7829,10 +7858,18 @@ class GameEngine:
             self._execute_change_deck_cost(effect, frame)
         elif effect.kind is EffectKind.REPLACE_DECK:
             self._execute_replace_deck(effect, frame)
+        elif effect.kind is EffectKind.BANISH_DECK_DUPLICATES:
+            self._execute_banish_deck_duplicates(frame)
         elif effect.kind is EffectKind.SET_EMPTY_DECK_OUTCOME:
             self._execute_set_empty_deck_outcome(effect, frame)
         elif effect.kind is EffectKind.TRANSFORM:
             self._execute_transform(effect, frame, target_id)
+        elif effect.kind is EffectKind.TRANSFORM_HAND_FROM_RANDOM_ENEMY_DECK:
+            self._execute_transform_hand_from_random_enemy_deck(
+                effect,
+                frame,
+                target_id,
+            )
         elif effect.kind is EffectKind.SET_STATS:
             self._execute_set_stats(effect, frame, target_id)
         elif effect.kind is EffectKind.EVOLVE_UNIT:
@@ -8343,6 +8380,47 @@ class GameEngine:
             f"{target.definition.name} 获得“{timing_label}时破坏自身”",
         )
 
+    def _execute_grant_turn_end_banish(
+        self,
+        effect: EffectOperation,
+        frame: EffectFrame,
+        target_id: int | None,
+    ) -> None:
+        if effect.turn_end_banish_timing is None:
+            raise IllegalCommand(
+                "GRANT_TURN_END_BANISH requires turn_end_banish_timing"
+            )
+        target = self._find_board_entity(target_id)
+        if not isinstance(target, Unit):
+            raise IllegalCommand(
+                "grant_turn_end_banish target must be a follower"
+            )
+        if effect.turn_end_banish_timing in target.turn_end_banish_timings:
+            return
+        target.turn_end_banish_timings.add(effect.turn_end_banish_timing)
+        self._emit(
+            GameEvent(
+                EventType.FOLLOWER_TURN_END_BANISH_GRANTED,
+                self._entity_owner(target.entity_id),
+                source_id=frame.source_entity_id,
+                target_id=target.entity_id,
+                metadata={
+                    "source_card_id": frame.source_card_id,
+                    "target_card_id": target.definition.card_id,
+                    "timing": effect.turn_end_banish_timing.value,
+                },
+            )
+        )
+        timing_label = (
+            "其控制者回合结束"
+            if effect.turn_end_banish_timing is TurnEndDestroyTiming.OWNER_TURN
+            else "其控制者的对手回合结束"
+        )
+        self._log(
+            frame.controller,
+            f"{target.definition.name} 获得“{timing_label}时消失自身”",
+        )
+
     def _execute_change_cost(
         self,
         effect: EffectOperation,
@@ -8474,6 +8552,66 @@ class GameEngine:
             f"{frame.source_name} 将牌组替换为 {len(definitions)} 张卡牌",
         )
 
+    def _execute_banish_deck_duplicates(
+        self,
+        frame: EffectFrame,
+    ) -> None:
+        player = self.players[frame.controller]
+        retained_card_ids: set[int] = set()
+        retained_cards: list[CardDefinition | DeckCard] = []
+        banished_definitions: list[CardDefinition] = []
+        for raw_card in player.deck:
+            definition = (
+                raw_card.definition
+                if isinstance(raw_card, DeckCard)
+                else raw_card
+            )
+            if definition.card_id not in retained_card_ids:
+                retained_card_ids.add(definition.card_id)
+                retained_cards.append(raw_card)
+                continue
+            banished_definitions.append(definition)
+
+        if not banished_definitions:
+            return
+        player.deck = retained_cards
+        for definition in banished_definitions:
+            player.banished.append(definition)
+            self._emit(
+                GameEvent(
+                    EventType.CARD_BANISHED,
+                    frame.controller,
+                    source_id=frame.source_entity_id,
+                    metadata={
+                        "source_card_id": frame.source_card_id,
+                        "card_id": definition.card_id,
+                        "definition": definition,
+                        "from_zone": "deck",
+                    },
+                )
+            )
+        self._emit(
+            GameEvent(
+                EventType.DECK_DUPLICATES_BANISHED,
+                frame.controller,
+                source_id=frame.source_entity_id,
+                amount=len(banished_definitions),
+                metadata={
+                    "source_card_id": frame.source_card_id,
+                    "banished_card_ids": tuple(
+                        definition.card_id
+                        for definition in banished_definitions
+                    ),
+                    "remaining_count": len(player.deck),
+                },
+            )
+        )
+        self._log(
+            frame.controller,
+            f"{frame.source_name} 使牌组中 {len(banished_definitions)} "
+            "张重复卡牌消失",
+        )
+
     def _execute_set_empty_deck_outcome(
         self,
         effect: EffectOperation,
@@ -8591,6 +8729,99 @@ class GameEngine:
                 },
             )
         )
+
+    def _execute_copy_leftmost_hand_to_hand(
+        self,
+        effect: EffectOperation,
+        frame: EffectFrame,
+    ) -> None:
+        player = self.players[frame.controller]
+        sources = tuple(self._hand_cards(frame.controller)[:effect.amount])
+        for source in sources:
+            origin = origin_for_added_card(source.definition)
+            if len(player.hand) >= self.config.max_hand:
+                self._send_to_graveyard(
+                    frame.controller,
+                    source.definition,
+                    "hand_full",
+                    derived=True,
+                    origin=origin,
+                    token=(
+                        is_token_definition(source.definition)
+                        or origin is CardOrigin.TOKEN
+                    ),
+                )
+                self._log(
+                    frame.controller,
+                    f"{frame.source_name} 完全相同复制卡牌失败：手牌已满",
+                )
+                continue
+
+            copied = self._make_hand_card(
+                source.definition,
+                self.state.allocate_entity_id(),
+                origin=origin,
+                source_origin=source.source_origin or source.origin,
+                fused_material_ids=tuple(source.fused_material_ids),
+            )
+            copied.cost_modifiers = [
+                replace(
+                    modifier,
+                    modifier_id=self._allocate_modifier_id(),
+                )
+                for modifier in source.cost_modifiers
+            ]
+            copied.stat_modifiers = [
+                replace(
+                    modifier,
+                    modifier_id=self._allocate_modifier_id(),
+                )
+                for modifier in source.stat_modifiers
+            ]
+            copied.spellboost_count = source.spellboost_count
+            copied.spellboost_cost_reduction = source.spellboost_cost_reduction
+            copied.cannot_be_played = source.cannot_be_played
+            copied.fusion_used_turn = source.fusion_used_turn
+            copied.evolutions_while_in_hand = source.evolutions_while_in_hand
+            copied.union_burst_gauge_bonus = source.union_burst_gauge_bonus
+            copied.printed_keyword_overrides = set(
+                source.printed_keyword_overrides
+            )
+            copied.permanent_keywords = set(source.permanent_keywords)
+            copied.temporary_keywords = list(source.temporary_keywords)
+            copied.removed_keywords = set(source.removed_keywords)
+            copied.temporary_keyword_removals = list(
+                source.temporary_keyword_removals
+            )
+            copied.granted_last_words = list(source.granted_last_words)
+            copied.effect_destroy_immunity = source.effect_destroy_immunity
+            player.hand.append(copied)
+            player.hand_entity_ids.append(copied.entity_id)
+            self._emit(
+                GameEvent(
+                    EventType.CARD_ADDED_TO_HAND,
+                    frame.controller,
+                    source_id=copied.entity_id,
+                    metadata={
+                        "card_id": copied.card_id,
+                        "card": copied.definition,
+                        "source": copied,
+                        "origin": copied.origin.value,
+                        "derived": True,
+                        "token": is_token_definition(copied.definition),
+                        "copied_from_entity_id": source.entity_id,
+                        "revealed": False,
+                        "exact_copy": True,
+                        "cost_after": copied.current_cost,
+                    },
+                )
+            )
+        if sources:
+            self._log(
+                frame.controller,
+                f"{frame.source_name} 将最左侧 {len(sources)} 张手牌的"
+                "完全相同复制品以非公开形式加入手牌",
+            )
 
     def _execute_copy_destroyed_followers_to_hand(
         self,
@@ -8820,6 +9051,7 @@ class GameEngine:
         unit.printed_abilities_removed = source.printed_abilities_removed
         unit.last_words_removed = source.last_words_removed
         unit.turn_end_destroy_timings = set(source.turn_end_destroy_timings)
+        unit.turn_end_banish_timings = set(source.turn_end_banish_timings)
         unit.granted_last_words = list(source.granted_last_words)
         unit.effect_destroy_immunity = source.effect_destroy_immunity
         unit.barrier_charges = source.barrier_charges
@@ -9048,6 +9280,61 @@ class GameEngine:
             f"({unit.attack}/{unit.health})",
         )
 
+    def _execute_transform_hand_from_random_enemy_deck(
+        self,
+        effect: EffectOperation,
+        frame: EffectFrame,
+        target_id: int | None,
+    ) -> None:
+        try:
+            hand_target = self._find_hand_card(frame.controller, target_id)
+        except IllegalCommand:
+            return
+        enemy_deck = self.players[1 - frame.controller].deck
+        if not enemy_deck:
+            self._log(
+                frame.controller,
+                f"{frame.source_name} 变身失败：敌方牌组为空",
+            )
+            return
+
+        selected = self.random.choice(enemy_deck)
+        replacement = (
+            selected.definition
+            if isinstance(selected, DeckCard)
+            else selected
+        )
+        inherited_cost_modifiers = (
+            [
+                replace(
+                    modifier,
+                    modifier_id=self._allocate_modifier_id(),
+                )
+                for modifier in selected.cost_modifiers
+            ]
+            if isinstance(selected, DeckCard)
+            else []
+        )
+        old_name = hand_target.name
+        transform_event = self._transform_hand_card(
+            hand_target,
+            replacement,
+            frame.controller,
+            preserve_fused_materials=False,
+        )
+        hand_target.cost_modifiers.extend(inherited_cost_modifiers)
+        transform_event.metadata.update({
+            "source_card_id": frame.source_card_id,
+            "copied_from_zone": "enemy_deck",
+            "copied_card_id": replacement.card_id,
+            "cost_after": hand_target.current_cost,
+        })
+        self._emit(transform_event)
+        self._log(
+            frame.controller,
+            f"手牌 {old_name} 变身为敌方牌组中的随机卡牌",
+        )
+
     def _execute_transform(
         self,
         effect: EffectOperation,
@@ -9235,6 +9522,8 @@ class GameEngine:
         target.last_words_removed = False
         target.granted_last_words.clear()
         target.effect_destroy_immunity = False
+        target.turn_end_destroy_timings.clear()
+        target.turn_end_banish_timings.clear()
         self._apply_initial_keyword_overrides(target)
         self._apply_initial_passives(target)
         target._synchronize_keyword_state()
@@ -13651,6 +13940,17 @@ class GameEngine:
                             f"Invariant failed: {zone} has invalid turn-end "
                             "destroy timings"
                         )
+                    if (
+                        not isinstance(entity.turn_end_banish_timings, set)
+                        or any(
+                            not isinstance(timing, TurnEndDestroyTiming)
+                            for timing in entity.turn_end_banish_timings
+                        )
+                    ):
+                        raise IllegalCommand(
+                            f"Invariant failed: {zone} has invalid turn-end "
+                            "banish timings"
+                        )
                     if entity.attack < 0:
                         raise IllegalCommand(
                             f"Invariant failed: {zone} attack is negative"
@@ -14121,6 +14421,16 @@ class GameEngine:
                 ):
                     raise IllegalCommand(
                         f"Invariant failed: {operation_zone} turn-end destroy timing is invalid"
+                    )
+                if (
+                    operation.turn_end_banish_timing is not None
+                    and not isinstance(
+                        operation.turn_end_banish_timing,
+                        TurnEndDestroyTiming,
+                    )
+                ):
+                    raise IllegalCommand(
+                        f"Invariant failed: {operation_zone} turn-end banish timing is invalid"
                     )
                 if not isinstance(operation.exclude_source, bool):
                     raise IllegalCommand(

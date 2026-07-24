@@ -12,25 +12,25 @@
   },
   "summary": {
     "total_cards": 826,
-    "total_with_rules": 792,
+    "total_with_rules": 797,
     "test_or_synthetic_ids_with_rules": 26,
     "coverage_counts": {
-      "covered_exact": 688,
+      "covered_exact": 693,
       "text_unclear": 16,
-      "supported_missing_rule": 31,
+      "supported_missing_rule": 26,
       "token_or_non_collectible": 91
     },
     "clause_audit_counts": {
-      "mapped_exact": 688,
+      "mapped_exact": 693,
       "unverified_exact": 0,
       "partial": 0,
-      "missing_rule": 31,
+      "missing_rule": 26,
       "missing_primitive": 0,
       "text_unclear": 16,
       "token_separate_audit": 91
     },
     "blocker_counts": {
-      "missing_rule": 31,
+      "missing_rule": 26,
       "missing_schema": 0,
       "missing_primitive": 0,
       "missing_targeting": 0,
@@ -18258,8 +18258,8 @@
       "cost": 3,
       "is_collectible": true,
       "card_set_id": 10003,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '策动', '抽取', '消失']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['play', 'activate', 'activation'], Ops: ['banish_deck_duplicates', 'draw', 'activation']",
       "hit_keywords": [
         "入场曲",
         "策动",
@@ -18267,9 +18267,6 @@
         "消失"
       ],
       "missing_primitives": [],
-      "missing_rule_mechanics": [
-        "策动"
-      ],
       "ability_keywords": [
         "入场曲",
         "策动"
@@ -18278,27 +18275,47 @@
         "【<color=Keyword>入场曲</color>】使自己的牌组中的重复卡牌消失并只保留1张。\n<hr>费用1【<color=Keyword>启动</color>】抽取1张卡牌。"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【<color=Keyword>入场曲</color>】使自己的牌组中的重复卡牌消失并只保留1张。\n<hr>费用1【<color=Keyword>启动</color>】抽取1张卡牌。",
+        "notes": "入场牌库物理副本去重、保留顺序中首张、后续重复牌放逐、牌库费用修正副本、无重复不消耗随机数、启动费用与抽牌均有直接测试。",
+        "rule_version": 1,
+        "source_text_sha256": "b069f189e8db96393bb78f6bee0d22ede01f657feffe243e58da6721d2058c9f",
+        "test_evidence": [
+          "tests/test_real_neutral_hand_deck_banish_fifteenth_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10303210:0",
             "source_text": "【<color=Keyword>入场曲</color>】使自己的牌组中的重复卡牌消失并只保留1张。\n<hr>费用1【<color=Keyword>启动</color>】抽取1张卡牌。",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "【<color=Keyword>入场曲</color>】使自己的牌组中的重复卡牌消失并只保留1张。\n<hr>费用1【<color=Keyword>启动</color>】抽取1张卡牌。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "b069f189e8db96393bb78f6bee0d22ede01f657feffe243e58da6721d2058c9f",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "play",
+            "activate",
+            "activation"
+          ],
+          "effect_kinds": [
+            "banish_deck_duplicates",
+            "draw",
+            "activation"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_neutral_hand_deck_banish_fifteenth_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10304110": {
@@ -28176,8 +28193,8 @@
       "cost": 5,
       "is_collectible": true,
       "card_set_id": 10005,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['进化时', '将.*加入手牌', '舍弃']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['evolve'], Ops: ['discard', 'copy_leftmost_hand_to_hand']",
       "hit_keywords": [
         "进化时",
         "将.*加入手牌",
@@ -28191,27 +28208,44 @@
         "<ev>【<color=Keyword>进化时</color>】选择自己的3张手牌，舍弃这些手牌。将自己的手牌中从左起的3张卡牌的复制卡牌各1张以非公开形式加入手牌。</ev>"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "<ev>【<color=Keyword>进化时</color>】选择自己的3张手牌，舍弃这些手牌。将自己的手牌中从左起的3张卡牌的复制卡牌各1张以非公开形式加入手牌。</ev>",
+        "notes": "进化选择并舍弃恰好3张手牌、选择不足时舍弃分支跳过并复制现有最左手牌、舍弃后重新确定最左3张、完整运行时状态精确复制、新实体及修正ID、非公开事件均有直接测试。",
+        "rule_version": 1,
+        "source_text_sha256": "61594c632bed115c9de38d75610536570e0aaa84eae759548e027455934b689f",
+        "test_evidence": [
+          "tests/test_real_neutral_hand_deck_banish_fifteenth_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10502110:0",
             "source_text": "<ev>【<color=Keyword>进化时</color>】选择自己的3张手牌，舍弃这些手牌。将自己的手牌中从左起的3张卡牌的复制卡牌各1张以非公开形式加入手牌。</ev>",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "<ev>【<color=Keyword>进化时</color>】选择自己的3张手牌，舍弃这些手牌。将自己的手牌中从左起的3张卡牌的复制卡牌各1张以非公开形式加入手牌。</ev>",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "61594c632bed115c9de38d75610536570e0aaa84eae759548e027455934b689f",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "evolve"
+          ],
+          "effect_kinds": [
+            "discard",
+            "copy_leftmost_hand_to_hand"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_neutral_hand_deck_banish_fifteenth_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10502120": {
@@ -28222,8 +28256,8 @@
       "cost": 4,
       "is_collectible": true,
       "card_set_id": 10005,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['进化时', '破坏']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['evolve'], Ops: ['destroy']",
       "hit_keywords": [
         "进化时",
         "破坏"
@@ -28236,27 +28270,43 @@
         "<ev>【<color=Keyword>进化时</color>】若自己的手牌中原始费用最大的3张卡牌的费用合计大于对手的手牌中原始费用最大的3张卡牌的费用合计，则破坏对手的战场上的所有随从。</ev>"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "<ev>【<color=Keyword>进化时</color>】若自己的手牌中原始费用最大的3张卡牌的费用合计大于对手的手牌中原始费用最大的3张卡牌的费用合计，则破坏对手的战场上的所有随从。</ev>",
+        "notes": "双方手牌原始费用前三高求和、忽略当前费用修正、严格大于全灭敌方随从及相等不触发均有直接测试。",
+        "rule_version": 1,
+        "source_text_sha256": "25b62cc601c551947b2b4791870baede87597aa16575397df44051331ff944bc",
+        "test_evidence": [
+          "tests/test_real_neutral_hand_deck_banish_fifteenth_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10502120:0",
             "source_text": "<ev>【<color=Keyword>进化时</color>】若自己的手牌中原始费用最大的3张卡牌的费用合计大于对手的手牌中原始费用最大的3张卡牌的费用合计，则破坏对手的战场上的所有随从。</ev>",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "<ev>【<color=Keyword>进化时</color>】若自己的手牌中原始费用最大的3张卡牌的费用合计大于对手的手牌中原始费用最大的3张卡牌的费用合计，则破坏对手的战场上的所有随从。</ev>",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "25b62cc601c551947b2b4791870baede87597aa16575397df44051331ff944bc",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "evolve"
+          ],
+          "effect_kinds": [
+            "destroy"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_neutral_hand_deck_banish_fifteenth_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10503210": {
@@ -33083,15 +33133,12 @@
       "cost": 3,
       "is_collectible": true,
       "card_set_id": 10006,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['策动']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['activate', 'activation'], Ops: ['transform_hand_from_random_enemy_deck', 'activation']",
       "hit_keywords": [
         "策动"
       ],
       "missing_primitives": [],
-      "missing_rule_mechanics": [
-        "策动"
-      ],
       "ability_keywords": [
         "策动"
       ],
@@ -33099,27 +33146,45 @@
         "【<color=Keyword>启动</color>】选择自己的1张手牌，使其变身为对手的牌组中的随机1张卡牌的复制卡牌。"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【<color=Keyword>启动</color>】选择自己的1张手牌，使其变身为对手的牌组中的随机1张卡牌的复制卡牌。",
+        "notes": "零费用启动、必选己方手牌、固定种子从敌方牌库随机、稳定手牌实体、精确继承物理牌库费用、空牌库不消耗随机数、无目标原子性及action mask均有直接测试。",
+        "rule_version": 1,
+        "source_text_sha256": "597d7f4411c2f25d787b179e249aa1a2de8fc5dc608b9d57e8510128156b0e91",
+        "test_evidence": [
+          "tests/test_real_neutral_hand_deck_banish_fifteenth_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10602210:0",
             "source_text": "【<color=Keyword>启动</color>】选择自己的1张手牌，使其变身为对手的牌组中的随机1张卡牌的复制卡牌。",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "【<color=Keyword>启动</color>】选择自己的1张手牌，使其变身为对手的牌组中的随机1张卡牌的复制卡牌。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "597d7f4411c2f25d787b179e249aa1a2de8fc5dc608b9d57e8510128156b0e91",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "activate",
+            "activation"
+          ],
+          "effect_kinds": [
+            "transform_hand_from_random_enemy_deck",
+            "activation"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_neutral_hand_deck_banish_fifteenth_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10603110": {
@@ -38333,8 +38398,8 @@
       "cost": 6,
       "is_collectible": true,
       "card_set_id": 10007,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['谢幕曲', '攻击时', '回合结束', '倒数', '消失', '召唤', '纹章', '屏障', '不能攻击|无法攻击']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['attack', 'last_words', 'emblem_source'], Ops: ['add_keyword', 'add_attack_restriction', 'grant_turn_end_banish', 'gain_emblem', 'summon', 'evolve_unit']",
       "hit_keywords": [
         "谢幕曲",
         "攻击时",
@@ -38359,32 +38424,55 @@
         "【纹章_0】【<color=Keyword>吟唱</color>_2】\n【<color=Keyword>谢幕曲</color>】召唤1个『<color=Keyword>特殊目标·海雷姆哈妮</color>』，使其进化。"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【<color=Keyword>攻击时</color>】若攻击随从，则本随从获得【<color=Keyword>屏障</color>】。使交战对手获得「无法攻击随从或主战者」和「自己的回合结束时，使本随从消失」。\n【<color=Keyword>谢幕曲</color>】使自己获得『纹章：特殊目标·海雷姆哈妮』。\n【纹章_0】【<color=Keyword>吟唱</color>_2】\n【<color=Keyword>谢幕曲</color>】召唤1个『<color=Keyword>特殊目标·海雷姆哈妮</color>』，使其进化。",
+        "notes": "攻击随从与主战者分流、动态屏障、永久攻击封锁、目标控制者回合末放逐、沉默清除、Observation编码、谢幕曲纹章、倒计数2、自身关联召唤并进化及满场均有直接测试。",
+        "rule_version": 1,
+        "source_text_sha256": "57ca8c5e1fa5adbacda8f453c94f9b344dc20052ebe1e25269d0c9bed0c1bdb2",
+        "test_evidence": [
+          "tests/test_real_neutral_hand_deck_banish_fifteenth_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10704110:0",
             "source_text": "【<color=Keyword>攻击时</color>】若攻击随从，则本随从获得【<color=Keyword>屏障</color>】。使交战对手获得「无法攻击随从或主战者」和「自己的回合结束时，使本随从消失」。\n【<color=Keyword>谢幕曲</color>】使自己获得『纹章：特殊目标·海雷姆哈妮』。",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           },
           {
             "clause_id": "10704110:1",
             "source_text": "【纹章_0】【<color=Keyword>吟唱</color>_2】\n【<color=Keyword>谢幕曲</color>】召唤1个『<color=Keyword>特殊目标·海雷姆哈妮</color>』，使其进化。",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "【<color=Keyword>攻击时</color>】若攻击随从，则本随从获得【<color=Keyword>屏障</color>】。使交战对手获得「无法攻击随从或主战者」和「自己的回合结束时，使本随从消失」。\n【<color=Keyword>谢幕曲</color>】使自己获得『纹章：特殊目标·海雷姆哈妮』。\n【纹章_0】【<color=Keyword>吟唱</color>_2】\n【<color=Keyword>谢幕曲</color>】召唤1个『<color=Keyword>特殊目标·海雷姆哈妮</color>』，使其进化。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "57ca8c5e1fa5adbacda8f453c94f9b344dc20052ebe1e25269d0c9bed0c1bdb2",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "attack",
+            "last_words",
+            "emblem_source"
+          ],
+          "effect_kinds": [
+            "add_keyword",
+            "add_attack_restriction",
+            "grant_turn_end_banish",
+            "gain_emblem",
+            "summon",
+            "evolve_unit"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_neutral_hand_deck_banish_fifteenth_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10704120": {
@@ -51485,69 +51573,6 @@
       "suggested_rule_file": "batch_主教.json"
     },
     {
-      "card_id": 10602210,
-      "name": "被侵略的世界",
-      "class_name": "中立",
-      "card_type": "护符",
-      "cost": 3,
-      "ability_keywords": [
-        "策动"
-      ],
-      "hit_keywords": [
-        "策动"
-      ],
-      "confidence": "high",
-      "why_recommended": "Covered keywords: 策动",
-      "required_primitives": [
-        "策动"
-      ],
-      "suggested_rule_file": "batch_中立.json"
-    },
-    {
-      "card_id": 10502120,
-      "name": "手持军配团扇的伟丈夫",
-      "class_name": "中立",
-      "card_type": "随从",
-      "cost": 4,
-      "ability_keywords": [
-        "进化时"
-      ],
-      "hit_keywords": [
-        "进化时",
-        "破坏"
-      ],
-      "confidence": "high",
-      "why_recommended": "Covered keywords: 进化时, 破坏",
-      "required_primitives": [
-        "进化时",
-        "破坏"
-      ],
-      "suggested_rule_file": "batch_中立.json"
-    },
-    {
-      "card_id": 10502110,
-      "name": "星辉女神",
-      "class_name": "中立",
-      "card_type": "随从",
-      "cost": 5,
-      "ability_keywords": [
-        "进化时"
-      ],
-      "hit_keywords": [
-        "进化时",
-        "将.*加入手牌",
-        "舍弃"
-      ],
-      "confidence": "high",
-      "why_recommended": "Covered keywords: 进化时, 将.*加入手牌, 舍弃",
-      "required_primitives": [
-        "进化时",
-        "将.*加入手牌",
-        "舍弃"
-      ],
-      "suggested_rule_file": "batch_中立.json"
-    },
-    {
       "card_id": 10543110,
       "name": "破灭屠戮者",
       "class_name": "龙族",
@@ -51621,32 +51646,6 @@
         "倒数",
         "回复(?!自己\\d+点(?:超进化点|进化点|能量点))",
         "造成.*伤害"
-      ],
-      "suggested_rule_file": "batch_中立.json"
-    },
-    {
-      "card_id": 10303210,
-      "name": "试炼的石板",
-      "class_name": "中立",
-      "card_type": "护符",
-      "cost": 3,
-      "ability_keywords": [
-        "入场曲",
-        "策动"
-      ],
-      "hit_keywords": [
-        "入场曲",
-        "策动",
-        "抽取",
-        "消失"
-      ],
-      "confidence": "high",
-      "why_recommended": "Covered keywords: 入场曲, 策动, 抽取",
-      "required_primitives": [
-        "入场曲",
-        "策动",
-        "抽取",
-        "消失"
       ],
       "suggested_rule_file": "batch_中立.json"
     },
@@ -51954,6 +51953,120 @@
         "造成.*伤害"
       ],
       "suggested_rule_file": "batch_主教.json"
+    },
+    {
+      "card_id": 10444120,
+      "name": "世界的伙伴·佐伊",
+      "class_name": "龙族",
+      "card_type": "随从",
+      "cost": 5,
+      "ability_keywords": [
+        "入场曲",
+        "爆能强化",
+        "疾驰"
+      ],
+      "hit_keywords": [
+        "入场曲",
+        "回合结束",
+        "爆能强化"
+      ],
+      "confidence": "high",
+      "why_recommended": "Covered keywords: 入场曲, 回合结束, 爆能强化",
+      "required_primitives": [
+        "入场曲",
+        "回合结束",
+        "爆能强化"
+      ],
+      "suggested_rule_file": "batch_龙族.json"
+    },
+    {
+      "card_id": 10324110,
+      "name": "篡夺的继承者·辛瑟莱兹",
+      "class_name": "皇家护卫",
+      "card_type": "随从",
+      "cost": 6,
+      "ability_keywords": [
+        "入场曲",
+        "融合",
+        "超进化时"
+      ],
+      "hit_keywords": [
+        "入场曲",
+        "进化时",
+        "超进化",
+        "造成.*伤害",
+        "融合"
+      ],
+      "confidence": "high",
+      "why_recommended": "Covered keywords: 入场曲, 进化时, 超进化",
+      "required_primitives": [
+        "入场曲",
+        "进化时",
+        "超进化",
+        "造成.*伤害",
+        "融合"
+      ],
+      "suggested_rule_file": "batch_皇家护卫.json"
+    },
+    {
+      "card_id": 10564120,
+      "name": "雾卷花·茎白",
+      "class_name": "主教",
+      "card_type": "随从",
+      "cost": 7,
+      "ability_keywords": [
+        "入场曲",
+        "突进",
+        "纹章"
+      ],
+      "hit_keywords": [
+        "入场曲",
+        "抽取",
+        "召唤",
+        "返回牌",
+        "纹章"
+      ],
+      "confidence": "high",
+      "why_recommended": "Covered keywords: 入场曲, 抽取, 召唤",
+      "required_primitives": [
+        "入场曲",
+        "抽取",
+        "召唤",
+        "返回牌",
+        "纹章"
+      ],
+      "suggested_rule_file": "batch_主教.json"
+    },
+    {
+      "card_id": 10354110,
+      "name": "混融的继承者·莎木·纳克雅",
+      "class_name": "梦魇",
+      "card_type": "随从",
+      "cost": 2,
+      "ability_keywords": [
+        "信仰",
+        "入场曲",
+        "模式",
+        "超进化时"
+      ],
+      "hit_keywords": [
+        "入场曲",
+        "进化时",
+        "超进化",
+        "破坏",
+        "信仰",
+        "选择一项|模式"
+      ],
+      "confidence": "medium",
+      "why_recommended": "Covered keywords: 入场曲, 进化时, 超进化",
+      "required_primitives": [
+        "入场曲",
+        "进化时",
+        "超进化",
+        "破坏",
+        "信仰"
+      ],
+      "suggested_rule_file": "batch_梦魇.json"
     }
   ]
 }
