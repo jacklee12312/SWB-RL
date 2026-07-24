@@ -38,14 +38,14 @@ covered generic boundary, but that never upgrades a partial or placeholder
 keyword whose full tagged-card semantics still require structured rules.
 
 The [rule coverage report](data/reports/rule_coverage.md) now includes a
-clause-audit layer without changing its legacy coverage categories. Of 673
-exact collectible cards (91.56% of 735), all 673 have explicit implemented text and named direct
+clause-audit layer without changing its legacy coverage categories. Of 678
+exact collectible cards (92.24% of 735), all 678 have explicit implemented text and named direct
 test evidence. The sibling `data/audits/rule_clauses.json` registry hashes every
 imported skill and alternate-mode clause, so a database text change or stale
 test reference invalidates the audit instead of silently retaining exact
 status. The current report has no unverified exact entry or missing generic
 schema, primitive, targeting, or timing blocker. Its remaining collectible gaps
-are 46 missing per-card structured rules plus 16 explicitly unclear texts.
+are 41 missing per-card structured rules plus 16 explicitly unclear texts.
 Rule metadata also supports version and errata fields, and the report
 records the complete imported source snapshot hash.
 
@@ -473,6 +473,20 @@ The deterministic rules core supports:
   illegal choices, source departure, board/hand capacity, event order,
   deterministic RNG, multilingual hashes, Clause/Token audits, and
   command/action-mask parity;
+- dynamic filtered-draw costs can use the controller's current Combo, selected
+  hand followers can bind their current attack, followers can receive
+  structured granted Last Words or effect-destroy immunity in hand, and
+  `summon_from_hand` moves the same physical entity to the board without
+  running Fanfare. Exact `10111140`, `10272310`, `10273110`, `10412110`, and
+  `10473110` cover Combo-cost draw, Artifact Rush/Last Words, Ward/effect
+  protection, Enhance hand summoning and return, selected-attack area damage,
+  and both referenced Artifact Tokens. Direct tests cover no/stale/illegal
+  targets, hand/board capacity, ability removal, simultaneous deaths,
+  deterministic replay, multilingual hashes, Clause/Token audits, and
+  command/action-mask parity. V1 remains 294 floats and 111 action IDs;
+  structured v2/v3 hand and board runtime vectors now expose granted Last
+  Words and effect-destroy immunity, with the formal schema version advanced
+  to `observation-v3.2`;
 - filtered hand-count conditions reuse the same type/class/identity/trait
   definition filters as hand targeting. Exact `10521120` counts only spells
   before conditionally gaining +1/+1 and Ward, while exact `10741120` and

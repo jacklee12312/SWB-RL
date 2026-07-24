@@ -57,6 +57,8 @@ class EventType(str, Enum):
     EFFECT_DESTROY_PREVENTED = "effect_destroy_prevented"
     CARD_FUSED = "card_fused"
     HAND_CARD_TRANSFORMED = "hand_card_transformed"
+    HAND_CARD_SUMMONED = "hand_card_summoned"
+    CARD_ABILITY_GRANTED = "card_ability_granted"
     DECK_CARD_COST_CHANGED = "deck_card_cost_changed"
     DECK_REPLACED = "deck_replaced"
     EMPTY_DECK_OUTCOME_CHANGED = "empty_deck_outcome_changed"

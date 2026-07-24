@@ -129,8 +129,8 @@ def observation_v3_space(env: ShadowverseEnv) -> spaces.Dict:
         "public_banished": categorical((2, vocabulary_size)),
         "own_hand_origins": categorical((env.MAX_HAND,)),
         "public_board_origins": categorical((2 * env.MAX_BOARD,)),
-        "own_hand_runtime": continuous((env.MAX_HAND * 10,)),
-        "public_board_runtime": continuous((2 * env.MAX_BOARD * 16,)),
+        "own_hand_runtime": continuous((env.MAX_HAND * 12,)),
+        "public_board_runtime": continuous((2 * env.MAX_BOARD * 18,)),
         "public_board_keywords": continuous(
             (2 * env.MAX_BOARD * len(RUNTIME_KEYWORDS),)
         ),

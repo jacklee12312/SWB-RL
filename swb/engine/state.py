@@ -9,7 +9,7 @@ from swb.db.repository import CardDefinition
 from swb.engine.abilities import RUNTIME_UNIT_KEYWORDS, normalize_keyword_name
 from swb.engine.emblem import EmblemDefinition
 from swb.engine.faith import FaithInstance
-from swb.engine.effects import EmptyDeckOutcome, TurnEndDestroyTiming
+from swb.engine.effects import EffectOperation, EmptyDeckOutcome, TurnEndDestroyTiming
 from swb.engine.origin import CardOrigin, is_derived, is_token
 
 if TYPE_CHECKING:
@@ -98,6 +98,7 @@ class DeathRecord:
     health: int | None = None
     evolved: bool = False
     super_evolved: bool = False
+    granted_last_words: tuple[EffectOperation, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -298,6 +299,10 @@ class HandCard:
     temporary_keyword_removals: list[KeywordRemovalModifier] = field(
         default_factory=list
     )
+    granted_last_words: list[tuple[EffectOperation, ...]] = field(
+        default_factory=list
+    )
+    effect_destroy_immunity: bool = False
 
     @property
     def current_cost(self) -> int:
@@ -533,6 +538,10 @@ class Unit(BoardEntity):
     turn_end_destroy_timings: set[TurnEndDestroyTiming] = field(
         default_factory=set
     )
+    granted_last_words: list[tuple[EffectOperation, ...]] = field(
+        default_factory=list
+    )
+    effect_destroy_immunity: bool = False
 
     @classmethod
     def summon(
@@ -601,6 +610,8 @@ class Unit(BoardEntity):
         self.targeting_restrictions.clear()
         self.attack_capacity_modifiers.clear()
         self.turn_end_destroy_timings.clear()
+        self.granted_last_words.clear()
+        self.effect_destroy_immunity = False
         self._adjust_attack_capacity(old_capacity)
         self._synchronize_keyword_state()
 

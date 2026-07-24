@@ -47,7 +47,7 @@ def _histogram(
 
 def _hand_runtime(card: HandCard | None, turn: int) -> tuple[float, ...]:
     if card is None:
-        return (0.0,) * 10
+        return (0.0,) * 12
     return (
         1.0,
         min(card.current_cost, 20) / 20,
@@ -59,12 +59,14 @@ def _hand_runtime(card: HandCard | None, turn: int) -> tuple[float, ...]:
         min(card.evolutions_while_in_hand, 15) / 15,
         float(card.cannot_be_played),
         float(card.definition.is_collectible),
+        min(len(card.granted_last_words), 4) / 4,
+        float(card.effect_destroy_immunity),
     )
 
 
 def _board_runtime(entity) -> tuple[float, ...]:
     if entity is None:
-        return (0.0,) * 16
+        return (0.0,) * 18
     if isinstance(entity, Amulet):
         return (
             1.0,
@@ -73,6 +75,8 @@ def _board_runtime(entity) -> tuple[float, ...]:
             min(entity.earth_sigil_count, 20) / 20,
             float(entity.pending_destroy),
             min(len(entity.fused_material_ids), 9) / 9,
+            0.0,
+            0.0,
             0.0,
             0.0,
             0.0,
@@ -107,6 +111,8 @@ def _board_runtime(entity) -> tuple[float, ...]:
             TurnEndDestroyTiming.OPPONENT_TURN
             in entity.turn_end_destroy_timings
         ),
+        min(len(entity.granted_last_words), 4) / 4,
+        float(entity.effect_destroy_immunity),
     )
 
 
@@ -398,8 +404,8 @@ def observation_v2_spec(env: ShadowverseEnv) -> dict[str, object]:
         "deck_histograms": (2, len(env.card_vocabulary)),
         "graveyard_histograms": (2, len(env.card_vocabulary)),
         "banished_histograms": (2, len(env.card_vocabulary)),
-        "own_hand_runtime": env.MAX_HAND * 10,
-        "public_board_runtime": 2 * env.MAX_BOARD * 16,
+        "own_hand_runtime": env.MAX_HAND * 12,
+        "public_board_runtime": 2 * env.MAX_BOARD * 18,
         "public_board_keyword_bits": 2 * env.MAX_BOARD * len(RUNTIME_KEYWORDS),
         "leader_area_slots_per_player": MAX_LEADER_AREA_SLOTS,
         "leader_damage_modifier_runtime": (

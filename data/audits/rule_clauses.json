@@ -7067,6 +7067,41 @@
       "source_text_sha256": "e32a640d04b074a2a976312e5b9eb52fd87c82ded68dc3a7ae2d6bca996cf3d4",
       "test_evidence": ["tests/test_real_listener_enhance_random_keyword_eleventh_batch.py"],
       "notes": "纹章倒计数2、首次强化不回看旧事件、强化过滤、关联士兵召唤、强化倒计数+2、多个纹章、场面容量、模式合法性与action mask均有直接测试。"
+    },
+    {
+      "card_id": 10111140,
+      "rule_version": 1,
+      "source_text_sha256": "c03ca725305eb5c8d2a2ce7086033b86d3f15b9e35deb87faa7399065a0f08f2",
+      "test_evidence": ["tests/test_real_selected_hand_grants_twelfth_batch.py"],
+      "notes": "连击包含当前使用卡、动态费用过滤、仅随从、无匹配、满手牌溢出及固定种子复现均有直接测试。"
+    },
+    {
+      "card_id": 10272310,
+      "rule_version": 1,
+      "source_text_sha256": "ff0121e2f8c1fa4cc427e43462f268dd52c551dfbc68330a78d44055d7d1c7ad",
+      "test_evidence": ["tests/test_real_selected_hand_grants_twelfth_batch.py"],
+      "notes": "手牌创造物随从过滤、必选目标、突进与动态谢幕曲授予、运行时状态转移、抽牌、目标离手、能力移除及action mask均有直接测试。"
+    },
+    {
+      "card_id": 10273110,
+      "rule_version": 1,
+      "source_text_sha256": "53275e87305f12b81af4756f2e1b673d68f5c85d2d3ea8c0341d10d83e5c2edf",
+      "test_evidence": ["tests/test_real_selected_hand_grants_twelfth_batch.py"],
+      "notes": "关联过往核心、满手牌、进化手牌创造物随从过滤、守护与能力破坏免疫转移、效果破坏阻止、战斗死亡和无目标路径均有直接测试。"
+    },
+    {
+      "card_id": 10412110,
+      "rule_version": 1,
+      "source_text_sha256": "024a354d4e084ba23ecbdfbaf5eaebcb1d5604cead9bf90a80e9ed66d28d30c7",
+      "test_evidence": ["tests/test_real_selected_hand_grants_twelfth_batch.py"],
+      "notes": "普通使用、爆能强化8、从手牌召唤保持实体与运行时状态、不发动入场曲、来源回手、无目标、目标离手、满场、非法模式原子性及action mask均有直接测试。"
+    },
+    {
+      "card_id": 10473110,
+      "rule_version": 1,
+      "source_text_sha256": "64da489805e1e2d54d1cde067b0349b69beb9f92b100cfda8bead30077688503",
+      "test_evidence": ["tests/test_real_selected_hand_grants_twelfth_batch.py"],
+      "notes": "手牌创造物随从过滤、当前攻击力快照、敌方全体同时伤害与死亡、无目标和失效目标、关联城堡创造物谢幕曲、满手牌及固定种子均有直接测试。"
     }
   ]
 }

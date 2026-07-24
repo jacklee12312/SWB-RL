@@ -196,6 +196,7 @@ def _expression_binding_keys(
         {expression.binding_key}
         if expression.type in {
             ExprType.BOUND_CARD_COST,
+            ExprType.BOUND_CARD_ATTACK,
             ExprType.BOUND_TARGET_HEALTH,
             ExprType.BOUND_TARGET_COUNT,
         }
@@ -218,6 +219,7 @@ def _expression_binding_requires_single(
         and expression.type
         in {
             ExprType.BOUND_CARD_COST,
+            ExprType.BOUND_CARD_ATTACK,
             ExprType.BOUND_TARGET_HEALTH,
         }
     ):
@@ -1657,6 +1659,8 @@ def _iter_nested_operations(
             yield from _iter_nested_operations(operation.earth_rite_operations)
         if operation.faith_operations:
             yield from _iter_nested_operations(operation.faith_operations)
+        if operation.granted_operations:
+            yield from _iter_nested_operations(operation.granted_operations)
         if operation.then_operations:
             yield from _iter_nested_operations(operation.then_operations)
         if operation.else_operations:
@@ -2641,6 +2645,8 @@ _EVENT_SOURCE_TARGET_EFFECTS = frozenset({
     EffectKind.INCREASE_COUNTDOWN,
     EffectKind.ADD_KEYWORD,
     EffectKind.ADD_RANDOM_KEYWORDS,
+    EffectKind.GRANT_LAST_WORDS,
+    EffectKind.GRANT_EFFECT_DESTROY_IMMUNITY,
     EffectKind.REMOVE_KEYWORD,
     EffectKind.REMOVE_ALL_ABILITIES,
     EffectKind.REMOVE_LAST_WORDS,
@@ -2667,6 +2673,7 @@ def _operations_use_target(
             operation.earth_rite_operations
             + operation.necromancy_operations
             + operation.faith_operations
+            + operation.granted_operations
             + operation.then_operations
             + operation.else_operations
             + operation.optional_operations
@@ -2700,6 +2707,7 @@ def _validate_target_keys(
         for expression_name, expression in (
             ("amount", op.amount_expr),
             ("secondary_amount", op.secondary_expr),
+            ("cost_equals", op.deck_filter_cost_expr),
         ):
             for binding_key in _expression_binding_keys(expression):
                 if binding_key not in defined:
@@ -2858,6 +2866,11 @@ def _validate_target_keys(
             _validate_target_keys(
                 op.faith_operations,
                 f"{source}/operations[{i}]/faith",
+            )
+        if op.granted_operations:
+            _validate_target_keys(
+                op.granted_operations,
+                f"{source}/operations[{i}]/granted",
             )
         if op.then_operations:
             _validate_target_keys(
@@ -3327,6 +3340,52 @@ def _parse_operation(
         raise ValueError(
             f"{source_file}/keywords card {card_id}: is only valid for "
             "add_random_keywords"
+        )
+
+    granted_ops: tuple[EffectOperation, ...] = ()
+    grantable_follower_targets = {
+        TargetKind.SELF,
+        TargetKind.EVENT_SOURCE,
+        TargetKind.OWN_UNIT,
+        TargetKind.ENEMY_UNIT,
+        TargetKind.ANY_UNIT,
+        TargetKind.RANDOM_OWN_UNIT,
+        TargetKind.RANDOM_ENEMY_UNIT,
+        TargetKind.ALL_OWN_UNITS,
+        TargetKind.ALL_ENEMY_UNITS,
+        TargetKind.ALL_UNITS,
+        TargetKind.OWN_HAND,
+        TargetKind.PREVIOUS_TARGET,
+    }
+    if kind in {
+        EffectKind.GRANT_LAST_WORDS,
+        EffectKind.GRANT_EFFECT_DESTROY_IMMUNITY,
+    } and target not in grantable_follower_targets:
+        raise ValueError(
+            f"{source_file}/target card {card_id}: {kind.value} "
+            "requires a follower target"
+        )
+    if kind is EffectKind.GRANT_LAST_WORDS:
+        raw_inner = raw.get("operations")
+        if not isinstance(raw_inner, list) or not raw_inner:
+            raise ValueError(
+                f"{source_file} card {card_id}: grant_last_words requires "
+                "a non-empty operations list"
+            )
+        granted_ops = tuple(
+            _parse_operation(
+                operation,
+                f"{source_file}/operations[{index}]",
+                card_id,
+                _depth + 1,
+                _allow_event_source=False,
+                _allow_hand_self=False,
+            )
+            for index, operation in enumerate(raw_inner)
+        )
+        _validate_target_keys(
+            granted_ops,
+            f"{source_file} card {card_id} (grant_last_words)",
         )
 
     if kind in {
@@ -4406,6 +4465,26 @@ def _parse_operation(
                 f"{source_file}/hand_filter card {card_id}: buff_hand_card "
                 "requires card_type='随从'"
             )
+    if (
+        kind
+        in {
+            EffectKind.ADD_KEYWORD,
+            EffectKind.GRANT_LAST_WORDS,
+            EffectKind.GRANT_EFFECT_DESTROY_IMMUNITY,
+            EffectKind.SUMMON_FROM_HAND,
+        }
+        and target is TargetKind.OWN_HAND
+        and (hand_filter is None or hand_filter.card_type != "随从")
+    ):
+        raise ValueError(
+            f"{source_file}/hand_filter card {card_id}: {kind.value} "
+            "with own_hand requires card_type='随从'"
+        )
+    if kind is EffectKind.SUMMON_FROM_HAND and target is not TargetKind.OWN_HAND:
+        raise ValueError(
+            f"{source_file}/target card {card_id}: summon_from_hand requires "
+            f"own_hand, got {target.value!r}"
+        )
     if kind is EffectKind.DRAW_FILTERED and target not in (
         TargetKind.OWN_LEADER,
         TargetKind.ENEMY_LEADER,
@@ -4455,6 +4534,29 @@ def _parse_operation(
             tribe_name=deck_tribe_name,
             life_min=deck_life_min,
             life_max=deck_life_max,
+        )
+    raw_cost_equals = raw.get("cost_equals")
+    deck_filter_cost_expr = None
+    if "cost_equals" in raw:
+        if kind is not EffectKind.DRAW_FILTERED:
+            raise ValueError(
+                f"{source_file}/cost_equals card {card_id}: is only valid "
+                "for draw_filtered"
+            )
+        if not isinstance(raw_cost_equals, dict):
+            raise ValueError(
+                f"{source_file}/cost_equals card {card_id}: must be an "
+                "expression object"
+            )
+        if deck_cost_min is not None or deck_cost_max is not None:
+            raise ValueError(
+                f"{source_file}/cost_equals card {card_id}: cannot be combined "
+                "with cost_min or cost_max"
+            )
+        deck_filter_cost_expr = _parse_expression(
+            raw_cost_equals,
+            f"{source_file}/cost_equals",
+            card_id,
         )
     if not _is_deck_filter_kind and any([
         raw.get("class_id_filter") is not None,
@@ -4969,6 +5071,7 @@ def _parse_operation(
         graveyard_follower_only=graveyard_follower_only,
         graveyard_card_type=graveyard_card_type,
         deck_filter=deck_filter,
+        deck_filter_cost_expr=deck_filter_cost_expr,
         hand_filter=hand_filter,
         history_filter=history_filter,
         distinct_card_names=distinct_card_names,
@@ -4981,6 +5084,7 @@ def _parse_operation(
         optional_prompt=optional_prompt,
         optional_operations=optional_ops,
         repeat_operations=repeat_ops,
+        granted_operations=granted_ops,
         random_distribution_operations=random_distribution_ops,
         requires_target=requires_target,
         requires_full_target_count=requires_full_target_count,
@@ -5162,6 +5266,7 @@ def _parse_expression(raw: dict, source_path: str, card_id: int) -> ValueExpress
     binding_key = raw.get("binding_key")
     if t in {
         ExprType.BOUND_CARD_COST,
+        ExprType.BOUND_CARD_ATTACK,
         ExprType.BOUND_TARGET_HEALTH,
         ExprType.BOUND_TARGET_COUNT,
     }:
@@ -5270,6 +5375,7 @@ def _parse_expression(raw: dict, source_path: str, card_id: int) -> ValueExpress
                ExprType.SOURCE_SPELLBOOST_COUNT,
                ExprType.SOURCE_COST,
                ExprType.BOUND_CARD_COST,
+               ExprType.BOUND_CARD_ATTACK,
                ExprType.BOUND_TARGET_HEALTH,
                ExprType.BOUND_TARGET_COUNT,
                ExprType.SOURCE_ATTACK, ExprType.SOURCE_HEALTH,

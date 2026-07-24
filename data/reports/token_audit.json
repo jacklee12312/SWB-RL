@@ -4626,6 +4626,12 @@
           "entry_kind": "add_card",
           "rule_file": "real_hand_exact_copy_turn_end_destroy_batch.json",
           "rule_group": "rules"
+        },
+        {
+          "source_card_id": 10273110,
+          "entry_kind": "add_card",
+          "rule_file": "real_selected_hand_grants_twelfth_batch.json",
+          "rule_group": "rules"
         }
       ],
       "has_authored_behavior": true,
@@ -4748,6 +4754,12 @@
           "source_card_id": 10171120,
           "entry_kind": "summon",
           "rule_file": "real_portal_core_puppet_producer_batch.json",
+          "rule_group": "rules"
+        },
+        {
+          "source_card_id": 10473110,
+          "entry_kind": "add_card",
+          "rule_file": "real_selected_hand_grants_twelfth_batch.json",
           "rule_group": "rules"
         },
         {

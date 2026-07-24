@@ -10,13 +10,13 @@ code and tests as the source of truth when this file drifts.
 - Database: 826 cards, 735 collectible cards, 91 non-collectible/generated
   cards from set `90000`.
 - Latest SVA source: `https://sva.hypd.asia/data/cards.json`.
-- Tests: `python -m unittest discover -s tests -v` discovers 2373 behavioral
-  contracts (2026-07-24 eleventh listener/Enhance/random-keyword verification).
+- Tests: `python -m unittest discover -s tests -v` discovers 2387 behavioral
+  contracts (2026-07-24 twelfth selected-hand/granted-ability verification).
 - RL adapter: fixed 111-action space; the default v1 observation is 294
   floats, opt-in v2 preserves the structured compatibility mapping, and v3
   supplies fixed-dtype NumPy arrays plus a Gymnasium observation space without
   changing action IDs. Hidden decklists are the v3 default.
-- The exact-audit `TrainableCardCatalog` currently admits all 673 exact
+- The exact-audit `TrainableCardCatalog` currently admits all 678 exact
   collectible cards, preloads all 826 definitions for SQLite-free matches, and
   provides deterministic class-valid deck sampling. Self-play no longer uses
   the legacy 2-to-5-card follower pool.
@@ -48,9 +48,9 @@ code and tests as the source of truth when this file drifts.
   and distribution acceptance results, not policy-strength evidence.
 - Ability registry status: 18 implemented, 5 partial, 11 placeholder.
 - Explicit card and demo rules live in `data/rules/`; the current coverage
-  report classifies 777 card IDs with explicit rules, passives, fusion,
+  report classifies 782 card IDs with explicit rules, passives, fusion,
   invocation, activation, Faith, Union Burst, or listener definitions. Current
-  collectible coverage is 673 exact (91.56% of 735), 0 partial, 46 supported-but-missing-rule,
+  collectible coverage is 678 exact (92.24% of 735), 0 partial, 41 supported-but-missing-rule,
   0 missing-primitive, and 16 text-unclear cards.
 - `data/reports/token_audit.{json,md}` audits all 91 non-collectible/generated
   cards independently of collectible coverage. Database `card_references` and
@@ -65,7 +65,7 @@ code and tests as the source of truth when this file drifts.
   separate column and is covered for all 34; it does not automatically promote
   the 5 partial or 11 placeholder keyword statuses.
 - Coverage now has a backward-compatible clause audit. The legacy summary still
-  reports 673 exact collectible cards, and all 673 now have an explicit exact
+  reports 678 exact collectible cards, and all 678 now have an explicit exact
   text mapping plus named direct test evidence. The versioned sibling registry
   at `data/audits/rule_clauses.json` hashes every imported primary and
   alternate-mode clause; changed source text or stale test evidence invalidates
@@ -74,7 +74,7 @@ code and tests as the source of truth when this file drifts.
   rule version and errata metadata, structured trigger/operation evidence,
   explicit unsupported text, and a stable blocker taxonomy. There are zero
   unverified exact entries and no known missing schema, primitive, targeting,
-  or timing blocker among authored rules. The 46 supported-but-missing-rule
+  or timing blocker among authored rules. The 41 supported-but-missing-rule
   cards are now the per-card structured-content backlog; 16 unclear texts
   remain explicit.
 - RL observation v2 is available behind an explicit version switch. A
@@ -1412,6 +1412,22 @@ slice in this order:
   countdown crests, deterministic replay, multilingual/reference hashes,
   Clause/Token/Ability consistency, and command/RL action-mask parity without
   card-ID branches or observation/action schema changes.
+- Exact file `data/rules/real_selected_hand_grants_twelfth_batch.json` closes
+  five collectibles (`10111140`, `10272310`, `10273110`, `10412110`,
+  `10473110`), bringing collectible exact coverage to 678/735 (92.24%).
+  Generic dynamic filtered-draw cost expressions, bound hand-card attack,
+  granted Last Words, granted effect-destroy immunity, and physical
+  `summon_from_hand` resolution cover the shared behavior without card-ID
+  branches. The two granted abilities survive ordinary play and exact copy,
+  reset on ability removal/transform/return where appropriate, enter state
+  fingerprints and invariants, and are visible in structured observations.
+  Direct tests cover Combo timing, Artifact/follower filtering, required and
+  optional hand targets, no/stale/illegal choices, hand/board capacity,
+  Fanfare suppression, stable hand-to-board identity, simultaneous deaths,
+  ability removal, deterministic clone/replay, multilingual/reference hashes,
+  Clause/Token consistency, and command/RL action-mask parity. V1 stays at 294
+  floats and 111 action IDs; v2/v3 runtime shapes intentionally migrate under
+  `observation-v3.2`.
 
 ## Known Partial Or Unsupported Areas
 

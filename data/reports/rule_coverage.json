@@ -12,25 +12,25 @@
   },
   "summary": {
     "total_cards": 826,
-    "total_with_rules": 777,
+    "total_with_rules": 782,
     "test_or_synthetic_ids_with_rules": 26,
     "coverage_counts": {
-      "covered_exact": 673,
+      "covered_exact": 678,
       "text_unclear": 16,
-      "supported_missing_rule": 46,
+      "supported_missing_rule": 41,
       "token_or_non_collectible": 91
     },
     "clause_audit_counts": {
-      "mapped_exact": 673,
+      "mapped_exact": 678,
       "unverified_exact": 0,
       "partial": 0,
-      "missing_rule": 46,
+      "missing_rule": 41,
       "missing_primitive": 0,
       "text_unclear": 16,
       "token_separate_audit": 91
     },
     "blocker_counts": {
-      "missing_rule": 46,
+      "missing_rule": 41,
       "missing_schema": 0,
       "missing_primitive": 0,
       "missing_targeting": 0,
@@ -4432,8 +4432,8 @@
       "cost": 3,
       "is_collectible": true,
       "card_set_id": 10001,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '连击', '抽取']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['fanfare'], Ops: ['draw_filtered']",
       "hit_keywords": [
         "入场曲",
         "连击",
@@ -4448,27 +4448,43 @@
         "【<color=Keyword>入场曲</color>】抽取1张费用为X的随从。X为自己的【<color=Keyword>连击</color>】。"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【<color=Keyword>入场曲</color>】抽取1张费用为X的随从。X为自己的【<color=Keyword>连击</color>】。",
+        "notes": "连击包含当前使用卡、动态费用过滤、仅随从、无匹配、满手牌溢出及固定种子复现均有直接测试。",
+        "rule_version": 1,
+        "source_text_sha256": "c03ca725305eb5c8d2a2ce7086033b86d3f15b9e35deb87faa7399065a0f08f2",
+        "test_evidence": [
+          "tests/test_real_selected_hand_grants_twelfth_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10111140:0",
             "source_text": "【<color=Keyword>入场曲</color>】抽取1张费用为X的随从。X为自己的【<color=Keyword>连击</color>】。",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "【<color=Keyword>入场曲</color>】抽取1张费用为X的随从。X为自己的【<color=Keyword>连击</color>】。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "c03ca725305eb5c8d2a2ce7086033b86d3f15b9e35deb87faa7399065a0f08f2",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "fanfare"
+          ],
+          "effect_kinds": [
+            "draw_filtered"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_selected_hand_grants_twelfth_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10111150": {
@@ -17587,8 +17603,8 @@
       "cost": 1,
       "is_collectible": true,
       "card_set_id": 10002,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['谢幕曲', '抽取']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['play'], Ops: ['select_targets', 'add_keyword', 'grant_last_words', 'draw']",
       "hit_keywords": [
         "谢幕曲",
         "抽取"
@@ -17602,27 +17618,46 @@
         "选择自己的手牌中的1张创造物·随从，使其获得【<color=Keyword>突进</color>】和「【<color=Keyword>谢幕曲</color>】抽取1张卡牌」。"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "选择自己的手牌中的1张创造物·随从，使其获得【<color=Keyword>突进</color>】和「【<color=Keyword>谢幕曲</color>】抽取1张卡牌」。",
+        "notes": "手牌创造物随从过滤、必选目标、突进与动态谢幕曲授予、运行时状态转移、抽牌、目标离手、能力移除及action mask均有直接测试。",
+        "rule_version": 1,
+        "source_text_sha256": "ff0121e2f8c1fa4cc427e43462f268dd52c551dfbc68330a78d44055d7d1c7ad",
+        "test_evidence": [
+          "tests/test_real_selected_hand_grants_twelfth_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10272310:0",
             "source_text": "选择自己的手牌中的1张创造物·随从，使其获得【<color=Keyword>突进</color>】和「【<color=Keyword>谢幕曲</color>】抽取1张卡牌」。",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "选择自己的手牌中的1张创造物·随从，使其获得【<color=Keyword>突进</color>】和「【<color=Keyword>谢幕曲</color>】抽取1张卡牌」。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "ff0121e2f8c1fa4cc427e43462f268dd52c551dfbc68330a78d44055d7d1c7ad",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "play"
+          ],
+          "effect_kinds": [
+            "select_targets",
+            "add_keyword",
+            "grant_last_words",
+            "draw"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_selected_hand_grants_twelfth_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10273110": {
@@ -17633,8 +17668,8 @@
       "cost": 2,
       "is_collectible": true,
       "card_set_id": 10002,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '进化时', '将.*加入手牌', '破坏']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['fanfare', 'evolve'], Ops: ['add_card', 'select_targets', 'add_keyword', 'grant_effect_destroy_immunity']",
       "hit_keywords": [
         "入场曲",
         "进化时",
@@ -17651,27 +17686,47 @@
         "【<color=Keyword>入场曲</color>】将1张『<color=Keyword>过往核心</color>』加入手牌。\n<hr><ev>【<color=Keyword>进化时</color>】选择自己的手牌中的1张创造物·随从，使其获得【<color=Keyword>守护</color>】和「不会被能力破坏」。</ev>"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【<color=Keyword>入场曲</color>】将1张『<color=Keyword>过往核心</color>』加入手牌。\n<hr><ev>【<color=Keyword>进化时</color>】选择自己的手牌中的1张创造物·随从，使其获得【<color=Keyword>守护</color>】和「不会被能力破坏」。</ev>",
+        "notes": "关联过往核心、满手牌、进化手牌创造物随从过滤、守护与能力破坏免疫转移、效果破坏阻止、战斗死亡和无目标路径均有直接测试。",
+        "rule_version": 1,
+        "source_text_sha256": "53275e87305f12b81af4756f2e1b673d68f5c85d2d3ea8c0341d10d83e5c2edf",
+        "test_evidence": [
+          "tests/test_real_selected_hand_grants_twelfth_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10273110:0",
             "source_text": "【<color=Keyword>入场曲</color>】将1张『<color=Keyword>过往核心</color>』加入手牌。\n<hr><ev>【<color=Keyword>进化时</color>】选择自己的手牌中的1张创造物·随从，使其获得【<color=Keyword>守护</color>】和「不会被能力破坏」。</ev>",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "【<color=Keyword>入场曲</color>】将1张『<color=Keyword>过往核心</color>』加入手牌。\n<hr><ev>【<color=Keyword>进化时</color>】选择自己的手牌中的1张创造物·随从，使其获得【<color=Keyword>守护</color>】和「不会被能力破坏」。</ev>",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "53275e87305f12b81af4756f2e1b673d68f5c85d2d3ea8c0341d10d83e5c2edf",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "fanfare",
+            "evolve"
+          ],
+          "effect_kinds": [
+            "add_card",
+            "select_targets",
+            "add_keyword",
+            "grant_effect_destroy_immunity"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_selected_hand_grants_twelfth_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10273310": {
@@ -23492,8 +23547,8 @@
       "cost": 2,
       "is_collectible": true,
       "card_set_id": 10004,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['召唤', '返回手牌', '爆能强化']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['fanfare', 'play_modes'], Ops: ['play_mode', 'summon_from_hand', 'return_to_hand']",
       "hit_keywords": [
         "召唤",
         "返回手牌",
@@ -23507,27 +23562,46 @@
         "【<color=Keyword>爆能强化</color>_8】选择自己的手牌中的1张随从，召唤该随从。本随从返回手牌。"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【<color=Keyword>爆能强化</color>_8】选择自己的手牌中的1张随从，召唤该随从。本随从返回手牌。",
+        "notes": "普通使用、爆能强化8、从手牌召唤保持实体与运行时状态、不发动入场曲、来源回手、无目标、目标离手、满场、非法模式原子性及action mask均有直接测试。",
+        "rule_version": 1,
+        "source_text_sha256": "024a354d4e084ba23ecbdfbaf5eaebcb1d5604cead9bf90a80e9ed66d28d30c7",
+        "test_evidence": [
+          "tests/test_real_selected_hand_grants_twelfth_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10412110:0",
             "source_text": "【<color=Keyword>爆能强化</color>_8】选择自己的手牌中的1张随从，召唤该随从。本随从返回手牌。",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "【<color=Keyword>爆能强化</color>_8】选择自己的手牌中的1张随从，召唤该随从。本随从返回手牌。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "024a354d4e084ba23ecbdfbaf5eaebcb1d5604cead9bf90a80e9ed66d28d30c7",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "fanfare",
+            "play_modes"
+          ],
+          "effect_kinds": [
+            "play_mode",
+            "summon_from_hand",
+            "return_to_hand"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_selected_hand_grants_twelfth_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10412120": {
@@ -27659,8 +27733,8 @@
       "cost": 5,
       "is_collectible": true,
       "card_set_id": 10004,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '谢幕曲', '将.*加入手牌', '造成.*伤害']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['fanfare', 'last_words'], Ops: ['select_targets', 'damage_unit', 'add_card']",
       "hit_keywords": [
         "入场曲",
         "谢幕曲",
@@ -27676,27 +27750,46 @@
         "【<color=Keyword>入场曲</color>】选择自己的手牌中的1张创造物·随从，对对手的战场上的所有随从造成X点伤害。X为选择的随从的攻击力。\n<hr>【<color=Keyword>谢幕曲</color>】将1张『<color=Keyword>城堡创造物</color>』加入手牌。"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【<color=Keyword>入场曲</color>】选择自己的手牌中的1张创造物·随从，对对手的战场上的所有随从造成X点伤害。X为选择的随从的攻击力。\n<hr>【<color=Keyword>谢幕曲</color>】将1张『<color=Keyword>城堡创造物</color>』加入手牌。",
+        "notes": "手牌创造物随从过滤、当前攻击力快照、敌方全体同时伤害与死亡、无目标和失效目标、关联城堡创造物谢幕曲、满手牌及固定种子均有直接测试。",
+        "rule_version": 1,
+        "source_text_sha256": "64da489805e1e2d54d1cde067b0349b69beb9f92b100cfda8bead30077688503",
+        "test_evidence": [
+          "tests/test_real_selected_hand_grants_twelfth_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10473110:0",
             "source_text": "【<color=Keyword>入场曲</color>】选择自己的手牌中的1张创造物·随从，对对手的战场上的所有随从造成X点伤害。X为选择的随从的攻击力。\n<hr>【<color=Keyword>谢幕曲</color>】将1张『<color=Keyword>城堡创造物</color>』加入手牌。",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "【<color=Keyword>入场曲</color>】选择自己的手牌中的1张创造物·随从，对对手的战场上的所有随从造成X点伤害。X为选择的随从的攻击力。\n<hr>【<color=Keyword>谢幕曲</color>】将1张『<color=Keyword>城堡创造物</color>』加入手牌。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "64da489805e1e2d54d1cde067b0349b69beb9f92b100cfda8bead30077688503",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "fanfare",
+            "last_words"
+          ],
+          "effect_kinds": [
+            "select_targets",
+            "damage_unit",
+            "add_card"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_selected_hand_grants_twelfth_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10473310": {
@@ -51180,29 +51273,6 @@
       "suggested_rule_file": "batch_巫师.json"
     },
     {
-      "card_id": 10412110,
-      "name": "美妆少女·克洛伊",
-      "class_name": "精灵",
-      "card_type": "随从",
-      "cost": 2,
-      "ability_keywords": [
-        "爆能强化"
-      ],
-      "hit_keywords": [
-        "召唤",
-        "返回手牌",
-        "爆能强化"
-      ],
-      "confidence": "high",
-      "why_recommended": "Covered keywords: 召唤, 返回手牌, 爆能强化",
-      "required_primitives": [
-        "召唤",
-        "返回手牌",
-        "爆能强化"
-      ],
-      "suggested_rule_file": "batch_精灵.json"
-    },
-    {
       "card_id": 10464110,
       "name": "土之法则·伽莱翁",
       "class_name": "主教",
@@ -51357,28 +51427,6 @@
       "suggested_rule_file": "batch_龙族.json"
     },
     {
-      "card_id": 10272310,
-      "name": "伊卡洛斯的飞翔",
-      "class_name": "超越者",
-      "card_type": "法术",
-      "cost": 1,
-      "ability_keywords": [
-        "突进",
-        "谢幕曲"
-      ],
-      "hit_keywords": [
-        "谢幕曲",
-        "抽取"
-      ],
-      "confidence": "high",
-      "why_recommended": "Covered keywords: 谢幕曲, 抽取",
-      "required_primitives": [
-        "谢幕曲",
-        "抽取"
-      ],
-      "suggested_rule_file": "batch_超越者.json"
-    },
-    {
       "card_id": 10503210,
       "name": "大游戏世界",
       "class_name": "中立",
@@ -51431,30 +51479,6 @@
         "造成.*伤害"
       ],
       "suggested_rule_file": "batch_中立.json"
-    },
-    {
-      "card_id": 10111140,
-      "name": "勤劳的蚂蚱",
-      "class_name": "精灵",
-      "card_type": "随从",
-      "cost": 3,
-      "ability_keywords": [
-        "入场曲",
-        "连击"
-      ],
-      "hit_keywords": [
-        "入场曲",
-        "连击",
-        "抽取"
-      ],
-      "confidence": "high",
-      "why_recommended": "Covered keywords: 入场曲, 连击, 抽取",
-      "required_primitives": [
-        "入场曲",
-        "连击",
-        "抽取"
-      ],
-      "suggested_rule_file": "batch_精灵.json"
     },
     {
       "card_id": 10303210,
@@ -51551,32 +51575,6 @@
       "suggested_rule_file": "batch_龙族.json"
     },
     {
-      "card_id": 10473110,
-      "name": "向往天空的回归者·卡西乌斯",
-      "class_name": "超越者",
-      "card_type": "随从",
-      "cost": 5,
-      "ability_keywords": [
-        "入场曲",
-        "谢幕曲"
-      ],
-      "hit_keywords": [
-        "入场曲",
-        "谢幕曲",
-        "将.*加入手牌",
-        "造成.*伤害"
-      ],
-      "confidence": "high",
-      "why_recommended": "Covered keywords: 入场曲, 谢幕曲, 将.*加入手牌",
-      "required_primitives": [
-        "入场曲",
-        "谢幕曲",
-        "将.*加入手牌",
-        "造成.*伤害"
-      ],
-      "suggested_rule_file": "batch_超越者.json"
-    },
-    {
       "card_id": 10162130,
       "name": "大地守护神·米维",
       "class_name": "主教",
@@ -51599,6 +51597,122 @@
         "召唤"
       ],
       "suggested_rule_file": "batch_主教.json"
+    },
+    {
+      "card_id": 10214120,
+      "name": "缠绕密林·丽梅格",
+      "class_name": "精灵",
+      "card_type": "随从",
+      "cost": 7,
+      "ability_keywords": [
+        "入场曲",
+        "超进化时"
+      ],
+      "hit_keywords": [
+        "入场曲",
+        "进化时",
+        "超进化",
+        "回合结束",
+        "造成.*伤害",
+        "不能攻击|无法攻击"
+      ],
+      "confidence": "high",
+      "why_recommended": "Covered keywords: 入场曲, 进化时, 超进化",
+      "required_primitives": [
+        "入场曲",
+        "进化时",
+        "超进化",
+        "回合结束",
+        "造成.*伤害"
+      ],
+      "suggested_rule_file": "batch_精灵.json"
+    },
+    {
+      "card_id": 10604110,
+      "name": "恐惧的象征·欧米伽奥提普",
+      "class_name": "中立",
+      "card_type": "随从",
+      "cost": 9,
+      "ability_keywords": [
+        "入场曲",
+        "超进化时"
+      ],
+      "hit_keywords": [
+        "入场曲",
+        "进化时",
+        "超进化",
+        "回复自己\\d+点能量点",
+        "造成.*伤害",
+        "破坏"
+      ],
+      "confidence": "high",
+      "why_recommended": "Covered keywords: 入场曲, 进化时, 超进化",
+      "required_primitives": [
+        "入场曲",
+        "进化时",
+        "超进化",
+        "回复自己\\d+点能量点",
+        "造成.*伤害"
+      ],
+      "suggested_rule_file": "batch_中立.json"
+    },
+    {
+      "card_id": 10554120,
+      "name": "奥夜花·释藤",
+      "class_name": "梦魇",
+      "card_type": "随从",
+      "cost": 10,
+      "ability_keywords": [
+        "入场曲",
+        "超进化时"
+      ],
+      "hit_keywords": [
+        "入场曲",
+        "进化时",
+        "超进化",
+        "抽取",
+        "造成.*伤害",
+        "返回牌"
+      ],
+      "confidence": "high",
+      "why_recommended": "Covered keywords: 入场曲, 进化时, 超进化",
+      "required_primitives": [
+        "入场曲",
+        "进化时",
+        "超进化",
+        "抽取",
+        "造成.*伤害"
+      ],
+      "suggested_rule_file": "batch_梦魇.json"
+    },
+    {
+      "card_id": 10334110,
+      "name": "真理的继承者·蓓哈丽雅",
+      "class_name": "巫师",
+      "card_type": "随从",
+      "cost": 2,
+      "ability_keywords": [
+        "入场曲",
+        "超进化时",
+        "进化时"
+      ],
+      "hit_keywords": [
+        "入场曲",
+        "进化时",
+        "超进化",
+        "抽取",
+        "消失"
+      ],
+      "confidence": "high",
+      "why_recommended": "Covered keywords: 入场曲, 进化时, 超进化",
+      "required_primitives": [
+        "入场曲",
+        "进化时",
+        "超进化",
+        "抽取",
+        "消失"
+      ],
+      "suggested_rule_file": "batch_巫师.json"
     }
   ]
 }

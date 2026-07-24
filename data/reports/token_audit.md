@@ -96,9 +96,9 @@ Total audited cards: **91**
 | 90071150 神秘的创造物 | 超越者 / 随从 | entry_behavior_complete | 3 | 3 | keyword |
 | 90071160 绚烂的创造物 | 超越者 / 随从 | entry_behavior_complete | 2 | 2 | exact |
 | 90071210 未来核心 | 超越者 / 护符 | entry_behavior_complete | 9 | 9 | exact |
-| 90071220 过往核心 | 超越者 / 护符 | entry_behavior_complete | 11 | 10 | exact |
+| 90071220 过往核心 | 超越者 / 护符 | entry_behavior_complete | 11 | 11 | exact |
 | 90072110 攻击创造物 | 超越者 / 随从 | entry_behavior_complete | 4 | 4 | exact |
-| 90072120 城堡创造物 | 超越者 / 随从 | entry_behavior_complete | 3 | 2 | exact |
+| 90072120 城堡创造物 | 超越者 / 随从 | entry_behavior_complete | 3 | 3 | exact |
 | 90072130 屠戮人偶 | 超越者 / 随从 | entry_behavior_complete | 1 | 1 | exact |
 | 90073110 毁灭创造物α | 超越者 / 随从 | entry_behavior_complete | 3 | 3 | exact |
 | 90073120 毁灭创造物β | 超越者 / 随从 | entry_behavior_complete | 4 | 3 | exact |

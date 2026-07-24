@@ -12,7 +12,7 @@ if TYPE_CHECKING:
     from swb.rl.catalog import TrainableCardCatalog
 
 
-OBSERVATION_SCHEMA_VERSION = "observation-v3.1"
+OBSERVATION_SCHEMA_VERSION = "observation-v3.2"
 ACTION_LAYOUT_VERSION = "action-111-v1"
 SEED_DERIVATION_VERSION = 1
 

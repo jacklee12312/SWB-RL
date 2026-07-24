@@ -127,10 +127,13 @@ def is_graveyard_target(kind: TargetKind) -> bool:
 _EFFECT_UNIT_ONLY = frozenset({
     EffectKind.DAMAGE_UNIT,
     EffectKind.SUMMON_COPY,
+    EffectKind.SUMMON_FROM_HAND,
     EffectKind.GRANT_TURN_END_DESTROY,
     EffectKind.BUFF_UNIT,
     EffectKind.ADD_KEYWORD,
     EffectKind.ADD_RANDOM_KEYWORDS,
+    EffectKind.GRANT_LAST_WORDS,
+    EffectKind.GRANT_EFFECT_DESTROY_IMMUNITY,
     EffectKind.REMOVE_KEYWORD,
     EffectKind.SET_STATS,
     EffectKind.EVOLVE_UNIT,
@@ -245,6 +248,15 @@ def hand_candidates(
             card
             for card in candidates
             if operation.hand_filter.matches(card)
+        ]
+    if operation.kind in {
+        EffectKind.ADD_KEYWORD,
+        EffectKind.GRANT_LAST_WORDS,
+        EffectKind.GRANT_EFFECT_DESTROY_IMMUNITY,
+        EffectKind.SUMMON_FROM_HAND,
+    }:
+        candidates = [
+            card for card in candidates if card.card_type == "随从"
         ]
     return candidates
 

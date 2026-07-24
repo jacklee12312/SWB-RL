@@ -86,6 +86,7 @@ class ExprType(str, Enum):
     SOURCE_SPELLBOOST_COUNT = "source_spellboost_count"
     SOURCE_COST = "source_cost"
     BOUND_CARD_COST = "bound_card_cost"
+    BOUND_CARD_ATTACK = "bound_card_attack"
     BOUND_TARGET_HEALTH = "bound_target_health"
     BOUND_TARGET_COUNT = "bound_target_count"
     SOURCE_ATTACK = "source_attack"
@@ -163,6 +164,7 @@ class EffectKind(str, Enum):
     SUMMON_COPY = "summon_copy"
     SUMMON_EXACT_COPY = "summon_exact_copy"
     SUMMON_HAND_COPY = "summon_hand_copy"
+    SUMMON_FROM_HAND = "summon_from_hand"
     SUMMON_FROM_DECK = "summon_from_deck"
     DESTROY = "destroy"
     BANISH = "banish"
@@ -172,6 +174,8 @@ class EffectKind(str, Enum):
     COPY_DESTROYED_FOLLOWERS_TO_HAND = "copy_destroyed_followers_to_hand"
     ADD_KEYWORD = "add_keyword"
     ADD_RANDOM_KEYWORDS = "add_random_keywords"
+    GRANT_LAST_WORDS = "grant_last_words"
+    GRANT_EFFECT_DESTROY_IMMUNITY = "grant_effect_destroy_immunity"
     REMOVE_KEYWORD = "remove_keyword"
     REMOVE_ALL_ABILITIES = "remove_all_abilities"
     REMOVE_LAST_WORDS = "remove_last_words"
@@ -499,6 +503,7 @@ class EffectOperation:
     graveyard_follower_only: bool = False
     graveyard_card_type: str | None = None
     deck_filter: DeckFilter | None = None
+    deck_filter_cost_expr: ValueExpression | None = None
     board_filter: BoardFilter | None = None
     candidate_extreme: CandidateExtreme | None = None
     then_operations: tuple["EffectOperation", ...] = ()
@@ -508,6 +513,7 @@ class EffectOperation:
     optional_prompt: str | None = None
     optional_operations: tuple["EffectOperation", ...] = ()
     repeat_operations: tuple["EffectOperation", ...] = ()
+    granted_operations: tuple["EffectOperation", ...] = ()
     random_distribution_operations: tuple[
         tuple["EffectOperation", ...], ...
     ] = ()
@@ -535,6 +541,7 @@ class BoundTargetSnapshot:
     card_name: str
     cost: int
     definition: "CardDefinition"
+    attack: int | None = None
 
 
 @dataclass(frozen=True)

@@ -432,6 +432,17 @@ def evaluate_expression(expr: ValueExpression | None, ctx: EvalContext | None) -
             else ctx.bound_target_snapshots.get(expr.binding_key or "", ())
         )
         return snapshots[0].cost if len(snapshots) == 1 else 0
+    elif t == ExprType.BOUND_CARD_ATTACK:
+        snapshots = (
+            ()
+            if ctx is None or ctx.bound_target_snapshots is None
+            else ctx.bound_target_snapshots.get(expr.binding_key or "", ())
+        )
+        return (
+            snapshots[0].attack
+            if len(snapshots) == 1 and snapshots[0].attack is not None
+            else 0
+        )
     elif t == ExprType.BOUND_TARGET_HEALTH:
         snapshots = (
             ()

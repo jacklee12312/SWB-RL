@@ -1566,6 +1566,8 @@ class GameEngine:
         hand_card.temporary_keywords.clear()
         hand_card.removed_keywords.clear()
         hand_card.temporary_keyword_removals.clear()
+        hand_card.granted_last_words.clear()
+        hand_card.effect_destroy_immunity = False
         hand_card.spellboost_count = 0
         hand_card.spellboost_cost_reduction = (
             self.rulebook.spellboost_cost_reduction(replacement.card_id)
@@ -3200,6 +3202,14 @@ class GameEngine:
                 )
                 for modifier in card.temporary_keyword_removals
             ),
+            "granted_last_words": tuple(
+                tuple(
+                    self._operation_fingerprint(operation)
+                    for operation in granted_ability
+                )
+                for granted_ability in card.granted_last_words
+            ),
+            "effect_destroy_immunity": card.effect_destroy_immunity,
         }
 
     def _board_entity_fingerprint(
@@ -3265,6 +3275,14 @@ class GameEngine:
                 ),
                 "printed_abilities_removed": entity.printed_abilities_removed,
                 "last_words_removed": entity.last_words_removed,
+                "granted_last_words": tuple(
+                    tuple(
+                        self._operation_fingerprint(operation)
+                        for operation in granted_ability
+                    )
+                    for granted_ability in entity.granted_last_words
+                ),
+                "effect_destroy_immunity": entity.effect_destroy_immunity,
                 "turn_end_destroy_timings": tuple(
                     sorted(
                         timing.value
@@ -3511,6 +3529,7 @@ class GameEngine:
             operation.graveyard_follower_only,
             operation.graveyard_card_type,
             self._deck_filter_fingerprint(operation.deck_filter),
+            self._expression_fingerprint(operation.deck_filter_cost_expr),
             self._board_filter_fingerprint(operation.board_filter),
             tuple(
                 self._operation_fingerprint(nested)
@@ -3544,6 +3563,10 @@ class GameEngine:
             tuple(
                 self._operation_fingerprint(nested)
                 for nested in operation.repeat_operations
+            ),
+            tuple(
+                self._operation_fingerprint(nested)
+                for nested in operation.granted_operations
             ),
             tuple(
                 tuple(
@@ -3711,6 +3734,10 @@ class GameEngine:
             record.health,
             record.evolved,
             record.super_evolved,
+            tuple(
+                self._operation_fingerprint(operation)
+                for operation in record.granted_last_words
+            ),
         )
 
     def _emblem_instance_fingerprint(
@@ -3941,6 +3968,7 @@ class GameEngine:
                 value.card_type,
                 value.card_name,
                 value.cost,
+                value.attack,
                 self._card_fingerprint(value.definition),
             )
         if isinstance(value, SourceStateSnapshot):
@@ -4063,11 +4091,14 @@ class GameEngine:
     def _super_evolution_prevents_effect_destroy(self, target: Unit) -> bool:
         return self._super_evolution_protection_active(target)
 
-    def _printed_effect_destroy_immunity_active(self, target: Unit) -> bool:
+    def _effect_destroy_immunity_active(self, target: Unit) -> bool:
         return (
             not target.printed_abilities_removed
-            and self.rulebook.cannot_be_destroyed_by_effects(
-                target.definition.card_id
+            and (
+                target.effect_destroy_immunity
+                or self.rulebook.cannot_be_destroyed_by_effects(
+                    target.definition.card_id
+                )
             )
         )
 
@@ -5592,6 +5623,21 @@ class GameEngine:
                 card.entity_id == target_id
                 for card in self._hand_cards(snapshot.controller)
             )
+        if (
+            snapshot is not None
+            and snapshot.zone == "hand"
+            and consuming_operation.kind
+            in {
+                EffectKind.ADD_KEYWORD,
+                EffectKind.GRANT_LAST_WORDS,
+                EffectKind.GRANT_EFFECT_DESTROY_IMMUNITY,
+                EffectKind.SUMMON_FROM_HAND,
+            }
+        ):
+            return any(
+                card.entity_id == target_id
+                for card in self._hand_cards(snapshot.controller)
+            )
         if consuming_operation.kind in {
             EffectKind.COPY_TO_HAND,
             EffectKind.SUMMON_COPY,
@@ -5649,6 +5695,7 @@ class GameEngine:
             card_name=entity.definition.name,
             cost=entity.definition.cost,
             definition=entity.definition,
+            attack=entity.attack if isinstance(entity, Unit) else None,
         )
 
     def _bound_choice_snapshot(
@@ -5697,6 +5744,7 @@ class GameEngine:
             card_name=card.name,
             cost=card.current_cost,
             definition=card.definition,
+            attack=card.attack,
         )
 
     @staticmethod
@@ -5714,6 +5762,7 @@ class GameEngine:
             card_name=card.definition.name,
             cost=card.definition.cost if cost is None else cost,
             definition=card.definition,
+            attack=card.definition.attack,
         )
 
     def _stale_choice_reason(
@@ -7097,6 +7146,7 @@ class GameEngine:
         return (
             _expression_depends_on_source(operation.amount_expr)
             or _expression_depends_on_source(operation.secondary_expr)
+            or _expression_depends_on_source(operation.deck_filter_cost_expr)
             or _expression_depends_on_source(operation.target_count_expr)
             or any(
                 _condition_depends_on_source(condition)
@@ -7168,15 +7218,34 @@ class GameEngine:
                     return
         amount = self._resolve_amount(operation, ctx)
         secondary = self._resolve_secondary(operation, ctx)
+        resolved_deck_filter = operation.deck_filter
+        if operation.deck_filter_cost_expr is not None:
+            resolved_cost = max(
+                0,
+                evaluate_expression(operation.deck_filter_cost_expr, ctx),
+            )
+            resolved_deck_filter = replace(
+                operation.deck_filter or DeckFilter(),
+                cost_min=resolved_cost,
+                cost_max=resolved_cost,
+            )
         if operation.kind in (EffectKind.HEAL_LEADER, EffectKind.HEAL_UNIT):
             amount = max(0, amount)
-        if operation.amount_expr is not None or operation.secondary_expr is not None or amount != operation.amount or secondary != operation.secondary_amount:
+        if (
+            operation.amount_expr is not None
+            or operation.secondary_expr is not None
+            or operation.deck_filter_cost_expr is not None
+            or amount != operation.amount
+            or secondary != operation.secondary_amount
+        ):
             resolved = replace(
                 operation,
                 amount=amount,
                 secondary_amount=secondary,
                 amount_expr=None,
                 secondary_expr=None,
+                deck_filter=resolved_deck_filter,
+                deck_filter_cost_expr=None,
             )
             self._execute_effect(resolved, frame, target_id)
         else:
@@ -7582,7 +7651,13 @@ class GameEngine:
                 else None
             )
             if isinstance(target, Unit):
-                if self._printed_effect_destroy_immunity_active(target):
+                if self._effect_destroy_immunity_active(target):
+                    printed_immunity = (
+                        not target.printed_abilities_removed
+                        and self.rulebook.cannot_be_destroyed_by_effects(
+                            target.definition.card_id
+                        )
+                    )
                     self._emit(GameEvent(
                         EventType.EFFECT_DESTROY_PREVENTED,
                         frame.controller,
@@ -7591,7 +7666,11 @@ class GameEngine:
                         metadata={
                             "source_card_id": frame.source_card_id,
                             "protected_card_id": target.definition.card_id,
-                            "printed_ability": True,
+                            "printed_ability": printed_immunity,
+                            "granted_ability": (
+                                not target.printed_abilities_removed
+                                and target.effect_destroy_immunity
+                            ),
                         },
                     ))
                     self._log(
@@ -7648,6 +7727,8 @@ class GameEngine:
             self._execute_summon_exact_copy(effect, frame, target_id)
         elif effect.kind is EffectKind.SUMMON_HAND_COPY:
             self._execute_summon_hand_copy(effect, frame, target_id)
+        elif effect.kind is EffectKind.SUMMON_FROM_HAND:
+            self._execute_summon_from_hand(effect, frame, target_id)
         elif effect.kind is EffectKind.SUMMON_FROM_DECK:
             self._execute_summon_from_deck(effect, frame)
         elif effect.kind is EffectKind.BANISH:
@@ -7674,6 +7755,10 @@ class GameEngine:
             self._execute_keyword_change(effect, frame, target_id, add=True)
         elif effect.kind is EffectKind.ADD_RANDOM_KEYWORDS:
             self._execute_add_random_keywords(effect, frame, target_id)
+        elif effect.kind is EffectKind.GRANT_LAST_WORDS:
+            self._execute_grant_last_words(effect, frame, target_id)
+        elif effect.kind is EffectKind.GRANT_EFFECT_DESTROY_IMMUNITY:
+            self._execute_grant_effect_destroy_immunity(frame, target_id)
         elif effect.kind is EffectKind.REMOVE_KEYWORD:
             self._execute_keyword_change(effect, frame, target_id, add=False)
         elif effect.kind is EffectKind.REMOVE_ALL_ABILITIES:
@@ -7987,6 +8072,76 @@ class GameEngine:
                 target_id,
                 add=True,
             )
+
+    def _grantable_follower_target(
+        self,
+        target_id: int | None,
+    ) -> HandCard | Unit | None:
+        if target_id is None:
+            return None
+        try:
+            _, hand_card = self._find_hand_card_with_owner(target_id)
+            return hand_card if hand_card.card_type == "随从" else None
+        except IllegalCommand:
+            pass
+        try:
+            target = self._find_board_entity(target_id)
+        except IllegalCommand:
+            return None
+        return target if isinstance(target, Unit) else None
+
+    def _execute_grant_last_words(
+        self,
+        effect: EffectOperation,
+        frame: EffectFrame,
+        target_id: int | None,
+    ) -> None:
+        target = self._grantable_follower_target(target_id)
+        if target is None:
+            return
+        if not effect.granted_operations:
+            raise IllegalCommand("grant_last_words requires operations")
+        target.granted_last_words.append(effect.granted_operations)
+        self._emit(
+            GameEvent(
+                EventType.CARD_ABILITY_GRANTED,
+                frame.controller,
+                source_id=frame.source_entity_id,
+                target_id=target.entity_id,
+                metadata={
+                    "card_id": target.definition.card_id,
+                    "ability": "last_words",
+                    "zone": "hand" if isinstance(target, HandCard) else "board",
+                    "source_card_id": frame.source_card_id,
+                },
+            )
+        )
+        self._log(frame.controller, f"{target.name} 获得谢幕曲")
+
+    def _execute_grant_effect_destroy_immunity(
+        self,
+        frame: EffectFrame,
+        target_id: int | None,
+    ) -> None:
+        target = self._grantable_follower_target(target_id)
+        if target is None:
+            return
+        target.effect_destroy_immunity = True
+        self._emit(
+            GameEvent(
+                EventType.CARD_ABILITY_GRANTED,
+                frame.controller,
+                source_id=frame.source_entity_id,
+                target_id=target.entity_id,
+                metadata={
+                    "card_id": target.definition.card_id,
+                    "ability": "cannot_be_destroyed_by_effects",
+                    "zone": "hand" if isinstance(target, HandCard) else "board",
+                    "source_card_id": frame.source_card_id,
+                },
+            )
+        )
+        self._log(frame.controller, f"{target.name} 获得能力破坏免疫")
 
     def _execute_remove_all_abilities(
         self, frame: EffectFrame, target_id: int | None
@@ -8608,6 +8763,8 @@ class GameEngine:
         unit.printed_abilities_removed = source.printed_abilities_removed
         unit.last_words_removed = source.last_words_removed
         unit.turn_end_destroy_timings = set(source.turn_end_destroy_timings)
+        unit.granted_last_words = list(source.granted_last_words)
+        unit.effect_destroy_immunity = source.effect_destroy_immunity
         unit.barrier_charges = source.barrier_charges
         unit.ambush_active = source.ambush_active
         unit.attacks_remaining = unit.attacks_per_turn
@@ -8750,6 +8907,88 @@ class GameEngine:
                     "source_card_id": frame.source_card_id,
                 },
             )
+        )
+
+    def _execute_summon_from_hand(
+        self,
+        effect: EffectOperation,
+        frame: EffectFrame,
+        target_id: int | None,
+    ) -> None:
+        player = self.players[frame.controller]
+        hand_card = next(
+            (
+                card
+                for card in self._hand_cards(frame.controller)
+                if card.entity_id == target_id
+            ),
+            None,
+        )
+        if hand_card is None:
+            return
+        if hand_card.card_type != "随从":
+            raise IllegalCommand("SUMMON_FROM_HAND requires a follower in hand")
+        if len(player.board) >= self.config.max_board:
+            self._log(
+                frame.controller,
+                f"{frame.source_name} 从手牌召唤失败：场地已满",
+            )
+            return
+
+        hand_index = player.hand.index(hand_card)
+        player.hand.pop(hand_index)
+        player.hand_entity_ids.pop(hand_index)
+        unit = self._summon_follower_to_board(
+            frame.controller,
+            hand_card.definition,
+            summon_cause="summon_from_hand",
+            entity_id=hand_card.entity_id,
+            origin=hand_card.origin,
+            source_origin=hand_card.source_origin,
+            fused_material_ids=tuple(hand_card.fused_material_ids),
+        )
+        if unit is None:
+            player.hand.insert(hand_index, hand_card)
+            player.hand_entity_ids.insert(hand_index, hand_card.entity_id)
+            return
+        for modifier in hand_card.stat_modifiers:
+            unit.add_stat_modifier(modifier)
+        self._apply_hand_card_runtime_to_unit(hand_card, unit)
+        self._emit(
+            GameEvent(
+                EventType.HAND_CARD_SUMMONED,
+                frame.controller,
+                source_id=unit.entity_id,
+                metadata={
+                    "card_id": unit.definition.card_id,
+                    "entity_id": unit.entity_id,
+                    "source_card_id": frame.source_card_id,
+                    "from_zone": "hand",
+                    "to_zone": "board",
+                },
+            )
+        )
+        self._emit(
+            GameEvent(
+                EventType.FOLLOWER_SUMMONED,
+                frame.controller,
+                source_id=unit.entity_id,
+                metadata={
+                    "source": unit,
+                    "card_id": unit.definition.card_id,
+                    "via": "summon_from_hand",
+                    "origin": unit.origin.value,
+                    "derived": is_derived(unit.origin),
+                    "token": is_token_definition(unit.definition)
+                    or unit.origin is CardOrigin.TOKEN,
+                    "source_card_id": frame.source_card_id,
+                },
+            )
+        )
+        self._log(
+            frame.controller,
+            f"{frame.source_name} 从手牌召唤 {hand_card.name} "
+            f"({unit.attack}/{unit.health})",
         )
 
     def _execute_transform(
@@ -8937,6 +9176,8 @@ class GameEngine:
         target.targeting_restrictions.clear()
         target.printed_abilities_removed = False
         target.last_words_removed = False
+        target.granted_last_words.clear()
+        target.effect_destroy_immunity = False
         self._apply_initial_keyword_overrides(target)
         self._apply_initial_passives(target)
         target._synchronize_keyword_state()
@@ -12341,6 +12582,11 @@ class GameEngine:
                         health=entity.health,
                         evolved=entity.evolved,
                         super_evolved=entity.super_evolved,
+                        granted_last_words=tuple(
+                            operation
+                            for granted_ability in entity.granted_last_words
+                            for operation in granted_ability
+                        ),
                     )
                     unit_origin = entity.origin
                     unit_source_origin = entity.source_origin
@@ -12532,7 +12778,10 @@ class GameEngine:
         ))
         self._log(record.owner, f"{record.card_name} 谢幕曲开始")
 
-        operations = self.rulebook.operations_for(record.card_id, Trigger.LAST_WORDS)
+        operations = (
+            self.rulebook.operations_for(record.card_id, Trigger.LAST_WORDS)
+            + record.granted_last_words
+        )
         if not operations and record.card_type == "护符":
             operations = self.rulebook.operations_for(record.card_id, Trigger.COUNTDOWN_EXPIRED)
 
@@ -13122,6 +13371,35 @@ class GameEngine:
                         f"Invariant failed: {prefix} hand[{hand_index}] has "
                         "contradictory permanent keyword state"
                     )
+                if not isinstance(hand_card.effect_destroy_immunity, bool):
+                    raise IllegalCommand(
+                        f"Invariant failed: {prefix} hand[{hand_index}] has "
+                        "invalid effect-destroy-immunity state"
+                    )
+                if (
+                    hand_card.granted_last_words
+                    or hand_card.effect_destroy_immunity
+                ) and hand_card.card_type != "随从":
+                    raise IllegalCommand(
+                        f"Invariant failed: {prefix} hand[{hand_index}] has "
+                        "follower-only granted abilities"
+                    )
+                if (
+                    not isinstance(hand_card.granted_last_words, list)
+                    or any(
+                        not isinstance(granted_ability, tuple)
+                        or not granted_ability
+                        or any(
+                            not isinstance(operation, EffectOperation)
+                            for operation in granted_ability
+                        )
+                        for granted_ability in hand_card.granted_last_words
+                    )
+                ):
+                    raise IllegalCommand(
+                        f"Invariant failed: {prefix} hand[{hand_index}] has "
+                        "invalid granted last words"
+                    )
                 for modifier in (
                     *hand_card.temporary_keywords,
                     *hand_card.temporary_keyword_removals,
@@ -13197,6 +13475,26 @@ class GameEngine:
                     if not isinstance(entity.last_words_removed, bool):
                         raise IllegalCommand(
                             f"Invariant failed: {zone} last-words-removal flag is invalid"
+                        )
+                    if not isinstance(entity.effect_destroy_immunity, bool):
+                        raise IllegalCommand(
+                            f"Invariant failed: {zone} effect-destroy-immunity "
+                            "flag is invalid"
+                        )
+                    if (
+                        not isinstance(entity.granted_last_words, list)
+                        or any(
+                            not isinstance(granted_ability, tuple)
+                            or not granted_ability
+                            or any(
+                                not isinstance(operation, EffectOperation)
+                                for operation in granted_ability
+                            )
+                            for granted_ability in entity.granted_last_words
+                        )
+                    ):
+                        raise IllegalCommand(
+                            f"Invariant failed: {zone} has invalid granted last words"
                         )
                     if (
                         not isinstance(entity.turn_end_destroy_timings, set)
@@ -14337,6 +14635,8 @@ class GameEngine:
                 duration=modifier.duration,
                 expires_for_player=modifier.expires_for_player,
             )
+        unit.granted_last_words = list(hand_card.granted_last_words)
+        unit.effect_destroy_immunity = hand_card.effect_destroy_immunity
 
     def _allocate_modifier_id(self) -> int:
         modifier_id = self._next_modifier_id
