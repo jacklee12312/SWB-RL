@@ -3263,21 +3263,36 @@ def _parse_operation(
                 "requires a non-zero integer amount"
             )
 
-    if kind is EffectKind.SET_LEADER_MAX_HEALTH:
+    if kind in {
+        EffectKind.SET_LEADER_MAX_HEALTH,
+        EffectKind.CHANGE_LEADER_MAX_HEALTH,
+    }:
         if target not in (TargetKind.OWN_LEADER, TargetKind.ENEMY_LEADER):
             raise ValueError(
                 f"{source_file}/target card {card_id}: "
-                "set_leader_max_health requires a leader target"
+                f"{kind.value} requires a leader target"
             )
         if (
             raw_amount is None
             or isinstance(raw_amount, bool)
             or not isinstance(raw_amount, int)
-            or raw_amount < 1
+            or (
+                kind is EffectKind.SET_LEADER_MAX_HEALTH
+                and raw_amount < 1
+            )
+            or (
+                kind is EffectKind.CHANGE_LEADER_MAX_HEALTH
+                and raw_amount == 0
+            )
         ):
             raise ValueError(
                 f"{source_file}/amount card {card_id}: "
-                "set_leader_max_health requires a positive integer amount"
+                f"{kind.value} requires "
+                + (
+                    "a positive integer amount"
+                    if kind is EffectKind.SET_LEADER_MAX_HEALTH
+                    else "a non-zero integer amount"
+                )
             )
 
     keyword = raw.get("keyword")
@@ -5279,6 +5294,7 @@ def _parse_condition(raw: dict, source_path: str, card_id: int) -> Condition:
         ConditionType.SOURCE_HEALTH_AT_LEAST,
         ConditionType.CONTROLLER_HAND_COUNT_AT_LEAST,
         ConditionType.CONTROLLER_ENTERED_FOLLOWER_DISTINCT_COUNT_AT_LEAST,
+        ConditionType.CONTROLLER_ENTERED_FOLLOWER_COUNT_AT_LEAST,
     )
     if t in cooperation_threshold_types:
         if "value" not in raw:
@@ -5339,10 +5355,12 @@ def _parse_condition(raw: dict, source_path: str, card_id: int) -> Condition:
         if t not in {
             ConditionType.CONTROLLER_HAND_COUNT_AT_LEAST,
             ConditionType.CONTROLLER_ENTERED_FOLLOWER_DISTINCT_COUNT_AT_LEAST,
+            ConditionType.CONTROLLER_ENTERED_FOLLOWER_COUNT_AT_LEAST,
         }:
             raise ValueError(
                 f"{error_prefix}: 'filter' is only valid for controller-hand "
-                "count or entered-follower distinct-count conditions"
+                "count, entered-follower distinct-count, or entered-follower "
+                "count conditions"
             )
         card_filter = _parse_hand_filter(
             raw_filter,
@@ -5419,6 +5437,7 @@ def _parse_expression(raw: dict, source_path: str, card_id: int) -> ValueExpress
         ExprType.CONTROLLER_DESTROYED_FOLLOWER_BASE_ATTACK_SUM_THIS_TURN,
         ExprType.CONTROLLER_DESTROYED_FOLLOWER_BASE_HEALTH_SUM_THIS_TURN,
         ExprType.CONTROLLER_ENTERED_FOLLOWER_DISTINCT_COUNT,
+        ExprType.CONTROLLER_ENTERED_FOLLOWER_COUNT,
     }
     hand_filter_types = aggregate_types | {ExprType.CONTROLLER_HAND_COUNT}
     raw_filter = raw.get("filter")
@@ -5513,6 +5532,7 @@ def _parse_expression(raw: dict, source_path: str, card_id: int) -> ValueExpress
                ExprType.BOUND_TARGET_HEALTH,
                ExprType.BOUND_TARGET_COUNT,
                ExprType.SOURCE_ATTACK, ExprType.SOURCE_HEALTH,
+               ExprType.SOURCE_MISSING_HEALTH,
                ExprType.TARGET_ATTACK, ExprType.TARGET_HEALTH,
                ExprType.CONTROLLER_SHADOWS, ExprType.OPPONENT_SHADOWS,
                ExprType.CONTROLLER_COOPERATION, ExprType.OPPONENT_COOPERATION,

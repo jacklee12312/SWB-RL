@@ -8,26 +8,26 @@
 | Metric | Count |
 |---|---|
 | Total cards in DB | 826 |
-| Cards with rules | 787 |
+| Cards with rules | 792 |
 | Test/synthetic IDs with rules | 26 |
 
 ### Coverage Categories
 
 | Category | Count |
 |---|---|
-| covered_exact | 683 |
+| covered_exact | 688 |
 | text_unclear | 16 |
-| supported_missing_rule | 36 |
+| supported_missing_rule | 31 |
 | token_or_non_collectible | 91 |
 
 ### Clause Audit
 
 | Clause status | Count |
 |---|---:|
-| mapped_exact | 683 |
+| mapped_exact | 688 |
 | unverified_exact | 0 |
 | partial | 0 |
-| missing_rule | 36 |
+| missing_rule | 31 |
 | missing_primitive | 0 |
 | text_unclear | 16 |
 | token_separate_audit | 91 |
@@ -36,7 +36,7 @@
 
 | Blocker | Count |
 |---|---:|
-| missing_rule | 36 |
+| missing_rule | 31 |
 | missing_schema | 0 |
 | missing_primitive | 0 |
 | missing_targeting | 0 |
@@ -110,17 +110,17 @@
 | 4 | 10502120 | 手持军配团扇的伟丈夫 | 中立 | 4 | 随从 | high | Covered keywords: 进化时, 破坏 |
 | 5 | 10502110 | 星辉女神 | 中立 | 5 | 随从 | high | Covered keywords: 进化时, 将.*加入手牌, 舍弃 |
 | 6 | 10543110 | 破灭屠戮者 | 龙族 | 7 | 随从 | high | Covered keywords: 进化时, 超进化, 消失 |
-| 7 | 10242210 | 炎龙之剑 | 龙族 | 1 | 护符 | high | Covered keywords: 谢幕曲, 策动, 破坏 |
-| 8 | 10503210 | 大游戏世界 | 中立 | 1 | 护符 | high | Covered keywords: 谢幕曲, 倒数, 抽取 |
-| 9 | 10703210 | 巴别隆城 | 中立 | 1 | 护符 | high | Covered keywords: 策动, 回合结束, 倒数 |
-| 10 | 10303210 | 试炼的石板 | 中立 | 3 | 护符 | high | Covered keywords: 入场曲, 策动, 抽取 |
-| 11 | 10332210 | 真理的研究设施 | 巫师 | 3 | 护符 | high | Covered keywords: 策动, 倒数, 抽取 |
-| 12 | 10342110 | 侮蔑的祈祷者 | 龙族 | 5 | 随从 | high | Covered keywords: 回合结束, 回复(?!自己\d+点(?:超进化点|进化点|能量点)) |
-| 13 | 10162130 | 大地守护神·米维 | 主教 | 7 | 随从 | high | Covered keywords: 谢幕曲, 破坏, 召唤 |
-| 14 | 10214120 | 缠绕密林·丽梅格 | 精灵 | 7 | 随从 | high | Covered keywords: 入场曲, 进化时, 超进化 |
-| 15 | 10604110 | 恐惧的象征·欧米伽奥提普 | 中立 | 9 | 随从 | high | Covered keywords: 入场曲, 进化时, 超进化 |
-| 16 | 10554120 | 奥夜花·释藤 | 梦魇 | 10 | 随从 | high | Covered keywords: 入场曲, 进化时, 超进化 |
-| 17 | 10514110 | 脚踩天穹的《倒吊人》·罗弗拉德 | 精灵 | 2 | 随从 | high | Covered keywords: 入场曲, 进化时, 连击 |
-| 18 | 10553310 | 严酷的奥夜花 | 梦魇 | 2 | 法术 | high | Covered keywords: 回合结束, 倒数, 抽取 |
-| 19 | 10574110 | 转动的《命运之轮》·斯洛士 | 超越者 | 3 | 随从 | high | Covered keywords: 回合开始, 回合结束, 倒数 |
-| 20 | 10663210 | 崇高的天书 | 主教 | 4 | 护符 | high | Covered keywords: 入场曲, 谢幕曲, 倒数 |
+| 7 | 10503210 | 大游戏世界 | 中立 | 1 | 护符 | high | Covered keywords: 谢幕曲, 倒数, 抽取 |
+| 8 | 10703210 | 巴别隆城 | 中立 | 1 | 护符 | high | Covered keywords: 策动, 回合结束, 倒数 |
+| 9 | 10303210 | 试炼的石板 | 中立 | 3 | 护符 | high | Covered keywords: 入场曲, 策动, 抽取 |
+| 10 | 10332210 | 真理的研究设施 | 巫师 | 3 | 护符 | high | Covered keywords: 策动, 倒数, 抽取 |
+| 11 | 10342110 | 侮蔑的祈祷者 | 龙族 | 5 | 随从 | high | Covered keywords: 回合结束, 回复(?!自己\d+点(?:超进化点|进化点|能量点)) |
+| 12 | 10162130 | 大地守护神·米维 | 主教 | 7 | 随从 | high | Covered keywords: 谢幕曲, 破坏, 召唤 |
+| 13 | 10214120 | 缠绕密林·丽梅格 | 精灵 | 7 | 随从 | high | Covered keywords: 入场曲, 进化时, 超进化 |
+| 14 | 10604110 | 恐惧的象征·欧米伽奥提普 | 中立 | 9 | 随从 | high | Covered keywords: 入场曲, 进化时, 超进化 |
+| 15 | 10554120 | 奥夜花·释藤 | 梦魇 | 10 | 随从 | high | Covered keywords: 入场曲, 进化时, 超进化 |
+| 16 | 10514110 | 脚踩天穹的《倒吊人》·罗弗拉德 | 精灵 | 2 | 随从 | high | Covered keywords: 入场曲, 进化时, 连击 |
+| 17 | 10553310 | 严酷的奥夜花 | 梦魇 | 2 | 法术 | high | Covered keywords: 回合结束, 倒数, 抽取 |
+| 18 | 10574110 | 转动的《命运之轮》·斯洛士 | 超越者 | 3 | 随从 | high | Covered keywords: 回合开始, 回合结束, 倒数 |
+| 19 | 10663210 | 崇高的天书 | 主教 | 4 | 护符 | high | Covered keywords: 入场曲, 谢幕曲, 倒数 |
+| 20 | 10664110 | 崇高的憎恶·康蒂玛 | 主教 | 4 | 随从 | high | Covered keywords: 入场曲, 谢幕曲, 进化时 |

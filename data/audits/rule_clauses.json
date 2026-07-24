@@ -7144,6 +7144,41 @@
       "source_text_sha256": "753fb81e0282fb936e42e0cd5c8792a346085741e0842025ef35a257664baff6",
       "test_evidence": ["tests/test_real_random_same_name_cost_thirteenth_batch.py"],
       "notes": "土之秘术2、三项中固定种子随机选择两个不同分支、关联泥尘巨像、回复、土之印、资源不足、场面容量、事件审计及复现性均有直接测试。"
+    },
+    {
+      "card_id": 10242210,
+      "rule_version": 1,
+      "source_text_sha256": "a29f6ba92a259137886dc95b8869ccc771c4d4fc193d872e8a130fffd5d5165f",
+      "test_evidence": ["tests/test_real_crest_entry_source_health_fourteenth_batch.py"],
+      "notes": "启动费用、来源先离场、随从必选目标、+1/+1、动态谢幕曲、自身关联护符复现、无目标原子性、场面容量、失效选择与action mask均有直接测试。"
+    },
+    {
+      "card_id": 10344110,
+      "rule_version": 1,
+      "source_text_sha256": "dd82e223c162ae0cbbbb4fcddd3032fedeef5ce7dcb9906e7cee226ac52b5187",
+      "test_evidence": ["tests/test_real_crest_entry_source_health_fourteenth_batch.py"],
+      "notes": "固有守护、入场及超进化三次顺序性全场伤害、同时死亡、受伤存活监听、仅己方回合、回复至上限与超进化伤害保护交互均有直接测试。"
+    },
+    {
+      "card_id": 10534110,
+      "rule_version": 1,
+      "source_text_sha256": "989edeb1ce2ffcae47975a22410f07d96c8261e87d69f33a1abdcb998a3c7512",
+      "test_evidence": ["tests/test_real_crest_entry_source_health_fourteenth_batch.py"],
+      "notes": "固有突进、入场获得可叠加纹章、后续同名入场逐纹章降低敌方最大生命、当前生命压缩、下限1、超进化加入10张同名牌及固定种子复现均有直接测试。"
+    },
+    {
+      "card_id": 10844110,
+      "rule_version": 1,
+      "source_text_sha256": "99bb0d437e5d85d3af0501739cc48cf5d59ecfa0e12dec566013bbf6d019e271",
+      "test_evidence": ["tests/test_real_crest_entry_source_health_fourteenth_batch.py"],
+      "notes": "固有守护、同名历史入场次数（含已离场实例）、排除当前实例的X值、X阈值自动进化、谢幕曲纹章、倒计数2及满手牌溢出均有直接测试。"
+    },
+    {
+      "card_id": 10864110,
+      "rule_version": 1,
+      "source_text_sha256": "45d98b4b499088b3c1ae17d5ebb17e514dde1aa6469800b0cb2daca01d1ed6bc",
+      "test_evidence": ["tests/test_real_crest_entry_source_health_fourteenth_batch.py"],
+      "notes": "固定种子牌组随机召唤、费用与随从过滤、无候选/满场不消耗随机数、效果超进化不消耗点数、超进化纹章、攻击随从与主战者分流、回合末临时二次攻击均有直接测试。"
     }
   ]
 }

@@ -1,0 +1,262 @@
+{
+  "activations": [
+    {"card_id": 10242210, "cost": 1}
+  ],
+  "intrinsic_keywords": [
+    {"card_id": 10344110, "keywords": ["守护"]},
+    {"card_id": 10534110, "keywords": ["突进"]},
+    {"card_id": 10844110, "keywords": ["守护"]}
+  ],
+  "listeners": [
+    {
+      "card_id": 10344110,
+      "zone": "board",
+      "event": "follower_damaged_survived",
+      "event_scope": "owner_event",
+      "turn_scope": "owner_turn",
+      "source_relation": "self",
+      "operations": [
+        {"kind": "damage_leader", "target": "enemy_leader", "amount": 1}
+      ]
+    }
+  ],
+  "emblems": [
+    {
+      "id": "lhynkal_wandering_fool",
+      "source_card_id": 10534110,
+      "stacking": "allow",
+      "triggers": [
+        {
+          "trigger": "follower_summoned",
+          "event_scope": "owner_event",
+          "event_filter": {"card_id": 10534110},
+          "operations": [
+            {
+              "kind": "change_leader_max_health",
+              "target": "enemy_leader",
+              "amount": -2
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "drache_aluzard_burning_blood",
+      "source_card_id": 10844110,
+      "stacking": "allow",
+      "countdown": 2,
+      "on_expire": [
+        {
+          "kind": "add_card",
+          "target": "own_leader",
+          "card_id": 10844110,
+          "mode": "set",
+          "amount": 2
+        }
+      ]
+    },
+    {
+      "id": "verdilia_castelle_sisters",
+      "source_card_id": 10864110,
+      "stacking": "allow",
+      "triggers": [
+        {
+          "trigger": "attack_declared",
+          "event_scope": "owner_event",
+          "turn_scope": "owner_turn",
+          "conditions": [
+            {"type": "source_super_evolved"},
+            {"type": "attack_target_exists"}
+          ],
+          "operations": [
+            {
+              "kind": "grant_attacks_per_turn",
+              "target": "event_source",
+              "amount": 2,
+              "duration": "until_end_of_turn"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "rules": [
+    {
+      "card_id": 10242210,
+      "trigger": "activate",
+      "coverage": "exact",
+      "implemented_text": "费用1【<color=Keyword>启动</color>】破坏本卡牌。选择自己的战场上的1个随从，使其+1/+1且获得「【<color=Keyword>谢幕曲</color>】召唤1张『<color=Keyword>炎龙之剑</color>』」。",
+      "operations": [
+        {"kind": "destroy", "target": "self"},
+        {
+          "kind": "buff_unit",
+          "target": "own_unit",
+          "amount": 1,
+          "secondary_amount": 1,
+          "requires_target": true,
+          "target_key": "pyrewyrm_blade_target"
+        },
+        {
+          "kind": "grant_last_words",
+          "target": "previous_target",
+          "target_key": "pyrewyrm_blade_target",
+          "operations": [
+            {"kind": "summon", "target": "own_leader", "card_id": 10242210}
+          ]
+        }
+      ]
+    },
+    {
+      "card_id": 10344110,
+      "trigger": "fanfare",
+      "coverage": "exact",
+      "implemented_text": "【<color=Keyword>入场曲</color>】发动3次「对战场上的所有随从造成2点伤害」。\n<hr>【<color=Keyword>守护</color>】\n本随从受到伤害且没被破坏时，若为自己的回合，则对对手的主战者造成1点伤害。\n<hr><sev>【<color=Keyword>超进化时</color>】本随从回复至上限。发动3次「对战场上的所有随从造成2点伤害」。</sev>",
+      "operations": [
+        {
+          "kind": "repeat",
+          "target": "own_leader",
+          "amount": 3,
+          "operations": [
+            {"kind": "damage_unit", "target": "all_units", "amount": 2}
+          ]
+        }
+      ]
+    },
+    {
+      "card_id": 10344110,
+      "trigger": "super_evolve",
+      "operations": [
+        {
+          "kind": "heal_unit",
+          "target": "self",
+          "amount": {"type": "source_missing_health"}
+        },
+        {
+          "kind": "repeat",
+          "target": "own_leader",
+          "amount": 3,
+          "operations": [
+            {"kind": "damage_unit", "target": "all_units", "amount": 2}
+          ]
+        }
+      ]
+    },
+    {
+      "card_id": 10534110,
+      "trigger": "fanfare",
+      "coverage": "exact",
+      "implemented_text": "【<color=Keyword>入场曲</color>】使自己获得『纹章：漫步的《愚者》·琳库露』。\n<hr>【<color=Keyword>突进</color>】\n<hr><sev>【<color=Keyword>超进化时</color>】将10张『<color=Keyword>漫步的《愚者》·琳库露</color>』加入牌组。</sev>\n【纹章_0】自己的『<color=Keyword>漫步的《愚者》·琳库露</color>』进入战场时，使对手的主战者的生命值的最大值-2。",
+      "operations": [
+        {
+          "kind": "gain_emblem",
+          "target": "own_leader",
+          "emblem_id": "lhynkal_wandering_fool"
+        }
+      ]
+    },
+    {
+      "card_id": 10534110,
+      "trigger": "super_evolve",
+      "operations": [
+        {
+          "kind": "repeat",
+          "target": "own_leader",
+          "amount": 10,
+          "operations": [
+            {
+              "kind": "add_card_to_deck",
+              "target": "own_leader",
+              "card_id": 10534110
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "card_id": 10844110,
+      "trigger": "fanfare",
+      "coverage": "exact",
+      "implemented_text": "【<color=Keyword>入场曲</color>】本随从+X/+X。若X为2或以上，则本随从进化。X为本次对战中进入战场的自己的其他『<color=Keyword>反照的赤红·德莱克&亚瑞札特</color>』的张数。\n<hr>【<color=Keyword>守护</color>】\n【<color=Keyword>谢幕曲</color>】使自己获得『纹章：反照的赤红·德莱克&亚瑞札特』。\n【纹章_0】【<color=Keyword>吟唱</color>_2】\n【<color=Keyword>谢幕曲</color>】将1张『<color=Keyword>反照的赤红·德莱克&亚瑞札特</color>』加入手牌，使其费用变为2。",
+      "operations": [
+        {
+          "kind": "buff_unit",
+          "target": "self",
+          "amount": {
+            "type": "subtract",
+            "values": [
+              {
+                "type": "controller_entered_follower_count",
+                "filter": {"card_id": 10844110}
+              },
+              {"type": "constant", "value": 1}
+            ]
+          },
+          "secondary_amount": {
+            "type": "subtract",
+            "values": [
+              {
+                "type": "controller_entered_follower_count",
+                "filter": {"card_id": 10844110}
+              },
+              {"type": "constant", "value": 1}
+            ]
+          }
+        },
+        {
+          "kind": "evolve_unit",
+          "target": "self",
+          "conditions": [
+            {
+              "type": "controller_entered_follower_count_at_least",
+              "value": 3,
+              "filter": {"card_id": 10844110}
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "card_id": 10844110,
+      "trigger": "last_words",
+      "operations": [
+        {
+          "kind": "gain_emblem",
+          "target": "own_leader",
+          "emblem_id": "drache_aluzard_burning_blood"
+        }
+      ]
+    },
+    {
+      "card_id": 10864110,
+      "trigger": "fanfare",
+      "coverage": "exact",
+      "implemented_text": "【<color=Keyword>入场曲</color>】召唤随机1个自己的牌组中费用为2或以下的随从，使其超进化。\n<hr><sev>【<color=Keyword>超进化时</color>】使自己获得『纹章：飞跃的姐妹·贝尔迪俪亚&卡诗黛儿』。</sev>\n【纹章_0】自己的超进化后的随从攻击随从时，回合结束前，使其获得「1回合可以攻击2次」。",
+      "operations": [
+        {
+          "kind": "summon_from_deck",
+          "target": "own_leader",
+          "amount": 1,
+          "card_type_filter": "随从",
+          "cost_max": 2,
+          "target_key": "verdilia_castelle_summon"
+        },
+        {
+          "kind": "super_evolve_unit",
+          "target": "previous_target",
+          "target_key": "verdilia_castelle_summon"
+        }
+      ]
+    },
+    {
+      "card_id": 10864110,
+      "trigger": "super_evolve",
+      "operations": [
+        {
+          "kind": "gain_emblem",
+          "target": "own_leader",
+          "emblem_id": "verdilia_castelle_sisters"
+        }
+      ]
+    }
+  ]
+}

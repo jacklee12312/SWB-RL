@@ -10,13 +10,13 @@ code and tests as the source of truth when this file drifts.
 - Database: 826 cards, 735 collectible cards, 91 non-collectible/generated
   cards from set `90000`.
 - Latest SVA source: `https://sva.hypd.asia/data/cards.json`.
-- Tests: `python -m unittest discover -s tests -v` discovers 2400 behavioral
-  contracts (2026-07-24 thirteenth random/same-name/deck-cost verification).
+- Tests: `python -m unittest discover -s tests -v` discovers 2414 behavioral
+  contracts (2026-07-24 fourteenth crest/entry/source-health verification).
 - RL adapter: fixed 111-action space; the default v1 observation is 294
   floats, opt-in v2 preserves the structured compatibility mapping, and v3
   supplies fixed-dtype NumPy arrays plus a Gymnasium observation space without
   changing action IDs. Hidden decklists are the v3 default.
-- The exact-audit `TrainableCardCatalog` currently admits all 683 exact
+- The exact-audit `TrainableCardCatalog` currently admits all 688 exact
   collectible cards, preloads all 826 definitions for SQLite-free matches, and
   provides deterministic class-valid deck sampling. Self-play no longer uses
   the legacy 2-to-5-card follower pool.
@@ -50,7 +50,7 @@ code and tests as the source of truth when this file drifts.
 - Explicit card and demo rules live in `data/rules/`; the current coverage
   report classifies 787 card IDs with explicit rules, passives, fusion,
   invocation, activation, Faith, Union Burst, or listener definitions. Current
-  collectible coverage is 683 exact (92.93% of 735), 0 partial, 36 supported-but-missing-rule,
+  collectible coverage is 688 exact (93.61% of 735), 0 partial, 31 supported-but-missing-rule,
   0 missing-primitive, and 16 text-unclear cards.
 - `data/reports/token_audit.{json,md}` audits all 91 non-collectible/generated
   cards independently of collectible coverage. Database `card_references` and
@@ -65,7 +65,7 @@ code and tests as the source of truth when this file drifts.
   separate column and is covered for all 34; it does not automatically promote
   the 5 partial or 11 placeholder keyword statuses.
 - Coverage now has a backward-compatible clause audit. The legacy summary still
-  reports 683 exact collectible cards, and all 683 now have an explicit exact
+  reports 688 exact collectible cards, and all 688 now have an explicit exact
   text mapping plus named direct test evidence. The versioned sibling registry
   at `data/audits/rule_clauses.json` hashes every imported primary and
   alternate-mode clause; changed source text or stale test evidence invalidates
@@ -74,7 +74,7 @@ code and tests as the source of truth when this file drifts.
   rule version and errata metadata, structured trigger/operation evidence,
   explicit unsupported text, and a stable blocker taxonomy. There are zero
   unverified exact entries and no known missing schema, primitive, targeting,
-  or timing blocker among authored rules. The 36 supported-but-missing-rule
+  or timing blocker among authored rules. The 31 supported-but-missing-rule
   cards are now the per-card structured-content backlog; 16 unclear texts
   remain explicit.
 - RL observation v2 is available behind an explicit version switch. A
@@ -1444,6 +1444,21 @@ slice in this order:
   multilingual/reference/raw-source hashes, Clause/Token consistency, and
   command/RL action-mask parity without card-ID branches or observation/action
   schema changes.
+- Exact file
+  `data/rules/real_crest_entry_source_health_fourteenth_batch.json` closes five
+  collectibles (`10242210`, `10344110`, `10534110`, `10844110`, `10864110`),
+  bringing collectible exact coverage to 688/735 (93.61%). Generic repeated
+  follower-entry counting, live source missing-health expressions, bounded
+  leader maximum-health deltas, and attack-target context propagation into
+  emblem trigger frames cover the shared behavior without card-ID branches.
+  Direct tests cover activation after source departure, required/no/stale
+  choices, sequential damage and mid-repeat source death, Super Evolution
+  protection, simultaneous deaths, stacked crests and the leader-health floor,
+  seeded ten-card deck insertion and filtered deck summons, historical entries
+  after followers leave play, countdown expiry, hand/board capacity, temporary
+  second attacks, multilingual/Mode/reference/raw-source hashes, Clause/Token/
+  Ability consistency, deterministic replay, and command/RL action-mask parity
+  without observation or action schema changes.
 
 ## Known Partial Or Unsupported Areas
 

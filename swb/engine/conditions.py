@@ -292,6 +292,14 @@ def evaluate_condition(cond: Condition | None, ctx: EvalContext | None) -> bool:
             )
             >= cond.value
         )
+    elif t == ConditionType.CONTROLLER_ENTERED_FOLLOWER_COUNT_AT_LEAST:
+        return (
+            _entered_follower_count(
+                ctx,
+                card_filter=cond.card_filter,
+            )
+            >= cond.value
+        )
     elif t == ConditionType.TARGET_ATTACK_AT_MOST:
         return isinstance(target, Unit) and target.attack <= cond.value
     elif t == ConditionType.TARGET_ATTACK_AT_LEAST:
@@ -476,6 +484,10 @@ def evaluate_expression(expr: ValueExpression | None, ctx: EvalContext | None) -
             if ctx and ctx.source_snapshot and ctx.source_snapshot.health is not None
             else 0
         )
+    elif t == ExprType.SOURCE_MISSING_HEALTH:
+        if isinstance(source, Unit):
+            return max(0, source.max_health - source.health)
+        return 0
     elif t == ExprType.TARGET_ATTACK:
         return target.attack if isinstance(target, Unit) else 0
     elif t == ExprType.TARGET_HEALTH:
@@ -537,6 +549,13 @@ def evaluate_expression(expr: ValueExpression | None, ctx: EvalContext | None) -
             ctx,
             card_filter=expr.card_filter,
         )
+    elif t == ExprType.CONTROLLER_ENTERED_FOLLOWER_COUNT:
+        if ctx is None:
+            return 0
+        return _entered_follower_count(
+            ctx,
+            card_filter=expr.card_filter,
+        )
     elif t == ExprType.DISTRIBUTED_VALUE:
         return ctx.distributed_value if ctx is not None else 0
 
@@ -555,3 +574,17 @@ def _distinct_entered_follower_count(ctx: EvalContext, *, card_filter) -> int:
             or card_filter.matches(record.definition)
         )
     })
+
+
+def _entered_follower_count(ctx: EvalContext, *, card_filter) -> int:
+    """Count matching follower entries for the controller, including repeats."""
+
+    return sum(
+        1
+        for record in ctx.follower_entries
+        if record.owner == ctx.controller
+        and (
+            card_filter is None
+            or card_filter.matches(record.definition)
+        )
+    )

@@ -243,6 +243,7 @@ _SOURCE_CONDITION_TYPES = frozenset({
 _SOURCE_EXPRESSION_TYPES = frozenset({
     ExprType.SOURCE_ATTACK,
     ExprType.SOURCE_HEALTH,
+    ExprType.SOURCE_MISSING_HEALTH,
 })
 
 
@@ -2748,6 +2749,7 @@ class GameEngine:
             "record_count": len(records) if isinstance(records, list) else None,
             "records": record_summaries,
             "source_id": batch.get("source_id"),
+            "attack_target_entity_id": batch.get("attack_target_entity_id"),
             "event_player": batch.get("event_player"),
             "trigger_batch_id": batch.get("trigger_batch_id"),
             "trigger_batch_order_index": batch.get("trigger_batch_order_index"),
@@ -7531,7 +7533,10 @@ class GameEngine:
                 f"{name} {frame.label}使能量上限由 {before_max} "
                 f"变为 {target_player.max_mana}",
             )
-        elif effect.kind is EffectKind.SET_LEADER_MAX_HEALTH:
+        elif effect.kind in {
+            EffectKind.SET_LEADER_MAX_HEALTH,
+            EffectKind.CHANGE_LEADER_MAX_HEALTH,
+        }:
             target_player_index = (
                 1 - frame.controller
                 if effect.target is TargetKind.ENEMY_LEADER
@@ -7540,7 +7545,11 @@ class GameEngine:
             target_player = self.players[target_player_index]
             previous_max = target_player.max_health
             previous_health = target_player.health
-            target_player.max_health = effect.amount
+            target_player.max_health = (
+                effect.amount
+                if effect.kind is EffectKind.SET_LEADER_MAX_HEALTH
+                else max(1, previous_max + effect.amount)
+            )
             target_player.health = min(
                 target_player.health,
                 target_player.max_health,
@@ -7552,6 +7561,8 @@ class GameEngine:
                 amount=target_player.max_health - previous_max,
                 metadata={
                     "source_card_id": frame.source_card_id,
+                    "requested_amount": effect.amount,
+                    "applied_amount": target_player.max_health - previous_max,
                     "previous_max_health": previous_max,
                     "current_max_health": target_player.max_health,
                     "previous_health": previous_health,
@@ -7560,8 +7571,9 @@ class GameEngine:
             ))
             self._log(
                 frame.controller,
-                f"{name} {frame.label}将玩家 {target_player_index + 1} "
-                f"的生命值上限设为 {target_player.max_health}",
+                f"{name} {frame.label}使玩家 {target_player_index + 1} "
+                f"的生命值上限由 {previous_max} "
+                f"变为 {target_player.max_health}",
             )
         elif effect.kind is EffectKind.BUFF_UNIT:
             target = (
@@ -10362,11 +10374,22 @@ class GameEngine:
         )
         if not records:
             return
+        event_target = (
+            None
+            if event_metadata is None
+            else event_metadata.get("target")
+        )
+        attack_target_entity_id = (
+            getattr(event_target, "entity_id", None)
+            if event_type == EventType.ATTACK_DECLARED.value
+            else None
+        )
         batch_id = self._next_emblem_batch_id
         self._next_emblem_batch_id += 1
         self._emblem_batches[batch_id] = {
             "records": records,
             "source_id": source_id,
+            "attack_target_entity_id": attack_target_entity_id,
             "event_player": event_player,
             "trigger_batch_id": (
                 None if event_metadata is None else event_metadata.get("batch_id")
@@ -10481,6 +10504,9 @@ class GameEngine:
                 ctx = self._eval_context(
                     player_index,
                     source_entity_id=batch.get("source_id"),
+                    attack_target_entity_id=(
+                        batch.get("attack_target_entity_id")
+                    ),
                 )
                 result = evaluate_conditions_without_target(
                     tr.conditions,
@@ -10526,6 +10552,9 @@ class GameEngine:
                 tr.operations,
                 controller=player_index,
                 label=f"纹章 {event_type}",
+                attack_target_entity_id=(
+                    batch.get("attack_target_entity_id")
+                ),
             )
             frame.event_source_entity_id = batch.get("source_id")
             frame.emblem_batch_id = batch_id

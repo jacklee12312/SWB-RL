@@ -12,25 +12,25 @@
   },
   "summary": {
     "total_cards": 826,
-    "total_with_rules": 787,
+    "total_with_rules": 792,
     "test_or_synthetic_ids_with_rules": 26,
     "coverage_counts": {
-      "covered_exact": 683,
+      "covered_exact": 688,
       "text_unclear": 16,
-      "supported_missing_rule": 36,
+      "supported_missing_rule": 31,
       "token_or_non_collectible": 91
     },
     "clause_audit_counts": {
-      "mapped_exact": 683,
+      "mapped_exact": 688,
       "unverified_exact": 0,
       "partial": 0,
-      "missing_rule": 36,
+      "missing_rule": 31,
       "missing_primitive": 0,
       "text_unclear": 16,
       "token_separate_audit": 91
     },
     "blocker_counts": {
-      "missing_rule": 36,
+      "missing_rule": 31,
       "missing_schema": 0,
       "missing_primitive": 0,
       "missing_targeting": 0,
@@ -15675,8 +15675,8 @@
       "cost": 1,
       "is_collectible": true,
       "card_set_id": 10002,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['谢幕曲', '策动', '破坏', '召唤']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['activate', 'activation'], Ops: ['destroy', 'buff_unit', 'grant_last_words', 'summon', 'activation']",
       "hit_keywords": [
         "谢幕曲",
         "策动",
@@ -15684,9 +15684,6 @@
         "召唤"
       ],
       "missing_primitives": [],
-      "missing_rule_mechanics": [
-        "策动"
-      ],
       "ability_keywords": [
         "策动",
         "谢幕曲"
@@ -15695,27 +15692,48 @@
         "费用1【<color=Keyword>启动</color>】破坏本卡牌。选择自己的战场上的1个随从，使其+1/+1且获得「【<color=Keyword>谢幕曲</color>】召唤1张『<color=Keyword>炎龙之剑</color>』」。"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "费用1【<color=Keyword>启动</color>】破坏本卡牌。选择自己的战场上的1个随从，使其+1/+1且获得「【<color=Keyword>谢幕曲</color>】召唤1张『<color=Keyword>炎龙之剑</color>』」。",
+        "notes": "启动费用、来源先离场、随从必选目标、+1/+1、动态谢幕曲、自身关联护符复现、无目标原子性、场面容量、失效选择与action mask均有直接测试。",
+        "rule_version": 1,
+        "source_text_sha256": "a29f6ba92a259137886dc95b8869ccc771c4d4fc193d872e8a130fffd5d5165f",
+        "test_evidence": [
+          "tests/test_real_crest_entry_source_health_fourteenth_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10242210:0",
             "source_text": "费用1【<color=Keyword>启动</color>】破坏本卡牌。选择自己的战场上的1个随从，使其+1/+1且获得「【<color=Keyword>谢幕曲</color>】召唤1张『<color=Keyword>炎龙之剑</color>』」。",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "费用1【<color=Keyword>启动</color>】破坏本卡牌。选择自己的战场上的1个随从，使其+1/+1且获得「【<color=Keyword>谢幕曲</color>】召唤1张『<color=Keyword>炎龙之剑</color>』」。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "a29f6ba92a259137886dc95b8869ccc771c4d4fc193d872e8a130fffd5d5165f",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "activate",
+            "activation"
+          ],
+          "effect_kinds": [
+            "destroy",
+            "buff_unit",
+            "grant_last_words",
+            "summon",
+            "activation"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_crest_entry_source_health_fourteenth_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10243110": {
@@ -20860,8 +20878,8 @@
       "cost": 9,
       "is_collectible": true,
       "card_set_id": 10003,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '进化时', '超进化', '回复(?!自己\\\\d+点(?:超进化点|进化点|能量点))', '造成.*伤害', '破坏']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['fanfare', 'super_evolve', 'listener:board:follower_damaged_survived', 'intrinsic_keywords'], Ops: ['repeat', 'damage_unit', 'heal_unit', 'repeat', 'damage_unit', 'damage_leader', 'keyword:守护']",
       "hit_keywords": [
         "入场曲",
         "进化时",
@@ -20880,27 +20898,52 @@
         "【<color=Keyword>入场曲</color>】发动3次「对战场上的所有随从造成2点伤害」。\n<hr>【<color=Keyword>守护</color>】\n本随从受到伤害且没被破坏时，若为自己的回合，则对对手的主战者造成1点伤害。\n<hr><sev>【<color=Keyword>超进化时</color>】本随从回复至上限。发动3次「对战场上的所有随从造成2点伤害」。</sev>"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【<color=Keyword>入场曲</color>】发动3次「对战场上的所有随从造成2点伤害」。\n<hr>【<color=Keyword>守护</color>】\n本随从受到伤害且没被破坏时，若为自己的回合，则对对手的主战者造成1点伤害。\n<hr><sev>【<color=Keyword>超进化时</color>】本随从回复至上限。发动3次「对战场上的所有随从造成2点伤害」。</sev>",
+        "notes": "固有守护、入场及超进化三次顺序性全场伤害、同时死亡、受伤存活监听、仅己方回合、回复至上限与超进化伤害保护交互均有直接测试。",
+        "rule_version": 1,
+        "source_text_sha256": "dd82e223c162ae0cbbbb4fcddd3032fedeef5ce7dcb9906e7cee226ac52b5187",
+        "test_evidence": [
+          "tests/test_real_crest_entry_source_health_fourteenth_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10344110:0",
             "source_text": "【<color=Keyword>入场曲</color>】发动3次「对战场上的所有随从造成2点伤害」。\n<hr>【<color=Keyword>守护</color>】\n本随从受到伤害且没被破坏时，若为自己的回合，则对对手的主战者造成1点伤害。\n<hr><sev>【<color=Keyword>超进化时</color>】本随从回复至上限。发动3次「对战场上的所有随从造成2点伤害」。</sev>",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "【<color=Keyword>入场曲</color>】发动3次「对战场上的所有随从造成2点伤害」。\n<hr>【<color=Keyword>守护</color>】\n本随从受到伤害且没被破坏时，若为自己的回合，则对对手的主战者造成1点伤害。\n<hr><sev>【<color=Keyword>超进化时</color>】本随从回复至上限。发动3次「对战场上的所有随从造成2点伤害」。</sev>",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "dd82e223c162ae0cbbbb4fcddd3032fedeef5ce7dcb9906e7cee226ac52b5187",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "fanfare",
+            "super_evolve",
+            "listener:board:follower_damaged_survived",
+            "intrinsic_keywords"
+          ],
+          "effect_kinds": [
+            "repeat",
+            "damage_unit",
+            "heal_unit",
+            "repeat",
+            "damage_unit",
+            "damage_leader",
+            "keyword:守护"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_crest_entry_source_health_fourteenth_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10344120": {
@@ -30223,8 +30266,8 @@
       "cost": 1,
       "is_collectible": true,
       "card_set_id": 10005,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '进化时', '超进化', '纹章']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['fanfare', 'super_evolve', 'intrinsic_keywords', 'emblem_source'], Ops: ['gain_emblem', 'repeat', 'add_card_to_deck', 'keyword:突进', 'change_leader_max_health']",
       "hit_keywords": [
         "入场曲",
         "进化时",
@@ -30243,32 +30286,55 @@
         "【纹章_0】自己的『<color=Keyword>漫步的《愚者》·琳库露</color>』进入战场时，使对手的主战者的生命值的最大值-2。"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【<color=Keyword>入场曲</color>】使自己获得『纹章：漫步的《愚者》·琳库露』。\n<hr>【<color=Keyword>突进</color>】\n<hr><sev>【<color=Keyword>超进化时</color>】将10张『<color=Keyword>漫步的《愚者》·琳库露</color>』加入牌组。</sev>\n【纹章_0】自己的『<color=Keyword>漫步的《愚者》·琳库露</color>』进入战场时，使对手的主战者的生命值的最大值-2。",
+        "notes": "固有突进、入场获得可叠加纹章、后续同名入场逐纹章降低敌方最大生命、当前生命压缩、下限1、超进化加入10张同名牌及固定种子复现均有直接测试。",
+        "rule_version": 1,
+        "source_text_sha256": "989edeb1ce2ffcae47975a22410f07d96c8261e87d69f33a1abdcb998a3c7512",
+        "test_evidence": [
+          "tests/test_real_crest_entry_source_health_fourteenth_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10534110:0",
             "source_text": "【<color=Keyword>入场曲</color>】使自己获得『纹章：漫步的《愚者》·琳库露』。\n<hr>【<color=Keyword>突进</color>】\n<hr><sev>【<color=Keyword>超进化时</color>】将10张『<color=Keyword>漫步的《愚者》·琳库露</color>』加入牌组。</sev>",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           },
           {
             "clause_id": "10534110:1",
             "source_text": "【纹章_0】自己的『<color=Keyword>漫步的《愚者》·琳库露</color>』进入战场时，使对手的主战者的生命值的最大值-2。",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "【<color=Keyword>入场曲</color>】使自己获得『纹章：漫步的《愚者》·琳库露』。\n<hr>【<color=Keyword>突进</color>】\n<hr><sev>【<color=Keyword>超进化时</color>】将10张『<color=Keyword>漫步的《愚者》·琳库露</color>』加入牌组。</sev>\n【纹章_0】自己的『<color=Keyword>漫步的《愚者》·琳库露</color>』进入战场时，使对手的主战者的生命值的最大值-2。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "989edeb1ce2ffcae47975a22410f07d96c8261e87d69f33a1abdcb998a3c7512",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "fanfare",
+            "super_evolve",
+            "intrinsic_keywords",
+            "emblem_source"
+          ],
+          "effect_kinds": [
+            "gain_emblem",
+            "repeat",
+            "add_card_to_deck",
+            "keyword:突进",
+            "change_leader_max_health"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_crest_entry_source_health_fourteenth_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10534120": {
@@ -46149,8 +46215,8 @@
       "cost": 4,
       "is_collectible": true,
       "card_set_id": 10008,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '谢幕曲', '倒数', '将.*加入手牌', '纹章']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['fanfare', 'last_words', 'intrinsic_keywords', 'emblem_source'], Ops: ['buff_unit', 'evolve_unit', 'gain_emblem', 'keyword:守护', 'add_card']",
       "hit_keywords": [
         "入场曲",
         "谢幕曲",
@@ -46171,32 +46237,55 @@
         "【纹章_0】【<color=Keyword>吟唱</color>_2】\n【<color=Keyword>谢幕曲</color>】将1张『<color=Keyword>反照的赤红·德莱克&亚瑞札特</color>』加入手牌，使其费用变为2。"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【<color=Keyword>入场曲</color>】本随从+X/+X。若X为2或以上，则本随从进化。X为本次对战中进入战场的自己的其他『<color=Keyword>反照的赤红·德莱克&亚瑞札特</color>』的张数。\n<hr>【<color=Keyword>守护</color>】\n【<color=Keyword>谢幕曲</color>】使自己获得『纹章：反照的赤红·德莱克&亚瑞札特』。\n【纹章_0】【<color=Keyword>吟唱</color>_2】\n【<color=Keyword>谢幕曲</color>】将1张『<color=Keyword>反照的赤红·德莱克&亚瑞札特</color>』加入手牌，使其费用变为2。",
+        "notes": "固有守护、同名历史入场次数（含已离场实例）、排除当前实例的X值、X阈值自动进化、谢幕曲纹章、倒计数2及满手牌溢出均有直接测试。",
+        "rule_version": 1,
+        "source_text_sha256": "99bb0d437e5d85d3af0501739cc48cf5d59ecfa0e12dec566013bbf6d019e271",
+        "test_evidence": [
+          "tests/test_real_crest_entry_source_health_fourteenth_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10844110:0",
             "source_text": "【<color=Keyword>入场曲</color>】本随从+X/+X。若X为2或以上，则本随从进化。X为本次对战中进入战场的自己的其他『<color=Keyword>反照的赤红·德莱克&亚瑞札特</color>』的张数。\n<hr>【<color=Keyword>守护</color>】\n【<color=Keyword>谢幕曲</color>】使自己获得『纹章：反照的赤红·德莱克&亚瑞札特』。",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           },
           {
             "clause_id": "10844110:1",
             "source_text": "【纹章_0】【<color=Keyword>吟唱</color>_2】\n【<color=Keyword>谢幕曲</color>】将1张『<color=Keyword>反照的赤红·德莱克&亚瑞札特</color>』加入手牌，使其费用变为2。",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "【<color=Keyword>入场曲</color>】本随从+X/+X。若X为2或以上，则本随从进化。X为本次对战中进入战场的自己的其他『<color=Keyword>反照的赤红·德莱克&亚瑞札特</color>』的张数。\n<hr>【<color=Keyword>守护</color>】\n【<color=Keyword>谢幕曲</color>】使自己获得『纹章：反照的赤红·德莱克&亚瑞札特』。\n【纹章_0】【<color=Keyword>吟唱</color>_2】\n【<color=Keyword>谢幕曲</color>】将1张『<color=Keyword>反照的赤红·德莱克&亚瑞札特</color>』加入手牌，使其费用变为2。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "99bb0d437e5d85d3af0501739cc48cf5d59ecfa0e12dec566013bbf6d019e271",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "fanfare",
+            "last_words",
+            "intrinsic_keywords",
+            "emblem_source"
+          ],
+          "effect_kinds": [
+            "buff_unit",
+            "evolve_unit",
+            "gain_emblem",
+            "keyword:守护",
+            "add_card"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_crest_entry_source_health_fourteenth_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10844120": {
@@ -47476,8 +47565,8 @@
       "cost": 7,
       "is_collectible": true,
       "card_set_id": 10008,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '进化时', '超进化', '回合结束', '召唤', '纹章']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['fanfare', 'super_evolve', 'emblem_source'], Ops: ['summon_from_deck', 'super_evolve_unit', 'gain_emblem', 'grant_attacks_per_turn']",
       "hit_keywords": [
         "入场曲",
         "进化时",
@@ -47497,32 +47586,53 @@
         "【纹章_0】自己的超进化后的随从攻击随从时，回合结束前，使其获得「1回合可以攻击2次」。"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【<color=Keyword>入场曲</color>】召唤随机1个自己的牌组中费用为2或以下的随从，使其超进化。\n<hr><sev>【<color=Keyword>超进化时</color>】使自己获得『纹章：飞跃的姐妹·贝尔迪俪亚&卡诗黛儿』。</sev>\n【纹章_0】自己的超进化后的随从攻击随从时，回合结束前，使其获得「1回合可以攻击2次」。",
+        "notes": "固定种子牌组随机召唤、费用与随从过滤、无候选/满场不消耗随机数、效果超进化不消耗点数、超进化纹章、攻击随从与主战者分流、回合末临时二次攻击均有直接测试。",
+        "rule_version": 1,
+        "source_text_sha256": "45d98b4b499088b3c1ae17d5ebb17e514dde1aa6469800b0cb2daca01d1ed6bc",
+        "test_evidence": [
+          "tests/test_real_crest_entry_source_health_fourteenth_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10864110:0",
             "source_text": "【<color=Keyword>入场曲</color>】召唤随机1个自己的牌组中费用为2或以下的随从，使其超进化。\n<hr><sev>【<color=Keyword>超进化时</color>】使自己获得『纹章：飞跃的姐妹·贝尔迪俪亚&卡诗黛儿』。</sev>",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           },
           {
             "clause_id": "10864110:1",
             "source_text": "【纹章_0】自己的超进化后的随从攻击随从时，回合结束前，使其获得「1回合可以攻击2次」。",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "【<color=Keyword>入场曲</color>】召唤随机1个自己的牌组中费用为2或以下的随从，使其超进化。\n<hr><sev>【<color=Keyword>超进化时</color>】使自己获得『纹章：飞跃的姐妹·贝尔迪俪亚&卡诗黛儿』。</sev>\n【纹章_0】自己的超进化后的随从攻击随从时，回合结束前，使其获得「1回合可以攻击2次」。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "45d98b4b499088b3c1ae17d5ebb17e514dde1aa6469800b0cb2daca01d1ed6bc",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "fanfare",
+            "super_evolve",
+            "emblem_source"
+          ],
+          "effect_kinds": [
+            "summon_from_deck",
+            "super_evolve_unit",
+            "gain_emblem",
+            "grant_attacks_per_turn"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_crest_entry_source_health_fourteenth_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10864120": {
@@ -51461,32 +51571,6 @@
       "suggested_rule_file": "batch_龙族.json"
     },
     {
-      "card_id": 10242210,
-      "name": "炎龙之剑",
-      "class_name": "龙族",
-      "card_type": "护符",
-      "cost": 1,
-      "ability_keywords": [
-        "策动",
-        "谢幕曲"
-      ],
-      "hit_keywords": [
-        "谢幕曲",
-        "策动",
-        "破坏",
-        "召唤"
-      ],
-      "confidence": "high",
-      "why_recommended": "Covered keywords: 谢幕曲, 策动, 破坏",
-      "required_primitives": [
-        "谢幕曲",
-        "策动",
-        "破坏",
-        "召唤"
-      ],
-      "suggested_rule_file": "batch_龙族.json"
-    },
-    {
       "card_id": 10503210,
       "name": "大游戏世界",
       "class_name": "中立",
@@ -51837,6 +51921,37 @@
         "倒数",
         "回复自己\\d+点能量点",
         "破坏"
+      ],
+      "suggested_rule_file": "batch_主教.json"
+    },
+    {
+      "card_id": 10664110,
+      "name": "崇高的憎恶·康蒂玛",
+      "class_name": "主教",
+      "card_type": "随从",
+      "cost": 4,
+      "ability_keywords": [
+        "入场曲",
+        "谢幕曲",
+        "超进化时"
+      ],
+      "hit_keywords": [
+        "入场曲",
+        "谢幕曲",
+        "进化时",
+        "超进化",
+        "造成.*伤害",
+        "破坏",
+        "召唤"
+      ],
+      "confidence": "high",
+      "why_recommended": "Covered keywords: 入场曲, 谢幕曲, 进化时",
+      "required_primitives": [
+        "入场曲",
+        "谢幕曲",
+        "进化时",
+        "超进化",
+        "造成.*伤害"
       ],
       "suggested_rule_file": "batch_主教.json"
     }

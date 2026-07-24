@@ -70,6 +70,9 @@ class ConditionType(str, Enum):
     CONTROLLER_ENTERED_FOLLOWER_DISTINCT_COUNT_AT_LEAST = (
         "controller_entered_follower_distinct_count_at_least"
     )
+    CONTROLLER_ENTERED_FOLLOWER_COUNT_AT_LEAST = (
+        "controller_entered_follower_count_at_least"
+    )
 
 
 class ExprType(str, Enum):
@@ -91,6 +94,7 @@ class ExprType(str, Enum):
     BOUND_TARGET_COUNT = "bound_target_count"
     SOURCE_ATTACK = "source_attack"
     SOURCE_HEALTH = "source_health"
+    SOURCE_MISSING_HEALTH = "source_missing_health"
     TARGET_ATTACK = "target_attack"
     TARGET_HEALTH = "target_health"
     CONTROLLER_SHADOWS = "controller_shadows"
@@ -112,6 +116,7 @@ class ExprType(str, Enum):
     CONTROLLER_ENTERED_FOLLOWER_DISTINCT_COUNT = (
         "controller_entered_follower_distinct_count"
     )
+    CONTROLLER_ENTERED_FOLLOWER_COUNT = "controller_entered_follower_count"
     DISTRIBUTED_VALUE = "distributed_value"
 
 
@@ -188,6 +193,7 @@ class EffectKind(str, Enum):
     REPLACE_DECK = "replace_deck"
     SET_EMPTY_DECK_OUTCOME = "set_empty_deck_outcome"
     SET_LEADER_MAX_HEALTH = "set_leader_max_health"
+    CHANGE_LEADER_MAX_HEALTH = "change_leader_max_health"
     TRANSFORM = "transform"
     GAIN_EMBLEM = "gain_emblem"
     ADD_EMBLEM = "add_emblem"

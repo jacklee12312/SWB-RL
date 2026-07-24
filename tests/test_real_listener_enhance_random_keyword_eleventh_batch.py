@@ -744,9 +744,9 @@ class ListenerEnhanceRandomKeywordEleventhAuditTests(unittest.TestCase):
         self.assertEqual(
             report["summary"]["coverage_counts"],
             {
-                "covered_exact": 683,
+                "covered_exact": 688,
                 "text_unclear": 16,
-                "supported_missing_rule": 36,
+                "supported_missing_rule": 31,
                 "token_or_non_collectible": 91,
             },
         )
