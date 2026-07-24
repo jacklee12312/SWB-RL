@@ -1,0 +1,158 @@
+{
+  "intrinsic_keywords": [
+    {"card_id": 10263110, "keywords": ["疾驰"]}
+  ],
+  "rules": [
+    {
+      "card_id": 10173130,
+      "trigger": "fanfare",
+      "coverage": "exact",
+      "implemented_text": "【<color=Keyword>入场曲</color>】召唤3个『<color=Keyword>改良型·悬丝傀儡</color>』。\n<hr><ev>【<color=Keyword>进化时</color>】使自己的战场上的所有人偶·随从获得【<color=Keyword>守护</color>】和「【<color=Keyword>谢幕曲</color>】对对手的主战者造成2点伤害」。</ev>",
+      "operations": [
+        {"kind": "summon", "target": "own_leader", "card_id": 90071120},
+        {"kind": "summon", "target": "own_leader", "card_id": 90071120},
+        {"kind": "summon", "target": "own_leader", "card_id": 90071120}
+      ]
+    },
+    {
+      "card_id": 10173130,
+      "trigger": "evolve",
+      "operations": [
+        {
+          "kind": "add_keyword",
+          "target": "all_own_units",
+          "target_tribe_name_filter": "人偶",
+          "keyword": "守护"
+        },
+        {
+          "kind": "grant_last_words",
+          "target": "all_own_units",
+          "target_tribe_name_filter": "人偶",
+          "operations": [
+            {"kind": "damage_leader", "target": "enemy_leader", "amount": 2}
+          ]
+        }
+      ]
+    },
+    {
+      "card_id": 10244120,
+      "trigger": "fanfare",
+      "coverage": "exact",
+      "implemented_text": "【<color=Keyword>入场曲</color>】使自己的牌组中的所有卡牌的费用变为一半。",
+      "rule_version": 1,
+      "errata": [
+        "官方卡牌页 FAQ（2026-07-24 查阅，https://shadowverse-wb.com/ko/deck/cardslist/card/?card_id=10244120）明确：奇数费用减半时向上取整（9→5），再次发动时基于当前费用继续减半。"
+      ],
+      "operations": [
+        {
+          "kind": "change_deck_cost",
+          "target": "own_leader",
+          "mode": "halve_round_up"
+        }
+      ]
+    },
+    {
+      "card_id": 10263110,
+      "trigger": "attack",
+      "coverage": "exact",
+      "implemented_text": "【<color=Keyword>疾驰</color>】\n【<color=Keyword>攻击时</color>】若自己的战场上的护符的张数为2张或以上，则破坏对手的战场上的随机1个非交战对手的随从。",
+      "operations": [
+        {
+          "kind": "destroy",
+          "target": "random_enemy_unit",
+          "exclude_attack_target": true,
+          "conditions": [
+            {
+              "type": "controller_board_has",
+              "value": 2,
+              "card_type_filter": "护符"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "card_id": 10334110,
+      "trigger": "fanfare",
+      "coverage": "exact",
+      "implemented_text": "【<color=Keyword>入场曲</color>】抽取1张卡牌。\n<hr><ev>【<color=Keyword>进化时</color>】选择对手的战场上的1个随从，使其消失。</ev>\n<sev>【<color=Keyword>超进化时</color>】使对手的战场上的所有与其同名的随从消失。</sev>",
+      "operations": [
+        {"kind": "draw", "target": "own_leader", "amount": 1}
+      ]
+    },
+    {
+      "card_id": 10334110,
+      "trigger": "evolve",
+      "operations": [
+        {
+          "kind": "select_targets",
+          "target": "enemy_unit",
+          "target_key": "velharia_target"
+        },
+        {
+          "kind": "banish",
+          "target": "previous_target",
+          "target_key": "velharia_target"
+        },
+        {
+          "kind": "banish_same_name",
+          "target": "previous_target",
+          "target_key": "velharia_target",
+          "conditions": [{"type": "source_super_evolved"}]
+        }
+      ]
+    },
+    {
+      "card_id": 10532310,
+      "trigger": "play",
+      "coverage": "exact",
+      "implemented_text": "【<color=Keyword>土之秘术</color>_2】从以下能力中随机发动2个能力。\n<ridx=0>（1）召唤1个『<color=Keyword>泥尘巨像</color>』。</ridx>\n<ridx=1>（2）回复自己的主战者2点生命值。</ridx>\n<ridx=2>（3）使自己的战场上的土之印+3。</ridx>",
+      "operations": [
+        {
+          "kind": "earth_rite",
+          "target": "own_leader",
+          "amount": 2,
+          "operations": [
+            {
+              "kind": "random_choice",
+              "target": "own_leader",
+              "amount": 2,
+              "options": [
+                {
+                  "id": "summon_clay_golem",
+                  "operations": [
+                    {
+                      "kind": "summon",
+                      "target": "own_leader",
+                      "card_id": 90031110
+                    }
+                  ]
+                },
+                {
+                  "id": "heal_leader",
+                  "operations": [
+                    {
+                      "kind": "heal_leader",
+                      "target": "own_leader",
+                      "amount": 2
+                    }
+                  ]
+                },
+                {
+                  "id": "gain_earth_sigils",
+                  "operations": [
+                    {
+                      "kind": "add_earth_sigils",
+                      "target": "own_leader",
+                      "amount": 3
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

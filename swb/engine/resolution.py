@@ -561,6 +561,11 @@ class GameEngine:
                         + operation.repeat_operations
                         + tuple(
                             child
+                            for option in operation.random_choice_options
+                            for child in option.operations
+                        )
+                        + tuple(
+                            child
                             for bucket in operation.random_distribution_operations
                             for child in bucket
                         )
@@ -601,6 +606,11 @@ class GameEngine:
                     + operation.else_operations
                     + operation.optional_operations
                     + operation.repeat_operations
+                    + tuple(
+                        child
+                        for option in operation.random_choice_options
+                        for child in option.operations
+                    )
                     + tuple(
                         child
                         for bucket in operation.random_distribution_operations
@@ -2613,6 +2623,7 @@ class GameEngine:
             "target_count": operation.target_count,
             "allow_duplicate_targets": operation.allow_duplicate_targets,
             "exclude_source": operation.exclude_source,
+            "exclude_attack_target": operation.exclude_attack_target,
             "include_leader": operation.include_leader,
         }
         if operation.card_id is not None:
@@ -2654,6 +2665,10 @@ class GameEngine:
             "choose_one": len(operation.choose_one_options),
             "optional": len(operation.optional_operations),
             "repeat": len(operation.repeat_operations),
+            "random_choice": sum(
+                len(option.operations)
+                for option in operation.random_choice_options
+            ),
             "random_distribution": sum(
                 len(bucket)
                 for bucket in operation.random_distribution_operations
@@ -3569,6 +3584,17 @@ class GameEngine:
                 for nested in operation.granted_operations
             ),
             tuple(
+                (
+                    option.option_id,
+                    option.label,
+                    tuple(
+                        self._operation_fingerprint(nested)
+                        for nested in option.operations
+                    ),
+                )
+                for option in operation.random_choice_options
+            ),
+            tuple(
                 tuple(
                     self._operation_fingerprint(nested)
                     for nested in bucket
@@ -3582,6 +3608,7 @@ class GameEngine:
             self._expression_fingerprint(operation.target_count_expr),
             operation.allow_duplicate_targets,
             operation.exclude_source,
+            operation.exclude_attack_target,
             self._hand_filter_fingerprint(operation.hand_filter),
             self._hand_filter_fingerprint(operation.history_filter),
             operation.distinct_card_names,
@@ -4585,6 +4612,7 @@ class GameEngine:
 
             if operation.kind in {
                 EffectKind.DISTRIBUTE_DAMAGE,
+                EffectKind.RANDOM_CHOICE,
                 EffectKind.RANDOM_DISTRIBUTE,
             }:
                 self._checked_execute(operation, frame, None)
@@ -4903,6 +4931,15 @@ class GameEngine:
                             source_entity_id=frame.source_entity_id,
                             source_fusion_count=len(frame.fusion_materials),
                         )
+                    ]
+                if (
+                    operation.exclude_attack_target
+                    and frame.attack_target_entity_id is not None
+                ):
+                    candidates = [
+                        entity
+                        for entity in candidates
+                        if entity.entity_id != frame.attack_target_entity_id
                     ]
                 if operation.target is TargetKind.RANDOM_ENEMY_UNIT_OR_LEADER:
                     target_ids = [entity.entity_id for entity in candidates]
@@ -5639,6 +5676,7 @@ class GameEngine:
                 for card in self._hand_cards(snapshot.controller)
             )
         if consuming_operation.kind in {
+            EffectKind.BANISH_SAME_NAME,
             EffectKind.COPY_TO_HAND,
             EffectKind.SUMMON_COPY,
         }:
@@ -7733,6 +7771,8 @@ class GameEngine:
             self._execute_summon_from_deck(effect, frame)
         elif effect.kind is EffectKind.BANISH:
             self._execute_banish(target_id, frame)
+        elif effect.kind is EffectKind.BANISH_SAME_NAME:
+            self._execute_banish_same_name(effect, frame, target_id)
         elif effect.kind is EffectKind.ADD_CARD:
             self._execute_add_card(effect, frame)
         elif effect.kind is EffectKind.ADD_CARD_TO_DECK:
@@ -7809,6 +7849,8 @@ class GameEngine:
             self._execute_consume_faith(effect, frame)
         elif effect.kind is EffectKind.GRANT_FAITH_ABILITY:
             self._execute_grant_faith_ability(effect, frame)
+        elif effect.kind is EffectKind.RANDOM_CHOICE:
+            self._execute_random_choice(effect, frame)
         elif effect.kind is EffectKind.RANDOM_DISTRIBUTE:
             self._execute_random_distribute(effect, frame)
         elif effect.kind is EffectKind.NECROMANCY:
@@ -8116,7 +8158,10 @@ class GameEngine:
                 },
             )
         )
-        self._log(frame.controller, f"{target.name} 获得谢幕曲")
+        self._log(
+            frame.controller,
+            f"{target.definition.name} 获得谢幕曲",
+        )
 
     def _execute_grant_effect_destroy_immunity(
         self,
@@ -11493,6 +11538,54 @@ class GameEngine:
                 distributed_value=distributed_value,
             )
 
+    def _execute_random_choice(
+        self,
+        effect: EffectOperation,
+        frame: EffectFrame,
+    ) -> None:
+        options = effect.random_choice_options
+        choice_count = effect.amount
+        if (
+            len(options) < 2
+            or choice_count < 1
+            or choice_count > len(options)
+            or any(not option.operations for option in options)
+        ):
+            raise IllegalCommand("random_choice payload is invalid")
+        chosen_indices = tuple(
+            self.random.sample(range(len(options)), choice_count)
+        )
+        chosen = tuple(options[index] for index in chosen_indices)
+        self._emit(GameEvent(
+            EventType.RANDOM_CHOICES_SELECTED,
+            frame.controller,
+            source_id=frame.source_entity_id,
+            amount=choice_count,
+            metadata={
+                "source_card_id": frame.source_card_id,
+                "option_ids": tuple(option.option_id for option in chosen),
+                "option_indices": chosen_indices,
+                "option_count": len(options),
+            },
+        ))
+        self._log(
+            frame.controller,
+            f"{frame.source_name} 随机发动："
+            + "、".join(option.label for option in chosen),
+        )
+        self._queue_effects_from_frame(
+            frame,
+            tuple(
+                operation
+                for option in chosen
+                for operation in option.operations
+            ),
+            label=(
+                f"{frame.label}/random/"
+                + "+".join(option.option_id for option in chosen)
+            ),
+        )
+
     def _execute_grant_faith_ability(
         self,
         effect: EffectOperation,
@@ -11551,6 +11644,28 @@ class GameEngine:
         entity = self._find_board_entity(target_id)
         owner = self._entity_owner(entity.entity_id)
         self._banish_board_entity(entity, owner)
+
+    def _execute_banish_same_name(
+        self,
+        effect: EffectOperation,
+        frame: EffectFrame,
+        target_id: int | None,
+    ) -> None:
+        snapshot = self._bound_snapshot_for_effect(effect, frame, target_id)
+        if snapshot is None:
+            return
+        opponent = 1 - frame.controller
+        matching_ids = tuple(
+            entity.entity_id
+            for entity in self.players[opponent].board
+            if isinstance(entity, Unit)
+            and entity.definition.name == snapshot.card_name
+        )
+        for entity_id in matching_ids:
+            try:
+                self._execute_banish(entity_id, frame)
+            except IllegalCommand:
+                continue
 
     def _banishes_on_leave(self, entity: BoardCard) -> bool:
         return (
@@ -13982,6 +14097,10 @@ class GameEngine:
                     raise IllegalCommand(
                         f"Invariant failed: {operation_zone} source-exclusion policy is invalid"
                     )
+                if not isinstance(operation.exclude_attack_target, bool):
+                    raise IllegalCommand(
+                        f"Invariant failed: {operation_zone} attack-target exclusion policy is invalid"
+                    )
                 if not isinstance(operation.distinct_card_names, bool):
                     raise IllegalCommand(
                         f"Invariant failed: {operation_zone} distinct-name policy is invalid"
@@ -14054,6 +14173,20 @@ class GameEngine:
                     ):
                         raise IllegalCommand(
                             f"Invariant failed: {operation_zone} random_distribute payload is invalid"
+                        )
+                if operation.kind is EffectKind.RANDOM_CHOICE:
+                    if (
+                        len(operation.random_choice_options) < 2
+                        or operation.amount < 1
+                        or operation.amount
+                        > len(operation.random_choice_options)
+                        or any(
+                            not option.operations
+                            for option in operation.random_choice_options
+                        )
+                    ):
+                        raise IllegalCommand(
+                            f"Invariant failed: {operation_zone} random_choice payload is invalid"
                         )
 
             def check_positive_int(value: int | None, field: str) -> None:

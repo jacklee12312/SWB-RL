@@ -1669,6 +1669,8 @@ def _iter_nested_operations(
             yield from _iter_nested_operations(operation.optional_operations)
         if operation.repeat_operations:
             yield from _iter_nested_operations(operation.repeat_operations)
+        for option in operation.random_choice_options:
+            yield from _iter_nested_operations(option.operations)
         for bucket in operation.random_distribution_operations:
             yield from _iter_nested_operations(bucket)
         for option in operation.choose_one_options:
@@ -2680,6 +2682,11 @@ def _operations_use_target(
             + operation.repeat_operations
             + tuple(
                 child
+                for option in operation.random_choice_options
+                for child in option.operations
+            )
+            + tuple(
+                child
                 for bucket in operation.random_distribution_operations
                 for child in bucket
             )
@@ -2892,6 +2899,12 @@ def _validate_target_keys(
                 op.repeat_operations,
                 f"{source}/operations[{i}]/repeat",
             )
+        for option_index, option in enumerate(op.random_choice_options):
+            _validate_target_keys(
+                option.operations,
+                f"{source}/operations[{i}]/random_options[{option_index}]",
+                initial_bindings=binding_operations,
+            )
         for bucket_index, bucket in enumerate(
             op.random_distribution_operations
         ):
@@ -2939,6 +2952,7 @@ def _parse_operation(
             EffectKind.CHOOSE_ONE,
             EffectKind.OPTIONAL,
             EffectKind.REPEAT,
+            EffectKind.RANDOM_CHOICE,
             EffectKind.RANDOM_DISTRIBUTE,
         ) else None)
         if raw_target is None:
@@ -3188,6 +3202,19 @@ def _parse_operation(
         raise ValueError(
             f"{source_file}/exclude_source card {card_id}: requires a "
             "selected, random, or all board-entity target"
+        )
+    exclude_attack_target = raw.get("exclude_attack_target", False)
+    if not isinstance(exclude_attack_target, bool):
+        raise ValueError(
+            f"{source_file}/exclude_attack_target card {card_id}: must be boolean"
+        )
+    if (
+        exclude_attack_target
+        and target is not TargetKind.RANDOM_ENEMY_UNIT
+    ):
+        raise ValueError(
+            f"{source_file}/exclude_attack_target card {card_id}: requires "
+            "target 'random_enemy_unit'"
         )
     has_multi_target_fields = (
         raw_target_count is not None
@@ -3504,7 +3531,13 @@ def _parse_operation(
                 f"{source_file}/target card {card_id}: change_deck_cost "
                 "requires target 'own_leader'"
             )
-        if (
+        if mode is CostChangeMode.HALVE_ROUND_UP:
+            if "amount" in raw:
+                raise ValueError(
+                    f"{source_file}/amount card {card_id}: halve_round_up "
+                    "derives its value from each card's current cost"
+                )
+        elif (
             raw_amount is None
             or isinstance(raw_amount, bool)
             or not isinstance(raw_amount, int)
@@ -3513,6 +3546,21 @@ def _parse_operation(
             raise ValueError(
                 f"{source_file}/amount card {card_id}: change_deck_cost "
                 "requires a non-negative integer amount"
+            )
+    if (
+        kind is EffectKind.CHANGE_COST
+        and mode is CostChangeMode.HALVE_ROUND_UP
+        and "amount" in raw
+    ):
+        raise ValueError(
+            f"{source_file}/amount card {card_id}: halve_round_up derives "
+            "its value from the card's current cost"
+        )
+    if kind is EffectKind.BANISH_SAME_NAME:
+        if target is not TargetKind.PREVIOUS_TARGET:
+            raise ValueError(
+                f"{source_file}/target card {card_id}: banish_same_name "
+                "requires target 'previous_target'"
             )
     if kind is EffectKind.ADD_CARD:
         if "amount" in raw and "mode" not in raw:
@@ -4642,9 +4690,93 @@ def _parse_operation(
     optional_prompt: str | None = None
     optional_ops: tuple = ()
     repeat_ops: tuple = ()
+    random_choice_options: tuple[ChooseOneOption, ...] = ()
     random_distribution_ops: tuple[tuple[EffectOperation, ...], ...] = ()
 
-    if kind is EffectKind.RANDOM_DISTRIBUTE:
+    if kind is EffectKind.RANDOM_CHOICE:
+        unknown_random_choice_keys = set(raw) - {
+            "kind",
+            "target",
+            "amount",
+            "options",
+        }
+        if unknown_random_choice_keys:
+            raise ValueError(
+                f"{error_prefix}: unknown fields "
+                f"{sorted(unknown_random_choice_keys)}"
+            )
+        if target is not TargetKind.OWN_LEADER:
+            raise ValueError(
+                f"{source_file}/target card {card_id}: random_choice "
+                "requires target 'own_leader'"
+            )
+        raw_options = raw.get("options")
+        if not isinstance(raw_options, list) or len(raw_options) < 2:
+            raise ValueError(
+                f"{error_prefix}: random_choice requires at least two options"
+            )
+        parsed_options: list[ChooseOneOption] = []
+        seen_option_ids: set[str] = set()
+        for option_index, raw_option in enumerate(raw_options):
+            option_source = f"{source_file}/options[{option_index}]"
+            if not isinstance(raw_option, dict):
+                raise ValueError(f"{option_source}: option must be an object")
+            unknown_option_keys = set(raw_option) - {"id", "operations"}
+            if unknown_option_keys:
+                raise ValueError(
+                    f"{option_source}: unknown fields "
+                    f"{sorted(unknown_option_keys)}"
+                )
+            option_id = raw_option.get("id")
+            if not isinstance(option_id, str) or not option_id:
+                raise ValueError(
+                    f"{option_source}/id: must be a non-empty string"
+                )
+            if option_id in seen_option_ids:
+                raise ValueError(
+                    f"{option_source}/id: duplicate option id {option_id!r}"
+                )
+            seen_option_ids.add(option_id)
+            raw_option_operations = raw_option.get("operations")
+            if (
+                not isinstance(raw_option_operations, list)
+                or not raw_option_operations
+            ):
+                raise ValueError(
+                    f"{option_source}/operations: must be a non-empty list"
+                )
+            option_operations = tuple(
+                _parse_operation(
+                    child,
+                    f"{option_source}/operations[{child_index}]",
+                    card_id,
+                    _depth + 1,
+                    _allow_event_source=_allow_event_source,
+                    _allow_hand_self=_allow_hand_self,
+                )
+                for child_index, child in enumerate(raw_option_operations)
+            )
+            _validate_target_keys(option_operations, option_source)
+            parsed_options.append(
+                ChooseOneOption(
+                    option_id=option_id,
+                    label=option_id,
+                    operations=option_operations,
+                )
+            )
+        if (
+            not isinstance(raw_amount, int)
+            or isinstance(raw_amount, bool)
+            or raw_amount < 1
+            or raw_amount > len(parsed_options)
+        ):
+            raise ValueError(
+                f"{source_file}/amount card {card_id}: random_choice requires "
+                "a positive integer no greater than the option count"
+            )
+        random_choice_options = tuple(parsed_options)
+
+    elif kind is EffectKind.RANDOM_DISTRIBUTE:
         unknown_distribution_keys = set(raw) - {
             "kind",
             "target",
@@ -5085,6 +5217,7 @@ def _parse_operation(
         optional_operations=optional_ops,
         repeat_operations=repeat_ops,
         granted_operations=granted_ops,
+        random_choice_options=random_choice_options,
         random_distribution_operations=random_distribution_ops,
         requires_target=requires_target,
         requires_full_target_count=requires_full_target_count,
@@ -5092,6 +5225,7 @@ def _parse_operation(
         target_count_expr=target_count_expr,
         allow_duplicate_targets=allow_duplicate_targets,
         exclude_source=exclude_source,
+        exclude_attack_target=exclude_attack_target,
         include_leader=include_leader,
         turn_end_destroy_timing=turn_end_destroy_timing,
     )

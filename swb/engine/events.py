@@ -74,6 +74,7 @@ class EventType(str, Enum):
     FAITH_ABILITY_GRANTED = "faith_ability_granted"
     FAITH_ABILITY_TRIGGERED = "faith_ability_triggered"
     RANDOM_DISTRIBUTION_RESOLVED = "random_distribution_resolved"
+    RANDOM_CHOICES_SELECTED = "random_choices_selected"
     MAX_MANA_CHANGED = "max_mana_changed"
     EVOLUTION_POINTS_RESTORED = "evolution_points_restored"
     SUPER_EVOLUTION_POINTS_RESTORED = "super_evolution_points_restored"

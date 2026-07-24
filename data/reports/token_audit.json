@@ -1702,6 +1702,12 @@
           "entry_kind": "summon",
           "rule_file": "real_spell_modes_and_earth_listener_batch.json",
           "rule_group": "rules"
+        },
+        {
+          "source_card_id": 10532310,
+          "entry_kind": "summon",
+          "rule_file": "real_random_same_name_cost_thirteenth_batch.json",
+          "rule_group": "rules"
         }
       ],
       "has_authored_behavior": false,
@@ -4093,6 +4099,12 @@
           "source_card_id": 10171310,
           "entry_kind": "summon",
           "rule_file": "batch_basic_real_cards.json",
+          "rule_group": "rules"
+        },
+        {
+          "source_card_id": 10173130,
+          "entry_kind": "summon",
+          "rule_file": "real_random_same_name_cost_thirteenth_batch.json",
           "rule_group": "rules"
         },
         {

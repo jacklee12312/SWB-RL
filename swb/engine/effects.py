@@ -168,6 +168,7 @@ class EffectKind(str, Enum):
     SUMMON_FROM_DECK = "summon_from_deck"
     DESTROY = "destroy"
     BANISH = "banish"
+    BANISH_SAME_NAME = "banish_same_name"
     ADD_CARD = "add_card"
     ADD_CARD_TO_DECK = "add_card_to_deck"
     COPY_TO_HAND = "copy_to_hand"
@@ -221,6 +222,7 @@ class EffectKind(str, Enum):
     OPTIONAL = "optional"
     TARGET_EXISTS = "target_exists"
     REPEAT = "repeat"
+    RANDOM_CHOICE = "random_choice"
     RANDOM_DISTRIBUTE = "random_distribute"
 
 
@@ -303,6 +305,7 @@ class CostChangeMode(str, Enum):
     SET = "set"
     ADD = "add"
     SUBTRACT = "subtract"
+    HALVE_ROUND_UP = "halve_round_up"
 
 
 @dataclass(frozen=True)
@@ -514,6 +517,7 @@ class EffectOperation:
     optional_operations: tuple["EffectOperation", ...] = ()
     repeat_operations: tuple["EffectOperation", ...] = ()
     granted_operations: tuple["EffectOperation", ...] = ()
+    random_choice_options: tuple["ChooseOneOption", ...] = ()
     random_distribution_operations: tuple[
         tuple["EffectOperation", ...], ...
     ] = ()
@@ -524,6 +528,7 @@ class EffectOperation:
     target_count_expr: ValueExpression | None = None
     allow_duplicate_targets: bool = False
     exclude_source: bool = False
+    exclude_attack_target: bool = False
     hand_filter: HandFilter | None = None
     history_filter: HandFilter | None = None
     distinct_card_names: bool = False

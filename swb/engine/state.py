@@ -264,6 +264,8 @@ class DeckCard:
                 cost += modifier.amount
             elif modifier.mode == "subtract":
                 cost -= modifier.amount
+            elif modifier.mode == "halve_round_up":
+                cost = (cost + 1) // 2
         return max(0, cost)
 
     @property
@@ -314,6 +316,8 @@ class HandCard:
                 cost += modifier.amount
             elif modifier.mode == "subtract":
                 cost -= modifier.amount
+            elif modifier.mode == "halve_round_up":
+                cost = (cost + 1) // 2
         cost -= self.spellboost_count * self.spellboost_cost_reduction
         return max(0, cost)
 

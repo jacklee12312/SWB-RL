@@ -7102,6 +7102,48 @@
       "source_text_sha256": "64da489805e1e2d54d1cde067b0349b69beb9f92b100cfda8bead30077688503",
       "test_evidence": ["tests/test_real_selected_hand_grants_twelfth_batch.py"],
       "notes": "手牌创造物随从过滤、当前攻击力快照、敌方全体同时伤害与死亡、无目标和失效目标、关联城堡创造物谢幕曲、满手牌及固定种子均有直接测试。"
+    },
+    {
+      "card_id": 10173130,
+      "rule_version": 1,
+      "source_text_sha256": "ae1124c9ba504f5c528f7dfb31a0198c4e85259933775bf3df14c94e75486a55",
+      "test_evidence": ["tests/test_real_random_same_name_cost_thirteenth_batch.py"],
+      "notes": "三次关联改良型悬丝傀儡召唤、场面容量、仅人偶随从获得守护与动态谢幕曲、同时死亡顺序和来源离场均有直接测试。"
+    },
+    {
+      "card_id": 10244120,
+      "source_text_sha256": "1e70e77fffabbbbb906121bc5393c5d55576d8bc62f574ff78920758b1636087",
+      "test_evidence": ["tests/test_real_random_same_name_cost_thirteenth_batch.py"],
+      "notes": "官方卡牌页 FAQ（2026-07-24 查阅）确认奇数费用向上取整且重复发动基于当前费用；全牌组、抽牌继承、重复减半和事件审计均有直接测试。",
+      "authority_sources": [
+        {
+          "kind": "official_card_faq",
+          "url": "https://shadowverse-wb.com/ko/deck/cardslist/card/?card_id=10244120",
+          "retrieved": "2026-07-24",
+          "ruling": "Odd costs round up when halved (9 becomes 5); a later Fennie halves the already modified current cost."
+        }
+      ]
+    },
+    {
+      "card_id": 10263110,
+      "rule_version": 1,
+      "source_text_sha256": "846f38b2983bff1a73b7601b457cb5cc928f7dfb4ae0ab87d590db0609152937",
+      "test_evidence": ["tests/test_real_random_same_name_cost_thirteenth_batch.py"],
+      "notes": "固有疾驰、护符阈值、攻击随从与主战者、排除交战对象、无其他候选不消耗随机数及固定种子均有直接测试。"
+    },
+    {
+      "card_id": 10334110,
+      "rule_version": 1,
+      "source_text_sha256": "2bc120eb5b4af565f0618832249f9f9b1e24999c3ab90cba60cfc30482ad8778",
+      "test_evidence": ["tests/test_real_random_same_name_cost_thirteenth_batch.py"],
+      "notes": "入场抽牌、进化选择放逐、超进化同名快照批量放逐、不同名保留、无目标、失效目标、非法选择原子性及action mask均有直接测试。"
+    },
+    {
+      "card_id": 10532310,
+      "rule_version": 1,
+      "source_text_sha256": "753fb81e0282fb936e42e0cd5c8792a346085741e0842025ef35a257664baff6",
+      "test_evidence": ["tests/test_real_random_same_name_cost_thirteenth_batch.py"],
+      "notes": "土之秘术2、三项中固定种子随机选择两个不同分支、关联泥尘巨像、回复、土之印、资源不足、场面容量、事件审计及复现性均有直接测试。"
     }
   ]
 }

@@ -47,7 +47,7 @@ Total audited cards: **91**
 | 90024310 空绝的残光 | 皇家护卫 / 法术 | entry_behavior_complete | 1 | 1 | exact |
 | 90024320 天剑深渊 | 皇家护卫 / 法术 | entry_behavior_complete | 1 | 1 | exact |
 | 90024330 亡命者的枪击 | 皇家护卫 / 法术 | entry_behavior_complete | 1 | 1 | exact |
-| 90031110 泥尘巨像 | 巫师 / 随从 | entry_behavior_complete | 4 | 3 | basic |
+| 90031110 泥尘巨像 | 巫师 / 随从 | entry_behavior_complete | 4 | 4 | basic |
 | 90031120 守护者巨像 | 巫师 / 随从 | entry_behavior_complete | 7 | 7 | exact |
 | 90031130 式神·小纸人 | 巫师 / 随从 | entry_behavior_complete | 2 | 2 | exact |
 | 90031140 式神·暴鬼 | 巫师 / 随从 | entry_behavior_complete | 2 | 2 | exact |
@@ -90,7 +90,7 @@ Total audited cards: **91**
 | 90064310 绝望的奔流 | 主教 / 法术 | entry_behavior_complete | 1 | 1 | exact |
 | 90064320 天书深渊 | 主教 / 法术 | entry_behavior_complete | 2 | 2 | exact |
 | 90071110 悬丝傀儡 | 超越者 / 随从 | entry_behavior_complete | 6 | 6 | exact |
-| 90071120 改良型·悬丝傀儡 | 超越者 / 随从 | entry_behavior_complete | 7 | 6 | exact |
+| 90071120 改良型·悬丝傀儡 | 超越者 / 随从 | entry_behavior_complete | 7 | 7 | exact |
 | 90071130 解析的创造物 | 超越者 / 随从 | entry_behavior_complete | 3 | 3 | exact |
 | 90071140 古老的创造物 | 超越者 / 随从 | entry_behavior_complete | 5 | 5 | exact |
 | 90071150 神秘的创造物 | 超越者 / 随从 | entry_behavior_complete | 3 | 3 | keyword |

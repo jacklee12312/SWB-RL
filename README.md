@@ -38,14 +38,14 @@ covered generic boundary, but that never upgrades a partial or placeholder
 keyword whose full tagged-card semantics still require structured rules.
 
 The [rule coverage report](data/reports/rule_coverage.md) now includes a
-clause-audit layer without changing its legacy coverage categories. Of 678
-exact collectible cards (92.24% of 735), all 678 have explicit implemented text and named direct
+clause-audit layer without changing its legacy coverage categories. Of 683
+exact collectible cards (92.93% of 735), all 683 have explicit implemented text and named direct
 test evidence. The sibling `data/audits/rule_clauses.json` registry hashes every
 imported skill and alternate-mode clause, so a database text change or stale
 test reference invalidates the audit instead of silently retaining exact
 status. The current report has no unverified exact entry or missing generic
 schema, primitive, targeting, or timing blocker. Its remaining collectible gaps
-are 41 missing per-card structured rules plus 16 explicitly unclear texts.
+are 36 missing per-card structured rules plus 16 explicitly unclear texts.
 Rule metadata also supports version and errata fields, and the report
 records the complete imported source snapshot hash.
 
@@ -487,6 +487,17 @@ The deterministic rules core supports:
   structured v2/v3 hand and board runtime vectors now expose granted Last
   Words and effect-destroy immunity, with the formal schema version advanced
   to `observation-v3.2`;
+- generic `halve_round_up` deck-cost modifiers, seeded distinct
+  `random_choice` branches, attack-target exclusion for random follower
+  effects, and bound-snapshot `banish_same_name` resolution close exact
+  `10173130`, `10244120`, `10263110`, `10334110`, and `10532310`.
+  Fennie's odd-cost rounding and repeated-current-cost behavior are grounded
+  in its official card-page FAQ. Direct tests cover linked Puppetry and Clay
+  Golem Tokens, simultaneous granted Last Words, board capacity, amulet
+  thresholds, attack-target exclusion, evolve/Super-Evolve pending choices,
+  stale and illegal targets, seeded branch uniqueness, Earth Rite shortage,
+  multilingual hashes, Clause/Token consistency, and command/action-mask
+  parity without changing observation or action schemas;
 - filtered hand-count conditions reuse the same type/class/identity/trait
   definition filters as hand targeting. Exact `10521120` counts only spells
   before conditionally gaining +1/+1 and Ward, while exact `10741120` and
