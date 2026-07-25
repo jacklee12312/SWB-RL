@@ -1,0 +1,211 @@
+{
+  "intrinsic_keywords": [
+    {"card_id": 10342110, "keywords": ["突进", "守护"]}
+  ],
+  "fusions": [
+    {
+      "card_id": 10324110,
+      "material_filter": {"tribe_id": 18}
+    }
+  ],
+  "activations": [
+    {"card_id": 10332210, "cost": 0}
+  ],
+  "listeners": [
+    {
+      "card_id": 10332210,
+      "zone": "board",
+      "event": "card_played",
+      "event_scope": "owner_event",
+      "source_relation": "any",
+      "event_filter": {
+        "card_type": "随从",
+        "cost_changed": true
+      },
+      "operations": [
+        {"kind": "draw", "target": "own_leader", "amount": 1},
+        {"kind": "reduce_countdown", "target": "self", "amount": 1}
+      ]
+    }
+  ],
+  "emblems": [
+    {
+      "id": "himeka_heir_to_repose",
+      "source_card_id": 10364110,
+      "stacking": "allow",
+      "countdown": 4,
+      "triggers": [
+        {
+          "trigger": "turn_end",
+          "turn_scope": "owner_turn",
+          "conditions": [
+            {
+              "type": "controller_board_has",
+              "card_id_filter": 10364110
+            }
+          ],
+          "operations": [
+            {
+              "kind": "select_targets",
+              "target": "random_enemy_unit",
+              "target_key": "himeka_repose_targets",
+              "target_count_expr": {
+                "type": "controller_emblem_count"
+              },
+              "conditions": [
+                {"type": "target_attack_at_most", "value": 4}
+              ]
+            },
+            {
+              "kind": "add_attack_restriction",
+              "target": "previous_target",
+              "target_key": "himeka_repose_targets",
+              "restriction": "cannot_attack",
+              "duration": "permanent"
+            },
+            {
+              "kind": "grant_turn_end_banish",
+              "target": "previous_target",
+              "target_key": "himeka_repose_targets",
+              "turn_end_banish_timing": "owner_turn"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "rules": [
+    {
+      "card_id": 10324110,
+      "trigger": "fanfare",
+      "coverage": "exact",
+      "implemented_text": "【<color=Keyword>融合</color>】财宝·卡牌\n<hr>【<color=Keyword>入场曲</color>】对对手的战场上的所有随从和对手的主战者造成X点伤害。X为与本卡牌【<color=Keyword>融合</color>】的种类。\n<hr><sev>【<color=Keyword>超进化时</color>】发动与【<color=Keyword>入场曲</color>】相同的能力。</sev>",
+      "operations": [
+        {
+          "kind": "damage_unit",
+          "target": "all_enemy_units",
+          "amount": {"type": "source_fusion_distinct_name_count"}
+        },
+        {
+          "kind": "damage_leader",
+          "target": "enemy_leader",
+          "amount": {"type": "source_fusion_distinct_name_count"}
+        }
+      ]
+    },
+    {
+      "card_id": 10324110,
+      "trigger": "super_evolve",
+      "operations": [
+        {
+          "kind": "damage_unit",
+          "target": "all_enemy_units",
+          "amount": {"type": "source_fusion_distinct_name_count"}
+        },
+        {
+          "kind": "damage_leader",
+          "target": "enemy_leader",
+          "amount": {"type": "source_fusion_distinct_name_count"}
+        }
+      ]
+    },
+    {
+      "card_id": 10514110,
+      "trigger": "fanfare",
+      "coverage": "exact",
+      "implemented_text": "【<color=Keyword>入场曲</color>】本随从+X/+X。X为自己的【<color=Keyword>连击</color>】。\n<hr><ev>【<color=Keyword>进化时</color>】舍弃自己的所有手牌。将对手的牌组中的随机5张卡牌的复制卡牌各1张以非公开形式加入自己的手牌。</ev>",
+      "operations": [
+        {
+          "kind": "buff_unit",
+          "target": "self",
+          "amount": {"type": "controller_combo"},
+          "secondary_amount": {"type": "controller_combo"}
+        }
+      ]
+    },
+    {
+      "card_id": 10514110,
+      "trigger": "evolve",
+      "operations": [
+        {"kind": "discard", "target": "all_own_hand"},
+        {
+          "kind": "copy_random_enemy_deck_to_hand",
+          "target": "own_leader",
+          "amount": 5
+        }
+      ]
+    },
+    {
+      "card_id": 10332210,
+      "trigger": "play",
+      "countdown": 5,
+      "coverage": "exact",
+      "implemented_text": "【<color=Keyword>吟唱</color>_5】\n自己使用费用发生变化的随从时，抽取1张卡牌。本护符的倒计数-1。\n<hr>【<color=Keyword>启动</color>】选择自己的手牌中的1张随从，使其费用+1，使其+1/+1。",
+      "operations": []
+    },
+    {
+      "card_id": 10332210,
+      "trigger": "activate",
+      "operations": [
+        {
+          "kind": "select_targets",
+          "target": "own_hand",
+          "target_key": "truth_research_target",
+          "requires_target": true,
+          "hand_filter": {"card_type": "随从"}
+        },
+        {
+          "kind": "change_cost",
+          "target": "previous_target",
+          "target_key": "truth_research_target",
+          "mode": "add",
+          "amount": 1
+        },
+        {
+          "kind": "buff_hand_card",
+          "target": "previous_target",
+          "target_key": "truth_research_target",
+          "amount": 1,
+          "secondary_amount": 1
+        }
+      ]
+    },
+    {
+      "card_id": 10342110,
+      "trigger": "turn_end",
+      "coverage": "exact",
+      "implemented_text": "【<color=Keyword>突进</color>】\n【<color=Keyword>守护</color>】\n自己的回合结束时，本随从回复至上限。回复自己的主战者X点生命值。X为因本能力回复的数值。",
+      "operations": [
+        {
+          "kind": "heal_unit_and_leader",
+          "target": "self",
+          "amount": {"type": "source_missing_health"}
+        }
+      ]
+    },
+    {
+      "card_id": 10364110,
+      "trigger": "fanfare",
+      "coverage": "exact",
+      "implemented_text": "【<color=Keyword>入场曲</color>】使自己获得『纹章：安息的继承者·妃花』。\n<hr><sev>【<color=Keyword>超进化时</color>】使对手的战场上的所有随从的攻击力变为4。</sev>\n【纹章_0】【<color=Keyword>吟唱</color>_4】\n自己的回合结束时，若自己的战场上有『<color=Keyword>安息的继承者·妃花</color>』，则使对手的战场上的随机X个攻击力为4或以下的随从获得「无法攻击随从或主战者」和「自己的回合结束时，使本随从消失」。X为自己的纹章数。",
+      "operations": [
+        {
+          "kind": "gain_emblem",
+          "target": "own_leader",
+          "emblem_id": "himeka_heir_to_repose"
+        }
+      ]
+    },
+    {
+      "card_id": 10364110,
+      "trigger": "super_evolve",
+      "operations": [
+        {
+          "kind": "set_stats",
+          "target": "all_enemy_units",
+          "attack": 4
+        }
+      ]
+    }
+  ]
+}

@@ -1305,12 +1305,15 @@ def _parse_listener_definition(
         )
     if (
         event_filter is not None
-        and event_filter.enhanced is not None
+        and (
+            event_filter.enhanced is not None
+            or event_filter.cost_changed is not None
+        )
         and event is not EventType.CARD_PLAYED
     ):
         raise ValueError(
-            f"{source_path}/event_filter/enhanced: is only valid for "
-            "card_played"
+            f"{source_path}/event_filter: enhanced and cost_changed are "
+            "only valid for card_played"
         )
     return CardListenerDefinition(
         card_id=card_id,
@@ -1348,6 +1351,7 @@ def _parse_event_card_filter(
         "card_name",
         "keyword",
         "enhanced",
+        "cost_changed",
     }
     unknown = sorted(set(raw) - allowed)
     if unknown:
@@ -1425,6 +1429,11 @@ def _parse_event_card_filter(
         raise ValueError(
             f"{source_path}/event_filter/enhanced: must be boolean"
         )
+    cost_changed = raw.get("cost_changed")
+    if cost_changed is not None and not isinstance(cost_changed, bool):
+        raise ValueError(
+            f"{source_path}/event_filter/cost_changed: must be boolean"
+        )
     return EventCardFilter(
         card_type=card_type,
         class_id=class_id,
@@ -1437,6 +1446,7 @@ def _parse_event_card_filter(
         card_name=card_name,
         keyword=keyword,
         enhanced=enhanced,
+        cost_changed=cost_changed,
     )
 
 
@@ -1585,12 +1595,15 @@ def _parse_emblem_definition(raw: dict, source_file: str, ops_parser) -> EmblemD
             )
         if (
             event_filter is not None
-            and event_filter.enhanced is not None
+            and (
+                event_filter.enhanced is not None
+                or event_filter.cost_changed is not None
+            )
             and trigger_name != "card_played"
         ):
             raise ValueError(
-                f"{t_source}/event_filter/enhanced: is only valid for "
-                "card_played"
+                f"{t_source}/event_filter: enhanced and cost_changed are "
+                "only valid for card_played"
             )
         triggers.append(EmblemTriggerRule(
             trigger=trigger_name,
@@ -2216,10 +2229,13 @@ def _parse_faith_definition(
                 f"{trigger_path}/event_filter: is currently only valid for "
                 "follower_summoned Faith triggers"
             )
-        if event_filter is not None and event_filter.enhanced is not None:
+        if event_filter is not None and (
+            event_filter.enhanced is not None
+            or event_filter.cost_changed is not None
+        ):
             raise ValueError(
-                f"{trigger_path}/event_filter/enhanced: is only valid for "
-                "card_played"
+                f"{trigger_path}/event_filter: enhanced and cost_changed are "
+                "only valid for card_played"
             )
         triggers.append(FaithTriggerRule(
             trigger=trigger,
@@ -2638,6 +2654,7 @@ _COUNTDOWN_CHANGE_TARGETS = frozenset({
 _EVENT_SOURCE_TARGET_EFFECTS = frozenset({
     EffectKind.DAMAGE_UNIT,
     EffectKind.HEAL_UNIT,
+    EffectKind.HEAL_UNIT_AND_LEADER,
     EffectKind.BUFF_UNIT,
     EffectKind.DESTROY,
     EffectKind.BANISH,
@@ -3263,6 +3280,48 @@ def _parse_operation(
                 f"{source_file}/amount card {card_id}: "
                 "copy_leftmost_hand_to_hand requires an integer from 1 to "
                 f"{MAX_REPEAT_COUNT}"
+            )
+
+    if kind is EffectKind.COPY_RANDOM_ENEMY_DECK_TO_HAND:
+        if target is not TargetKind.OWN_LEADER:
+            raise ValueError(
+                f"{source_file}/target card {card_id}: "
+                "copy_random_enemy_deck_to_hand requires own_leader"
+            )
+        if (
+            not isinstance(raw_amount, int)
+            or isinstance(raw_amount, bool)
+            or raw_amount < 1
+            or raw_amount > MAX_REPEAT_COUNT
+        ):
+            raise ValueError(
+                f"{source_file}/amount card {card_id}: "
+                "copy_random_enemy_deck_to_hand requires an integer from 1 "
+                f"to {MAX_REPEAT_COUNT}"
+            )
+
+    if kind is EffectKind.HEAL_UNIT_AND_LEADER:
+        if target not in {
+            TargetKind.SELF,
+            TargetKind.EVENT_SOURCE,
+            TargetKind.OWN_UNIT,
+            TargetKind.PREVIOUS_TARGET,
+        }:
+            raise ValueError(
+                f"{source_file}/target card {card_id}: "
+                "heal_unit_and_leader requires an allied follower target"
+            )
+        if raw_amount is None or isinstance(raw_amount, bool):
+            raise ValueError(
+                f"{source_file}/amount card {card_id}: "
+                "heal_unit_and_leader requires a non-negative amount or "
+                "expression"
+            )
+        if not isinstance(raw_amount, dict):
+            _parse_non_negative_int(
+                raw_amount,
+                f"{source_file}/amount",
+                card_id,
             )
 
     if kind is EffectKind.BANISH_DECK_DUPLICATES:
@@ -5612,6 +5671,7 @@ def _parse_expression(raw: dict, source_path: str, card_id: int) -> ValueExpress
             )
     elif t in (ExprType.CONTROLLER_BOARD_COUNT, ExprType.OPPONENT_BOARD_COUNT,
                ExprType.CONTROLLER_HAND_COUNT, ExprType.CONTROLLER_EMBLEM_COUNT,
+               ExprType.SOURCE_FUSION_DISTINCT_NAME_COUNT,
                ExprType.SOURCE_SPELLBOOST_COUNT,
                ExprType.SOURCE_COST,
                ExprType.BOUND_CARD_COST,

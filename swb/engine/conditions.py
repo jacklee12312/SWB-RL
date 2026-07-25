@@ -34,6 +34,7 @@ class EvalContext:
     attack_target_entity_id: int | None = None
     source_card_id: int | None = None
     source_fusion_count: int = 0
+    source_fusion_distinct_name_count: int = 0
     source_spellboost_count: int = 0
     source_cost: int = 0
     distributed_value: int = 0
@@ -451,6 +452,8 @@ def evaluate_expression(expr: ValueExpression | None, ctx: EvalContext | None) -
         )
     elif t == ExprType.CONTROLLER_EMBLEM_COUNT:
         return len(player.emblems) if player else 0
+    elif t == ExprType.SOURCE_FUSION_DISTINCT_NAME_COUNT:
+        return ctx.source_fusion_distinct_name_count if ctx else 0
     elif t == ExprType.SOURCE_SPELLBOOST_COUNT:
         return ctx.source_spellboost_count if ctx else 0
     elif t == ExprType.SOURCE_COST:

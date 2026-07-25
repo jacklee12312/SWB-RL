@@ -183,6 +183,7 @@ _DURATION_EXPANSION: dict[ModifierDuration, tuple[str, ...]] = {
 _SOURCE_REQUIRED_SELF_TARGET_EFFECTS = frozenset({
     EffectKind.DAMAGE_UNIT,
     EffectKind.HEAL_UNIT,
+    EffectKind.HEAL_UNIT_AND_LEADER,
     EffectKind.BUFF_UNIT,
     EffectKind.DESTROY,
     EffectKind.BANISH,
@@ -1227,6 +1228,7 @@ class GameEngine:
         attack_target_entity_id: int | None = None,
         source_card_id: int | None = None,
         source_fusion_count: int = 0,
+        source_fusion_distinct_name_count: int = 0,
         source_spellboost_count: int = 0,
         source_cost: int = 0,
         distributed_value: int = 0,
@@ -1250,6 +1252,9 @@ class GameEngine:
             attack_target_entity_id=attack_target_entity_id,
             source_card_id=source_card_id,
             source_fusion_count=source_fusion_count,
+            source_fusion_distinct_name_count=(
+                source_fusion_distinct_name_count
+            ),
             source_spellboost_count=source_spellboost_count,
             source_cost=source_cost,
             distributed_value=distributed_value,
@@ -1968,12 +1973,14 @@ class GameEngine:
             self._play_accelerate(
                 card, play_cost, hand_entity_id, hand_origin,
                 hand_source_origin, mode_def, fusion_materials,
+                source_cost=hand_current_cost,
             )
             return
         if mode_def is not None and mode_def.is_crystallize:
             self._play_crystallize(
                 card, play_cost, hand_entity_id, hand_origin,
                 hand_source_origin, mode_def, fused_material_ids,
+                source_cost=hand_current_cost,
             )
             return
         if card.card_type == "法术" and (
@@ -2038,6 +2045,9 @@ class GameEngine:
                     "mode_id": mode_id,
                     "card_id": card.card_id,
                     "entity_id": unit.entity_id,
+                    "base_cost": card.cost,
+                    "source_cost": hand_current_cost,
+                    "cost_changed": hand_current_cost != card.cost,
                 },
             )
         )
@@ -2169,7 +2179,13 @@ class GameEngine:
     ) -> None:
         self._log(self.current_player, f"使用法术 {card.name}（{play_cost}费）")
         self._dispatch_card_ability(AbilityEvent.CARD_PLAYED, card)
-        played_metadata = {"card_id": card.card_id, "card": card}
+        played_metadata = {
+            "card_id": card.card_id,
+            "card": card,
+            "base_cost": card.cost,
+            "source_cost": source_cost,
+            "cost_changed": source_cost != card.cost,
+        }
         if mode_def is not None:
             played_metadata["mode_id"] = mode_def.mode_id
         self._emit(
@@ -2260,7 +2276,13 @@ class GameEngine:
             f"打出护符 {card.name}（{play_cost}费{countdown}）",
         )
         self._dispatch_card_ability(AbilityEvent.CARD_PLAYED, card)
-        played_metadata = {"card_id": card.card_id, "source": amulet}
+        played_metadata = {
+            "card_id": card.card_id,
+            "source": amulet,
+            "base_cost": card.cost,
+            "source_cost": source_cost,
+            "cost_changed": source_cost != card.cost,
+        }
         entered_metadata = {"source": amulet}
         if mode_def is not None:
             played_metadata["mode_id"] = mode_def.mode_id
@@ -2353,6 +2375,8 @@ class GameEngine:
         source_origin: CardOrigin | None,
         mode_def,
         fusion_materials: tuple[FusionMaterial, ...] = (),
+        *,
+        source_cost: int,
     ) -> None:
         self._log(self.current_player, f"激奏 {card.name}（{play_cost}费）")
         self._dispatch_card_ability(AbilityEvent.CARD_PLAYED, card)
@@ -2361,7 +2385,14 @@ class GameEngine:
                 EventType.CARD_PLAYED,
                 self.current_player,
                 source_id=source_entity_id,
-                metadata={"card_id": card.card_id, "card": card, "mode_id": mode_def.mode_id},
+                metadata={
+                    "card_id": card.card_id,
+                    "card": card,
+                    "mode_id": mode_def.mode_id,
+                    "base_cost": card.cost,
+                    "source_cost": source_cost,
+                    "cost_changed": source_cost != card.cost,
+                },
             )
         )
         ops = mode_def.operations if mode_def else ()
@@ -2392,6 +2423,8 @@ class GameEngine:
         source_origin: CardOrigin | None,
         mode_def,
         fused_material_ids: tuple[int, ...] = (),
+        *,
+        source_cost: int,
     ) -> None:
         countdown = mode_def.countdown if mode_def else None
         amulet = Amulet(
@@ -2415,7 +2448,14 @@ class GameEngine:
                 EventType.CARD_PLAYED,
                 self.current_player,
                 source_id=amulet.entity_id,
-                metadata={"card_id": card.card_id, "source": amulet, "mode_id": mode_def.mode_id},
+                metadata={
+                    "card_id": card.card_id,
+                    "source": amulet,
+                    "mode_id": mode_def.mode_id,
+                    "base_cost": card.cost,
+                    "source_cost": source_cost,
+                    "cost_changed": source_cost != card.cost,
+                },
             )
         )
         self._emit(
@@ -5684,6 +5724,8 @@ class GameEngine:
             and consuming_operation.kind
             in {
                 EffectKind.ADD_KEYWORD,
+                EffectKind.BUFF_HAND_CARD,
+                EffectKind.CHANGE_COST,
                 EffectKind.GRANT_LAST_WORDS,
                 EffectKind.GRANT_EFFECT_DESTROY_IMMUNITY,
                 EffectKind.SUMMON_FROM_HAND,
@@ -7138,6 +7180,10 @@ class GameEngine:
             target_entity_id=target_id,
             source_card_id=frame.source_card_id,
             source_fusion_count=len(frame.fusion_materials),
+            source_fusion_distinct_name_count=len({
+                material.definition.name
+                for material in frame.fusion_materials
+            }),
             source_spellboost_count=frame.source_spellboost_count,
             source_cost=frame.source_cost,
             distributed_value=frame.distributed_value,
@@ -7294,7 +7340,11 @@ class GameEngine:
                 cost_min=resolved_cost,
                 cost_max=resolved_cost,
             )
-        if operation.kind in (EffectKind.HEAL_LEADER, EffectKind.HEAL_UNIT):
+        if operation.kind in (
+            EffectKind.HEAL_LEADER,
+            EffectKind.HEAL_UNIT,
+            EffectKind.HEAL_UNIT_AND_LEADER,
+        ):
             amount = max(0, amount)
         if (
             operation.amount_expr is not None
@@ -7433,6 +7483,57 @@ class GameEngine:
                         },
                     )
                 )
+        elif effect.kind is EffectKind.HEAL_UNIT_AND_LEADER:
+            target = self._find_board_entity(target_id)
+            if not isinstance(target, Unit):
+                raise IllegalCommand("Heal target must be a follower")
+            unit_before = target.health
+            target.health = min(
+                target.max_health,
+                target.health + effect.amount,
+            )
+            actual_heal = target.health - unit_before
+            self._log(
+                frame.controller,
+                f"{name} {frame.label}回复 {target.definition.name} "
+                f"{actual_heal} 点生命（生命 {target.health}）",
+            )
+            if actual_heal > 0:
+                self._emit(
+                    GameEvent(
+                        EventType.FOLLOWER_HEALED,
+                        self._entity_owner(target.entity_id),
+                        source_id=frame.source_entity_id,
+                        target_id=target.entity_id,
+                        amount=actual_heal,
+                        metadata={
+                            "card_id": frame.source_card_id,
+                            "target": target,
+                        },
+                    )
+                )
+                leader = self.players[frame.controller]
+                leader_before = leader.health
+                leader.health = min(
+                    leader.max_health,
+                    leader.health + actual_heal,
+                )
+                leader_actual_heal = leader.health - leader_before
+                self._log(
+                    frame.controller,
+                    f"{name} {frame.label}回复主战者 "
+                    f"{leader_actual_heal} 点生命（生命 {leader.health}）",
+                )
+                if leader_actual_heal > 0:
+                    self._emit(
+                        GameEvent(
+                            EventType.LEADER_HEALED,
+                            frame.controller,
+                            source_id=frame.source_entity_id,
+                            amount=leader_actual_heal,
+                            metadata={"card_id": frame.source_card_id},
+                        )
+                    )
         elif effect.kind is EffectKind.DAMAGE_LEADER:
             target_idx = (
                 _leader_index_from_target_id(target_id)
@@ -7818,6 +7919,8 @@ class GameEngine:
             self._execute_copy_to_hand(effect, frame, target_id)
         elif effect.kind is EffectKind.COPY_LEFTMOST_HAND_TO_HAND:
             self._execute_copy_leftmost_hand_to_hand(effect, frame)
+        elif effect.kind is EffectKind.COPY_RANDOM_ENEMY_DECK_TO_HAND:
+            self._execute_copy_random_enemy_deck_to_hand(effect, frame)
         elif effect.kind is EffectKind.COPY_DESTROYED_FOLLOWERS_TO_HAND:
             self._execute_copy_destroyed_followers_to_hand(effect, frame)
         elif effect.kind is EffectKind.RETURN_TO_HAND:
@@ -8822,6 +8925,93 @@ class GameEngine:
                 f"{frame.source_name} 将最左侧 {len(sources)} 张手牌的"
                 "完全相同复制品以非公开形式加入手牌",
             )
+
+    def _execute_copy_random_enemy_deck_to_hand(
+        self,
+        effect: EffectOperation,
+        frame: EffectFrame,
+    ) -> None:
+        enemy_deck = self.players[1 - frame.controller].deck
+        if not enemy_deck:
+            self._log(
+                frame.controller,
+                f"{frame.source_name} 复制失败：敌方牌组为空",
+            )
+            return
+
+        selected = self.random.sample(
+            enemy_deck,
+            min(effect.amount, len(enemy_deck)),
+        )
+        player = self.players[frame.controller]
+        copied_count = 0
+        for raw_card in selected:
+            definition = (
+                raw_card.definition
+                if isinstance(raw_card, DeckCard)
+                else raw_card
+            )
+            origin = origin_for_added_card(definition)
+            if len(player.hand) >= self.config.max_hand:
+                self._send_to_graveyard(
+                    frame.controller,
+                    definition,
+                    "hand_full",
+                    derived=True,
+                    origin=origin,
+                    token=(
+                        is_token_definition(definition)
+                        or origin is CardOrigin.TOKEN
+                    ),
+                )
+                self._log(
+                    frame.controller,
+                    f"{frame.source_name} 复制敌方牌组卡牌失败：手牌已满",
+                )
+                continue
+
+            copied = self._append_hand_card(
+                player,
+                definition,
+                origin=origin,
+                source_origin=CardOrigin.DECK,
+            )
+            if isinstance(raw_card, DeckCard):
+                copied.cost_modifiers = [
+                    replace(
+                        modifier,
+                        modifier_id=self._allocate_modifier_id(),
+                    )
+                    for modifier in raw_card.cost_modifiers
+                ]
+            copied_count += 1
+            self._emit(
+                GameEvent(
+                    EventType.CARD_ADDED_TO_HAND,
+                    frame.controller,
+                    source_id=copied.entity_id,
+                    metadata={
+                        "card_id": definition.card_id,
+                        "card": definition,
+                        "source": copied,
+                        "origin": copied.origin.value,
+                        "derived": True,
+                        "token": (
+                            is_token_definition(definition)
+                            or copied.origin is CardOrigin.TOKEN
+                        ),
+                        "copied_from_zone": "enemy_deck",
+                        "revealed": False,
+                        "exact_copy": True,
+                        "cost_after": copied.current_cost,
+                    },
+                )
+            )
+        self._log(
+            frame.controller,
+            f"{frame.source_name} 将敌方牌组中随机 {len(selected)} 张卡牌"
+            f"的完全相同复制品以非公开形式加入手牌（成功 {copied_count} 张）",
+        )
 
     def _execute_copy_destroyed_followers_to_hand(
         self,
@@ -10741,6 +10931,7 @@ class GameEngine:
             source,
             metadata.get("keywords"),
             enhanced=enhanced,
+            cost_changed=bool(metadata.get("cost_changed", False)),
         )
 
     def _emblem_order_key(

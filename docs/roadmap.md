@@ -1,6 +1,6 @@
 # SWB Engine Roadmap
 
-Last refreshed: 2026-07-24.
+Last refreshed: 2026-07-25.
 
 This file tracks implementation priorities and known gaps. Treat executable
 code and tests as the source of truth when this file drifts.
@@ -10,13 +10,13 @@ code and tests as the source of truth when this file drifts.
 - Database: 826 cards, 735 collectible cards, 91 non-collectible/generated
   cards from set `90000`.
 - Latest SVA source: `https://sva.hypd.asia/data/cards.json`.
-- Tests: `python -m unittest discover -s tests -v` discovers 2429 behavioral
-  contracts (2026-07-24 fifteenth neutral hand/deck/banish verification).
+- Tests: `python -m unittest discover -s tests -v` discovers 2440 behavioral
+  contracts (2026-07-25 sixteenth Fusion/Combo/cost/Repose verification).
 - RL adapter: fixed 111-action space; the default v1 observation is 294
   floats, opt-in v2 preserves the structured compatibility mapping, and v3
   supplies fixed-dtype NumPy arrays plus a Gymnasium observation space without
   changing action IDs. Hidden decklists are the v3 default.
-- The exact-audit `TrainableCardCatalog` currently admits all 693 exact
+- The exact-audit `TrainableCardCatalog` currently admits all 698 exact
   collectible cards, preloads all 826 definitions for SQLite-free matches, and
   provides deterministic class-valid deck sampling. Self-play no longer uses
   the legacy 2-to-5-card follower pool.
@@ -48,9 +48,9 @@ code and tests as the source of truth when this file drifts.
   and distribution acceptance results, not policy-strength evidence.
 - Ability registry status: 18 implemented, 5 partial, 11 placeholder.
 - Explicit card and demo rules live in `data/rules/`; the current coverage
-  report classifies 797 card IDs with explicit rules, passives, fusion,
+  report classifies 802 card IDs with explicit rules, passives, fusion,
   invocation, activation, Faith, Union Burst, or listener definitions. Current
-  collectible coverage is 693 exact (94.29% of 735), 0 partial, 26 supported-but-missing-rule,
+  collectible coverage is 698 exact (94.97% of 735), 0 partial, 21 supported-but-missing-rule,
   0 missing-primitive, and 16 text-unclear cards.
 - `data/reports/token_audit.{json,md}` audits all 91 non-collectible/generated
   cards independently of collectible coverage. Database `card_references` and
@@ -65,7 +65,7 @@ code and tests as the source of truth when this file drifts.
   separate column and is covered for all 34; it does not automatically promote
   the 5 partial or 11 placeholder keyword statuses.
 - Coverage now has a backward-compatible clause audit. The legacy summary still
-  reports 693 exact collectible cards, and all 693 now have an explicit exact
+  reports 698 exact collectible cards, and all 698 now have an explicit exact
   text mapping plus named direct test evidence. The versioned sibling registry
   at `data/audits/rule_clauses.json` hashes every imported primary and
   alternate-mode clause; changed source text or stale test evidence invalidates
@@ -74,7 +74,7 @@ code and tests as the source of truth when this file drifts.
   rule version and errata metadata, structured trigger/operation evidence,
   explicit unsupported text, and a stable blocker taxonomy. There are zero
   unverified exact entries and no known missing schema, primitive, targeting,
-  or timing blocker among authored rules. The 26 supported-but-missing-rule
+  or timing blocker among authored rules. The 21 supported-but-missing-rule
   cards are now the per-card structured-content backlog; 16 unclear texts
   remain explicit.
 - RL observation v2 is available behind an explicit version switch. A
@@ -1473,6 +1473,22 @@ slice in this order:
   hand/board capacity, exact physical modifiers, state-based checks,
   deterministic replay, multilingual/Mode/reference/raw-source hashes,
   Clause/Token consistency, and command/action-mask parity.
+- Exact file
+  `data/rules/real_fusion_combo_cost_repose_sixteenth_batch.json` closes five
+  collectibles (`10324110`, `10514110`, `10332210`, `10342110`, and
+  `10364110`), bringing collectible exact coverage to 698/735 (94.97%).
+  Generic distinct Fusion-material-name expressions, CARD_PLAYED current/base
+  cost-change filters, exact random physical enemy-deck copying, combined
+  follower-and-leader healing by the follower's actual restored amount, and
+  safe bound hand-target continuation implement the shared mechanics without
+  card-ID branches. Direct tests cover duplicate material names, Combo including
+  the current play, empty enemy decks without RNG consumption, hidden exact
+  copies and fresh modifier IDs, Engage no/stale/illegal choices, source
+  departure, hand capacity, stacked crests, seeded filtered targeting,
+  simultaneous state checks, multilingual/Mode/reference/raw-source hashes,
+  Clause/Token consistency, deterministic replay, and command/action-mask
+  parity. Observation `observation-v3.3` and all 111 action IDs remain
+  unchanged.
 
 ## Known Partial Or Unsupported Areas
 

@@ -38,14 +38,14 @@ covered generic boundary, but that never upgrades a partial or placeholder
 keyword whose full tagged-card semantics still require structured rules.
 
 The [rule coverage report](data/reports/rule_coverage.md) now includes a
-clause-audit layer without changing its legacy coverage categories. Of 693
-exact collectible cards (94.29% of 735), all 693 have explicit implemented text and named direct
+clause-audit layer without changing its legacy coverage categories. Of 698
+exact collectible cards (94.97% of 735), all 698 have explicit implemented text and named direct
 test evidence. The sibling `data/audits/rule_clauses.json` registry hashes every
 imported skill and alternate-mode clause, so a database text change or stale
 test reference invalidates the audit instead of silently retaining exact
 status. The current report has no unverified exact entry or missing generic
 schema, primitive, targeting, or timing blocker. Its remaining collectible gaps
-are 26 missing per-card structured rules plus 16 explicitly unclear texts.
+are 21 missing per-card structured rules plus 16 explicitly unclear texts.
 Rule metadata also supports version and errata fields, and the report
 records the complete imported source snapshot hash.
 
@@ -510,6 +510,22 @@ The deterministic rules core supports:
   departure, crest expiry, hand/board capacity, deterministic replay,
   multilingual/Mode/reference hashes, Clause/Token audits, illegal choices,
   and command/action-mask parity without card-ID branches;
+- generic distinct Fusion-material-name expressions, CARD_PLAYED current/base
+  cost-change filters, exact random physical enemy-deck copying, combined
+  follower-and-leader healing by the follower's actual restored amount, and
+  safe bound hand-target continuation close exact `10324110`, `10514110`,
+  `10332210`, `10342110`, and `10364110`, bringing exact collectible coverage
+  to 698/735 (94.97%). Sinciro counts differently named fused Loot cards;
+  Wolfraud copies exact hidden physical deck cards with fresh modifier IDs;
+  Truth's Research Facility exposes its Engage selection and cost-change
+  listener through commands and action masks; Worshipper of Disdain preserves
+  its Rush/Ward and healing order; and stacked Himeka crests use seeded random
+  filtering plus permanent attack locks and owner-turn-end banish. Direct
+  tests cover duplicate names, no/stale/illegal targets, source departure,
+  empty decks without RNG consumption, hand capacity, simultaneous effects,
+  deterministic replay, multilingual/Mode/reference/raw-source hashes,
+  Clause/Token consistency, and command/action-mask parity without changing
+  Observation `observation-v3.3` or the 111 action IDs;
 - filtered hand-count conditions reuse the same type/class/identity/trait
   definition filters as hand targeting. Exact `10521120` counts only spells
   before conditionally gaining +1/+1 and Ward, while exact `10741120` and

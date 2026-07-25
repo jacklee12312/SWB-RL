@@ -4,14 +4,14 @@
 P0 修复状态更新：2026-07-21
 P1/P2 平台验收更新：2026-07-21
 七职业评估与训练分布更新：2026-07-22
-全卡规则覆盖推进更新：2026-07-24
+全卡规则覆盖推进更新：2026-07-25
 
 ## 2026-07-21 修复结果
 
 本次平台硬化已经完成审计中的四项 P0，并完成目标内的 P1/P2 训练平台闭环：
 
 - `TrainableCardCatalog` 以 `rule_coverage.json` 的 `covered_exact` 为准，
-  当前纳入 693 张可收集卡；全部 826 张定义在 worker 启动时进入只读内存，
+  当前纳入 698 张可收集卡；全部 826 张定义在 worker 启动时进入只读内存，
   对局解析不再访问 SQLite；
 - Observation v3 使用固定 shape/dtype 的 NumPy 数组和 Gymnasium space，
   默认隐藏对手初始牌组，只有 `open_decklists=True` 才公开；
@@ -40,6 +40,10 @@ P1/P2 平台验收更新：2026-07-21
   卡通过既有 command、pending-choice、纹章与 action-mask 边界接入；公开场面
   的回合末移除槽以位掩码同时表达破坏/放逐且 shape 不变，正式 schema 更新为
   `observation-v3.3`，111个动作编号保持不变；
+- 第十六批新增融合素材不同名计数、出牌当前/原始费用变化事件过滤、敌方牌库
+  随机物理卡完整复制、随从实际回复量联动主战者回复，以及失效手牌绑定目标
+  的安全续解。5张真实卡通过既有 command、pending-choice、纹章与 action-mask
+  边界接入；Observation `observation-v3.3` 与111个动作编号保持不变；
 - `SWBAECEnv` 提供 PettingZoo AEC 双智能体接口，并通过官方 `api_test`；
 - 规则胜负与训练上限已经分离：前者 `terminated`，后者 `truncated`；
   独立 `max_agent_steps` 也覆盖不推进回合的墓地翻页动作；
@@ -75,7 +79,7 @@ CPU 训练、恢复、16 局镜像评估和吞吐数据都只作为 smoke/回归
 | 已完成 | P0、state-version 缓存、training mode、正式版本/hash、稳定卡牌 embedding、单/多 worker PPO rollout、recurrent masked PPO、原子恢复、四类对手池、固定评估、AEC/Gym、snapshot/clone | 聚焦测试、官方 wrapper 检查、2-worker CPU smoke 训练到 1,304 步并恢复到 1,571 步、环境与 4-worker 随机 rollout 基准 |
 | 部分完成 | 性能优化与评估覆盖广度 | 已有稳定基准和阈值；snapshot 约 0.82 MB/24.61 次每秒、clone 7.23 次每秒，足以作为正确性基础但仍需在高分支搜索前优化；七职业固定套件已落地，职业间 7×7 策略强度矩阵和长期统计实验尚未开始 |
 | 尚未实现 | 分布式 learner、完整 MCTS、策略强度实验、自适应训练 curriculum | 不属于本次可复现 baseline；确定性七职业轮转只保证采样均衡，不是按学习难度动态调整的 curriculum，也不得从 smoke 胜率推断策略强度 |
-| 明确不支持 | 26 张缺少 per-card 结构化规则的可收集卡、16 张文本不明确卡 | 不进入 exact 训练目录，不得视为已支持；规则覆盖与 RL 平台状态继续分开报告 |
+| 明确不支持 | 21 张缺少 per-card 结构化规则的可收集卡、16 张文本不明确卡 | 不进入 exact 训练目录，不得视为已支持；规则覆盖与 RL 平台状态继续分开报告 |
 
 ## 结论
 
@@ -389,4 +393,4 @@ PPO 多进程固定权重采样；完整 MCTS、分布式 learner、跨 worker �
 命令核心之外完成；下一步应由真实实验需求驱动：若走 PPO 路线，先扩展评估职业、
 curriculum 与 worker/learner 吞吐；若走搜索路线，先降低 snapshot/clone 成本。
 任何策略结论都应另设长期训练和统计设计。本次 smoke 不改变规则覆盖事实：仍有
-26 张缺规则卡和 16 张文本不明确卡，它们必须继续保持 unsupported 可见性。
+21 张缺规则卡和 16 张文本不明确卡，它们必须继续保持 unsupported 可见性。

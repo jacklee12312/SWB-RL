@@ -89,6 +89,9 @@ class ExprType(str, Enum):
     OPPONENT_BOARD_COUNT = "opponent_board_count"
     CONTROLLER_HAND_COUNT = "controller_hand_count"
     CONTROLLER_EMBLEM_COUNT = "controller_emblem_count"
+    SOURCE_FUSION_DISTINCT_NAME_COUNT = (
+        "source_fusion_distinct_name_count"
+    )
     SOURCE_SPELLBOOST_COUNT = "source_spellboost_count"
     SOURCE_COST = "source_cost"
     BOUND_CARD_COST = "bound_card_cost"
@@ -158,6 +161,7 @@ class EffectKind(str, Enum):
     DRAW_FILTERED = "draw_filtered"
     HEAL_LEADER = "heal_leader"
     HEAL_UNIT = "heal_unit"
+    HEAL_UNIT_AND_LEADER = "heal_unit_and_leader"
     DAMAGE_LEADER = "damage_leader"
     DAMAGE_UNIT = "damage_unit"
     DISTRIBUTE_DAMAGE = "distribute_damage"
@@ -202,6 +206,9 @@ class EffectKind(str, Enum):
     TRANSFORM = "transform"
     TRANSFORM_HAND_FROM_RANDOM_ENEMY_DECK = (
         "transform_hand_from_random_enemy_deck"
+    )
+    COPY_RANDOM_ENEMY_DECK_TO_HAND = (
+        "copy_random_enemy_deck_to_hand"
     )
     COPY_LEFTMOST_HAND_TO_HAND = "copy_leftmost_hand_to_hand"
     GAIN_EMBLEM = "gain_emblem"

@@ -12,25 +12,25 @@
   },
   "summary": {
     "total_cards": 826,
-    "total_with_rules": 797,
+    "total_with_rules": 802,
     "test_or_synthetic_ids_with_rules": 26,
     "coverage_counts": {
-      "covered_exact": 693,
+      "covered_exact": 698,
       "text_unclear": 16,
-      "supported_missing_rule": 26,
+      "supported_missing_rule": 21,
       "token_or_non_collectible": 91
     },
     "clause_audit_counts": {
-      "mapped_exact": 693,
+      "mapped_exact": 698,
       "unverified_exact": 0,
       "partial": 0,
-      "missing_rule": 26,
+      "missing_rule": 21,
       "missing_primitive": 0,
       "text_unclear": 16,
       "token_separate_audit": 91
     },
     "blocker_counts": {
-      "missing_rule": 26,
+      "missing_rule": 21,
       "missing_schema": 0,
       "missing_primitive": 0,
       "missing_targeting": 0,
@@ -19636,8 +19636,8 @@
       "cost": 6,
       "is_collectible": true,
       "card_set_id": 10003,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '进化时', '超进化', '造成.*伤害', '融合']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['fanfare', 'super_evolve', 'fusion'], Ops: ['damage_unit', 'damage_leader', 'damage_unit', 'damage_leader', 'fusion']",
       "hit_keywords": [
         "入场曲",
         "进化时",
@@ -19655,27 +19655,49 @@
         "【<color=Keyword>融合</color>】财宝·卡牌\n<hr>【<color=Keyword>入场曲</color>】对对手的战场上的所有随从和对手的主战者造成X点伤害。X为与本卡牌【<color=Keyword>融合</color>】的种类。\n<hr><sev>【<color=Keyword>超进化时</color>】发动与【<color=Keyword>入场曲</color>】相同的能力。</sev>"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【<color=Keyword>融合</color>】财宝·卡牌\n<hr>【<color=Keyword>入场曲</color>】对对手的战场上的所有随从和对手的主战者造成X点伤害。X为与本卡牌【<color=Keyword>融合</color>】的种类。\n<hr><sev>【<color=Keyword>超进化时</color>】发动与【<color=Keyword>入场曲</color>】相同的能力。</sev>",
+        "notes": "财宝融合过滤、多材料选择与非法材料排除、重复同名材料只计一种、入场及超进化复现敌方全体伤害、零融合路径、融合材料历史和RL action mask均有直接测试。",
+        "rule_version": 1,
+        "source_text_sha256": "11b097590e3defce45cc9430528a1e285734aa3b55142ae3cd4acec48ddb668d",
+        "test_evidence": [
+          "tests/test_real_fusion_combo_cost_repose_sixteenth_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10324110:0",
             "source_text": "【<color=Keyword>融合</color>】财宝·卡牌\n<hr>【<color=Keyword>入场曲</color>】对对手的战场上的所有随从和对手的主战者造成X点伤害。X为与本卡牌【<color=Keyword>融合</color>】的种类。\n<hr><sev>【<color=Keyword>超进化时</color>】发动与【<color=Keyword>入场曲</color>】相同的能力。</sev>",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "【<color=Keyword>融合</color>】财宝·卡牌\n<hr>【<color=Keyword>入场曲</color>】对对手的战场上的所有随从和对手的主战者造成X点伤害。X为与本卡牌【<color=Keyword>融合</color>】的种类。\n<hr><sev>【<color=Keyword>超进化时</color>】发动与【<color=Keyword>入场曲</color>】相同的能力。</sev>",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "11b097590e3defce45cc9430528a1e285734aa3b55142ae3cd4acec48ddb668d",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "fanfare",
+            "super_evolve",
+            "fusion"
+          ],
+          "effect_kinds": [
+            "damage_unit",
+            "damage_leader",
+            "damage_unit",
+            "damage_leader",
+            "fusion"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_fusion_combo_cost_repose_sixteenth_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10324120": {
@@ -20034,17 +20056,14 @@
       "cost": 3,
       "is_collectible": true,
       "card_set_id": 10003,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['策动', '倒数', '抽取']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['play', 'activate', 'activation', 'listener:board:card_played'], Ops: ['select_targets', 'change_cost', 'buff_hand_card', 'activation', 'draw', 'reduce_countdown']",
       "hit_keywords": [
         "策动",
         "倒数",
         "抽取"
       ],
       "missing_primitives": [],
-      "missing_rule_mechanics": [
-        "策动"
-      ],
       "ability_keywords": [
         "倒数",
         "策动"
@@ -20053,27 +20072,51 @@
         "【<color=Keyword>吟唱</color>_5】\n自己使用费用发生变化的随从时，抽取1张卡牌。本护符的倒计数-1。\n<hr>【<color=Keyword>启动</color>】选择自己的手牌中的1张随从，使其费用+1，使其+1/+1。"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【<color=Keyword>吟唱</color>_5】\n自己使用费用发生变化的随从时，抽取1张卡牌。本护符的倒计数-1。\n<hr>【<color=Keyword>启动</color>】选择自己的手牌中的1张随从，使其费用+1，使其+1/+1。",
+        "notes": "吟唱5、仅费用确实变化的随从触发抽牌与倒计数、原始/当前费用事件审计、零费用启动、手牌随从过滤、同一绑定目标费用+1与+1/+1、无目标非法原子性、失效选择和RL action mask均有直接测试。",
+        "rule_version": 1,
+        "source_text_sha256": "9a648ea728e9c42c51386d4efc24d64582aefd5e92f2d99d19b4ca96aad808ae",
+        "test_evidence": [
+          "tests/test_real_fusion_combo_cost_repose_sixteenth_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10332210:0",
             "source_text": "【<color=Keyword>吟唱</color>_5】\n自己使用费用发生变化的随从时，抽取1张卡牌。本护符的倒计数-1。\n<hr>【<color=Keyword>启动</color>】选择自己的手牌中的1张随从，使其费用+1，使其+1/+1。",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "【<color=Keyword>吟唱</color>_5】\n自己使用费用发生变化的随从时，抽取1张卡牌。本护符的倒计数-1。\n<hr>【<color=Keyword>启动</color>】选择自己的手牌中的1张随从，使其费用+1，使其+1/+1。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "9a648ea728e9c42c51386d4efc24d64582aefd5e92f2d99d19b4ca96aad808ae",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "play",
+            "activate",
+            "activation",
+            "listener:board:card_played"
+          ],
+          "effect_kinds": [
+            "select_targets",
+            "change_cost",
+            "buff_hand_card",
+            "activation",
+            "draw",
+            "reduce_countdown"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_fusion_combo_cost_repose_sixteenth_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10332310": {
@@ -20588,8 +20631,8 @@
       "cost": 5,
       "is_collectible": true,
       "card_set_id": 10003,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['回合结束', '回复(?!自己\\\\d+点(?:超进化点|进化点|能量点))']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['turn_end', 'intrinsic_keywords'], Ops: ['heal_unit_and_leader', 'keyword:突进', 'keyword:守护']",
       "hit_keywords": [
         "回合结束",
         "回复(?!自己\\d+点(?:超进化点|进化点|能量点))"
@@ -20603,27 +20646,46 @@
         "【<color=Keyword>突进</color>】\n【<color=Keyword>守护</color>】\n自己的回合结束时，本随从回复至上限。回复自己的主战者X点生命值。X为因本能力回复的数值。"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【<color=Keyword>突进</color>】\n【<color=Keyword>守护</color>】\n自己的回合结束时，本随从回复至上限。回复自己的主战者X点生命值。X为因本能力回复的数值。",
+        "notes": "固有突进与守护、己方回合末先将来源回复至上限、以实际回复量同步回复主战者、来源满血与主战者满血边界及事件顺序均有直接测试。",
+        "rule_version": 1,
+        "source_text_sha256": "493a0df515d67ca5fb53c4c19153f58a93bf35b3b40d1818def186fca36b1bfc",
+        "test_evidence": [
+          "tests/test_real_fusion_combo_cost_repose_sixteenth_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10342110:0",
             "source_text": "【<color=Keyword>突进</color>】\n【<color=Keyword>守护</color>】\n自己的回合结束时，本随从回复至上限。回复自己的主战者X点生命值。X为因本能力回复的数值。",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "【<color=Keyword>突进</color>】\n【<color=Keyword>守护</color>】\n自己的回合结束时，本随从回复至上限。回复自己的主战者X点生命值。X为因本能力回复的数值。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "493a0df515d67ca5fb53c4c19153f58a93bf35b3b40d1818def186fca36b1bfc",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "turn_end",
+            "intrinsic_keywords"
+          ],
+          "effect_kinds": [
+            "heal_unit_and_leader",
+            "keyword:突进",
+            "keyword:守护"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_fusion_combo_cost_repose_sixteenth_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10342120": {
@@ -22296,8 +22358,8 @@
       "cost": 6,
       "is_collectible": true,
       "card_set_id": 10003,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '进化时', '超进化', '回合结束', '倒数', '消失', '纹章', '不能攻击|无法攻击']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['fanfare', 'super_evolve', 'emblem_source'], Ops: ['gain_emblem', 'set_stats', 'select_targets', 'add_attack_restriction', 'grant_turn_end_banish']",
       "hit_keywords": [
         "入场曲",
         "进化时",
@@ -22320,32 +22382,54 @@
         "【纹章_0】【<color=Keyword>吟唱</color>_4】\n自己的回合结束时，若自己的战场上有『<color=Keyword>安息的继承者·妃花</color>』，则使对手的战场上的随机X个攻击力为4或以下的随从获得「无法攻击随从或主战者」和「自己的回合结束时，使本随从消失」。X为自己的纹章数。"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【<color=Keyword>入场曲</color>】使自己获得『纹章：安息的继承者·妃花』。\n<hr><sev>【<color=Keyword>超进化时</color>】使对手的战场上的所有随从的攻击力变为4。</sev>\n【纹章_0】【<color=Keyword>吟唱</color>_4】\n自己的回合结束时，若自己的战场上有『<color=Keyword>安息的继承者·妃花</color>』，则使对手的战场上的随机X个攻击力为4或以下的随从获得「无法攻击随从或主战者」和「自己的回合结束时，使本随从消失」。X为自己的纹章数。",
+        "notes": "入场获得可叠加倒数4纹章、关联自身在场条件、纹章总数动态随机多目标、攻击力4以下过滤、永久攻击封锁、目标控制者回合末放逐、来源离场不触发、固定种子复现及超进化仅将敌方攻击力设为4均有直接测试。",
+        "rule_version": 1,
+        "source_text_sha256": "557fc6c04320034f4a5888c0754bd00b940b6ab4366365e89c202f8fcc7cffa3",
+        "test_evidence": [
+          "tests/test_real_fusion_combo_cost_repose_sixteenth_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10364110:0",
             "source_text": "【<color=Keyword>入场曲</color>】使自己获得『纹章：安息的继承者·妃花』。\n<hr><sev>【<color=Keyword>超进化时</color>】使对手的战场上的所有随从的攻击力变为4。</sev>",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           },
           {
             "clause_id": "10364110:1",
             "source_text": "【纹章_0】【<color=Keyword>吟唱</color>_4】\n自己的回合结束时，若自己的战场上有『<color=Keyword>安息的继承者·妃花</color>』，则使对手的战场上的随机X个攻击力为4或以下的随从获得「无法攻击随从或主战者」和「自己的回合结束时，使本随从消失」。X为自己的纹章数。",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "【<color=Keyword>入场曲</color>】使自己获得『纹章：安息的继承者·妃花』。\n<hr><sev>【<color=Keyword>超进化时</color>】使对手的战场上的所有随从的攻击力变为4。</sev>\n【纹章_0】【<color=Keyword>吟唱</color>_4】\n自己的回合结束时，若自己的战场上有『<color=Keyword>安息的继承者·妃花</color>』，则使对手的战场上的随机X个攻击力为4或以下的随从获得「无法攻击随从或主战者」和「自己的回合结束时，使本随从消失」。X为自己的纹章数。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "557fc6c04320034f4a5888c0754bd00b940b6ab4366365e89c202f8fcc7cffa3",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "fanfare",
+            "super_evolve",
+            "emblem_source"
+          ],
+          "effect_kinds": [
+            "gain_emblem",
+            "set_stats",
+            "select_targets",
+            "add_attack_restriction",
+            "grant_turn_end_banish"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_fusion_combo_cost_repose_sixteenth_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10364120": {
@@ -29020,8 +29104,8 @@
       "cost": 2,
       "is_collectible": true,
       "card_set_id": 10005,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '进化时', '连击', '舍弃']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['fanfare', 'evolve'], Ops: ['buff_unit', 'discard', 'copy_random_enemy_deck_to_hand']",
       "hit_keywords": [
         "入场曲",
         "进化时",
@@ -29038,27 +29122,46 @@
         "【<color=Keyword>入场曲</color>】本随从+X/+X。X为自己的【<color=Keyword>连击</color>】。\n<hr><ev>【<color=Keyword>进化时</color>】舍弃自己的所有手牌。将对手的牌组中的随机5张卡牌的复制卡牌各1张以非公开形式加入自己的手牌。</ev>"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【<color=Keyword>入场曲</color>】本随从+X/+X。X为自己的【<color=Keyword>连击</color>】。\n<hr><ev>【<color=Keyword>进化时</color>】舍弃自己的所有手牌。将对手的牌组中的随机5张卡牌的复制卡牌各1张以非公开形式加入自己的手牌。</ev>",
+        "notes": "入场连击包含当前使用、进化舍弃全部手牌、敌方牌库五张物理卡无放回随机精确复制、费用修正使用新ID继承、非公开事件、空牌库不消耗随机数和手牌容量溢出均有直接测试。",
+        "rule_version": 1,
+        "source_text_sha256": "f9579692adc07ebe3ffec346e128c81ee50879167911cd0e247cc1ae3c06745f",
+        "test_evidence": [
+          "tests/test_real_fusion_combo_cost_repose_sixteenth_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10514110:0",
             "source_text": "【<color=Keyword>入场曲</color>】本随从+X/+X。X为自己的【<color=Keyword>连击</color>】。\n<hr><ev>【<color=Keyword>进化时</color>】舍弃自己的所有手牌。将对手的牌组中的随机5张卡牌的复制卡牌各1张以非公开形式加入自己的手牌。</ev>",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "【<color=Keyword>入场曲</color>】本随从+X/+X。X为自己的【<color=Keyword>连击</color>】。\n<hr><ev>【<color=Keyword>进化时</color>】舍弃自己的所有手牌。将对手的牌组中的随机5张卡牌的复制卡牌各1张以非公开形式加入自己的手牌。</ev>",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "f9579692adc07ebe3ffec346e128c81ee50879167911cd0e247cc1ae3c06745f",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "fanfare",
+            "evolve"
+          ],
+          "effect_kinds": [
+            "buff_unit",
+            "discard",
+            "copy_random_enemy_deck_to_hand"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_fusion_combo_cost_repose_sixteenth_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10514120": {
@@ -51650,52 +51753,6 @@
       "suggested_rule_file": "batch_中立.json"
     },
     {
-      "card_id": 10332210,
-      "name": "真理的研究设施",
-      "class_name": "巫师",
-      "card_type": "护符",
-      "cost": 3,
-      "ability_keywords": [
-        "倒数",
-        "策动"
-      ],
-      "hit_keywords": [
-        "策动",
-        "倒数",
-        "抽取"
-      ],
-      "confidence": "high",
-      "why_recommended": "Covered keywords: 策动, 倒数, 抽取",
-      "required_primitives": [
-        "策动",
-        "倒数",
-        "抽取"
-      ],
-      "suggested_rule_file": "batch_巫师.json"
-    },
-    {
-      "card_id": 10342110,
-      "name": "侮蔑的祈祷者",
-      "class_name": "龙族",
-      "card_type": "随从",
-      "cost": 5,
-      "ability_keywords": [
-        "守护",
-        "突进"
-      ],
-      "hit_keywords": [
-        "回合结束",
-        "回复(?!自己\\d+点(?:超进化点|进化点|能量点))"
-      ],
-      "confidence": "high",
-      "why_recommended": "Covered keywords: 回合结束, 回复(?!自己\\d+点(?:超进化点|进化点|能量点))",
-      "required_primitives": [
-        "回合结束",
-        "回复(?!自己\\d+点(?:超进化点|进化点|能量点))"
-      ],
-      "suggested_rule_file": "batch_龙族.json"
-    },
-    {
       "card_id": 10162130,
       "name": "大地守护神·米维",
       "class_name": "主教",
@@ -51805,33 +51862,6 @@
         "造成.*伤害"
       ],
       "suggested_rule_file": "batch_梦魇.json"
-    },
-    {
-      "card_id": 10514110,
-      "name": "脚踩天穹的《倒吊人》·罗弗拉德",
-      "class_name": "精灵",
-      "card_type": "随从",
-      "cost": 2,
-      "ability_keywords": [
-        "入场曲",
-        "进化时",
-        "连击"
-      ],
-      "hit_keywords": [
-        "入场曲",
-        "进化时",
-        "连击",
-        "舍弃"
-      ],
-      "confidence": "high",
-      "why_recommended": "Covered keywords: 入场曲, 进化时, 连击",
-      "required_primitives": [
-        "入场曲",
-        "进化时",
-        "连击",
-        "舍弃"
-      ],
-      "suggested_rule_file": "batch_精灵.json"
     },
     {
       "card_id": 10553310,
@@ -51980,35 +52010,6 @@
       "suggested_rule_file": "batch_龙族.json"
     },
     {
-      "card_id": 10324110,
-      "name": "篡夺的继承者·辛瑟莱兹",
-      "class_name": "皇家护卫",
-      "card_type": "随从",
-      "cost": 6,
-      "ability_keywords": [
-        "入场曲",
-        "融合",
-        "超进化时"
-      ],
-      "hit_keywords": [
-        "入场曲",
-        "进化时",
-        "超进化",
-        "造成.*伤害",
-        "融合"
-      ],
-      "confidence": "high",
-      "why_recommended": "Covered keywords: 入场曲, 进化时, 超进化",
-      "required_primitives": [
-        "入场曲",
-        "进化时",
-        "超进化",
-        "造成.*伤害",
-        "融合"
-      ],
-      "suggested_rule_file": "batch_皇家护卫.json"
-    },
-    {
       "card_id": 10564120,
       "name": "雾卷花·茎白",
       "class_name": "主教",
@@ -52067,6 +52068,133 @@
         "信仰"
       ],
       "suggested_rule_file": "batch_梦魇.json"
+    },
+    {
+      "card_id": 10362210,
+      "name": "安息的神殿",
+      "class_name": "主教",
+      "card_type": "护符",
+      "cost": 3,
+      "ability_keywords": [
+        "倒数",
+        "屏障",
+        "策动",
+        "谢幕曲"
+      ],
+      "hit_keywords": [
+        "谢幕曲",
+        "策动",
+        "倒数",
+        "回复(?!自己\\d+点(?:超进化点|进化点|能量点))",
+        "纹章",
+        "屏障"
+      ],
+      "confidence": "medium",
+      "why_recommended": "Covered keywords: 谢幕曲, 策动, 倒数",
+      "required_primitives": [
+        "谢幕曲",
+        "策动",
+        "倒数",
+        "回复(?!自己\\d+点(?:超进化点|进化点|能量点))",
+        "纹章"
+      ],
+      "suggested_rule_file": "batch_主教.json"
+    },
+    {
+      "card_id": 10554110,
+      "name": "充实的《恋人与节制》·米路缇欧&卢泽",
+      "class_name": "梦魇",
+      "card_type": "随从",
+      "cost": 7,
+      "ability_keywords": [
+        "亡者召还",
+        "入场曲",
+        "爆能强化",
+        "纹章"
+      ],
+      "hit_keywords": [
+        "入场曲",
+        "进化时",
+        "超进化",
+        "破坏",
+        "亡者召还",
+        "纹章",
+        "爆能强化"
+      ],
+      "confidence": "medium",
+      "why_recommended": "Covered keywords: 入场曲, 进化时, 超进化",
+      "required_primitives": [
+        "入场曲",
+        "进化时",
+        "超进化",
+        "破坏",
+        "亡者召还"
+      ],
+      "suggested_rule_file": "batch_梦魇.json"
+    },
+    {
+      "card_id": 10314110,
+      "name": "不弑的继承者·库露露",
+      "class_name": "精灵",
+      "card_type": "随从",
+      "cost": 4,
+      "ability_keywords": [
+        "倒数",
+        "入场曲",
+        "潜行",
+        "纹章",
+        "超进化时"
+      ],
+      "hit_keywords": [
+        "入场曲",
+        "进化时",
+        "超进化",
+        "倒数",
+        "回复(?!自己\\d+点(?:超进化点|进化点|能量点))",
+        "纹章"
+      ],
+      "confidence": "medium",
+      "why_recommended": "Covered keywords: 入场曲, 进化时, 超进化",
+      "required_primitives": [
+        "入场曲",
+        "进化时",
+        "超进化",
+        "倒数",
+        "回复(?!自己\\d+点(?:超进化点|进化点|能量点))"
+      ],
+      "suggested_rule_file": "batch_精灵.json"
+    },
+    {
+      "card_id": 10714110,
+      "name": "操量的安纳提玛·达斯特迪兹",
+      "class_name": "精灵",
+      "card_type": "随从",
+      "cost": 4,
+      "ability_keywords": [
+        "倒数",
+        "入场曲",
+        "纹章",
+        "进化时",
+        "连击"
+      ],
+      "hit_keywords": [
+        "入场曲",
+        "进化时",
+        "连击",
+        "回合结束",
+        "倒数",
+        "纹章"
+      ],
+      "confidence": "medium",
+      "why_recommended": "Covered keywords: 入场曲, 进化时, 连击",
+      "required_primitives": [
+        "入场曲",
+        "进化时",
+        "连击",
+        "回合结束",
+        "倒数"
+      ],
+      "suggested_rule_file": "batch_精灵.json"
     }
   ]
 }

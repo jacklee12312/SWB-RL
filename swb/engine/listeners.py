@@ -61,6 +61,7 @@ class EventCardFilter:
     card_name: str | None = None
     keyword: str | None = None
     enhanced: bool | None = None
+    cost_changed: bool | None = None
 
     def matches(
         self,
@@ -69,6 +70,7 @@ class EventCardFilter:
         event_keywords: tuple[str, ...] | frozenset[str] | None = None,
         *,
         enhanced: bool = False,
+        cost_changed: bool = False,
     ) -> bool:
         if definition is None:
             return False
@@ -86,6 +88,10 @@ class EventCardFilter:
             and (self.card_id is None or definition.card_id == self.card_id)
             and (self.card_name is None or definition.name == self.card_name)
             and (self.enhanced is None or self.enhanced is enhanced)
+            and (
+                self.cost_changed is None
+                or self.cost_changed is cost_changed
+            )
         ):
             return False
         if self.keyword is None:
