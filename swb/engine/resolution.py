@@ -43,6 +43,7 @@ from swb.engine.effects import (
     EffectOperation,
     ExprType,
     HandFilter,
+    LeaderDamageMode,
     MAX_RANDOM_DISTRIBUTION_TOTAL,
     MAX_REPEAT_COUNT,
     ModifierDuration,
@@ -206,6 +207,7 @@ _SOURCE_REQUIRED_SELF_TARGET_EFFECTS = frozenset({
     EffectKind.REMOVE_ATTACK_RESTRICTION,
     EffectKind.ADD_TARGETING_RESTRICTION,
     EffectKind.REMOVE_TARGETING_RESTRICTION,
+    EffectKind.REPLAY_SOURCE_FANFARE,
 })
 
 _EVENT_SOURCE_BOARD_EFFECTS = _SOURCE_REQUIRED_SELF_TARGET_EFFECTS | frozenset({
@@ -1235,6 +1237,9 @@ class GameEngine:
         source_spellboost_count: int = 0,
         source_cost: int = 0,
         distributed_value: int = 0,
+        listener_activation_count: int = 0,
+        event_source_entity_id: int | None = None,
+        event_source_base_cost: int | None = None,
         source_snapshot: SourceStateSnapshot | None = None,
         target_snapshot: BoundTargetSnapshot | None = None,
         bound_target_snapshots: (
@@ -1261,6 +1266,9 @@ class GameEngine:
             source_spellboost_count=source_spellboost_count,
             source_cost=source_cost,
             distributed_value=distributed_value,
+            listener_activation_count=listener_activation_count,
+            event_source_entity_id=event_source_entity_id,
+            event_source_base_cost=event_source_base_cost,
             source_snapshot=source_snapshot,
             target_snapshot=target_snapshot,
             bound_target_snapshots=bound_target_snapshots,
@@ -2579,7 +2587,9 @@ class GameEngine:
         child.listener_activation_definition_index = (
             parent.listener_activation_definition_index
         )
+        child.listener_activation_count = parent.listener_activation_count
         child.event_source_entity_id = parent.event_source_entity_id
+        child.event_source_base_cost = parent.event_source_base_cost
         child.attack_target_entity_id = parent.attack_target_entity_id
         child.distributed_value = (
             parent.distributed_value
@@ -3120,6 +3130,7 @@ class GameEngine:
             ),
             "cooperation": player.cooperation,
             "shadows": player.shadows,
+            "leader_barrier_charges": player.leader_barrier_charges,
             "leader_damage_modifiers": tuple(
                 (
                     modifier.modifier_id,
@@ -3129,6 +3140,7 @@ class GameEngine:
                     modifier.source_controller,
                     modifier.source_entity_id,
                     modifier.source_card_id,
+                    modifier.mode,
                 )
                 for modifier in player.leader_damage_modifiers
             ),
@@ -3562,7 +3574,9 @@ class GameEngine:
             "listener_activation_definition_index": (
                 frame.listener_activation_definition_index
             ),
+            "listener_activation_count": frame.listener_activation_count,
             "event_source_entity_id": frame.event_source_entity_id,
+            "event_source_base_cost": frame.event_source_base_cost,
             "attack_target_entity_id": frame.attack_target_entity_id,
             "emblem_expiration_batch_id": frame.emblem_expiration_batch_id,
             "expiring_emblem_owner": frame.expiring_emblem_owner,
@@ -3597,6 +3611,7 @@ class GameEngine:
             self._expression_fingerprint(operation.amount_expr),
             self._expression_fingerprint(operation.secondary_expr),
             None if operation.mode is None else operation.mode.value,
+            operation.leader_damage_mode.value,
             operation.duration.value,
             operation.set_attack,
             operation.set_health,
@@ -4445,13 +4460,71 @@ class GameEngine:
         damage_type: DamageType,
         controller: int,
     ) -> DamageResult:
+        requested_amount = amount
         health_before = target_player.health
-        modifier_amount = sum(
-            modifier.amount
+        active_modifiers = tuple(
+            modifier
             for modifier in target_player.leader_damage_modifiers
             if self._leader_damage_modifier_active(modifier)
         )
+        modifier_amount = sum(
+            modifier.amount
+            for modifier in active_modifiers
+            if modifier.mode == LeaderDamageMode.ADDITIVE.value
+        )
         modified_amount = max(0, amount + modifier_amount)
+        replacement_modifier_ids = tuple(
+            modifier.modifier_id
+            for modifier in active_modifiers
+            if modifier.mode == LeaderDamageMode.SET_ZERO_IF_POSITIVE.value
+        )
+        prevented = 0
+        barrier_consumed = False
+        if modified_amount > 0 and replacement_modifier_ids:
+            prevented = modified_amount
+            modified_amount = 0
+            self._emit(GameEvent(
+                EventType.DAMAGE_PREVENTED,
+                controller,
+                source_id=(
+                    source.entity_id if hasattr(source, "entity_id") else None
+                ),
+                amount=prevented,
+                metadata={
+                    "target_player": self.players.index(target_player),
+                    "leader_damage_replacement": True,
+                    "damage_type": damage_type.value,
+                    "requested_amount": requested_amount,
+                    "modifier_ids": replacement_modifier_ids,
+                },
+            ))
+        elif modified_amount > 0 and target_player.leader_barrier_charges > 0:
+            target_player.leader_barrier_charges -= 1
+            prevented = modified_amount
+            modified_amount = 0
+            barrier_consumed = True
+            target_index = self.players.index(target_player)
+            self._emit(GameEvent(
+                EventType.DAMAGE_PREVENTED,
+                controller,
+                source_id=(
+                    source.entity_id if hasattr(source, "entity_id") else None
+                ),
+                amount=prevented,
+                metadata={
+                    "target_player": target_index,
+                    "barrier": True,
+                    "damage_type": damage_type.value,
+                },
+            ))
+            self._emit(GameEvent(
+                EventType.BARRIER_CONSUMED,
+                controller,
+                metadata={
+                    "target_player": target_index,
+                    "leader_barrier": True,
+                },
+            ))
         actual = min(modified_amount, health_before)
         target_player.health -= actual
 
@@ -4464,6 +4537,8 @@ class GameEngine:
                 "damage_type": damage_type.value,
                 "base_amount": amount,
                 "modifier_amount": modifier_amount,
+                "replacement_modifier_ids": replacement_modifier_ids,
+                "barrier_consumed": barrier_consumed,
             },
         ))
 
@@ -4493,10 +4568,12 @@ class GameEngine:
                 ))
 
         return DamageResult(
-            requested_amount=amount,
+            requested_amount=requested_amount,
+            prevented_amount=prevented,
             actual_amount=actual,
             target_health_before=health_before,
             target_health_after=target_player.health,
+            barrier_consumed=barrier_consumed,
             lethal=target_player.health <= 0,
         )
 
@@ -7312,6 +7389,9 @@ class GameEngine:
             source_spellboost_count=frame.source_spellboost_count,
             source_cost=frame.source_cost,
             distributed_value=frame.distributed_value,
+            listener_activation_count=frame.listener_activation_count,
+            event_source_entity_id=frame.event_source_entity_id,
+            event_source_base_cost=frame.event_source_base_cost,
             source_snapshot=frame.source_snapshot,
             attack_target_entity_id=frame.attack_target_entity_id,
             bound_target_snapshots=frame._target_binding_snapshots,
@@ -8094,6 +8174,8 @@ class GameEngine:
             self._execute_grant_turn_end_destroy(effect, frame, target_id)
         elif effect.kind is EffectKind.GRANT_TURN_END_BANISH:
             self._execute_grant_turn_end_banish(effect, frame, target_id)
+        elif effect.kind is EffectKind.ADD_LEADER_BARRIER:
+            self._execute_add_leader_barrier(effect, frame)
         elif effect.kind is EffectKind.ADD_LEADER_DAMAGE_MODIFIER:
             self._execute_add_leader_damage_modifier(effect, frame)
         elif effect.kind is EffectKind.CHANGE_COST:
@@ -8174,6 +8256,8 @@ class GameEngine:
             self._execute_target_exists(effect, frame)
         elif effect.kind is EffectKind.REPEAT:
             self._execute_repeat(effect, frame)
+        elif effect.kind is EffectKind.REPLAY_SOURCE_FANFARE:
+            self._execute_replay_source_fanfare(frame, target_id)
         else:
             self._log(
                 frame.controller,
@@ -8534,6 +8618,7 @@ class GameEngine:
             source_controller=frame.controller if source_bound else None,
             source_entity_id=frame.source_entity_id if source_bound else None,
             source_card_id=frame.source_card_id if source_bound else None,
+            mode=effect.leader_damage_mode.value,
         )
         self.players[player_index].leader_damage_modifiers.append(modifier)
         self._emit(GameEvent(
@@ -8545,8 +8630,52 @@ class GameEngine:
                 "target_player": player_index,
                 "duration": effect.duration.value,
                 "modifier_id": modifier.modifier_id,
+                "damage_mode": effect.leader_damage_mode.value,
             },
         ))
+
+    def _execute_add_leader_barrier(
+        self,
+        effect: EffectOperation,
+        frame: EffectFrame,
+    ) -> None:
+        player_index = (
+            frame.controller
+            if effect.target is TargetKind.OWN_LEADER
+            else 1 - frame.controller
+        )
+        player = self.players[player_index]
+        player.leader_barrier_charges += effect.amount
+        self._emit(GameEvent(
+            EventType.LEADER_BARRIER_GRANTED,
+            frame.controller,
+            source_id=frame.source_entity_id,
+            amount=effect.amount,
+            metadata={
+                "target_player": player_index,
+                "charges": player.leader_barrier_charges,
+            },
+        ))
+
+    def _execute_replay_source_fanfare(
+        self,
+        frame: EffectFrame,
+        target_id: int | None,
+    ) -> None:
+        source = self._find_board_entity(target_id)
+        if not isinstance(source, Unit) or source.entity_id != frame.source_entity_id:
+            return
+        operations = self.rulebook.operations_for(
+            source.definition.card_id,
+            Trigger.FANFARE,
+        )
+        if not operations:
+            return
+        self._queue_effects_from_frame(
+            frame,
+            operations,
+            label=f"{frame.label}/replay_fanfare",
+        )
 
     def _execute_grant_attacks_per_turn(
         self,
@@ -11156,7 +11285,16 @@ class GameEngine:
             frame.listener_activation_entity_id = entity_id
             frame.listener_activation_card_id = card_id
             frame.listener_activation_definition_index = definition_index
+            frame.listener_activation_count = activation_count
             frame.event_source_entity_id = batch.get("event_source_id")
+            event_base_cost = batch.get("event_metadata", {}).get("base_cost")
+            frame.event_source_base_cost = (
+                event_base_cost
+                if isinstance(event_base_cost, int)
+                and not isinstance(event_base_cost, bool)
+                and event_base_cost >= 0
+                else None
+            )
             return
         self._listener_batches.pop(batch_id, None)
 
@@ -11492,6 +11630,9 @@ class GameEngine:
             source_spellboost_count=frame.source_spellboost_count,
             source_cost=frame.source_cost,
             distributed_value=frame.distributed_value,
+            listener_activation_count=frame.listener_activation_count,
+            event_source_entity_id=frame.event_source_entity_id,
+            event_source_base_cost=frame.event_source_base_cost,
             source_snapshot=frame.source_snapshot,
             attack_target_entity_id=frame.attack_target_entity_id,
             target_snapshot=target_snapshot,
@@ -14200,6 +14341,14 @@ class GameEngine:
                     f"Invariant failed: {prefix} health out of range: "
                     f"{player.health}/{player.max_health}"
                 )
+            if (
+                isinstance(player.leader_barrier_charges, bool)
+                or not isinstance(player.leader_barrier_charges, int)
+                or player.leader_barrier_charges < 0
+            ):
+                raise IllegalCommand(
+                    f"Invariant failed: {prefix} leader barrier charges are invalid"
+                )
             modifier_ids = [
                 modifier.modifier_id
                 for modifier in player.leader_damage_modifiers
@@ -14224,6 +14373,11 @@ class GameEngine:
                         raise IllegalCommand(
                             f"Invariant failed: {prefix} source-bound leader modifier is invalid"
                         )
+                if modifier.mode not in {mode.value for mode in LeaderDamageMode}:
+                    raise IllegalCommand(
+                        f"Invariant failed: {prefix} leader damage modifier "
+                        "mode is invalid"
+                    )
             for name, value in (
                 ("fatigue", player.fatigue),
                 ("evolution_points", player.evolution_points),
@@ -15194,10 +15348,34 @@ class GameEngine:
                     raise IllegalCommand(
                         f"Invariant failed: {zone} listener definition index invalid"
                     )
+                if (
+                    isinstance(frame.listener_activation_count, bool)
+                    or not isinstance(frame.listener_activation_count, int)
+                    or frame.listener_activation_count < 1
+                ):
+                    raise IllegalCommand(
+                        f"Invariant failed: {zone} listener activation count invalid"
+                    )
+            elif frame.listener_activation_count != 0:
+                raise IllegalCommand(
+                    f"Invariant failed: {zone} listener activation count "
+                    "requires listener context"
+                )
             check_positive_int(
                 frame.event_source_entity_id,
                 "event_source_entity_id",
             )
+            if (
+                frame.event_source_base_cost is not None
+                and (
+                    isinstance(frame.event_source_base_cost, bool)
+                    or not isinstance(frame.event_source_base_cost, int)
+                    or frame.event_source_base_cost < 0
+                )
+            ):
+                raise IllegalCommand(
+                    f"Invariant failed: {zone} event source base cost invalid"
+                )
             check_positive_int(
                 frame.attack_target_entity_id,
                 "attack_target_entity_id",

@@ -10,13 +10,13 @@ code and tests as the source of truth when this file drifts.
 - Database: 826 cards, 735 collectible cards, 91 non-collectible/generated
   cards from set `90000`.
 - Latest SVA source: `https://sva.hypd.asia/data/cards.json`.
-- Tests: `python -m unittest discover -s tests -v` discovers 2467 behavioral
-  contracts (2026-07-25 eighteenth destroyed-history/bulk-zone verification).
+- Tests: `python -m unittest discover -s tests -v` discovers 2476 behavioral
+  contracts (2026-07-25 nineteenth listener-context/leader-runtime verification).
 - RL adapter: fixed 111-action space; the default v1 observation is 294
   floats, opt-in v2 preserves the structured compatibility mapping, and v3
   supplies fixed-dtype NumPy arrays plus a Gymnasium observation space without
   changing action IDs. Hidden decklists are the v3 default.
-- The exact-audit `TrainableCardCatalog` currently admits all 708 exact
+- The exact-audit `TrainableCardCatalog` currently admits all 713 exact
   collectible cards, preloads all 826 definitions for SQLite-free matches, and
   provides deterministic class-valid deck sampling. Self-play no longer uses
   the legacy 2-to-5-card follower pool.
@@ -48,9 +48,9 @@ code and tests as the source of truth when this file drifts.
   and distribution acceptance results, not policy-strength evidence.
 - Ability registry status: 18 implemented, 5 partial, 11 placeholder.
 - Explicit card and demo rules live in `data/rules/`; the current coverage
-  report classifies 812 card IDs with explicit rules, passives, fusion,
+  report classifies 817 card IDs with explicit rules, passives, fusion,
   invocation, activation, Faith, Union Burst, or listener definitions. Current
-  collectible coverage is 708 exact (96.33% of 735), 0 partial, 11 supported-but-missing-rule,
+  collectible coverage is 713 exact (97.01% of 735), 0 partial, 6 supported-but-missing-rule,
   0 missing-primitive, and 16 text-unclear cards.
 - `data/reports/token_audit.{json,md}` audits all 91 non-collectible/generated
   cards independently of collectible coverage. Database `card_references` and
@@ -65,7 +65,7 @@ code and tests as the source of truth when this file drifts.
   separate column and is covered for all 34; it does not automatically promote
   the 5 partial or 11 placeholder keyword statuses.
 - Coverage now has a backward-compatible clause audit. The legacy summary still
-  reports 708 exact collectible cards, and all 708 now have an explicit exact
+  reports 713 exact collectible cards, and all 713 now have an explicit exact
   text mapping plus named direct test evidence. The versioned sibling registry
   at `data/audits/rule_clauses.json` hashes every imported primary and
   alternate-mode clause; changed source text or stale test evidence invalidates
@@ -74,7 +74,7 @@ code and tests as the source of truth when this file drifts.
   rule version and errata metadata, structured trigger/operation evidence,
   explicit unsupported text, and a stable blocker taxonomy. There are zero
   unverified exact entries and no known missing schema, primitive, targeting,
-  or timing blocker among authored rules. The 11 supported-but-missing-rule
+  or timing blocker among authored rules. The 6 supported-but-missing-rule
   cards are now the per-card structured-content backlog; 16 unclear texts
   remain explicit.
 - RL observation v2 is available behind an explicit version switch. A
@@ -1516,6 +1516,20 @@ slice in this order:
   simultaneous state checks, seeded replay, multilingual/reference/raw-source
   hashes, Clause/Token consistency, and command/action-mask parity.
   Observation `observation-v3.3` and all 111 action IDs remain unchanged.
+- Exact file
+  `data/rules/real_listener_context_leader_runtime_nineteenth_batch.json`
+  closes five collectibles (`10362210`, `10444120`, `10503210`, `10604110`,
+  and `10703210`), bringing collectible exact coverage to 713/735 (97.01%).
+  Generic frozen listener event-base-cost and activation-count context, public
+  leader Barrier charges, ordered positive-damage replacement, and source
+  Fanfare replay implement the shared mechanics without card-ID branches.
+  Direct tests cover normal, no-target, source-leave, hand-capacity, illegal
+  and stale choice paths, Barrier/replacement priority, countdown and duration
+  boundaries, persistent three-step listener order, bounded seeded recursion,
+  multilingual/reference/raw-source hashes, Clause/Token consistency, and
+  command/action-mask parity. V1 remains 294 floats and all 111 action IDs stay
+  stable; public leader Barrier and replacement-mode inputs advance v2/v3's
+  formal schema to `observation-v3.4`.
 
 ## Known Partial Or Unsupported Areas
 

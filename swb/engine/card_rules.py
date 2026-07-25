@@ -19,6 +19,7 @@ from swb.engine.effects import (
     EffectOperation,
     ExprType,
     HandFilter,
+    LeaderDamageMode,
     MAX_REPEAT_COUNT,
     ModifierDuration,
     TargetKind,
@@ -3672,6 +3673,42 @@ def _parse_operation(
                 f"{source_file}/amount card {card_id}: "
                 "add_leader_damage_modifier requires an integer amount"
             )
+    if kind is EffectKind.ADD_LEADER_BARRIER:
+        unknown_barrier_keys = set(raw) - {
+            "kind", "target", "amount", "conditions",
+        }
+        if unknown_barrier_keys:
+            raise ValueError(
+                f"{error_prefix}: add_leader_barrier has unknown fields "
+                f"{sorted(unknown_barrier_keys)}"
+            )
+        if target not in (TargetKind.OWN_LEADER, TargetKind.ENEMY_LEADER):
+            raise ValueError(
+                f"{source_file}/target card {card_id}: "
+                "add_leader_barrier requires a leader target"
+            )
+        if (
+            raw_amount is None
+            or isinstance(raw_amount, bool)
+            or not isinstance(raw_amount, int)
+            or raw_amount < 1
+        ):
+            raise ValueError(
+                f"{source_file}/amount card {card_id}: "
+                "add_leader_barrier requires a positive integer amount"
+            )
+    if kind is EffectKind.REPLAY_SOURCE_FANFARE:
+        unknown_replay_keys = set(raw) - {"kind", "target", "conditions"}
+        if unknown_replay_keys:
+            raise ValueError(
+                f"{error_prefix}: replay_source_fanfare has unknown fields "
+                f"{sorted(unknown_replay_keys)}"
+            )
+        if target is not TargetKind.SELF:
+            raise ValueError(
+                f"{source_file}/target card {card_id}: "
+                "replay_source_fanfare requires target 'self'"
+            )
 
     restriction = raw.get("restriction")
     if kind in (
@@ -3718,6 +3755,33 @@ def _parse_operation(
                 f"{source_file}/mode card {card_id}: invalid cost mode "
                 f"{raw_mode!r}"
             ) from exc
+
+    leader_damage_mode = LeaderDamageMode.ADDITIVE
+    if kind is EffectKind.ADD_LEADER_DAMAGE_MODIFIER:
+        raw_leader_damage_mode = raw.get(
+            "damage_mode",
+            LeaderDamageMode.ADDITIVE.value,
+        )
+        try:
+            leader_damage_mode = LeaderDamageMode(raw_leader_damage_mode)
+        except ValueError as exc:
+            raise ValueError(
+                f"{source_file}/damage_mode card {card_id}: invalid leader "
+                f"damage mode {raw_leader_damage_mode!r}"
+            ) from exc
+        if (
+            leader_damage_mode is LeaderDamageMode.SET_ZERO_IF_POSITIVE
+            and raw_amount != 0
+        ):
+            raise ValueError(
+                f"{source_file}/amount card {card_id}: "
+                "set_zero_if_positive requires amount 0"
+            )
+    elif "damage_mode" in raw:
+        raise ValueError(
+            f"{source_file}/damage_mode card {card_id}: damage_mode is only "
+            "valid for add_leader_damage_modifier"
+        )
 
     if kind is EffectKind.CHANGE_DECK_COST:
         if target is not TargetKind.OWN_LEADER:
@@ -5500,6 +5564,7 @@ def _parse_operation(
         amount_expr=amount_expr,
         secondary_expr=secondary_expr,
         mode=mode,
+        leader_damage_mode=leader_damage_mode,
         duration=duration,
         set_attack=(
             kind is EffectKind.SET_STATS
@@ -5623,6 +5688,7 @@ def _parse_condition(raw: dict, source_path: str, card_id: int) -> Condition:
         ConditionType.CONTROLLER_HAND_SAME_CURRENT_COST_COUNT_AT_LEAST,
         ConditionType.CONTROLLER_ENTERED_FOLLOWER_DISTINCT_COUNT_AT_LEAST,
         ConditionType.CONTROLLER_ENTERED_FOLLOWER_COUNT_AT_LEAST,
+        ConditionType.LISTENER_ACTIVATION_COUNT_EQUALS,
     )
     if t in cooperation_threshold_types:
         if "value" not in raw:
@@ -5644,6 +5710,19 @@ def _parse_condition(raw: dict, source_path: str, card_id: int) -> Condition:
         raise ValueError(
             f"{source_path}/value card {card_id}: {t.value!r} requires a "
             "positive integer"
+        )
+    if t == ConditionType.LISTENER_ACTIVATION_COUNT_EQUALS and value < 1:
+        raise ValueError(
+            f"{source_path}/value card {card_id}: {t.value!r} requires a "
+            "positive integer"
+        )
+    if (
+        t == ConditionType.BOARD_HAS_OTHER_CARD_WITH_EVENT_SOURCE_BASE_COST
+        and "value" in raw
+    ):
+        raise ValueError(
+            f"{source_path}/value card {card_id}: {t.value!r} does not accept "
+            "a value"
         )
 
     keyword = raw.get("keyword")

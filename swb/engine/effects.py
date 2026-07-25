@@ -79,6 +79,10 @@ class ConditionType(str, Enum):
     CONTROLLER_ENTERED_FOLLOWER_COUNT_AT_LEAST = (
         "controller_entered_follower_count_at_least"
     )
+    BOARD_HAS_OTHER_CARD_WITH_EVENT_SOURCE_BASE_COST = (
+        "board_has_other_card_with_event_source_base_cost"
+    )
+    LISTENER_ACTIVATION_COUNT_EQUALS = "listener_activation_count_equals"
 
 
 class ExprType(str, Enum):
@@ -200,6 +204,7 @@ class EffectKind(str, Enum):
     GRANT_ATTACKS_PER_TURN = "grant_attacks_per_turn"
     GRANT_TURN_END_DESTROY = "grant_turn_end_destroy"
     GRANT_TURN_END_BANISH = "grant_turn_end_banish"
+    ADD_LEADER_BARRIER = "add_leader_barrier"
     ADD_LEADER_DAMAGE_MODIFIER = "add_leader_damage_modifier"
     CHANGE_COST = "change_cost"
     CHANGE_DECK_COST = "change_deck_cost"
@@ -252,6 +257,7 @@ class EffectKind(str, Enum):
     REPEAT = "repeat"
     RANDOM_CHOICE = "random_choice"
     RANDOM_DISTRIBUTE = "random_distribute"
+    REPLAY_SOURCE_FANFARE = "replay_source_fanfare"
 
 
 class CandidateExtreme(str, Enum):
@@ -324,6 +330,11 @@ class ModifierDuration(str, Enum):
     UNTIL_END_OF_OPPONENT_TURN = "until_end_of_opponent_turn"
     UNTIL_START_OF_CONTROLLER_NEXT_TURN = "until_start_of_controller_next_turn"
     WHILE_SOURCE_IN_PLAY = "while_source_in_play"
+
+
+class LeaderDamageMode(str, Enum):
+    ADDITIVE = "additive"
+    SET_ZERO_IF_POSITIVE = "set_zero_if_positive"
 
 
 class TurnEndDestroyTiming(str, Enum):
@@ -577,6 +588,7 @@ class EffectOperation:
     include_leader: bool = False
     turn_end_destroy_timing: TurnEndDestroyTiming | None = None
     turn_end_banish_timing: TurnEndDestroyTiming | None = None
+    leader_damage_mode: LeaderDamageMode = LeaderDamageMode.ADDITIVE
 
 
 @dataclass(frozen=True)
@@ -648,7 +660,9 @@ class EffectFrame:
     listener_activation_entity_id: int | None = None
     listener_activation_card_id: int | None = None
     listener_activation_definition_index: int | None = None
+    listener_activation_count: int = 0
     event_source_entity_id: int | None = None
+    event_source_base_cost: int | None = None
     attack_target_entity_id: int | None = None
     emblem_expiration_batch_id: int | None = None
     expiring_emblem_owner: int | None = None

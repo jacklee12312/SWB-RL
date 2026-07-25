@@ -1,0 +1,227 @@
+{
+  "activations": [
+    {"card_id": 10362210, "cost": 0},
+    {"card_id": 10703210, "cost": 1}
+  ],
+  "listeners": [
+    {
+      "card_id": 10503210,
+      "zone": "board",
+      "event": "card_played",
+      "event_scope": "owner_event",
+      "source_relation": "other",
+      "operations": [
+        {
+          "kind": "conditional",
+          "target": "own_leader",
+          "conditions": [
+            {
+              "type": "board_has_other_card_with_event_source_base_cost"
+            }
+          ],
+          "then": [
+            {"kind": "reduce_countdown", "target": "self", "amount": 1}
+          ]
+        }
+      ]
+    },
+    {
+      "card_id": 10703210,
+      "zone": "board",
+      "event": "turn_end",
+      "event_scope": "owner_event",
+      "source_relation": "any",
+      "max_activations": 3,
+      "operations": [
+        {
+          "kind": "conditional",
+          "target": "own_leader",
+          "conditions": [
+            {"type": "listener_activation_count_equals", "value": 1}
+          ],
+          "then": [
+            {
+              "kind": "damage_unit",
+              "target": "random_enemy_unit",
+              "amount": 2
+            }
+          ]
+        },
+        {
+          "kind": "conditional",
+          "target": "own_leader",
+          "conditions": [
+            {"type": "listener_activation_count_equals", "value": 2}
+          ],
+          "then": [
+            {"kind": "heal_leader", "target": "own_leader", "amount": 2}
+          ]
+        },
+        {
+          "kind": "conditional",
+          "target": "own_leader",
+          "conditions": [
+            {"type": "listener_activation_count_equals", "value": 3}
+          ],
+          "then": [
+            {"kind": "damage_leader", "target": "enemy_leader", "amount": 2},
+            {"kind": "destroy", "target": "self"}
+          ]
+        }
+      ]
+    }
+  ],
+  "rules": [
+    {
+      "card_id": 10362210,
+      "trigger": "play",
+      "countdown": 4,
+      "coverage": "exact",
+      "implemented_text": "【吟唱】_4\n【谢幕曲】回复自己的主战者2点生命值，使自己的主战者获得【屏障】。\n【启动】使本护符的倒计数-X。X为自己拥有的纹章数。",
+      "operations": []
+    },
+    {
+      "card_id": 10362210,
+      "trigger": "activate",
+      "operations": [
+        {
+          "kind": "reduce_countdown",
+          "target": "self",
+          "amount": {"type": "controller_emblem_count"}
+        }
+      ]
+    },
+    {
+      "card_id": 10362210,
+      "trigger": "last_words",
+      "operations": [
+        {"kind": "heal_leader", "target": "own_leader", "amount": 2},
+        {"kind": "add_leader_barrier", "target": "own_leader", "amount": 1}
+      ]
+    },
+    {
+      "card_id": 10444120,
+      "trigger": "fanfare",
+      "coverage": "exact",
+      "implemented_text": "【入场曲】使自己的能量点最大值+1。\n【爆能强化_10】本随从获得【疾驰】。使自己的主战者的生命值最大值变为1。到对手的回合结束为止，自己的主战者获得「受到的1点以上的伤害变为0点」。",
+      "operations": [
+        {"kind": "change_max_mana", "target": "own_leader", "amount": 1}
+      ],
+      "play_modes": [
+        {
+          "id": "enhance_10",
+          "type": "enhance",
+          "cost": 10,
+          "operations": [
+            {"kind": "add_keyword", "target": "self", "keyword": "疾驰"},
+            {
+              "kind": "set_leader_max_health",
+              "target": "own_leader",
+              "amount": 1
+            },
+            {
+              "kind": "add_leader_damage_modifier",
+              "target": "own_leader",
+              "amount": 0,
+              "damage_mode": "set_zero_if_positive",
+              "duration": "until_end_of_opponent_turn"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "card_id": 10503210,
+      "trigger": "play",
+      "countdown": 5,
+      "coverage": "exact",
+      "implemented_text": "【吟唱】_5\n每当自己使用其他卡牌时，若战场上存在1张该卡牌以外且原始费用与该卡牌相同的卡牌，则本护符的倒计数-1。\n【谢幕曲】抽取2张卡牌。",
+      "operations": []
+    },
+    {
+      "card_id": 10503210,
+      "trigger": "last_words",
+      "operations": [
+        {"kind": "draw", "target": "own_leader", "amount": 2}
+      ]
+    },
+    {
+      "card_id": 10604110,
+      "trigger": "fanfare",
+      "coverage": "exact",
+      "implemented_text": "【入场曲】从下列能力中随机发动2种。\n（1）随机破坏对手战场上的1个随从。\n（2）对对手的主战者造成2点伤害。\n（3）回复自己的2点能量。\n（4）本随从+4/+4。发动1次本随从的【入场曲】能力。\n【超进化时】发动1次本随从的【入场曲】能力。",
+      "operations": [
+        {
+          "kind": "random_choice",
+          "target": "own_leader",
+          "amount": 2,
+          "options": [
+            {
+              "id": "destroy_random_enemy_follower",
+              "operations": [
+                {"kind": "destroy", "target": "random_enemy_unit"}
+              ]
+            },
+            {
+              "id": "damage_enemy_leader",
+              "operations": [
+                {"kind": "damage_leader", "target": "enemy_leader", "amount": 2}
+              ]
+            },
+            {
+              "id": "restore_mana",
+              "operations": [
+                {"kind": "restore_mana", "target": "own_leader", "amount": 2}
+              ]
+            },
+            {
+              "id": "buff_and_replay",
+              "operations": [
+                {
+                  "kind": "buff_unit",
+                  "target": "self",
+                  "amount": 4,
+                  "secondary_amount": 4
+                },
+                {"kind": "replay_source_fanfare", "target": "self"}
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "card_id": 10604110,
+      "trigger": "super_evolve",
+      "operations": [
+        {"kind": "replay_source_fanfare", "target": "self"}
+      ]
+    },
+    {
+      "card_id": 10703210,
+      "trigger": "play",
+      "countdown": 1,
+      "coverage": "exact",
+      "implemented_text": "【吟唱】_1\n自己的回合结束时，依次发动1个能力。\n（1）对对手战场上的随机1个随从造成2点伤害。\n（2）回复自己的主战者2点生命值。\n（3）对对手的主战者造成2点伤害，破坏本护符。\n费用1【启动】选择自己的手牌中的1张卡牌并舍弃，使本护符的倒计数+1。",
+      "operations": []
+    },
+    {
+      "card_id": 10703210,
+      "trigger": "activate",
+      "operations": [
+        {
+          "kind": "select_targets",
+          "target": "own_hand",
+          "target_key": "babelon_discard",
+          "requires_target": true
+        },
+        {
+          "kind": "discard",
+          "target": "previous_target",
+          "target_key": "babelon_discard"
+        },
+        {"kind": "increase_countdown", "target": "self", "amount": 1}
+      ]
+    }
+  ]
+}

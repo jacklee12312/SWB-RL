@@ -61,6 +61,7 @@ def encode_observation_v3(
         *leader["leader_damage_modifier_counts"],
         *leader["leader_damage_modifier_totals"],
         *leader["leader_damage_modifier_runtime"],
+        *leader["leader_barrier_charges"],
         *leader["leader_max_healths"],
     )
     choice_categorical = (
@@ -115,7 +116,8 @@ def observation_v3_space(env: ShadowverseEnv) -> spaces.Dict:
         3 * 2 * MAX_LEADER_AREA_SLOTS
         + 2
         + 2
-        + 2 * MAX_LEADER_DAMAGE_MODIFIERS * 5
+        + 2 * MAX_LEADER_DAMAGE_MODIFIERS * 6
+        + 2
         + 2
     )
     choice_size = 4 + 2 * env.MAX_CHOICE_OPTIONS

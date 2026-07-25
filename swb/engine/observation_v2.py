@@ -231,11 +231,12 @@ def _leader_modifier_runtime(
                 modifier.source_entity_id is not None
                 and modifier.source_entity_id in public_entity_ids
             ),
+            float(modifier.mode == "set_zero_if_positive"),
         ))
     padding = MAX_LEADER_DAMAGE_MODIFIERS - min(
         len(player.leader_damage_modifiers), MAX_LEADER_DAMAGE_MODIFIERS
     )
-    values.extend([0.0] * padding * 5)
+    values.extend([0.0] * padding * 6)
     return tuple(values)
 
 
@@ -367,6 +368,10 @@ def encode_observation_v2(
                 *_leader_modifier_runtime(env, me, perspective),
                 *_leader_modifier_runtime(env, opponent, perspective),
             ),
+            "leader_barrier_charges": (
+                me.leader_barrier_charges,
+                opponent.leader_barrier_charges,
+            ),
             "empty_deck_outcomes": (
                 int(me.empty_deck_outcome is EmptyDeckOutcome.VICTORY),
                 int(opponent.empty_deck_outcome is EmptyDeckOutcome.VICTORY),
@@ -413,8 +418,9 @@ def observation_v2_spec(env: ShadowverseEnv) -> dict[str, object]:
         "public_board_keyword_bits": 2 * env.MAX_BOARD * len(RUNTIME_KEYWORDS),
         "leader_area_slots_per_player": MAX_LEADER_AREA_SLOTS,
         "leader_damage_modifier_runtime": (
-            2 * MAX_LEADER_DAMAGE_MODIFIERS * 5
+            2 * MAX_LEADER_DAMAGE_MODIFIERS * 6
         ),
+        "leader_barrier_charges": 2,
         "empty_deck_outcomes": 2,
         "leader_max_healths": 2,
         "choice_options": env.MAX_CHOICE_OPTIONS,

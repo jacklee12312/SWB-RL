@@ -38,14 +38,14 @@ covered generic boundary, but that never upgrades a partial or placeholder
 keyword whose full tagged-card semantics still require structured rules.
 
 The [rule coverage report](data/reports/rule_coverage.md) now includes a
-clause-audit layer without changing its legacy coverage categories. Of 708
-exact collectible cards (96.33% of 735), all 708 have explicit implemented text and named direct
+clause-audit layer without changing its legacy coverage categories. Of 713
+exact collectible cards (97.01% of 735), all 713 have explicit implemented text and named direct
 test evidence. The sibling `data/audits/rule_clauses.json` registry hashes every
 imported skill and alternate-mode clause, so a database text change or stale
 test reference invalidates the audit instead of silently retaining exact
 status. The current report has no unverified exact entry or missing generic
 schema, primitive, targeting, or timing blocker. Its remaining collectible gaps
-are 11 missing per-card structured rules plus 16 explicitly unclear texts.
+are 6 missing per-card structured rules plus 16 explicitly unclear texts.
 Rule metadata also supports version and errata fields, and the report
 records the complete imported source snapshot hash.
 
@@ -550,6 +550,22 @@ The deterministic rules core supports:
   seeded replay, multilingual/reference/raw-source hashes, Clause/Token
   consistency, illegal-choice atomicity, and command/action-mask parity.
   Observation `observation-v3.3` and all 111 action IDs remain unchanged;
+- frozen listener event base-cost and activation-count context, public leader
+  Barrier charges, ordered leader-damage replacement, and generic source
+  Fanfare replay close exact `10362210`, `10444120`, `10503210`, `10604110`,
+  and `10703210`, bringing exact collectible coverage to 713/735 (97.01%).
+  Temple of Repose advances by the live crest count and grants a one-hit leader
+  Barrier; enhanced Zooey sets max defense to 1 and replaces positive incoming
+  damage through the opponent-turn boundary; World of Games compares the
+  played card's frozen base cost against every other field card; Omegotep uses
+  distinct seeded random choices and bounded recursive Fanfare replay; and
+  Babelon consumes its persistent listener count for the printed three-step
+  sequence. Direct tests cover no-target/source-leave paths, hand capacity,
+  illegal-choice atomicity, seeded recursion, countdown/turn boundaries,
+  command/action-mask parity, multilingual/raw-source hashes, and Clause/Token
+  consistency. Public leader Barrier and damage-replacement mode advance the
+  formal schema to `observation-v3.4`; v1 remains 294 floats and all 111 action
+  IDs remain stable;
 - filtered hand-count conditions reuse the same type/class/identity/trait
   definition filters as hand targeting. Exact `10521120` counts only spells
   before conditionally gaining +1/+1 and Ward, while exact `10741120` and

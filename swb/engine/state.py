@@ -9,7 +9,12 @@ from swb.db.repository import CardDefinition
 from swb.engine.abilities import RUNTIME_UNIT_KEYWORDS, normalize_keyword_name
 from swb.engine.emblem import EmblemDefinition
 from swb.engine.faith import FaithInstance
-from swb.engine.effects import EffectOperation, EmptyDeckOutcome, TurnEndDestroyTiming
+from swb.engine.effects import (
+    EffectOperation,
+    EmptyDeckOutcome,
+    LeaderDamageMode,
+    TurnEndDestroyTiming,
+)
 from swb.engine.origin import CardOrigin, is_derived, is_token
 
 if TYPE_CHECKING:
@@ -242,6 +247,7 @@ class LeaderDamageModifier:
     source_controller: int | None = None
     source_entity_id: int | None = None
     source_card_id: int | None = None
+    mode: str = LeaderDamageMode.ADDITIVE.value
 
 
 class AttackRestriction(str, Enum):
@@ -1063,6 +1069,7 @@ class PlayerState:
     followers_destroyed_this_turn: int = 0
     cooperation: int = 0
     shadows: int = 0
+    leader_barrier_charges: int = 0
     leader_damage_modifiers: list[LeaderDamageModifier] = field(default_factory=list)
     _next_graveyard_sequence: int = 1
     _next_emblem_sequence: int = 1

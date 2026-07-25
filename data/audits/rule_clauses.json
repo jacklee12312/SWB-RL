@@ -7319,6 +7319,41 @@
       "source_text_sha256": "63e4e328836792f56bb18aede9096d1678d51e9e2b820feda05ab5b6f3b55ec1",
       "test_evidence": ["tests/test_real_destroyed_amulet_bulk_zone_eighteenth_batch.py"],
       "notes": "入场严格顺序执行两轮全部手牌返回与等量重抽、每轮独立按当前费用分组、同时伤害敌方全体随从与主战者、空手不消耗随机数、固定种子复现及超进化完整复现入场能力均有直接测试。"
+    },
+    {
+      "card_id": 10362210,
+      "rule_version": 1,
+      "source_text_sha256": "919d48af5a6d173302bed974fc634b2df0d009a466b6e0b5a458b4b4cf602035",
+      "test_evidence": ["tests/test_real_listener_context_leader_runtime_nineteenth_batch.py"],
+      "notes": "吟唱4、零费启动按公开纹章数动态推进、谢幕曲回复与领袖屏障授予、屏障单次消耗、伤害替换优先且不误耗屏障、指纹及Observation公开状态均有直接测试。"
+    },
+    {
+      "card_id": 10444120,
+      "rule_version": 1,
+      "source_text_sha256": "c4924ffe583de57e289533931d1738ea9a501786f0f28aa07e623b7a5078389a",
+      "test_evidence": ["tests/test_real_listener_context_leader_runtime_nineteenth_batch.py"],
+      "notes": "入场最大能量+1、爆能强化10授予疾驰、领袖最大生命设为1、正伤害替换为0、持续至对手回合结束、与领袖屏障的替换顺序及到期后伤害均有直接测试。"
+    },
+    {
+      "card_id": 10503210,
+      "rule_version": 1,
+      "source_text_sha256": "775dbee15d2e36c3d7cfb48e8c2dbda73c6635bd3703544ce6ca27a23fb546cd",
+      "test_evidence": ["tests/test_real_listener_context_leader_runtime_nineteenth_batch.py"],
+      "notes": "吟唱5、仅监听其他己方使用卡牌、冻结事件来源原始费用、跨双方场面排除所用卡自身后匹配、当前费用修改不影响判定、无匹配不推进、谢幕曲抽2与手牌容量均有直接测试。"
+    },
+    {
+      "card_id": 10604110,
+      "rule_version": 1,
+      "source_text_sha256": "dadb4df04d040e637d701b0762558fe80c0dc4ab5285da511a9e6711c881a9cb",
+      "test_evidence": ["tests/test_real_listener_context_leader_runtime_nineteenth_batch.py"],
+      "notes": "入场从四项无放回随机选择两项、无敌方随从安全跳过、+4/+4后通用重放本体入场曲、递归受统一解析步数上限约束、超进化重放、来源离场跳过及固定种子复现均有直接测试。"
+    },
+    {
+      "card_id": 10703210,
+      "rule_version": 1,
+      "source_text_sha256": "a9d5cacca4c0fa1243aa55d09a8de6db48f5d1b1f2265b88dc5388379388132b",
+      "test_evidence": ["tests/test_real_listener_context_leader_runtime_nineteenth_batch.py"],
+      "notes": "吟唱1、己方回合末按持久监听触发次数依次执行随机随从2伤/回复2/领袖2伤并自毁、最多三次、费用1启动必选手牌舍弃并延后倒计数、非法选择原子性及完整三回合链均有直接测试。"
     }
   ]
 }

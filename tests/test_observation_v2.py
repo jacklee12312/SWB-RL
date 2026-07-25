@@ -93,7 +93,7 @@ class ObservationV2Tests(unittest.TestCase):
         self.assertEqual(len(observation["public_history"]["event_types"]), 16)
         self.assertEqual(
             len(observation["leader_area"]["leader_damage_modifier_runtime"]),
-            80,
+            96,
         )
         self.assertEqual(observation["action_mask"], tuple(env.action_mask()))
         self.assertEqual(spec["action_size"], 111)

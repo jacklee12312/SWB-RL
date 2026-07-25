@@ -8,26 +8,26 @@
 | Metric | Count |
 |---|---|
 | Total cards in DB | 826 |
-| Cards with rules | 812 |
+| Cards with rules | 817 |
 | Test/synthetic IDs with rules | 26 |
 
 ### Coverage Categories
 
 | Category | Count |
 |---|---|
-| covered_exact | 708 |
+| covered_exact | 713 |
 | text_unclear | 16 |
-| supported_missing_rule | 11 |
+| supported_missing_rule | 6 |
 | token_or_non_collectible | 91 |
 
 ### Clause Audit
 
 | Clause status | Count |
 |---|---:|
-| mapped_exact | 708 |
+| mapped_exact | 713 |
 | unverified_exact | 0 |
 | partial | 0 |
-| missing_rule | 11 |
+| missing_rule | 6 |
 | missing_primitive | 0 |
 | text_unclear | 16 |
 | token_separate_audit | 91 |
@@ -36,7 +36,7 @@
 
 | Blocker | Count |
 |---|---:|
-| missing_rule | 11 |
+| missing_rule | 6 |
 | missing_schema | 0 |
 | missing_primitive | 0 |
 | missing_targeting | 0 |
@@ -104,14 +104,9 @@
 
 | # | Card ID | Name | Class | Cost | Type | Confidence | Why |
 |---|---|---|---|---|---|---|---|
-| 1 | 10503210 | 大游戏世界 | 中立 | 1 | 护符 | high | Covered keywords: 谢幕曲, 倒数, 抽取 |
-| 2 | 10703210 | 巴别隆城 | 中立 | 1 | 护符 | high | Covered keywords: 策动, 回合结束, 倒数 |
-| 3 | 10214120 | 缠绕密林·丽梅格 | 精灵 | 7 | 随从 | high | Covered keywords: 入场曲, 进化时, 超进化 |
-| 4 | 10604110 | 恐惧的象征·欧米伽奥提普 | 中立 | 9 | 随从 | high | Covered keywords: 入场曲, 进化时, 超进化 |
-| 5 | 10574110 | 转动的《命运之轮》·斯洛士 | 超越者 | 3 | 随从 | high | Covered keywords: 回合开始, 回合结束, 倒数 |
-| 6 | 10444120 | 世界的伙伴·佐伊 | 龙族 | 5 | 随从 | high | Covered keywords: 入场曲, 回合结束, 爆能强化 |
-| 7 | 10354110 | 混融的继承者·莎木·纳克雅 | 梦魇 | 2 | 随从 | medium | Covered keywords: 入场曲, 进化时, 超进化 |
-| 8 | 10362210 | 安息的神殿 | 主教 | 3 | 护符 | medium | Covered keywords: 谢幕曲, 策动, 倒数 |
-| 9 | 10554110 | 充实的《恋人与节制》·米路缇欧&卢泽 | 梦魇 | 7 | 随从 | medium | Covered keywords: 入场曲, 进化时, 超进化 |
-| 10 | 10314110 | 不弑的继承者·库露露 | 精灵 | 4 | 随从 | medium | Covered keywords: 入场曲, 进化时, 超进化 |
-| 11 | 10714110 | 操量的安纳提玛·达斯特迪兹 | 精灵 | 4 | 随从 | medium | Covered keywords: 入场曲, 进化时, 连击 |
+| 1 | 10214120 | 缠绕密林·丽梅格 | 精灵 | 7 | 随从 | high | Covered keywords: 入场曲, 进化时, 超进化 |
+| 2 | 10574110 | 转动的《命运之轮》·斯洛士 | 超越者 | 3 | 随从 | high | Covered keywords: 回合开始, 回合结束, 倒数 |
+| 3 | 10354110 | 混融的继承者·莎木·纳克雅 | 梦魇 | 2 | 随从 | medium | Covered keywords: 入场曲, 进化时, 超进化 |
+| 4 | 10554110 | 充实的《恋人与节制》·米路缇欧&卢泽 | 梦魇 | 7 | 随从 | medium | Covered keywords: 入场曲, 进化时, 超进化 |
+| 5 | 10314110 | 不弑的继承者·库露露 | 精灵 | 4 | 随从 | medium | Covered keywords: 入场曲, 进化时, 超进化 |
+| 6 | 10714110 | 操量的安纳提玛·达斯特迪兹 | 精灵 | 4 | 随从 | medium | Covered keywords: 入场曲, 进化时, 连击 |

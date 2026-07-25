@@ -86,6 +86,7 @@ class EventType(str, Enum):
     AMULET_COUNTDOWN_CHANGED = "amulet_countdown_changed"
     FOLLOWER_ABILITIES_REMOVED = "follower_abilities_removed"
     FOLLOWER_LAST_WORDS_REMOVED = "follower_last_words_removed"
+    LEADER_BARRIER_GRANTED = "leader_barrier_granted"
     LEADER_DAMAGE_MODIFIER_ADDED = "leader_damage_modifier_added"
     EMBLEM_GAINED = "emblem_gained"
     EMBLEM_REMOVED = "emblem_removed"

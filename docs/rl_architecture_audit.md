@@ -11,7 +11,7 @@ P1/P2 平台验收更新：2026-07-21
 本次平台硬化已经完成审计中的四项 P0，并完成目标内的 P1/P2 训练平台闭环：
 
 - `TrainableCardCatalog` 以 `rule_coverage.json` 的 `covered_exact` 为准，
-  当前纳入 708 张可收集卡；全部 826 张定义在 worker 启动时进入只读内存，
+  当前纳入 713 张可收集卡；全部 826 张定义在 worker 启动时进入只读内存，
   对局解析不再访问 SQLite；
 - Observation v3 使用固定 shape/dtype 的 NumPy 数组和 Gymnasium space，
   默认隐藏对手初始牌组，只有 `open_decklists=True` 才公开；
@@ -52,6 +52,10 @@ P1/P2 平台验收更新：2026-07-21
   当前费用批量放逐并传递实际数量、整手返回牌组等量重抽，以及敌方全体随从与
   主战者同时伤害。5张真实卡通过通用状态、条件、目标与效果边界接入；
   Observation `observation-v3.3` 与111个动作编号保持不变；
+- 第十九批新增监听事件原始费用与累计触发次序上下文、主战者屏障、正伤害归零
+  替换，以及来源入场曲通用重放。5张真实卡通过通用状态、条件、监听和效果边界
+  接入；主战者屏障层数及伤害替换模式作为决策相关公开状态进入v2/v3，
+  正式 schema 更新为 `observation-v3.4`，v1继续保持294维且111个动作编号不变；
 - `SWBAECEnv` 提供 PettingZoo AEC 双智能体接口，并通过官方 `api_test`；
 - 规则胜负与训练上限已经分离：前者 `terminated`，后者 `truncated`；
   独立 `max_agent_steps` 也覆盖不推进回合的墓地翻页动作；

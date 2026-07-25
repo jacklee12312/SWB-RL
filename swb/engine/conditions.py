@@ -38,6 +38,9 @@ class EvalContext:
     source_spellboost_count: int = 0
     source_cost: int = 0
     distributed_value: int = 0
+    listener_activation_count: int = 0
+    event_source_entity_id: int | None = None
+    event_source_base_cost: int | None = None
     source_snapshot: SourceStateSnapshot | None = None
     target_snapshot: BoundTargetSnapshot | None = None
     bound_target_snapshots: dict[str, tuple[BoundTargetSnapshot, ...]] | None = None
@@ -333,6 +336,18 @@ def evaluate_condition(cond: Condition | None, ctx: EvalContext | None) -> bool:
             )
             >= cond.value
         )
+    elif t == ConditionType.BOARD_HAS_OTHER_CARD_WITH_EVENT_SOURCE_BASE_COST:
+        return (
+            ctx.event_source_base_cost is not None
+            and any(
+                entity.entity_id != ctx.event_source_entity_id
+                and entity.definition.cost == ctx.event_source_base_cost
+                for board_owner in ctx.players
+                for entity in board_owner.board
+            )
+        )
+    elif t == ConditionType.LISTENER_ACTIVATION_COUNT_EQUALS:
+        return ctx.listener_activation_count == cond.value
     elif t == ConditionType.TARGET_ATTACK_AT_MOST:
         return isinstance(target, Unit) and target.attack <= cond.value
     elif t == ConditionType.TARGET_ATTACK_AT_LEAST:

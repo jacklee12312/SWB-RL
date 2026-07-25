@@ -12,25 +12,25 @@
   },
   "summary": {
     "total_cards": 826,
-    "total_with_rules": 812,
+    "total_with_rules": 817,
     "test_or_synthetic_ids_with_rules": 26,
     "coverage_counts": {
-      "covered_exact": 708,
+      "covered_exact": 713,
       "text_unclear": 16,
-      "supported_missing_rule": 11,
+      "supported_missing_rule": 6,
       "token_or_non_collectible": 91
     },
     "clause_audit_counts": {
-      "mapped_exact": 708,
+      "mapped_exact": 713,
       "unverified_exact": 0,
       "partial": 0,
-      "missing_rule": 11,
+      "missing_rule": 6,
       "missing_primitive": 0,
       "text_unclear": 16,
       "token_separate_audit": 91
     },
     "blocker_counts": {
-      "missing_rule": 11,
+      "missing_rule": 6,
       "missing_schema": 0,
       "missing_primitive": 0,
       "missing_targeting": 0,
@@ -11008,7 +11008,7 @@
       "rule_metadata": {
         "coverage": "exact",
         "implemented_text": "【守护】\n【谢幕曲】随机召唤1张本次对战中被破坏的、原始费用最高的自己的护符的同名卡。",
-        "notes": "固有守护、护符破坏持久历史、仅选择原始费用最高候选、同费用固定种子随机、来源离场后谢幕曲、无候选不消耗随机数及满场均有直接测试。",
+        "notes": "固有守护、护符破坏持久历史、结晶随从的护符形态与初始倒计数保存/再召唤、仅选择原始费用最高候选、同费用固定种子随机、来源离场后谢幕曲、无候选不消耗随机数及满场均有直接测试。",
         "rule_version": 1,
         "source_text_sha256": "7b50e98856d60e7d2df461f28f5cbbe269cdbd61b0d4be7eccde22053c2a34bf",
         "test_evidence": [
@@ -22100,8 +22100,8 @@
       "cost": 3,
       "is_collectible": true,
       "card_set_id": 10003,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['谢幕曲', '策动', '倒数', '回复(?!自己\\\\d+点(?:超进化点|进化点|能量点))', '纹章', '屏障']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['play', 'activate', 'last_words', 'activation'], Ops: ['reduce_countdown', 'heal_leader', 'add_leader_barrier', 'activation']",
       "hit_keywords": [
         "谢幕曲",
         "策动",
@@ -22111,9 +22111,6 @@
         "屏障"
       ],
       "missing_primitives": [],
-      "missing_rule_mechanics": [
-        "策动"
-      ],
       "ability_keywords": [
         "倒数",
         "屏障",
@@ -22124,27 +22121,49 @@
         "【<color=Keyword>吟唱</color>_4】\n【<color=Keyword>谢幕曲</color>】回复自己的主战者2点生命值。使自己的主战者获得【<color=Keyword>屏障</color>】。\n<hr>【<color=Keyword>启动</color>】本护符的倒计数-X。X为自己的纹章数。"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【吟唱】_4\n【谢幕曲】回复自己的主战者2点生命值，使自己的主战者获得【屏障】。\n【启动】使本护符的倒计数-X。X为自己拥有的纹章数。",
+        "notes": "吟唱4、零费启动按公开纹章数动态推进、谢幕曲回复与领袖屏障授予、屏障单次消耗、伤害替换优先且不误耗屏障、指纹及Observation公开状态均有直接测试。",
+        "rule_version": 1,
+        "source_text_sha256": "919d48af5a6d173302bed974fc634b2df0d009a466b6e0b5a458b4b4cf602035",
+        "test_evidence": [
+          "tests/test_real_listener_context_leader_runtime_nineteenth_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10362210:0",
             "source_text": "【<color=Keyword>吟唱</color>_4】\n【<color=Keyword>谢幕曲</color>】回复自己的主战者2点生命值。使自己的主战者获得【<color=Keyword>屏障</color>】。\n<hr>【<color=Keyword>启动</color>】本护符的倒计数-X。X为自己的纹章数。",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "【吟唱】_4\n【谢幕曲】回复自己的主战者2点生命值，使自己的主战者获得【屏障】。\n【启动】使本护符的倒计数-X。X为自己拥有的纹章数。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "919d48af5a6d173302bed974fc634b2df0d009a466b6e0b5a458b4b4cf602035",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "play",
+            "activate",
+            "last_words",
+            "activation"
+          ],
+          "effect_kinds": [
+            "reduce_countdown",
+            "heal_leader",
+            "add_leader_barrier",
+            "activation"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_listener_context_leader_runtime_nineteenth_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10362220": {
@@ -26188,8 +26207,8 @@
       "cost": 5,
       "is_collectible": true,
       "card_set_id": 10004,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '回合结束', '爆能强化']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['fanfare', 'play_modes'], Ops: ['change_max_mana', 'play_mode', 'add_keyword', 'set_leader_max_health', 'add_leader_damage_modifier']",
       "hit_keywords": [
         "入场曲",
         "回合结束",
@@ -26205,27 +26224,48 @@
         "【<color=Keyword>入场曲</color>】使自己的能量点最大值+1。\n【<color=Keyword>爆能强化</color>_10】本随从获得【<color=Keyword>疾驰</color>】。使自己的主战者的生命值的最大值变为1。对手的回合结束前，使自己的主战者获得「受到的1点或以上的伤害变为0点」。"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【入场曲】使自己的能量点最大值+1。\n【爆能强化_10】本随从获得【疾驰】。使自己的主战者的生命值最大值变为1。到对手的回合结束为止，自己的主战者获得「受到的1点以上的伤害变为0点」。",
+        "notes": "入场最大能量+1、爆能强化10授予疾驰、领袖最大生命设为1、正伤害替换为0、持续至对手回合结束、与领袖屏障的替换顺序及到期后伤害均有直接测试。",
+        "rule_version": 1,
+        "source_text_sha256": "c4924ffe583de57e289533931d1738ea9a501786f0f28aa07e623b7a5078389a",
+        "test_evidence": [
+          "tests/test_real_listener_context_leader_runtime_nineteenth_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10444120:0",
             "source_text": "【<color=Keyword>入场曲</color>】使自己的能量点最大值+1。\n【<color=Keyword>爆能强化</color>_10】本随从获得【<color=Keyword>疾驰</color>】。使自己的主战者的生命值的最大值变为1。对手的回合结束前，使自己的主战者获得「受到的1点或以上的伤害变为0点」。",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "【入场曲】使自己的能量点最大值+1。\n【爆能强化_10】本随从获得【疾驰】。使自己的主战者的生命值最大值变为1。到对手的回合结束为止，自己的主战者获得「受到的1点以上的伤害变为0点」。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "c4924ffe583de57e289533931d1738ea9a501786f0f28aa07e623b7a5078389a",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "fanfare",
+            "play_modes"
+          ],
+          "effect_kinds": [
+            "change_max_mana",
+            "play_mode",
+            "add_keyword",
+            "set_leader_max_health",
+            "add_leader_damage_modifier"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_listener_context_leader_runtime_nineteenth_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10451110": {
@@ -28459,8 +28499,8 @@
       "cost": 1,
       "is_collectible": true,
       "card_set_id": 10005,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['谢幕曲', '倒数', '抽取']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['play', 'last_words', 'listener:board:card_played'], Ops: ['draw', 'conditional', 'reduce_countdown']",
       "hit_keywords": [
         "谢幕曲",
         "倒数",
@@ -28475,27 +28515,47 @@
         "【<color=Keyword>吟唱</color>_5】\n自己使用其他卡牌时，若战场上有原始费用为X的其他卡牌，则本护符的倒计数-1。X为使用的卡牌的原始费用。\n【<color=Keyword>谢幕曲</color>】抽取2张卡牌。"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【吟唱】_5\n每当自己使用其他卡牌时，若战场上存在1张该卡牌以外且原始费用与该卡牌相同的卡牌，则本护符的倒计数-1。\n【谢幕曲】抽取2张卡牌。",
+        "notes": "吟唱5、仅监听其他己方使用卡牌、冻结事件来源原始费用、跨双方场面排除所用卡自身后匹配、当前费用修改不影响判定、无匹配不推进、谢幕曲抽2与手牌容量均有直接测试。",
+        "rule_version": 1,
+        "source_text_sha256": "775dbee15d2e36c3d7cfb48e8c2dbda73c6635bd3703544ce6ca27a23fb546cd",
+        "test_evidence": [
+          "tests/test_real_listener_context_leader_runtime_nineteenth_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10503210:0",
             "source_text": "【<color=Keyword>吟唱</color>_5】\n自己使用其他卡牌时，若战场上有原始费用为X的其他卡牌，则本护符的倒计数-1。X为使用的卡牌的原始费用。\n【<color=Keyword>谢幕曲</color>】抽取2张卡牌。",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "【吟唱】_5\n每当自己使用其他卡牌时，若战场上存在1张该卡牌以外且原始费用与该卡牌相同的卡牌，则本护符的倒计数-1。\n【谢幕曲】抽取2张卡牌。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "775dbee15d2e36c3d7cfb48e8c2dbda73c6635bd3703544ce6ca27a23fb546cd",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "play",
+            "last_words",
+            "listener:board:card_played"
+          ],
+          "effect_kinds": [
+            "draw",
+            "conditional",
+            "reduce_countdown"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_listener_context_leader_runtime_nineteenth_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10503310": {
@@ -33596,8 +33656,8 @@
       "cost": 9,
       "is_collectible": true,
       "card_set_id": 10006,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '进化时', '超进化', '回复自己\\\\d+点能量点', '造成.*伤害', '破坏']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['fanfare', 'super_evolve'], Ops: ['random_choice', 'destroy', 'damage_leader', 'restore_mana', 'buff_unit', 'replay_source_fanfare', 'replay_source_fanfare']",
       "hit_keywords": [
         "入场曲",
         "进化时",
@@ -33615,27 +33675,50 @@
         "【<color=Keyword>入场曲</color>】从以下能力中随机发动2个能力。\n<ridx=0>（1）破坏对手的战场上的随机1个随从。</ridx>\n<ridx=1>（2）对对手的主战者造成2点伤害。</ridx>\n<ridx=2>（3）回复自己2点能量点。</ridx>\n<ridx=3>（4）本随从+4/+4。发动本随从的【<color=Keyword>入场曲</color>】。</ridx>\n<hr><sev>【<color=Keyword>超进化时</color>】发动与【<color=Keyword>入场曲</color>】相同的能力。</sev>"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【入场曲】从下列能力中随机发动2种。\n（1）随机破坏对手战场上的1个随从。\n（2）对对手的主战者造成2点伤害。\n（3）回复自己的2点能量。\n（4）本随从+4/+4。发动1次本随从的【入场曲】能力。\n【超进化时】发动1次本随从的【入场曲】能力。",
+        "notes": "入场从四项无放回随机选择两项、无敌方随从安全跳过、+4/+4后通用重放本体入场曲、递归受统一解析步数上限约束、超进化重放、来源离场跳过及固定种子复现均有直接测试。",
+        "rule_version": 1,
+        "source_text_sha256": "dadb4df04d040e637d701b0762558fe80c0dc4ab5285da511a9e6711c881a9cb",
+        "test_evidence": [
+          "tests/test_real_listener_context_leader_runtime_nineteenth_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10604110:0",
             "source_text": "【<color=Keyword>入场曲</color>】从以下能力中随机发动2个能力。\n<ridx=0>（1）破坏对手的战场上的随机1个随从。</ridx>\n<ridx=1>（2）对对手的主战者造成2点伤害。</ridx>\n<ridx=2>（3）回复自己2点能量点。</ridx>\n<ridx=3>（4）本随从+4/+4。发动本随从的【<color=Keyword>入场曲</color>】。</ridx>\n<hr><sev>【<color=Keyword>超进化时</color>】发动与【<color=Keyword>入场曲</color>】相同的能力。</sev>",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "【入场曲】从下列能力中随机发动2种。\n（1）随机破坏对手战场上的1个随从。\n（2）对对手的主战者造成2点伤害。\n（3）回复自己的2点能量。\n（4）本随从+4/+4。发动1次本随从的【入场曲】能力。\n【超进化时】发动1次本随从的【入场曲】能力。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "dadb4df04d040e637d701b0762558fe80c0dc4ab5285da511a9e6711c881a9cb",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "fanfare",
+            "super_evolve"
+          ],
+          "effect_kinds": [
+            "random_choice",
+            "destroy",
+            "damage_leader",
+            "restore_mana",
+            "buff_unit",
+            "replay_source_fanfare",
+            "replay_source_fanfare"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_listener_context_leader_runtime_nineteenth_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10611110": {
@@ -38654,8 +38737,8 @@
       "cost": 1,
       "is_collectible": true,
       "card_set_id": 10007,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['策动', '回合结束', '倒数', '回复(?!自己\\\\d+点(?:超进化点|进化点|能量点))', '造成.*伤害', '破坏', '舍弃']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['play', 'activate', 'activation', 'listener:board:turn_ended'], Ops: ['select_targets', 'discard', 'increase_countdown', 'activation', 'conditional', 'damage_unit', 'conditional', 'heal_leader', 'conditional', 'damage_leader', 'destroy']",
       "hit_keywords": [
         "策动",
         "回合结束",
@@ -38666,9 +38749,6 @@
         "舍弃"
       ],
       "missing_primitives": [],
-      "missing_rule_mechanics": [
-        "策动"
-      ],
       "ability_keywords": [
         "倒数",
         "策动"
@@ -38677,27 +38757,56 @@
         "【<color=Keyword>吟唱</color>_1】\n自己的回合结束时，按顺序发动以下1个能力。\n<ridx=0>（1）对对手的战场上的随机1个随从造成2点伤害。</ridx>\n<ridx=1>（2）回复自己的主战者2点生命值。</ridx>\n<ridx=2>（3）对对手的主战者造成2点伤害。破坏本卡牌。</ridx>\n<hr>费用1【<color=Keyword>启动</color>】选择自己的1张手牌，舍弃该手牌。本护符的倒计数+1。"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【吟唱】_1\n自己的回合结束时，依次发动1个能力。\n（1）对对手战场上的随机1个随从造成2点伤害。\n（2）回复自己的主战者2点生命值。\n（3）对对手的主战者造成2点伤害，破坏本护符。\n费用1【启动】选择自己的手牌中的1张卡牌并舍弃，使本护符的倒计数+1。",
+        "notes": "吟唱1、己方回合末按持久监听触发次数依次执行随机随从2伤/回复2/领袖2伤并自毁、最多三次、费用1启动必选手牌舍弃并延后倒计数、非法选择原子性及完整三回合链均有直接测试。",
+        "rule_version": 1,
+        "source_text_sha256": "a9d5cacca4c0fa1243aa55d09a8de6db48f5d1b1f2265b88dc5388379388132b",
+        "test_evidence": [
+          "tests/test_real_listener_context_leader_runtime_nineteenth_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10703210:0",
             "source_text": "【<color=Keyword>吟唱</color>_1】\n自己的回合结束时，按顺序发动以下1个能力。\n<ridx=0>（1）对对手的战场上的随机1个随从造成2点伤害。</ridx>\n<ridx=1>（2）回复自己的主战者2点生命值。</ridx>\n<ridx=2>（3）对对手的主战者造成2点伤害。破坏本卡牌。</ridx>\n<hr>费用1【<color=Keyword>启动</color>】选择自己的1张手牌，舍弃该手牌。本护符的倒计数+1。",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "【吟唱】_1\n自己的回合结束时，依次发动1个能力。\n（1）对对手战场上的随机1个随从造成2点伤害。\n（2）回复自己的主战者2点生命值。\n（3）对对手的主战者造成2点伤害，破坏本护符。\n费用1【启动】选择自己的手牌中的1张卡牌并舍弃，使本护符的倒计数+1。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "a9d5cacca4c0fa1243aa55d09a8de6db48f5d1b1f2265b88dc5388379388132b",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "play",
+            "activate",
+            "activation",
+            "listener:board:turn_ended"
+          ],
+          "effect_kinds": [
+            "select_targets",
+            "discard",
+            "increase_countdown",
+            "activation",
+            "conditional",
+            "damage_unit",
+            "conditional",
+            "heal_leader",
+            "conditional",
+            "damage_leader",
+            "destroy"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_listener_context_leader_runtime_nineteenth_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10704110": {
@@ -51841,60 +51950,6 @@
   },
   "top_20_recommendations": [
     {
-      "card_id": 10503210,
-      "name": "大游戏世界",
-      "class_name": "中立",
-      "card_type": "护符",
-      "cost": 1,
-      "ability_keywords": [
-        "倒数",
-        "谢幕曲"
-      ],
-      "hit_keywords": [
-        "谢幕曲",
-        "倒数",
-        "抽取"
-      ],
-      "confidence": "high",
-      "why_recommended": "Covered keywords: 谢幕曲, 倒数, 抽取",
-      "required_primitives": [
-        "谢幕曲",
-        "倒数",
-        "抽取"
-      ],
-      "suggested_rule_file": "batch_中立.json"
-    },
-    {
-      "card_id": 10703210,
-      "name": "巴别隆城",
-      "class_name": "中立",
-      "card_type": "护符",
-      "cost": 1,
-      "ability_keywords": [
-        "倒数",
-        "策动"
-      ],
-      "hit_keywords": [
-        "策动",
-        "回合结束",
-        "倒数",
-        "回复(?!自己\\d+点(?:超进化点|进化点|能量点))",
-        "造成.*伤害",
-        "破坏",
-        "舍弃"
-      ],
-      "confidence": "high",
-      "why_recommended": "Covered keywords: 策动, 回合结束, 倒数",
-      "required_primitives": [
-        "策动",
-        "回合结束",
-        "倒数",
-        "回复(?!自己\\d+点(?:超进化点|进化点|能量点))",
-        "造成.*伤害"
-      ],
-      "suggested_rule_file": "batch_中立.json"
-    },
-    {
       "card_id": 10214120,
       "name": "缠绕密林·丽梅格",
       "class_name": "精灵",
@@ -51922,35 +51977,6 @@
         "造成.*伤害"
       ],
       "suggested_rule_file": "batch_精灵.json"
-    },
-    {
-      "card_id": 10604110,
-      "name": "恐惧的象征·欧米伽奥提普",
-      "class_name": "中立",
-      "card_type": "随从",
-      "cost": 9,
-      "ability_keywords": [
-        "入场曲",
-        "超进化时"
-      ],
-      "hit_keywords": [
-        "入场曲",
-        "进化时",
-        "超进化",
-        "回复自己\\d+点能量点",
-        "造成.*伤害",
-        "破坏"
-      ],
-      "confidence": "high",
-      "why_recommended": "Covered keywords: 入场曲, 进化时, 超进化",
-      "required_primitives": [
-        "入场曲",
-        "进化时",
-        "超进化",
-        "回复自己\\d+点能量点",
-        "造成.*伤害"
-      ],
-      "suggested_rule_file": "batch_中立.json"
     },
     {
       "card_id": 10574110,
@@ -51984,31 +52010,6 @@
       "suggested_rule_file": "batch_超越者.json"
     },
     {
-      "card_id": 10444120,
-      "name": "世界的伙伴·佐伊",
-      "class_name": "龙族",
-      "card_type": "随从",
-      "cost": 5,
-      "ability_keywords": [
-        "入场曲",
-        "爆能强化",
-        "疾驰"
-      ],
-      "hit_keywords": [
-        "入场曲",
-        "回合结束",
-        "爆能强化"
-      ],
-      "confidence": "high",
-      "why_recommended": "Covered keywords: 入场曲, 回合结束, 爆能强化",
-      "required_primitives": [
-        "入场曲",
-        "回合结束",
-        "爆能强化"
-      ],
-      "suggested_rule_file": "batch_龙族.json"
-    },
-    {
       "card_id": 10354110,
       "name": "混融的继承者·莎木·纳克雅",
       "class_name": "梦魇",
@@ -52038,37 +52039,6 @@
         "信仰"
       ],
       "suggested_rule_file": "batch_梦魇.json"
-    },
-    {
-      "card_id": 10362210,
-      "name": "安息的神殿",
-      "class_name": "主教",
-      "card_type": "护符",
-      "cost": 3,
-      "ability_keywords": [
-        "倒数",
-        "屏障",
-        "策动",
-        "谢幕曲"
-      ],
-      "hit_keywords": [
-        "谢幕曲",
-        "策动",
-        "倒数",
-        "回复(?!自己\\d+点(?:超进化点|进化点|能量点))",
-        "纹章",
-        "屏障"
-      ],
-      "confidence": "medium",
-      "why_recommended": "Covered keywords: 谢幕曲, 策动, 倒数",
-      "required_primitives": [
-        "谢幕曲",
-        "策动",
-        "倒数",
-        "回复(?!自己\\d+点(?:超进化点|进化点|能量点))",
-        "纹章"
-      ],
-      "suggested_rule_file": "batch_主教.json"
     },
     {
       "card_id": 10554110,
