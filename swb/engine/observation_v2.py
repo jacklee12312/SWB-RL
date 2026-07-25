@@ -47,7 +47,7 @@ def _histogram(
 
 def _hand_runtime(card: HandCard | None, turn: int) -> tuple[float, ...]:
     if card is None:
-        return (0.0,) * 12
+        return (0.0,) * 14
     return (
         1.0,
         min(card.current_cost, 20) / 20,
@@ -61,6 +61,8 @@ def _hand_runtime(card: HandCard | None, turn: int) -> tuple[float, ...]:
         float(card.definition.is_collectible),
         min(len(card.granted_last_words), 4) / 4,
         float(card.effect_destroy_immunity),
+        min(card.attack or 0, 40) / 40,
+        min(card.life or 0, 40) / 40,
     )
 
 
@@ -76,7 +78,7 @@ def _turn_end_removal_code(
 
 def _board_runtime(entity) -> tuple[float, ...]:
     if entity is None:
-        return (0.0,) * 18
+        return (0.0,) * 23
     if isinstance(entity, Amulet):
         return (
             1.0,
@@ -97,7 +99,17 @@ def _board_runtime(entity) -> tuple[float, ...]:
             0.0,
             0.0,
             0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
         )
+    activated_random_indices = {
+        index
+        for indices in entity.random_choice_history.values()
+        for index in indices
+    }
     return (
         1.0,
         0.0,
@@ -117,6 +129,25 @@ def _board_runtime(entity) -> tuple[float, ...]:
         _turn_end_removal_code(entity, TurnEndDestroyTiming.OPPONENT_TURN),
         min(len(entity.granted_last_words), 4) / 4,
         float(entity.effect_destroy_immunity),
+        min(len(entity.granted_turn_end_abilities), 4) / 4,
+        *(
+            float(index in activated_random_indices)
+            for index in range(4)
+        ),
+    )
+
+
+def _emblem_random_choice_runtime(emblem) -> tuple[float, ...]:
+    if emblem is None:
+        return (0.0,) * 5
+    activated_indices = {
+        index
+        for indices in emblem.random_choice_history.values()
+        for index in indices
+    }
+    return (
+        min(len(activated_indices), 4) / 4,
+        *(float(index in activated_indices) for index in range(4)),
     )
 
 
@@ -348,6 +379,10 @@ def encode_observation_v2(
                 0 if faith is None else len(faith.granted_abilities)
                 for faith in faiths
             ),
+            "faith_mode_selection_bonuses": tuple(
+                0 if faith is None else faith.mode_selection_bonus
+                for faith in faiths
+            ),
             "emblem_ids": tuple(
                 0 if emblem is None else env._v2_emblem_index.get(emblem.emblem_id, 0)
                 for emblem in emblems
@@ -355,6 +390,11 @@ def encode_observation_v2(
             "emblem_countdowns": tuple(
                 0.0 if emblem is None else min(emblem.countdown or 0, 20) / 20
                 for emblem in emblems
+            ),
+            "emblem_random_choice_runtime": tuple(
+                value
+                for emblem in emblems
+                for value in _emblem_random_choice_runtime(emblem)
             ),
             "leader_damage_modifier_counts": (
                 len(me.leader_damage_modifiers),
@@ -413,12 +453,16 @@ def observation_v2_spec(env: ShadowverseEnv) -> dict[str, object]:
         "deck_histograms": (2, len(env.card_vocabulary)),
         "graveyard_histograms": (2, len(env.card_vocabulary)),
         "banished_histograms": (2, len(env.card_vocabulary)),
-        "own_hand_runtime": env.MAX_HAND * 12,
-        "public_board_runtime": 2 * env.MAX_BOARD * 18,
+        "own_hand_runtime": env.MAX_HAND * 14,
+        "public_board_runtime": 2 * env.MAX_BOARD * 23,
         "public_board_keyword_bits": 2 * env.MAX_BOARD * len(RUNTIME_KEYWORDS),
         "leader_area_slots_per_player": MAX_LEADER_AREA_SLOTS,
         "leader_damage_modifier_runtime": (
             2 * MAX_LEADER_DAMAGE_MODIFIERS * 6
+        ),
+        "faith_mode_selection_bonuses": 2 * MAX_LEADER_AREA_SLOTS,
+        "emblem_random_choice_runtime": (
+            2 * MAX_LEADER_AREA_SLOTS * 5
         ),
         "leader_barrier_charges": 2,
         "empty_deck_outcomes": 2,

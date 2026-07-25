@@ -14,6 +14,7 @@ class FaithTrigger(str, Enum):
     FOLLOWER_SUMMONED = "follower_summoned"
     AMULET_DESTROYED = "amulet_destroyed"
     CARD_ENHANCED = "card_enhanced"
+    MODE_SELECTED = "mode_selected"
 
 
 class FaithAbilityStacking(str, Enum):
@@ -53,6 +54,7 @@ class FaithInstance:
     value: int = 0
     granted_abilities: list[FaithGrantedAbility] = field(default_factory=list)
     _next_granted_ability_sequence: int = 1
+    mode_selection_bonus: int = 0
 
     @property
     def faith_id(self) -> str:

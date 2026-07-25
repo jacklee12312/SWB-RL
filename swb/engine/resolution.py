@@ -64,7 +64,7 @@ from swb.engine.listeners import (
     ListenerZone,
     SourceRelation,
 )
-from swb.engine.emblem import EventScope, TurnScope
+from swb.engine.emblem import EmblemPassive, EventScope, TurnScope
 from swb.engine.origin import (
     CardOrigin,
     is_derived,
@@ -88,6 +88,7 @@ from swb.engine.state import (
     FollowerEntryRecord,
     FusionMaterial,
     GameState,
+    GrantedTurnEndAbility,
     GraveyardCard,
     HandCard,
     LeaderDamageModifier,
@@ -199,6 +200,7 @@ _SOURCE_REQUIRED_SELF_TARGET_EFFECTS = frozenset({
     EffectKind.REMOVE_ALL_ABILITIES,
     EffectKind.REMOVE_LAST_WORDS,
     EffectKind.GRANT_ATTACKS_PER_TURN,
+    EffectKind.GRANT_TURN_END_ABILITY,
     EffectKind.GRANT_TURN_END_BANISH,
     EffectKind.SUMMON_EXACT_COPY,
     EffectKind.TRANSFORM,
@@ -863,14 +865,19 @@ class GameEngine:
                     event.metadata,
                 ):
                     continue
+                delta = rule.amount * (
+                    event.amount
+                    if trigger is FaithTrigger.MODE_SELECTED
+                    else 1
+                )
                 before = instance.value
-                instance.value += rule.amount
+                instance.value += delta
                 self._emit(
                     GameEvent(
                         EventType.FAITH_VALUE_CHANGED,
                         player_index,
                         source_id=instance.entity_id,
-                        amount=rule.amount,
+                        amount=delta,
                         metadata={
                             "faith_id": instance.faith_id,
                             "source_card_id": instance.source_card_id,
@@ -1026,6 +1033,9 @@ class GameEngine:
                     state["burst_replaces_base_operations"],
                     state["source_spellboost_count"],
                     state["source_cost"],
+                    state["suppress_fanfare"],
+                    state["suppress_enhance"],
+                    state["auto_evolve"],
                 )
             else:
                 self._suspended_action = None
@@ -1302,6 +1312,16 @@ class GameEngine:
             return hand_card.current_cost
         return hand_card.cost
 
+    def _player_has_emblem_passive(
+        self,
+        player_index: int,
+        passive: EmblemPassive,
+    ) -> bool:
+        return any(
+            passive in emblem.definition.passives
+            for emblem in self.players[player_index].emblems
+        )
+
     def _is_mode_playable(self, card, player, mode_def) -> bool:
         if isinstance(card, HandCard) and card.cannot_be_played:
             return False
@@ -1333,8 +1353,31 @@ class GameEngine:
             result = evaluate_conditions_without_target(mode_def.conditions, ctx)
             if result is not PartialConditionResult.TRUE:
                 return False
-        ops = mode_def.operations if mode_def.operations else ()
-        if mode_def.is_enhance and not mode_def.replace_base_operations:
+        suppress_enhance = (
+            card.card_type == "随从"
+            and mode_def.is_enhance
+            and self._player_has_emblem_passive(
+                self.current_player,
+                EmblemPassive.SUPPRESS_FOLLOWER_ENHANCE,
+            )
+        )
+        suppress_fanfare = (
+            card.card_type == "随从"
+            and self._player_has_emblem_passive(
+                self.current_player,
+                EmblemPassive.SUPPRESS_FOLLOWER_FANFARE,
+            )
+        )
+        ops = (
+            ()
+            if suppress_enhance
+            else (mode_def.operations if mode_def.operations else ())
+        )
+        if (
+            mode_def.is_enhance
+            and not mode_def.replace_base_operations
+            and not suppress_fanfare
+        ):
             trigger = (
                 Trigger.FANFARE
                 if card.card_type == "随从"
@@ -1931,6 +1974,22 @@ class GameEngine:
         hand_spellboost_count = hand_card.spellboost_count
         hand_current_cost = hand_card.current_cost
         hand_stat_modifiers = tuple(hand_card.stat_modifiers)
+        suppress_fanfare = self._player_has_emblem_passive(
+            self.current_player,
+            EmblemPassive.SUPPRESS_FOLLOWER_FANFARE,
+        )
+        suppress_enhance = (
+            mode_def is not None
+            and mode_def.is_enhance
+            and self._player_has_emblem_passive(
+                self.current_player,
+                EmblemPassive.SUPPRESS_FOLLOWER_ENHANCE,
+            )
+        )
+        auto_evolve = self._player_has_emblem_passive(
+            self.current_player,
+            EmblemPassive.AUTO_EVOLVE_PLAYED_FOLLOWERS,
+        )
         fused_material_ids = tuple(hand_card.fused_material_ids)
         fusion_materials = self._fusion_material_records(
             player,
@@ -2099,6 +2158,9 @@ class GameEngine:
                 ),
                 "source_spellboost_count": hand_spellboost_count,
                 "source_cost": hand_current_cost,
+                "suppress_fanfare": suppress_fanfare,
+                "suppress_enhance": suppress_enhance,
+                "auto_evolve": auto_evolve,
             }
             return
         self._finish_follower_play(
@@ -2111,6 +2173,9 @@ class GameEngine:
             burst_replaces_base_operations,
             hand_spellboost_count,
             hand_current_cost,
+            suppress_fanfare,
+            suppress_enhance,
+            auto_evolve,
         )
 
     def _finish_follower_play(
@@ -2124,6 +2189,9 @@ class GameEngine:
         burst_replaces_base_operations: bool = False,
         source_spellboost_count: int = 0,
         source_cost: int = 0,
+        suppress_fanfare: bool = False,
+        suppress_enhance: bool = False,
+        auto_evolve: bool = False,
     ) -> None:
         try:
             unit = self._find_board_entity(unit_id)
@@ -2131,7 +2199,9 @@ class GameEngine:
             return
         if not isinstance(unit, Unit):
             return
-        fanfare_operations = self._fanfare_operations(unit)
+        fanfare_operations = (
+            () if suppress_fanfare else self._fanfare_operations(unit)
+        )
         for kind, threshold in burst_metadata:
             self._emit(
                 GameEvent(
@@ -2153,14 +2223,30 @@ class GameEngine:
             if replace_base_operations or burst_replaces_base_operations
             else fanfare_operations
         )
-        operations = base_operations + burst_operations + mode_operations
+        effective_mode_operations = (
+            () if suppress_enhance else mode_operations
+        )
+        operations = (
+            base_operations
+            + burst_operations
+            + effective_mode_operations
+        )
+        if auto_evolve:
+            operations += (
+                EffectOperation(
+                    kind=EffectKind.EVOLVE_UNIT,
+                    target=TargetKind.SELF,
+                ),
+            )
         if operations:
             label = "入场曲"
             if burst_operations:
                 label = "入场曲/奥义"
-            if mode_operations and (base_operations or burst_operations):
+            if effective_mode_operations and (
+                base_operations or burst_operations
+            ):
                 label = "入场曲/强化"
-            elif mode_operations:
+            elif effective_mode_operations:
                 label = "强化"
             self._start_effects(
                 unit.definition,
@@ -3225,9 +3311,15 @@ class GameEngine:
             "zone_type": "DeckCard",
             "definition": self._card_fingerprint(card.definition),
             "current_cost": card.current_cost,
+            "attack": card.attack,
+            "life": card.life,
             "cost_modifiers": tuple(
                 self._cost_modifier_fingerprint(modifier)
                 for modifier in card.cost_modifiers
+            ),
+            "stat_modifiers": tuple(
+                self._stat_modifier_fingerprint(modifier)
+                for modifier in card.stat_modifiers
             ),
         }
 
@@ -3376,6 +3468,19 @@ class GameEngine:
                         timing.value
                         for timing in entity.turn_end_banish_timings
                     )
+                ),
+                "granted_turn_end_abilities": tuple(
+                    (
+                        ability.timing.value,
+                        tuple(
+                            self._operation_fingerprint(operation)
+                            for operation in ability.operations
+                        ),
+                    )
+                    for ability in entity.granted_turn_end_abilities
+                ),
+                "random_choice_history": tuple(
+                    sorted(entity.random_choice_history.items())
                 ),
             })
         elif isinstance(entity, Amulet):
@@ -3696,6 +3801,7 @@ class GameEngine:
                 )
                 for bucket in operation.random_distribution_operations
             ),
+            operation.random_choice_history_key,
             operation.emblem_remove_mode,
             operation.requires_target,
             operation.requires_full_target_count,
@@ -3723,6 +3829,11 @@ class GameEngine:
                 None
                 if operation.turn_end_banish_timing is None
                 else operation.turn_end_banish_timing.value
+            ),
+            (
+                None
+                if operation.turn_end_ability_timing is None
+                else operation.turn_end_ability_timing.value
             ),
         )
 
@@ -3887,6 +3998,9 @@ class GameEngine:
             "activation_counts": tuple(
                 sorted(emblem.activation_counts.items())
             ),
+            "random_choice_history": tuple(
+                sorted(emblem.random_choice_history.items())
+            ),
             "once_per_turn_used": tuple(sorted(emblem._once_per_turn_used)),
         }
 
@@ -3941,6 +4055,7 @@ class GameEngine:
                 for ability in faith.granted_abilities
             ),
             faith._next_granted_ability_sequence,
+            faith.mode_selection_bonus,
         )
 
     def _emblem_definition_fingerprint(
@@ -4001,6 +4116,7 @@ class GameEngine:
                 self._operation_fingerprint(operation)
                 for operation in definition.last_words
             ),
+            tuple(sorted(passive.value for passive in definition.passives)),
         )
 
     def _cost_modifier_fingerprint(
@@ -6633,6 +6749,10 @@ class GameEngine:
             if owner == ending_player
             else TurnEndDestroyTiming.OPPONENT_TURN
         )
+        if isinstance(unit, Unit):
+            for granted_ability in unit.granted_turn_end_abilities:
+                if granted_ability.timing is matching_timing:
+                    operations.extend(granted_ability.operations)
         if (
             isinstance(unit, Unit)
             and matching_timing in unit.turn_end_destroy_timings
@@ -7948,6 +8068,33 @@ class GameEngine:
                         },
                     )
                 )
+            if effect.amount < 0 or effect.secondary_amount < 0:
+                owner = self._entity_owner(target.entity_id)
+                self._emit(
+                    GameEvent(
+                        EventType.FOLLOWER_STATS_DECREASED,
+                        owner,
+                        source_id=target.entity_id,
+                        amount=max(
+                            0,
+                            -effect.amount,
+                            -effect.secondary_amount,
+                        ),
+                        metadata={
+                            "source": target,
+                            "card_id": target.definition.card_id,
+                            "attack_delta": min(0, effect.amount),
+                            "health_delta": min(
+                                0,
+                                effect.secondary_amount,
+                            ),
+                            "effect_source_card_id": frame.source_card_id,
+                            "effect_source_entity_id": (
+                                frame.source_entity_id
+                            ),
+                        },
+                    )
+                )
             self._log(
                 frame.controller,
                 f"属性变化 {effect.amount}/{effect.secondary_amount}",
@@ -8174,6 +8321,8 @@ class GameEngine:
             self._execute_grant_turn_end_destroy(effect, frame, target_id)
         elif effect.kind is EffectKind.GRANT_TURN_END_BANISH:
             self._execute_grant_turn_end_banish(effect, frame, target_id)
+        elif effect.kind is EffectKind.GRANT_TURN_END_ABILITY:
+            self._execute_grant_turn_end_ability(effect, frame, target_id)
         elif effect.kind is EffectKind.ADD_LEADER_BARRIER:
             self._execute_add_leader_barrier(effect, frame)
         elif effect.kind is EffectKind.ADD_LEADER_DAMAGE_MODIFIER:
@@ -8182,6 +8331,8 @@ class GameEngine:
             self._execute_change_cost(effect, frame, target_id)
         elif effect.kind is EffectKind.CHANGE_DECK_COST:
             self._execute_change_deck_cost(effect, frame)
+        elif effect.kind is EffectKind.BUFF_DECK_CARDS:
+            self._execute_buff_deck_cards(effect, frame)
         elif effect.kind is EffectKind.REPLACE_DECK:
             self._execute_replace_deck(effect, frame)
         elif effect.kind is EffectKind.BANISH_DECK_DUPLICATES:
@@ -8226,6 +8377,8 @@ class GameEngine:
             self._execute_consume_faith(effect, frame)
         elif effect.kind is EffectKind.GRANT_FAITH_ABILITY:
             self._execute_grant_faith_ability(effect, frame)
+        elif effect.kind is EffectKind.GRANT_FAITH_MODE_SELECTION_BONUS:
+            self._execute_grant_faith_mode_selection_bonus(effect, frame)
         elif effect.kind is EffectKind.RANDOM_CHOICE:
             self._execute_random_choice(effect, frame)
         elif effect.kind is EffectKind.RANDOM_DISTRIBUTE:
@@ -8796,6 +8949,49 @@ class GameEngine:
             f"{target.definition.name} 获得“{timing_label}时消失自身”",
         )
 
+    def _execute_grant_turn_end_ability(
+        self,
+        effect: EffectOperation,
+        frame: EffectFrame,
+        target_id: int | None,
+    ) -> None:
+        if (
+            effect.turn_end_ability_timing is None
+            or not effect.granted_operations
+        ):
+            raise IllegalCommand(
+                "GRANT_TURN_END_ABILITY requires timing and operations"
+            )
+        target = self._find_board_entity(target_id)
+        if not isinstance(target, Unit):
+            raise IllegalCommand(
+                "grant_turn_end_ability target must be a follower"
+            )
+        granted = GrantedTurnEndAbility(
+            timing=effect.turn_end_ability_timing,
+            operations=effect.granted_operations,
+        )
+        target.granted_turn_end_abilities.append(granted)
+        owner = self._entity_owner(target.entity_id)
+        self._emit(
+            GameEvent(
+                EventType.FOLLOWER_TURN_END_ABILITY_GRANTED,
+                owner,
+                source_id=frame.source_entity_id,
+                target_id=target.entity_id,
+                metadata={
+                    "source_card_id": frame.source_card_id,
+                    "target_card_id": target.definition.card_id,
+                    "timing": granted.timing.value,
+                    "operation_count": len(granted.operations),
+                },
+            )
+        )
+        self._log(
+            frame.controller,
+            f"{target.definition.name} 获得回合结束能力",
+        )
+
     def _execute_change_cost(
         self,
         effect: EffectOperation,
@@ -8880,6 +9076,59 @@ class GameEngine:
         self._log(
             frame.controller,
             f"{frame.source_name} 使牌组中 {changed} 张卡牌的费用发生变化",
+        )
+
+    def _execute_buff_deck_cards(
+        self,
+        effect: EffectOperation,
+        frame: EffectFrame,
+    ) -> None:
+        if effect.deck_filter is None:
+            raise IllegalCommand("BUFF_DECK_CARDS requires a deck filter")
+        player = self.players[frame.controller]
+        changed = 0
+        for index, raw_card in enumerate(list(player.deck)):
+            definition = (
+                raw_card.definition
+                if isinstance(raw_card, DeckCard)
+                else raw_card
+            )
+            if not effect.deck_filter.matches(definition):
+                continue
+            deck_card = (
+                raw_card
+                if isinstance(raw_card, DeckCard)
+                else DeckCard(definition=definition)
+            )
+            deck_card.stat_modifiers.append(
+                StatModifier(
+                    modifier_id=self._allocate_modifier_id(),
+                    attack_delta=effect.amount,
+                    health_delta=effect.secondary_amount,
+                    duration=ModifierDuration.PERMANENT.value,
+                    expires_for_player=None,
+                )
+            )
+            player.deck[index] = deck_card
+            changed += 1
+        self._emit(
+            GameEvent(
+                EventType.DECK_FOLLOWERS_BUFFED,
+                frame.controller,
+                source_id=frame.source_entity_id,
+                amount=changed,
+                metadata={
+                    "source_card_id": frame.source_card_id,
+                    "attack_delta": effect.amount,
+                    "health_delta": effect.secondary_amount,
+                    "changed_count": changed,
+                },
+            )
+        )
+        self._log(
+            frame.controller,
+            f"{frame.source_name} 使牌组中 {changed} 张随从 "
+            f"+{effect.amount}/+{effect.secondary_amount}",
         )
 
     def _execute_replace_deck(
@@ -9717,7 +9966,11 @@ class GameEngine:
         unit.last_words_removed = source.last_words_removed
         unit.turn_end_destroy_timings = set(source.turn_end_destroy_timings)
         unit.turn_end_banish_timings = set(source.turn_end_banish_timings)
+        unit.granted_turn_end_abilities = list(
+            source.granted_turn_end_abilities
+        )
         unit.granted_last_words = list(source.granted_last_words)
+        unit.random_choice_history = dict(source.random_choice_history)
         unit.effect_destroy_immunity = source.effect_destroy_immunity
         unit.barrier_charges = source.barrier_charges
         unit.ambush_active = source.ambush_active
@@ -11591,6 +11844,20 @@ class GameEngine:
         )
         if len(selected) != len(option_ids):
             raise IllegalCommand("Selected mode option is invalid")
+        self._emit(
+            GameEvent(
+                EventType.MODE_SELECTED,
+                frame.controller,
+                source_id=frame.source_entity_id,
+                amount=len(selected),
+                metadata={
+                    "source_card_id": frame.source_card_id,
+                    "option_ids": tuple(
+                        option.option_id for option in selected
+                    ),
+                },
+            )
+        )
         operations = tuple(
             operation
             for option in selected
@@ -11720,12 +11987,23 @@ class GameEngine:
                 if result is not PartialConditionResult.TRUE:
                     continue
             legal_options.append(opt)
-        if len(legal_options) < effect.choose_count:
+        selection_bonus = sum(
+            faith.mode_selection_bonus
+            for faith in self.players[frame.controller].faiths
+        )
+        effective_choose_count = min(
+            len(legal_options),
+            effect.choose_count + selection_bonus,
+        )
+        if effective_choose_count < 1:
             return
 
         if frame.auto_resolve_choices:
             sampled = set(
-                self.random.sample(range(len(legal_options)), effect.choose_count)
+                self.random.sample(
+                    range(len(legal_options)),
+                    effective_choose_count,
+                )
             )
             chosen = tuple(
                 option
@@ -11735,6 +12013,20 @@ class GameEngine:
             self._log(
                 frame.controller,
                 "自动选择：" + "、".join(option.label for option in chosen),
+            )
+            self._emit(
+                GameEvent(
+                    EventType.MODE_SELECTED,
+                    frame.controller,
+                    source_id=frame.source_entity_id,
+                    amount=len(chosen),
+                    metadata={
+                        "source_card_id": frame.source_card_id,
+                        "option_ids": tuple(
+                            option.option_id for option in chosen
+                        ),
+                    },
+                )
             )
             self._queue_effects_from_frame(
                 frame,
@@ -11754,7 +12046,9 @@ class GameEngine:
         frame._decision_meta["choose_one_options"] = legal_options
         self.state.pending_choice = ChoiceRequest(
             player_index=frame.controller,
-            prompt=f"{frame.source_name} 选择 {effect.choose_count} 项",
+            prompt=(
+                f"{frame.source_name} 选择 {effective_choose_count} 项"
+            ),
             options=tuple(
                 ChoiceOption(option_id=f"choose_one:{opt.option_id}", label=opt.label)
                 for opt in legal_options
@@ -11762,7 +12056,7 @@ class GameEngine:
             continuation_id=f"{frame.source_card_id}:{frame.next_index}",
             choice_kind=ChoiceKind.MODE,
             request_id=request_id,
-            target_count=effect.choose_count,
+            target_count=effective_choose_count,
         )
         self.state.phase = Phase.AWAITING_CHOICE
 
@@ -12550,9 +12844,60 @@ class GameEngine:
             or any(not option.operations for option in options)
         ):
             raise IllegalCommand("random_choice payload is invalid")
-        chosen_indices = tuple(
-            self.random.sample(range(len(options)), choice_count)
+        history: dict[str, tuple[int, ...]] | None = None
+        previous_indices: tuple[int, ...] = ()
+        if effect.random_choice_history_key is not None:
+            if (
+                frame.emblem_activation_owner is not None
+                and frame.emblem_activation_entity_id is not None
+            ):
+                history_owner = self.players[
+                    frame.emblem_activation_owner
+                ]
+                history_source = next(
+                    (
+                        emblem
+                        for emblem in history_owner.emblems
+                        if emblem.entity_id
+                        == frame.emblem_activation_entity_id
+                    ),
+                    None,
+                )
+                if history_source is not None:
+                    history = history_source.random_choice_history
+            elif frame.source_entity_id is not None:
+                try:
+                    history_source = self._find_board_entity(
+                        frame.source_entity_id
+                    )
+                except IllegalCommand:
+                    history_source = None
+                if isinstance(history_source, Unit):
+                    history = history_source.random_choice_history
+            if history is not None:
+                previous_indices = history.get(
+                    effect.random_choice_history_key,
+                    (),
+                )
+        available_indices = tuple(
+            index
+            for index in range(len(options))
+            if index not in previous_indices
         )
+        if len(available_indices) < choice_count:
+            self._log(
+                frame.controller,
+                f"{frame.source_name} 没有尚未发动的随机选项",
+            )
+            return
+        chosen_indices = tuple(
+            self.random.sample(available_indices, choice_count)
+        )
+        if history is not None and effect.random_choice_history_key is not None:
+            history[effect.random_choice_history_key] = (
+                *previous_indices,
+                *chosen_indices,
+            )
         chosen = tuple(options[index] for index in chosen_indices)
         self._emit(GameEvent(
             EventType.RANDOM_CHOICES_SELECTED,
@@ -12564,6 +12909,13 @@ class GameEngine:
                 "option_ids": tuple(option.option_id for option in chosen),
                 "option_indices": chosen_indices,
                 "option_count": len(options),
+                "history_key": effect.random_choice_history_key,
+                "previous_option_indices": previous_indices,
+                "activated_option_indices": (
+                    ()
+                    if effect.random_choice_history_key is None
+                    else (*previous_indices, *chosen_indices)
+                ),
             },
         ))
         self._log(
@@ -12637,6 +12989,43 @@ class GameEngine:
                 "source_card_id": frame.source_card_id,
             },
         ))
+
+    def _execute_grant_faith_mode_selection_bonus(
+        self,
+        effect: EffectOperation,
+        frame: EffectFrame,
+    ) -> None:
+        if effect.faith_id is None or effect.amount <= 0:
+            raise IllegalCommand(
+                "grant_faith_mode_selection_bonus payload is incomplete"
+            )
+        instance = next(
+            (
+                faith
+                for faith in self.players[frame.controller].faiths
+                if faith.faith_id == effect.faith_id
+            ),
+            None,
+        )
+        if instance is None:
+            return
+        before = instance.mode_selection_bonus
+        instance.mode_selection_bonus += effect.amount
+        self._emit(
+            GameEvent(
+                EventType.FAITH_MODE_SELECTION_BONUS_GRANTED,
+                frame.controller,
+                source_id=frame.source_entity_id,
+                target_id=instance.entity_id,
+                amount=effect.amount,
+                metadata={
+                    "faith_id": instance.faith_id,
+                    "source_card_id": frame.source_card_id,
+                    "before": before,
+                    "after": instance.mode_selection_bonus,
+                },
+            )
+        )
 
     def _execute_banish(self, target_id: int | None, frame: EffectFrame) -> None:
         entity = self._find_board_entity(target_id)
@@ -13301,6 +13690,12 @@ class GameEngine:
                 self._advance_faiths_for_event(
                     event.player_index,
                     FaithTrigger.AMULET_DESTROYED,
+                    event,
+                )
+            if event.type is EventType.MODE_SELECTED:
+                self._advance_faiths_for_event(
+                    event.player_index,
+                    FaithTrigger.MODE_SELECTED,
                     event,
                 )
             ability_event = event_to_ability.get(event.type)
@@ -14433,6 +14828,38 @@ class GameEngine:
                         raise IllegalCommand(
                             f"Invariant failed: {zone} has non-permanent cost modifier"
                         )
+                deck_stat_modifier_ids = [
+                    modifier.modifier_id
+                    for modifier in deck_entry.stat_modifiers
+                ]
+                if (
+                    len(deck_stat_modifier_ids)
+                    != len(set(deck_stat_modifier_ids))
+                    or any(
+                        modifier_id <= 0
+                        for modifier_id in deck_stat_modifier_ids
+                    )
+                ):
+                    raise IllegalCommand(
+                        f"Invariant failed: {zone} has invalid stat modifier ids"
+                    )
+                if (
+                    deck_entry.stat_modifiers
+                    and deck_entry.card_type != "随从"
+                ):
+                    raise IllegalCommand(
+                        f"Invariant failed: {zone} has stat modifiers but is "
+                        "not a follower"
+                    )
+                for modifier in deck_entry.stat_modifiers:
+                    if (
+                        modifier.duration
+                        != ModifierDuration.PERMANENT.value
+                        or modifier.expires_for_player is not None
+                    ):
+                        raise IllegalCommand(
+                            f"Invariant failed: {zone} has non-permanent stat modifier"
+                        )
 
             for hand_index, hand_card in enumerate(player.hand):
                 if not isinstance(hand_card, HandCard):
@@ -14672,6 +15099,57 @@ class GameEngine:
                             f"Invariant failed: {zone} has invalid turn-end "
                             "banish timings"
                         )
+                    if (
+                        not isinstance(
+                            entity.granted_turn_end_abilities,
+                            list,
+                        )
+                        or any(
+                            not isinstance(
+                                ability,
+                                GrantedTurnEndAbility,
+                            )
+                            or not isinstance(
+                                ability.timing,
+                                TurnEndDestroyTiming,
+                            )
+                            or not isinstance(ability.operations, tuple)
+                            or not ability.operations
+                            or any(
+                                not isinstance(
+                                    operation,
+                                    EffectOperation,
+                                )
+                                for operation in ability.operations
+                            )
+                            for ability in entity.granted_turn_end_abilities
+                        )
+                    ):
+                        raise IllegalCommand(
+                            f"Invariant failed: {zone} has invalid granted "
+                            "turn-end abilities"
+                        )
+                    if (
+                        not isinstance(entity.random_choice_history, dict)
+                        or any(
+                            not isinstance(key, str)
+                            or not key
+                            or not isinstance(indices, tuple)
+                            or len(indices) != len(set(indices))
+                            or any(
+                                isinstance(index, bool)
+                                or not isinstance(index, int)
+                                or index < 0
+                                for index in indices
+                            )
+                            for key, indices
+                            in entity.random_choice_history.items()
+                        )
+                    ):
+                        raise IllegalCommand(
+                            f"Invariant failed: {zone} has invalid random "
+                            "choice history"
+                        )
                     if entity.attack < 0:
                         raise IllegalCommand(
                             f"Invariant failed: {zone} attack is negative"
@@ -14805,6 +15283,26 @@ class GameEngine:
                     raise IllegalCommand(
                         f"Invariant failed: {zone} countdown is negative"
                     )
+                if (
+                    not isinstance(emblem.random_choice_history, dict)
+                    or any(
+                        not isinstance(key, str)
+                        or not key
+                        or not isinstance(indices, tuple)
+                        or len(indices) != len(set(indices))
+                        or any(
+                            isinstance(index, bool)
+                            or not isinstance(index, int)
+                            or index < 0
+                            for index in indices
+                        )
+                        for key, indices
+                        in emblem.random_choice_history.items()
+                    )
+                ):
+                    raise IllegalCommand(
+                        f"Invariant failed: {zone} has invalid random choice history"
+                    )
                 remember(emblem.entity_id, zone)
 
             faith_ids: set[str] = set()
@@ -14825,6 +15323,14 @@ class GameEngine:
                 ):
                     raise IllegalCommand(
                         f"Invariant failed: {zone} value is invalid"
+                    )
+                if (
+                    not isinstance(faith.mode_selection_bonus, int)
+                    or isinstance(faith.mode_selection_bonus, bool)
+                    or faith.mode_selection_bonus < 0
+                ):
+                    raise IllegalCommand(
+                        f"Invariant failed: {zone} mode selection bonus is invalid"
                     )
                 if faith.faith_id in faith_ids:
                     raise IllegalCommand(
@@ -15160,6 +15666,16 @@ class GameEngine:
                     raise IllegalCommand(
                         f"Invariant failed: {operation_zone} turn-end banish timing is invalid"
                     )
+                if (
+                    operation.turn_end_ability_timing is not None
+                    and not isinstance(
+                        operation.turn_end_ability_timing,
+                        TurnEndDestroyTiming,
+                    )
+                ):
+                    raise IllegalCommand(
+                        f"Invariant failed: {operation_zone} turn-end ability timing is invalid"
+                    )
                 if not isinstance(operation.exclude_source, bool):
                     raise IllegalCommand(
                         f"Invariant failed: {operation_zone} source-exclusion policy is invalid"
@@ -15233,6 +15749,41 @@ class GameEngine:
                         raise IllegalCommand(
                             f"Invariant failed: {operation_zone} grant_faith_ability payload is invalid"
                         )
+                if (
+                    operation.kind
+                    is EffectKind.GRANT_FAITH_MODE_SELECTION_BONUS
+                ):
+                    if (
+                        not isinstance(operation.faith_id, str)
+                        or not operation.faith_id
+                        or operation.amount <= 0
+                    ):
+                        raise IllegalCommand(
+                            f"Invariant failed: {operation_zone} "
+                            "grant_faith_mode_selection_bonus payload is invalid"
+                        )
+                if operation.kind is EffectKind.GRANT_TURN_END_ABILITY:
+                    if (
+                        operation.turn_end_ability_timing is None
+                        or not operation.granted_operations
+                    ):
+                        raise IllegalCommand(
+                            f"Invariant failed: {operation_zone} "
+                            "grant_turn_end_ability payload is invalid"
+                        )
+                if operation.kind is EffectKind.BUFF_DECK_CARDS:
+                    if (
+                        operation.deck_filter is None
+                        or operation.deck_filter.card_type != "随从"
+                        or (
+                            operation.amount == 0
+                            and operation.secondary_amount == 0
+                        )
+                    ):
+                        raise IllegalCommand(
+                            f"Invariant failed: {operation_zone} "
+                            "buff_deck_cards payload is invalid"
+                        )
                 if operation.kind is EffectKind.RANDOM_DISTRIBUTE:
                     if (
                         not isinstance(operation.faith_id, str)
@@ -15255,6 +15806,16 @@ class GameEngine:
                         or any(
                             not option.operations
                             for option in operation.random_choice_options
+                        )
+                        or (
+                            operation.random_choice_history_key is not None
+                            and (
+                                not isinstance(
+                                    operation.random_choice_history_key,
+                                    str,
+                                )
+                                or not operation.random_choice_history_key
+                            )
                         )
                     ):
                         raise IllegalCommand(
@@ -15823,8 +16384,10 @@ class GameEngine:
         fused_material_ids: tuple[int, ...] = (),
     ) -> HandCard:
         inherited_cost_modifiers: list[CostModifier] = []
+        inherited_stat_modifiers: list[StatModifier] = []
         if isinstance(definition, DeckCard):
             inherited_cost_modifiers = list(definition.cost_modifiers)
+            inherited_stat_modifiers = list(definition.stat_modifiers)
             definition = definition.definition
         hand_card = self._make_hand_card(
             definition,
@@ -15834,6 +16397,7 @@ class GameEngine:
             fused_material_ids=fused_material_ids,
         )
         hand_card.cost_modifiers.extend(inherited_cost_modifiers)
+        hand_card.stat_modifiers.extend(inherited_stat_modifiers)
         player.hand.append(hand_card)
         player.hand_entity_ids.append(hand_card.entity_id)
         return hand_card

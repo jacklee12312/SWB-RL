@@ -27,6 +27,12 @@ class EventScope(str, Enum):
     ANY_EVENT = "any_event"
 
 
+class EmblemPassive(str, Enum):
+    SUPPRESS_FOLLOWER_FANFARE = "suppress_follower_fanfare"
+    SUPPRESS_FOLLOWER_ENHANCE = "suppress_follower_enhance"
+    AUTO_EVOLVE_PLAYED_FOLLOWERS = "auto_evolve_played_followers"
+
+
 @dataclass(frozen=True)
 class EmblemTriggerRule:
     trigger: str
@@ -49,6 +55,7 @@ class EmblemDefinition:
     on_expire: tuple["EffectOperation", ...] = ()
     last_words: tuple["EffectOperation", ...] = ()
     on_gain: tuple["EffectOperation", ...] = ()
+    passives: frozenset[EmblemPassive] = frozenset()
 
     @property
     def is_permanent(self) -> bool:

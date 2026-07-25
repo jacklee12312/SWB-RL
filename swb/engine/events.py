@@ -82,6 +82,7 @@ class EventType(str, Enum):
     UNION_BURST_ACTIVATED = "union_burst_activated"
     FOLLOWER_HEALED = "follower_healed"
     FOLLOWER_STATS_INCREASED = "follower_stats_increased"
+    FOLLOWER_STATS_DECREASED = "follower_stats_decreased"
     FOLLOWER_DAMAGED_SURVIVED = "follower_damaged_survived"
     AMULET_COUNTDOWN_CHANGED = "amulet_countdown_changed"
     FOLLOWER_ABILITIES_REMOVED = "follower_abilities_removed"
@@ -99,6 +100,12 @@ class EventType(str, Enum):
     UNION_BURST_GAUGE_CHANGED = "union_burst_gauge_changed"
     FOLLOWER_TURN_END_DESTROY_GRANTED = "follower_turn_end_destroy_granted"
     FOLLOWER_TURN_END_BANISH_GRANTED = "follower_turn_end_banish_granted"
+    FOLLOWER_TURN_END_ABILITY_GRANTED = "follower_turn_end_ability_granted"
+    FAITH_MODE_SELECTION_BONUS_GRANTED = (
+        "faith_mode_selection_bonus_granted"
+    )
+    MODE_SELECTED = "mode_selected"
+    DECK_FOLLOWERS_BUFFED = "deck_followers_buffed"
 
 
 @dataclass(frozen=True)

@@ -567,6 +567,10 @@ def _build_coverage_report(db_path: str, rules_dir: str) -> dict:
     for v in classifications.values():
         cat = v["coverage"]
         counts[cat] = counts.get(cat, 0) + 1
+    # Preserve the legacy summary key even when the supported per-card backlog
+    # reaches zero, so consumers can distinguish "none remain" from a missing
+    # field or an older report schema.
+    counts.setdefault("supported_missing_rule", 0)
 
     test_ids = sum(1 for cid in ruled_cards if 999000 <= int(cid) <= 999999)
 

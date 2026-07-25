@@ -7354,6 +7354,48 @@
       "source_text_sha256": "a9d5cacca4c0fa1243aa55d09a8de6db48f5d1b1f2265b88dc5388379388132b",
       "test_evidence": ["tests/test_real_listener_context_leader_runtime_nineteenth_batch.py"],
       "notes": "吟唱1、己方回合末按持久监听触发次数依次执行随机随从2伤/回复2/领袖2伤并自毁、最多三次、费用1启动必选手牌舍弃并延后倒计数、非法选择原子性及完整三回合链均有直接测试。"
+    },
+    {
+      "card_id": 10214120,
+      "rule_version": 1,
+      "source_text_sha256": "3b24c8aad8f9623314c3714b80fa40c1d2dd9c74950fbc401340ae1dcfe970bc",
+      "test_evidence": ["tests/test_real_final_supported_completion_twentieth_batch.py"],
+      "notes": "入场多选至多2个敌方随从、攻击随从与主战者的完整禁止、持续至对手回合结束、超进化授予目标控制者回合末伤害领袖1与自身2的通用持续能力、来源离场及一个目标先离场均有直接测试。"
+    },
+    {
+      "card_id": 10314110,
+      "rule_version": 1,
+      "source_text_sha256": "0f52b4f468bd8c14cda8fc5411782b331f2a50af11bb4ba55fd75cf4519a4ede",
+      "test_evidence": ["tests/test_real_final_supported_completion_twentieth_batch.py"],
+      "notes": "入场敌方全体-0/-2、固有潜行、己方回合中敌方场上随从降防时限一次回复1、多个降防事件去重、超进化给予对手倒数2纹章及后续入场随从-1/-1均有直接测试。"
+    },
+    {
+      "card_id": 10354110,
+      "rule_version": 1,
+      "source_text_sha256": "733248fef11c9e5a074865bbe7867091fd6da5cdfb22cb1ed78dc7724d734546",
+      "test_evidence": ["tests/test_real_final_supported_completion_twentieth_batch.py"],
+      "notes": "信仰从0开始并按所选Mode数增长、入场严格消费10后授予Mode选择数+1、命令层多选与RL action mask一致、非法选择不变更状态、超进化破坏所选敌方随从并按快照复制同名卡、满手牌溢出均有直接测试。"
+    },
+    {
+      "card_id": 10554110,
+      "rule_version": 1,
+      "source_text_sha256": "6947b92bca4cacc47508763587a0c5483fb375472a36fa073b49e04e60b38ec9",
+      "test_evidence": ["tests/test_real_final_supported_completion_twentieth_batch.py"],
+      "notes": "入场按顺序亡者召还4与2、进化从双方场上随机选择至多6个其他随从并同时破坏且不选本体、超进化获得纹章、纹章通用抑制随从入场曲与爆能强化并在使用后无消耗进化均有直接测试。"
+    },
+    {
+      "card_id": 10574110,
+      "rule_version": 1,
+      "source_text_sha256": "b7bd91fcc07e682ce76d96255ca9cd2a891ea31074295570def68e975604d36d",
+      "test_evidence": ["tests/test_real_final_supported_completion_twentieth_batch.py"],
+      "notes": "固有潜行、本体己方回合开始从未发动三项中固定种子无放回选择、临时手牌减费/全体+2/+2/回复3、进化后回合末给予对手倒数3反向纹章并消失、纹章未发动三项独立持久历史均有直接测试。"
+    },
+    {
+      "card_id": 10714110,
+      "rule_version": 1,
+      "source_text_sha256": "ac0718c219b823ec12240ffd248aad26ef2f1a2669c88d598d682d7bcbe96d32",
+      "test_evidence": ["tests/test_real_final_supported_completion_twentieth_batch.py"],
+      "notes": "入场选择敌方随从并按本体当时攻击力-0/-X、无目标仍使连击+1、进化获得倒数3纹章、己方回合末连击3时永久强化牌组内所有随从+1/+1、非随从不变、抽入手牌继承属性且隐藏牌组运行时不泄露均有直接测试。"
     }
   ]
 }

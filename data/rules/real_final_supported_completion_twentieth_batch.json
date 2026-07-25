@@ -1,0 +1,397 @@
+{
+  "faiths": [
+    {
+      "id": "sham_nacha_entwining_faith",
+      "source_card_id": 10354110,
+      "initial_value": 0,
+      "triggers": [
+        {
+          "trigger": "mode_selected",
+          "amount": 1
+        }
+      ],
+      "coverage": "exact",
+      "implemented_text": "信仰值从0开始。每当自己选择【Mode】时，信仰值+1。"
+    }
+  ],
+  "emblems": [
+    {
+      "id": "krulle_heir_to_unkilling",
+      "source_card_id": 10314110,
+      "countdown": 2,
+      "triggers": [
+        {
+          "trigger": "follower_summoned",
+          "event_scope": "owner_event",
+          "event_filter": {"card_type": "随从"},
+          "operations": [
+            {
+              "kind": "buff_unit",
+              "target": "event_source",
+              "amount": -1,
+              "secondary_amount": -1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "milteo_luzen_truth",
+      "source_card_id": 10554110,
+      "passives": [
+        "suppress_follower_fanfare",
+        "suppress_follower_enhance",
+        "auto_evolve_played_followers"
+      ]
+    },
+    {
+      "id": "slaus_negative_wheel",
+      "source_card_id": 10574110,
+      "countdown": 3,
+      "triggers": [
+        {
+          "trigger": "turn_start",
+          "turn_scope": "owner_turn",
+          "operations": [
+            {
+              "kind": "random_choice",
+              "target": "own_leader",
+              "amount": 1,
+              "history_key": "slaus_negative_wheel",
+              "options": [
+                {
+                  "id": "increase_hand_costs",
+                  "operations": [
+                    {
+                      "kind": "change_cost",
+                      "target": "all_own_hand",
+                      "amount": 1,
+                      "mode": "add",
+                      "duration": "until_end_of_turn"
+                    }
+                  ]
+                },
+                {
+                  "id": "debuff_allied_followers",
+                  "operations": [
+                    {
+                      "kind": "buff_unit",
+                      "target": "all_own_units",
+                      "amount": -2,
+                      "secondary_amount": -2
+                    }
+                  ]
+                },
+                {
+                  "id": "damage_own_leader",
+                  "operations": [
+                    {
+                      "kind": "damage_leader",
+                      "target": "own_leader",
+                      "amount": 3
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "thestae_anathema_of_distortion",
+      "source_card_id": 10714110,
+      "countdown": 3,
+      "triggers": [
+        {
+          "trigger": "turn_end",
+          "turn_scope": "owner_turn",
+          "conditions": [
+            {"type": "controller_combo_at_least", "value": 3}
+          ],
+          "operations": [
+            {
+              "kind": "buff_deck_cards",
+              "target": "own_leader",
+              "amount": 1,
+              "secondary_amount": 1,
+              "card_type_filter": "随从"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "listeners": [
+    {
+      "card_id": 10314110,
+      "zone": "board",
+      "event": "follower_stats_decreased",
+      "event_scope": "opponent_event",
+      "turn_scope": "owner_turn",
+      "source_relation": "any",
+      "event_filter": {"card_type": "随从"},
+      "once_per_turn": true,
+      "operations": [
+        {"kind": "heal_leader", "target": "own_leader", "amount": 1}
+      ]
+    }
+  ],
+  "rules": [
+    {
+      "card_id": 10214120,
+      "trigger": "fanfare",
+      "coverage": "exact",
+      "implemented_text": "【入场曲】选择对手战场上的2个随从，到对手的回合结束为止，使其无法攻击随从或主战者。\n【超进化时】选择对手战场上的2个随从，使其获得「自己的回合结束时，对自己的主战者造成1点伤害，并对本随从造成2点伤害」。",
+      "operations": [
+        {
+          "kind": "select_targets",
+          "target": "enemy_unit",
+          "target_count": 2,
+          "target_key": "lymaga_restricted_followers"
+        },
+        {
+          "kind": "add_attack_restriction",
+          "target": "previous_target",
+          "target_key": "lymaga_restricted_followers",
+          "restriction": "cannot_attack",
+          "duration": "until_end_of_opponent_turn"
+        }
+      ]
+    },
+    {
+      "card_id": 10214120,
+      "trigger": "super_evolve",
+      "operations": [
+        {
+          "kind": "select_targets",
+          "target": "enemy_unit",
+          "target_count": 2,
+          "target_key": "lymaga_cursed_followers"
+        },
+        {
+          "kind": "grant_turn_end_ability",
+          "target": "previous_target",
+          "target_key": "lymaga_cursed_followers",
+          "turn_end_ability_timing": "owner_turn",
+          "operations": [
+            {
+              "kind": "damage_leader",
+              "target": "own_leader",
+              "amount": 1
+            },
+            {
+              "kind": "damage_unit",
+              "target": "self",
+              "amount": 2
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "card_id": 10314110,
+      "trigger": "fanfare",
+      "coverage": "exact",
+      "implemented_text": "【入场曲】使对手战场上的所有随从-0/-2。\n【潜行】\n每当对手的随从在对手战场上被降低防御力时，自己的每个回合中限1次，回复自己的主战者1点生命值。\n【超进化时】使对手获得【纹章】「绝灭的继承者·克鲁尔」。",
+      "operations": [
+        {
+          "kind": "buff_unit",
+          "target": "all_enemy_units",
+          "secondary_amount": -2
+        }
+      ]
+    },
+    {
+      "card_id": 10314110,
+      "trigger": "super_evolve",
+      "operations": [
+        {
+          "kind": "gain_emblem",
+          "target": "enemy_leader",
+          "emblem_id": "krulle_heir_to_unkilling"
+        }
+      ]
+    },
+    {
+      "card_id": 10354110,
+      "trigger": "fanfare",
+      "coverage": "exact",
+      "implemented_text": "【入场曲】信仰值-10，使自己的信仰获得「自己可以选择的【Mode】数量+1」。\n【超进化时】选择对手战场上的1个随从，破坏该随从，将1张同名卡牌加入自己的手牌。",
+      "operations": [
+        {
+          "kind": "consume_faith",
+          "target": "own_leader",
+          "faith_id": "sham_nacha_entwining_faith",
+          "amount": 10,
+          "operations": [
+            {
+              "kind": "grant_faith_mode_selection_bonus",
+              "target": "own_leader",
+              "faith_id": "sham_nacha_entwining_faith",
+              "amount": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "card_id": 10354110,
+      "trigger": "super_evolve",
+      "operations": [
+        {
+          "kind": "select_targets",
+          "target": "enemy_unit",
+          "target_key": "sham_nacha_stolen_follower",
+          "requires_target": true
+        },
+        {
+          "kind": "destroy",
+          "target": "previous_target",
+          "target_key": "sham_nacha_stolen_follower"
+        },
+        {
+          "kind": "copy_to_hand",
+          "target": "previous_target",
+          "target_key": "sham_nacha_stolen_follower",
+          "amount": 0
+        }
+      ]
+    },
+    {
+      "card_id": 10554110,
+      "trigger": "fanfare",
+      "coverage": "exact",
+      "implemented_text": "【入场曲】【亡者召还】_4与【亡者召还】_2。\n【进化时】随机破坏战场上的其他6个随从。\n【超进化时】使自己获得【纹章】「真相的弥尔缇欧&路西乌斯」。",
+      "operations": [
+        {"kind": "reanimate", "target": "own_leader", "amount": 4},
+        {"kind": "reanimate", "target": "own_leader", "amount": 2}
+      ]
+    },
+    {
+      "card_id": 10554110,
+      "trigger": "evolve",
+      "operations": [
+        {
+          "kind": "destroy",
+          "target": "random_any_unit",
+          "target_count": 6,
+          "exclude_source": true
+        }
+      ]
+    },
+    {
+      "card_id": 10554110,
+      "trigger": "super_evolve",
+      "operations": [
+        {
+          "kind": "gain_emblem",
+          "target": "own_leader",
+          "emblem_id": "milteo_luzen_truth"
+        }
+      ]
+    },
+    {
+      "card_id": 10574110,
+      "trigger": "turn_start",
+      "coverage": "exact",
+      "implemented_text": "【潜行】\n自己的回合结束时，若本随从已进化，使对手获得【纹章】「转轮的命运之轮·斯劳斯」，并使本随从消失。\n自己的回合开始时，从尚未发动的能力中随机发动1种：（1）到回合结束为止，使自己的所有手牌费用-1；（2）使自己的所有随从+2/+2；（3）回复自己的主战者3点生命值。",
+      "operations": [
+        {
+          "kind": "random_choice",
+          "target": "own_leader",
+          "amount": 1,
+          "history_key": "slaus_positive_wheel",
+          "options": [
+            {
+              "id": "reduce_hand_costs",
+              "operations": [
+                {
+                  "kind": "change_cost",
+                  "target": "all_own_hand",
+                  "amount": 1,
+                  "mode": "subtract",
+                  "duration": "until_end_of_turn"
+                }
+              ]
+            },
+            {
+              "id": "buff_allied_followers",
+              "operations": [
+                {
+                  "kind": "buff_unit",
+                  "target": "all_own_units",
+                  "amount": 2,
+                  "secondary_amount": 2
+                }
+              ]
+            },
+            {
+              "id": "heal_own_leader",
+              "operations": [
+                {
+                  "kind": "heal_leader",
+                  "target": "own_leader",
+                  "amount": 3
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "card_id": 10574110,
+      "trigger": "turn_end",
+      "operations": [
+        {
+          "kind": "gain_emblem",
+          "target": "enemy_leader",
+          "emblem_id": "slaus_negative_wheel",
+          "conditions": [{"type": "source_evolved"}]
+        },
+        {
+          "kind": "banish",
+          "target": "self",
+          "conditions": [{"type": "source_evolved"}]
+        }
+      ]
+    },
+    {
+      "card_id": 10714110,
+      "trigger": "fanfare",
+      "coverage": "exact",
+      "implemented_text": "【入场曲】选择对手战场上的1个随从，使其-0/-X。X为本随从的攻击力。使自己的【连击】+1。\n【进化时】使自己获得【纹章】「扭曲的安纳提玛·忒斯泰」。",
+      "operations": [
+        {
+          "kind": "select_targets",
+          "target": "enemy_unit",
+          "target_key": "thestae_distorted_follower"
+        },
+        {
+          "kind": "buff_unit",
+          "target": "previous_target",
+          "target_key": "thestae_distorted_follower",
+          "secondary_amount": {
+            "type": "negate",
+            "values": [
+              {"type": "source_attack"}
+            ]
+          }
+        },
+        {"kind": "add_combo", "target": "own_leader", "amount": 1}
+      ]
+    },
+    {
+      "card_id": 10714110,
+      "trigger": "evolve",
+      "operations": [
+        {
+          "kind": "gain_emblem",
+          "target": "own_leader",
+          "emblem_id": "thestae_anathema_of_distortion"
+        }
+      ]
+    }
+  ]
+}

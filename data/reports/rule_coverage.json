@@ -12,36 +12,71 @@
   },
   "summary": {
     "total_cards": 826,
-    "total_with_rules": 817,
+    "total_with_rules": 823,
     "test_or_synthetic_ids_with_rules": 26,
     "coverage_counts": {
-      "covered_exact": 713,
+      "covered_exact": 719,
       "text_unclear": 16,
-      "supported_missing_rule": 6,
       "token_or_non_collectible": 91
     },
     "clause_audit_counts": {
-      "mapped_exact": 713,
-      "unverified_exact": 0,
+      "mapped_exact": 714,
+      "unverified_exact": 5,
       "partial": 0,
-      "missing_rule": 6,
+      "missing_rule": 0,
       "missing_primitive": 0,
       "text_unclear": 16,
       "token_separate_audit": 91
     },
     "blocker_counts": {
-      "missing_rule": 6,
+      "missing_rule": 0,
       "missing_schema": 0,
       "missing_primitive": 0,
       "missing_targeting": 0,
       "timing_unclear": 0,
       "text_unclear": 16,
       "external_blocker": 0,
-      "audit_unverified": 0
+      "audit_unverified": 5
     }
   },
   "rule_consistency_issues": [],
-  "clause_audit_issues": [],
+  "clause_audit_issues": [
+    {
+      "card_id": 10214120,
+      "issue": "covered_exact_without_clause_evidence",
+      "missing": [
+        "test_evidence"
+      ]
+    },
+    {
+      "card_id": 10314110,
+      "issue": "covered_exact_without_clause_evidence",
+      "missing": [
+        "test_evidence"
+      ]
+    },
+    {
+      "card_id": 10554110,
+      "issue": "covered_exact_without_clause_evidence",
+      "missing": [
+        "test_evidence"
+      ]
+    },
+    {
+      "card_id": 10574110,
+      "issue": "covered_exact_without_clause_evidence",
+      "missing": [
+        "test_evidence"
+      ]
+    },
+    {
+      "card_id": 10714110,
+      "issue": "covered_exact_without_clause_evidence",
+      "missing": [
+        "test_evidence"
+      ]
+    }
+  ],
   "primitive_keyword_map": {
     "入场曲": {
       "primitive": "FANFARE trigger",
@@ -13980,8 +14015,8 @@
       "cost": 7,
       "is_collectible": true,
       "card_set_id": 10002,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '进化时', '超进化', '回合结束', '造成.*伤害', '不能攻击|无法攻击']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['fanfare', 'super_evolve'], Ops: ['select_targets', 'add_attack_restriction', 'select_targets', 'grant_turn_end_ability', 'damage_leader', 'damage_unit']",
       "hit_keywords": [
         "入场曲",
         "进化时",
@@ -13999,27 +14034,41 @@
         "【<color=Keyword>入场曲</color>】选择对手的战场上的2个随从，对手的回合结束前，使其获得「无法攻击随从或主战者」。\n<hr><sev>【<color=Keyword>超进化时</color>】选择对手的战场上的2个随从，使其获得「回合结束时，对自己的主战者造成1点伤害，对本随从造成2点伤害」。</sev>"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【入场曲】选择对手战场上的2个随从，到对手的回合结束为止，使其无法攻击随从或主战者。\n【超进化时】选择对手战场上的2个随从，使其获得「自己的回合结束时，对自己的主战者造成1点伤害，并对本随从造成2点伤害」。"
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "unverified_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10214120:0",
             "source_text": "【<color=Keyword>入场曲</color>】选择对手的战场上的2个随从，对手的回合结束前，使其获得「无法攻击随从或主战者」。\n<hr><sev>【<color=Keyword>超进化时</color>】选择对手的战场上的2个随从，使其获得「回合结束时，对自己的主战者造成1点伤害，对本随从造成2点伤害」。</sev>",
-            "mapping_status": "missing_rule"
+            "mapping_status": "unverified_exact"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "【入场曲】选择对手战场上的2个随从，到对手的回合结束为止，使其无法攻击随从或主战者。\n【超进化时】选择对手战场上的2个随从，使其获得「自己的回合结束时，对自己的主战者造成1点伤害，并对本随从造成2点伤害」。",
         "unsupported_text": null,
         "source_text_sha256": null,
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "fanfare",
+            "super_evolve"
+          ],
+          "effect_kinds": [
+            "select_targets",
+            "add_attack_restriction",
+            "select_targets",
+            "grant_turn_end_ability",
+            "damage_leader",
+            "damage_unit"
+          ]
         },
         "test_evidence": [],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": "audit_unverified"
       }
     },
     "10221110": {
@@ -19001,8 +19050,8 @@
       "cost": 4,
       "is_collectible": true,
       "card_set_id": 10003,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '进化时', '超进化', '倒数', '回复(?!自己\\\\d+点(?:超进化点|进化点|能量点))', '纹章']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['fanfare', 'super_evolve', 'listener:board:follower_stats_decreased', 'emblem_source'], Ops: ['buff_unit', 'gain_emblem', 'heal_leader', 'buff_unit']",
       "hit_keywords": [
         "入场曲",
         "进化时",
@@ -19024,32 +19073,46 @@
         "【纹章_0】【<color=Keyword>吟唱</color>_2】\n自己的随从进入战场时，使其-1/-1。"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【入场曲】使对手战场上的所有随从-0/-2。\n【潜行】\n每当对手的随从在对手战场上被降低防御力时，自己的每个回合中限1次，回复自己的主战者1点生命值。\n【超进化时】使对手获得【纹章】「绝灭的继承者·克鲁尔」。"
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "unverified_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10314110:0",
             "source_text": "【<color=Keyword>入场曲</color>】使对手的战场上的所有随从-0/-2。\n<hr>【<color=Keyword>潜行</color>】\n对手的随从的生命值在战场上被减少时，自己的每回合中可触发1次，回复自己的主战者1点生命值。\n<hr><sev>【<color=Keyword>超进化时</color>】使对手获得『纹章：不弑的继承者·库露露』。</sev>",
-            "mapping_status": "missing_rule"
+            "mapping_status": "unverified_exact"
           },
           {
             "clause_id": "10314110:1",
             "source_text": "【纹章_0】【<color=Keyword>吟唱</color>_2】\n自己的随从进入战场时，使其-1/-1。",
-            "mapping_status": "missing_rule"
+            "mapping_status": "unverified_exact"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "【入场曲】使对手战场上的所有随从-0/-2。\n【潜行】\n每当对手的随从在对手战场上被降低防御力时，自己的每个回合中限1次，回复自己的主战者1点生命值。\n【超进化时】使对手获得【纹章】「绝灭的继承者·克鲁尔」。",
         "unsupported_text": null,
         "source_text_sha256": null,
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "fanfare",
+            "super_evolve",
+            "listener:board:follower_stats_decreased",
+            "emblem_source"
+          ],
+          "effect_kinds": [
+            "buff_unit",
+            "gain_emblem",
+            "heal_leader",
+            "buff_unit"
+          ]
         },
         "test_evidence": [],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": "audit_unverified"
       }
     },
     "10314120": {
@@ -21691,8 +21754,8 @@
       "cost": 2,
       "is_collectible": true,
       "card_set_id": 10003,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '进化时', '超进化', '破坏', '信仰', '选择一项|模式']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['fanfare', 'super_evolve', 'faith'], Ops: ['consume_faith', 'grant_faith_mode_selection_bonus', 'select_targets', 'destroy', 'copy_to_hand', 'faith_value']",
       "hit_keywords": [
         "入场曲",
         "进化时",
@@ -21702,9 +21765,6 @@
         "选择一项|模式"
       ],
       "missing_primitives": [],
-      "missing_rule_mechanics": [
-        "信仰"
-      ],
       "ability_keywords": [
         "信仰",
         "入场曲",
@@ -21716,34 +21776,49 @@
         "【信仰_0】信仰值起始为0。\n<hr>自己选择【<color=Keyword>模式</color>】时，信仰值+1。"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "信仰值从0开始。每当自己选择【Mode】时，信仰值+1。"
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10354110:0",
             "source_text": "【<color=Keyword>入场曲</color>】信仰值-10，使自己的信仰获得「自己选择的【<color=Keyword>模式</color>】数+1」。\n<hr><sev>【<color=Keyword>超进化时</color>】选择对手的战场上的1个随从，破坏该随从，将1张同名的卡牌加入自己的手牌。</sev>",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           },
           {
             "clause_id": "10354110:1",
             "source_text": "【信仰_0】信仰值起始为0。\n<hr>自己选择【<color=Keyword>模式</color>】时，信仰值+1。",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "信仰值从0开始。每当自己选择【Mode】时，信仰值+1。",
         "unsupported_text": null,
         "source_text_sha256": null,
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "fanfare",
+            "super_evolve",
+            "faith"
+          ],
+          "effect_kinds": [
+            "consume_faith",
+            "grant_faith_mode_selection_bonus",
+            "select_targets",
+            "destroy",
+            "copy_to_hand",
+            "faith_value"
+          ]
         },
         "test_evidence": [
           "tests/test_database.py"
         ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10354120": {
@@ -31893,8 +31968,8 @@
       "cost": 7,
       "is_collectible": true,
       "card_set_id": 10005,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '进化时', '超进化', '破坏', '亡者召还', '纹章', '爆能强化']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['fanfare', 'evolve', 'super_evolve', 'emblem_source'], Ops: ['reanimate', 'reanimate', 'destroy', 'gain_emblem']",
       "hit_keywords": [
         "入场曲",
         "进化时",
@@ -31916,32 +31991,46 @@
         "【纹章_0】自己的随从的【<color=Keyword>入场曲</color>】或【<color=Keyword>爆能强化</color>】不会发动。\n自己使用随从时，使其进化。"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【入场曲】【亡者召还】_4与【亡者召还】_2。\n【进化时】随机破坏战场上的其他6个随从。\n【超进化时】使自己获得【纹章】「真相的弥尔缇欧&路西乌斯」。"
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "unverified_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10554110:0",
             "source_text": "【<color=Keyword>入场曲</color>】发动【<color=Keyword>亡者召还</color>_4】和【<color=Keyword>亡者召还</color>_2】。\n<hr><ev>本随从进化时，破坏战场上的随机6个其他随从。</ev>\n<sev>本随从超进化时，使自己获得『纹章：充实的《恋人与节制》·米路缇欧&卢泽』。</sev>",
-            "mapping_status": "missing_rule"
+            "mapping_status": "unverified_exact"
           },
           {
             "clause_id": "10554110:1",
             "source_text": "【纹章_0】自己的随从的【<color=Keyword>入场曲</color>】或【<color=Keyword>爆能强化</color>】不会发动。\n自己使用随从时，使其进化。",
-            "mapping_status": "missing_rule"
+            "mapping_status": "unverified_exact"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "【入场曲】【亡者召还】_4与【亡者召还】_2。\n【进化时】随机破坏战场上的其他6个随从。\n【超进化时】使自己获得【纹章】「真相的弥尔缇欧&路西乌斯」。",
         "unsupported_text": null,
         "source_text_sha256": null,
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "fanfare",
+            "evolve",
+            "super_evolve",
+            "emblem_source"
+          ],
+          "effect_kinds": [
+            "reanimate",
+            "reanimate",
+            "destroy",
+            "gain_emblem"
+          ]
         },
         "test_evidence": [],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": "audit_unverified"
       }
     },
     "10554120": {
@@ -33208,8 +33297,8 @@
       "cost": 3,
       "is_collectible": true,
       "card_set_id": 10005,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['回合开始', '回合结束', '倒数', '回复(?!自己\\\\d+点(?:超进化点|进化点|能量点))', '造成.*伤害', '消失', '纹章']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['turn_start', 'turn_end', 'emblem_source'], Ops: ['random_choice', 'change_cost', 'buff_unit', 'heal_leader', 'gain_emblem', 'banish', 'random_choice', 'change_cost', 'buff_unit', 'damage_leader']",
       "hit_keywords": [
         "回合开始",
         "回合结束",
@@ -33230,32 +33319,51 @@
         "【纹章_0】【<color=Keyword>吟唱</color>_3】\n自己的回合开始时，从以下未发动的能力中随机发动1个能力。\n<ridx=0>（1）回合结束前，使自己的所有手牌的费用+1。</ridx>\n<ridx=1>（2）使自己的战场上的所有随从-2/-2。</ridx>\n<ridx=2>（3）对自己的主战者造成3点伤害。</ridx>"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【潜行】\n自己的回合结束时，若本随从已进化，使对手获得【纹章】「转轮的命运之轮·斯劳斯」，并使本随从消失。\n自己的回合开始时，从尚未发动的能力中随机发动1种：（1）到回合结束为止，使自己的所有手牌费用-1；（2）使自己的所有随从+2/+2；（3）回复自己的主战者3点生命值。"
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "unverified_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10574110:0",
             "source_text": "【<color=Keyword>潜行</color>】\n自己的回合结束时，若本随从为进化后，则使对手获得『纹章：转动的《命运之轮》·斯洛士』。使本随从消失。\n自己的回合开始时，从以下未发动的能力中随机发动1个能力。\n<ridx=0>（1）回合结束前，使自己的所有手牌的费用-1。</ridx>\n<ridx=1>（2）使自己的战场上的所有随从+2/+2。</ridx>\n<ridx=2>（3）回复自己的主战者3点生命值。</ridx>",
-            "mapping_status": "missing_rule"
+            "mapping_status": "unverified_exact"
           },
           {
             "clause_id": "10574110:1",
             "source_text": "【纹章_0】【<color=Keyword>吟唱</color>_3】\n自己的回合开始时，从以下未发动的能力中随机发动1个能力。\n<ridx=0>（1）回合结束前，使自己的所有手牌的费用+1。</ridx>\n<ridx=1>（2）使自己的战场上的所有随从-2/-2。</ridx>\n<ridx=2>（3）对自己的主战者造成3点伤害。</ridx>",
-            "mapping_status": "missing_rule"
+            "mapping_status": "unverified_exact"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "【潜行】\n自己的回合结束时，若本随从已进化，使对手获得【纹章】「转轮的命运之轮·斯劳斯」，并使本随从消失。\n自己的回合开始时，从尚未发动的能力中随机发动1种：（1）到回合结束为止，使自己的所有手牌费用-1；（2）使自己的所有随从+2/+2；（3）回复自己的主战者3点生命值。",
         "unsupported_text": null,
         "source_text_sha256": null,
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "turn_start",
+            "turn_end",
+            "emblem_source"
+          ],
+          "effect_kinds": [
+            "random_choice",
+            "change_cost",
+            "buff_unit",
+            "heal_leader",
+            "gain_emblem",
+            "banish",
+            "random_choice",
+            "change_cost",
+            "buff_unit",
+            "damage_leader"
+          ]
         },
         "test_evidence": [],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": "audit_unverified"
       }
     },
     "10574120": {
@@ -39507,8 +39615,8 @@
       "cost": 4,
       "is_collectible": true,
       "card_set_id": 10007,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '进化时', '连击', '回合结束', '倒数', '纹章']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['fanfare', 'evolve', 'emblem_source'], Ops: ['select_targets', 'buff_unit', 'add_combo', 'gain_emblem', 'buff_deck_cards']",
       "hit_keywords": [
         "入场曲",
         "进化时",
@@ -39530,32 +39638,46 @@
         "【纹章_0】【<color=Keyword>吟唱</color>_3】\n自己的回合结束时，【<color=Keyword>连击</color>_3】使自己的牌组中的所有随从+1/+1。"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【入场曲】选择对手战场上的1个随从，使其-0/-X。X为本随从的攻击力。使自己的【连击】+1。\n【进化时】使自己获得【纹章】「扭曲的安纳提玛·忒斯泰」。"
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "unverified_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10714110:0",
             "source_text": "【<color=Keyword>入场曲</color>】选择对手的战场上的1个随从，使其-0/-X。X为本随从的攻击力。使自己的【<color=Keyword>连击</color>】+1。\n<hr><ev>【<color=Keyword>进化时</color>】使自己获得『纹章：操量的安纳提玛·达斯特迪兹』。</ev>",
-            "mapping_status": "missing_rule"
+            "mapping_status": "unverified_exact"
           },
           {
             "clause_id": "10714110:1",
             "source_text": "【纹章_0】【<color=Keyword>吟唱</color>_3】\n自己的回合结束时，【<color=Keyword>连击</color>_3】使自己的牌组中的所有随从+1/+1。",
-            "mapping_status": "missing_rule"
+            "mapping_status": "unverified_exact"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "【入场曲】选择对手战场上的1个随从，使其-0/-X。X为本随从的攻击力。使自己的【连击】+1。\n【进化时】使自己获得【纹章】「扭曲的安纳提玛·忒斯泰」。",
         "unsupported_text": null,
         "source_text_sha256": null,
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "fanfare",
+            "evolve",
+            "emblem_source"
+          ],
+          "effect_kinds": [
+            "select_targets",
+            "buff_unit",
+            "add_combo",
+            "gain_emblem",
+            "buff_deck_cards"
+          ]
         },
         "test_evidence": [],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": "audit_unverified"
       }
     },
     "10714120": {
@@ -51948,193 +52070,5 @@
       }
     }
   },
-  "top_20_recommendations": [
-    {
-      "card_id": 10214120,
-      "name": "缠绕密林·丽梅格",
-      "class_name": "精灵",
-      "card_type": "随从",
-      "cost": 7,
-      "ability_keywords": [
-        "入场曲",
-        "超进化时"
-      ],
-      "hit_keywords": [
-        "入场曲",
-        "进化时",
-        "超进化",
-        "回合结束",
-        "造成.*伤害",
-        "不能攻击|无法攻击"
-      ],
-      "confidence": "high",
-      "why_recommended": "Covered keywords: 入场曲, 进化时, 超进化",
-      "required_primitives": [
-        "入场曲",
-        "进化时",
-        "超进化",
-        "回合结束",
-        "造成.*伤害"
-      ],
-      "suggested_rule_file": "batch_精灵.json"
-    },
-    {
-      "card_id": 10574110,
-      "name": "转动的《命运之轮》·斯洛士",
-      "class_name": "超越者",
-      "card_type": "随从",
-      "cost": 3,
-      "ability_keywords": [
-        "倒数",
-        "潜行",
-        "纹章"
-      ],
-      "hit_keywords": [
-        "回合开始",
-        "回合结束",
-        "倒数",
-        "回复(?!自己\\d+点(?:超进化点|进化点|能量点))",
-        "造成.*伤害",
-        "消失",
-        "纹章"
-      ],
-      "confidence": "high",
-      "why_recommended": "Covered keywords: 回合开始, 回合结束, 倒数",
-      "required_primitives": [
-        "回合开始",
-        "回合结束",
-        "倒数",
-        "回复(?!自己\\d+点(?:超进化点|进化点|能量点))",
-        "造成.*伤害"
-      ],
-      "suggested_rule_file": "batch_超越者.json"
-    },
-    {
-      "card_id": 10354110,
-      "name": "混融的继承者·莎木·纳克雅",
-      "class_name": "梦魇",
-      "card_type": "随从",
-      "cost": 2,
-      "ability_keywords": [
-        "信仰",
-        "入场曲",
-        "模式",
-        "超进化时"
-      ],
-      "hit_keywords": [
-        "入场曲",
-        "进化时",
-        "超进化",
-        "破坏",
-        "信仰",
-        "选择一项|模式"
-      ],
-      "confidence": "medium",
-      "why_recommended": "Covered keywords: 入场曲, 进化时, 超进化",
-      "required_primitives": [
-        "入场曲",
-        "进化时",
-        "超进化",
-        "破坏",
-        "信仰"
-      ],
-      "suggested_rule_file": "batch_梦魇.json"
-    },
-    {
-      "card_id": 10554110,
-      "name": "充实的《恋人与节制》·米路缇欧&卢泽",
-      "class_name": "梦魇",
-      "card_type": "随从",
-      "cost": 7,
-      "ability_keywords": [
-        "亡者召还",
-        "入场曲",
-        "爆能强化",
-        "纹章"
-      ],
-      "hit_keywords": [
-        "入场曲",
-        "进化时",
-        "超进化",
-        "破坏",
-        "亡者召还",
-        "纹章",
-        "爆能强化"
-      ],
-      "confidence": "medium",
-      "why_recommended": "Covered keywords: 入场曲, 进化时, 超进化",
-      "required_primitives": [
-        "入场曲",
-        "进化时",
-        "超进化",
-        "破坏",
-        "亡者召还"
-      ],
-      "suggested_rule_file": "batch_梦魇.json"
-    },
-    {
-      "card_id": 10314110,
-      "name": "不弑的继承者·库露露",
-      "class_name": "精灵",
-      "card_type": "随从",
-      "cost": 4,
-      "ability_keywords": [
-        "倒数",
-        "入场曲",
-        "潜行",
-        "纹章",
-        "超进化时"
-      ],
-      "hit_keywords": [
-        "入场曲",
-        "进化时",
-        "超进化",
-        "倒数",
-        "回复(?!自己\\d+点(?:超进化点|进化点|能量点))",
-        "纹章"
-      ],
-      "confidence": "medium",
-      "why_recommended": "Covered keywords: 入场曲, 进化时, 超进化",
-      "required_primitives": [
-        "入场曲",
-        "进化时",
-        "超进化",
-        "倒数",
-        "回复(?!自己\\d+点(?:超进化点|进化点|能量点))"
-      ],
-      "suggested_rule_file": "batch_精灵.json"
-    },
-    {
-      "card_id": 10714110,
-      "name": "操量的安纳提玛·达斯特迪兹",
-      "class_name": "精灵",
-      "card_type": "随从",
-      "cost": 4,
-      "ability_keywords": [
-        "倒数",
-        "入场曲",
-        "纹章",
-        "进化时",
-        "连击"
-      ],
-      "hit_keywords": [
-        "入场曲",
-        "进化时",
-        "连击",
-        "回合结束",
-        "倒数",
-        "纹章"
-      ],
-      "confidence": "medium",
-      "why_recommended": "Covered keywords: 入场曲, 进化时, 连击",
-      "required_primitives": [
-        "入场曲",
-        "进化时",
-        "连击",
-        "回合结束",
-        "倒数"
-      ],
-      "suggested_rule_file": "batch_精灵.json"
-    }
-  ]
+  "top_20_recommendations": []
 }

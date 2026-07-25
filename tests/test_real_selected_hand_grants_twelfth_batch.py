@@ -309,7 +309,10 @@ class SelectedHandGrantsTwelfthBehaviorTests(unittest.TestCase):
              if event.type is EventType.CARD_ABILITY_GRANTED],
             ["last_words"],
         )
-        self.assertEqual(_hand_runtime(artifact, engine.state.turn)[10:], (0.25, 0.0))
+        self.assertEqual(
+            _hand_runtime(artifact, engine.state.turn)[10:12],
+            (0.25, 0.0),
+        )
         self.assertFalse(non_artifact.has_keyword("突进"))
 
         clone = engine.clone()
@@ -333,7 +336,7 @@ class SelectedHandGrantsTwelfthBehaviorTests(unittest.TestCase):
             played_entity_ids.append(unit.entity_id)
             self.assertTrue(unit.has_keyword("突进"))
             self.assertEqual(len(unit.granted_last_words), 1)
-            self.assertEqual(_board_runtime(unit)[16:], (0.25, 0.0))
+            self.assertEqual(_board_runtime(unit)[16:18], (0.25, 0.0))
             _destroy_units(current, unit)
             self.assertTrue(
                 any(card.card_id == 991242 for card in current.players[0].hand)
@@ -835,9 +838,9 @@ class SelectedHandGrantsTwelfthAuditTests(unittest.TestCase):
         self.assertEqual(
             report["summary"]["coverage_counts"],
             {
-                "covered_exact": 713,
+                "covered_exact": 719,
                 "text_unclear": 16,
-                "supported_missing_rule": 6,
+                "supported_missing_rule": 0,
                 "token_or_non_collectible": 91,
             },
         )

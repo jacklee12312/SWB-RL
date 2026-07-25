@@ -57,7 +57,9 @@ def encode_observation_v3(
     leader_continuous = (
         *leader["faith_values"],
         *leader["faith_granted_ability_counts"],
+        *leader["faith_mode_selection_bonuses"],
         *leader["emblem_countdowns"],
+        *leader["emblem_random_choice_runtime"],
         *leader["leader_damage_modifier_counts"],
         *leader["leader_damage_modifier_totals"],
         *leader["leader_damage_modifier_runtime"],
@@ -113,7 +115,8 @@ def observation_v3_space(env: ShadowverseEnv) -> spaces.Dict:
 
     leader_categorical_size = 4 * MAX_LEADER_AREA_SLOTS + 2
     leader_continuous_size = (
-        3 * 2 * MAX_LEADER_AREA_SLOTS
+        4 * 2 * MAX_LEADER_AREA_SLOTS
+        + 2 * MAX_LEADER_AREA_SLOTS * 5
         + 2
         + 2
         + 2 * MAX_LEADER_DAMAGE_MODIFIERS * 6
@@ -131,8 +134,8 @@ def observation_v3_space(env: ShadowverseEnv) -> spaces.Dict:
         "public_banished": categorical((2, vocabulary_size)),
         "own_hand_origins": categorical((env.MAX_HAND,)),
         "public_board_origins": categorical((2 * env.MAX_BOARD,)),
-        "own_hand_runtime": continuous((env.MAX_HAND * 12,)),
-        "public_board_runtime": continuous((2 * env.MAX_BOARD * 18,)),
+        "own_hand_runtime": continuous((env.MAX_HAND * 14,)),
+        "public_board_runtime": continuous((2 * env.MAX_BOARD * 23,)),
         "public_board_keywords": continuous(
             (2 * env.MAX_BOARD * len(RUNTIME_KEYWORDS),)
         ),

@@ -284,6 +284,12 @@ class CostModifier:
     expires_for_player: int | None = None
 
 
+@dataclass(frozen=True)
+class GrantedTurnEndAbility:
+    timing: TurnEndDestroyTiming
+    operations: tuple[EffectOperation, ...]
+
+
 @dataclass
 class DeckCard:
     """A physical card in a deck that can retain runtime cost changes.
@@ -295,6 +301,7 @@ class DeckCard:
 
     definition: CardDefinition
     cost_modifiers: list[CostModifier] = field(default_factory=list)
+    stat_modifiers: list[StatModifier] = field(default_factory=list)
 
     @property
     def current_cost(self) -> int:
@@ -313,6 +320,26 @@ class DeckCard:
     @property
     def cost(self) -> int:
         return self.current_cost
+
+    @property
+    def attack(self) -> int | None:
+        if self.definition.attack is None:
+            return None
+        return max(
+            0,
+            self.definition.attack
+            + sum(modifier.attack_delta for modifier in self.stat_modifiers),
+        )
+
+    @property
+    def life(self) -> int | None:
+        if self.definition.life is None:
+            return None
+        return max(
+            1,
+            self.definition.life
+            + sum(modifier.health_delta for modifier in self.stat_modifiers),
+        )
 
     def __getattr__(self, name: str):
         definition = self.__dict__.get("definition")
@@ -587,8 +614,14 @@ class Unit(BoardEntity):
     turn_end_banish_timings: set[TurnEndDestroyTiming] = field(
         default_factory=set
     )
+    granted_turn_end_abilities: list[GrantedTurnEndAbility] = field(
+        default_factory=list
+    )
     granted_last_words: list[tuple[EffectOperation, ...]] = field(
         default_factory=list
+    )
+    random_choice_history: dict[str, tuple[int, ...]] = field(
+        default_factory=dict
     )
     effect_destroy_immunity: bool = False
 
@@ -660,7 +693,9 @@ class Unit(BoardEntity):
         self.attack_capacity_modifiers.clear()
         self.turn_end_destroy_timings.clear()
         self.turn_end_banish_timings.clear()
+        self.granted_turn_end_abilities.clear()
         self.granted_last_words.clear()
+        self.random_choice_history.clear()
         self.effect_destroy_immunity = False
         self._adjust_attack_capacity(old_capacity)
         self._synchronize_keyword_state()
@@ -1009,6 +1044,9 @@ class EmblemInstance:
     countdown: int | None = None
     countdown_before: int | None = None
     activation_counts: dict[int, int] = field(default_factory=dict)
+    random_choice_history: dict[str, tuple[int, ...]] = field(
+        default_factory=dict
+    )
     _once_per_turn_used: set[int] = field(default_factory=set)
 
     @property

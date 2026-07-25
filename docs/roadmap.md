@@ -10,13 +10,13 @@ code and tests as the source of truth when this file drifts.
 - Database: 826 cards, 735 collectible cards, 91 non-collectible/generated
   cards from set `90000`.
 - Latest SVA source: `https://sva.hypd.asia/data/cards.json`.
-- Tests: `python -m unittest discover -s tests -v` discovers 2476 behavioral
-  contracts (2026-07-25 nineteenth listener-context/leader-runtime verification).
+- Tests: `python -m unittest discover -s tests -v` discovers 2487 behavioral
+  contracts (2026-07-25 twentieth supported-rule completion verification).
 - RL adapter: fixed 111-action space; the default v1 observation is 294
   floats, opt-in v2 preserves the structured compatibility mapping, and v3
   supplies fixed-dtype NumPy arrays plus a Gymnasium observation space without
   changing action IDs. Hidden decklists are the v3 default.
-- The exact-audit `TrainableCardCatalog` currently admits all 713 exact
+- The exact-audit `TrainableCardCatalog` currently admits all 719 exact
   collectible cards, preloads all 826 definitions for SQLite-free matches, and
   provides deterministic class-valid deck sampling. Self-play no longer uses
   the legacy 2-to-5-card follower pool.
@@ -48,9 +48,9 @@ code and tests as the source of truth when this file drifts.
   and distribution acceptance results, not policy-strength evidence.
 - Ability registry status: 18 implemented, 5 partial, 11 placeholder.
 - Explicit card and demo rules live in `data/rules/`; the current coverage
-  report classifies 817 card IDs with explicit rules, passives, fusion,
+  report classifies 823 card IDs with explicit rules, passives, fusion,
   invocation, activation, Faith, Union Burst, or listener definitions. Current
-  collectible coverage is 713 exact (97.01% of 735), 0 partial, 6 supported-but-missing-rule,
+  collectible coverage is 719 exact (97.82% of 735), 0 partial, 0 supported-but-missing-rule,
   0 missing-primitive, and 16 text-unclear cards.
 - `data/reports/token_audit.{json,md}` audits all 91 non-collectible/generated
   cards independently of collectible coverage. Database `card_references` and
@@ -65,7 +65,7 @@ code and tests as the source of truth when this file drifts.
   separate column and is covered for all 34; it does not automatically promote
   the 5 partial or 11 placeholder keyword statuses.
 - Coverage now has a backward-compatible clause audit. The legacy summary still
-  reports 713 exact collectible cards, and all 713 now have an explicit exact
+  reports 719 exact collectible cards, and all 719 now have an explicit exact
   text mapping plus named direct test evidence. The versioned sibling registry
   at `data/audits/rule_clauses.json` hashes every imported primary and
   alternate-mode clause; changed source text or stale test evidence invalidates
@@ -74,9 +74,8 @@ code and tests as the source of truth when this file drifts.
   rule version and errata metadata, structured trigger/operation evidence,
   explicit unsupported text, and a stable blocker taxonomy. There are zero
   unverified exact entries and no known missing schema, primitive, targeting,
-  or timing blocker among authored rules. The 6 supported-but-missing-rule
-  cards are now the per-card structured-content backlog; 16 unclear texts
-  remain explicit.
+  or timing blocker among authored rules. No supported collectible is missing
+  a per-card structured rule; 16 unclear texts remain explicit.
 - RL observation v2 is available behind an explicit version switch. A
   configured card vocabulary supplies stable categorical indices for own-hand,
   public-board, initial-deck composition, and public graveyard/banished state;
@@ -1530,6 +1529,22 @@ slice in this order:
   command/action-mask parity. V1 remains 294 floats and all 111 action IDs stay
   stable; public leader Barrier and replacement-mode inputs advance v2/v3's
   formal schema to `observation-v3.4`.
+- Exact file
+  `data/rules/real_final_supported_completion_twentieth_batch.json` closes the
+  final six supported-but-missing collectibles (`10214120`, `10314110`,
+  `10354110`, `10554110`, `10574110`, and `10714110`), bringing collectible
+  exact coverage to 719/735 (97.82%) with zero missing per-card rule and zero
+  schema, primitive, targeting, or timing blocker. Generic follower
+  stat-decrease events, granted turn-end ability state, permanent deck-follower
+  stat modifiers, Faith Mode-selection bonuses, non-repeating random histories,
+  cross-board random follower targeting, signed `negate` expressions, and
+  follower-play emblem passives implement the shared mechanics without
+  card-ID branches. Direct tests cover atomic multi-choice and action masks,
+  no-target and capacity paths, source departure, simultaneous deaths, seeded
+  replay, physical hand/deck stat persistence, hidden-deck privacy, strict
+  schema failures, source hashes, and Clause/Token consistency. New public
+  decision-state fields advance v2/v3's formal schema to
+  `observation-v3.5`; v1 remains 294 floats and all 111 action IDs stay stable.
 
 ## Known Partial Or Unsupported Areas
 
@@ -1552,8 +1567,8 @@ slice in this order:
   additional real card still needs an explicit structured definition. Faith
   leader-area initialization, evolution progression, atomic value spending,
   gained structured abilities, Enhance-card progression, and filtered
-  named-follower entry progression are implemented, while mode-selection
-  progression remains explicit partial semantics. `策动` and `土之秘术` /
+  named-follower entry progression and Mode-selection-count progression are
+  implemented. `策动` and `土之秘术` /
   `土之印` core semantics are implemented, while broader real-card coverage
   remains intentionally incremental.
 - Faith and emblems are both represented in the leader area, but the official

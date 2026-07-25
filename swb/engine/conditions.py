@@ -425,6 +425,8 @@ def evaluate_expression(expr: ValueExpression | None, ctx: EvalContext | None) -
         for v in vals[1:]:
             result -= v
         return max(0, result)
+    elif t == ExprType.NEGATE:
+        return -evaluate_expression(expr.values[0], ctx)
     elif t == ExprType.MULTIPLY:
         result = 1
         for v in expr.values:

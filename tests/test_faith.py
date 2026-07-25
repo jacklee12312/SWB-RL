@@ -733,7 +733,7 @@ class FaithSchemaTests(unittest.TestCase):
             {
                 "id": "faith-test",
                 "source_card_id": 123,
-                "triggers": [{"trigger": "mode_selected"}],
+                "triggers": [{"trigger": "unknown_trigger"}],
             },
             {
                 "id": "faith-test",

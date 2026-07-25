@@ -89,6 +89,7 @@ class ExprType(str, Enum):
     CONSTANT = "constant"
     ADD = "add"
     SUBTRACT = "subtract"
+    NEGATE = "negate"
     MULTIPLY = "multiply"
     MIN = "min"
     MAX = "max"
@@ -178,6 +179,7 @@ class EffectKind(str, Enum):
     CHANGE_MAX_MANA = "change_max_mana"
     BUFF_UNIT = "buff_unit"
     BUFF_HAND_CARD = "buff_hand_card"
+    BUFF_DECK_CARDS = "buff_deck_cards"
     ADD_UNION_BURST_GAUGE = "add_union_burst_gauge"
     SUMMON = "summon"
     SUMMON_COPY = "summon_copy"
@@ -202,6 +204,7 @@ class EffectKind(str, Enum):
     REMOVE_ALL_ABILITIES = "remove_all_abilities"
     REMOVE_LAST_WORDS = "remove_last_words"
     GRANT_ATTACKS_PER_TURN = "grant_attacks_per_turn"
+    GRANT_TURN_END_ABILITY = "grant_turn_end_ability"
     GRANT_TURN_END_DESTROY = "grant_turn_end_destroy"
     GRANT_TURN_END_BANISH = "grant_turn_end_banish"
     ADD_LEADER_BARRIER = "add_leader_barrier"
@@ -245,6 +248,7 @@ class EffectKind(str, Enum):
     EARTH_RITE = "earth_rite"
     CONSUME_FAITH = "consume_faith"
     GRANT_FAITH_ABILITY = "grant_faith_ability"
+    GRANT_FAITH_MODE_SELECTION_BONUS = "grant_faith_mode_selection_bonus"
     NECROMANCY = "necromancy"
     REANIMATE = "reanimate"
     RETURN_FROM_GRAVEYARD_TO_HAND = "return_from_graveyard_to_hand"
@@ -296,6 +300,7 @@ class TargetKind(str, Enum):
     ANY_BOARD = "any_board"
     RANDOM_OWN_UNIT = "random_own_unit"
     RANDOM_ENEMY_UNIT = "random_enemy_unit"
+    RANDOM_ANY_UNIT = "random_any_unit"
     RANDOM_ENEMY_UNIT_OR_LEADER = "random_enemy_unit_or_leader"
     RANDOM_ANY_UNIT_OR_LEADER = "random_any_unit_or_leader"
     RANDOM_OWN_BOARD = "random_own_board"
@@ -589,6 +594,8 @@ class EffectOperation:
     turn_end_destroy_timing: TurnEndDestroyTiming | None = None
     turn_end_banish_timing: TurnEndDestroyTiming | None = None
     leader_damage_mode: LeaderDamageMode = LeaderDamageMode.ADDITIVE
+    random_choice_history_key: str | None = None
+    turn_end_ability_timing: TurnEndDestroyTiming | None = None
 
 
 @dataclass(frozen=True)

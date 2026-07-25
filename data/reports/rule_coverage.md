@@ -8,26 +8,25 @@
 | Metric | Count |
 |---|---|
 | Total cards in DB | 826 |
-| Cards with rules | 817 |
+| Cards with rules | 823 |
 | Test/synthetic IDs with rules | 26 |
 
 ### Coverage Categories
 
 | Category | Count |
 |---|---|
-| covered_exact | 713 |
+| covered_exact | 719 |
 | text_unclear | 16 |
-| supported_missing_rule | 6 |
 | token_or_non_collectible | 91 |
 
 ### Clause Audit
 
 | Clause status | Count |
 |---|---:|
-| mapped_exact | 713 |
-| unverified_exact | 0 |
+| mapped_exact | 714 |
+| unverified_exact | 5 |
 | partial | 0 |
-| missing_rule | 6 |
+| missing_rule | 0 |
 | missing_primitive | 0 |
 | text_unclear | 16 |
 | token_separate_audit | 91 |
@@ -36,14 +35,22 @@
 
 | Blocker | Count |
 |---|---:|
-| missing_rule | 6 |
+| missing_rule | 0 |
 | missing_schema | 0 |
 | missing_primitive | 0 |
 | missing_targeting | 0 |
 | timing_unclear | 0 |
 | text_unclear | 16 |
 | external_blocker | 0 |
-| audit_unverified | 0 |
+| audit_unverified | 5 |
+
+## Exact-Coverage Clause Audit Issues
+
+- **10214120**: covered_exact_without_clause_evidence — missing test_evidence
+- **10314110**: covered_exact_without_clause_evidence — missing test_evidence
+- **10554110**: covered_exact_without_clause_evidence — missing test_evidence
+- **10574110**: covered_exact_without_clause_evidence — missing test_evidence
+- **10714110**: covered_exact_without_clause_evidence — missing test_evidence
 
 ## Primitive Keyword Map
 
@@ -99,14 +106,3 @@
 | 激奏 | ACCELERATE play mode | True |
 | 结晶 | CRYSTALLIZE play mode | True |
 | 选择一项|模式 | CHOOSE_ONE / OPTIONAL | True |
-
-## Top 20 Recommended Cards
-
-| # | Card ID | Name | Class | Cost | Type | Confidence | Why |
-|---|---|---|---|---|---|---|---|
-| 1 | 10214120 | 缠绕密林·丽梅格 | 精灵 | 7 | 随从 | high | Covered keywords: 入场曲, 进化时, 超进化 |
-| 2 | 10574110 | 转动的《命运之轮》·斯洛士 | 超越者 | 3 | 随从 | high | Covered keywords: 回合开始, 回合结束, 倒数 |
-| 3 | 10354110 | 混融的继承者·莎木·纳克雅 | 梦魇 | 2 | 随从 | medium | Covered keywords: 入场曲, 进化时, 超进化 |
-| 4 | 10554110 | 充实的《恋人与节制》·米路缇欧&卢泽 | 梦魇 | 7 | 随从 | medium | Covered keywords: 入场曲, 进化时, 超进化 |
-| 5 | 10314110 | 不弑的继承者·库露露 | 精灵 | 4 | 随从 | medium | Covered keywords: 入场曲, 进化时, 超进化 |
-| 6 | 10714110 | 操量的安纳提玛·达斯特迪兹 | 精灵 | 4 | 随从 | medium | Covered keywords: 入场曲, 进化时, 连击 |

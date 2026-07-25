@@ -28,6 +28,7 @@ from swb.engine.effects import (
 )
 from swb.engine.emblem import (
     EmblemDefinition,
+    EmblemPassive,
     EmblemStacking,
     EmblemTriggerRule,
     EventScope,
@@ -131,6 +132,7 @@ _BOARD_EXTREME_TARGETS = frozenset({
     TargetKind.ANY_BOARD,
     TargetKind.RANDOM_OWN_UNIT,
     TargetKind.RANDOM_ENEMY_UNIT,
+    TargetKind.RANDOM_ANY_UNIT,
     TargetKind.RANDOM_OWN_BOARD,
     TargetKind.RANDOM_ENEMY_BOARD,
     TargetKind.ALL_OWN_UNITS,
@@ -1499,7 +1501,7 @@ def _parse_emblem_definition(raw: dict, source_file: str, ops_parser) -> EmblemD
         raise ValueError(f"{error_prefix}: emblem definition must be an object")
     unknown_keys = set(raw) - {
         "id", "source_card_id", "stacking", "countdown", "triggers", "on_gain",
-        "on_expire", "last_words",
+        "on_expire", "last_words", "passives",
     }
     if unknown_keys:
         raise ValueError(
@@ -1529,6 +1531,25 @@ def _parse_emblem_definition(raw: dict, source_file: str, ops_parser) -> EmblemD
             raise ValueError(f"{error_prefix}/countdown: must be an integer, got bool")
         if not isinstance(countdown, int) or countdown < 0:
             raise ValueError(f"{error_prefix}/countdown: must be a non-negative integer")
+
+    raw_passives = raw.get("passives", [])
+    if not isinstance(raw_passives, list):
+        raise ValueError(f"{error_prefix}/passives: must be a list")
+    passives: set[EmblemPassive] = set()
+    for index, raw_passive in enumerate(raw_passives):
+        try:
+            passive = EmblemPassive(raw_passive)
+        except (TypeError, ValueError) as exc:
+            raise ValueError(
+                f"{error_prefix}/passives[{index}]: invalid emblem passive "
+                f"{raw_passive!r}"
+            ) from exc
+        if passive in passives:
+            raise ValueError(
+                f"{error_prefix}/passives[{index}]: duplicate emblem passive "
+                f"{passive.value!r}"
+            )
+        passives.add(passive)
 
     raw_triggers = raw.get("triggers", [])
     if not isinstance(raw_triggers, list):
@@ -1701,6 +1722,7 @@ def _parse_emblem_definition(raw: dict, source_file: str, ops_parser) -> EmblemD
         on_gain=on_gain,
         on_expire=on_expire,
         last_words=last_words,
+        passives=frozenset(passives),
     )
 
 
@@ -2546,6 +2568,7 @@ _BINDABLE_TARGETS = frozenset({
     TargetKind.ANY_BOARD,
     TargetKind.RANDOM_OWN_UNIT,
     TargetKind.RANDOM_ENEMY_UNIT,
+    TargetKind.RANDOM_ANY_UNIT,
     TargetKind.RANDOM_OWN_BOARD,
     TargetKind.RANDOM_ENEMY_BOARD,
     TargetKind.OWN_HAND,
@@ -2579,6 +2602,7 @@ _REQUIRES_TARGET_TARGETS = frozenset({
     TargetKind.OWN_GRAVEYARD_CARD,
     TargetKind.RANDOM_OWN_UNIT,
     TargetKind.RANDOM_ENEMY_UNIT,
+    TargetKind.RANDOM_ANY_UNIT,
     TargetKind.RANDOM_OWN_BOARD,
     TargetKind.RANDOM_ENEMY_BOARD,
     TargetKind.RANDOM_OWN_HAND,
@@ -2621,6 +2645,7 @@ _MULTI_TARGET_TARGETS = frozenset({
     TargetKind.OWN_GRAVEYARD_CARD,
     TargetKind.RANDOM_OWN_UNIT,
     TargetKind.RANDOM_ENEMY_UNIT,
+    TargetKind.RANDOM_ANY_UNIT,
     TargetKind.RANDOM_OWN_BOARD,
     TargetKind.RANDOM_ENEMY_BOARD,
 })
@@ -2645,6 +2670,7 @@ _FULL_TARGET_COUNT_TARGETS = frozenset({
 _SOURCE_EXCLUDABLE_TARGETS = _MULTI_TARGET_TARGETS | frozenset({
     TargetKind.RANDOM_OWN_UNIT,
     TargetKind.RANDOM_ENEMY_UNIT,
+    TargetKind.RANDOM_ANY_UNIT,
     TargetKind.RANDOM_ANY_UNIT_OR_LEADER,
     TargetKind.RANDOM_OWN_BOARD,
     TargetKind.RANDOM_ENEMY_BOARD,
@@ -2669,6 +2695,7 @@ _EVOLVE_TARGETS = frozenset({
     TargetKind.ANY_BOARD,
     TargetKind.RANDOM_OWN_UNIT,
     TargetKind.RANDOM_ENEMY_UNIT,
+    TargetKind.RANDOM_ANY_UNIT,
     TargetKind.RANDOM_OWN_BOARD,
     TargetKind.RANDOM_ENEMY_BOARD,
     TargetKind.ALL_OWN_UNITS,
@@ -2714,6 +2741,7 @@ _EVENT_SOURCE_TARGET_EFFECTS = frozenset({
     EffectKind.REMOVE_ALL_ABILITIES,
     EffectKind.REMOVE_LAST_WORDS,
     EffectKind.GRANT_ATTACKS_PER_TURN,
+    EffectKind.GRANT_TURN_END_ABILITY,
     EffectKind.GRANT_TURN_END_BANISH,
     EffectKind.TRANSFORM,
     EffectKind.SET_STATS,
@@ -3008,6 +3036,8 @@ def _parse_operation(
             EffectKind.EARTH_RITE,
             EffectKind.CONSUME_FAITH,
             EffectKind.GRANT_FAITH_ABILITY,
+            EffectKind.GRANT_FAITH_MODE_SELECTION_BONUS,
+            EffectKind.BUFF_DECK_CARDS,
             EffectKind.NECROMANCY,
             EffectKind.REANIMATE,
             EffectKind.CONDITIONAL,
@@ -3022,6 +3052,11 @@ def _parse_operation(
         target = TargetKind(raw_target)
     except (KeyError, ValueError) as e:
         raise ValueError(f"{error_prefix}: invalid kind/target: {e}") from e
+    if "history_key" in raw and kind is not EffectKind.RANDOM_CHOICE:
+        raise ValueError(
+            f"{source_file}/history_key card {card_id}: is only valid for "
+            "random_choice"
+        )
     if target is TargetKind.EVENT_SOURCE:
         if not _allow_event_source:
             raise ValueError(
@@ -3573,6 +3608,7 @@ def _parse_operation(
         TargetKind.ANY_UNIT,
         TargetKind.RANDOM_OWN_UNIT,
         TargetKind.RANDOM_ENEMY_UNIT,
+        TargetKind.RANDOM_ANY_UNIT,
         TargetKind.ALL_OWN_UNITS,
         TargetKind.ALL_ENEMY_UNITS,
         TargetKind.ALL_UNITS,
@@ -3581,17 +3617,36 @@ def _parse_operation(
     }
     if kind in {
         EffectKind.GRANT_LAST_WORDS,
+        EffectKind.GRANT_TURN_END_ABILITY,
         EffectKind.GRANT_EFFECT_DESTROY_IMMUNITY,
     } and target not in grantable_follower_targets:
         raise ValueError(
             f"{source_file}/target card {card_id}: {kind.value} "
             "requires a follower target"
         )
-    if kind is EffectKind.GRANT_LAST_WORDS:
+    if kind in {
+        EffectKind.GRANT_LAST_WORDS,
+        EffectKind.GRANT_TURN_END_ABILITY,
+    }:
+        if kind is EffectKind.GRANT_TURN_END_ABILITY:
+            expected_keys = {
+                "kind",
+                "target",
+                "operations",
+                "conditions",
+                "target_key",
+                "turn_end_ability_timing",
+            }
+            unknown_grant_keys = set(raw) - expected_keys
+            if unknown_grant_keys:
+                raise ValueError(
+                    f"{error_prefix}: {kind.value} has unknown fields "
+                    f"{sorted(unknown_grant_keys)}"
+                )
         raw_inner = raw.get("operations")
         if not isinstance(raw_inner, list) or not raw_inner:
             raise ValueError(
-                f"{source_file} card {card_id}: grant_last_words requires "
+                f"{source_file} card {card_id}: {kind.value} requires "
                 "a non-empty operations list"
             )
         granted_ops = tuple(
@@ -3607,7 +3662,7 @@ def _parse_operation(
         )
         _validate_target_keys(
             granted_ops,
-            f"{source_file} card {card_id} (grant_last_words)",
+            f"{source_file} card {card_id} ({kind.value})",
         )
 
     if kind in {
@@ -4333,6 +4388,39 @@ def _parse_operation(
             faith_ops,
             f"{source_file} card {card_id} (grant_faith_ability)",
         )
+    elif kind is EffectKind.GRANT_FAITH_MODE_SELECTION_BONUS:
+        if not isinstance(faith_id, str) or not faith_id:
+            raise ValueError(
+                f"{source_file}/faith_id card {card_id}: "
+                "grant_faith_mode_selection_bonus requires a non-empty faith_id"
+            )
+        if (
+            raw_amount is None
+            or isinstance(raw_amount, bool)
+            or not isinstance(raw_amount, int)
+            or raw_amount <= 0
+        ):
+            raise ValueError(
+                f"{source_file}/amount card {card_id}: "
+                "grant_faith_mode_selection_bonus requires a positive integer"
+            )
+        if target is not TargetKind.OWN_LEADER:
+            raise ValueError(
+                f"{source_file}/target card {card_id}: "
+                "grant_faith_mode_selection_bonus requires target 'own_leader'"
+            )
+        unknown_bonus_keys = set(raw) - {
+            "kind",
+            "target",
+            "faith_id",
+            "amount",
+            "conditions",
+        }
+        if unknown_bonus_keys:
+            raise ValueError(
+                f"{error_prefix}: grant_faith_mode_selection_bonus has "
+                f"unknown fields {sorted(unknown_bonus_keys)}"
+            )
     elif kind is EffectKind.RANDOM_DISTRIBUTE:
         if not isinstance(faith_id, str) or not faith_id:
             raise ValueError(
@@ -4350,7 +4438,8 @@ def _parse_operation(
     ) or "stacking" in raw:
         raise ValueError(
             f"{source_file} card {card_id}: Faith ability fields are only valid "
-            "for consume_faith, grant_faith_ability, or random_distribute"
+            "for consume_faith, grant_faith_ability, "
+            "grant_faith_mode_selection_bonus, or random_distribute"
         )
 
     necromancy_ops: tuple = ()
@@ -4723,6 +4812,23 @@ def _parse_operation(
             f"{source_file}/turn_end_banish_timing card {card_id}: is only "
             "valid for grant_turn_end_banish"
         )
+    raw_turn_end_ability_timing = raw.get("turn_end_ability_timing")
+    turn_end_ability_timing = None
+    if kind is EffectKind.GRANT_TURN_END_ABILITY:
+        try:
+            turn_end_ability_timing = TurnEndDestroyTiming(
+                raw_turn_end_ability_timing
+            )
+        except (TypeError, ValueError) as exc:
+            raise ValueError(
+                f"{source_file}/turn_end_ability_timing card {card_id}: "
+                "grant_turn_end_ability requires owner_turn or opponent_turn"
+            ) from exc
+    elif raw_turn_end_ability_timing is not None:
+        raise ValueError(
+            f"{source_file}/turn_end_ability_timing card {card_id}: is only "
+            "valid for grant_turn_end_ability"
+        )
     if (
         kind in {EffectKind.REDUCE_COUNTDOWN, EffectKind.INCREASE_COUNTDOWN}
         and target in {TargetKind.RANDOM_OWN_BOARD, TargetKind.RANDOM_ENEMY_BOARD}
@@ -4743,6 +4849,7 @@ def _parse_operation(
         EffectKind.SUMMON_FROM_DECK,
         EffectKind.CHANGE_DECK_COST,
         EffectKind.BANISH_DECK_FILTERED,
+        EffectKind.BUFF_DECK_CARDS,
     }
     deck_filter: DeckFilter | None = None
     hand_filter: HandFilter | None = None
@@ -4920,6 +5027,33 @@ def _parse_operation(
                 f"{source_file}/card_type_filter card {card_id}: "
                 "summon_from_deck requires 随从 or 护符"
             )
+    if kind is EffectKind.BUFF_DECK_CARDS:
+        if target is not TargetKind.OWN_LEADER:
+            raise ValueError(
+                f"{source_file}/target card {card_id}: buff_deck_cards "
+                "requires target 'own_leader'"
+            )
+        if card_type_filter != "随从":
+            raise ValueError(
+                f"{source_file}/card_type_filter card {card_id}: "
+                "buff_deck_cards requires card_type_filter='随从'"
+            )
+        for field_name, value in (
+            ("amount", raw_amount),
+            ("secondary_amount", raw_secondary),
+        ):
+            if value is not None and (
+                isinstance(value, bool) or not isinstance(value, int)
+            ):
+                raise ValueError(
+                    f"{source_file}/{field_name} card {card_id}: "
+                    "buff_deck_cards requires integer stat changes"
+                )
+        if not raw_amount and not raw_secondary:
+            raise ValueError(
+                f"{source_file} card {card_id}: buff_deck_cards requires at "
+                "least one non-zero stat change"
+            )
     if _is_deck_filter_kind:
         if deck_cost_min is not None:
             deck_cost_min = _parse_non_negative_int(
@@ -4987,8 +5121,8 @@ def _parse_operation(
     ]):
         raise ValueError(
             f"{source_file} card {card_id}: deck filter fields "
-            "are only valid with draw_filtered, summon_from_deck, or "
-            "change_deck_cost or banish_deck_filtered"
+            "are only valid with draw_filtered, summon_from_deck, "
+            "change_deck_cost, banish_deck_filtered, or buff_deck_cards"
         )
     if _is_graveyard_kind:
         if target not in _GRAVEYARD_TARGETS:
@@ -5060,6 +5194,7 @@ def _parse_operation(
     optional_ops: tuple = ()
     repeat_ops: tuple = ()
     random_choice_options: tuple[ChooseOneOption, ...] = ()
+    random_choice_history_key: str | None = None
     random_distribution_ops: tuple[tuple[EffectOperation, ...], ...] = ()
 
     if kind is EffectKind.BANISH_DECK_FILTERED:
@@ -5101,6 +5236,7 @@ def _parse_operation(
             "target",
             "amount",
             "options",
+            "history_key",
         }
         if unknown_random_choice_keys:
             raise ValueError(
@@ -5176,6 +5312,15 @@ def _parse_operation(
                 f"{source_file}/amount card {card_id}: random_choice requires "
                 "a positive integer no greater than the option count"
             )
+        raw_history_key = raw.get("history_key")
+        if raw_history_key is not None and (
+            not isinstance(raw_history_key, str) or not raw_history_key
+        ):
+            raise ValueError(
+                f"{source_file}/history_key card {card_id}: must be a "
+                "non-empty string"
+            )
+        random_choice_history_key = raw_history_key
         random_choice_options = tuple(parsed_options)
 
     elif kind is EffectKind.RANDOM_DISTRIBUTE:
@@ -5584,6 +5729,7 @@ def _parse_operation(
             if kind in {
                 EffectKind.CONSUME_FAITH,
                 EffectKind.GRANT_FAITH_ABILITY,
+                EffectKind.GRANT_FAITH_MODE_SELECTION_BONUS,
                 EffectKind.RANDOM_DISTRIBUTE,
             }
             else None
@@ -5623,6 +5769,7 @@ def _parse_operation(
         repeat_operations=repeat_ops,
         granted_operations=granted_ops,
         random_choice_options=random_choice_options,
+        random_choice_history_key=random_choice_history_key,
         random_distribution_operations=random_distribution_ops,
         requires_target=requires_target,
         requires_full_target_count=requires_full_target_count,
@@ -5634,6 +5781,7 @@ def _parse_operation(
         include_leader=include_leader,
         turn_end_destroy_timing=turn_end_destroy_timing,
         turn_end_banish_timing=turn_end_banish_timing,
+        turn_end_ability_timing=turn_end_ability_timing,
     )
 
 
@@ -5928,11 +6076,21 @@ def _parse_expression(raw: dict, source_path: str, card_id: int) -> ValueExpress
                 "hand-count, or follower-history aggregate expressions"
             )
 
-    if t in (ExprType.ADD, ExprType.SUBTRACT, ExprType.MULTIPLY, ExprType.MIN, ExprType.MAX):
+    if t in (
+        ExprType.ADD,
+        ExprType.SUBTRACT,
+        ExprType.MULTIPLY,
+        ExprType.MIN,
+        ExprType.MAX,
+    ):
         if len(sub) < 1:
             raise ValueError(
                 f"{error_prefix}: '{t.value}' requires at least one value"
             )
+    elif t is ExprType.NEGATE and len(sub) != 1:
+        raise ValueError(
+            f"{error_prefix}: 'negate' requires exactly one value"
+        )
 
     if t == ExprType.CONSTANT:
         if sub:

@@ -38,14 +38,14 @@ covered generic boundary, but that never upgrades a partial or placeholder
 keyword whose full tagged-card semantics still require structured rules.
 
 The [rule coverage report](data/reports/rule_coverage.md) now includes a
-clause-audit layer without changing its legacy coverage categories. Of 713
-exact collectible cards (97.01% of 735), all 713 have explicit implemented text and named direct
+clause-audit layer without changing its legacy coverage categories. Of 719
+exact collectible cards (97.82% of 735), all 719 have explicit implemented text and named direct
 test evidence. The sibling `data/audits/rule_clauses.json` registry hashes every
 imported skill and alternate-mode clause, so a database text change or stale
 test reference invalidates the audit instead of silently retaining exact
 status. The current report has no unverified exact entry or missing generic
-schema, primitive, targeting, or timing blocker. Its remaining collectible gaps
-are 6 missing per-card structured rules plus 16 explicitly unclear texts.
+schema, primitive, targeting, timing, or per-card structured-rule blocker. Its
+remaining collectible gaps are 16 explicitly unclear texts.
 Rule metadata also supports version and errata fields, and the report
 records the complete imported source snapshot hash.
 
@@ -128,9 +128,9 @@ random, fixed, and historical opponent mixing remains on the single-process
 collector. The balanced class schedule is not an adaptive curriculum, and the
 same-class fixed evaluation suite is not yet a 7x7 cross-class policy-strength
 matrix. Snapshot/clone is the search foundation only. Card-rule
-coverage also remains deliberately separate: 56 collectible cards still lack
-per-card structured rules and 16 card texts remain explicitly unclear; neither
-group enters the exact training catalog or counts as supported.
+coverage also remains deliberately separate: no supported collectible lacks a
+per-card structured rule, while 16 card texts remain explicitly unclear and do
+not enter the exact training catalog or count as supported.
 
 ## Implemented Engine Surface
 
@@ -566,6 +566,23 @@ The deterministic rules core supports:
   consistency. Public leader Barrier and damage-replacement mode advance the
   formal schema to `observation-v3.4`; v1 remains 294 floats and all 111 action
   IDs remain stable;
+- follower stat-decrease events, persistent granted turn-end abilities,
+  permanent physical deck-follower stat modifiers, Faith Mode-selection
+  bonuses, non-repeating random branch histories, cross-board random follower
+  targeting, signed `negate` expressions, and three generic follower-play
+  emblem passives close exact `10214120`, `10314110`, `10354110`, `10554110`,
+  `10574110`, and `10714110`. The slice covers Lymaga's two-target attack lock
+  and delayed self-damage, Krulle's once-per-turn recovery and opposing crest,
+  Sham & Nacha's Faith-driven extra Mode choice and copy, Milteo & Luzen's
+  Reanimate/destroy-six/play-suppression crest, Slaus's seeded non-repeating
+  positive and negative wheels, and Thestae's Combo/deck buff. Direct tests
+  cover atomic multi-choice and RL masks, no-target/capacity paths, source
+  departure, simultaneous deaths, current hand/deck stats, fixed-seed replay,
+  hidden-deck privacy, strict schema rejection, source hashes, and
+  Clause/Token consistency. Exact collectible coverage reaches 719/735
+  (97.82%), with no supported-but-missing rule or generic blocker. The added
+  public runtime fields advance the formal schema to `observation-v3.5`; v1
+  remains 294 floats and all 111 action IDs remain stable;
 - filtered hand-count conditions reuse the same type/class/identity/trait
   definition filters as hand targeting. Exact `10521120` counts only spells
   before conditionally gaining +1/+1 and Ward, while exact `10741120` and

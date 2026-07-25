@@ -637,9 +637,9 @@ class TurnEndDrawRandomSeventeenthAuditTests(unittest.TestCase):
         self.assertEqual(
             report["summary"]["coverage_counts"],
             {
-                "covered_exact": 713,
+                "covered_exact": 719,
                 "text_unclear": 16,
-                "supported_missing_rule": 6,
+                "supported_missing_rule": 0,
                 "token_or_non_collectible": 91,
             },
         )
