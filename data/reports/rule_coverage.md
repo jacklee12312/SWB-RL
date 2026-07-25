@@ -8,27 +8,28 @@
 | Metric | Count |
 |---|---|
 | Total cards in DB | 826 |
-| Cards with rules | 823 |
+| Cards with rules | 834 |
 | Test/synthetic IDs with rules | 26 |
 
 ### Coverage Categories
 
 | Category | Count |
 |---|---|
-| covered_exact | 719 |
-| text_unclear | 16 |
+| covered_exact | 730 |
+| text_unclear | 5 |
 | token_or_non_collectible | 91 |
+| supported_missing_rule | 0 |
 
 ### Clause Audit
 
 | Clause status | Count |
 |---|---:|
-| mapped_exact | 714 |
-| unverified_exact | 5 |
+| mapped_exact | 730 |
+| unverified_exact | 0 |
 | partial | 0 |
 | missing_rule | 0 |
 | missing_primitive | 0 |
-| text_unclear | 16 |
+| text_unclear | 5 |
 | token_separate_audit | 91 |
 
 ### Blocker Types
@@ -40,17 +41,9 @@
 | missing_primitive | 0 |
 | missing_targeting | 0 |
 | timing_unclear | 0 |
-| text_unclear | 16 |
+| text_unclear | 5 |
 | external_blocker | 0 |
-| audit_unverified | 5 |
-
-## Exact-Coverage Clause Audit Issues
-
-- **10214120**: covered_exact_without_clause_evidence — missing test_evidence
-- **10314110**: covered_exact_without_clause_evidence — missing test_evidence
-- **10554110**: covered_exact_without_clause_evidence — missing test_evidence
-- **10574110**: covered_exact_without_clause_evidence — missing test_evidence
-- **10714110**: covered_exact_without_clause_evidence — missing test_evidence
+| audit_unverified | 0 |
 
 ## Primitive Keyword Map
 

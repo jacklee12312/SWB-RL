@@ -705,8 +705,8 @@ class FinalSupportedCompletionTwentiethAuditTests(unittest.TestCase):
         self.assertEqual(
             report["summary"]["coverage_counts"],
             {
-                "covered_exact": 719,
-                "text_unclear": 16,
+                "covered_exact": 730,
+                "text_unclear": 5,
                 "token_or_non_collectible": 91,
                 "supported_missing_rule": 0,
             },
@@ -714,12 +714,12 @@ class FinalSupportedCompletionTwentiethAuditTests(unittest.TestCase):
         self.assertEqual(
             report["summary"]["clause_audit_counts"],
             {
-                "mapped_exact": 719,
+                "mapped_exact": 730,
                 "unverified_exact": 0,
                 "partial": 0,
                 "missing_rule": 0,
                 "missing_primitive": 0,
-                "text_unclear": 16,
+                "text_unclear": 5,
                 "token_separate_audit": 91,
             },
         )

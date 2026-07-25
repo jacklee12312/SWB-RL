@@ -674,8 +674,8 @@ class DestroyedAmuletBulkZoneEighteenthAuditTests(unittest.TestCase):
         self.assertEqual(
             report["summary"]["coverage_counts"],
             {
-                "covered_exact": 719,
-                "text_unclear": 16,
+                "covered_exact": 730,
+                "text_unclear": 5,
                 "supported_missing_rule": 0,
                 "token_or_non_collectible": 91,
             },

@@ -7396,6 +7396,105 @@
       "source_text_sha256": "ac0718c219b823ec12240ffd248aad26ef2f1a2669c88d598d682d7bcbe96d32",
       "test_evidence": ["tests/test_real_final_supported_completion_twentieth_batch.py"],
       "notes": "入场选择敌方随从并按本体当时攻击力-0/-X、无目标仍使连击+1、进化获得倒数3纹章、己方回合末连击3时永久强化牌组内所有随从+1/+1、非随从不变、抽入手牌继承属性且隐藏牌组运行时不泄露均有直接测试。"
+    },
+    {
+      "card_id": 10001130,
+      "coverage": "exact",
+      "implemented_text": "【<color=Keyword>守护</color>】",
+      "rule_version": 1,
+      "source_text_sha256": "fd22b46c04522f13395a9cb2a5444e83007a05cf6121d94ba170126602ed58c5",
+      "test_evidence": ["tests/test_real_official_basic_completion_twenty_first_batch.py"],
+      "notes": "2026-07-25以官方英/日/简中卡牌库核对为Ward/守護/守护且无FAQ：https://shadowverse-wb.com/en/deck/cardslist/card/?card_id=10001130。直接测试守护攻击限制与本体属性。"
+    },
+    {
+      "card_id": 10002120,
+      "coverage": "exact",
+      "implemented_text": "无印刷能力。",
+      "rule_version": 1,
+      "source_text_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "test_evidence": ["tests/test_real_official_basic_completion_twenty_first_batch.py"],
+      "notes": "2026-07-25以官方英/日/简中卡牌库确认技能文本为空且无FAQ：https://shadowverse-wb.com/en/deck/cardslist/card/?card_id=10002120。严格vanilla声明和7费10/10运行时有直接测试。"
+    },
+    {
+      "card_id": 10021110,
+      "coverage": "exact",
+      "implemented_text": "【<color=Keyword>疾驰</color>】",
+      "rule_version": 1,
+      "source_text_sha256": "487bbc3ead279c8faccb6c74842ddc77225535cb22afa3b651dcdc587a172eb8",
+      "test_evidence": ["tests/test_real_official_basic_completion_twenty_first_batch.py"],
+      "notes": "2026-07-25以官方英/日/简中卡牌库核对为Storm/疾走/疾驰且无FAQ：https://shadowverse-wb.com/en/deck/cardslist/card/?card_id=10021110。直接测试出场当回合攻击主战者。"
+    },
+    {
+      "card_id": 10021130,
+      "coverage": "exact",
+      "implemented_text": "【<color=Keyword>疾驰</color>】",
+      "rule_version": 1,
+      "source_text_sha256": "487bbc3ead279c8faccb6c74842ddc77225535cb22afa3b651dcdc587a172eb8",
+      "test_evidence": ["tests/test_real_official_basic_completion_twenty_first_batch.py"],
+      "notes": "2026-07-25以官方英/日/简中卡牌库核对为Storm/疾走/疾驰且无FAQ：https://shadowverse-wb.com/en/deck/cardslist/card/?card_id=10021130。直接测试出场当回合攻击主战者。"
+    },
+    {
+      "card_id": 10041120,
+      "coverage": "exact",
+      "implemented_text": "【<color=Keyword>守护</color>】",
+      "rule_version": 1,
+      "source_text_sha256": "fd22b46c04522f13395a9cb2a5444e83007a05cf6121d94ba170126602ed58c5",
+      "test_evidence": ["tests/test_real_official_basic_completion_twenty_first_batch.py"],
+      "notes": "2026-07-25以官方英/日/简中卡牌库核对为Ward/守護/守护且无FAQ：https://shadowverse-wb.com/en/deck/cardslist/card/?card_id=10041120。直接测试守护攻击限制与本体属性。"
+    },
+    {
+      "card_id": 10061120,
+      "coverage": "exact",
+      "implemented_text": "【<color=Keyword>守护</color>】",
+      "rule_version": 1,
+      "source_text_sha256": "fd22b46c04522f13395a9cb2a5444e83007a05cf6121d94ba170126602ed58c5",
+      "test_evidence": ["tests/test_real_official_basic_completion_twenty_first_batch.py"],
+      "notes": "2026-07-25以官方英/日/简中卡牌库核对为Ward/守護/守护且无FAQ：https://shadowverse-wb.com/en/deck/cardslist/card/?card_id=10061120。直接测试守护攻击限制与本体属性。"
+    },
+    {
+      "card_id": 10143110,
+      "coverage": "exact",
+      "implemented_text": "【<color=Keyword>疾驰</color>】",
+      "rule_version": 1,
+      "source_text_sha256": "487bbc3ead279c8faccb6c74842ddc77225535cb22afa3b651dcdc587a172eb8",
+      "test_evidence": ["tests/test_real_official_basic_completion_twenty_first_batch.py"],
+      "notes": "2026-07-25以官方英/日/简中卡牌库核对为Storm/疾走/疾驰且无FAQ：https://shadowverse-wb.com/en/deck/cardslist/card/?card_id=10143110。直接测试出场当回合攻击主战者。"
+    },
+    {
+      "card_id": 10211110,
+      "coverage": "exact",
+      "implemented_text": "【<color=Keyword>突进</color>】",
+      "rule_version": 1,
+      "source_text_sha256": "7abde1fa8f2c436a6805d99abe026718965b9776b4b5a2dffe05f57cd5b2776f",
+      "test_evidence": ["tests/test_real_official_basic_completion_twenty_first_batch.py"],
+      "notes": "2026-07-25以官方英/日/简中卡牌库核对为Rush/突進/突进且无FAQ：https://shadowverse-wb.com/en/deck/cardslist/card/?card_id=10211110。直接测试当回合可攻击随从、不可攻击主战者及非法攻击原子性。"
+    },
+    {
+      "card_id": 10221120,
+      "coverage": "exact",
+      "implemented_text": "【<color=Keyword>潜行</color>】",
+      "rule_version": 1,
+      "source_text_sha256": "bad7d96c9e09aec7bc75d1363de4a29b5bea77a57abd6969190e8ac616b30881",
+      "test_evidence": ["tests/test_real_official_basic_completion_twenty_first_batch.py"],
+      "notes": "2026-07-25以官方英/日/简中卡牌库核对为Ambush/潜伏/潜行且无FAQ：https://shadowverse-wb.com/en/deck/cardslist/card/?card_id=10221120。直接测试对手不能攻击或手动指定。"
+    },
+    {
+      "card_id": 10422120,
+      "coverage": "exact",
+      "implemented_text": "无印刷能力。",
+      "rule_version": 1,
+      "source_text_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "test_evidence": ["tests/test_real_official_basic_completion_twenty_first_batch.py"],
+      "notes": "2026-07-25以官方英/日/简中卡牌库确认技能文本为空且无FAQ：https://shadowverse-wb.com/en/deck/cardslist/card/?card_id=10422120。严格vanilla声明和3费5/4运行时有直接测试。"
+    },
+    {
+      "card_id": 10612120,
+      "coverage": "exact",
+      "implemented_text": "【<color=Keyword>疾驰</color>】",
+      "rule_version": 1,
+      "source_text_sha256": "487bbc3ead279c8faccb6c74842ddc77225535cb22afa3b651dcdc587a172eb8",
+      "test_evidence": ["tests/test_real_official_basic_completion_twenty_first_batch.py"],
+      "notes": "2026-07-25以官方英/日/简中卡牌库核对为Storm/疾走/疾驰且无FAQ：https://shadowverse-wb.com/en/deck/cardslist/card/?card_id=10612120。直接测试出场当回合攻击主战者。"
     }
   ]
 }

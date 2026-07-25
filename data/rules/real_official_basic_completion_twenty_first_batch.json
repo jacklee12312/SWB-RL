@@ -1,0 +1,23 @@
+{
+  "vanilla_cards": [
+    {
+      "card_id": 10002120,
+      "notes": "官方卡牌库确认无印刷能力；仅保留7费10/10基础随从行为。"
+    },
+    {
+      "card_id": 10422120,
+      "notes": "官方卡牌库确认无印刷能力；仅保留3费5/4基础随从行为。"
+    }
+  ],
+  "intrinsic_keywords": [
+    {"card_id": 10001130, "keywords": ["守护"]},
+    {"card_id": 10021110, "keywords": ["疾驰"]},
+    {"card_id": 10021130, "keywords": ["疾驰"]},
+    {"card_id": 10041120, "keywords": ["守护"]},
+    {"card_id": 10061120, "keywords": ["守护"]},
+    {"card_id": 10143110, "keywords": ["疾驰"]},
+    {"card_id": 10211110, "keywords": ["突进"]},
+    {"card_id": 10221120, "keywords": ["潜行"]},
+    {"card_id": 10612120, "keywords": ["疾驰"]}
+  ]
+}

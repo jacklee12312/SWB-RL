@@ -12,20 +12,21 @@
   },
   "summary": {
     "total_cards": 826,
-    "total_with_rules": 823,
+    "total_with_rules": 834,
     "test_or_synthetic_ids_with_rules": 26,
     "coverage_counts": {
-      "covered_exact": 719,
-      "text_unclear": 16,
-      "token_or_non_collectible": 91
+      "covered_exact": 730,
+      "text_unclear": 5,
+      "token_or_non_collectible": 91,
+      "supported_missing_rule": 0
     },
     "clause_audit_counts": {
-      "mapped_exact": 714,
-      "unverified_exact": 5,
+      "mapped_exact": 730,
+      "unverified_exact": 0,
       "partial": 0,
       "missing_rule": 0,
       "missing_primitive": 0,
-      "text_unclear": 16,
+      "text_unclear": 5,
       "token_separate_audit": 91
     },
     "blocker_counts": {
@@ -34,49 +35,13 @@
       "missing_primitive": 0,
       "missing_targeting": 0,
       "timing_unclear": 0,
-      "text_unclear": 16,
+      "text_unclear": 5,
       "external_blocker": 0,
-      "audit_unverified": 5
+      "audit_unverified": 0
     }
   },
   "rule_consistency_issues": [],
-  "clause_audit_issues": [
-    {
-      "card_id": 10214120,
-      "issue": "covered_exact_without_clause_evidence",
-      "missing": [
-        "test_evidence"
-      ]
-    },
-    {
-      "card_id": 10314110,
-      "issue": "covered_exact_without_clause_evidence",
-      "missing": [
-        "test_evidence"
-      ]
-    },
-    {
-      "card_id": 10554110,
-      "issue": "covered_exact_without_clause_evidence",
-      "missing": [
-        "test_evidence"
-      ]
-    },
-    {
-      "card_id": 10574110,
-      "issue": "covered_exact_without_clause_evidence",
-      "missing": [
-        "test_evidence"
-      ]
-    },
-    {
-      "card_id": 10714110,
-      "issue": "covered_exact_without_clause_evidence",
-      "missing": [
-        "test_evidence"
-      ]
-    }
-  ],
+  "clause_audit_issues": [],
   "primitive_keyword_map": {
     "入场曲": {
       "primitive": "FANFARE trigger",
@@ -416,8 +381,8 @@
       "cost": 4,
       "is_collectible": true,
       "card_set_id": 10000,
-      "coverage": "text_unclear",
-      "reason": "Support: keyword",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['intrinsic_keywords'], Ops: ['keyword:守护']",
       "hit_keywords": [],
       "missing_primitives": [],
       "ability_keywords": [
@@ -427,29 +392,43 @@
         "【<color=Keyword>守护</color>】"
       ],
       "support_level": "keyword",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【<color=Keyword>守护</color>】",
+        "notes": "2026-07-25以官方英/日/简中卡牌库核对为Ward/守護/守护且无FAQ：https://shadowverse-wb.com/en/deck/cardslist/card/?card_id=10001130。直接测试守护攻击限制与本体属性。",
+        "rule_version": 1,
+        "source_text_sha256": "fd22b46c04522f13395a9cb2a5444e83007a05cf6121d94ba170126602ed58c5",
+        "test_evidence": [
+          "tests/test_real_official_basic_completion_twenty_first_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "text_unclear",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10001130:0",
             "source_text": "【<color=Keyword>守护</color>】",
-            "mapping_status": "text_unclear"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "【<color=Keyword>守护</color>】",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "fd22b46c04522f13395a9cb2a5444e83007a05cf6121d94ba170126602ed58c5",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "intrinsic_keywords"
+          ],
+          "effect_kinds": [
+            "keyword:守护"
+          ]
         },
         "test_evidence": [
-          "tests/test_database.py"
+          "tests/test_real_official_basic_completion_twenty_first_batch.py"
         ],
         "audit_validation_error": null,
-        "blocker_type": "text_unclear"
+        "blocker_type": null
       }
     },
     "10001210": {
@@ -590,30 +569,44 @@
       "cost": 7,
       "is_collectible": true,
       "card_set_id": 10000,
-      "coverage": "text_unclear",
-      "reason": "No ability keywords in database",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['vanilla_declaration'], Ops: ['no_printed_ability']",
       "hit_keywords": [],
       "missing_primitives": [],
       "ability_keywords": [],
       "skill_texts": [],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "无印刷能力。",
+        "notes": "2026-07-25以官方英/日/简中卡牌库确认技能文本为空且无FAQ：https://shadowverse-wb.com/en/deck/cardslist/card/?card_id=10002120。严格vanilla声明和7费10/10运行时有直接测试。",
+        "rule_version": 1,
+        "source_text_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "test_evidence": [
+          "tests/test_real_official_basic_completion_twenty_first_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "text_unclear",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [],
-        "implemented_text": null,
+        "implemented_text": "无印刷能力。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "vanilla_declaration"
+          ],
+          "effect_kinds": [
+            "no_printed_ability"
+          ]
         },
         "test_evidence": [
-          "tests/test_real_royal_rune_bishop_mixed_batch.py"
+          "tests/test_real_official_basic_completion_twenty_first_batch.py"
         ],
         "audit_validation_error": null,
-        "blocker_type": "text_unclear"
+        "blocker_type": null
       }
     },
     "10002210": {
@@ -1136,8 +1129,8 @@
       "cost": 1,
       "is_collectible": true,
       "card_set_id": 10000,
-      "coverage": "text_unclear",
-      "reason": "Support: keyword",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['intrinsic_keywords'], Ops: ['keyword:疾驰']",
       "hit_keywords": [],
       "missing_primitives": [],
       "ability_keywords": [
@@ -1147,27 +1140,43 @@
         "【<color=Keyword>疾驰</color>】"
       ],
       "support_level": "keyword",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【<color=Keyword>疾驰</color>】",
+        "notes": "2026-07-25以官方英/日/简中卡牌库核对为Storm/疾走/疾驰且无FAQ：https://shadowverse-wb.com/en/deck/cardslist/card/?card_id=10021110。直接测试出场当回合攻击主战者。",
+        "rule_version": 1,
+        "source_text_sha256": "487bbc3ead279c8faccb6c74842ddc77225535cb22afa3b651dcdc587a172eb8",
+        "test_evidence": [
+          "tests/test_real_official_basic_completion_twenty_first_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "text_unclear",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10021110:0",
             "source_text": "【<color=Keyword>疾驰</color>】",
-            "mapping_status": "text_unclear"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "【<color=Keyword>疾驰</color>】",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "487bbc3ead279c8faccb6c74842ddc77225535cb22afa3b651dcdc587a172eb8",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "intrinsic_keywords"
+          ],
+          "effect_kinds": [
+            "keyword:疾驰"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_official_basic_completion_twenty_first_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "text_unclear"
+        "blocker_type": null
       }
     },
     "10021120": {
@@ -1240,8 +1249,8 @@
       "cost": 8,
       "is_collectible": true,
       "card_set_id": 10000,
-      "coverage": "text_unclear",
-      "reason": "Support: keyword",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['intrinsic_keywords'], Ops: ['keyword:疾驰']",
       "hit_keywords": [],
       "missing_primitives": [],
       "ability_keywords": [
@@ -1251,27 +1260,43 @@
         "【<color=Keyword>疾驰</color>】"
       ],
       "support_level": "keyword",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【<color=Keyword>疾驰</color>】",
+        "notes": "2026-07-25以官方英/日/简中卡牌库核对为Storm/疾走/疾驰且无FAQ：https://shadowverse-wb.com/en/deck/cardslist/card/?card_id=10021130。直接测试出场当回合攻击主战者。",
+        "rule_version": 1,
+        "source_text_sha256": "487bbc3ead279c8faccb6c74842ddc77225535cb22afa3b651dcdc587a172eb8",
+        "test_evidence": [
+          "tests/test_real_official_basic_completion_twenty_first_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "text_unclear",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10021130:0",
             "source_text": "【<color=Keyword>疾驰</color>】",
-            "mapping_status": "text_unclear"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "【<color=Keyword>疾驰</color>】",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "487bbc3ead279c8faccb6c74842ddc77225535cb22afa3b651dcdc587a172eb8",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "intrinsic_keywords"
+          ],
+          "effect_kinds": [
+            "keyword:疾驰"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_official_basic_completion_twenty_first_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "text_unclear"
+        "blocker_type": null
       }
     },
     "10021310": {
@@ -2040,8 +2065,8 @@
       "cost": 6,
       "is_collectible": true,
       "card_set_id": 10000,
-      "coverage": "text_unclear",
-      "reason": "Support: keyword",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['intrinsic_keywords'], Ops: ['keyword:守护']",
       "hit_keywords": [],
       "missing_primitives": [],
       "ability_keywords": [
@@ -2051,27 +2076,43 @@
         "【<color=Keyword>守护</color>】"
       ],
       "support_level": "keyword",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【<color=Keyword>守护</color>】",
+        "notes": "2026-07-25以官方英/日/简中卡牌库核对为Ward/守護/守护且无FAQ：https://shadowverse-wb.com/en/deck/cardslist/card/?card_id=10041120。直接测试守护攻击限制与本体属性。",
+        "rule_version": 1,
+        "source_text_sha256": "fd22b46c04522f13395a9cb2a5444e83007a05cf6121d94ba170126602ed58c5",
+        "test_evidence": [
+          "tests/test_real_official_basic_completion_twenty_first_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "text_unclear",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10041120:0",
             "source_text": "【<color=Keyword>守护</color>】",
-            "mapping_status": "text_unclear"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "【<color=Keyword>守护</color>】",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "fd22b46c04522f13395a9cb2a5444e83007a05cf6121d94ba170126602ed58c5",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "intrinsic_keywords"
+          ],
+          "effect_kinds": [
+            "keyword:守护"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_official_basic_completion_twenty_first_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "text_unclear"
+        "blocker_type": null
       }
     },
     "10041130": {
@@ -2895,8 +2936,8 @@
       "cost": 2,
       "is_collectible": true,
       "card_set_id": 10000,
-      "coverage": "text_unclear",
-      "reason": "Support: keyword",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['intrinsic_keywords'], Ops: ['keyword:守护']",
       "hit_keywords": [],
       "missing_primitives": [],
       "ability_keywords": [
@@ -2906,30 +2947,43 @@
         "【<color=Keyword>守护</color>】"
       ],
       "support_level": "keyword",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【<color=Keyword>守护</color>】",
+        "notes": "2026-07-25以官方英/日/简中卡牌库核对为Ward/守護/守护且无FAQ：https://shadowverse-wb.com/en/deck/cardslist/card/?card_id=10061120。直接测试守护攻击限制与本体属性。",
+        "rule_version": 1,
+        "source_text_sha256": "fd22b46c04522f13395a9cb2a5444e83007a05cf6121d94ba170126602ed58c5",
+        "test_evidence": [
+          "tests/test_real_official_basic_completion_twenty_first_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "text_unclear",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10061120:0",
             "source_text": "【<color=Keyword>守护</color>】",
-            "mapping_status": "text_unclear"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "【<color=Keyword>守护</color>】",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "fd22b46c04522f13395a9cb2a5444e83007a05cf6121d94ba170126602ed58c5",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "intrinsic_keywords"
+          ],
+          "effect_kinds": [
+            "keyword:守护"
+          ]
         },
         "test_evidence": [
-          "tests/test_real_turn_end_draw_random_seventeenth_batch.py",
-          "tests/test_real_ward_marine_crest_listener_batch.py"
+          "tests/test_real_official_basic_completion_twenty_first_batch.py"
         ],
         "audit_validation_error": null,
-        "blocker_type": "text_unclear"
+        "blocker_type": null
       }
     },
     "10061130": {
@@ -8732,8 +8786,8 @@
       "cost": 10,
       "is_collectible": true,
       "card_set_id": 10001,
-      "coverage": "text_unclear",
-      "reason": "Support: keyword",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['intrinsic_keywords'], Ops: ['keyword:疾驰']",
       "hit_keywords": [],
       "missing_primitives": [],
       "ability_keywords": [
@@ -8743,27 +8797,43 @@
         "【<color=Keyword>疾驰</color>】"
       ],
       "support_level": "keyword",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【<color=Keyword>疾驰</color>】",
+        "notes": "2026-07-25以官方英/日/简中卡牌库核对为Storm/疾走/疾驰且无FAQ：https://shadowverse-wb.com/en/deck/cardslist/card/?card_id=10143110。直接测试出场当回合攻击主战者。",
+        "rule_version": 1,
+        "source_text_sha256": "487bbc3ead279c8faccb6c74842ddc77225535cb22afa3b651dcdc587a172eb8",
+        "test_evidence": [
+          "tests/test_real_official_basic_completion_twenty_first_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "text_unclear",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10143110:0",
             "source_text": "【<color=Keyword>疾驰</color>】",
-            "mapping_status": "text_unclear"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "【<color=Keyword>疾驰</color>】",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "487bbc3ead279c8faccb6c74842ddc77225535cb22afa3b651dcdc587a172eb8",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "intrinsic_keywords"
+          ],
+          "effect_kinds": [
+            "keyword:疾驰"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_official_basic_completion_twenty_first_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "text_unclear"
+        "blocker_type": null
       }
     },
     "10143120": {
@@ -13446,8 +13516,8 @@
       "cost": 3,
       "is_collectible": true,
       "card_set_id": 10002,
-      "coverage": "text_unclear",
-      "reason": "Support: keyword",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['intrinsic_keywords'], Ops: ['keyword:突进']",
       "hit_keywords": [],
       "missing_primitives": [],
       "ability_keywords": [
@@ -13457,27 +13527,43 @@
         "【<color=Keyword>突进</color>】"
       ],
       "support_level": "keyword",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【<color=Keyword>突进</color>】",
+        "notes": "2026-07-25以官方英/日/简中卡牌库核对为Rush/突進/突进且无FAQ：https://shadowverse-wb.com/en/deck/cardslist/card/?card_id=10211110。直接测试当回合可攻击随从、不可攻击主战者及非法攻击原子性。",
+        "rule_version": 1,
+        "source_text_sha256": "7abde1fa8f2c436a6805d99abe026718965b9776b4b5a2dffe05f57cd5b2776f",
+        "test_evidence": [
+          "tests/test_real_official_basic_completion_twenty_first_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "text_unclear",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10211110:0",
             "source_text": "【<color=Keyword>突进</color>】",
-            "mapping_status": "text_unclear"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "【<color=Keyword>突进</color>】",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "7abde1fa8f2c436a6805d99abe026718965b9776b4b5a2dffe05f57cd5b2776f",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "intrinsic_keywords"
+          ],
+          "effect_kinds": [
+            "keyword:突进"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_official_basic_completion_twenty_first_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "text_unclear"
+        "blocker_type": null
       }
     },
     "10211120": {
@@ -14036,22 +14122,28 @@
       "support_level": "unsupported",
       "rule_metadata": {
         "coverage": "exact",
-        "implemented_text": "【入场曲】选择对手战场上的2个随从，到对手的回合结束为止，使其无法攻击随从或主战者。\n【超进化时】选择对手战场上的2个随从，使其获得「自己的回合结束时，对自己的主战者造成1点伤害，并对本随从造成2点伤害」。"
+        "implemented_text": "【入场曲】选择对手战场上的2个随从，到对手的回合结束为止，使其无法攻击随从或主战者。\n【超进化时】选择对手战场上的2个随从，使其获得「自己的回合结束时，对自己的主战者造成1点伤害，并对本随从造成2点伤害」。",
+        "notes": "入场多选至多2个敌方随从、攻击随从与主战者的完整禁止、持续至对手回合结束、超进化授予目标控制者回合末伤害领袖1与自身2的通用持续能力、来源离场及一个目标先离场均有直接测试。",
+        "rule_version": 1,
+        "source_text_sha256": "3b24c8aad8f9623314c3714b80fa40c1d2dd9c74950fbc401340ae1dcfe970bc",
+        "test_evidence": [
+          "tests/test_real_final_supported_completion_twentieth_batch.py"
+        ]
       },
       "clause_audit": {
-        "status": "unverified_exact",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10214120:0",
             "source_text": "【<color=Keyword>入场曲</color>】选择对手的战场上的2个随从，对手的回合结束前，使其获得「无法攻击随从或主战者」。\n<hr><sev>【<color=Keyword>超进化时</color>】选择对手的战场上的2个随从，使其获得「回合结束时，对自己的主战者造成1点伤害，对本随从造成2点伤害」。</sev>",
-            "mapping_status": "unverified_exact"
+            "mapping_status": "implemented"
           }
         ],
         "implemented_text": "【入场曲】选择对手战场上的2个随从，到对手的回合结束为止，使其无法攻击随从或主战者。\n【超进化时】选择对手战场上的2个随从，使其获得「自己的回合结束时，对自己的主战者造成1点伤害，并对本随从造成2点伤害」。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "3b24c8aad8f9623314c3714b80fa40c1d2dd9c74950fbc401340ae1dcfe970bc",
         "structured_evidence": {
           "triggers": [
             "fanfare",
@@ -14066,9 +14158,11 @@
             "damage_unit"
           ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_final_supported_completion_twentieth_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "audit_unverified"
+        "blocker_type": null
       }
     },
     "10221110": {
@@ -14140,8 +14234,8 @@
       "cost": 5,
       "is_collectible": true,
       "card_set_id": 10002,
-      "coverage": "text_unclear",
-      "reason": "No ability keywords in database",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['intrinsic_keywords'], Ops: ['keyword:潜行']",
       "hit_keywords": [],
       "missing_primitives": [],
       "ability_keywords": [
@@ -14151,27 +14245,43 @@
         "【<color=Keyword>潜行</color>】"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【<color=Keyword>潜行</color>】",
+        "notes": "2026-07-25以官方英/日/简中卡牌库核对为Ambush/潜伏/潜行且无FAQ：https://shadowverse-wb.com/en/deck/cardslist/card/?card_id=10221120。直接测试对手不能攻击或手动指定。",
+        "rule_version": 1,
+        "source_text_sha256": "bad7d96c9e09aec7bc75d1363de4a29b5bea77a57abd6969190e8ac616b30881",
+        "test_evidence": [
+          "tests/test_real_official_basic_completion_twenty_first_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "text_unclear",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10221120:0",
             "source_text": "【<color=Keyword>潜行</color>】",
-            "mapping_status": "text_unclear"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "【<color=Keyword>潜行</color>】",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "bad7d96c9e09aec7bc75d1363de4a29b5bea77a57abd6969190e8ac616b30881",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "intrinsic_keywords"
+          ],
+          "effect_kinds": [
+            "keyword:潜行"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_official_basic_completion_twenty_first_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "text_unclear"
+        "blocker_type": null
       }
     },
     "10221310": {
@@ -19075,27 +19185,33 @@
       "support_level": "unsupported",
       "rule_metadata": {
         "coverage": "exact",
-        "implemented_text": "【入场曲】使对手战场上的所有随从-0/-2。\n【潜行】\n每当对手的随从在对手战场上被降低防御力时，自己的每个回合中限1次，回复自己的主战者1点生命值。\n【超进化时】使对手获得【纹章】「绝灭的继承者·克鲁尔」。"
+        "implemented_text": "【入场曲】使对手战场上的所有随从-0/-2。\n【潜行】\n每当对手的随从在对手战场上被降低防御力时，自己的每个回合中限1次，回复自己的主战者1点生命值。\n【超进化时】使对手获得【纹章】「绝灭的继承者·克鲁尔」。",
+        "notes": "入场敌方全体-0/-2、固有潜行、己方回合中敌方场上随从降防时限一次回复1、多个降防事件去重、超进化给予对手倒数2纹章及后续入场随从-1/-1均有直接测试。",
+        "rule_version": 1,
+        "source_text_sha256": "0f52b4f468bd8c14cda8fc5411782b331f2a50af11bb4ba55fd75cf4519a4ede",
+        "test_evidence": [
+          "tests/test_real_final_supported_completion_twentieth_batch.py"
+        ]
       },
       "clause_audit": {
-        "status": "unverified_exact",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10314110:0",
             "source_text": "【<color=Keyword>入场曲</color>】使对手的战场上的所有随从-0/-2。\n<hr>【<color=Keyword>潜行</color>】\n对手的随从的生命值在战场上被减少时，自己的每回合中可触发1次，回复自己的主战者1点生命值。\n<hr><sev>【<color=Keyword>超进化时</color>】使对手获得『纹章：不弑的继承者·库露露』。</sev>",
-            "mapping_status": "unverified_exact"
+            "mapping_status": "implemented"
           },
           {
             "clause_id": "10314110:1",
             "source_text": "【纹章_0】【<color=Keyword>吟唱</color>_2】\n自己的随从进入战场时，使其-1/-1。",
-            "mapping_status": "unverified_exact"
+            "mapping_status": "implemented"
           }
         ],
         "implemented_text": "【入场曲】使对手战场上的所有随从-0/-2。\n【潜行】\n每当对手的随从在对手战场上被降低防御力时，自己的每个回合中限1次，回复自己的主战者1点生命值。\n【超进化时】使对手获得【纹章】「绝灭的继承者·克鲁尔」。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "0f52b4f468bd8c14cda8fc5411782b331f2a50af11bb4ba55fd75cf4519a4ede",
         "structured_evidence": {
           "triggers": [
             "fanfare",
@@ -19110,9 +19226,11 @@
             "buff_unit"
           ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_final_supported_completion_twentieth_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "audit_unverified"
+        "blocker_type": null
       }
     },
     "10314120": {
@@ -21778,7 +21896,13 @@
       "support_level": "unsupported",
       "rule_metadata": {
         "coverage": "exact",
-        "implemented_text": "信仰值从0开始。每当自己选择【Mode】时，信仰值+1。"
+        "implemented_text": "信仰值从0开始。每当自己选择【Mode】时，信仰值+1。",
+        "notes": "信仰从0开始并按所选Mode数增长、入场严格消费10后授予Mode选择数+1、命令层多选与RL action mask一致、非法选择不变更状态、超进化破坏所选敌方随从并按快照复制同名卡、满手牌溢出均有直接测试。",
+        "rule_version": 1,
+        "source_text_sha256": "733248fef11c9e5a074865bbe7867091fd6da5cdfb22cb1ed78dc7724d734546",
+        "test_evidence": [
+          "tests/test_real_final_supported_completion_twentieth_batch.py"
+        ]
       },
       "clause_audit": {
         "status": "mapped_exact",
@@ -21798,7 +21922,7 @@
         ],
         "implemented_text": "信仰值从0开始。每当自己选择【Mode】时，信仰值+1。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "733248fef11c9e5a074865bbe7867091fd6da5cdfb22cb1ed78dc7724d734546",
         "structured_evidence": {
           "triggers": [
             "fanfare",
@@ -21815,7 +21939,7 @@
           ]
         },
         "test_evidence": [
-          "tests/test_database.py"
+          "tests/test_real_final_supported_completion_twentieth_batch.py"
         ],
         "audit_validation_error": null,
         "blocker_type": null
@@ -24638,28 +24762,44 @@
       "cost": 3,
       "is_collectible": true,
       "card_set_id": 10004,
-      "coverage": "text_unclear",
-      "reason": "No ability keywords in database",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['vanilla_declaration'], Ops: ['no_printed_ability']",
       "hit_keywords": [],
       "missing_primitives": [],
       "ability_keywords": [],
       "skill_texts": [],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "无印刷能力。",
+        "notes": "2026-07-25以官方英/日/简中卡牌库确认技能文本为空且无FAQ：https://shadowverse-wb.com/en/deck/cardslist/card/?card_id=10422120。严格vanilla声明和3费5/4运行时有直接测试。",
+        "rule_version": 1,
+        "source_text_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "test_evidence": [
+          "tests/test_real_official_basic_completion_twenty_first_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "text_unclear",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [],
-        "implemented_text": null,
+        "implemented_text": "无印刷能力。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "vanilla_declaration"
+          ],
+          "effect_kinds": [
+            "no_printed_ability"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_official_basic_completion_twenty_first_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "text_unclear"
+        "blocker_type": null
       }
     },
     "10422130": {
@@ -31993,27 +32133,33 @@
       "support_level": "unsupported",
       "rule_metadata": {
         "coverage": "exact",
-        "implemented_text": "【入场曲】【亡者召还】_4与【亡者召还】_2。\n【进化时】随机破坏战场上的其他6个随从。\n【超进化时】使自己获得【纹章】「真相的弥尔缇欧&路西乌斯」。"
+        "implemented_text": "【入场曲】【亡者召还】_4与【亡者召还】_2。\n【进化时】随机破坏战场上的其他6个随从。\n【超进化时】使自己获得【纹章】「真相的弥尔缇欧&路西乌斯」。",
+        "notes": "入场按顺序亡者召还4与2、进化从双方场上随机选择至多6个其他随从并同时破坏且不选本体、超进化获得纹章、纹章通用抑制随从入场曲与爆能强化并在使用后无消耗进化均有直接测试。",
+        "rule_version": 1,
+        "source_text_sha256": "6947b92bca4cacc47508763587a0c5483fb375472a36fa073b49e04e60b38ec9",
+        "test_evidence": [
+          "tests/test_real_final_supported_completion_twentieth_batch.py"
+        ]
       },
       "clause_audit": {
-        "status": "unverified_exact",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10554110:0",
             "source_text": "【<color=Keyword>入场曲</color>】发动【<color=Keyword>亡者召还</color>_4】和【<color=Keyword>亡者召还</color>_2】。\n<hr><ev>本随从进化时，破坏战场上的随机6个其他随从。</ev>\n<sev>本随从超进化时，使自己获得『纹章：充实的《恋人与节制》·米路缇欧&卢泽』。</sev>",
-            "mapping_status": "unverified_exact"
+            "mapping_status": "implemented"
           },
           {
             "clause_id": "10554110:1",
             "source_text": "【纹章_0】自己的随从的【<color=Keyword>入场曲</color>】或【<color=Keyword>爆能强化</color>】不会发动。\n自己使用随从时，使其进化。",
-            "mapping_status": "unverified_exact"
+            "mapping_status": "implemented"
           }
         ],
         "implemented_text": "【入场曲】【亡者召还】_4与【亡者召还】_2。\n【进化时】随机破坏战场上的其他6个随从。\n【超进化时】使自己获得【纹章】「真相的弥尔缇欧&路西乌斯」。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "6947b92bca4cacc47508763587a0c5483fb375472a36fa073b49e04e60b38ec9",
         "structured_evidence": {
           "triggers": [
             "fanfare",
@@ -32028,9 +32174,11 @@
             "gain_emblem"
           ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_final_supported_completion_twentieth_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "audit_unverified"
+        "blocker_type": null
       }
     },
     "10554120": {
@@ -33321,27 +33469,33 @@
       "support_level": "unsupported",
       "rule_metadata": {
         "coverage": "exact",
-        "implemented_text": "【潜行】\n自己的回合结束时，若本随从已进化，使对手获得【纹章】「转轮的命运之轮·斯劳斯」，并使本随从消失。\n自己的回合开始时，从尚未发动的能力中随机发动1种：（1）到回合结束为止，使自己的所有手牌费用-1；（2）使自己的所有随从+2/+2；（3）回复自己的主战者3点生命值。"
+        "implemented_text": "【潜行】\n自己的回合结束时，若本随从已进化，使对手获得【纹章】「转轮的命运之轮·斯劳斯」，并使本随从消失。\n自己的回合开始时，从尚未发动的能力中随机发动1种：（1）到回合结束为止，使自己的所有手牌费用-1；（2）使自己的所有随从+2/+2；（3）回复自己的主战者3点生命值。",
+        "notes": "固有潜行、本体己方回合开始从未发动三项中固定种子无放回选择、临时手牌减费/全体+2/+2/回复3、进化后回合末给予对手倒数3反向纹章并消失、纹章未发动三项独立持久历史均有直接测试。",
+        "rule_version": 1,
+        "source_text_sha256": "b7bd91fcc07e682ce76d96255ca9cd2a891ea31074295570def68e975604d36d",
+        "test_evidence": [
+          "tests/test_real_final_supported_completion_twentieth_batch.py"
+        ]
       },
       "clause_audit": {
-        "status": "unverified_exact",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10574110:0",
             "source_text": "【<color=Keyword>潜行</color>】\n自己的回合结束时，若本随从为进化后，则使对手获得『纹章：转动的《命运之轮》·斯洛士』。使本随从消失。\n自己的回合开始时，从以下未发动的能力中随机发动1个能力。\n<ridx=0>（1）回合结束前，使自己的所有手牌的费用-1。</ridx>\n<ridx=1>（2）使自己的战场上的所有随从+2/+2。</ridx>\n<ridx=2>（3）回复自己的主战者3点生命值。</ridx>",
-            "mapping_status": "unverified_exact"
+            "mapping_status": "implemented"
           },
           {
             "clause_id": "10574110:1",
             "source_text": "【纹章_0】【<color=Keyword>吟唱</color>_3】\n自己的回合开始时，从以下未发动的能力中随机发动1个能力。\n<ridx=0>（1）回合结束前，使自己的所有手牌的费用+1。</ridx>\n<ridx=1>（2）使自己的战场上的所有随从-2/-2。</ridx>\n<ridx=2>（3）对自己的主战者造成3点伤害。</ridx>",
-            "mapping_status": "unverified_exact"
+            "mapping_status": "implemented"
           }
         ],
         "implemented_text": "【潜行】\n自己的回合结束时，若本随从已进化，使对手获得【纹章】「转轮的命运之轮·斯劳斯」，并使本随从消失。\n自己的回合开始时，从尚未发动的能力中随机发动1种：（1）到回合结束为止，使自己的所有手牌费用-1；（2）使自己的所有随从+2/+2；（3）回复自己的主战者3点生命值。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "b7bd91fcc07e682ce76d96255ca9cd2a891ea31074295570def68e975604d36d",
         "structured_evidence": {
           "triggers": [
             "turn_start",
@@ -33361,9 +33515,11 @@
             "damage_leader"
           ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_final_supported_completion_twentieth_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "audit_unverified"
+        "blocker_type": null
       }
     },
     "10574120": {
@@ -34088,8 +34244,8 @@
       "cost": 6,
       "is_collectible": true,
       "card_set_id": 10006,
-      "coverage": "text_unclear",
-      "reason": "Support: keyword",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['intrinsic_keywords'], Ops: ['keyword:疾驰']",
       "hit_keywords": [],
       "missing_primitives": [],
       "ability_keywords": [
@@ -34099,27 +34255,43 @@
         "【<color=Keyword>疾驰</color>】"
       ],
       "support_level": "keyword",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【<color=Keyword>疾驰</color>】",
+        "notes": "2026-07-25以官方英/日/简中卡牌库核对为Storm/疾走/疾驰且无FAQ：https://shadowverse-wb.com/en/deck/cardslist/card/?card_id=10612120。直接测试出场当回合攻击主战者。",
+        "rule_version": 1,
+        "source_text_sha256": "487bbc3ead279c8faccb6c74842ddc77225535cb22afa3b651dcdc587a172eb8",
+        "test_evidence": [
+          "tests/test_real_official_basic_completion_twenty_first_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "text_unclear",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10612120:0",
             "source_text": "【<color=Keyword>疾驰</color>】",
-            "mapping_status": "text_unclear"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "【<color=Keyword>疾驰</color>】",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "487bbc3ead279c8faccb6c74842ddc77225535cb22afa3b651dcdc587a172eb8",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "intrinsic_keywords"
+          ],
+          "effect_kinds": [
+            "keyword:疾驰"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_official_basic_completion_twenty_first_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "text_unclear"
+        "blocker_type": null
       }
     },
     "10612310": {
@@ -39640,27 +39812,33 @@
       "support_level": "unsupported",
       "rule_metadata": {
         "coverage": "exact",
-        "implemented_text": "【入场曲】选择对手战场上的1个随从，使其-0/-X。X为本随从的攻击力。使自己的【连击】+1。\n【进化时】使自己获得【纹章】「扭曲的安纳提玛·忒斯泰」。"
+        "implemented_text": "【入场曲】选择对手战场上的1个随从，使其-0/-X。X为本随从的攻击力。使自己的【连击】+1。\n【进化时】使自己获得【纹章】「扭曲的安纳提玛·忒斯泰」。",
+        "notes": "入场选择敌方随从并按本体当时攻击力-0/-X、无目标仍使连击+1、进化获得倒数3纹章、己方回合末连击3时永久强化牌组内所有随从+1/+1、非随从不变、抽入手牌继承属性且隐藏牌组运行时不泄露均有直接测试。",
+        "rule_version": 1,
+        "source_text_sha256": "ac0718c219b823ec12240ffd248aad26ef2f1a2669c88d598d682d7bcbe96d32",
+        "test_evidence": [
+          "tests/test_real_final_supported_completion_twentieth_batch.py"
+        ]
       },
       "clause_audit": {
-        "status": "unverified_exact",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10714110:0",
             "source_text": "【<color=Keyword>入场曲</color>】选择对手的战场上的1个随从，使其-0/-X。X为本随从的攻击力。使自己的【<color=Keyword>连击</color>】+1。\n<hr><ev>【<color=Keyword>进化时</color>】使自己获得『纹章：操量的安纳提玛·达斯特迪兹』。</ev>",
-            "mapping_status": "unverified_exact"
+            "mapping_status": "implemented"
           },
           {
             "clause_id": "10714110:1",
             "source_text": "【纹章_0】【<color=Keyword>吟唱</color>_3】\n自己的回合结束时，【<color=Keyword>连击</color>_3】使自己的牌组中的所有随从+1/+1。",
-            "mapping_status": "unverified_exact"
+            "mapping_status": "implemented"
           }
         ],
         "implemented_text": "【入场曲】选择对手战场上的1个随从，使其-0/-X。X为本随从的攻击力。使自己的【连击】+1。\n【进化时】使自己获得【纹章】「扭曲的安纳提玛·忒斯泰」。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "ac0718c219b823ec12240ffd248aad26ef2f1a2669c88d598d682d7bcbe96d32",
         "structured_evidence": {
           "triggers": [
             "fanfare",
@@ -39675,9 +39853,11 @@
             "buff_deck_cards"
           ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_final_supported_completion_twentieth_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "audit_unverified"
+        "blocker_type": null
       }
     },
     "10714120": {

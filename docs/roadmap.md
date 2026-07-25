@@ -10,13 +10,13 @@ code and tests as the source of truth when this file drifts.
 - Database: 826 cards, 735 collectible cards, 91 non-collectible/generated
   cards from set `90000`.
 - Latest SVA source: `https://sva.hypd.asia/data/cards.json`.
-- Tests: `python -m unittest discover -s tests -v` discovers 2487 behavioral
-  contracts (2026-07-25 twentieth supported-rule completion verification).
+- Tests: `python -m unittest discover -s tests -v` discovers 2505 behavioral
+  contracts (2026-07-25 twenty-first official basic completion verification).
 - RL adapter: fixed 111-action space; the default v1 observation is 294
   floats, opt-in v2 preserves the structured compatibility mapping, and v3
   supplies fixed-dtype NumPy arrays plus a Gymnasium observation space without
   changing action IDs. Hidden decklists are the v3 default.
-- The exact-audit `TrainableCardCatalog` currently admits all 719 exact
+- The exact-audit `TrainableCardCatalog` currently admits all 730 exact
   collectible cards, preloads all 826 definitions for SQLite-free matches, and
   provides deterministic class-valid deck sampling. Self-play no longer uses
   the legacy 2-to-5-card follower pool.
@@ -48,10 +48,10 @@ code and tests as the source of truth when this file drifts.
   and distribution acceptance results, not policy-strength evidence.
 - Ability registry status: 18 implemented, 5 partial, 11 placeholder.
 - Explicit card and demo rules live in `data/rules/`; the current coverage
-  report classifies 823 card IDs with explicit rules, passives, fusion,
+  report classifies 834 card IDs with explicit rules, passives, fusion,
   invocation, activation, Faith, Union Burst, or listener definitions. Current
-  collectible coverage is 719 exact (97.82% of 735), 0 partial, 0 supported-but-missing-rule,
-  0 missing-primitive, and 16 text-unclear cards.
+  collectible coverage is 730 exact (99.32% of 735), 0 partial, 0 supported-but-missing-rule,
+  0 missing-primitive, and 5 text-unclear cards.
 - `data/reports/token_audit.{json,md}` audits all 91 non-collectible/generated
   cards independently of collectible coverage. Database `card_references` and
   executable structured producers are reported separately: all 91 tokens have a
@@ -65,7 +65,7 @@ code and tests as the source of truth when this file drifts.
   separate column and is covered for all 34; it does not automatically promote
   the 5 partial or 11 placeholder keyword statuses.
 - Coverage now has a backward-compatible clause audit. The legacy summary still
-  reports 719 exact collectible cards, and all 719 now have an explicit exact
+  reports 730 exact collectible cards, and all 730 now have an explicit exact
   text mapping plus named direct test evidence. The versioned sibling registry
   at `data/audits/rule_clauses.json` hashes every imported primary and
   alternate-mode clause; changed source text or stale test evidence invalidates
@@ -75,7 +75,7 @@ code and tests as the source of truth when this file drifts.
   explicit unsupported text, and a stable blocker taxonomy. There are zero
   unverified exact entries and no known missing schema, primitive, targeting,
   or timing blocker among authored rules. No supported collectible is missing
-  a per-card structured rule; 16 unclear texts remain explicit.
+  a per-card structured rule; 5 unresolved complex texts remain explicit.
 - RL observation v2 is available behind an explicit version switch. A
   configured card vocabulary supplies stable categorical indices for own-hand,
   public-board, initial-deck composition, and public graveyard/banished state;
@@ -1545,6 +1545,20 @@ slice in this order:
   schema failures, source hashes, and Clause/Token consistency. New public
   decision-state fields advance v2/v3's formal schema to
   `observation-v3.5`; v1 remains 294 floats and all 111 action IDs stay stable.
+- Exact file
+  `data/rules/real_official_basic_completion_twenty_first_batch.json` closes
+  11 official-source basic followers: two strict audited vanilla declarations
+  (`10002120`, `10422120`) and nine intrinsic Ward, Storm, Rush, or Ambush
+  declarations (`10001130`, `10021110`, `10021130`, `10041120`, `10061120`,
+  `10143110`, `10211110`, `10221120`, `10612120`). This brings collectible
+  exact coverage to 730/735 (99.32%) while all 91 generated cards remain
+  complete. The generic loader rejects missing vanilla provenance notes,
+  duplicates, and overlap with behavior definitions. Direct tests cover every
+  real card's stats and runtime keyword state, multilingual/raw JSON and
+  official-source metadata, Ward/Storm/Rush/Ambush legality, empty targets,
+  board capacity, illegal-command atomicity, seeded replay, RL action-mask
+  parity, source hashes, and Clause/Token/Ability consistency. Observation
+  `observation-v3.5`, v1's 294 floats, and all 111 action IDs remain unchanged.
 
 ## Known Partial Or Unsupported Areas
 
@@ -1635,12 +1649,15 @@ slice in this order:
 
 ## Next Coherent Slices
 
-### 1. Further Basic Real-Card Batches
+### 1. Final Five Official-Source Complex Cards
 
-- Continue 5–15 card batches whose complete primary/alternate/reference text
-  fits existing primitives. Audit every referenced Token with its producer and
-  prefer slices that convert related database-only Tokens into executable
-  producer-and-behavior workflows.
+- Close `10201310` forced-target +2/-2, `10533310` independent-with-replacement
+  whole-board deck-copy transforms, `10572120` spell-play self-evolution,
+  `10741310` maximum-PP gain plus hand/deck self replacement, and `10851110`
+  Storm that ignores Ward. Their official English/Japanese/Simplified-Chinese
+  card pages and FAQ semantics were retrieved on 2026-07-25; bind each through
+  generic targeting/effect/listener/attack-legality primitives and preserve
+  direct source metadata instead of approximating related cards.
 
 ### 2. Source-Backed Continuous Modifiers
 

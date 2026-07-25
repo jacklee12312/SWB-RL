@@ -675,6 +675,7 @@ class RuleBook:
         union_burst_defs: dict[int, tuple[UnionBurstDefinition, ...]] | None = None,
         listener_defs: dict[int, tuple[CardListenerDefinition, ...]] | None = None,
         intrinsic_keyword_defs: dict[int, tuple[str, ...]] | None = None,
+        vanilla_card_ids: frozenset[int] | set[int] | None = None,
     ):
         self._rules: dict[tuple[int, Trigger], tuple[EffectOperation, ...]] = {}
         for rule in rules:
@@ -798,6 +799,38 @@ class RuleBook:
             self._union_burst_defs[card_id] = tuple(
                 sorted(definitions, key=lambda item: item.threshold)
             )
+        self._vanilla_card_ids = frozenset(vanilla_card_ids or ())
+        for card_id in self._vanilla_card_ids:
+            if (
+                isinstance(card_id, bool)
+                or not isinstance(card_id, int)
+                or card_id <= 0
+            ):
+                raise ValueError(
+                    "vanilla card_id must be a positive integer"
+                )
+        behavior_card_ids = (
+            {card_id for card_id, _ in self._rules}
+            | set(self._passives)
+            | set(self._play_modes)
+            | {
+                definition.source_card_id
+                for definition in self._emblem_defs.values()
+            }
+            | set(self._fusion_defs)
+            | set(self._invocation_defs)
+            | set(self._activation_defs)
+            | set(self._faith_defs)
+            | set(self._union_burst_defs)
+            | set(self._listener_defs)
+            | set(self._intrinsic_keyword_defs)
+        )
+        overlap = sorted(self._vanilla_card_ids & behavior_card_ids)
+        if overlap:
+            raise ValueError(
+                "vanilla cards cannot also have behavior definitions: "
+                f"{overlap}"
+            )
         for card_id in self._fusion_defs:
             if len(self._play_modes.get(card_id, ())) + 1 > MAX_SPECIAL_MODES_PER_CARD:
                 raise ValueError(
@@ -859,6 +892,11 @@ class RuleBook:
         """Return explicitly audited printed keywords for keyword-only cards."""
 
         return self._intrinsic_keyword_defs.get(card_id, ())
+
+    def is_explicit_vanilla(self, card_id: int) -> bool:
+        """Return whether a card is audited as having no printed ability."""
+
+        return card_id in self._vanilla_card_ids
 
     def emblem_trigger_ops_for(self, emblem_id: str, trigger: str) -> tuple[EffectOperation, ...]:
         from swb.engine.emblem import EmblemTriggerRule
@@ -948,6 +986,7 @@ class RuleBook:
         all_union_burst_defs: dict[int, list[UnionBurstDefinition]] = {}
         all_listener_defs: dict[int, list[CardListenerDefinition]] = {}
         all_intrinsic_keyword_defs: dict[int, tuple[str, ...]] = {}
+        all_vanilla_card_ids: set[int] = set()
         for file_path in sorted(path.glob("*.json")):
             payload = json.loads(file_path.read_text(encoding="utf-8"))
             if isinstance(payload, list):
@@ -960,6 +999,7 @@ class RuleBook:
                 raw_union_bursts = []
                 raw_listeners = []
                 raw_intrinsic_keywords = []
+                raw_vanilla_cards = []
             else:
                 entries = payload.get("rules", [])
                 raw_passives = payload.get("passives", [])
@@ -970,6 +1010,7 @@ class RuleBook:
                 raw_union_bursts = payload.get("union_bursts", [])
                 raw_listeners = payload.get("listeners", [])
                 raw_intrinsic_keywords = payload.get("intrinsic_keywords", [])
+                raw_vanilla_cards = payload.get("vanilla_cards", [])
                 if not isinstance(raw_fusions, list):
                     raise ValueError(f"{file_path.name}: 'fusions' must be a list")
                 if not isinstance(raw_invocations, list):
@@ -993,6 +1034,10 @@ class RuleBook:
                 if not isinstance(raw_intrinsic_keywords, list):
                     raise ValueError(
                         f"{file_path.name}: 'intrinsic_keywords' must be a list"
+                    )
+                if not isinstance(raw_vanilla_cards, list):
+                    raise ValueError(
+                        f"{file_path.name}: 'vanilla_cards' must be a list"
                     )
                 raw_emblems = payload.get("emblems")
                 if raw_emblems is not None:
@@ -1171,6 +1216,18 @@ class RuleBook:
                         f"for card {card_id}"
                     )
                 all_intrinsic_keyword_defs[card_id] = keywords
+            for index, raw_definition in enumerate(raw_vanilla_cards):
+                source_path = f"{file_path.name}/vanilla_cards[{index}]"
+                card_id = _parse_vanilla_card_definition(
+                    raw_definition,
+                    source_path,
+                )
+                if card_id in all_vanilla_card_ids:
+                    raise ValueError(
+                        f"{source_path}: duplicate vanilla definition for "
+                        f"card {card_id}"
+                    )
+                all_vanilla_card_ids.add(card_id)
         _validate_passives(passives)
         frozen_modes = {
             cid: tuple(modes) for cid, modes in all_play_modes.items()
@@ -1196,6 +1253,7 @@ class RuleBook:
                 for card_id, definitions in all_listener_defs.items()
             },
             intrinsic_keyword_defs=all_intrinsic_keyword_defs,
+            vanilla_card_ids=all_vanilla_card_ids,
         )
 
 
@@ -2554,6 +2612,26 @@ def _parse_intrinsic_keyword_definition(
     if notes is not None and (not isinstance(notes, str) or not notes):
         raise ValueError(f"{source_path}/notes: must be a non-empty string")
     return card_id, tuple(keywords)
+
+
+def _parse_vanilla_card_definition(
+    raw: dict,
+    source_path: str,
+) -> int:
+    if not isinstance(raw, dict):
+        raise ValueError(
+            f"{source_path}: vanilla card definition must be an object"
+        )
+    unknown = set(raw) - {"card_id", "notes"}
+    if unknown:
+        raise ValueError(f"{source_path}: unknown fields {sorted(unknown)}")
+    card_id = raw.get("card_id")
+    if isinstance(card_id, bool) or not isinstance(card_id, int) or card_id <= 0:
+        raise ValueError(f"{source_path}/card_id: must be a positive integer")
+    notes = raw.get("notes")
+    if not isinstance(notes, str) or not notes.strip():
+        raise ValueError(f"{source_path}/notes: must be a non-empty string")
+    return card_id
 
 
 _BINDABLE_TARGETS = frozenset({

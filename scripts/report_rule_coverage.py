@@ -385,6 +385,11 @@ def _build_coverage_report(db_path: str, rules_dir: str) -> dict:
         ruled_ops[cid]["effect_kinds"].extend(
             f"keyword:{keyword}" for keyword in keywords
         )
+    for cid in rulebook._vanilla_card_ids:
+        ruled_cards.add(cid)
+        ruled_ops.setdefault(cid, {"triggers": [], "effect_kinds": []})
+        ruled_ops[cid]["triggers"].append("vanilla_declaration")
+        ruled_ops[cid]["effect_kinds"].append("no_printed_ability")
     for emblem_id, ed in rulebook._emblem_defs.items():
         ruled_cards.add(ed.source_card_id)
         ruled_ops.setdefault(ed.source_card_id, {"triggers": [], "effect_kinds": []})
