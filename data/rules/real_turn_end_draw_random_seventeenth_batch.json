@@ -1,0 +1,297 @@
+{
+  "intrinsic_keywords": [
+    {"card_id": 10464110, "keywords": ["守护"]},
+    {"card_id": 10564120, "keywords": ["突进"]}
+  ],
+  "union_bursts": [
+    {
+      "card_id": 10474110,
+      "kind": "union_burst",
+      "operations": [
+        {
+          "kind": "gain_emblem",
+          "target": "own_leader",
+          "emblem_id": "lu_woh_light_personified"
+        }
+      ]
+    }
+  ],
+  "listeners": [
+    {
+      "card_id": 10464110,
+      "zone": "board",
+      "event": "follower_summoned",
+      "event_scope": "owner_event",
+      "source_relation": "self",
+      "operations": [
+        {
+          "kind": "add_attack_restriction",
+          "target": "self",
+          "restriction": "cannot_attack",
+          "duration": "permanent"
+        }
+      ]
+    }
+  ],
+  "emblems": [
+    {
+      "id": "lu_woh_light_personified",
+      "source_card_id": 10474110,
+      "stacking": "allow",
+      "countdown": 2,
+      "triggers": [
+        {
+          "trigger": "attack_declared",
+          "event_scope": "opponent_event",
+          "event_filter": {"keyword": "疾驰"},
+          "conditions": [
+            {
+              "type": "not",
+              "conditions": [{"type": "attack_target_exists"}]
+            }
+          ],
+          "operations": [
+            {
+              "kind": "buff_unit",
+              "target": "event_source",
+              "amount": -3,
+              "secondary_amount": 0,
+              "duration": "until_end_of_turn"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "rigor_of_the_nightblossom",
+      "source_card_id": 10553310,
+      "stacking": "allow",
+      "countdown": 2,
+      "triggers": [
+        {
+          "trigger": "turn_end",
+          "turn_scope": "owner_turn",
+          "operations": [
+            {"kind": "draw", "target": "own_leader", "amount": 1},
+            {
+              "kind": "conditional",
+              "target": "own_leader",
+              "conditions": [
+                {
+                  "type": "controller_hand_same_current_cost_count_at_least",
+                  "value": 4
+                }
+              ],
+              "then": [
+                {
+                  "kind": "summon",
+                  "target": "own_leader",
+                  "card_id": 90051110,
+                  "target_key": "rigor_skeleton"
+                },
+                {
+                  "kind": "add_keyword",
+                  "target": "previous_target",
+                  "target_key": "rigor_skeleton",
+                  "keyword": "守护"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "kukishiro_mistbloom",
+      "source_card_id": 10564120,
+      "stacking": "allow",
+      "triggers": [
+        {
+          "trigger": "card_drawn",
+          "event_scope": "owner_event",
+          "turn_scope": "owner_turn",
+          "event_filter": {"current_costs": [1, 3, 5]},
+          "operations": [
+            {
+              "kind": "random_choice",
+              "target": "own_leader",
+              "amount": 1,
+              "options": [
+                {
+                  "id": "summon_own_fox",
+                  "operations": [
+                    {
+                      "kind": "summon",
+                      "target": "own_leader",
+                      "card_id": 10061120
+                    }
+                  ]
+                },
+                {
+                  "id": "summon_own_falcon",
+                  "operations": [
+                    {
+                      "kind": "summon",
+                      "target": "own_leader",
+                      "card_id": 90061110
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "trigger": "card_drawn",
+          "event_scope": "owner_event",
+          "turn_scope": "owner_turn",
+          "event_filter": {"current_costs": [2, 4, 6]},
+          "operations": [
+            {
+              "kind": "random_choice",
+              "target": "own_leader",
+              "amount": 1,
+              "options": [
+                {
+                  "id": "summon_enemy_fox",
+                  "operations": [
+                    {
+                      "kind": "summon",
+                      "target": "enemy_leader",
+                      "card_id": 10061120
+                    }
+                  ]
+                },
+                {
+                  "id": "summon_enemy_falcon",
+                  "operations": [
+                    {
+                      "kind": "summon",
+                      "target": "enemy_leader",
+                      "card_id": 90061110
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "rules": [
+    {
+      "card_id": 10464110,
+      "trigger": "turn_end",
+      "coverage": "exact",
+      "implemented_text": "【<color=Keyword>守护</color>】\n无法攻击随从或主战者。\n自己的回合结束时，若为超进化已解禁的回合，则使自己的战场上的随机1个「本回合中没有进行过攻击的进化前的随从」进化。",
+      "operations": [
+        {
+          "kind": "evolve_unit",
+          "target": "random_own_unit",
+          "target_evolved_filter": false,
+          "target_attacked_this_turn_filter": false,
+          "conditions": [
+            {"type": "controller_super_evolution_unlocked"}
+          ]
+        }
+      ]
+    },
+    {
+      "card_id": 10474110,
+      "trigger": "fanfare",
+      "coverage": "exact",
+      "implemented_text": "【<color=Keyword>入场曲</color>】发动6次「对对手的战场上的随机1个随从造成1点伤害」。使对手的手牌中的所有随从+1/+0。【<color=Keyword>奥义</color>】使自己获得『纹章：光之法则·龙敖』。\n【<color=Keyword>吟唱</color>_2】\n对手的拥有【<color=Keyword>疾驰</color>】的随从攻击主战者时，回合结束前，使其-3/-0。",
+      "operations": [
+        {
+          "kind": "repeat",
+          "target": "own_leader",
+          "amount": 6,
+          "operations": [
+            {
+              "kind": "damage_unit",
+              "target": "random_enemy_unit",
+              "amount": 1
+            }
+          ]
+        },
+        {
+          "kind": "buff_hand_card",
+          "target": "all_enemy_hand",
+          "amount": 1,
+          "secondary_amount": 0,
+          "hand_filter": {"card_type": "随从"}
+        }
+      ]
+    },
+    {
+      "card_id": 10524110,
+      "trigger": "turn_end",
+      "coverage": "exact",
+      "implemented_text": "自己的回合结束时，若本随从为进化前，则对对手的战场上的所有随从造成7点伤害。若为进化后，则发动3次「随机对战场上的1个其他随从或自己的主战者或对手的主战者造成7点伤害」。",
+      "operations": [
+        {
+          "kind": "conditional",
+          "target": "own_leader",
+          "conditions": [
+            {
+              "type": "not",
+              "conditions": [{"type": "source_evolved"}]
+            }
+          ],
+          "then": [
+            {
+              "kind": "damage_unit",
+              "target": "all_enemy_units",
+              "amount": 7
+            }
+          ],
+          "else": [
+            {
+              "kind": "repeat",
+              "target": "own_leader",
+              "amount": 3,
+              "operations": [
+                {
+                  "kind": "damage_unit",
+                  "target": "random_any_unit_or_leader",
+                  "exclude_source": true,
+                  "amount": 7
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "card_id": 10553310,
+      "trigger": "play",
+      "coverage": "exact",
+      "implemented_text": "使自己获得『纹章：严酷的奥夜花』。\n【<color=Keyword>吟唱</color>_2】\n自己的回合结束时，抽取1张卡牌。之后，若自己的手牌中有4张或以上费用相同的卡牌，则召唤1个『<color=Keyword>骸骨士兵</color>』，使其获得【<color=Keyword>守护</color>】。",
+      "operations": [
+        {
+          "kind": "gain_emblem",
+          "target": "own_leader",
+          "emblem_id": "rigor_of_the_nightblossom"
+        }
+      ]
+    },
+    {
+      "card_id": 10564120,
+      "trigger": "fanfare",
+      "coverage": "exact",
+      "implemented_text": "【<color=Keyword>入场曲</color>】使自己获得『纹章：雾卷花·茎白』。使自己的随机2张手牌返回牌组。抽取2张卡牌。\n<hr>【<color=Keyword>突进</color>】\n自己抽到费用为1、3、5的卡牌时，若为自己的回合，则在自己的战场上召唤随机1个『<color=Keyword>纯洁白狐</color>』或『<color=Keyword>神圣猎鹰</color>』。\n自己抽到费用为2、4、6的卡牌时，若为自己的回合，则在对手的战场上召唤随机1个『<color=Keyword>纯洁白狐</color>』或『<color=Keyword>神圣猎鹰</color>』。",
+      "operations": [
+        {
+          "kind": "gain_emblem",
+          "target": "own_leader",
+          "emblem_id": "kukishiro_mistbloom"
+        },
+        {"kind": "return_to_deck", "target": "random_own_hand"},
+        {"kind": "return_to_deck", "target": "random_own_hand"},
+        {"kind": "draw", "target": "own_leader", "amount": 2}
+      ]
+    }
+  ]
+}

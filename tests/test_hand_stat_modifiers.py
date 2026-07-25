@@ -116,14 +116,13 @@ class HandStatModifierSchemaTests(unittest.TestCase):
             )
             RuleBook.from_directory(tmp)
 
-    def test_hand_buff_rejects_enemy_hand_and_missing_follower_filter(self):
-        with self.assertRaisesRegex(ValueError, "own-hand target"):
-            self._load({
-                "kind": "buff_hand_card",
-                "target": "all_enemy_hand",
-                "amount": 1,
-                "hand_filter": {"card_type": "随从"},
-            })
+    def test_hand_buff_accepts_enemy_followers_and_requires_follower_filter(self):
+        self._load({
+            "kind": "buff_hand_card",
+            "target": "all_enemy_hand",
+            "amount": 1,
+            "hand_filter": {"card_type": "随从"},
+        })
         with self.assertRaisesRegex(ValueError, "requires card_type='随从'"):
             self._load({
                 "kind": "buff_hand_card",

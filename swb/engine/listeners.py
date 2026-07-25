@@ -57,6 +57,7 @@ class EventCardFilter:
     tribe_name: str | None = None
     cost_min: int | None = None
     cost_max: int | None = None
+    current_costs: tuple[int, ...] = ()
     card_id: int | None = None
     card_name: str | None = None
     keyword: str | None = None
@@ -74,6 +75,7 @@ class EventCardFilter:
     ) -> bool:
         if definition is None:
             return False
+        current_cost = getattr(event_source, "current_cost", definition.cost)
         if not (
             (self.card_type is None or definition.card_type == self.card_type)
             and (self.class_id is None or definition.class_id == self.class_id)
@@ -85,6 +87,7 @@ class EventCardFilter:
             )
             and (self.cost_min is None or definition.cost >= self.cost_min)
             and (self.cost_max is None or definition.cost <= self.cost_max)
+            and (not self.current_costs or current_cost in self.current_costs)
             and (self.card_id is None or definition.card_id == self.card_id)
             and (self.card_name is None or definition.name == self.card_name)
             and (self.enhanced is None or self.enhanced is enhanced)

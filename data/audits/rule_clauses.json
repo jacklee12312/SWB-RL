@@ -7249,6 +7249,41 @@
       "source_text_sha256": "557fc6c04320034f4a5888c0754bd00b940b6ab4366365e89c202f8fcc7cffa3",
       "test_evidence": ["tests/test_real_fusion_combo_cost_repose_sixteenth_batch.py"],
       "notes": "入场获得可叠加倒数4纹章、关联自身在场条件、纹章总数动态随机多目标、攻击力4以下过滤、永久攻击封锁、目标控制者回合末放逐、来源离场不触发、固定种子复现及超进化仅将敌方攻击力设为4均有直接测试。"
+    },
+    {
+      "card_id": 10464110,
+      "rule_version": 1,
+      "source_text_sha256": "a3845eeb4a47065430a5cf5545aafe008012a6ed60888955f17ad19fb5ec5198",
+      "test_evidence": ["tests/test_real_turn_end_draw_random_seventeenth_batch.py"],
+      "notes": "固有守护、任何方式入场后的永久攻击封锁、超进化解禁门槛、进化前与本回合未攻击双重过滤、固定种子随机进化、未解禁和无合法目标路径均有直接测试。"
+    },
+    {
+      "card_id": 10474110,
+      "rule_version": 1,
+      "source_text_sha256": "46305ea828d76444ef198553d01fadfeccfb9267e8f0c798bc828ec9e51a4b02",
+      "test_evidence": ["tests/test_real_turn_end_draw_random_seventeenth_batch.py"],
+      "notes": "入场六次逐次随机伤害、敌方手牌随从专属+1/+0、奥义获得可叠加倒数2纹章、敌方疾驰随从攻击主战者时战斗前-3/-0、攻击随从不触发、来源离场后纹章独立及回合末恢复均有直接测试。"
+    },
+    {
+      "card_id": 10524110,
+      "rule_version": 1,
+      "source_text_sha256": "4fa14a9c9f57e3265bdce20880d08376f8faf2f25d6ad71bf5f4666d05f9beaf",
+      "test_evidence": ["tests/test_real_turn_end_draw_random_seventeenth_batch.py"],
+      "notes": "未进化分支敌方全体7伤、进化分支三次独立随机、己方与敌方随从及双方主战者统一候选、精确排除来源、死亡后重取候选及固定种子复现均有直接测试。"
+    },
+    {
+      "card_id": 10553310,
+      "rule_version": 1,
+      "source_text_sha256": "eb3b70b9761e6aca2bc05fa815c599ccae639114a3b698b5c1855049f9dedeae",
+      "test_evidence": ["tests/test_real_turn_end_draw_random_seventeenth_batch.py"],
+      "notes": "法术获得可叠加倒数2纹章、己方回合末先抽牌后判断、四张同当前费用分组、费用修正物理牌、召唤骸骨士兵并只向成功召唤实体授予守护、条件不成立及满场路径均有直接测试。"
+    },
+    {
+      "card_id": 10564120,
+      "rule_version": 1,
+      "source_text_sha256": "c0f28363fa8f0ee1f0ca7199f6a0d68057d5ce82e644db0ec297c9bfa2490d69",
+      "test_evidence": ["tests/test_real_turn_end_draw_random_seventeenth_batch.py"],
+      "notes": "固有突进、先获得纹章再随机洗回两张并抽二、抽牌物理当前费用1/3/5与2/4/6分流、己方与敌方场随机狐/鹰、非己方回合不触发、来源离场后纹章独立、满场和固定种子均有直接测试。"
     }
   ]
 }

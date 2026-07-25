@@ -72,7 +72,7 @@ Total audited cards: **91**
 | 90044310 银冰吐息 | 龙族 / 法术 | entry_behavior_complete | 1 | 1 | exact |
 | 90044320 烈绝的灭牙 | 龙族 / 法术 | entry_behavior_complete | 1 | 1 | exact |
 | 90044330 天刀深渊 | 龙族 / 法术 | entry_behavior_complete | 1 | 1 | exact |
-| 90051110 骸骨士兵 | 梦魇 / 随从 | entry_behavior_complete | 10 | 9 | exact |
+| 90051110 骸骨士兵 | 梦魇 / 随从 | entry_behavior_complete | 10 | 10 | exact |
 | 90051120 蝙蝠 | 梦魇 / 随从 | entry_behavior_complete | 11 | 11 | exact |
 | 90051130 怨灵 | 梦魇 / 随从 | entry_behavior_complete | 9 | 9 | exact |
 | 90051140 腐臭的僵尸 | 梦魇 / 随从 | entry_behavior_complete | 6 | 6 | exact |
@@ -82,7 +82,7 @@ Total audited cards: **91**
 | 90054310 绝叫的扩散 | 梦魇 / 法术 | entry_behavior_complete | 1 | 1 | exact |
 | 90054320 爱绝的飞翔 | 梦魇 / 法术 | entry_behavior_complete | 1 | 1 | exact |
 | 90054330 天眼深渊 | 梦魇 / 法术 | entry_behavior_complete | 1 | 1 | exact |
-| 90061110 神圣猎鹰 | 主教 / 随从 | entry_behavior_complete | 5 | 4 | exact |
+| 90061110 神圣猎鹰 | 主教 / 随从 | entry_behavior_complete | 5 | 5 | exact |
 | 90061120 圣炎猛虎 | 主教 / 随从 | entry_behavior_complete | 2 | 2 | exact |
 | 90061130 壮丽大神隼 | 主教 / 随从 | entry_behavior_complete | 2 | 2 | exact |
 | 90064110 圣骑兵 | 主教 / 随从 | entry_behavior_complete | 1 | 1 | exact |

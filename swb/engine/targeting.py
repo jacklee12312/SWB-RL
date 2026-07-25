@@ -22,6 +22,7 @@ _UNIT_TARGETS = frozenset({
     TargetKind.RANDOM_OWN_UNIT,
     TargetKind.RANDOM_ENEMY_UNIT,
     TargetKind.RANDOM_ENEMY_UNIT_OR_LEADER,
+    TargetKind.RANDOM_ANY_UNIT_OR_LEADER,
     TargetKind.ALL_OWN_UNITS,
     TargetKind.ALL_ENEMY_UNITS,
     TargetKind.ALL_UNITS,
@@ -67,6 +68,7 @@ _RANDOM_TARGETS = frozenset({
     TargetKind.RANDOM_OWN_UNIT,
     TargetKind.RANDOM_ENEMY_UNIT,
     TargetKind.RANDOM_ENEMY_UNIT_OR_LEADER,
+    TargetKind.RANDOM_ANY_UNIT_OR_LEADER,
     TargetKind.RANDOM_OWN_BOARD,
     TargetKind.RANDOM_ENEMY_BOARD,
     TargetKind.RANDOM_OWN_HAND,
@@ -303,6 +305,11 @@ def target_candidates(
         candidates = _board_entities(enemy_board, units_only=True, amulets_only=False)
     elif target == TargetKind.RANDOM_ENEMY_UNIT_OR_LEADER:
         candidates = _board_entities(enemy_board, units_only=True, amulets_only=False)
+    elif target == TargetKind.RANDOM_ANY_UNIT_OR_LEADER:
+        candidates = (
+            _board_entities(own_board, units_only=True, amulets_only=False)
+            + _board_entities(enemy_board, units_only=True, amulets_only=False)
+        )
     elif target == TargetKind.RANDOM_OWN_BOARD:
         candidates = list(own_board)
     elif target == TargetKind.RANDOM_ENEMY_BOARD:

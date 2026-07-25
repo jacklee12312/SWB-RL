@@ -2975,6 +2975,12 @@
           "rule_group": "rules"
         },
         {
+          "source_card_id": 10553310,
+          "entry_kind": "summon",
+          "rule_file": "real_turn_end_draw_random_seventeenth_batch.json",
+          "rule_group": "emblems"
+        },
+        {
           "source_card_id": 10751120,
           "entry_kind": "summon",
           "rule_file": "real_complete_token_board_batch.json",
@@ -3666,6 +3672,12 @@
           "entry_kind": "summon",
           "rule_file": "real_royal_bishop_existing_primitives_batch.json",
           "rule_group": "rules"
+        },
+        {
+          "source_card_id": 10564120,
+          "entry_kind": "summon",
+          "rule_file": "real_turn_end_draw_random_seventeenth_batch.json",
+          "rule_group": "emblems"
         },
         {
           "source_card_id": 10662120,

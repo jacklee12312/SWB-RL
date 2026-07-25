@@ -3759,6 +3759,7 @@ class GameEngine:
             board_filter.evolved,
             board_filter.super_evolved,
             board_filter.damaged,
+            board_filter.attacked_this_turn,
             board_filter.keyword,
         )
 
@@ -3872,10 +3873,12 @@ class GameEngine:
                             trigger.event_filter.tribe_name,
                             trigger.event_filter.cost_min,
                             trigger.event_filter.cost_max,
+                            trigger.event_filter.current_costs,
                             trigger.event_filter.card_id,
                             trigger.event_filter.card_name,
                             trigger.event_filter.keyword,
                             trigger.event_filter.enhanced,
+                            trigger.event_filter.cost_changed,
                         )
                     ),
                 )
@@ -3931,10 +3934,12 @@ class GameEngine:
                             trigger.event_filter.tribe_name,
                             trigger.event_filter.cost_min,
                             trigger.event_filter.cost_max,
+                            trigger.event_filter.current_costs,
                             trigger.event_filter.card_id,
                             trigger.event_filter.card_name,
                             trigger.event_filter.keyword,
                             trigger.event_filter.enhanced,
+                            trigger.event_filter.cost_changed,
                         )
                     ),
                 )
@@ -4999,9 +5004,23 @@ class GameEngine:
                         for entity in candidates
                         if entity.entity_id != frame.attack_target_entity_id
                     ]
-                if operation.target is TargetKind.RANDOM_ENEMY_UNIT_OR_LEADER:
+                if operation.target in {
+                    TargetKind.RANDOM_ENEMY_UNIT_OR_LEADER,
+                    TargetKind.RANDOM_ANY_UNIT_OR_LEADER,
+                }:
                     target_ids = [entity.entity_id for entity in candidates]
-                    target_ids.append(_leader_target_id(1 - frame.controller))
+                    if (
+                        operation.target
+                        is TargetKind.RANDOM_ENEMY_UNIT_OR_LEADER
+                    ):
+                        target_ids.append(
+                            _leader_target_id(1 - frame.controller)
+                        )
+                    else:
+                        target_ids.extend((
+                            _leader_target_id(frame.controller),
+                            _leader_target_id(1 - frame.controller),
+                        ))
                 else:
                     target_ids = [entity.entity_id for entity in candidates]
                 target_count = self._resolved_target_count(operation, frame)
@@ -5247,7 +5266,10 @@ class GameEngine:
             )
         if operation.target is TargetKind.ALL_LEADERS:
             return bool(leader_target_ids(operation, controller, self.players))
-        if operation.target == TargetKind.RANDOM_ENEMY_UNIT_OR_LEADER:
+        if operation.target in {
+            TargetKind.RANDOM_ENEMY_UNIT_OR_LEADER,
+            TargetKind.RANDOM_ANY_UNIT_OR_LEADER,
+        }:
             return True
         if is_graveyard_target(operation.target):
             candidates = graveyard_candidates(operation, controller, self.players)
@@ -7748,7 +7770,19 @@ class GameEngine:
                 f"属性变化 {effect.amount}/{effect.secondary_amount}",
             )
         elif effect.kind is EffectKind.BUFF_HAND_CARD:
-            hand_card = self._find_hand_card(frame.controller, target_id)
+            owner, hand_card = self._find_hand_card_with_owner(target_id)
+            expected_owner = (
+                1 - frame.controller
+                if effect.target in {
+                    TargetKind.RANDOM_ENEMY_HAND,
+                    TargetKind.ALL_ENEMY_HAND,
+                }
+                else frame.controller
+            )
+            if owner != expected_owner:
+                raise IllegalCommand(
+                    "Hand stat buff target belongs to the wrong player"
+                )
             if hand_card.card_type != "随从":
                 raise IllegalCommand("Hand stat buff target must be a follower")
             modifier = StatModifier(
@@ -7767,7 +7801,7 @@ class GameEngine:
                 self._emit(
                     GameEvent(
                         EventType.HAND_FOLLOWER_STATS_INCREASED,
-                        frame.controller,
+                        owner,
                         source_id=frame.source_entity_id,
                         target_id=hand_card.entity_id,
                         amount=max(0, effect.amount),
@@ -12746,6 +12780,7 @@ class GameEngine:
     def _emblem_trigger_for_event(self, event: GameEvent) -> str | None:
         trigger = {
             EventType.CARD_PLAYED: "card_played",
+            EventType.CARD_DRAWN: "card_drawn",
             EventType.CARD_FUSED: "card_fused",
             EventType.FOLLOWER_SUMMONED: "follower_summoned",
             EventType.FOLLOWER_EVOLVED: "follower_evolved",

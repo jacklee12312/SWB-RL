@@ -259,6 +259,16 @@ def evaluate_condition(cond: Condition | None, ctx: EvalContext | None) -> bool:
             sum(controller_costs[: cond.value])
             > sum(opponent_costs[: cond.value])
         )
+    elif (
+        t
+        == ConditionType.CONTROLLER_HAND_SAME_CURRENT_COST_COUNT_AT_LEAST
+    ):
+        cost_counts: dict[int, int] = {}
+        for card in player.hand:
+            definition = getattr(card, "definition", card)
+            current_cost = getattr(card, "current_cost", definition.cost)
+            cost_counts[current_cost] = cost_counts.get(current_cost, 0) + 1
+        return max(cost_counts.values(), default=0) >= cond.value
     elif t == ConditionType.CONTROLLER_MAX_MANA_AT_LEAST:
         return player.max_mana >= cond.value
     elif t == ConditionType.OPPONENT_MAX_MANA_AT_LEAST:

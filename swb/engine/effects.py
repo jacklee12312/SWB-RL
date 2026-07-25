@@ -33,6 +33,9 @@ class ConditionType(str, Enum):
     CONTROLLER_HAND_TOP_BASE_COST_SUM_GREATER_THAN_OPPONENT = (
         "controller_hand_top_base_cost_sum_greater_than_opponent"
     )
+    CONTROLLER_HAND_SAME_CURRENT_COST_COUNT_AT_LEAST = (
+        "controller_hand_same_current_cost_count_at_least"
+    )
     CONTROLLER_MAX_MANA_AT_LEAST = "controller_max_mana_at_least"
     OPPONENT_MAX_MANA_AT_LEAST = "opponent_max_mana_at_least"
     CONTROLLER_DECK_HAS_NO_DUPLICATES = "controller_deck_has_no_duplicates"
@@ -285,6 +288,7 @@ class TargetKind(str, Enum):
     RANDOM_OWN_UNIT = "random_own_unit"
     RANDOM_ENEMY_UNIT = "random_enemy_unit"
     RANDOM_ENEMY_UNIT_OR_LEADER = "random_enemy_unit_or_leader"
+    RANDOM_ANY_UNIT_OR_LEADER = "random_any_unit_or_leader"
     RANDOM_OWN_BOARD = "random_own_board"
     RANDOM_ENEMY_BOARD = "random_enemy_board"
     ALL_OWN_UNITS = "all_own_units"
@@ -438,6 +442,7 @@ class BoardFilter:
     evolved: bool | None = None
     super_evolved: bool | None = None
     damaged: bool | None = None
+    attacked_this_turn: bool | None = None
     keyword: str | None = None
 
     def _matches_definition(self, card: CardDefinition) -> bool:
@@ -488,6 +493,14 @@ class BoardFilter:
             if health is None or max_health is None:
                 return False
             if (health < max_health) is not self.damaged:
+                return False
+        if self.attacked_this_turn is not None:
+            attacks_per_turn = getattr(entity, "attacks_per_turn", None)
+            attacks_remaining = getattr(entity, "attacks_remaining", None)
+            if attacks_per_turn is None or attacks_remaining is None:
+                return False
+            attacked = attacks_remaining < attacks_per_turn
+            if attacked is not self.attacked_this_turn:
                 return False
         return True
 

@@ -12,25 +12,25 @@
   },
   "summary": {
     "total_cards": 826,
-    "total_with_rules": 802,
+    "total_with_rules": 807,
     "test_or_synthetic_ids_with_rules": 26,
     "coverage_counts": {
-      "covered_exact": 698,
+      "covered_exact": 703,
       "text_unclear": 16,
-      "supported_missing_rule": 21,
+      "supported_missing_rule": 16,
       "token_or_non_collectible": 91
     },
     "clause_audit_counts": {
-      "mapped_exact": 698,
+      "mapped_exact": 703,
       "unverified_exact": 0,
       "partial": 0,
-      "missing_rule": 21,
+      "missing_rule": 16,
       "missing_primitive": 0,
       "text_unclear": 16,
       "token_separate_audit": 91
     },
     "blocker_counts": {
-      "missing_rule": 21,
+      "missing_rule": 16,
       "missing_schema": 0,
       "missing_primitive": 0,
       "missing_targeting": 0,
@@ -2890,6 +2890,7 @@
           "effect_kinds": []
         },
         "test_evidence": [
+          "tests/test_real_turn_end_draw_random_seventeenth_batch.py",
           "tests/test_real_ward_marine_crest_listener_batch.py"
         ],
         "audit_validation_error": null,
@@ -27450,8 +27451,8 @@
       "cost": 3,
       "is_collectible": true,
       "card_set_id": 10004,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['超进化', '回合结束', '不能攻击|无法攻击']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['turn_end', 'listener:board:follower_summoned', 'intrinsic_keywords'], Ops: ['evolve_unit', 'add_attack_restriction', 'keyword:守护']",
       "hit_keywords": [
         "超进化",
         "回合结束",
@@ -27465,27 +27466,47 @@
         "【<color=Keyword>守护</color>】\n无法攻击随从或主战者。\n自己的回合结束时，若为超进化已解禁的回合，则使自己的战场上的随机1个「本回合中没有进行过攻击的进化前的随从」进化。"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【<color=Keyword>守护</color>】\n无法攻击随从或主战者。\n自己的回合结束时，若为超进化已解禁的回合，则使自己的战场上的随机1个「本回合中没有进行过攻击的进化前的随从」进化。",
+        "notes": "固有守护、任何方式入场后的永久攻击封锁、超进化解禁门槛、进化前与本回合未攻击双重过滤、固定种子随机进化、未解禁和无合法目标路径均有直接测试。",
+        "rule_version": 1,
+        "source_text_sha256": "a3845eeb4a47065430a5cf5545aafe008012a6ed60888955f17ad19fb5ec5198",
+        "test_evidence": [
+          "tests/test_real_turn_end_draw_random_seventeenth_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10464110:0",
             "source_text": "【<color=Keyword>守护</color>】\n无法攻击随从或主战者。\n自己的回合结束时，若为超进化已解禁的回合，则使自己的战场上的随机1个「本回合中没有进行过攻击的进化前的随从」进化。",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "【<color=Keyword>守护</color>】\n无法攻击随从或主战者。\n自己的回合结束时，若为超进化已解禁的回合，则使自己的战场上的随机1个「本回合中没有进行过攻击的进化前的随从」进化。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "a3845eeb4a47065430a5cf5545aafe008012a6ed60888955f17ad19fb5ec5198",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "turn_end",
+            "listener:board:follower_summoned",
+            "intrinsic_keywords"
+          ],
+          "effect_kinds": [
+            "evolve_unit",
+            "add_attack_restriction",
+            "keyword:守护"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_turn_end_draw_random_seventeenth_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10464120": {
@@ -28090,8 +28111,8 @@
       "cost": 5,
       "is_collectible": true,
       "card_set_id": 10004,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '奥义', '回合结束', '倒数', '造成.*伤害', '纹章']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['fanfare', 'union_burst', 'emblem_source'], Ops: ['repeat', 'damage_unit', 'buff_hand_card', 'gain_emblem', 'buff_unit']",
       "hit_keywords": [
         "入场曲",
         "奥义",
@@ -28101,9 +28122,6 @@
         "纹章"
       ],
       "missing_primitives": [],
-      "missing_rule_mechanics": [
-        "奥义"
-      ],
       "ability_keywords": [
         "倒数",
         "入场曲",
@@ -28116,32 +28134,54 @@
         "【纹章_0】【<color=Keyword>吟唱</color>_2】\n对手的拥有【<color=Keyword>疾驰</color>】的随从攻击主战者时，回合结束前，使其-3/-0。"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【<color=Keyword>入场曲</color>】发动6次「对对手的战场上的随机1个随从造成1点伤害」。使对手的手牌中的所有随从+1/+0。【<color=Keyword>奥义</color>】使自己获得『纹章：光之法则·龙敖』。\n【<color=Keyword>吟唱</color>_2】\n对手的拥有【<color=Keyword>疾驰</color>】的随从攻击主战者时，回合结束前，使其-3/-0。",
+        "notes": "入场六次逐次随机伤害、敌方手牌随从专属+1/+0、奥义获得可叠加倒数2纹章、敌方疾驰随从攻击主战者时战斗前-3/-0、攻击随从不触发、来源离场后纹章独立及回合末恢复均有直接测试。",
+        "rule_version": 1,
+        "source_text_sha256": "46305ea828d76444ef198553d01fadfeccfb9267e8f0c798bc828ec9e51a4b02",
+        "test_evidence": [
+          "tests/test_real_turn_end_draw_random_seventeenth_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10474110:0",
             "source_text": "【<color=Keyword>入场曲</color>】发动6次「对对手的战场上的随机1个随从造成1点伤害」。使对手的手牌中的所有随从+1/+0。【<color=Keyword>奥义</color>】使自己获得『纹章：光之法则·龙敖』。",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           },
           {
             "clause_id": "10474110:1",
             "source_text": "【纹章_0】【<color=Keyword>吟唱</color>_2】\n对手的拥有【<color=Keyword>疾驰</color>】的随从攻击主战者时，回合结束前，使其-3/-0。",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "【<color=Keyword>入场曲</color>】发动6次「对对手的战场上的随机1个随从造成1点伤害」。使对手的手牌中的所有随从+1/+0。【<color=Keyword>奥义</color>】使自己获得『纹章：光之法则·龙敖』。\n【<color=Keyword>吟唱</color>_2】\n对手的拥有【<color=Keyword>疾驰</color>】的随从攻击主战者时，回合结束前，使其-3/-0。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "46305ea828d76444ef198553d01fadfeccfb9267e8f0c798bc828ec9e51a4b02",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "fanfare",
+            "union_burst",
+            "emblem_source"
+          ],
+          "effect_kinds": [
+            "repeat",
+            "damage_unit",
+            "buff_hand_card",
+            "gain_emblem",
+            "buff_unit"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_turn_end_draw_random_seventeenth_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10474120": {
@@ -29780,8 +29820,8 @@
       "cost": 9,
       "is_collectible": true,
       "card_set_id": 10005,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['回合结束', '造成.*伤害']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['turn_end'], Ops: ['conditional', 'damage_unit', 'repeat', 'damage_unit']",
       "hit_keywords": [
         "回合结束",
         "造成.*伤害"
@@ -29792,29 +29832,46 @@
         "自己的回合结束时，若本随从为进化前，则对对手的战场上的所有随从造成7点伤害。若为进化后，则发动3次「随机对战场上的1个其他随从或自己的主战者或对手的主战者造成7点伤害」。"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "自己的回合结束时，若本随从为进化前，则对对手的战场上的所有随从造成7点伤害。若为进化后，则发动3次「随机对战场上的1个其他随从或自己的主战者或对手的主战者造成7点伤害」。",
+        "notes": "未进化分支敌方全体7伤、进化分支三次独立随机、己方与敌方随从及双方主战者统一候选、精确排除来源、死亡后重取候选及固定种子复现均有直接测试。",
+        "rule_version": 1,
+        "source_text_sha256": "4fa14a9c9f57e3265bdce20880d08376f8faf2f25d6ad71bf5f4666d05f9beaf",
+        "test_evidence": [
+          "tests/test_real_turn_end_draw_random_seventeenth_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10524110:0",
             "source_text": "自己的回合结束时，若本随从为进化前，则对对手的战场上的所有随从造成7点伤害。若为进化后，则发动3次「随机对战场上的1个其他随从或自己的主战者或对手的主战者造成7点伤害」。",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "自己的回合结束时，若本随从为进化前，则对对手的战场上的所有随从造成7点伤害。若为进化后，则发动3次「随机对战场上的1个其他随从或自己的主战者或对手的主战者造成7点伤害」。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "4fa14a9c9f57e3265bdce20880d08376f8faf2f25d6ad71bf5f4666d05f9beaf",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "turn_end"
+          ],
+          "effect_kinds": [
+            "conditional",
+            "damage_unit",
+            "repeat",
+            "damage_unit"
+          ]
         },
         "test_evidence": [
-          "tests/test_real_listener_spellboost_followup_batch.py"
+          "tests/test_real_turn_end_draw_random_seventeenth_batch.py"
         ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10524120": {
@@ -31664,8 +31721,8 @@
       "cost": 2,
       "is_collectible": true,
       "card_set_id": 10005,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['回合结束', '倒数', '抽取', '召唤', '纹章']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['play', 'emblem_source'], Ops: ['gain_emblem', 'draw', 'conditional', 'summon', 'add_keyword']",
       "hit_keywords": [
         "回合结束",
         "倒数",
@@ -31684,32 +31741,53 @@
         "【纹章_0】【<color=Keyword>吟唱</color>_2】\n自己的回合结束时，抽取1张卡牌。之后，若自己的手牌中有4张或以上费用相同的卡牌，则召唤1个『<color=Keyword>骸骨士兵</color>』，使其获得【<color=Keyword>守护</color>】。"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "使自己获得『纹章：严酷的奥夜花』。\n【<color=Keyword>吟唱</color>_2】\n自己的回合结束时，抽取1张卡牌。之后，若自己的手牌中有4张或以上费用相同的卡牌，则召唤1个『<color=Keyword>骸骨士兵</color>』，使其获得【<color=Keyword>守护</color>】。",
+        "notes": "法术获得可叠加倒数2纹章、己方回合末先抽牌后判断、四张同当前费用分组、费用修正物理牌、召唤骸骨士兵并只向成功召唤实体授予守护、条件不成立及满场路径均有直接测试。",
+        "rule_version": 1,
+        "source_text_sha256": "eb3b70b9761e6aca2bc05fa815c599ccae639114a3b698b5c1855049f9dedeae",
+        "test_evidence": [
+          "tests/test_real_turn_end_draw_random_seventeenth_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10553310:0",
             "source_text": "使自己获得『纹章：严酷的奥夜花』。",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           },
           {
             "clause_id": "10553310:1",
             "source_text": "【纹章_0】【<color=Keyword>吟唱</color>_2】\n自己的回合结束时，抽取1张卡牌。之后，若自己的手牌中有4张或以上费用相同的卡牌，则召唤1个『<color=Keyword>骸骨士兵</color>』，使其获得【<color=Keyword>守护</color>】。",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "使自己获得『纹章：严酷的奥夜花』。\n【<color=Keyword>吟唱</color>_2】\n自己的回合结束时，抽取1张卡牌。之后，若自己的手牌中有4张或以上费用相同的卡牌，则召唤1个『<color=Keyword>骸骨士兵</color>』，使其获得【<color=Keyword>守护</color>】。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "eb3b70b9761e6aca2bc05fa815c599ccae639114a3b698b5c1855049f9dedeae",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "play",
+            "emblem_source"
+          ],
+          "effect_kinds": [
+            "gain_emblem",
+            "draw",
+            "conditional",
+            "summon",
+            "add_keyword"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_turn_end_draw_random_seventeenth_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10554110": {
@@ -32441,8 +32519,8 @@
       "cost": 7,
       "is_collectible": true,
       "card_set_id": 10005,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '抽取', '召唤', '返回牌', '纹章']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['fanfare', 'intrinsic_keywords', 'emblem_source'], Ops: ['gain_emblem', 'return_to_deck', 'return_to_deck', 'draw', 'keyword:突进', 'random_choice', 'summon', 'summon', 'random_choice', 'summon', 'summon']",
       "hit_keywords": [
         "入场曲",
         "抽取",
@@ -32461,32 +32539,60 @@
         "【纹章_0】自己抽到费用为1、3、5的卡牌时，若为自己的回合，则在自己的战场上召唤随机1个『<color=Keyword>纯洁白狐</color>』或『<color=Keyword>神圣猎鹰</color>』。\n自己抽到费用为2、4、6的卡牌时，若为自己的回合，则在对手的战场上召唤随机1个『<color=Keyword>纯洁白狐</color>』或『<color=Keyword>神圣猎鹰</color>』。"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【<color=Keyword>入场曲</color>】使自己获得『纹章：雾卷花·茎白』。使自己的随机2张手牌返回牌组。抽取2张卡牌。\n<hr>【<color=Keyword>突进</color>】\n自己抽到费用为1、3、5的卡牌时，若为自己的回合，则在自己的战场上召唤随机1个『<color=Keyword>纯洁白狐</color>』或『<color=Keyword>神圣猎鹰</color>』。\n自己抽到费用为2、4、6的卡牌时，若为自己的回合，则在对手的战场上召唤随机1个『<color=Keyword>纯洁白狐</color>』或『<color=Keyword>神圣猎鹰</color>』。",
+        "notes": "固有突进、先获得纹章再随机洗回两张并抽二、抽牌物理当前费用1/3/5与2/4/6分流、己方与敌方场随机狐/鹰、非己方回合不触发、来源离场后纹章独立、满场和固定种子均有直接测试。",
+        "rule_version": 1,
+        "source_text_sha256": "c0f28363fa8f0ee1f0ca7199f6a0d68057d5ce82e644db0ec297c9bfa2490d69",
+        "test_evidence": [
+          "tests/test_real_turn_end_draw_random_seventeenth_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10564120:0",
             "source_text": "【<color=Keyword>入场曲</color>】使自己获得『纹章：雾卷花·茎白』。使自己的随机2张手牌返回牌组。抽取2张卡牌。\n<hr>【<color=Keyword>突进</color>】",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           },
           {
             "clause_id": "10564120:1",
             "source_text": "【纹章_0】自己抽到费用为1、3、5的卡牌时，若为自己的回合，则在自己的战场上召唤随机1个『<color=Keyword>纯洁白狐</color>』或『<color=Keyword>神圣猎鹰</color>』。\n自己抽到费用为2、4、6的卡牌时，若为自己的回合，则在对手的战场上召唤随机1个『<color=Keyword>纯洁白狐</color>』或『<color=Keyword>神圣猎鹰</color>』。",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "【<color=Keyword>入场曲</color>】使自己获得『纹章：雾卷花·茎白』。使自己的随机2张手牌返回牌组。抽取2张卡牌。\n<hr>【<color=Keyword>突进</color>】\n自己抽到费用为1、3、5的卡牌时，若为自己的回合，则在自己的战场上召唤随机1个『<color=Keyword>纯洁白狐</color>』或『<color=Keyword>神圣猎鹰</color>』。\n自己抽到费用为2、4、6的卡牌时，若为自己的回合，则在对手的战场上召唤随机1个『<color=Keyword>纯洁白狐</color>』或『<color=Keyword>神圣猎鹰</color>』。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "c0f28363fa8f0ee1f0ca7199f6a0d68057d5ce82e644db0ec297c9bfa2490d69",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "fanfare",
+            "intrinsic_keywords",
+            "emblem_source"
+          ],
+          "effect_kinds": [
+            "gain_emblem",
+            "return_to_deck",
+            "return_to_deck",
+            "draw",
+            "keyword:突进",
+            "random_choice",
+            "summon",
+            "summon",
+            "random_choice",
+            "summon",
+            "summon"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_turn_end_draw_random_seventeenth_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10571110": {
@@ -51634,48 +51740,6 @@
   },
   "top_20_recommendations": [
     {
-      "card_id": 10524110,
-      "name": "威猛的《战车》·奥辂昂",
-      "class_name": "皇家护卫",
-      "card_type": "随从",
-      "cost": 9,
-      "ability_keywords": [],
-      "hit_keywords": [
-        "回合结束",
-        "造成.*伤害"
-      ],
-      "confidence": "high",
-      "why_recommended": "Covered keywords: 回合结束, 造成.*伤害",
-      "required_primitives": [
-        "回合结束",
-        "造成.*伤害"
-      ],
-      "suggested_rule_file": "batch_皇家护卫.json"
-    },
-    {
-      "card_id": 10464110,
-      "name": "土之法则·伽莱翁",
-      "class_name": "主教",
-      "card_type": "随从",
-      "cost": 3,
-      "ability_keywords": [
-        "守护"
-      ],
-      "hit_keywords": [
-        "超进化",
-        "回合结束",
-        "不能攻击|无法攻击"
-      ],
-      "confidence": "high",
-      "why_recommended": "Covered keywords: 超进化, 回合结束, 不能攻击|无法攻击",
-      "required_primitives": [
-        "超进化",
-        "回合结束",
-        "不能攻击|无法攻击"
-      ],
-      "suggested_rule_file": "batch_主教.json"
-    },
-    {
       "card_id": 10543110,
       "name": "破灭屠戮者",
       "class_name": "龙族",
@@ -51864,35 +51928,6 @@
       "suggested_rule_file": "batch_梦魇.json"
     },
     {
-      "card_id": 10553310,
-      "name": "严酷的奥夜花",
-      "class_name": "梦魇",
-      "card_type": "法术",
-      "cost": 2,
-      "ability_keywords": [
-        "倒数",
-        "守护",
-        "纹章"
-      ],
-      "hit_keywords": [
-        "回合结束",
-        "倒数",
-        "抽取",
-        "召唤",
-        "纹章"
-      ],
-      "confidence": "high",
-      "why_recommended": "Covered keywords: 回合结束, 倒数, 抽取",
-      "required_primitives": [
-        "回合结束",
-        "倒数",
-        "抽取",
-        "召唤",
-        "纹章"
-      ],
-      "suggested_rule_file": "batch_梦魇.json"
-    },
-    {
       "card_id": 10574110,
       "name": "转动的《命运之轮》·斯洛士",
       "class_name": "超越者",
@@ -52008,35 +52043,6 @@
         "爆能强化"
       ],
       "suggested_rule_file": "batch_龙族.json"
-    },
-    {
-      "card_id": 10564120,
-      "name": "雾卷花·茎白",
-      "class_name": "主教",
-      "card_type": "随从",
-      "cost": 7,
-      "ability_keywords": [
-        "入场曲",
-        "突进",
-        "纹章"
-      ],
-      "hit_keywords": [
-        "入场曲",
-        "抽取",
-        "召唤",
-        "返回牌",
-        "纹章"
-      ],
-      "confidence": "high",
-      "why_recommended": "Covered keywords: 入场曲, 抽取, 召唤",
-      "required_primitives": [
-        "入场曲",
-        "抽取",
-        "召唤",
-        "返回牌",
-        "纹章"
-      ],
-      "suggested_rule_file": "batch_主教.json"
     },
     {
       "card_id": 10354110,

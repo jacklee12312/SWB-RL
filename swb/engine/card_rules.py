@@ -270,6 +270,7 @@ def _parse_board_filter(
     evolved_key = f"{prefix}evolved_filter"
     super_evolved_key = f"{prefix}super_evolved_filter"
     damaged_key = f"{prefix}damaged_filter"
+    attacked_this_turn_key = f"{prefix}attacked_this_turn_filter"
 
     card_type = raw.get(card_type_key)
     if card_type is not None:
@@ -387,6 +388,19 @@ def _parse_board_filter(
                 f"{source_path}/{damaged_key} card {card_id}: must be boolean"
             )
 
+    attacked_this_turn = raw.get(attacked_this_turn_key)
+    if attacked_this_turn is not None:
+        if not allow_evolved:
+            raise ValueError(
+                f"{source_path}/{attacked_this_turn_key} card {card_id}: "
+                "attacked-this-turn filter is not valid here"
+            )
+        if not isinstance(attacked_this_turn, bool):
+            raise ValueError(
+                f"{source_path}/{attacked_this_turn_key} card {card_id}: "
+                "must be boolean"
+            )
+
     if evolved is False and super_evolved is True:
         raise ValueError(
             f"{source_path} card {card_id}: super_evolved=true conflicts "
@@ -410,6 +424,7 @@ def _parse_board_filter(
             evolved,
             super_evolved,
             damaged,
+            attacked_this_turn,
         )
     ):
         return None
@@ -428,6 +443,7 @@ def _parse_board_filter(
         evolved=evolved,
         super_evolved=super_evolved,
         damaged=damaged,
+        attacked_this_turn=attacked_this_turn,
     )
 
 
@@ -1347,6 +1363,7 @@ def _parse_event_card_filter(
         "tribe_name",
         "cost_min",
         "cost_max",
+        "current_costs",
         "card_id",
         "card_name",
         "keyword",
@@ -1407,6 +1424,28 @@ def _parse_event_card_filter(
         raise ValueError(
             f"{source_path}/event_filter: cost_min must not exceed cost_max"
         )
+    raw_current_costs = raw.get("current_costs", [])
+    if not isinstance(raw_current_costs, list):
+        raise ValueError(
+            f"{source_path}/event_filter/current_costs: must be a list"
+        )
+    current_costs: list[int] = []
+    for index, raw_cost in enumerate(raw_current_costs):
+        cost = _parse_non_negative_int(
+            raw_cost,
+            f"{source_path}/event_filter/current_costs[{index}]",
+            card_id,
+        )
+        if cost in current_costs:
+            raise ValueError(
+                f"{source_path}/event_filter/current_costs[{index}]: "
+                f"duplicate cost {cost}"
+            )
+        current_costs.append(cost)
+    if "current_costs" in raw and not current_costs:
+        raise ValueError(
+            f"{source_path}/event_filter/current_costs: must not be empty"
+        )
     filter_card_id = raw.get("card_id")
     if filter_card_id is not None:
         filter_card_id = _parse_non_negative_int(
@@ -1442,6 +1481,7 @@ def _parse_event_card_filter(
         tribe_name=tribe_name,
         cost_min=cost_min,
         cost_max=cost_max,
+        current_costs=tuple(current_costs),
         card_id=filter_card_id,
         card_name=card_name,
         keyword=keyword,
@@ -1492,7 +1532,7 @@ def _parse_emblem_definition(raw: dict, source_file: str, ops_parser) -> EmblemD
         raise ValueError(f"{error_prefix}: 'triggers' must be a list")
     triggers: list[EmblemTriggerRule] = []
     _VALID_EMBLEM_TRIGGERS = frozenset({
-        "turn_start", "turn_end", "follower_summoned",
+        "turn_start", "turn_end", "card_drawn", "follower_summoned",
         "follower_evolved", "follower_destroyed", "amulet_destroyed",
         "card_played", "leader_healed", "death_batch_end",
         "amulet_activated", "card_fused", "attack_declared",
@@ -2602,6 +2642,7 @@ _FULL_TARGET_COUNT_TARGETS = frozenset({
 _SOURCE_EXCLUDABLE_TARGETS = _MULTI_TARGET_TARGETS | frozenset({
     TargetKind.RANDOM_OWN_UNIT,
     TargetKind.RANDOM_ENEMY_UNIT,
+    TargetKind.RANDOM_ANY_UNIT_OR_LEADER,
     TargetKind.RANDOM_OWN_BOARD,
     TargetKind.RANDOM_ENEMY_BOARD,
     TargetKind.ALL_OWN_UNITS,
@@ -3026,12 +3067,15 @@ def _parse_operation(
             "all_own_emblems requires a specific emblem_id"
         )
     if (
-        target is TargetKind.RANDOM_ENEMY_UNIT_OR_LEADER
+        target in {
+            TargetKind.RANDOM_ENEMY_UNIT_OR_LEADER,
+            TargetKind.RANDOM_ANY_UNIT_OR_LEADER,
+        }
         and kind is not EffectKind.DAMAGE_UNIT
     ):
         raise ValueError(
             f"{source_file}/target card {card_id}: "
-            "random_enemy_unit_or_leader currently requires damage_unit"
+            f"{target.value} currently requires damage_unit"
         )
 
     raw_candidate_extreme = raw.get("candidate_extreme")
@@ -3108,14 +3152,17 @@ def _parse_operation(
             _parse_condition(c, f"{source_file}/conditions[{i}]", card_id)
             for i, c in enumerate(raw_conds)
         )
-    if target is TargetKind.RANDOM_ENEMY_UNIT_OR_LEADER:
+    if target in {
+        TargetKind.RANDOM_ENEMY_UNIT_OR_LEADER,
+        TargetKind.RANDOM_ANY_UNIT_OR_LEADER,
+    }:
         invalid_target_conditions = _check_target_conditions(
             conditions,
             f"{source_file} card {card_id}",
         )
         if invalid_target_conditions:
             raise ValueError(
-                f"{error_prefix}/conditions: random enemy unit-or-leader "
+                f"{error_prefix}/conditions: random unit-or-leader "
                 "damage does not support target-dependent conditions: "
                 f"{sorted(invalid_target_conditions)}"
             )
@@ -4643,12 +4690,14 @@ def _parse_operation(
             TargetKind.SELF,
             TargetKind.OWN_HAND,
             TargetKind.RANDOM_OWN_HAND,
+            TargetKind.RANDOM_ENEMY_HAND,
             TargetKind.ALL_OWN_HAND,
+            TargetKind.ALL_ENEMY_HAND,
             TargetKind.PREVIOUS_TARGET,
         }:
             raise ValueError(
                 f"{source_file}/target card {card_id}: buff_hand_card requires "
-                "an own-hand target"
+                "a hand target"
             )
         if target is TargetKind.SELF and not _allow_hand_self:
             raise ValueError(
@@ -5113,7 +5162,8 @@ def _parse_operation(
             "target_card_id_filter", "target_card_name_filter",
             "target_tribe_id_filter", "target_tribe_name_filter",
             "target_evolved_filter", "target_super_evolved_filter",
-            "target_damaged_filter", "exclude_source",
+            "target_damaged_filter", "target_attacked_this_turn_filter",
+            "exclude_source",
         }
         if unknown_target_exists_keys:
             raise ValueError(
@@ -5430,6 +5480,7 @@ def _parse_condition(raw: dict, source_path: str, card_id: int) -> Condition:
         ConditionType.SOURCE_HEALTH_AT_LEAST,
         ConditionType.CONTROLLER_HAND_COUNT_AT_LEAST,
         ConditionType.CONTROLLER_HAND_TOP_BASE_COST_SUM_GREATER_THAN_OPPONENT,
+        ConditionType.CONTROLLER_HAND_SAME_CURRENT_COST_COUNT_AT_LEAST,
         ConditionType.CONTROLLER_ENTERED_FOLLOWER_DISTINCT_COUNT_AT_LEAST,
         ConditionType.CONTROLLER_ENTERED_FOLLOWER_COUNT_AT_LEAST,
     )
