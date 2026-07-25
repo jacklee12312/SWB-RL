@@ -731,9 +731,9 @@ class CrestEntrySourceHealthFourteenthAuditTests(unittest.TestCase):
         self.assertEqual(
             report["summary"]["coverage_counts"],
             {
-                "covered_exact": 703,
+                "covered_exact": 708,
                 "text_unclear": 16,
-                "supported_missing_rule": 16,
+                "supported_missing_rule": 11,
                 "token_or_non_collectible": 91,
             },
         )

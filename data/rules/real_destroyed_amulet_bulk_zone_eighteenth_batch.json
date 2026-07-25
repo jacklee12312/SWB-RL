@@ -1,0 +1,202 @@
+{
+  "intrinsic_keywords": [
+    {"card_id": 10162130, "keywords": ["守护"]}
+  ],
+  "rules": [
+    {
+      "card_id": 10162130,
+      "trigger": "last_words",
+      "coverage": "exact",
+      "implemented_text": "【守护】\n【谢幕曲】随机召唤1张本次对战中被破坏的、原始费用最高的自己的护符的同名卡。",
+      "operations": [
+        {
+          "kind": "summon_destroyed_amulets",
+          "target": "own_leader",
+          "amount": 1,
+          "highest_base_cost_only": true,
+          "history_filter": {"card_type": "护符"}
+        }
+      ]
+    },
+    {
+      "card_id": 10663210,
+      "trigger": "play",
+      "countdown": 2,
+      "coverage": "exact",
+      "implemented_text": "【入场曲】选择战场上的1张其他卡牌并破坏。若选择的是自己的护符，则回复自己的2点能量。\n【吟唱】_2\n【谢幕曲】随机召唤1张本次对战中被破坏的、原始费用为2以下且拥有【谢幕曲】的自己的护符的同名卡。",
+      "operations": [
+        {
+          "kind": "select_targets",
+          "target": "any_board",
+          "target_key": "eld_tome_selected",
+          "exclude_source": true
+        },
+        {
+          "kind": "destroy",
+          "target": "previous_target",
+          "target_key": "eld_tome_selected"
+        },
+        {
+          "kind": "conditional",
+          "target": "own_leader",
+          "condition_target_key": "eld_tome_selected",
+          "conditions": [
+            {"type": "target_is_own"},
+            {"type": "target_card_type_is", "card_type": "护符"}
+          ],
+          "then": [
+            {"kind": "restore_mana", "target": "own_leader", "amount": 2}
+          ]
+        }
+      ]
+    },
+    {
+      "card_id": 10663210,
+      "trigger": "last_words",
+      "operations": [
+        {
+          "kind": "summon_destroyed_amulets",
+          "target": "own_leader",
+          "amount": 1,
+          "history_filter": {
+            "card_type": "护符",
+            "cost_max": 2,
+            "keyword": "谢幕曲"
+          }
+        }
+      ]
+    },
+    {
+      "card_id": 10664110,
+      "trigger": "fanfare",
+      "coverage": "exact",
+      "implemented_text": "【入场曲】随机召唤2张名称各不相同的、本次对战中被破坏的、原始费用为2以下且拥有【谢幕曲】的自己的护符的同名卡（每种各1张）。\n【超进化时】选择战场上的1张其他卡牌并破坏。若选择的是自己的护符，则对对手战场上的所有随从造成3点伤害。",
+      "operations": [
+        {
+          "kind": "summon_destroyed_amulets",
+          "target": "own_leader",
+          "amount": 2,
+          "distinct_card_names": true,
+          "history_filter": {
+            "card_type": "护符",
+            "cost_max": 2,
+            "keyword": "谢幕曲"
+          }
+        }
+      ]
+    },
+    {
+      "card_id": 10664110,
+      "trigger": "super_evolve",
+      "operations": [
+        {
+          "kind": "select_targets",
+          "target": "any_board",
+          "target_key": "kandima_selected",
+          "exclude_source": true
+        },
+        {
+          "kind": "destroy",
+          "target": "previous_target",
+          "target_key": "kandima_selected"
+        },
+        {
+          "kind": "conditional",
+          "target": "own_leader",
+          "condition_target_key": "kandima_selected",
+          "conditions": [
+            {"type": "target_is_own"},
+            {"type": "target_card_type_is", "card_type": "护符"}
+          ],
+          "then": [
+            {"kind": "damage_unit", "target": "all_enemy_units", "amount": 3}
+          ]
+        }
+      ]
+    },
+    {
+      "card_id": 10543110,
+      "trigger": "super_evolve",
+      "coverage": "exact",
+      "implemented_text": "【超进化时】使自己牌组中的所有费用为1、3、5、7、9的卡牌消失。对对手战场上的所有随从合计造成X点伤害。X为因此消失的卡牌数量。",
+      "operations": [
+        {
+          "kind": "banish_deck_filtered",
+          "target": "own_leader",
+          "costs": [1, 3, 5, 7, 9],
+          "operations": [
+            {
+              "kind": "distribute_damage",
+              "target": "all_enemy_units",
+              "amount": {"type": "distributed_value"}
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "card_id": 10554120,
+      "trigger": "fanfare",
+      "coverage": "exact",
+      "implemented_text": "【入场曲】进行2次「使自己的全部手牌返回牌组。抽取X张卡牌。X为因此返回牌组的卡牌数量。之后，若自己的手牌中有4张或以上费用相同的卡牌，则对所有对手造成4点伤害」。\n【超进化时】再发动1次与本卡【入场曲】相同的能力。",
+      "operations": [
+        {
+          "kind": "repeat",
+          "target": "own_leader",
+          "amount": 2,
+          "operations": [
+            {"kind": "redraw_hand", "target": "own_leader"},
+            {
+              "kind": "conditional",
+              "target": "own_leader",
+              "conditions": [
+                {
+                  "type": "controller_hand_same_current_cost_count_at_least",
+                  "value": 4
+                }
+              ],
+              "then": [
+                {
+                  "kind": "damage_unit",
+                  "target": "all_enemy_units_and_leader",
+                  "amount": 4
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "card_id": 10554120,
+      "trigger": "super_evolve",
+      "operations": [
+        {
+          "kind": "repeat",
+          "target": "own_leader",
+          "amount": 2,
+          "operations": [
+            {"kind": "redraw_hand", "target": "own_leader"},
+            {
+              "kind": "conditional",
+              "target": "own_leader",
+              "conditions": [
+                {
+                  "type": "controller_hand_same_current_cost_count_at_least",
+                  "value": 4
+                }
+              ],
+              "then": [
+                {
+                  "kind": "damage_unit",
+                  "target": "all_enemy_units_and_leader",
+                  "amount": 4
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

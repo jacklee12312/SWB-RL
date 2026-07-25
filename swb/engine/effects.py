@@ -181,9 +181,11 @@ class EffectKind(str, Enum):
     SUMMON_HAND_COPY = "summon_hand_copy"
     SUMMON_FROM_HAND = "summon_from_hand"
     SUMMON_FROM_DECK = "summon_from_deck"
+    SUMMON_DESTROYED_AMULETS = "summon_destroyed_amulets"
     DESTROY = "destroy"
     BANISH = "banish"
     BANISH_SAME_NAME = "banish_same_name"
+    BANISH_DECK_FILTERED = "banish_deck_filtered"
     ADD_CARD = "add_card"
     ADD_CARD_TO_DECK = "add_card_to_deck"
     COPY_TO_HAND = "copy_to_hand"
@@ -220,6 +222,7 @@ class EffectKind(str, Enum):
     REMOVE_ALL_EMBLEMS = "remove_all_emblems"
     RETURN_TO_HAND = "return_to_hand"
     RETURN_TO_DECK = "return_to_deck"
+    REDRAW_HAND = "redraw_hand"
     REDUCE_COUNTDOWN = "reduce_countdown"
     INCREASE_COUNTDOWN = "increase_countdown"
     DISCARD = "discard"
@@ -293,6 +296,7 @@ class TargetKind(str, Enum):
     RANDOM_ENEMY_BOARD = "random_enemy_board"
     ALL_OWN_UNITS = "all_own_units"
     ALL_ENEMY_UNITS = "all_enemy_units"
+    ALL_ENEMY_UNITS_AND_LEADER = "all_enemy_units_and_leader"
     ALL_UNITS = "all_units"
     ALL_OWN_BOARD = "all_own_board"
     ALL_ENEMY_BOARD = "all_enemy_board"
@@ -349,6 +353,7 @@ class DeckFilter:
     class_name: str | None = None
     cost_min: int | None = None
     cost_max: int | None = None
+    costs: tuple[int, ...] = ()
     card_id: int | None = None
     card_ids: tuple[int, ...] = ()
     card_name: str | None = None
@@ -364,6 +369,7 @@ class DeckFilter:
             and (self.class_name is None or card.class_name == self.class_name)
             and (self.cost_min is None or card.cost >= self.cost_min)
             and (self.cost_max is None or card.cost <= self.cost_max)
+            and (not self.costs or card.cost in self.costs)
             and (self.card_id is None or card.card_id == self.card_id)
             and (not self.card_ids or card.card_id in self.card_ids)
             and (self.card_name is None or card.name == self.card_name)
@@ -567,6 +573,7 @@ class EffectOperation:
     hand_filter: HandFilter | None = None
     history_filter: HandFilter | None = None
     distinct_card_names: bool = False
+    highest_base_cost_only: bool = False
     include_leader: bool = False
     turn_end_destroy_timing: TurnEndDestroyTiming | None = None
     turn_end_banish_timing: TurnEndDestroyTiming | None = None

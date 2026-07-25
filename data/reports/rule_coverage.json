@@ -12,25 +12,25 @@
   },
   "summary": {
     "total_cards": 826,
-    "total_with_rules": 807,
+    "total_with_rules": 812,
     "test_or_synthetic_ids_with_rules": 26,
     "coverage_counts": {
-      "covered_exact": 703,
+      "covered_exact": 708,
       "text_unclear": 16,
-      "supported_missing_rule": 16,
+      "supported_missing_rule": 11,
       "token_or_non_collectible": 91
     },
     "clause_audit_counts": {
-      "mapped_exact": 703,
+      "mapped_exact": 708,
       "unverified_exact": 0,
       "partial": 0,
-      "missing_rule": 16,
+      "missing_rule": 11,
       "missing_primitive": 0,
       "text_unclear": 16,
       "token_separate_audit": 91
     },
     "blocker_counts": {
-      "missing_rule": 16,
+      "missing_rule": 11,
       "missing_schema": 0,
       "missing_primitive": 0,
       "missing_targeting": 0,
@@ -10989,8 +10989,8 @@
       "cost": 7,
       "is_collectible": true,
       "card_set_id": 10001,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['谢幕曲', '破坏', '召唤']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['last_words', 'intrinsic_keywords'], Ops: ['summon_destroyed_amulets', 'keyword:守护']",
       "hit_keywords": [
         "谢幕曲",
         "破坏",
@@ -11005,27 +11005,45 @@
         "【<color=Keyword>守护</color>】\n【<color=Keyword>谢幕曲</color>】召唤随机1张与本次对战中被破坏的原始费用最大的自己的护符同名的护符。"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【守护】\n【谢幕曲】随机召唤1张本次对战中被破坏的、原始费用最高的自己的护符的同名卡。",
+        "notes": "固有守护、护符破坏持久历史、仅选择原始费用最高候选、同费用固定种子随机、来源离场后谢幕曲、无候选不消耗随机数及满场均有直接测试。",
+        "rule_version": 1,
+        "source_text_sha256": "7b50e98856d60e7d2df461f28f5cbbe269cdbd61b0d4be7eccde22053c2a34bf",
+        "test_evidence": [
+          "tests/test_real_destroyed_amulet_bulk_zone_eighteenth_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10162130:0",
             "source_text": "【<color=Keyword>守护</color>】\n【<color=Keyword>谢幕曲</color>】召唤随机1张与本次对战中被破坏的原始费用最大的自己的护符同名的护符。",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "【守护】\n【谢幕曲】随机召唤1张本次对战中被破坏的、原始费用最高的自己的护符的同名卡。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "7b50e98856d60e7d2df461f28f5cbbe269cdbd61b0d4be7eccde22053c2a34bf",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "last_words",
+            "intrinsic_keywords"
+          ],
+          "effect_kinds": [
+            "summon_destroyed_amulets",
+            "keyword:守护"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_destroyed_amulet_bulk_zone_eighteenth_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10162210": {
@@ -30999,8 +31017,8 @@
       "cost": 7,
       "is_collectible": true,
       "card_set_id": 10005,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['进化时', '超进化', '消失']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['super_evolve'], Ops: ['banish_deck_filtered', 'distribute_damage']",
       "hit_keywords": [
         "进化时",
         "超进化",
@@ -31014,27 +31032,44 @@
         "<sev>【<color=Keyword>超进化时</color>】使自己的牌组中的所有费用为1、3、5、7、9的卡牌消失。对对手的战场上的所有随从分配X点伤害。X为因本能力消失的卡牌的张数。</sev>"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【超进化时】使自己牌组中的所有费用为1、3、5、7、9的卡牌消失。对对手战场上的所有随从合计造成X点伤害。X为因此消失的卡牌数量。",
+        "notes": "超进化按物理牌当前费用批量放逐1/3/5/7/9费卡、偶数费用保留、逐卡事件、以实际放逐数量分配伤害、零命中和无敌方随从路径均有直接测试。",
+        "rule_version": 1,
+        "source_text_sha256": "0182ef0baedb6a542b5c111f0601157a47d97e0b76d3f1645f073cd1e5be12b6",
+        "test_evidence": [
+          "tests/test_real_destroyed_amulet_bulk_zone_eighteenth_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10543110:0",
             "source_text": "<sev>【<color=Keyword>超进化时</color>】使自己的牌组中的所有费用为1、3、5、7、9的卡牌消失。对对手的战场上的所有随从分配X点伤害。X为因本能力消失的卡牌的张数。</sev>",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "【超进化时】使自己牌组中的所有费用为1、3、5、7、9的卡牌消失。对对手战场上的所有随从合计造成X点伤害。X为因此消失的卡牌数量。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "0182ef0baedb6a542b5c111f0601157a47d97e0b76d3f1645f073cd1e5be12b6",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "super_evolve"
+          ],
+          "effect_kinds": [
+            "banish_deck_filtered",
+            "distribute_damage"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_destroyed_amulet_bulk_zone_eighteenth_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10543310": {
@@ -31857,8 +31892,8 @@
       "cost": 10,
       "is_collectible": true,
       "card_set_id": 10005,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '进化时', '超进化', '抽取', '造成.*伤害', '返回牌']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['fanfare', 'super_evolve'], Ops: ['repeat', 'redraw_hand', 'conditional', 'damage_unit', 'repeat', 'redraw_hand', 'conditional', 'damage_unit']",
       "hit_keywords": [
         "入场曲",
         "进化时",
@@ -31876,27 +31911,51 @@
         "【<color=Keyword>入场曲</color>】发动2次「使自己的所有手牌返回牌组。抽取X张卡牌。X为因本能力返回牌组的张数。之后，若自己的手牌中有4张或以上费用相同的卡牌，则对对手的战场上的所有随从和对手的主战者造成4点伤害」。\n<hr><sev>【<color=Keyword>超进化时</color>】发动与【<color=Keyword>入场曲</color>】相同的能力。</sev>"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【入场曲】进行2次「使自己的全部手牌返回牌组。抽取X张卡牌。X为因此返回牌组的卡牌数量。之后，若自己的手牌中有4张或以上费用相同的卡牌，则对所有对手造成4点伤害」。\n【超进化时】再发动1次与本卡【入场曲】相同的能力。",
+        "notes": "入场严格顺序执行两轮全部手牌返回与等量重抽、每轮独立按当前费用分组、同时伤害敌方全体随从与主战者、空手不消耗随机数、固定种子复现及超进化完整复现入场能力均有直接测试。",
+        "rule_version": 1,
+        "source_text_sha256": "63e4e328836792f56bb18aede9096d1678d51e9e2b820feda05ab5b6f3b55ec1",
+        "test_evidence": [
+          "tests/test_real_destroyed_amulet_bulk_zone_eighteenth_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10554120:0",
             "source_text": "【<color=Keyword>入场曲</color>】发动2次「使自己的所有手牌返回牌组。抽取X张卡牌。X为因本能力返回牌组的张数。之后，若自己的手牌中有4张或以上费用相同的卡牌，则对对手的战场上的所有随从和对手的主战者造成4点伤害」。\n<hr><sev>【<color=Keyword>超进化时</color>】发动与【<color=Keyword>入场曲</color>】相同的能力。</sev>",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "【入场曲】进行2次「使自己的全部手牌返回牌组。抽取X张卡牌。X为因此返回牌组的卡牌数量。之后，若自己的手牌中有4张或以上费用相同的卡牌，则对所有对手造成4点伤害」。\n【超进化时】再发动1次与本卡【入场曲】相同的能力。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "63e4e328836792f56bb18aede9096d1678d51e9e2b820feda05ab5b6f3b55ec1",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "fanfare",
+            "super_evolve"
+          ],
+          "effect_kinds": [
+            "repeat",
+            "redraw_hand",
+            "conditional",
+            "damage_unit",
+            "repeat",
+            "redraw_hand",
+            "conditional",
+            "damage_unit"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_destroyed_amulet_bulk_zone_eighteenth_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10561110": {
@@ -37447,8 +37506,8 @@
       "cost": 4,
       "is_collectible": true,
       "card_set_id": 10006,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '谢幕曲', '倒数', '回复自己\\\\d+点能量点', '破坏', '召唤']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['play', 'last_words'], Ops: ['select_targets', 'destroy', 'conditional', 'restore_mana', 'summon_destroyed_amulets']",
       "hit_keywords": [
         "入场曲",
         "谢幕曲",
@@ -37467,27 +37526,48 @@
         "【<color=Keyword>入场曲</color>】选择战场上的1张其他卡牌，破坏该卡牌。若选择了自己的护符，则回复自己2点能量点。\n<hr>【<color=Keyword>吟唱</color>_2】\n【<color=Keyword>谢幕曲</color>】召唤随机1张与本次对战中被破坏的「原始费用为2或以下的拥有【<color=Keyword>谢幕曲</color>】的自己的护符」同名的护符。"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【入场曲】选择战场上的1张其他卡牌并破坏。若选择的是自己的护符，则回复自己的2点能量。\n【吟唱】_2\n【谢幕曲】随机召唤1张本次对战中被破坏的、原始费用为2以下且拥有【谢幕曲】的自己的护符的同名卡。",
+        "notes": "吟唱2、入场选择其他任意场上卡牌、破坏后目标快照判定己方护符并回复2能量、敌方及随从分支、无目标路径、谢幕曲原始费用和谢幕曲过滤均有直接测试。",
+        "rule_version": 1,
+        "source_text_sha256": "15f996ad251957381e779175865d5e1dd495340666ddf04343b1f860ced1f379",
+        "test_evidence": [
+          "tests/test_real_destroyed_amulet_bulk_zone_eighteenth_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10663210:0",
             "source_text": "【<color=Keyword>入场曲</color>】选择战场上的1张其他卡牌，破坏该卡牌。若选择了自己的护符，则回复自己2点能量点。\n<hr>【<color=Keyword>吟唱</color>_2】\n【<color=Keyword>谢幕曲</color>】召唤随机1张与本次对战中被破坏的「原始费用为2或以下的拥有【<color=Keyword>谢幕曲</color>】的自己的护符」同名的护符。",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "【入场曲】选择战场上的1张其他卡牌并破坏。若选择的是自己的护符，则回复自己的2点能量。\n【吟唱】_2\n【谢幕曲】随机召唤1张本次对战中被破坏的、原始费用为2以下且拥有【谢幕曲】的自己的护符的同名卡。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "15f996ad251957381e779175865d5e1dd495340666ddf04343b1f860ced1f379",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "play",
+            "last_words"
+          ],
+          "effect_kinds": [
+            "select_targets",
+            "destroy",
+            "conditional",
+            "restore_mana",
+            "summon_destroyed_amulets"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_destroyed_amulet_bulk_zone_eighteenth_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10664110": {
@@ -37498,8 +37578,8 @@
       "cost": 4,
       "is_collectible": true,
       "card_set_id": 10006,
-      "coverage": "supported_missing_rule",
-      "reason": "Covered keywords: ['入场曲', '谢幕曲', '进化时', '超进化', '造成.*伤害', '破坏', '召唤']",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['fanfare', 'super_evolve'], Ops: ['summon_destroyed_amulets', 'select_targets', 'destroy', 'conditional', 'damage_unit']",
       "hit_keywords": [
         "入场曲",
         "谢幕曲",
@@ -37519,27 +37599,48 @@
         "【<color=Keyword>入场曲</color>】召唤随机2种与本次对战中被破坏的「原始费用为2或以下的拥有【<color=Keyword>谢幕曲</color>】的自己的护符」同名的护符各1张。\n<hr><sev>【<color=Keyword>超进化时</color>】选择战场上的1张其他卡牌，破坏该卡牌。若选择了自己的护符，则对对手的战场上的所有随从造成3点伤害。</sev>"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【入场曲】随机召唤2张名称各不相同的、本次对战中被破坏的、原始费用为2以下且拥有【谢幕曲】的自己的护符的同名卡（每种各1张）。\n【超进化时】选择战场上的1张其他卡牌并破坏。若选择的是自己的护符，则对对手战场上的所有随从造成3点伤害。",
+        "notes": "入场从持久破坏历史随机召唤2种不同名称低费谢幕曲护符、候选不足及场面容量、超进化选择并破坏其他卡牌、己方护符分支对敌方全体3伤和失效目标均有直接测试。",
+        "rule_version": 1,
+        "source_text_sha256": "992abad431cb71f3ffdbf9d8bb8b6276e03f09669d5692d338f033df9eeb18fc",
+        "test_evidence": [
+          "tests/test_real_destroyed_amulet_bulk_zone_eighteenth_batch.py"
+        ]
+      },
       "clause_audit": {
-        "status": "missing_rule",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10664110:0",
             "source_text": "【<color=Keyword>入场曲</color>】召唤随机2种与本次对战中被破坏的「原始费用为2或以下的拥有【<color=Keyword>谢幕曲</color>】的自己的护符」同名的护符各1张。\n<hr><sev>【<color=Keyword>超进化时</color>】选择战场上的1张其他卡牌，破坏该卡牌。若选择了自己的护符，则对对手的战场上的所有随从造成3点伤害。</sev>",
-            "mapping_status": "missing_rule"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "【入场曲】随机召唤2张名称各不相同的、本次对战中被破坏的、原始费用为2以下且拥有【谢幕曲】的自己的护符的同名卡（每种各1张）。\n【超进化时】选择战场上的1张其他卡牌并破坏。若选择的是自己的护符，则对对手战场上的所有随从造成3点伤害。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "992abad431cb71f3ffdbf9d8bb8b6276e03f09669d5692d338f033df9eeb18fc",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "fanfare",
+            "super_evolve"
+          ],
+          "effect_kinds": [
+            "summon_destroyed_amulets",
+            "select_targets",
+            "destroy",
+            "conditional",
+            "damage_unit"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_destroyed_amulet_bulk_zone_eighteenth_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "missing_rule"
+        "blocker_type": null
       }
     },
     "10664120": {
@@ -51740,29 +51841,6 @@
   },
   "top_20_recommendations": [
     {
-      "card_id": 10543110,
-      "name": "破灭屠戮者",
-      "class_name": "龙族",
-      "card_type": "随从",
-      "cost": 7,
-      "ability_keywords": [
-        "超进化时"
-      ],
-      "hit_keywords": [
-        "进化时",
-        "超进化",
-        "消失"
-      ],
-      "confidence": "high",
-      "why_recommended": "Covered keywords: 进化时, 超进化, 消失",
-      "required_primitives": [
-        "进化时",
-        "超进化",
-        "消失"
-      ],
-      "suggested_rule_file": "batch_龙族.json"
-    },
-    {
       "card_id": 10503210,
       "name": "大游戏世界",
       "class_name": "中立",
@@ -51815,30 +51893,6 @@
         "造成.*伤害"
       ],
       "suggested_rule_file": "batch_中立.json"
-    },
-    {
-      "card_id": 10162130,
-      "name": "大地守护神·米维",
-      "class_name": "主教",
-      "card_type": "随从",
-      "cost": 7,
-      "ability_keywords": [
-        "守护",
-        "谢幕曲"
-      ],
-      "hit_keywords": [
-        "谢幕曲",
-        "破坏",
-        "召唤"
-      ],
-      "confidence": "high",
-      "why_recommended": "Covered keywords: 谢幕曲, 破坏, 召唤",
-      "required_primitives": [
-        "谢幕曲",
-        "破坏",
-        "召唤"
-      ],
-      "suggested_rule_file": "batch_主教.json"
     },
     {
       "card_id": 10214120,
@@ -51899,35 +51953,6 @@
       "suggested_rule_file": "batch_中立.json"
     },
     {
-      "card_id": 10554120,
-      "name": "奥夜花·释藤",
-      "class_name": "梦魇",
-      "card_type": "随从",
-      "cost": 10,
-      "ability_keywords": [
-        "入场曲",
-        "超进化时"
-      ],
-      "hit_keywords": [
-        "入场曲",
-        "进化时",
-        "超进化",
-        "抽取",
-        "造成.*伤害",
-        "返回牌"
-      ],
-      "confidence": "high",
-      "why_recommended": "Covered keywords: 入场曲, 进化时, 超进化",
-      "required_primitives": [
-        "入场曲",
-        "进化时",
-        "超进化",
-        "抽取",
-        "造成.*伤害"
-      ],
-      "suggested_rule_file": "batch_梦魇.json"
-    },
-    {
       "card_id": 10574110,
       "name": "转动的《命运之轮》·斯洛士",
       "class_name": "超越者",
@@ -51957,67 +51982,6 @@
         "造成.*伤害"
       ],
       "suggested_rule_file": "batch_超越者.json"
-    },
-    {
-      "card_id": 10663210,
-      "name": "崇高的天书",
-      "class_name": "主教",
-      "card_type": "护符",
-      "cost": 4,
-      "ability_keywords": [
-        "倒数",
-        "入场曲",
-        "谢幕曲"
-      ],
-      "hit_keywords": [
-        "入场曲",
-        "谢幕曲",
-        "倒数",
-        "回复自己\\d+点能量点",
-        "破坏",
-        "召唤"
-      ],
-      "confidence": "high",
-      "why_recommended": "Covered keywords: 入场曲, 谢幕曲, 倒数",
-      "required_primitives": [
-        "入场曲",
-        "谢幕曲",
-        "倒数",
-        "回复自己\\d+点能量点",
-        "破坏"
-      ],
-      "suggested_rule_file": "batch_主教.json"
-    },
-    {
-      "card_id": 10664110,
-      "name": "崇高的憎恶·康蒂玛",
-      "class_name": "主教",
-      "card_type": "随从",
-      "cost": 4,
-      "ability_keywords": [
-        "入场曲",
-        "谢幕曲",
-        "超进化时"
-      ],
-      "hit_keywords": [
-        "入场曲",
-        "谢幕曲",
-        "进化时",
-        "超进化",
-        "造成.*伤害",
-        "破坏",
-        "召唤"
-      ],
-      "confidence": "high",
-      "why_recommended": "Covered keywords: 入场曲, 谢幕曲, 进化时",
-      "required_primitives": [
-        "入场曲",
-        "谢幕曲",
-        "进化时",
-        "超进化",
-        "造成.*伤害"
-      ],
-      "suggested_rule_file": "batch_主教.json"
     },
     {
       "card_id": 10444120,

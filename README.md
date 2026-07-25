@@ -38,14 +38,14 @@ covered generic boundary, but that never upgrades a partial or placeholder
 keyword whose full tagged-card semantics still require structured rules.
 
 The [rule coverage report](data/reports/rule_coverage.md) now includes a
-clause-audit layer without changing its legacy coverage categories. Of 703
-exact collectible cards (95.65% of 735), all 703 have explicit implemented text and named direct
+clause-audit layer without changing its legacy coverage categories. Of 708
+exact collectible cards (96.33% of 735), all 708 have explicit implemented text and named direct
 test evidence. The sibling `data/audits/rule_clauses.json` registry hashes every
 imported skill and alternate-mode clause, so a database text change or stale
 test reference invalidates the audit instead of silently retaining exact
 status. The current report has no unverified exact entry or missing generic
 schema, primitive, targeting, or timing blocker. Its remaining collectible gaps
-are 16 missing per-card structured rules plus 16 explicitly unclear texts.
+are 11 missing per-card structured rules plus 16 explicitly unclear texts.
 Rule metadata also supports version and errata fields, and the report
 records the complete imported source snapshot hash.
 
@@ -540,6 +540,16 @@ The deterministic rules core supports:
   replay, multilingual/Mode/reference/raw-source hashes, and Clause/Token
   consistency without changing Observation `observation-v3.3` or the 111
   action IDs;
+- persistent destroyed-amulet history, highest-base-cost and distinct-name
+  history selection, current-cost filtered bulk deck banish with actual-count
+  follow-ups, whole-hand redraw, and simultaneous enemy-follower/leader damage
+  close exact `10162130`, `10663210`, `10664110`, `10543110`, and `10554120`,
+  bringing exact collectible coverage to 708/735 (96.33%). Direct tests cover
+  source and selected-target departure, no candidates without RNG consumption,
+  board and hand capacity, current-cost deck modifiers, simultaneous deaths,
+  seeded replay, multilingual/reference/raw-source hashes, Clause/Token
+  consistency, illegal-choice atomicity, and command/action-mask parity.
+  Observation `observation-v3.3` and all 111 action IDs remain unchanged;
 - filtered hand-count conditions reuse the same type/class/identity/trait
   definition filters as hand targeting. Exact `10521120` counts only spells
   before conditionally gaining +1/+1 and Ward, while exact `10741120` and

@@ -82,6 +82,7 @@ from swb.engine.state import (
     DeathCause,
     DeathRecord,
     DeckCard,
+    DestroyedAmuletRecord,
     DestroyedFollowerRecord,
     FollowerEntryRecord,
     FusionMaterial,
@@ -217,6 +218,7 @@ _OUTPUT_BINDING_EFFECTS = frozenset({
     EffectKind.SUMMON_EXACT_COPY,
     EffectKind.SUMMON_HAND_COPY,
     EffectKind.SUMMON_FROM_DECK,
+    EffectKind.SUMMON_DESTROYED_AMULETS,
     EffectKind.DRAW,
     EffectKind.DRAW_FILTERED,
     EffectKind.REANIMATE,
@@ -778,6 +780,7 @@ class GameEngine:
         self._next_emblem_expiration_batch_id = 1
         self._stabilizing = False
         self.state.destroyed_followers.clear()
+        self.state.destroyed_amulets.clear()
         self.state.follower_entries.clear()
         self.state._next_death_sequence = 1
         self.state._next_follower_entry_sequence = 1
@@ -2431,6 +2434,7 @@ class GameEngine:
             definition=card,
             entity_id=source_entity_id,
             countdown=countdown,
+            play_mode_id=mode_def.mode_id if mode_def is not None else None,
             entered_turn=self.turn,
             origin=origin,
             source_origin=source_origin,
@@ -2992,6 +2996,10 @@ class GameEngine:
                     self._destroyed_follower_fingerprint(record)
                     for record in self.state.destroyed_followers
                 ),
+                "destroyed_amulets": tuple(
+                    self._destroyed_amulet_fingerprint(record)
+                    for record in self.state.destroyed_amulets
+                ),
                 "follower_entries": tuple(
                     self._follower_entry_fingerprint(record)
                     for record in self.state.follower_entries
@@ -3361,6 +3369,7 @@ class GameEngine:
         elif isinstance(entity, Amulet):
             base.update({
                 "countdown": entity.countdown,
+                "play_mode_id": entity.play_mode_id,
                 "earth_sigil_count": entity.earth_sigil_count,
                 "entered_turn": entity.entered_turn,
                 "activated_turn": entity.activated_turn,
@@ -3413,6 +3422,24 @@ class GameEngine:
             record.origin.value,
             None if record.source_origin is None else record.source_origin.value,
             record.destroyed_turn,
+        )
+
+    def _destroyed_amulet_fingerprint(
+        self,
+        record: DestroyedAmuletRecord,
+    ) -> tuple[object, ...]:
+        return (
+            self._card_fingerprint(record.definition),
+            record.owner,
+            record.death_sequence,
+            record.cause.value,
+            record.derived,
+            record.token,
+            record.origin.value,
+            None if record.source_origin is None else record.source_origin.value,
+            record.destroyed_turn,
+            record.play_mode_id,
+            record.summon_countdown,
         )
 
     def _follower_entry_fingerprint(
@@ -3665,6 +3692,7 @@ class GameEngine:
             self._hand_filter_fingerprint(operation.hand_filter),
             self._hand_filter_fingerprint(operation.history_filter),
             operation.distinct_card_names,
+            operation.highest_base_cost_only,
             operation.include_leader,
             (
                 None
@@ -3730,6 +3758,7 @@ class GameEngine:
             deck_filter.class_name,
             deck_filter.cost_min,
             deck_filter.cost_max,
+            deck_filter.costs,
             deck_filter.card_id,
             deck_filter.card_ids,
             deck_filter.card_name,
@@ -4094,6 +4123,8 @@ class GameEngine:
             return self._death_record_fingerprint(value)
         if isinstance(value, DestroyedFollowerRecord):
             return self._destroyed_follower_fingerprint(value)
+        if isinstance(value, DestroyedAmuletRecord):
+            return self._destroyed_amulet_fingerprint(value)
         if isinstance(value, FollowerEntryRecord):
             return self._follower_entry_fingerprint(value)
         if isinstance(value, GraveyardCard):
@@ -4571,6 +4602,36 @@ class GameEngine:
         )
         self.state._next_death_sequence += 1
 
+    def _record_destroyed_amulet(
+        self,
+        player_index: int,
+        definition: CardDefinition,
+        cause: DeathCause,
+        *,
+        derived: bool = False,
+        token: bool = False,
+        origin: CardOrigin = CardOrigin.DECK,
+        source_origin: CardOrigin | None = None,
+        play_mode_id: str | None = None,
+        summon_countdown: int | None = None,
+    ) -> None:
+        self.state.destroyed_amulets.append(
+            DestroyedAmuletRecord(
+                definition=definition,
+                owner=player_index,
+                death_sequence=self.state._next_death_sequence,
+                cause=cause,
+                derived=derived,
+                token=token,
+                origin=origin,
+                source_origin=source_origin,
+                destroyed_turn=self.turn,
+                play_mode_id=play_mode_id,
+                summon_countdown=summon_countdown,
+            )
+        )
+        self.state._next_death_sequence += 1
+
     def _record_follower_entry(
         self,
         player_index: int,
@@ -4677,6 +4738,9 @@ class GameEngine:
                 EffectKind.DISTRIBUTE_DAMAGE,
                 EffectKind.RANDOM_CHOICE,
                 EffectKind.RANDOM_DISTRIBUTE,
+                EffectKind.SUMMON_DESTROYED_AMULETS,
+                EffectKind.BANISH_DECK_FILTERED,
+                EffectKind.REDRAW_HAND,
             }:
                 self._checked_execute(operation, frame, None)
                 frame.next_index += 1
@@ -4847,6 +4911,40 @@ class GameEngine:
                 continue
 
             if is_all_target(operation.target) and not frame.defer_stabilize:
+                if (
+                    operation.target
+                    is TargetKind.ALL_ENEMY_UNITS_AND_LEADER
+                ):
+                    target_ids = tuple(
+                        entity.entity_id
+                        for entity in self.players[
+                            1 - frame.controller
+                        ].board
+                        if isinstance(entity, Unit)
+                    ) + (_leader_target_id(1 - frame.controller),)
+                    frame.defer_stabilize = True
+                    for simultaneous_target_id in target_ids:
+                        if (
+                            simultaneous_target_id >= 0
+                            and not any(
+                                entity.entity_id
+                                == simultaneous_target_id
+                                for entity in self.players[
+                                    1 - frame.controller
+                                ].board
+                            )
+                        ):
+                            continue
+                        self._checked_execute(
+                            operation,
+                            frame,
+                            simultaneous_target_id,
+                        )
+                    frame.defer_stabilize = False
+                    frame.next_index += 1
+                    self._resolve_event_queue()
+                    self._stabilize()
+                    continue
                 if operation.target is TargetKind.ALL_OWN_EMBLEMS:
                     target_ids = tuple(
                         emblem.entity_id
@@ -5266,6 +5364,8 @@ class GameEngine:
             )
         if operation.target is TargetKind.ALL_LEADERS:
             return bool(leader_target_ids(operation, controller, self.players))
+        if operation.target is TargetKind.ALL_ENEMY_UNITS_AND_LEADER:
+            return True
         if operation.target in {
             TargetKind.RANDOM_ENEMY_UNIT_OR_LEADER,
             TargetKind.RANDOM_ANY_UNIT_OR_LEADER,
@@ -5415,6 +5515,8 @@ class GameEngine:
             )
         if operation.target is TargetKind.ALL_LEADERS:
             return bool(leader_target_ids(operation, controller, self.players))
+        if operation.target is TargetKind.ALL_ENEMY_UNITS_AND_LEADER:
+            return True
         if is_graveyard_target(operation.target):
             return bool(graveyard_candidates(operation, controller, self.players))
         candidates = target_candidates(
@@ -5774,6 +5876,7 @@ class GameEngine:
             EffectKind.SUMMON_EXACT_COPY,
             EffectKind.SUMMON_HAND_COPY,
             EffectKind.SUMMON_FROM_DECK,
+            EffectKind.SUMMON_DESTROYED_AMULETS,
             EffectKind.REANIMATE,
             EffectKind.EVOLVE_UNIT,
             EffectKind.SUPER_EVOLVE_UNIT,
@@ -7941,6 +8044,8 @@ class GameEngine:
             self._execute_summon_from_hand(effect, frame, target_id)
         elif effect.kind is EffectKind.SUMMON_FROM_DECK:
             self._execute_summon_from_deck(effect, frame)
+        elif effect.kind is EffectKind.SUMMON_DESTROYED_AMULETS:
+            self._execute_summon_destroyed_amulets(effect, frame)
         elif effect.kind is EffectKind.BANISH:
             self._execute_banish(target_id, frame)
         elif effect.kind is EffectKind.BANISH_SAME_NAME:
@@ -7957,6 +8062,8 @@ class GameEngine:
             self._execute_copy_random_enemy_deck_to_hand(effect, frame)
         elif effect.kind is EffectKind.COPY_DESTROYED_FOLLOWERS_TO_HAND:
             self._execute_copy_destroyed_followers_to_hand(effect, frame)
+        elif effect.kind is EffectKind.REDRAW_HAND:
+            self._execute_redraw_hand(frame)
         elif effect.kind is EffectKind.RETURN_TO_HAND:
             self._execute_return_to_hand(target_id, frame)
         elif effect.kind is EffectKind.RETURN_TO_DECK:
@@ -7997,6 +8104,8 @@ class GameEngine:
             self._execute_replace_deck(effect, frame)
         elif effect.kind is EffectKind.BANISH_DECK_DUPLICATES:
             self._execute_banish_deck_duplicates(frame)
+        elif effect.kind is EffectKind.BANISH_DECK_FILTERED:
+            self._execute_banish_deck_filtered(effect, frame)
         elif effect.kind is EffectKind.SET_EMPTY_DECK_OUTCOME:
             self._execute_set_empty_deck_outcome(effect, frame)
         elif effect.kind is EffectKind.TRANSFORM:
@@ -8749,6 +8858,63 @@ class GameEngine:
             "张重复卡牌消失",
         )
 
+    def _execute_banish_deck_filtered(
+        self,
+        effect: EffectOperation,
+        frame: EffectFrame,
+    ) -> None:
+        if effect.deck_filter is None:
+            raise IllegalCommand("BANISH_DECK_FILTERED requires a deck filter")
+
+        player = self.players[frame.controller]
+        retained_cards: list[CardDefinition | DeckCard] = []
+        banished_cards: list[tuple[CardDefinition, int]] = []
+        for raw_card in player.deck:
+            if not effect.deck_filter.matches(raw_card):
+                retained_cards.append(raw_card)
+                continue
+            definition = (
+                raw_card.definition
+                if isinstance(raw_card, DeckCard)
+                else raw_card
+            )
+            current_cost = (
+                raw_card.current_cost
+                if isinstance(raw_card, DeckCard)
+                else raw_card.cost
+            )
+            banished_cards.append((definition, current_cost))
+
+        player.deck = retained_cards
+        for definition, current_cost in banished_cards:
+            player.banished.append(definition)
+            self._emit(
+                GameEvent(
+                    EventType.CARD_BANISHED,
+                    frame.controller,
+                    source_id=frame.source_entity_id,
+                    metadata={
+                        "source_card_id": frame.source_card_id,
+                        "card_id": definition.card_id,
+                        "definition": definition,
+                        "from_zone": "deck",
+                        "current_cost": current_cost,
+                    },
+                )
+            )
+        count = len(banished_cards)
+        self._log(
+            frame.controller,
+            f"{frame.source_name} 使牌组中 {count} 张符合条件的卡牌消失",
+        )
+        if effect.then_operations:
+            self._queue_effects_from_frame(
+                frame,
+                effect.then_operations,
+                label=f"{frame.label}/banished×{count}",
+                distributed_value=count,
+            )
+
     def _execute_set_empty_deck_outcome(
         self,
         effect: EffectOperation,
@@ -9124,6 +9290,152 @@ class GameEngine:
                 f"{frame.source_name} 将{added_count}张已破坏随从的同名卡"
                 "以非公开形式加入手牌",
             )
+
+    def _execute_summon_destroyed_amulets(
+        self,
+        effect: EffectOperation,
+        frame: EffectFrame,
+    ) -> None:
+        player = self.players[frame.controller]
+        available_slots = self.config.max_board - len(player.board)
+        if available_slots <= 0:
+            if effect.target_key:
+                self._bind_targets(frame, effect.target_key, (), effect)
+            self._log(
+                frame.controller,
+                f"{frame.source_name} 召唤已破坏护符失败：场地已满",
+            )
+            return
+
+        records = [
+            record
+            for record in sorted(
+                self.state.destroyed_amulets,
+                key=lambda candidate: candidate.death_sequence,
+            )
+            if record.owner == frame.controller
+            and (
+                effect.history_filter is None
+                or replace(
+                    effect.history_filter,
+                    card_type=None,
+                ).matches(record.definition)
+            )
+        ]
+        if effect.highest_base_cost_only and records:
+            highest_cost = max(record.definition.cost for record in records)
+            records = [
+                record
+                for record in records
+                if record.definition.cost == highest_cost
+            ]
+        if effect.distinct_card_names:
+            distinct_records: dict[str, DestroyedAmuletRecord] = {}
+            for record in records:
+                distinct_records.setdefault(record.definition.name, record)
+            records = list(distinct_records.values())
+        if not records:
+            if effect.target_key:
+                self._bind_targets(frame, effect.target_key, (), effect)
+            return
+
+        summon_count = min(effect.amount, available_slots, len(records))
+        selected = self.random.sample(records, summon_count)
+        summoned_entity_ids: list[int] = []
+        for record in selected:
+            definition = record.definition
+            origin = origin_for_summoned_card(definition)
+            amulet = Amulet(
+                definition=definition,
+                entity_id=self.state.allocate_entity_id(),
+                countdown=record.summon_countdown,
+                play_mode_id=record.play_mode_id,
+                entered_turn=self.turn,
+                origin=origin,
+                source_origin=record.source_origin or record.origin,
+            )
+            player.board.append(amulet)
+            summoned_entity_ids.append(amulet.entity_id)
+            self._emit(
+                GameEvent(
+                    EventType.AMULET_ENTERED,
+                    frame.controller,
+                    source_id=amulet.entity_id,
+                    metadata={
+                        "source": amulet,
+                        "card_id": definition.card_id,
+                        "origin": amulet.origin.value,
+                        "derived": True,
+                        "token": (
+                            is_token_definition(definition)
+                            or amulet.origin is CardOrigin.TOKEN
+                        ),
+                        "via": "destroyed_amulet_history",
+                        "copied_from_death_sequence": record.death_sequence,
+                    },
+                )
+            )
+            self._initialize_earth_sigil(amulet, frame.controller)
+        if effect.target_key:
+            self._bind_targets(
+                frame,
+                effect.target_key,
+                tuple(summoned_entity_ids),
+                effect,
+            )
+        self._log(
+            frame.controller,
+            f"{frame.source_name} 召唤 {len(summoned_entity_ids)} "
+            "张已破坏护符的同名卡",
+        )
+
+    def _execute_redraw_hand(self, frame: EffectFrame) -> None:
+        player = self.players[frame.controller]
+        self._ensure_entity_ids()
+        returned_cards = list(player.hand)
+        returned_entity_ids = list(player.hand_entity_ids)
+        if not returned_cards:
+            return
+
+        player.hand.clear()
+        player.hand_entity_ids.clear()
+        for raw_card, entity_id in zip(
+            returned_cards,
+            returned_entity_ids,
+            strict=True,
+        ):
+            definition = (
+                raw_card.definition
+                if isinstance(raw_card, HandCard)
+                else raw_card
+            )
+            insert_pos = self.random.randint(0, len(player.deck))
+            player.deck.insert(insert_pos, definition)
+            self._emit(
+                GameEvent(
+                    EventType.CARD_RETURNED_TO_DECK,
+                    frame.controller,
+                    source_id=entity_id,
+                    metadata={
+                        "source": raw_card,
+                        "definition": definition,
+                        "card_id": definition.card_id,
+                        "from_zone": "hand",
+                    },
+                )
+            )
+        returned_count = len(returned_cards)
+        self._log(
+            frame.controller,
+            f"{frame.source_name} 将 {returned_count} 张手牌返回牌组",
+        )
+        for _ in range(returned_count):
+            self._draw(
+                frame.controller,
+                reason=f"{frame.source_name} 重抽",
+            )
+            if self.terminated:
+                break
 
     @staticmethod
     def _bound_snapshot_for_effect(
@@ -10406,6 +10718,8 @@ class GameEngine:
             )
         if operation.target is TargetKind.ALL_LEADERS:
             return bool(leader_target_ids(operation, controller, self.players))
+        if operation.target is TargetKind.ALL_ENEMY_UNITS_AND_LEADER:
+            return True
         if operation.target is TargetKind.ALL_OWN_EMBLEMS:
             return any(
                 emblem.countdown is not None
@@ -13301,6 +13615,33 @@ class GameEngine:
                         derived=amulet_derived, origin=amulet_origin, token=amulet_token,
                         source_origin=amulet_source_origin,
                     )
+                    destroyed_mode = next(
+                        (
+                            mode
+                            for mode in self.rulebook.modes_for(
+                                entity.definition.card_id
+                            )
+                            if mode.mode_id == entity.play_mode_id
+                        ),
+                        None,
+                    )
+                    self._record_destroyed_amulet(
+                        player_index,
+                        entity.definition,
+                        cause,
+                        derived=amulet_derived,
+                        token=amulet_token,
+                        origin=amulet_origin,
+                        source_origin=amulet_source_origin,
+                        play_mode_id=entity.play_mode_id,
+                        summon_countdown=(
+                            destroyed_mode.countdown
+                            if destroyed_mode is not None
+                            else self.rulebook.countdown_for(
+                                entity.definition.card_id
+                            )
+                        ),
+                    )
                     records.append(record)
 
         return DeathBatch(records=records, batch_id=batch_id), banish_replacements
@@ -14238,6 +14579,13 @@ class GameEngine:
                         raise IllegalCommand(
                             f"Invariant failed: {zone} countdown is negative"
                         )
+                    if entity.play_mode_id is not None and (
+                        not isinstance(entity.play_mode_id, str)
+                        or not entity.play_mode_id
+                    ):
+                        raise IllegalCommand(
+                            f"Invariant failed: {zone} play_mode_id is invalid"
+                        )
                     if entity.activated_turn is not None and (
                         not isinstance(entity.activated_turn, int)
                         or isinstance(entity.activated_turn, bool)
@@ -14670,6 +15018,11 @@ class GameEngine:
                     raise IllegalCommand(
                         f"Invariant failed: {operation_zone} distinct-name policy is invalid"
                     )
+                if not isinstance(operation.highest_base_cost_only, bool):
+                    raise IllegalCommand(
+                        f"Invariant failed: {operation_zone} "
+                        "highest-cost policy is invalid"
+                    )
                 if not isinstance(operation.bind_successful_targets, bool):
                     raise IllegalCommand(
                         f"Invariant failed: {operation_zone} successful-binding policy is invalid"
@@ -14923,12 +15276,22 @@ class GameEngine:
                     f"Invariant failed: event_queue[{event_index}] "
                     "emblem source snapshot is invalid"
                 )
+        death_sequences: set[int] = set()
         for record in state.destroyed_followers:
             if record.owner not in (0, 1):
                 raise IllegalCommand("Invariant failed: destroyed follower owner out of range")
-            if record.death_sequence <= 0:
+            if (
+                record.death_sequence <= 0
+                or record.death_sequence in death_sequences
+            ):
                 raise IllegalCommand(
-                    "Invariant failed: destroyed follower death_sequence must be positive"
+                    "Invariant failed: destroyed follower death_sequence "
+                    "must be unique and positive"
+                )
+            death_sequences.add(record.death_sequence)
+            if record.definition.card_type != "随从":
+                raise IllegalCommand(
+                    "Invariant failed: destroyed follower definition is not a follower"
                 )
             if (
                 not isinstance(record.destroyed_turn, int)
@@ -14938,6 +15301,44 @@ class GameEngine:
             ):
                 raise IllegalCommand(
                     "Invariant failed: destroyed follower destroyed_turn is invalid"
+                )
+        for record in state.destroyed_amulets:
+            if record.owner not in (0, 1):
+                raise IllegalCommand(
+                    "Invariant failed: destroyed amulet owner out of range"
+                )
+            if (
+                record.death_sequence <= 0
+                or record.death_sequence in death_sequences
+            ):
+                raise IllegalCommand(
+                    "Invariant failed: destroyed amulet death_sequence "
+                    "must be unique and positive"
+                )
+            death_sequences.add(record.death_sequence)
+            if record.play_mode_id is not None and (
+                not isinstance(record.play_mode_id, str)
+                or not record.play_mode_id
+            ):
+                raise IllegalCommand(
+                    "Invariant failed: destroyed amulet play_mode_id is invalid"
+                )
+            if record.summon_countdown is not None and (
+                not isinstance(record.summon_countdown, int)
+                or isinstance(record.summon_countdown, bool)
+                or record.summon_countdown < 0
+            ):
+                raise IllegalCommand(
+                    "Invariant failed: destroyed amulet summon_countdown is invalid"
+                )
+            if (
+                not isinstance(record.destroyed_turn, int)
+                or isinstance(record.destroyed_turn, bool)
+                or record.destroyed_turn < 0
+                or record.destroyed_turn > state.turn
+            ):
+                raise IllegalCommand(
+                    "Invariant failed: destroyed amulet destroyed_turn is invalid"
                 )
         follower_entry_sequences: set[int] = set()
         for record in state.follower_entries:

@@ -79,6 +79,7 @@ _HAND_TARGETS = frozenset({
 _ALL_TARGETS = frozenset({
     TargetKind.ALL_OWN_UNITS,
     TargetKind.ALL_ENEMY_UNITS,
+    TargetKind.ALL_ENEMY_UNITS_AND_LEADER,
     TargetKind.ALL_UNITS,
     TargetKind.ALL_OWN_BOARD,
     TargetKind.ALL_ENEMY_BOARD,
@@ -97,6 +98,7 @@ _OUTPUT_BINDING_EFFECTS = frozenset({
     EffectKind.SUMMON_EXACT_COPY,
     EffectKind.SUMMON_HAND_COPY,
     EffectKind.SUMMON_FROM_DECK,
+    EffectKind.SUMMON_DESTROYED_AMULETS,
     EffectKind.DRAW,
     EffectKind.DRAW_FILTERED,
     EffectKind.REANIMATE,
@@ -3110,6 +3112,34 @@ def _parse_operation(
             f"{source_file}/target card {card_id}: all_leaders requires "
             "a leader-wide effect"
         )
+    if (
+        target is TargetKind.ALL_ENEMY_UNITS_AND_LEADER
+        and kind is not EffectKind.DAMAGE_UNIT
+    ):
+        raise ValueError(
+            f"{source_file}/target card {card_id}: "
+            "all_enemy_units_and_leader requires damage_unit"
+        )
+    if kind is EffectKind.REDRAW_HAND:
+        unknown_redraw_keys = set(raw) - {"kind", "target", "conditions"}
+        if unknown_redraw_keys:
+            raise ValueError(
+                f"{error_prefix}: redraw_hand has unknown fields "
+                f"{sorted(unknown_redraw_keys)}"
+            )
+        if target is not TargetKind.OWN_LEADER:
+            raise ValueError(
+                f"{source_file}/target card {card_id}: redraw_hand requires "
+                "own_leader"
+            )
+    if (
+        kind is EffectKind.BANISH_DECK_FILTERED
+        and target is not TargetKind.OWN_LEADER
+    ):
+        raise ValueError(
+            f"{source_file}/target card {card_id}: banish_deck_filtered "
+            "requires own_leader"
+        )
 
     include_leader = raw.get("include_leader", False)
     if not isinstance(include_leader, bool):
@@ -4425,6 +4455,34 @@ def _parse_operation(
         if kind in {EffectKind.DRAW_FILTERED, EffectKind.SUMMON_FROM_DECK}
         else None
     )
+    raw_deck_costs = raw.get("costs", [])
+    if "costs" in raw and kind is not EffectKind.BANISH_DECK_FILTERED:
+        raise ValueError(
+            f"{source_file}/costs card {card_id}: is only valid for "
+            "banish_deck_filtered"
+        )
+    if not isinstance(raw_deck_costs, list):
+        raise ValueError(
+            f"{source_file}/costs card {card_id}: must be a list"
+        )
+    deck_costs: list[int] = []
+    for cost_index, raw_deck_cost in enumerate(raw_deck_costs):
+        deck_cost = _parse_non_negative_int(
+            raw_deck_cost,
+            f"{source_file}/costs[{cost_index}]",
+            card_id,
+        )
+        if deck_cost in deck_costs:
+            raise ValueError(
+                f"{source_file}/costs[{cost_index}] card {card_id}: "
+                f"duplicate cost {deck_cost}"
+            )
+        deck_costs.append(deck_cost)
+    if kind is EffectKind.BANISH_DECK_FILTERED and not deck_costs:
+        raise ValueError(
+            f"{source_file}/costs card {card_id}: "
+            "banish_deck_filtered requires a non-empty cost list"
+        )
     deck_card_id = raw.get("card_id_filter")
     if deck_card_id is not None:
         deck_card_id = _parse_non_negative_int(
@@ -4620,6 +4678,7 @@ def _parse_operation(
         EffectKind.DRAW_FILTERED,
         EffectKind.SUMMON_FROM_DECK,
         EffectKind.CHANGE_DECK_COST,
+        EffectKind.BANISH_DECK_FILTERED,
     }
     deck_filter: DeckFilter | None = None
     hand_filter: HandFilter | None = None
@@ -4637,31 +4696,40 @@ def _parse_operation(
         )
     history_filter: HandFilter | None = None
     if "history_filter" in raw:
-        if kind is not EffectKind.COPY_DESTROYED_FOLLOWERS_TO_HAND:
+        if kind not in {
+            EffectKind.COPY_DESTROYED_FOLLOWERS_TO_HAND,
+            EffectKind.SUMMON_DESTROYED_AMULETS,
+        }:
             raise ValueError(
                 f"{source_file}/history_filter card {card_id}: requires "
-                "copy_destroyed_followers_to_hand"
+                "a destroyed-history operation"
             )
         history_filter = _parse_hand_filter(
             raw["history_filter"],
             source_path=f"{source_file}/history_filter",
             card_id=card_id,
         )
-        if history_filter.card_type not in {None, "随从"}:
+        required_history_type = (
+            "随从"
+            if kind is EffectKind.COPY_DESTROYED_FOLLOWERS_TO_HAND
+            else "护符"
+        )
+        if history_filter.card_type not in {None, required_history_type}:
             raise ValueError(
                 f"{source_file}/history_filter/card_type card {card_id}: "
-                "destroyed-follower history only supports 随从"
+                f"{kind.value} only supports {required_history_type}"
             )
     distinct_card_names = raw.get("distinct_card_names", False)
     if "distinct_card_names" in raw and (
         kind not in {
             EffectKind.COPY_DESTROYED_FOLLOWERS_TO_HAND,
             EffectKind.DRAW_FILTERED,
+            EffectKind.SUMMON_DESTROYED_AMULETS,
         }
     ):
         raise ValueError(
             f"{source_file}/distinct_card_names card {card_id}: requires "
-            "copy_destroyed_followers_to_hand or draw_filtered"
+            "a destroyed-history operation or draw_filtered"
         )
     if not isinstance(distinct_card_names, bool):
         raise ValueError(
@@ -4684,6 +4752,43 @@ def _parse_operation(
                 f"{source_file}/amount card {card_id}: "
                 "copy_destroyed_followers_to_hand requires an integer from "
                 f"1 to {MAX_REPEAT_COUNT}"
+            )
+    highest_base_cost_only = raw.get("highest_base_cost_only", False)
+    if (
+        "highest_base_cost_only" in raw
+        and kind is not EffectKind.SUMMON_DESTROYED_AMULETS
+    ):
+        raise ValueError(
+            f"{source_file}/highest_base_cost_only card {card_id}: requires "
+            "summon_destroyed_amulets"
+        )
+    if not isinstance(highest_base_cost_only, bool):
+        raise ValueError(
+            f"{source_file}/highest_base_cost_only card {card_id}: "
+            "must be boolean"
+        )
+    if kind is EffectKind.SUMMON_DESTROYED_AMULETS:
+        if target is not TargetKind.OWN_LEADER:
+            raise ValueError(
+                f"{source_file}/target card {card_id}: "
+                "summon_destroyed_amulets requires own_leader"
+            )
+        if (
+            raw_amount is None
+            or isinstance(raw_amount, bool)
+            or not isinstance(raw_amount, int)
+            or raw_amount < 1
+            or raw_amount > MAX_REPEAT_COUNT
+        ):
+            raise ValueError(
+                f"{source_file}/amount card {card_id}: "
+                "summon_destroyed_amulets requires an integer from "
+                f"1 to {MAX_REPEAT_COUNT}"
+            )
+        if history_filter is None or history_filter.card_type != "护符":
+            raise ValueError(
+                f"{source_file}/history_filter card {card_id}: "
+                "summon_destroyed_amulets requires card_type='护符'"
             )
     if kind is EffectKind.BUFF_HAND_CARD:
         if target not in {
@@ -4775,6 +4880,7 @@ def _parse_operation(
             class_name=deck_class_name,
             cost_min=deck_cost_min,
             cost_max=deck_cost_max,
+            costs=tuple(deck_costs),
             card_id=deck_card_id,
             card_name=deck_card_name,
             tribe_id=deck_tribe_id,
@@ -4818,7 +4924,7 @@ def _parse_operation(
         raise ValueError(
             f"{source_file} card {card_id}: deck filter fields "
             "are only valid with draw_filtered, summon_from_deck, or "
-            "change_deck_cost"
+            "change_deck_cost or banish_deck_filtered"
         )
     if _is_graveyard_kind:
         if target not in _GRAVEYARD_TARGETS:
@@ -4892,7 +4998,40 @@ def _parse_operation(
     random_choice_options: tuple[ChooseOneOption, ...] = ()
     random_distribution_ops: tuple[tuple[EffectOperation, ...], ...] = ()
 
-    if kind is EffectKind.RANDOM_CHOICE:
+    if kind is EffectKind.BANISH_DECK_FILTERED:
+        unknown_banish_deck_keys = set(raw) - {
+            "kind",
+            "target",
+            "conditions",
+            "costs",
+            "operations",
+        }
+        if unknown_banish_deck_keys:
+            raise ValueError(
+                f"{error_prefix}: banish_deck_filtered has unknown fields "
+                f"{sorted(unknown_banish_deck_keys)}"
+            )
+        raw_followups = raw.get("operations")
+        if not isinstance(raw_followups, list) or not raw_followups:
+            raise ValueError(
+                f"{source_file}/operations card {card_id}: "
+                "banish_deck_filtered requires non-empty follow-up operations"
+            )
+        then_ops = tuple(
+            _parse_operation(
+                child,
+                f"{source_file}/operations[{child_index}]",
+                card_id,
+                _depth + 1,
+                _allow_event_source=_allow_event_source,
+                _allow_distributed_value=True,
+                _allow_hand_self=_allow_hand_self,
+            )
+            for child_index, child in enumerate(raw_followups)
+        )
+        _validate_target_keys(then_ops, f"{source_file}/operations")
+
+    elif kind is EffectKind.RANDOM_CHOICE:
         unknown_random_choice_keys = set(raw) - {
             "kind",
             "target",
@@ -5407,6 +5546,7 @@ def _parse_operation(
         hand_filter=hand_filter,
         history_filter=history_filter,
         distinct_card_names=distinct_card_names,
+        highest_base_cost_only=highest_base_cost_only,
         board_filter=board_filter,
         candidate_extreme=candidate_extreme,
         then_operations=then_ops,

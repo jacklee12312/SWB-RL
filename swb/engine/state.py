@@ -134,6 +134,42 @@ class DestroyedFollowerRecord:
 
 
 @dataclass(frozen=True)
+class DestroyedAmuletRecord:
+    """Persistent match history for an allied amulet that was destroyed."""
+
+    definition: CardDefinition
+    owner: int
+    death_sequence: int
+    cause: DeathCause
+    derived: bool = False
+    token: bool = False
+    origin: CardOrigin = CardOrigin.DECK
+    source_origin: CardOrigin | None = None
+    destroyed_turn: int = 0
+    play_mode_id: str | None = None
+    summon_countdown: int | None = None
+
+    def __post_init__(self) -> None:
+        object.__setattr__(
+            self,
+            "derived",
+            self.derived
+            or is_derived(self.origin)
+            or (
+                self.source_origin is not None
+                and is_derived(self.source_origin)
+            ),
+        )
+        object.__setattr__(
+            self,
+            "token",
+            self.token
+            or is_token(self.definition, self.origin)
+            or self.source_origin is CardOrigin.TOKEN,
+        )
+
+
+@dataclass(frozen=True)
 class FollowerEntryRecord:
     """Public match history for a follower that successfully entered play."""
 
@@ -947,6 +983,7 @@ class Unit(BoardEntity):
 @dataclass
 class Amulet(BoardEntity):
     countdown: int | None = None
+    play_mode_id: str | None = None
     earth_sigil_count: int = 0
     entered_turn: int = 0
     activated_turn: int | None = None
@@ -1090,6 +1127,7 @@ class GameState:
     resolution_steps: int = 0
     next_entity_id: int = 1
     destroyed_followers: list[DestroyedFollowerRecord] = field(default_factory=list)
+    destroyed_amulets: list[DestroyedAmuletRecord] = field(default_factory=list)
     follower_entries: list[FollowerEntryRecord] = field(default_factory=list)
     listener_activation_counts: dict[tuple[int, int, int], int] = field(
         default_factory=dict

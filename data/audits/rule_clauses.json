@@ -7284,6 +7284,41 @@
       "source_text_sha256": "c0f28363fa8f0ee1f0ca7199f6a0d68057d5ce82e644db0ec297c9bfa2490d69",
       "test_evidence": ["tests/test_real_turn_end_draw_random_seventeenth_batch.py"],
       "notes": "固有突进、先获得纹章再随机洗回两张并抽二、抽牌物理当前费用1/3/5与2/4/6分流、己方与敌方场随机狐/鹰、非己方回合不触发、来源离场后纹章独立、满场和固定种子均有直接测试。"
+    },
+    {
+      "card_id": 10162130,
+      "rule_version": 1,
+      "source_text_sha256": "7b50e98856d60e7d2df461f28f5cbbe269cdbd61b0d4be7eccde22053c2a34bf",
+      "test_evidence": ["tests/test_real_destroyed_amulet_bulk_zone_eighteenth_batch.py"],
+      "notes": "固有守护、护符破坏持久历史、结晶随从的护符形态与初始倒计数保存/再召唤、仅选择原始费用最高候选、同费用固定种子随机、来源离场后谢幕曲、无候选不消耗随机数及满场均有直接测试。"
+    },
+    {
+      "card_id": 10663210,
+      "rule_version": 1,
+      "source_text_sha256": "15f996ad251957381e779175865d5e1dd495340666ddf04343b1f860ced1f379",
+      "test_evidence": ["tests/test_real_destroyed_amulet_bulk_zone_eighteenth_batch.py"],
+      "notes": "吟唱2、入场选择其他任意场上卡牌、破坏后目标快照判定己方护符并回复2能量、敌方及随从分支、无目标路径、谢幕曲原始费用和谢幕曲过滤均有直接测试。"
+    },
+    {
+      "card_id": 10664110,
+      "rule_version": 1,
+      "source_text_sha256": "992abad431cb71f3ffdbf9d8bb8b6276e03f09669d5692d338f033df9eeb18fc",
+      "test_evidence": ["tests/test_real_destroyed_amulet_bulk_zone_eighteenth_batch.py"],
+      "notes": "入场从持久破坏历史随机召唤2种不同名称低费谢幕曲护符、候选不足及场面容量、超进化选择并破坏其他卡牌、己方护符分支对敌方全体3伤和失效目标均有直接测试。"
+    },
+    {
+      "card_id": 10543110,
+      "rule_version": 1,
+      "source_text_sha256": "0182ef0baedb6a542b5c111f0601157a47d97e0b76d3f1645f073cd1e5be12b6",
+      "test_evidence": ["tests/test_real_destroyed_amulet_bulk_zone_eighteenth_batch.py"],
+      "notes": "超进化按物理牌当前费用批量放逐1/3/5/7/9费卡、偶数费用保留、逐卡事件、以实际放逐数量分配伤害、零命中和无敌方随从路径均有直接测试。"
+    },
+    {
+      "card_id": 10554120,
+      "rule_version": 1,
+      "source_text_sha256": "63e4e328836792f56bb18aede9096d1678d51e9e2b820feda05ab5b6f3b55ec1",
+      "test_evidence": ["tests/test_real_destroyed_amulet_bulk_zone_eighteenth_batch.py"],
+      "notes": "入场严格顺序执行两轮全部手牌返回与等量重抽、每轮独立按当前费用分组、同时伤害敌方全体随从与主战者、空手不消耗随机数、固定种子复现及超进化完整复现入场能力均有直接测试。"
     }
   ]
 }
