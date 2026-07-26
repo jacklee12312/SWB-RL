@@ -157,7 +157,7 @@ class ForcedTargetCandidateTests(unittest.TestCase):
         self.assertEqual(target_candidates(enemy, 0, engine.players), [lloyd])
         self.assertEqual(
             target_candidates(mixed, 0, engine.players),
-            [own, lloyd],
+            [lloyd],
         )
         options = engine._target_options(
             EffectOperation(

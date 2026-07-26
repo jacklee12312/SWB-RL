@@ -1,0 +1,71 @@
+{
+  "intrinsic_keywords": [
+    {"card_id": 10572120, "keywords": ["守护"]},
+    {"card_id": 10851110, "keywords": ["疾驰"]}
+  ],
+  "passives": [
+    {"card_id": 10851110, "kind": "ignores_ward"}
+  ],
+  "listeners": [
+    {
+      "card_id": 10572120,
+      "zone": "board",
+      "event": "card_played",
+      "event_scope": "owner_event",
+      "source_relation": "other",
+      "event_filter": {"card_type": "法术"},
+      "operations": [
+        {"kind": "evolve_unit", "target": "self"}
+      ]
+    }
+  ],
+  "rules": [
+    {
+      "card_id": 10201310,
+      "trigger": "play",
+      "operations": [
+        {
+          "kind": "buff_unit",
+          "target": "any_unit",
+          "amount": 2,
+          "secondary_amount": -2,
+          "requires_target": true
+        }
+      ]
+    },
+    {
+      "card_id": 10533310,
+      "trigger": "play",
+      "operations": [
+        {
+          "kind": "transform_board_from_random_own_deck",
+          "target": "all_own_units",
+          "card_type_filter": "随从"
+        }
+      ]
+    },
+    {
+      "card_id": 10741310,
+      "trigger": "play",
+      "operations": [
+        {
+          "kind": "change_max_mana",
+          "target": "own_leader",
+          "amount": 1
+        },
+        {
+          "kind": "transform",
+          "target": "all_own_hand",
+          "card_id": 10742310,
+          "hand_filter": {"card_id": 10741310}
+        },
+        {
+          "kind": "transform_deck_cards",
+          "target": "own_leader",
+          "card_id": 10742310,
+          "card_id_filter": 10741310
+        }
+      ]
+    }
+  ]
+}

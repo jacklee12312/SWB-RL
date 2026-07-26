@@ -66,6 +66,15 @@ _MANUAL_TARGETS = frozenset({
     TargetKind.OWN_GRAVEYARD_CARD,
 })
 
+_MANUAL_TARGETS_THAT_CAN_SELECT_ENEMY_FOLLOWERS = frozenset({
+    TargetKind.ENEMY_UNIT,
+    TargetKind.ANY_UNIT,
+    TargetKind.ENEMY_UNIT_OR_LEADER,
+    TargetKind.ANY_UNIT_OR_LEADER,
+    TargetKind.ENEMY_BOARD,
+    TargetKind.ANY_BOARD,
+})
+
 _RANDOM_TARGETS = frozenset({
     TargetKind.RANDOM_OWN_UNIT,
     TargetKind.RANDOM_ENEMY_UNIT,
@@ -142,6 +151,7 @@ _EFFECT_UNIT_ONLY = frozenset({
     EffectKind.GRANT_EFFECT_DESTROY_IMMUNITY,
     EffectKind.REMOVE_KEYWORD,
     EffectKind.SET_STATS,
+    EffectKind.TRANSFORM_BOARD_FROM_RANDOM_OWN_DECK,
     EffectKind.EVOLVE_UNIT,
     EffectKind.SUPER_EVOLVE_UNIT,
     EffectKind.ADD_ATTACK_RESTRICTION,
@@ -366,16 +376,35 @@ def target_candidates(
             e for e in candidates
             if not _is_unselectable_by_enemy_effects(e, controller, players)
         ]
-        if enemy_has_forced_ability_target(controller, players):
-            candidates = [
+        if (
+            operation.target
+            in _MANUAL_TARGETS_THAT_CAN_SELECT_ENEMY_FOLLOWERS
+            and enemy_has_forced_ability_target(controller, players)
+        ):
+            forced_candidates = [
                 entity
-                for entity in candidates
-                if entity not in enemy_board
-                or (
+                for entity in enemy_board
+                if (
                     isinstance(entity, Unit)
                     and entity.forces_enemy_ability_target
+                    and _effect_compatible(entity, operation.kind)
+                    and (
+                        operation.board_filter is None
+                        or operation.board_filter.matches_entity(entity)
+                    )
+                    and (
+                        not operation.exclude_source
+                        or source_entity_id is None
+                        or entity.entity_id != source_entity_id
+                    )
+                    and not _is_unselectable_by_enemy_effects(
+                        entity,
+                        controller,
+                        players,
+                    )
                 )
             ]
+            candidates = forced_candidates
 
     candidates = apply_candidate_extreme(candidates, operation.candidate_extreme)
 
@@ -495,12 +524,13 @@ def leader_choice_options(
         leader_indexes = ()
     if (
         players is not None
-        and 1 - controller in leader_indexes
+        and target in {
+            TargetKind.ENEMY_UNIT_OR_LEADER,
+            TargetKind.ANY_UNIT_OR_LEADER,
+        }
         and enemy_has_forced_ability_target(controller, players)
     ):
-        leader_indexes = tuple(
-            index for index in leader_indexes if index == controller
-        )
+        leader_indexes = ()
     return [
         ChoiceOption(
             option_id=f"leader:{player_index}",

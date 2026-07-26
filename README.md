@@ -38,16 +38,17 @@ covered generic boundary, but that never upgrades a partial or placeholder
 keyword whose full tagged-card semantics still require structured rules.
 
 The [rule coverage report](data/reports/rule_coverage.md) now includes a
-clause-audit layer without changing its legacy coverage categories. Of 730
-exact collectible cards (99.32% of 735), all 730 have explicit implemented text and named direct
-test evidence. The sibling `data/audits/rule_clauses.json` registry hashes every
+clause-audit layer without changing its legacy coverage categories. All 735
+collectible cards are exact (100%), and all 735 have explicit implemented text
+and named direct test evidence. The sibling
+`data/audits/rule_clauses.json` registry hashes every
 imported skill and alternate-mode clause, so a database text change or stale
 test reference invalidates the audit instead of silently retaining exact
 status. The current report has no unverified exact entry or missing generic
-schema, primitive, targeting, timing, or per-card structured-rule blocker. Its
-remaining collectible gaps are 5 explicitly unresolved complex texts.
-Rule metadata also supports version and errata fields, and the report
-records the complete imported source snapshot hash.
+schema, primitive, targeting, timing, text-clarity, external-evidence, or
+per-card structured-rule blocker. Rule metadata also supports version, errata,
+official-source URL, retrieval date, and ruling fields, and the report records
+the complete imported source snapshot hash.
 
 ## Reproducible RL Platform
 
@@ -127,10 +128,10 @@ implementation. Multiprocess PPO currently uses current-policy self-play;
 random, fixed, and historical opponent mixing remains on the single-process
 collector. The balanced class schedule is not an adaptive curriculum, and the
 same-class fixed evaluation suite is not yet a 7x7 cross-class policy-strength
-matrix. Snapshot/clone is the search foundation only. Card-rule
-coverage also remains deliberately separate: no supported collectible lacks a
-per-card structured rule, while 5 complex card texts remain explicitly unresolved and do
-not enter the exact training catalog or count as supported.
+matrix. Snapshot/clone is the search foundation only. Card-rule coverage also
+remains deliberately separate from policy strength: the current frozen
+database snapshot has 735/735 exact collectible rules, and all 735 enter the
+exact training catalog.
 
 ## Implemented Engine Surface
 
@@ -596,6 +597,18 @@ The deterministic rules core supports:
   replay, RL mask parity, and Clause/Token/Ability consistency. Exact
   collectible coverage reaches 730/735 (99.32%); 91 generated cards remain
   complete, and Observation/action versions are unchanged;
+- official English/Japanese/Simplified-Chinese card pages and FAQs close the
+  final five complex collectibles (`10201310`, `10533310`, `10572120`,
+  `10741310`, `10851110`). Generic additions cover Lloyd-style forced manual
+  targeting, independent-with-replacement whole-board exact-copy transforms
+  from the owner's physical deck, filtered whole-deck replacement, spell-play
+  self-evolution listeners, and a removable passive that ignores Ward.
+  Direct tests cover normal and illegal paths, no legal target, source/target
+  departure, hand and board capacity, physical deck modifiers, replacement
+  reset semantics, fixed-seed replay, Ward removal, and command/action-mask
+  parity. Coverage reaches 735/735 exact (100%); Clause Audit has 735 mapped
+  entries, Token Audit keeps all 91 generated cards complete, and
+  Observation/action versions remain unchanged;
 - filtered hand-count conditions reuse the same type/class/identity/trait
   definition filters as hand targeting. Exact `10521120` counts only spells
   before conditionally gaining +1/+1 and Ward, while exact `10741120` and
@@ -1272,7 +1285,10 @@ and the [official Olivia Q&A](https://shadowverse-wb.com/ja/deck/cardslist/card/
 The engine still does not model the full SWB ruleset. Unsupported behavior must
 remain visible instead of silently behaving as implemented.
 
-Known broad gaps include:
+All cards in the current 826-card snapshot are audited: 735/735 collectibles
+are exact and all 91 generated cards have complete executable producer and
+behavior paths. The remaining broad engine limits are guarded schema surfaces
+or future-content risks, not uncovered clauses in the current catalog:
 
 - `repeat` currently supports automatic/optional nested targeting and rejects
   nested `requires_target`; a future card whose repeated sequence must prohibit
@@ -1281,11 +1297,9 @@ Known broad gaps include:
 - multi-target count fields remain intentionally unsupported for random hand,
   graveyard, and follower-or-leader targets; the rule loader rejects those
   combinations instead of silently applying single-target semantics;
-- exact semantics for many real collectible cards; all 91 imported generated
-  cards now have complete executable producer/behavior paths in the independent
-  token audit, with no partial or database-only entry remaining;
-- remaining `信仰` progression/payoff semantics, plus broader real-card coverage for `策动`,
-  `土之秘术`, `觉醒`, and `连击` beyond the currently authored examples;
+- future `信仰`, `策动`, `土之秘术`, `觉醒`, and `连击` variants still require
+  explicit structured definitions and direct verification before a later
+  database snapshot can classify them exact;
 - ordinary board, hand, and leader-area listeners now receive
   `amulet_activated` and `card_fused`; remaining cards that use those events
   still need individual structured rules and official-text verification;
@@ -1298,20 +1312,21 @@ Known broad gaps include:
 - Fusion-driven hand transforms and refusion are implemented. Other cards can
   listen to `card_fused`, but their individual reactions and later generated
   Artifact end-form abilities still require audited structured rules;
-- additional `奥义` cards still require explicit structured definitions; the
+- future `奥义` cards still require explicit structured definitions; the
   generic gauge, thresholds, activation event, and repeated random target flow
-  are implemented, while unsupported card-specific clauses remain visible;
-- additional cards that cause normal evolution, restore SEP, or super-evolve
-  multiple/selected followers still need their own structured rules; real
+  are implemented;
+- future cards that cause normal evolution, restore SEP, or super-evolve
+  multiple/selected followers will still need their own structured rules; real
   `10443110` now exactly covers both its `奥义` self-super-evolution and its
   cost-2-follower Ward listener;
-- source-backed continuous stat or keyword derivation remains unsupported;
+- source-backed continuous stat or keyword derivation remains schema-rejected
+  until a verified card requires it;
   source-backed leader damage modifiers are implemented and revalidate entry,
   leave, transform, and control changes;
 - remaining trigger-ordering edge cases beyond the current death-batch
   ordering diagnostics and `death_batch_end` boundary triggers, including
-  unsupported `death_batch_start` emblem triggers, plus broad real-card
-  coverage audits;
+  unsupported `death_batch_start` emblem triggers; no current exact rule uses
+  that boundary;
 - keyword registry status is intentionally conservative: handlers and generic
   primitives may exist before a keyword is marked fully implemented.
 

@@ -961,6 +961,12 @@ class RuleBook:
             for p in self._passives.get(card_id, [])
         )
 
+    def ignores_ward(self, card_id: int) -> bool:
+        return any(
+            p.kind == "ignores_ward"
+            for p in self._passives.get(card_id, [])
+        )
+
     def non_intrinsic_keywords(self, card_id: int) -> frozenset[str]:
         return frozenset(
             passive.keyword
@@ -2454,6 +2460,7 @@ def _parse_passive(raw: dict, source_file: str) -> CardPassive:
         "non_intrinsic_keyword",
         "attacks_per_turn",
         "forces_enemy_ability_target",
+        "ignores_ward",
         "incoming_damage_replacement",
     ):
         raise ValueError(f"{source_file} card {card_id}: unknown passive kind {kind!r}")
@@ -2533,6 +2540,7 @@ def _parse_passive(raw: dict, source_file: str) -> CardPassive:
         "banish_on_leave",
         "cannot_be_destroyed_by_effects",
         "forces_enemy_ability_target",
+        "ignores_ward",
     }:
         amount = raw.get("amount")
         if amount is None:
@@ -3539,6 +3547,30 @@ def _parse_operation(
                 "transform_hand_from_random_enemy_deck does not accept amount"
             )
 
+    if kind is EffectKind.TRANSFORM_BOARD_FROM_RANDOM_OWN_DECK:
+        if target is not TargetKind.ALL_OWN_UNITS:
+            raise ValueError(
+                f"{source_file}/target card {card_id}: "
+                "transform_board_from_random_own_deck requires all_own_units"
+            )
+        if raw_amount is not None:
+            raise ValueError(
+                f"{source_file}/amount card {card_id}: "
+                "transform_board_from_random_own_deck does not accept amount"
+            )
+
+    if kind is EffectKind.TRANSFORM_DECK_CARDS:
+        if target is not TargetKind.OWN_LEADER:
+            raise ValueError(
+                f"{source_file}/target card {card_id}: "
+                "transform_deck_cards requires own_leader"
+            )
+        if raw_amount is not None:
+            raise ValueError(
+                f"{source_file}/amount card {card_id}: "
+                "transform_deck_cards does not accept amount"
+            )
+
     if kind is EffectKind.CHANGE_MAX_MANA:
         if target not in (TargetKind.OWN_LEADER, TargetKind.ENEMY_LEADER):
             raise ValueError(
@@ -4013,6 +4045,7 @@ def _parse_operation(
         EffectKind.ADD_CARD,
         EffectKind.ADD_CARD_TO_DECK,
         EffectKind.TRANSFORM,
+        EffectKind.TRANSFORM_DECK_CARDS,
     ):
         if operation_card_id is None:
             raise ValueError(
@@ -4928,6 +4961,8 @@ def _parse_operation(
         EffectKind.CHANGE_DECK_COST,
         EffectKind.BANISH_DECK_FILTERED,
         EffectKind.BUFF_DECK_CARDS,
+        EffectKind.TRANSFORM_BOARD_FROM_RANDOM_OWN_DECK,
+        EffectKind.TRANSFORM_DECK_CARDS,
     }
     deck_filter: DeckFilter | None = None
     hand_filter: HandFilter | None = None
@@ -5132,6 +5167,32 @@ def _parse_operation(
                 f"{source_file} card {card_id}: buff_deck_cards requires at "
                 "least one non-zero stat change"
             )
+    if kind is EffectKind.TRANSFORM_BOARD_FROM_RANDOM_OWN_DECK:
+        if card_type_filter != "随从":
+            raise ValueError(
+                f"{source_file}/card_type_filter card {card_id}: "
+                "transform_board_from_random_own_deck requires "
+                "card_type_filter='随从'"
+            )
+    if kind is EffectKind.TRANSFORM_DECK_CARDS:
+        if not any((
+            card_type_filter is not None,
+            deck_class_id is not None,
+            deck_class_name is not None,
+            deck_cost_min is not None,
+            deck_cost_max is not None,
+            bool(deck_costs),
+            deck_card_id is not None,
+            deck_card_name is not None,
+            deck_tribe_id is not None,
+            deck_tribe_name is not None,
+            deck_life_min is not None,
+            deck_life_max is not None,
+        )):
+            raise ValueError(
+                f"{source_file} card {card_id}: transform_deck_cards "
+                "requires at least one deck filter"
+            )
     if _is_deck_filter_kind:
         if deck_cost_min is not None:
             deck_cost_min = _parse_non_negative_int(
@@ -5200,7 +5261,8 @@ def _parse_operation(
         raise ValueError(
             f"{source_file} card {card_id}: deck filter fields "
             "are only valid with draw_filtered, summon_from_deck, "
-            "change_deck_cost, banish_deck_filtered, or buff_deck_cards"
+            "change_deck_cost, banish_deck_filtered, buff_deck_cards, or "
+            "deck-transform operations"
         )
     if _is_graveyard_kind:
         if target not in _GRAVEYARD_TARGETS:

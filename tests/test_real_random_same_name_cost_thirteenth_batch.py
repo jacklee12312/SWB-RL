@@ -665,8 +665,7 @@ class RandomSameNameCostThirteenthAuditTests(unittest.TestCase):
         self.assertEqual(
             report["summary"]["coverage_counts"],
             {
-                "covered_exact": 730,
-                "text_unclear": 5,
+                "covered_exact": 735,
                 "supported_missing_rule": 0,
                 "token_or_non_collectible": 91,
             },

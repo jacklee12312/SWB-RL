@@ -60,6 +60,7 @@ class EventType(str, Enum):
     HAND_CARD_SUMMONED = "hand_card_summoned"
     CARD_ABILITY_GRANTED = "card_ability_granted"
     DECK_CARD_COST_CHANGED = "deck_card_cost_changed"
+    DECK_CARD_TRANSFORMED = "deck_card_transformed"
     DECK_DUPLICATES_BANISHED = "deck_duplicates_banished"
     DECK_REPLACED = "deck_replaced"
     EMPTY_DECK_OUTCOME_CHANGED = "empty_deck_outcome_changed"

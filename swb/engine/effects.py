@@ -217,6 +217,10 @@ class EffectKind(str, Enum):
     SET_LEADER_MAX_HEALTH = "set_leader_max_health"
     CHANGE_LEADER_MAX_HEALTH = "change_leader_max_health"
     TRANSFORM = "transform"
+    TRANSFORM_BOARD_FROM_RANDOM_OWN_DECK = (
+        "transform_board_from_random_own_deck"
+    )
+    TRANSFORM_DECK_CARDS = "transform_deck_cards"
     TRANSFORM_HAND_FROM_RANDOM_ENEMY_DECK = (
         "transform_hand_from_random_enemy_deck"
     )

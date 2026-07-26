@@ -698,6 +698,9 @@ def _load_rule_metadata(rules_dir: str) -> dict[int, dict]:
                     "blocker_type",
                     "source_text_sha256",
                     "test_evidence",
+                    "official_source_url",
+                    "official_source_retrieved_at",
+                    "official_ruling",
                 )
                 if key in entry
             }

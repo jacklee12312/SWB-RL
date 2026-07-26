@@ -12,21 +12,20 @@
   },
   "summary": {
     "total_cards": 826,
-    "total_with_rules": 834,
+    "total_with_rules": 839,
     "test_or_synthetic_ids_with_rules": 26,
     "coverage_counts": {
-      "covered_exact": 730,
-      "text_unclear": 5,
+      "covered_exact": 735,
       "token_or_non_collectible": 91,
       "supported_missing_rule": 0
     },
     "clause_audit_counts": {
-      "mapped_exact": 730,
+      "mapped_exact": 735,
       "unverified_exact": 0,
       "partial": 0,
       "missing_rule": 0,
       "missing_primitive": 0,
-      "text_unclear": 5,
+      "text_unclear": 0,
       "token_separate_audit": 91
     },
     "blocker_counts": {
@@ -35,7 +34,7 @@
       "missing_primitive": 0,
       "missing_targeting": 0,
       "timing_unclear": 0,
-      "text_unclear": 5,
+      "text_unclear": 0,
       "external_blocker": 0,
       "audit_unverified": 0
     }
@@ -13147,8 +13146,8 @@
       "cost": 2,
       "is_collectible": true,
       "card_set_id": 10002,
-      "coverage": "text_unclear",
-      "reason": "No ability keywords in database",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['play'], Ops: ['buff_unit']",
       "hit_keywords": [],
       "missing_primitives": [],
       "ability_keywords": [],
@@ -13156,27 +13155,46 @@
         "选择战场上的1个随从，使其+2/-2。"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "选择战场上的1个随从，使其+2/-2。",
+        "notes": "官方英/日/简中卡牌页及英文FAQ共同确认全场随从选择、+2/-2与Lloyd强制指定。直接测试正常选择、Lloyd唯一候选、目标离场、致死状态检查、非法选择原子性及RL action mask。",
+        "rule_version": 1,
+        "source_text_sha256": "bcc71c129901654eb3aface401adaf8d865624c42f52335085fbd21ecfec11df",
+        "test_evidence": [
+          "tests/test_real_official_complex_completion_twenty_second_batch.py"
+        ],
+        "official_source_url": "https://shadowverse-wb.com/en/deck/cardslist/card/?card_id=10201310",
+        "official_source_retrieved_at": "2026-07-25",
+        "official_ruling": "The official English FAQ says that while an enemy Lloyd is in play, Dark Side cannot select an allied follower; Lloyd's forced-target rule therefore narrows the otherwise field-wide follower choice to Lloyd."
+      },
       "clause_audit": {
-        "status": "text_unclear",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10201310:0",
             "source_text": "选择战场上的1个随从，使其+2/-2。",
-            "mapping_status": "text_unclear"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "选择战场上的1个随从，使其+2/-2。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "bcc71c129901654eb3aface401adaf8d865624c42f52335085fbd21ecfec11df",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "play"
+          ],
+          "effect_kinds": [
+            "buff_unit"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_official_complex_completion_twenty_second_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "text_unclear"
+        "blocker_type": null
       }
     },
     "10202110": {
@@ -30729,8 +30747,8 @@
       "cost": 7,
       "is_collectible": true,
       "card_set_id": 10005,
-      "coverage": "text_unclear",
-      "reason": "No ability keywords in database",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['play'], Ops: ['transform_board_from_random_own_deck']",
       "hit_keywords": [],
       "missing_primitives": [],
       "ability_keywords": [],
@@ -30738,27 +30756,46 @@
         "使自己的战场上的所有随从分别变身为自己的牌组中的随机1张随从的复制随从。"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "使自己的战场上的所有随从分别变身为自己的牌组中的随机1张随从的复制随从。",
+        "notes": "官方英/日/简中卡牌页和FAQ确认每个己方随从独立、有放回抽取牌组随从并变成完全相同复制品。直接测试实体ID稳定、旧状态清除、牌组物理加成复制、空候选、空场、满场及固定种子复现。",
+        "rule_version": 1,
+        "source_text_sha256": "d9daf0fc677ca60574f087df5667bfae9035c7565f31f2ce1081f80a7bc321ae",
+        "test_evidence": [
+          "tests/test_real_official_complex_completion_twenty_second_batch.py"
+        ],
+        "official_source_url": "https://shadowverse-wb.com/en/deck/cardslist/card/?card_id=10533310",
+        "official_source_retrieved_at": "2026-07-25",
+        "official_ruling": "The official FAQ states that each allied follower rolls independently against the same deck-follower pool, so selections are made with replacement and duplicate results are possible."
+      },
       "clause_audit": {
-        "status": "text_unclear",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10533310:0",
             "source_text": "使自己的战场上的所有随从分别变身为自己的牌组中的随机1张随从的复制随从。",
-            "mapping_status": "text_unclear"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "使自己的战场上的所有随从分别变身为自己的牌组中的随机1张随从的复制随从。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "d9daf0fc677ca60574f087df5667bfae9035c7565f31f2ce1081f80a7bc321ae",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "play"
+          ],
+          "effect_kinds": [
+            "transform_board_from_random_own_deck"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_official_complex_completion_twenty_second_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "text_unclear"
+        "blocker_type": null
       }
     },
     "10534110": {
@@ -33219,8 +33256,8 @@
       "cost": 2,
       "is_collectible": true,
       "card_set_id": 10005,
-      "coverage": "text_unclear",
-      "reason": "No ability keywords in database",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['listener:board:card_played', 'intrinsic_keywords'], Ops: ['evolve_unit', 'keyword:守护']",
       "hit_keywords": [],
       "missing_primitives": [],
       "ability_keywords": [
@@ -33230,27 +33267,48 @@
         "【<color=Keyword>守护</color>】\n自己使用法术时，本随从进化。"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【守护】。自己使用法术时，本随从进化。",
+        "notes": "进化前后官方文本一致。以固有守护和board-zone CARD_PLAYED法术过滤监听实现；直接测试免费自进化、重复法术、非法术及来源离场。",
+        "rule_version": 1,
+        "source_text_sha256": "6799ee0fec31b68882a105309ddffe96be552a1d24e65dbfadea481ed8e1fa77",
+        "test_evidence": [
+          "tests/test_real_official_complex_completion_twenty_second_batch.py"
+        ],
+        "official_source_url": "https://shadowverse-wb.com/en/deck/cardslist/card/?card_id=10572120",
+        "official_source_retrieved_at": "2026-07-25",
+        "official_ruling": "The official English, Japanese, and Simplified Chinese pages agree that every spell played by the owner evolves this follower; the official page contains no additional FAQ."
+      },
       "clause_audit": {
-        "status": "text_unclear",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10572120:0",
             "source_text": "【<color=Keyword>守护</color>】\n自己使用法术时，本随从进化。",
-            "mapping_status": "text_unclear"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "【守护】。自己使用法术时，本随从进化。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "6799ee0fec31b68882a105309ddffe96be552a1d24e65dbfadea481ed8e1fa77",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "listener:board:card_played",
+            "intrinsic_keywords"
+          ],
+          "effect_kinds": [
+            "evolve_unit",
+            "keyword:守护"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_official_complex_completion_twenty_second_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "text_unclear"
+        "blocker_type": null
       }
     },
     "10572310": {
@@ -41472,8 +41530,8 @@
       "cost": 4,
       "is_collectible": true,
       "card_set_id": 10007,
-      "coverage": "text_unclear",
-      "reason": "No ability keywords in database",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['play'], Ops: ['change_max_mana', 'transform', 'transform_deck_cards']",
       "hit_keywords": [],
       "missing_primitives": [],
       "ability_keywords": [],
@@ -41481,27 +41539,48 @@
         "使自己的能量点最大值+1。使自己的手牌和自己的牌组中的所有『<color=Keyword>百无聊赖的睥睨</color>』变身为『<color=Keyword>焦龙的午睡</color>』。"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "使自己的能量点最大值+1。使自己的手牌和自己的牌组中的所有『百无聊赖的睥睨』变身为『焦龙的午睡』。",
+        "notes": "关联卡10742310（焦龙的午睡/Lazing Flame）已有独立exact规则与直接测试。直接测试最大PP上限、所有其他手牌/牌组同名实体变形、运行时修饰清除、无其他复制和牌组变形事件。",
+        "rule_version": 1,
+        "source_text_sha256": "ee78f8d2100e25c510e625393b7ce0363ac0ec7900a6eed577eb029e9661d86f",
+        "test_evidence": [
+          "tests/test_real_official_complex_completion_twenty_second_batch.py"
+        ],
+        "official_source_url": "https://shadowverse-wb.com/en/deck/cardslist/card/?card_id=10741310",
+        "official_source_retrieved_at": "2026-07-25",
+        "official_ruling": "The official multilingual pages identify both zones and every matching copy; no additional FAQ or errata is published on the card page."
+      },
       "clause_audit": {
-        "status": "text_unclear",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10741310:0",
             "source_text": "使自己的能量点最大值+1。使自己的手牌和自己的牌组中的所有『<color=Keyword>百无聊赖的睥睨</color>』变身为『<color=Keyword>焦龙的午睡</color>』。",
-            "mapping_status": "text_unclear"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "使自己的能量点最大值+1。使自己的手牌和自己的牌组中的所有『百无聊赖的睥睨』变身为『焦龙的午睡』。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "ee78f8d2100e25c510e625393b7ce0363ac0ec7900a6eed577eb029e9661d86f",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "play"
+          ],
+          "effect_kinds": [
+            "change_max_mana",
+            "transform",
+            "transform_deck_cards"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_official_complex_completion_twenty_second_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "text_unclear"
+        "blocker_type": null
       }
     },
     "10742110": {
@@ -47185,8 +47264,8 @@
       "cost": 4,
       "is_collectible": true,
       "card_set_id": 10008,
-      "coverage": "text_unclear",
-      "reason": "No ability keywords in database",
+      "coverage": "covered_exact",
+      "reason": "Triggers: ['passive', 'intrinsic_keywords'], Ops: ['ignores_ward', 'keyword:疾驰']",
       "hit_keywords": [],
       "missing_primitives": [],
       "ability_keywords": [
@@ -47197,27 +47276,48 @@
         "【<color=Keyword>疾驰</color>】\n可以无视【<color=Keyword>守护</color>】进行攻击。"
       ],
       "support_level": "unsupported",
+      "rule_metadata": {
+        "coverage": "exact",
+        "implemented_text": "【疾驰】。可以无视【守护】进行攻击。",
+        "notes": "以固有疾驰和可被失去所有能力关闭的通用ignores_ward被动实现。直接测试守护存在时可攻击主战者/守护/非守护随从、失去所有能力后的回退、非法攻击原子性及RL action mask精确一致。",
+        "rule_version": 1,
+        "source_text_sha256": "4dcbefa70bb6864e83c5ec2acfcf35f95267f008aa96bd1c71dee60196d28fd0",
+        "test_evidence": [
+          "tests/test_real_official_complex_completion_twenty_second_batch.py"
+        ],
+        "official_source_url": "https://shadowverse-wb.com/en/deck/cardslist/card/?card_id=10851110",
+        "official_source_retrieved_at": "2026-07-25",
+        "official_ruling": "The official English, Japanese, and Simplified Chinese pages all state Storm and unrestricted attack targeting despite Ward; the official page contains no additional FAQ."
+      },
       "clause_audit": {
-        "status": "text_unclear",
+        "status": "mapped_exact",
         "rule_version": 1,
         "errata": [],
         "source_clauses": [
           {
             "clause_id": "10851110:0",
             "source_text": "【<color=Keyword>疾驰</color>】\n可以无视【<color=Keyword>守护</color>】进行攻击。",
-            "mapping_status": "text_unclear"
+            "mapping_status": "implemented"
           }
         ],
-        "implemented_text": null,
+        "implemented_text": "【疾驰】。可以无视【守护】进行攻击。",
         "unsupported_text": null,
-        "source_text_sha256": null,
+        "source_text_sha256": "4dcbefa70bb6864e83c5ec2acfcf35f95267f008aa96bd1c71dee60196d28fd0",
         "structured_evidence": {
-          "triggers": [],
-          "effect_kinds": []
+          "triggers": [
+            "passive",
+            "intrinsic_keywords"
+          ],
+          "effect_kinds": [
+            "ignores_ward",
+            "keyword:疾驰"
+          ]
         },
-        "test_evidence": [],
+        "test_evidence": [
+          "tests/test_real_official_complex_completion_twenty_second_batch.py"
+        ],
         "audit_validation_error": null,
-        "blocker_type": "text_unclear"
+        "blocker_type": null
       }
     },
     "10851120": {

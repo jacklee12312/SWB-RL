@@ -1,6 +1,6 @@
 # SWB Engine Roadmap
 
-Last refreshed: 2026-07-25.
+Last refreshed: 2026-07-26.
 
 This file tracks implementation priorities and known gaps. Treat executable
 code and tests as the source of truth when this file drifts.
@@ -10,13 +10,13 @@ code and tests as the source of truth when this file drifts.
 - Database: 826 cards, 735 collectible cards, 91 non-collectible/generated
   cards from set `90000`.
 - Latest SVA source: `https://sva.hypd.asia/data/cards.json`.
-- Tests: `python -m unittest discover -s tests -v` discovers 2505 behavioral
-  contracts (2026-07-25 twenty-first official basic completion verification).
+- Tests: `python -m unittest discover -s tests -v` discovers 2528 behavioral
+  contracts (2026-07-26 twenty-second official complex completion verification).
 - RL adapter: fixed 111-action space; the default v1 observation is 294
   floats, opt-in v2 preserves the structured compatibility mapping, and v3
   supplies fixed-dtype NumPy arrays plus a Gymnasium observation space without
   changing action IDs. Hidden decklists are the v3 default.
-- The exact-audit `TrainableCardCatalog` currently admits all 730 exact
+- The exact-audit `TrainableCardCatalog` currently admits all 735 exact
   collectible cards, preloads all 826 definitions for SQLite-free matches, and
   provides deterministic class-valid deck sampling. Self-play no longer uses
   the legacy 2-to-5-card follower pool.
@@ -48,10 +48,11 @@ code and tests as the source of truth when this file drifts.
   and distribution acceptance results, not policy-strength evidence.
 - Ability registry status: 18 implemented, 5 partial, 11 placeholder.
 - Explicit card and demo rules live in `data/rules/`; the current coverage
-  report classifies 834 card IDs with explicit rules, passives, fusion,
+  report classifies 839 card IDs with explicit rules, passives, fusion,
   invocation, activation, Faith, Union Burst, or listener definitions. Current
-  collectible coverage is 730 exact (99.32% of 735), 0 partial, 0 supported-but-missing-rule,
-  0 missing-primitive, and 5 text-unclear cards.
+  collectible coverage is 735 exact (100%), 0 partial,
+  0 supported-but-missing-rule, 0 missing-schema, 0 missing-primitive,
+  0 missing-targeting, 0 missing-timing, and 0 text-unclear cards.
 - `data/reports/token_audit.{json,md}` audits all 91 non-collectible/generated
   cards independently of collectible coverage. Database `card_references` and
   executable structured producers are reported separately: all 91 tokens have a
@@ -64,18 +65,19 @@ code and tests as the source of truth when this file drifts.
   has a precise conservative reason and test evidence. Primitive support is a
   separate column and is covered for all 34; it does not automatically promote
   the 5 partial or 11 placeholder keyword statuses.
-- Coverage now has a backward-compatible clause audit. The legacy summary still
-  reports 730 exact collectible cards, and all 730 now have an explicit exact
+- Coverage now has a backward-compatible clause audit. The legacy summary
+  reports 735 exact collectible cards, and all 735 have an explicit exact
   text mapping plus named direct test evidence. The versioned sibling registry
   at `data/audits/rule_clauses.json` hashes every imported primary and
   alternate-mode clause; changed source text or stale test evidence invalidates
   the audit. Synthetic `999xxx` rules are counted but are not ordinary
   consistency failures. The report includes source import hash/count/timestamp,
-  rule version and errata metadata, structured trigger/operation evidence,
-  explicit unsupported text, and a stable blocker taxonomy. There are zero
+  rule version, errata, official source/retrieval/ruling metadata, structured
+  trigger/operation evidence, explicit unsupported text, and a stable blocker
+  taxonomy. There are zero
   unverified exact entries and no known missing schema, primitive, targeting,
-  or timing blocker among authored rules. No supported collectible is missing
-  a per-card structured rule; 5 unresolved complex texts remain explicit.
+  timing, text-clarity, or external-evidence blocker among authored rules. No
+  collectible is missing a per-card structured rule.
 - RL observation v2 is available behind an explicit version switch. A
   configured card vocabulary supplies stable categorical indices for own-hand,
   public-board, initial-deck composition, and public graveyard/banished state;
@@ -1559,6 +1561,21 @@ slice in this order:
   board capacity, illegal-command atomicity, seeded replay, RL action-mask
   parity, source hashes, and Clause/Token/Ability consistency. Observation
   `observation-v3.5`, v1's 294 floats, and all 111 action IDs remain unchanged.
+- Exact file
+  `data/rules/real_official_complex_completion_twenty_second_batch.json` closes
+  the final five official-source complex collectibles (`10201310`, `10533310`,
+  `10572120`, `10741310`, and `10851110`), bringing collectible coverage to
+  735/735 exact (100%) with every blocker category at zero. Generic additions
+  implement forced manual follower targeting, independent-with-replacement
+  exact-copy board transforms from the owner's physical deck, filtered
+  whole-deck transforms, spell-play self-evolution listeners, and removable
+  Ward-ignore passives. Official page URLs, retrieval dates, multilingual
+  source hashes, and FAQ rulings are retained in the Clause Audit and coverage
+  report. Direct tests cover legal/illegal/no-target paths, stale source and
+  target handling, capacity, physical modifier copying/reset, fixed-seed
+  reproduction, combat legality, and command/action-mask parity. All 91
+  generated cards remain complete; Observation `observation-v3.5`, v1's 294
+  floats, and all 111 action IDs remain unchanged.
 
 ## Known Partial Or Unsupported Areas
 
@@ -1610,12 +1627,10 @@ slice in this order:
 - The ability registry is conservative and fully audited: all 34 entries have
   a reason and test evidence, and a covered generic primitive does not promote
   a keyword until its real tagged-card semantics and boundaries are complete.
-- Many real cards are intentionally uncovered or only partly covered by
-  structured rules.
-- Additional effect-driven normal-evolution cards, SEP restoration, and cards
-  that super-evolve selected/deck-summoned groups remain incremental real-card
-  coverage work; the generic single/all follower super-evolution operation is
-  available without card-ID branches.
+- All real cards in the current snapshot have exact structured rules. Future
+  effect-driven normal-evolution, SEP-restoration, or multi-super-evolution
+  variants still require direct source verification; the generic single/all
+  follower super-evolution operation is available without card-ID branches.
 - Trigger ordering and simultaneous-death edge cases beyond the current
   death-batch ordering and mixed-composition diagnostics need broader coverage.
 - Emblem event trigger coverage is intentionally limited to explicit trigger
@@ -1649,15 +1664,13 @@ slice in this order:
 
 ## Next Coherent Slices
 
-### 1. Final Five Official-Source Complex Cards
+### 1. Frozen-Catalog Regression Gate
 
-- Close `10201310` forced-target +2/-2, `10533310` independent-with-replacement
-  whole-board deck-copy transforms, `10572120` spell-play self-evolution,
-  `10741310` maximum-PP gain plus hand/deck self replacement, and `10851110`
-  Storm that ignores Ward. Their official English/Japanese/Simplified-Chinese
-  card pages and FAQ semantics were retrieved on 2026-07-25; bind each through
-  generic targeting/effect/listener/attack-legality primitives and preserve
-  direct source metadata instead of approximating related cards.
+- Treat the 826-card source count/hash, 735 exact collectibles, 91 complete
+  generated cards, zero blockers, and Catalog/RuleBook/training-pool hashes as
+  a release gate. Any database or official-text change must invalidate the
+  clause hash, regenerate all audits, and require direct tests before entering
+  the exact training catalog.
 
 ### 2. Source-Backed Continuous Modifiers
 
@@ -1679,10 +1692,11 @@ slice in this order:
   boundary semantics and real-card recursive trigger combinations as coverage
   expands.
 
-### 5. Incremental Real-Card Coverage
+### 5. Future Snapshot Intake
 
-- Add further Faith progression/payoff and Union Burst cards only when their
-  complete generic operations can be represented without card-ID branches.
+- Add cards from future database snapshots only when every clause, Mode, Token,
+  reference, FAQ, and erratum has complete generic operations, source metadata,
+  and direct tests without card-ID branches.
 
 ### 6. Coverage Reporting
 

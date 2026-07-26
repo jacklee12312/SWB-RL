@@ -362,8 +362,7 @@ class OfficialDatabaseAndAuditTests(unittest.TestCase):
         self.assertEqual(
             report["summary"]["coverage_counts"],
             {
-                "covered_exact": 730,
-                "text_unclear": 5,
+                "covered_exact": 735,
                 "token_or_non_collectible": 91,
                 "supported_missing_rule": 0,
             },
@@ -371,12 +370,12 @@ class OfficialDatabaseAndAuditTests(unittest.TestCase):
         self.assertEqual(
             report["summary"]["clause_audit_counts"],
             {
-                "mapped_exact": 730,
+                "mapped_exact": 735,
                 "unverified_exact": 0,
                 "partial": 0,
                 "missing_rule": 0,
                 "missing_primitive": 0,
-                "text_unclear": 5,
+                "text_unclear": 0,
                 "token_separate_audit": 91,
             },
         )
@@ -388,7 +387,7 @@ class OfficialDatabaseAndAuditTests(unittest.TestCase):
                 "missing_primitive": 0,
                 "missing_targeting": 0,
                 "timing_unclear": 0,
-                "text_unclear": 5,
+                "text_unclear": 0,
                 "external_blocker": 0,
                 "audit_unverified": 0,
             },

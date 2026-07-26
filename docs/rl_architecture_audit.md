@@ -4,14 +4,14 @@
 P0 修复状态更新：2026-07-21
 P1/P2 平台验收更新：2026-07-21
 七职业评估与训练分布更新：2026-07-22
-全卡规则覆盖推进更新：2026-07-25
+全卡规则覆盖完成更新：2026-07-26
 
 ## 2026-07-21 修复结果
 
 本次平台硬化已经完成审计中的四项 P0，并完成目标内的 P1/P2 训练平台闭环：
 
 - `TrainableCardCatalog` 以 `rule_coverage.json` 的 `covered_exact` 为准，
-  当前纳入 730 张可收集卡；全部 826 张定义在 worker 启动时进入只读内存，
+  当前纳入 735 张可收集卡；全部 826 张定义在 worker 启动时进入只读内存，
   对局解析不再访问 SQLite；
 - Observation v3 使用固定 shape/dtype 的 NumPy 数组和 Gymnasium space，
   默认隐藏对手初始牌组，只有 `open_decklists=True` 才公开；
@@ -71,6 +71,14 @@ P1/P2 平台验收更新：2026-07-21
   非法命令原子性、固定种子复现、RL action mask及Clause/Token/Ability一致性。
   本批不增加新的公开决策状态，`observation-v3.5`、v1的294维和111个动作
   编号均保持不变；
+- 第二十二批以2026-07-25官方多语言卡牌页及FAQ为证据，补齐最终5张复杂卡：
+  强制手动目标、从己方物理牌库独立有放回随机精确复制全场、整副牌过滤变身、
+  法术出牌自进化监听，以及可被能力消除的无视守护被动。训练目录提升至735/735
+  exact，Clause Audit 735项全部mapped，全部缺失、歧义和外部阻塞归零，91张
+  生成卡继续complete。直接测试覆盖非法/无目标原子性、来源/目标离场、容量、
+  物理修正复制和重置、固定种子、战斗合法性及command/action-mask一致性。
+  本批不增加新的公开决策状态，`observation-v3.5`、v1的294维和111个动作
+  编号均保持不变；
 - `SWBAECEnv` 提供 PettingZoo AEC 双智能体接口，并通过官方 `api_test`；
 - 规则胜负与训练上限已经分离：前者 `terminated`，后者 `truncated`；
   独立 `max_agent_steps` 也覆盖不推进回合的墓地翻页动作；
@@ -106,7 +114,7 @@ CPU 训练、恢复、16 局镜像评估和吞吐数据都只作为 smoke/回归
 | 已完成 | P0、state-version 缓存、training mode、正式版本/hash、稳定卡牌 embedding、单/多 worker PPO rollout、recurrent masked PPO、原子恢复、四类对手池、固定评估、AEC/Gym、snapshot/clone | 聚焦测试、官方 wrapper 检查、2-worker CPU smoke 训练到 1,304 步并恢复到 1,571 步、环境与 4-worker 随机 rollout 基准 |
 | 部分完成 | 性能优化与评估覆盖广度 | 已有稳定基准和阈值；snapshot 约 0.82 MB/24.61 次每秒、clone 7.23 次每秒，足以作为正确性基础但仍需在高分支搜索前优化；七职业固定套件已落地，职业间 7×7 策略强度矩阵和长期统计实验尚未开始 |
 | 尚未实现 | 分布式 learner、完整 MCTS、策略强度实验、自适应训练 curriculum | 不属于本次可复现 baseline；确定性七职业轮转只保证采样均衡，不是按学习难度动态调整的 curriculum，也不得从 smoke 胜率推断策略强度 |
-| 明确不支持 | 5 张复杂文本待结构化实现的可收集卡 | 不进入 exact 训练目录，不得视为已支持；规则覆盖与 RL 平台状态继续分开报告 |
+| 当前可收集卡规则阻塞 | 0 张 | 当前数据库快照735/735 exact；覆盖事实仍与策略强度分开报告，未来快照必须重新审计 |
 
 ## 结论
 
@@ -419,5 +427,6 @@ PPO 多进程固定权重采样；完整 MCTS、分布式 learner、跨 worker �
 不需要替换 Python 或重写规则引擎。阶段 A/B/C 的可复现 baseline 已在确定性
 命令核心之外完成；下一步应由真实实验需求驱动：若走 PPO 路线，先扩展评估职业、
 curriculum 与 worker/learner 吞吐；若走搜索路线，先降低 snapshot/clone 成本。
-任何策略结论都应另设长期训练和统计设计。本次 smoke 不改变规则覆盖事实：仍有
-5 张复杂卡牌文本待结构化实现，它们必须继续保持 unsupported 可见性。
+任何策略结论都应另设长期训练和统计设计。本次规则收口也不构成策略强度证据：
+当前数据库快照735/735可收集卡为exact，未来卡池或文本更新必须重新通过Clause、
+Token、Ability、Catalog及训练池哈希门禁。

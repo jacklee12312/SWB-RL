@@ -1106,10 +1106,15 @@ class GameEngine:
                 continue
             if not unit.can_attack or unit.attacks_remaining <= 0 or unit.attack <= 0:
                 continue
-            if not guards and unit.can_attack_leader:
+            effective_guards = (
+                []
+                if self._unit_ignores_ward(unit)
+                else guards
+            )
+            if not effective_guards and unit.can_attack_leader:
                 commands.append(Attack(self.current_player, unit.entity_id, None))
             if unit.can_attack_units:
-                targets = guards or [
+                targets = effective_guards or [
                     target
                     for target in opponent.board
                     if isinstance(target, Unit)
@@ -1124,6 +1129,12 @@ class GameEngine:
     @staticmethod
     def _is_follower_attack_target(target: Unit) -> bool:
         return not target.ambush_active and not target.has_intimidate
+
+    def _unit_ignores_ward(self, unit: Unit) -> bool:
+        return (
+            not unit.printed_abilities_removed
+            and self.rulebook.ignores_ward(unit.definition.card_id)
+        )
 
     def _can_activate_amulet(
         self,
@@ -6389,6 +6400,8 @@ class GameEngine:
                 and self._is_follower_attack_target(unit)
             )
         ]
+        if self._unit_ignores_ward(attacker):
+            guards = []
         if command.target_id is None:
             if guards or not attacker.can_attack_leader:
                 raise IllegalCommand("Leader is not a legal target")
@@ -8343,6 +8356,14 @@ class GameEngine:
             self._execute_set_empty_deck_outcome(effect, frame)
         elif effect.kind is EffectKind.TRANSFORM:
             self._execute_transform(effect, frame, target_id)
+        elif effect.kind is EffectKind.TRANSFORM_BOARD_FROM_RANDOM_OWN_DECK:
+            self._execute_transform_board_from_random_own_deck(
+                effect,
+                frame,
+                target_id,
+            )
+        elif effect.kind is EffectKind.TRANSFORM_DECK_CARDS:
+            self._execute_transform_deck_cards(effect, frame)
         elif effect.kind is EffectKind.TRANSFORM_HAND_FROM_RANDOM_ENEMY_DECK:
             self._execute_transform_hand_from_random_enemy_deck(
                 effect,
@@ -10253,26 +10274,159 @@ class GameEngine:
             f"手牌 {old_name} 变身为敌方牌组中的随机卡牌",
         )
 
-    def _execute_transform(
+    def _execute_transform_board_from_random_own_deck(
         self,
         effect: EffectOperation,
         frame: EffectFrame,
         target_id: int | None,
     ) -> None:
+        if effect.deck_filter is None:
+            raise IllegalCommand(
+                "TRANSFORM_BOARD_FROM_RANDOM_OWN_DECK requires a deck filter"
+            )
+        candidates = tuple(
+            card
+            for card in self.players[frame.controller].deck
+            if effect.deck_filter.matches(card)
+        )
+        if not candidates:
+            self._log(
+                frame.controller,
+                f"{frame.source_name} 变形失败：牌组中没有符合条件的卡牌",
+            )
+            return
+        try:
+            target = self._find_board_entity(target_id)
+        except IllegalCommand:
+            return
+        if not isinstance(target, Unit):
+            raise IllegalCommand(
+                "TRANSFORM_BOARD_FROM_RANDOM_OWN_DECK target must be a follower"
+            )
+
+        selected = self.random.choice(candidates)
+        replacement = (
+            selected.definition
+            if isinstance(selected, DeckCard)
+            else selected
+        )
+        self._execute_transform(
+            replace(
+                effect,
+                kind=EffectKind.TRANSFORM,
+                card_id=replacement.card_id,
+            ),
+            frame,
+            target.entity_id,
+            replacement=replacement,
+        )
+        transformed = self._find_board_entity(target.entity_id)
+        if not isinstance(transformed, Unit):
+            raise IllegalCommand(
+                "TRANSFORM_BOARD_FROM_RANDOM_OWN_DECK replacement must be "
+                "a follower"
+            )
+        if isinstance(selected, DeckCard):
+            for modifier in selected.stat_modifiers:
+                transformed.add_stat_modifier(
+                    replace(
+                        modifier,
+                        modifier_id=self._allocate_modifier_id(),
+                    )
+                )
+        for event in reversed(self.state.event_queue):
+            if (
+                event.type is EventType.BOARD_CARD_TRANSFORMED
+                and event.source_id == transformed.entity_id
+            ):
+                event.metadata.update({
+                    "copied_from_zone": "own_deck",
+                    "copied_card_id": replacement.card_id,
+                    "exact_copy": True,
+                    "with_replacement": True,
+                })
+                break
+
+    def _execute_transform_deck_cards(
+        self,
+        effect: EffectOperation,
+        frame: EffectFrame,
+    ) -> None:
         if effect.card_id is None:
-            raise IllegalCommand("TRANSFORM requires a card_id")
+            raise IllegalCommand("TRANSFORM_DECK_CARDS requires a card_id")
+        if effect.deck_filter is None:
+            raise IllegalCommand(
+                "TRANSFORM_DECK_CARDS requires a deck filter"
+            )
         if self.card_resolver is None:
-            raise IllegalCommand("No card_resolver registered for TRANSFORM")
+            raise IllegalCommand(
+                "No card_resolver registered for TRANSFORM_DECK_CARDS"
+            )
         try:
             replacement = self.card_resolver(effect.card_id)
         except KeyError as exc:
             raise IllegalCommand(
-                f"Card {effect.card_id} not found for TRANSFORM"
+                f"Card {effect.card_id} not found for TRANSFORM_DECK_CARDS"
             ) from exc
         if replacement is None:
             raise IllegalCommand(
-                f"Card {effect.card_id} not found for TRANSFORM"
+                f"Card {effect.card_id} not found for TRANSFORM_DECK_CARDS"
             )
+
+        player = self.players[frame.controller]
+        transformed_count = 0
+        for index, raw_card in enumerate(player.deck):
+            if not effect.deck_filter.matches(raw_card):
+                continue
+            old_definition = (
+                raw_card.definition
+                if isinstance(raw_card, DeckCard)
+                else raw_card
+            )
+            player.deck[index] = replacement
+            transformed_count += 1
+            self._emit(GameEvent(
+                EventType.DECK_CARD_TRANSFORMED,
+                frame.controller,
+                source_id=frame.source_entity_id,
+                metadata={
+                    "source_card_id": frame.source_card_id,
+                    "old_card_id": old_definition.card_id,
+                    "new_card_id": replacement.card_id,
+                    "old_definition": old_definition,
+                    "new_definition": replacement,
+                    "deck_index": index,
+                },
+            ))
+        if transformed_count:
+            self._log(
+                frame.controller,
+                f"{frame.source_name} 使牌组中的 {transformed_count} 张卡牌变形",
+            )
+
+    def _execute_transform(
+        self,
+        effect: EffectOperation,
+        frame: EffectFrame,
+        target_id: int | None,
+        *,
+        replacement: CardDefinition | None = None,
+    ) -> None:
+        if replacement is None:
+            if effect.card_id is None:
+                raise IllegalCommand("TRANSFORM requires a card_id")
+            if self.card_resolver is None:
+                raise IllegalCommand("No card_resolver registered for TRANSFORM")
+            try:
+                replacement = self.card_resolver(effect.card_id)
+            except KeyError as exc:
+                raise IllegalCommand(
+                    f"Card {effect.card_id} not found for TRANSFORM"
+                ) from exc
+            if replacement is None:
+                raise IllegalCommand(
+                    f"Card {effect.card_id} not found for TRANSFORM"
+                )
 
         hand_target = next(
             (

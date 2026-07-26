@@ -7495,6 +7495,66 @@
       "source_text_sha256": "487bbc3ead279c8faccb6c74842ddc77225535cb22afa3b651dcdc587a172eb8",
       "test_evidence": ["tests/test_real_official_basic_completion_twenty_first_batch.py"],
       "notes": "2026-07-25以官方英/日/简中卡牌库核对为Storm/疾走/疾驰且无FAQ：https://shadowverse-wb.com/en/deck/cardslist/card/?card_id=10612120。直接测试出场当回合攻击主战者。"
+    },
+    {
+      "card_id": 10201310,
+      "coverage": "exact",
+      "implemented_text": "选择战场上的1个随从，使其+2/-2。",
+      "rule_version": 1,
+      "source_text_sha256": "bcc71c129901654eb3aface401adaf8d865624c42f52335085fbd21ecfec11df",
+      "test_evidence": ["tests/test_real_official_complex_completion_twenty_second_batch.py"],
+      "official_source_url": "https://shadowverse-wb.com/en/deck/cardslist/card/?card_id=10201310",
+      "official_source_retrieved_at": "2026-07-25",
+      "official_ruling": "The official English FAQ says that while an enemy Lloyd is in play, Dark Side cannot select an allied follower; Lloyd's forced-target rule therefore narrows the otherwise field-wide follower choice to Lloyd.",
+      "notes": "官方英/日/简中卡牌页及英文FAQ共同确认全场随从选择、+2/-2与Lloyd强制指定。直接测试正常选择、Lloyd唯一候选、目标离场、致死状态检查、非法选择原子性及RL action mask。"
+    },
+    {
+      "card_id": 10533310,
+      "coverage": "exact",
+      "implemented_text": "使自己的战场上的所有随从分别变身为自己的牌组中的随机1张随从的复制随从。",
+      "rule_version": 1,
+      "source_text_sha256": "d9daf0fc677ca60574f087df5667bfae9035c7565f31f2ce1081f80a7bc321ae",
+      "test_evidence": ["tests/test_real_official_complex_completion_twenty_second_batch.py"],
+      "official_source_url": "https://shadowverse-wb.com/en/deck/cardslist/card/?card_id=10533310",
+      "official_source_retrieved_at": "2026-07-25",
+      "official_ruling": "The official FAQ states that each allied follower rolls independently against the same deck-follower pool, so selections are made with replacement and duplicate results are possible.",
+      "notes": "官方英/日/简中卡牌页和FAQ确认每个己方随从独立、有放回抽取牌组随从并变成完全相同复制品。直接测试实体ID稳定、旧状态清除、牌组物理加成复制、空候选、空场、满场及固定种子复现。"
+    },
+    {
+      "card_id": 10572120,
+      "coverage": "exact",
+      "implemented_text": "【守护】。自己使用法术时，本随从进化。",
+      "rule_version": 1,
+      "source_text_sha256": "6799ee0fec31b68882a105309ddffe96be552a1d24e65dbfadea481ed8e1fa77",
+      "test_evidence": ["tests/test_real_official_complex_completion_twenty_second_batch.py"],
+      "official_source_url": "https://shadowverse-wb.com/en/deck/cardslist/card/?card_id=10572120",
+      "official_source_retrieved_at": "2026-07-25",
+      "official_ruling": "The official English, Japanese, and Simplified Chinese pages agree that every spell played by the owner evolves this follower; the official page contains no additional FAQ.",
+      "notes": "进化前后官方文本一致。以固有守护和board-zone CARD_PLAYED法术过滤监听实现；直接测试免费自进化、重复法术、非法术及来源离场。"
+    },
+    {
+      "card_id": 10741310,
+      "coverage": "exact",
+      "implemented_text": "使自己的能量点最大值+1。使自己的手牌和自己的牌组中的所有『百无聊赖的睥睨』变身为『焦龙的午睡』。",
+      "rule_version": 1,
+      "source_text_sha256": "ee78f8d2100e25c510e625393b7ce0363ac0ec7900a6eed577eb029e9661d86f",
+      "test_evidence": ["tests/test_real_official_complex_completion_twenty_second_batch.py"],
+      "official_source_url": "https://shadowverse-wb.com/en/deck/cardslist/card/?card_id=10741310",
+      "official_source_retrieved_at": "2026-07-25",
+      "official_ruling": "The official multilingual pages identify both zones and every matching copy; no additional FAQ or errata is published on the card page.",
+      "notes": "关联卡10742310（焦龙的午睡/Lazing Flame）已有独立exact规则与直接测试。直接测试最大PP上限、所有其他手牌/牌组同名实体变形、运行时修饰清除、无其他复制和牌组变形事件。"
+    },
+    {
+      "card_id": 10851110,
+      "coverage": "exact",
+      "implemented_text": "【疾驰】。可以无视【守护】进行攻击。",
+      "rule_version": 1,
+      "source_text_sha256": "4dcbefa70bb6864e83c5ec2acfcf35f95267f008aa96bd1c71dee60196d28fd0",
+      "test_evidence": ["tests/test_real_official_complex_completion_twenty_second_batch.py"],
+      "official_source_url": "https://shadowverse-wb.com/en/deck/cardslist/card/?card_id=10851110",
+      "official_source_retrieved_at": "2026-07-25",
+      "official_ruling": "The official English, Japanese, and Simplified Chinese pages all state Storm and unrestricted attack targeting despite Ward; the official page contains no additional FAQ.",
+      "notes": "以固有疾驰和可被失去所有能力关闭的通用ignores_ward被动实现。直接测试守护存在时可攻击主战者/守护/非守护随从、失去所有能力后的回退、非法攻击原子性及RL action mask精确一致。"
     }
   ]
 }
