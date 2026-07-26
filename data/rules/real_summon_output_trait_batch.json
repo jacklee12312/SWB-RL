@@ -73,48 +73,12 @@
           "conditions": [
             {"type": "controller_cooperation_at_least", "value": 20}
           ]
-        },
-        {
-          "kind": "summon",
-          "target": "own_leader",
-          "card_id": 90021120,
-          "target_key": "fanfare_first_knight",
-          "conditions": [
-            {"type": "controller_cooperation_at_least", "value": 20}
-          ]
-        },
-        {
-          "kind": "summon",
-          "target": "own_leader",
-          "card_id": 90021120,
-          "target_key": "fanfare_second_knight",
-          "conditions": [
-            {"type": "controller_cooperation_at_least", "value": 20}
-          ]
-        },
-        {
-          "kind": "add_keyword",
-          "target": "previous_target",
-          "target_key": "fanfare_first_knight",
-          "keyword": "突进",
-          "conditions": [
-            {"type": "controller_cooperation_at_least", "value": 20}
-          ]
-        },
-        {
-          "kind": "add_keyword",
-          "target": "previous_target",
-          "target_key": "fanfare_second_knight",
-          "keyword": "突进",
-          "conditions": [
-            {"type": "controller_cooperation_at_least", "value": 20}
-          ]
         }
       ]
     },
     {
       "card_id": 10224110,
-      "trigger": "evolve",
+      "trigger": "self_evolved",
       "operations": [
         {
           "kind": "summon",
@@ -152,7 +116,7 @@
     },
     {
       "card_id": 10653110,
-      "trigger": "evolve",
+      "trigger": "self_evolved",
       "operations": [
         {
           "kind": "summon",

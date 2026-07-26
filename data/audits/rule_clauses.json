@@ -1944,13 +1944,13 @@
     {
       "card_id": 10863110,
       "coverage": "exact",
-      "implemented_text": "【入场曲】若自己的战场上有进化后的随从，则本随从进化。【守护】【进化时】发动2次『对随机1个敌方随从造成1点伤害』。",
+      "implemented_text": "【入场曲】若自己的战场上有进化后的随从，则本随从进化。【守护】本随从进化时，发动2次『对随机1个敌方随从造成1点伤害』。",
       "rule_version": 1,
       "source_text_sha256": "b41ba1e1de77f996c6fdd8380df96869cb58a966d9f981c7ebb85a662587ce87",
       "test_evidence": [
         "tests/test_real_random_effect_followup_batch.py"
       ],
-      "notes": "The evolved-allied-follower condition effect-evolves the source without EP, intrinsic Ward remains active, and the evolve trigger performs two sequential random hits."
+      "notes": "The evolved-allied-follower condition effect-evolves the source without EP, intrinsic Ward remains active, and the plain self-evolved clause performs two sequential random hits without firing the EP/SEP keyword."
     },
     {
       "card_id": 90011110,
@@ -2588,7 +2588,7 @@
       "rule_version": 1,
       "source_text_sha256": "7decd7f0c95b94965df52af0211ce27fc942c54e5f4c94eb9f83553f92230cd8",
       "test_evidence": ["tests/test_real_evolve_and_burst_direct_batch.py"],
-      "notes": "Owner-turn-end effect evolution spends no EP and dispatches the Evolve trigger for simultaneous one damage to every enemy follower."
+      "notes": "Owner-turn-end effect evolution spends no EP and dispatches the plain self-evolved clause for simultaneous one damage to every enemy follower."
     },
     {
       "card_id": 10432110,
@@ -2606,7 +2606,7 @@
       "rule_version": 1,
       "source_text_sha256": "cef589d2f3f27bb64c8f8fb20c2664b7bf99f694bab273dd90fc18a309c113a5",
       "test_evidence": ["tests/test_real_evolve_and_burst_direct_batch.py"],
-      "notes": "The exact maximum-PP boundary effect-evolves without EP and dispatches simultaneous three damage through the card's Evolve trigger."
+      "notes": "The exact maximum-PP boundary effect-evolves without EP and dispatches simultaneous three damage through the card's plain self-evolved clause."
     },
     {
       "card_id": 10453110,
@@ -2921,7 +2921,7 @@
       "rule_version": 1,
       "source_text_sha256": "0c43b4947fa33c11dbe455aebe9d9b3fe0fc5e274aae9088d9df8fb1d408cd01",
       "test_evidence": ["tests/test_real_summon_output_trait_batch.py"],
-      "notes": "The optional-by-candidate other-follower choice is revalidated; normal effect evolution fires the evolve trigger, whose exact Bat output is bound before evolving it."
+      "notes": "The optional-by-candidate other-follower choice is revalidated; normal effect evolution fires the plain self-evolved clause, whose exact Bat output is bound before evolving it."
     },
     {
       "card_id": 10724120,
@@ -4798,7 +4798,7 @@
     {
       "card_id": 10874110,
       "coverage": "exact",
-      "implemented_text": "【入场曲】可选择1个敌方随从并使其获得【守护】。【爆能强化_9】本随从进化并获得【疾驰】。【进化时】破坏随机2个拥有【守护】的敌方随从。",
+      "implemented_text": "【入场曲】可选择1个敌方随从并使其获得【守护】。【爆能强化_9】本随从进化并获得【疾驰】。本随从进化时，破坏随机2个拥有【守护】的敌方随从。",
       "rule_version": 1,
       "source_text_sha256": "37457fc0e3985c81b87787d588a56450e9d5023ef92f7ef6e841d26b25245ee4",
       "test_evidence": ["tests/test_real_portal_dynamic_evolution_batch.py"],
@@ -6398,7 +6398,7 @@
     {
       "card_id": 10133130,
       "coverage": "exact",
-      "implemented_text": "【入场曲】【土之秘术_2】使本随从进化；【进化时】随机对1个敌方随从造成4点伤害，并回复2点PP。",
+      "implemented_text": "【入场曲】【土之秘术_2】使本随从进化；本随从进化时，随机对1个敌方随从造成4点伤害，并回复2点PP。",
       "rule_version": 1,
       "source_text_sha256": "7f3e57aab85ed5d57e1f77fb4dcb95e2a4e88f2b3f9c4d53272ed0c0b0bad1ec",
       "test_evidence": ["tests/test_real_existing_primitives_second_completion_batch.py"],

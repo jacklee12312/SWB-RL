@@ -38,14 +38,14 @@ SOURCE_HASHES = {
 }
 STRUCTURED_EVIDENCE = {
     10231310: {"triggers": ["play"], "effect_kinds": ["destroy", "earth_rite", "damage_leader"]},
-    10411120: {"triggers": ["turn_end", "evolve"], "effect_kinds": ["evolve_unit", "damage_unit"]},
+    10411120: {"triggers": ["turn_end", "self_evolved"], "effect_kinds": ["evolve_unit", "damage_unit"]},
     10432110: {"triggers": ["fanfare"], "effect_kinds": ["damage_unit", "add_earth_sigils"]},
-    10442110: {"triggers": ["fanfare", "evolve"], "effect_kinds": ["conditional", "evolve_unit", "damage_unit"]},
+    10442110: {"triggers": ["fanfare", "self_evolved"], "effect_kinds": ["conditional", "evolve_unit", "damage_unit"]},
     10453110: {"triggers": ["fanfare", "intrinsic_keywords"], "effect_kinds": ["evolve_unit", "damage_leader", "keyword:吸血"]},
     10473310: {"triggers": ["play", "super_skybound_art"], "effect_kinds": ["damage_unit", "damage_leader", "damage_unit", "damage_leader"]},
     10571120: {"triggers": ["fanfare", "listener:board:card_played"], "effect_kinds": ["draw_filtered", "damage_unit"]},
     10622120: {"triggers": ["fanfare", "intrinsic_keywords"], "effect_kinds": ["destroy", "keyword:疾驰"]},
-    10642120: {"triggers": ["turn_end", "evolve"], "effect_kinds": ["evolve_unit", "damage_unit", "damage_leader"]},
+    10642120: {"triggers": ["turn_end", "self_evolved"], "effect_kinds": ["evolve_unit", "damage_unit", "damage_leader"]},
     10742120: {"triggers": ["fanfare", "turn_end"], "effect_kinds": ["conditional", "evolve_unit", "conditional", "heal_leader", "heal_leader"]},
     10832110: {"triggers": ["fanfare", "passive"], "effect_kinds": ["draw", "draw", "spellboost_cost_reduction"]},
 }

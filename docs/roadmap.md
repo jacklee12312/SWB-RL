@@ -234,6 +234,12 @@ slice in this order:
   `进化时` completes before `超进化时`. A choice in the first trigger suspends
   the second event, while `follower_evolved` emblem listeners finish between
   them. Normal evolution remains `+2/+2`.
+- Evolution trigger semantics distinguish resource keywords from state-change
+  clauses. `进化时` fires only for EP/SEP actions and `超进化时` only for SEP;
+  `本随从进化时` and `本随从超进化时` use separate structured triggers and
+  still fire when a card effect evolves or super-evolves that follower. All 14
+  current plain self-evolution cards and the one plain self-super-evolution
+  card are migrated, including removal of Gildaria's duplicated Fanfare output.
 - Super-evolution protection uses the actual turn player rather than effect
   controller. Every own turn of a super-evolved follower prevents all damage,
   including combat damage, and effect destruction; opponent turns remain

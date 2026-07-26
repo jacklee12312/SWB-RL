@@ -262,7 +262,7 @@
       "card_id": 10554110,
       "trigger": "fanfare",
       "coverage": "exact",
-      "implemented_text": "【入场曲】【亡者召还】_4与【亡者召还】_2。\n【进化时】随机破坏战场上的其他6个随从。\n【超进化时】使自己获得【纹章】「真相的弥尔缇欧&路西乌斯」。",
+      "implemented_text": "【入场曲】【亡者召还】_4与【亡者召还】_2。\n本随从进化时，随机破坏战场上的其他6个随从。\n本随从超进化时，使自己获得【纹章】「真相的弥尔缇欧&路西乌斯」。",
       "operations": [
         {"kind": "reanimate", "target": "own_leader", "amount": 4},
         {"kind": "reanimate", "target": "own_leader", "amount": 2}
@@ -270,7 +270,7 @@
     },
     {
       "card_id": 10554110,
-      "trigger": "evolve",
+      "trigger": "self_evolved",
       "operations": [
         {
           "kind": "destroy",
@@ -282,7 +282,7 @@
     },
     {
       "card_id": 10554110,
-      "trigger": "super_evolve",
+      "trigger": "self_super_evolved",
       "operations": [
         {
           "kind": "gain_emblem",

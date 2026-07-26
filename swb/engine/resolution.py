@@ -453,27 +453,45 @@ class GameEngine:
     def _execute_trigger_rules(self, trigger, context) -> None:
         if isinstance(trigger, str):
             trigger = Trigger(trigger)
+        self._execute_trigger_rule_batch((trigger,), context)
+
+    def _execute_trigger_rule_batch(
+        self,
+        triggers: tuple[Trigger, ...],
+        context: AbilityContext,
+    ) -> None:
         source = context.source
         if not isinstance(source, Unit):
             return
-        if isinstance(source, Unit) and source.printed_abilities_removed:
+        if source.printed_abilities_removed:
             return
-        ops = self.rulebook.operations_for(source.definition.card_id, trigger)
-        if not ops:
-            return
-        self._start_effects(
-            source.definition,
-            source.entity_id,
-            ops,
-            controller=context.player_index,
-            label=trigger.value,
-            attack_target_entity_id=(
-                context.target.entity_id
-                if trigger in {Trigger.ATTACK, Trigger.CLASH}
-                and isinstance(context.target, Unit)
-                else None
-            ),
+        pending = tuple(
+            (trigger, operations)
+            for trigger in triggers
+            if (
+                operations := self.rulebook.operations_for(
+                    source.definition.card_id,
+                    trigger,
+                )
+            )
         )
+        if not pending:
+            return
+        for trigger, operations in reversed(pending):
+            self._queue_effects(
+                source.definition,
+                source.entity_id,
+                operations,
+                controller=context.player_index,
+                label=trigger.value,
+                attack_target_entity_id=(
+                    context.target.entity_id
+                    if trigger in {Trigger.ATTACK, Trigger.CLASH}
+                    and isinstance(context.target, Unit)
+                    else None
+                ),
+            )
+        self._continue_effects()
 
     def _is_ability_covered(self, context, ability) -> bool:
         card = (
@@ -8674,7 +8692,7 @@ class GameEngine:
             owner,
             super_evolve=False,
             cause="effect",
-            trigger_abilities=True,
+            trigger_abilities=False,
         ):
             return
         self._log(
@@ -14118,7 +14136,14 @@ class GameEngine:
                     event,
                 )
             ability_event = event_to_ability.get(event.type)
-            if event.metadata.get("trigger_abilities") is False:
+            trigger_keywords = event.metadata.get("trigger_abilities") is not False
+            if (
+                not trigger_keywords
+                and event.type not in {
+                    EventType.FOLLOWER_EVOLVED,
+                    EventType.FOLLOWER_SUPER_EVOLVED,
+                }
+            ):
                 ability_event = None
             if (
                 event.type is EventType.FOLLOWER_SUMMONED
@@ -14145,6 +14170,8 @@ class GameEngine:
                         source,
                         target if isinstance(target, Unit) else None,
                         player_index=event.player_index,
+                        trigger_keywords=trigger_keywords,
+                        counts_as_evolution=counts_as_evolution,
                     )
                 elif hasattr(source, "card_id"):
                     self._dispatch_card_ability(
@@ -14284,6 +14311,10 @@ class GameEngine:
                         source,
                         target if isinstance(target, Unit) else None,
                         player_index=event.player_index,
+                        trigger_keywords=(
+                            event.metadata.get("trigger_abilities") is not False
+                        ),
+                        counts_as_evolution=self._event_counts_as_evolution(event),
                     )
                 elif hasattr(source, "card_id"):
                     self._dispatch_card_ability(
@@ -16692,18 +16723,40 @@ class GameEngine:
         target: Unit | None = None,
         *,
         player_index: int | None = None,
+        trigger_keywords: bool = True,
+        counts_as_evolution: bool = False,
     ) -> None:
         if isinstance(source, Unit) and source.printed_abilities_removed:
             return
+        resolved_player_index = (
+            self.current_player if player_index is None else player_index
+        )
+        if event in {
+            AbilityEvent.FOLLOWER_EVOLVED,
+            AbilityEvent.FOLLOWER_SUPER_EVOLVED,
+        }:
+            triggers: list[Trigger] = []
+            if counts_as_evolution:
+                triggers.append(Trigger.SELF_EVOLVED)
+            if event is AbilityEvent.FOLLOWER_SUPER_EVOLVED:
+                triggers.append(Trigger.SELF_SUPER_EVOLVED)
+            if trigger_keywords:
+                triggers.append(
+                    Trigger.SUPER_EVOLVE
+                    if event is AbilityEvent.FOLLOWER_SUPER_EVOLVED
+                    else Trigger.EVOLVE
+                )
+            self._execute_trigger_rule_batch(
+                tuple(triggers),
+                AbilityContext(
+                    event=event,
+                    player_index=resolved_player_index,
+                    source=source,
+                    target=target,
+                ),
+            )
+            return
         structured_trigger = {
-            AbilityEvent.FOLLOWER_EVOLVED: (
-                Trigger.EVOLVE,
-                AbilityKeyword.ON_EVOLVE,
-            ),
-            AbilityEvent.FOLLOWER_SUPER_EVOLVED: (
-                Trigger.SUPER_EVOLVE,
-                AbilityKeyword.ON_SUPER_EVOLVE,
-            ),
             AbilityEvent.BEFORE_ATTACK: (
                 Trigger.ATTACK,
                 AbilityKeyword.ON_ATTACK,
@@ -16723,11 +16776,7 @@ class GameEngine:
                     trigger,
                     AbilityContext(
                         event=event,
-                        player_index=(
-                            self.current_player
-                            if player_index is None
-                            else player_index
-                        ),
+                        player_index=resolved_player_index,
                         source=source,
                         target=target,
                     ),
@@ -16735,9 +16784,7 @@ class GameEngine:
         self.ability_handlers.dispatch(
             AbilityContext(
                 event=event,
-                player_index=(
-                    self.current_player if player_index is None else player_index
-                ),
+                player_index=resolved_player_index,
                 source=source,
                 target=target,
             )

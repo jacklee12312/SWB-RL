@@ -146,7 +146,7 @@
     },
     {
       "card_id": 10874110,
-      "trigger": "evolve",
+      "trigger": "self_evolved",
       "operations": [
         {
           "kind": "destroy",

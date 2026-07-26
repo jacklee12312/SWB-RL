@@ -123,7 +123,10 @@ class FinalSupportedCompletionTwentiethBehaviorTests(unittest.TestCase):
             [EffectKind.DAMAGE_LEADER, EffectKind.DAMAGE_UNIT],
         )
 
-        milteo = self.rulebook.operations_for(10554110, Trigger.EVOLVE)[0]
+        milteo = self.rulebook.operations_for(
+            10554110,
+            Trigger.SELF_EVOLVED,
+        )[0]
         self.assertIs(milteo.target, TargetKind.RANDOM_ANY_UNIT)
         self.assertEqual(milteo.target_count, 6)
         self.assertTrue(milteo.exclude_source)

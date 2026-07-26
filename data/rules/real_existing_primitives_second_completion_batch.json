@@ -34,7 +34,7 @@
     },
     {
       "card_id": 10133130,
-      "trigger": "evolve",
+      "trigger": "self_evolved",
       "operations": [
         {"kind": "damage_unit", "target": "random_enemy_unit", "amount": 4},
         {"kind": "restore_mana", "target": "own_leader", "amount": 2}

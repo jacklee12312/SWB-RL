@@ -342,6 +342,21 @@ class RealSummonOutputTraitTests(unittest.TestCase):
         self.assertFalse(source.has_keyword("屏障"))
 
     def test_gildaria_cooperation_super_evolves_and_binds_both_knights(self):
+        fanfare = self.rulebook.operations_for(10224110, Trigger.FANFARE)
+        self.assertEqual(len(fanfare), 1)
+        self.assertIs(fanfare[0].kind, EffectKind.SUPER_EVOLVE_UNIT)
+        self.assertEqual(
+            [operation.kind for operation in self.rulebook.operations_for(
+                10224110,
+                Trigger.SELF_EVOLVED,
+            )],
+            [
+                EffectKind.SUMMON,
+                EffectKind.SUMMON,
+                EffectKind.ADD_KEYWORD,
+                EffectKind.ADD_KEYWORD,
+            ],
+        )
         engine = self.fresh(seed=17)
         enemy_a = _put_unit(engine, 1, _card(90, life=5))
         enemy_b = _put_unit(engine, 1, _card(91, life=5))

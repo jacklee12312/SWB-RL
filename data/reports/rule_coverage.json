@@ -7690,7 +7690,7 @@
       "is_collectible": true,
       "card_set_id": 10001,
       "coverage": "covered_exact",
-      "reason": "Triggers: ['fanfare', 'evolve'], Ops: ['earth_rite', 'evolve_unit', 'damage_unit', 'restore_mana']",
+      "reason": "Triggers: ['fanfare', 'self_evolved'], Ops: ['earth_rite', 'evolve_unit', 'damage_unit', 'restore_mana']",
       "hit_keywords": [
         "入场曲",
         "进化时",
@@ -7709,7 +7709,7 @@
       "support_level": "unsupported",
       "rule_metadata": {
         "coverage": "exact",
-        "implemented_text": "【入场曲】【土之秘术_2】使本随从进化；【进化时】随机对1个敌方随从造成4点伤害，并回复2点PP。",
+        "implemented_text": "【入场曲】【土之秘术_2】使本随从进化；本随从进化时，随机对1个敌方随从造成4点伤害，并回复2点PP。",
         "notes": "土之秘术消耗、自进化、固定种子随机伤害、无敌方目标及PP回复均有直接测试。",
         "rule_version": 1,
         "source_text_sha256": "7f3e57aab85ed5d57e1f77fb4dcb95e2a4e88f2b3f9c4d53272ed0c0b0bad1ec",
@@ -7728,13 +7728,13 @@
             "mapping_status": "implemented"
           }
         ],
-        "implemented_text": "【入场曲】【土之秘术_2】使本随从进化；【进化时】随机对1个敌方随从造成4点伤害，并回复2点PP。",
+        "implemented_text": "【入场曲】【土之秘术_2】使本随从进化；本随从进化时，随机对1个敌方随从造成4点伤害，并回复2点PP。",
         "unsupported_text": null,
         "source_text_sha256": "7f3e57aab85ed5d57e1f77fb4dcb95e2a4e88f2b3f9c4d53272ed0c0b0bad1ec",
         "structured_evidence": {
           "triggers": [
             "fanfare",
-            "evolve"
+            "self_evolved"
           ],
           "effect_kinds": [
             "earth_rite",
@@ -8844,7 +8844,7 @@
       "is_collectible": true,
       "card_set_id": 10001,
       "coverage": "covered_exact",
-      "reason": "Triggers: ['fanfare', 'evolve'], Ops: ['conditional', 'evolve_unit', 'change_max_mana']",
+      "reason": "Triggers: ['fanfare', 'self_evolved'], Ops: ['conditional', 'evolve_unit', 'change_max_mana']",
       "hit_keywords": [
         "入场曲",
         "进化时",
@@ -8884,7 +8884,7 @@
         "structured_evidence": {
           "triggers": [
             "fanfare",
-            "evolve"
+            "self_evolved"
           ],
           "effect_kinds": [
             "conditional",
@@ -10169,7 +10169,7 @@
       "is_collectible": true,
       "card_set_id": 10001,
       "coverage": "covered_exact",
-      "reason": "Triggers: ['fanfare', 'evolve', 'listener:board:follower_summoned'], Ops: ['necromancy', 'evolve_unit', 'summon', 'add_keyword']",
+      "reason": "Triggers: ['fanfare', 'self_evolved', 'listener:board:follower_summoned'], Ops: ['necromancy', 'evolve_unit', 'summon', 'add_keyword']",
       "hit_keywords": [
         "入场曲",
         "进化时",
@@ -10214,7 +10214,7 @@
         "structured_evidence": {
           "triggers": [
             "fanfare",
-            "evolve",
+            "self_evolved",
             "listener:board:follower_summoned"
           ],
           "effect_kinds": [
@@ -14705,7 +14705,7 @@
       "is_collectible": true,
       "card_set_id": 10002,
       "coverage": "covered_exact",
-      "reason": "Triggers: ['fanfare', 'evolve', 'listener:board:follower_summoned'], Ops: ['super_evolve_unit', 'summon', 'summon', 'add_keyword', 'add_keyword', 'summon', 'summon', 'add_keyword', 'add_keyword', 'damage_unit']",
+      "reason": "Triggers: ['fanfare', 'self_evolved', 'listener:board:follower_summoned'], Ops: ['super_evolve_unit', 'summon', 'summon', 'add_keyword', 'add_keyword', 'damage_unit']",
       "hit_keywords": [
         "入场曲",
         "进化时",
@@ -14751,15 +14751,11 @@
         "structured_evidence": {
           "triggers": [
             "fanfare",
-            "evolve",
+            "self_evolved",
             "listener:board:follower_summoned"
           ],
           "effect_kinds": [
             "super_evolve_unit",
-            "summon",
-            "summon",
-            "add_keyword",
-            "add_keyword",
             "summon",
             "summon",
             "add_keyword",
@@ -23906,7 +23902,7 @@
       "is_collectible": true,
       "card_set_id": 10004,
       "coverage": "covered_exact",
-      "reason": "Triggers: ['turn_end', 'evolve'], Ops: ['evolve_unit', 'damage_unit']",
+      "reason": "Triggers: ['turn_end', 'self_evolved'], Ops: ['evolve_unit', 'damage_unit']",
       "hit_keywords": [
         "进化时",
         "回合结束",
@@ -23921,7 +23917,7 @@
       "rule_metadata": {
         "coverage": "exact",
         "implemented_text": "自己的回合结束时，本随从进化。 / 本随从进化时，对对手的战场上的所有随从造成1点伤害。",
-        "notes": "Owner-turn-end effect evolution spends no EP and dispatches the Evolve trigger for simultaneous one damage to every enemy follower.",
+        "notes": "Owner-turn-end effect evolution spends no EP and dispatches the plain self-evolved clause for simultaneous one damage to every enemy follower.",
         "rule_version": 1,
         "source_text_sha256": "7decd7f0c95b94965df52af0211ce27fc942c54e5f4c94eb9f83553f92230cd8",
         "test_evidence": [
@@ -23945,7 +23941,7 @@
         "structured_evidence": {
           "triggers": [
             "turn_end",
-            "evolve"
+            "self_evolved"
           ],
           "effect_kinds": [
             "evolve_unit",
@@ -24233,7 +24229,7 @@
       "is_collectible": true,
       "card_set_id": 10004,
       "coverage": "covered_exact",
-      "reason": "Triggers: ['evolve', 'union_burst', 'super_skybound_art'], Ops: ['repeat', 'damage_unit', 'evolve_unit', 'damage_leader']",
+      "reason": "Triggers: ['self_evolved', 'union_burst', 'super_skybound_art'], Ops: ['repeat', 'damage_unit', 'evolve_unit', 'damage_leader']",
       "hit_keywords": [
         "入场曲",
         "进化时",
@@ -24275,7 +24271,7 @@
         "source_text_sha256": "fcd3347f6100e2d201d0f6f0bddf451ffd86d19e28b908adb72bc08a009a8811",
         "structured_evidence": {
           "triggers": [
-            "evolve",
+            "self_evolved",
             "union_burst",
             "super_skybound_art"
           ],
@@ -26051,7 +26047,7 @@
       "is_collectible": true,
       "card_set_id": 10004,
       "coverage": "covered_exact",
-      "reason": "Triggers: ['fanfare', 'evolve'], Ops: ['conditional', 'evolve_unit', 'damage_unit']",
+      "reason": "Triggers: ['fanfare', 'self_evolved'], Ops: ['conditional', 'evolve_unit', 'damage_unit']",
       "hit_keywords": [
         "入场曲",
         "进化时",
@@ -26068,7 +26064,7 @@
       "rule_metadata": {
         "coverage": "exact",
         "implemented_text": "【入场曲】若自己的能量点最大值为10，则本随从进化。 / 本随从进化时，对对手的战场上的所有随从造成3点伤害。",
-        "notes": "The exact maximum-PP boundary effect-evolves without EP and dispatches simultaneous three damage through the card's Evolve trigger.",
+        "notes": "The exact maximum-PP boundary effect-evolves without EP and dispatches simultaneous three damage through the card's plain self-evolved clause.",
         "rule_version": 1,
         "source_text_sha256": "cef589d2f3f27bb64c8f8fb20c2664b7bf99f694bab273dd90fc18a309c113a5",
         "test_evidence": [
@@ -26092,7 +26088,7 @@
         "structured_evidence": {
           "triggers": [
             "fanfare",
-            "evolve"
+            "self_evolved"
           ],
           "effect_kinds": [
             "conditional",
@@ -32146,7 +32142,7 @@
       "is_collectible": true,
       "card_set_id": 10005,
       "coverage": "covered_exact",
-      "reason": "Triggers: ['fanfare', 'evolve', 'super_evolve', 'emblem_source'], Ops: ['reanimate', 'reanimate', 'destroy', 'gain_emblem']",
+      "reason": "Triggers: ['fanfare', 'self_evolved', 'self_super_evolved', 'emblem_source'], Ops: ['reanimate', 'reanimate', 'destroy', 'gain_emblem']",
       "hit_keywords": [
         "入场曲",
         "进化时",
@@ -32170,7 +32166,7 @@
       "support_level": "unsupported",
       "rule_metadata": {
         "coverage": "exact",
-        "implemented_text": "【入场曲】【亡者召还】_4与【亡者召还】_2。\n【进化时】随机破坏战场上的其他6个随从。\n【超进化时】使自己获得【纹章】「真相的弥尔缇欧&路西乌斯」。",
+        "implemented_text": "【入场曲】【亡者召还】_4与【亡者召还】_2。\n本随从进化时，随机破坏战场上的其他6个随从。\n本随从超进化时，使自己获得【纹章】「真相的弥尔缇欧&路西乌斯」。",
         "notes": "入场按顺序亡者召还4与2、进化从双方场上随机选择至多6个其他随从并同时破坏且不选本体、超进化获得纹章、纹章通用抑制随从入场曲与爆能强化并在使用后无消耗进化均有直接测试。",
         "rule_version": 1,
         "source_text_sha256": "6947b92bca4cacc47508763587a0c5483fb375472a36fa073b49e04e60b38ec9",
@@ -32194,14 +32190,14 @@
             "mapping_status": "implemented"
           }
         ],
-        "implemented_text": "【入场曲】【亡者召还】_4与【亡者召还】_2。\n【进化时】随机破坏战场上的其他6个随从。\n【超进化时】使自己获得【纹章】「真相的弥尔缇欧&路西乌斯」。",
+        "implemented_text": "【入场曲】【亡者召还】_4与【亡者召还】_2。\n本随从进化时，随机破坏战场上的其他6个随从。\n本随从超进化时，使自己获得【纹章】「真相的弥尔缇欧&路西乌斯」。",
         "unsupported_text": null,
         "source_text_sha256": "6947b92bca4cacc47508763587a0c5483fb375472a36fa073b49e04e60b38ec9",
         "structured_evidence": {
           "triggers": [
             "fanfare",
-            "evolve",
-            "super_evolve",
+            "self_evolved",
+            "self_super_evolved",
             "emblem_source"
           ],
           "effect_kinds": [
@@ -36353,7 +36349,7 @@
       "is_collectible": true,
       "card_set_id": 10006,
       "coverage": "covered_exact",
-      "reason": "Triggers: ['turn_end', 'evolve'], Ops: ['evolve_unit', 'damage_unit', 'damage_leader']",
+      "reason": "Triggers: ['turn_end', 'self_evolved'], Ops: ['evolve_unit', 'damage_unit', 'damage_leader']",
       "hit_keywords": [
         "进化时",
         "回合结束",
@@ -36392,7 +36388,7 @@
         "structured_evidence": {
           "triggers": [
             "turn_end",
-            "evolve"
+            "self_evolved"
           ],
           "effect_kinds": [
             "evolve_unit",
@@ -37145,7 +37141,7 @@
       "is_collectible": true,
       "card_set_id": 10006,
       "coverage": "covered_exact",
-      "reason": "Triggers: ['fanfare', 'evolve'], Ops: ['destroy', 'evolve_unit', 'summon', 'evolve_unit']",
+      "reason": "Triggers: ['fanfare', 'self_evolved'], Ops: ['destroy', 'evolve_unit', 'summon', 'evolve_unit']",
       "hit_keywords": [
         "入场曲",
         "进化时",
@@ -37163,7 +37159,7 @@
       "rule_metadata": {
         "coverage": "exact",
         "implemented_text": "【入场曲】选择自己的战场上的1个其他随从，若成功选择，则破坏该随从。本随从进化。本随从进化时，召唤1个『蝙蝠』，使其进化。",
-        "notes": "The optional-by-candidate other-follower choice is revalidated; normal effect evolution fires the evolve trigger, whose exact Bat output is bound before evolving it.",
+        "notes": "The optional-by-candidate other-follower choice is revalidated; normal effect evolution fires the plain self-evolved clause, whose exact Bat output is bound before evolving it.",
         "rule_version": 1,
         "source_text_sha256": "0c43b4947fa33c11dbe455aebe9d9b3fe0fc5e274aae9088d9df8fb1d408cd01",
         "test_evidence": [
@@ -37187,7 +37183,7 @@
         "structured_evidence": {
           "triggers": [
             "fanfare",
-            "evolve"
+            "self_evolved"
           ],
           "effect_kinds": [
             "destroy",
@@ -37348,7 +37344,7 @@
       "is_collectible": true,
       "card_set_id": 10006,
       "coverage": "covered_exact",
-      "reason": "Triggers: ['fanfare', 'evolve'], Ops: ['necromancy', 'evolve_unit', 'add_card']",
+      "reason": "Triggers: ['fanfare', 'self_evolved'], Ops: ['necromancy', 'evolve_unit', 'add_card']",
       "hit_keywords": [
         "入场曲",
         "进化时",
@@ -37391,7 +37387,7 @@
         "structured_evidence": {
           "triggers": [
             "fanfare",
-            "evolve"
+            "self_evolved"
           ],
           "effect_kinds": [
             "necromancy",
@@ -40538,7 +40534,7 @@
       "is_collectible": true,
       "card_set_id": 10007,
       "coverage": "covered_exact",
-      "reason": "Triggers: ['fanfare', 'evolve', 'listener:board:follower_summoned', 'emblem_source'], Ops: ['conditional', 'gain_emblem', 'evolve_unit', 'summon', 'summon', 'add_keyword', 'damage_leader']",
+      "reason": "Triggers: ['fanfare', 'self_evolved', 'listener:board:follower_summoned', 'emblem_source'], Ops: ['conditional', 'gain_emblem', 'evolve_unit', 'summon', 'summon', 'add_keyword', 'damage_leader']",
       "hit_keywords": [
         "入场曲",
         "进化时",
@@ -40593,7 +40589,7 @@
         "structured_evidence": {
           "triggers": [
             "fanfare",
-            "evolve",
+            "self_evolved",
             "listener:board:follower_summoned",
             "emblem_source"
           ],
@@ -48340,7 +48336,7 @@
       "is_collectible": true,
       "card_set_id": 10008,
       "coverage": "covered_exact",
-      "reason": "Triggers: ['fanfare', 'evolve'], Ops: ['evolve_unit', 'damage_unit', 'damage_unit']",
+      "reason": "Triggers: ['fanfare', 'self_evolved'], Ops: ['evolve_unit', 'damage_unit', 'damage_unit']",
       "hit_keywords": [
         "入场曲",
         "进化时",
@@ -48357,8 +48353,8 @@
       "support_level": "unsupported",
       "rule_metadata": {
         "coverage": "exact",
-        "implemented_text": "【入场曲】若自己的战场上有进化后的随从，则本随从进化。【守护】【进化时】发动2次『对随机1个敌方随从造成1点伤害』。",
-        "notes": "The evolved-allied-follower condition effect-evolves the source without EP, intrinsic Ward remains active, and the evolve trigger performs two sequential random hits.",
+        "implemented_text": "【入场曲】若自己的战场上有进化后的随从，则本随从进化。【守护】本随从进化时，发动2次『对随机1个敌方随从造成1点伤害』。",
+        "notes": "The evolved-allied-follower condition effect-evolves the source without EP, intrinsic Ward remains active, and the plain self-evolved clause performs two sequential random hits without firing the EP/SEP keyword.",
         "rule_version": 1,
         "source_text_sha256": "b41ba1e1de77f996c6fdd8380df96869cb58a966d9f981c7ebb85a662587ce87",
         "test_evidence": [
@@ -48376,13 +48372,13 @@
             "mapping_status": "implemented"
           }
         ],
-        "implemented_text": "【入场曲】若自己的战场上有进化后的随从，则本随从进化。【守护】【进化时】发动2次『对随机1个敌方随从造成1点伤害』。",
+        "implemented_text": "【入场曲】若自己的战场上有进化后的随从，则本随从进化。【守护】本随从进化时，发动2次『对随机1个敌方随从造成1点伤害』。",
         "unsupported_text": null,
         "source_text_sha256": "b41ba1e1de77f996c6fdd8380df96869cb58a966d9f981c7ebb85a662587ce87",
         "structured_evidence": {
           "triggers": [
             "fanfare",
-            "evolve"
+            "self_evolved"
           ],
           "effect_kinds": [
             "evolve_unit",
@@ -49142,7 +49138,7 @@
       "is_collectible": true,
       "card_set_id": 10008,
       "coverage": "covered_exact",
-      "reason": "Triggers: ['fanfare', 'evolve', 'play_modes'], Ops: ['add_keyword', 'destroy', 'play_mode', 'evolve_unit', 'add_keyword']",
+      "reason": "Triggers: ['fanfare', 'self_evolved', 'play_modes'], Ops: ['add_keyword', 'destroy', 'play_mode', 'evolve_unit', 'add_keyword']",
       "hit_keywords": [
         "入场曲",
         "进化时",
@@ -49162,7 +49158,7 @@
       "support_level": "unsupported",
       "rule_metadata": {
         "coverage": "exact",
-        "implemented_text": "【入场曲】可选择1个敌方随从并使其获得【守护】。【爆能强化_9】本随从进化并获得【疾驰】。【进化时】破坏随机2个拥有【守护】的敌方随从。",
+        "implemented_text": "【入场曲】可选择1个敌方随从并使其获得【守护】。【爆能强化_9】本随从进化并获得【疾驰】。本随从进化时，破坏随机2个拥有【守护】的敌方随从。",
         "notes": "Non-intrinsic Ward and Storm provenance, optional no-target Fanfare, Enhance effect evolution, random Ward filtering, candidate shortage, seeded replay, and RL masks are directly tested.",
         "rule_version": 1,
         "source_text_sha256": "37457fc0e3985c81b87787d588a56450e9d5023ef92f7ef6e841d26b25245ee4",
@@ -49181,13 +49177,13 @@
             "mapping_status": "implemented"
           }
         ],
-        "implemented_text": "【入场曲】可选择1个敌方随从并使其获得【守护】。【爆能强化_9】本随从进化并获得【疾驰】。【进化时】破坏随机2个拥有【守护】的敌方随从。",
+        "implemented_text": "【入场曲】可选择1个敌方随从并使其获得【守护】。【爆能强化_9】本随从进化并获得【疾驰】。本随从进化时，破坏随机2个拥有【守护】的敌方随从。",
         "unsupported_text": null,
         "source_text_sha256": "37457fc0e3985c81b87787d588a56450e9d5023ef92f7ef6e841d26b25245ee4",
         "structured_evidence": {
           "triggers": [
             "fanfare",
-            "evolve",
+            "self_evolved",
             "play_modes"
           ],
           "effect_kinds": [

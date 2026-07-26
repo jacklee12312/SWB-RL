@@ -56,9 +56,9 @@ Audit source: `data/audits/ability_registry.json`
 | ↳ tests |  |  |  | `tests/test_core_engine.py`, `tests/test_play_modes.py` |
 | 谢幕曲 | partial | covered | `handle_last_words` | 同时死亡收集、主动玩家顺序、来源快照和选择继续已实现；未录入的逐卡谢幕曲内容仍显式占位。 |
 | ↳ tests |  |  |  | `tests/test_last_words.py`, `tests/test_triggers.py` |
-| 进化时 | implemented | covered | `handle_on_evolve` | 手动与效果进化均发出统一事件并调度结构化进化规则，包含来源离场和选择继续。 |
-| ↳ tests |  |  |  | `tests/test_triggers.py`, `tests/test_faith.py` |
-| 超进化时 | implemented | covered | `handle_on_super_evolve` | 手动与效果超进化事件、资源区别和结构化规则调度均已实现。 |
+| 进化时 | implemented | covered | `handle_on_evolve` | 仅消耗EP进化或消耗SEP超进化时调度关键词规则；效果进化只调度独立的“本随从进化时”规则，并保留来源离场和选择继续。 |
+| ↳ tests |  |  |  | `tests/test_triggers.py`, `tests/test_super_evolution.py` |
+| 超进化时 | implemented | covered | `handle_on_super_evolve` | 仅消耗SEP超进化时调度关键词规则；效果超进化只调度独立的自身进化与自身超进化规则。 |
 | ↳ tests |  |  |  | `tests/test_super_evolution.py`, `tests/test_triggers.py` |
 | 攻击时 | implemented | covered | `handle_on_attack` | 攻击确认后的结构化触发、来源离场和待决选择继续均已实现。 |
 | ↳ tests |  |  |  | `tests/test_triggers.py` |

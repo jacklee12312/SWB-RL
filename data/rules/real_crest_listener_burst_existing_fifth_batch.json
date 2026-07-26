@@ -274,7 +274,7 @@
     },
     {
       "card_id": 10724110,
-      "trigger": "evolve",
+      "trigger": "self_evolved",
       "operations": [
         {"kind": "summon", "target": "own_leader", "card_id": 90021120},
         {"kind": "summon", "target": "own_leader", "card_id": 90021120}

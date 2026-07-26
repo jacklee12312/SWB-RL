@@ -25,7 +25,7 @@
     },
     {
       "card_id": 10143120,
-      "trigger": "evolve",
+      "trigger": "self_evolved",
       "operations": [
         {
           "kind": "change_max_mana",

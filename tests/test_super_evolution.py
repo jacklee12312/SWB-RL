@@ -7,7 +7,7 @@ from scripts.report_rule_coverage import _build_coverage_report
 from swb.db.repository import CardDefinition, CardRepository
 from swb.engine.abilities import AbilityKeyword
 from swb.engine.card_rules import CardRule, RuleBook, Trigger, _parse_operation
-from swb.engine.commands import Attack, Choose, EndTurn, PlayCard, SuperEvolve
+from swb.engine.commands import Attack, Choose, EndTurn, Evolve, PlayCard, SuperEvolve
 from swb.engine.effects import EffectKind, EffectOperation, TargetKind
 from swb.engine.emblem import EmblemDefinition, EmblemTriggerRule
 from swb.engine.environment import ShadowverseEnv
@@ -305,6 +305,183 @@ class ManualSuperEvolutionTests(unittest.TestCase):
         self.assertLess(emblem_index, super_index)
 
 
+class EvolutionTriggerSemanticsTests(unittest.TestCase):
+    KEYWORD_EVOLVE_DAMAGE = 1
+    KEYWORD_SUPER_EVOLVE_DAMAGE = 2
+    SELF_EVOLVED_DAMAGE = 4
+    SELF_SUPER_EVOLVED_DAMAGE = 8
+
+    @classmethod
+    def _rulebook(cls) -> RuleBook:
+        damage = lambda amount: (
+            EffectOperation(
+                EffectKind.DAMAGE_LEADER,
+                TargetKind.ENEMY_LEADER,
+                amount,
+            ),
+        )
+        return RuleBook(
+            rules=(
+                CardRule(
+                    100,
+                    Trigger.PLAY,
+                    (
+                        EffectOperation(
+                            EffectKind.EVOLVE_UNIT,
+                            TargetKind.OWN_UNIT,
+                            requires_target=True,
+                        ),
+                    ),
+                ),
+                CardRule(
+                    101,
+                    Trigger.PLAY,
+                    (
+                        EffectOperation(
+                            EffectKind.SUPER_EVOLVE_UNIT,
+                            TargetKind.OWN_UNIT,
+                            requires_target=True,
+                        ),
+                    ),
+                ),
+                CardRule(
+                    200,
+                    Trigger.EVOLVE,
+                    damage(cls.KEYWORD_EVOLVE_DAMAGE),
+                ),
+                CardRule(
+                    200,
+                    Trigger.SUPER_EVOLVE,
+                    damage(cls.KEYWORD_SUPER_EVOLVE_DAMAGE),
+                ),
+                CardRule(
+                    200,
+                    Trigger.SELF_EVOLVED,
+                    damage(cls.SELF_EVOLVED_DAMAGE),
+                ),
+                CardRule(
+                    200,
+                    Trigger.SELF_SUPER_EVOLVED,
+                    damage(cls.SELF_SUPER_EVOLVED_DAMAGE),
+                ),
+            )
+        )
+
+    def _engine_and_source(self) -> tuple[GameEngine, Unit]:
+        engine = _engine(self._rulebook())
+        source = _place(
+            engine,
+            0,
+            _card(
+                200,
+                keywords=frozenset({"进化时", "超进化时"}),
+            ),
+        )
+        return engine, source
+
+    @staticmethod
+    def _play_evolution_spell(
+        engine: GameEngine,
+        source: Unit,
+        spell_id: int,
+    ) -> None:
+        _insert_hand(
+            engine,
+            _card(spell_id, card_type="法术", attack=None, life=None),
+        )
+        _play_last_hand_card(engine)
+        request = engine.state.pending_choice
+        engine.apply(Choose(0, request.options[0].option_id))
+        assert source.evolved
+
+    def test_ep_evolution_fires_keyword_and_self_evolved(self):
+        engine, source = self._engine_and_source()
+        engine.players[0].turns_started = engine.config.evolution_unlock_turn
+
+        engine.apply(Evolve(0, source.entity_id))
+
+        self.assertEqual(
+            engine.players[1].health,
+            20 - self.KEYWORD_EVOLVE_DAMAGE - self.SELF_EVOLVED_DAMAGE,
+        )
+
+    def test_sep_evolution_fires_all_matching_keyword_and_self_triggers(self):
+        engine, source = self._engine_and_source()
+        engine.players[0].turns_started = (
+            engine.config.first_player_super_evolution_unlock_turn
+        )
+
+        engine.apply(SuperEvolve(0, source.entity_id))
+
+        self.assertEqual(
+            engine.players[1].health,
+            20
+            - self.KEYWORD_EVOLVE_DAMAGE
+            - self.KEYWORD_SUPER_EVOLVE_DAMAGE
+            - self.SELF_EVOLVED_DAMAGE
+            - self.SELF_SUPER_EVOLVED_DAMAGE,
+        )
+
+    def test_effect_evolution_fires_only_self_evolved(self):
+        engine, source = self._engine_and_source()
+
+        self._play_evolution_spell(engine, source, 100)
+
+        self.assertFalse(source.super_evolved)
+        self.assertEqual(
+            engine.players[1].health,
+            20 - self.SELF_EVOLVED_DAMAGE,
+        )
+
+    def test_effect_super_evolution_fires_only_self_state_triggers(self):
+        engine, source = self._engine_and_source()
+
+        self._play_evolution_spell(engine, source, 101)
+
+        self.assertTrue(source.super_evolved)
+        self.assertEqual(
+            engine.players[1].health,
+            20 - self.SELF_EVOLVED_DAMAGE - self.SELF_SUPER_EVOLVED_DAMAGE,
+        )
+
+
+class RealSelfEvolutionRuleTests(unittest.TestCase):
+    SELF_EVOLVED_CARD_IDS = (
+        10133130,
+        10143120,
+        10153130,
+        10224110,
+        10411120,
+        10413110,
+        10442110,
+        10554110,
+        10642120,
+        10653110,
+        10654120,
+        10724110,
+        10863110,
+        10874110,
+    )
+
+    def test_plain_self_evolution_text_uses_distinct_triggers(self):
+        rulebook = RuleBook.from_directory("data/rules")
+
+        for card_id in self.SELF_EVOLVED_CARD_IDS:
+            with self.subTest(card_id=card_id):
+                self.assertTrue(
+                    rulebook.operations_for(card_id, Trigger.SELF_EVOLVED)
+                )
+                self.assertFalse(
+                    rulebook.operations_for(card_id, Trigger.EVOLVE)
+                )
+        self.assertTrue(
+            rulebook.operations_for(10554110, Trigger.SELF_SUPER_EVOLVED)
+        )
+        self.assertFalse(
+            rulebook.operations_for(10554110, Trigger.SUPER_EVOLVE)
+        )
+
+
 class EffectNormalEvolutionTests(unittest.TestCase):
     @staticmethod
     def _rulebook() -> RuleBook:
@@ -337,7 +514,7 @@ class EffectNormalEvolutionTests(unittest.TestCase):
         )
         self.assertIs(operation.kind, EffectKind.EVOLVE_UNIT)
 
-    def test_effect_evolution_is_free_and_fires_evolve_ability(self):
+    def test_effect_evolution_is_free_and_skips_keyword_evolve_ability(self):
         engine = _engine(self._rulebook())
         target = _place(engine, 0, _card(200, keywords=frozenset({"进化时"})))
         hand_card = _insert_hand(engine, _card(300), evolutions=2)
@@ -354,14 +531,14 @@ class EffectNormalEvolutionTests(unittest.TestCase):
         self.assertFalse(engine.players[0].evolved_this_turn)
         self.assertEqual(engine.players[0].followers_evolved_this_match, 1)
         self.assertEqual(hand_card.evolutions_while_in_hand, 3)
-        self.assertEqual(engine.players[1].health, 17)
+        self.assertEqual(engine.players[1].health, 20)
         event = next(
             event for event in engine.event_history
             if event.type is EventType.FOLLOWER_EVOLVED
             and event.source_id == target.entity_id
         )
         self.assertEqual(event.metadata["cause"], "effect")
-        self.assertTrue(event.metadata["trigger_abilities"])
+        self.assertFalse(event.metadata["trigger_abilities"])
 
     def test_stale_choice_skips_already_evolved_target(self):
         engine = _engine(self._rulebook())

@@ -289,7 +289,7 @@ class RealPortalDynamicEvolutionTests(unittest.TestCase):
         shortage._start_effects(
             source.definition,
             source.entity_id,
-            self.rulebook.operations_for(10874110, Trigger.EVOLVE),
+            self.rulebook.operations_for(10874110, Trigger.SELF_EVOLVED),
             label="test-evolve",
         )
         self.assertNotIn(only, shortage.players[1].board)
@@ -305,7 +305,7 @@ class RealPortalDynamicEvolutionTests(unittest.TestCase):
             replay._start_effects(
                 source.definition,
                 source.entity_id,
-                self.rulebook.operations_for(10874110, Trigger.EVOLVE),
+                self.rulebook.operations_for(10874110, Trigger.SELF_EVOLVED),
                 label="test-evolve",
             )
             fingerprints.append(replay.deterministic_fingerprint())

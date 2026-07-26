@@ -333,10 +333,10 @@
         "follower_evolved"
       ],
       "aliases": [],
-      "reason": "手动与效果进化均发出统一事件并调度结构化进化规则，包含来源离场和选择继续。",
+      "reason": "仅消耗EP进化或消耗SEP超进化时调度关键词规则；效果进化只调度独立的“本随从进化时”规则，并保留来源离场和选择继续。",
       "test_evidence": [
         "tests/test_triggers.py",
-        "tests/test_faith.py"
+        "tests/test_super_evolution.py"
       ]
     },
     {
@@ -348,7 +348,7 @@
         "follower_super_evolved"
       ],
       "aliases": [],
-      "reason": "手动与效果超进化事件、资源区别和结构化规则调度均已实现。",
+      "reason": "仅消耗SEP超进化时调度关键词规则；效果超进化只调度独立的自身进化与自身超进化规则。",
       "test_evidence": [
         "tests/test_super_evolution.py",
         "tests/test_triggers.py"

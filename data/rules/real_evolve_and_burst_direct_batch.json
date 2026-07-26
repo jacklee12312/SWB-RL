@@ -59,7 +59,7 @@
     },
     {
       "card_id": 10411120,
-      "trigger": "evolve",
+      "trigger": "self_evolved",
       "operations": [
         {"kind": "damage_unit", "target": "all_enemy_units", "amount": 1}
       ]
@@ -95,7 +95,7 @@
     },
     {
       "card_id": 10442110,
-      "trigger": "evolve",
+      "trigger": "self_evolved",
       "operations": [
         {"kind": "damage_unit", "target": "all_enemy_units", "amount": 3}
       ]
@@ -155,7 +155,7 @@
     },
     {
       "card_id": 10642120,
-      "trigger": "evolve",
+      "trigger": "self_evolved",
       "operations": [
         {"kind": "damage_unit", "target": "all_enemy_units", "amount": 3},
         {"kind": "damage_leader", "target": "enemy_leader", "amount": 3}

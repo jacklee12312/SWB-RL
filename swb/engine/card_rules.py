@@ -599,6 +599,8 @@ class Trigger(str, Enum):
     LAST_WORDS = "last_words"
     EVOLVE = "evolve"
     SUPER_EVOLVE = "super_evolve"
+    SELF_EVOLVED = "self_evolved"
+    SELF_SUPER_EVOLVED = "self_super_evolved"
     ATTACK = "attack"
     CLASH = "clash"
     TURN_START = "turn_start"

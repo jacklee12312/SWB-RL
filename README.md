@@ -379,7 +379,10 @@ The deterministic rules core supports:
   `+3/+3` stat changes, independent resources, unlock timing, once-per-turn
   limits, all-damage/effect-destroy protection during every turn owned by that
   follower's controller, and the 1-damage leader bonus when its attack destroys
-  the attacked follower (including destruction by an attack-time ability);
+  the attacked follower (including destruction by an attack-time ability).
+  Resource-gated `进化时`/`超进化时` keywords are distinct from ordinary
+  `本随从进化时`/`本随从超进化时` state-change clauses: effect evolution fires
+  only the latter clauses;
 - structured `super_evolve_unit` effects that grant the complete super-
   evolution state without spending SEP or consuming the manual once-per-turn
   action; effect-caused super evolution counts as an evolution but, unlike an

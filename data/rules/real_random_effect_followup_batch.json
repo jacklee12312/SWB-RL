@@ -142,7 +142,7 @@
     },
     {
       "card_id": 10863110,
-      "trigger": "evolve",
+      "trigger": "self_evolved",
       "operations": [
         {"kind": "damage_unit", "target": "random_enemy_unit", "amount": 1},
         {"kind": "damage_unit", "target": "random_enemy_unit", "amount": 1}
