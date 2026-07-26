@@ -424,6 +424,10 @@ class GameEngine:
         self._suspended_batch: DeathBatch | None = None
         self._suspended_record: DeathRecord | None = None
         self._suspended_lw_records: list[DeathRecord] = []
+        self._defer_last_words: bool = False
+        self._deferred_death_batches: list[
+            tuple[DeathBatch, list[DeathRecord]]
+        ] = []
 
         self.ability_handlers.environment._execute_trigger_rules = self._execute_trigger_rules
         self.ability_handlers.environment._is_ability_covered = self._is_ability_covered
@@ -768,6 +772,8 @@ class GameEngine:
         self._suspended_batch = None
         self._suspended_record = None
         self._suspended_lw_records = []
+        self._defer_last_words = False
+        self._deferred_death_batches = []
         self._suspended_action = None
         self._suspended_action_state = None
         self._suspended_event_state = None
@@ -2591,6 +2597,7 @@ class GameEngine:
         source_spellboost_count: int = 0,
         source_cost: int | None = None,
         attack_target_entity_id: int | None = None,
+        source_snapshot: SourceStateSnapshot | None = None,
     ) -> None:
         self._queue_effects(
             card,
@@ -2602,6 +2609,7 @@ class GameEngine:
             source_spellboost_count=source_spellboost_count,
             source_cost=source_cost,
             attack_target_entity_id=attack_target_entity_id,
+            source_snapshot=source_snapshot,
         )
         self._continue_effects()
 
@@ -2889,14 +2897,17 @@ class GameEngine:
             for record in records[:5]:
                 if (
                     isinstance(record, tuple)
-                    and len(record) == 4
+                    and len(record) >= 4
                 ):
-                    owner, entity_id, trigger_index, event_type = record
+                    owner, entity_id, trigger_index, event_type = record[:4]
                     record_summaries.append({
                         "owner": owner,
                         "emblem_entity_id": entity_id,
                         "trigger_index": trigger_index,
                         "trigger": event_type,
+                        "conditions_frozen": (
+                            bool(record[4]) if len(record) >= 5 else False
+                        ),
                     })
                 else:
                     record_summaries.append(self._debug_value(record))
@@ -3142,6 +3153,17 @@ class GameEngine:
                 "suspended_lw_records": tuple(
                     self._death_record_fingerprint(record)
                     for record in self._suspended_lw_records
+                ),
+                "defer_last_words": self._defer_last_words,
+                "deferred_death_batches": tuple(
+                    (
+                        self._death_batch_fingerprint(batch),
+                        tuple(
+                            self._death_record_fingerprint(record)
+                            for record in records
+                        ),
+                    )
+                    for batch, records in self._deferred_death_batches
                 ),
                 "suspended_action": self._suspended_action,
                 "suspended_action_state": self._fingerprint_value(
@@ -6626,7 +6648,10 @@ class GameEngine:
             self._finish_attack_combat(attacker, target)
 
     def _end_turn(self) -> None:
-        if self._suspended_action_state is not None and self._suspended_action == "turn_end":
+        if (
+            self._suspended_action_state is not None
+            and self._suspended_action == "turn_end"
+        ):
             state = self._suspended_action_state
             self._suspended_action = None
             self._suspended_action_state = None
@@ -6634,6 +6659,129 @@ class GameEngine:
             return
 
         player_index = self.current_player
+        self._stabilize()
+        if self.terminated:
+            return
+        records = self._collect_turn_end_records(player_index)
+        self._begin_last_words_deferral()
+        self._dispatch_emblem_triggers(
+            player_index,
+            "turn_end",
+            freeze_conditions=True,
+        )
+        if self.terminated:
+            self._abort_last_words_deferral()
+            return
+        if self.state.pending_choice is not None:
+            self._suspend_turn_end(player_index, "records", records)
+            return
+        self._continue_turn_end_records(player_index, records)
+
+    def _resume_end_turn(self, state: dict) -> None:
+        self._suspended_action = None
+        self._suspended_action_state = None
+        player_index = state["player_index"]
+        phase = state.get("phase", "records")
+        if phase == "records":
+            self._continue_turn_end_records(
+                player_index,
+                state.get("remaining_records", []),
+            )
+            return
+        if phase == "last_words":
+            self._finish_turn_end_timing(player_index)
+            return
+        if phase == "transition":
+            self._complete_end_turn_transition(player_index)
+            return
+        raise IllegalCommand(f"Unknown turn-end resume phase: {phase}")
+
+    def _suspend_turn_end(
+        self,
+        player_index: int,
+        phase: str,
+        remaining_records: list[dict[str, object]] | None = None,
+    ) -> None:
+        self._suspended_action = "turn_end"
+        self._suspended_action_state = {
+            "player_index": player_index,
+            "phase": phase,
+        }
+        if remaining_records is not None:
+            self._suspended_action_state["remaining_records"] = list(
+                remaining_records
+            )
+
+    def _collect_turn_end_records(
+        self,
+        ending_player: int,
+    ) -> list[dict[str, object]]:
+        entities = (
+            tuple(
+                (ending_player, entity)
+                for entity in self.players[ending_player].board
+            )
+            + tuple(
+                (1 - ending_player, entity)
+                for entity in self.players[1 - ending_player].board
+                if isinstance(entity, Unit)
+            )
+        )
+        records: list[dict[str, object]] = []
+        for owner, entity in entities:
+            snapshot = self._source_snapshot_from_board_card(entity, owner)
+            operations = self._freeze_timing_operations(
+                self._turn_end_operations(entity, owner, ending_player),
+                owner,
+                entity.entity_id,
+                snapshot,
+            )
+            if not operations:
+                continue
+            records.append({
+                "definition": entity.definition,
+                "entity_id": entity.entity_id,
+                "owner": owner,
+                "operations": operations,
+                "source_snapshot": snapshot,
+            })
+        return records
+
+    def _continue_turn_end_records(
+        self,
+        player_index: int,
+        remaining_records: list[dict[str, object]],
+    ) -> None:
+        records = list(remaining_records)
+        while records:
+            record = records.pop(0)
+            self._start_effects(
+                record["definition"],
+                record["entity_id"],
+                record["operations"],
+                controller=record["owner"],
+                label="回合结束",
+                source_snapshot=record["source_snapshot"],
+            )
+            if self.terminated:
+                self._abort_last_words_deferral()
+                return
+            if self.state.pending_choice is not None:
+                self._suspend_turn_end(player_index, "records", records)
+                return
+        self._finish_turn_end_timing(player_index)
+
+    def _finish_turn_end_timing(self, player_index: int) -> None:
+        self._defer_last_words = False
+        if not self._flush_deferred_death_batches():
+            self._suspend_turn_end(player_index, "last_words")
+            return
+        if self.terminated:
+            self._abort_last_words_deferral()
+            return
+        self._complete_end_turn_transition(player_index)
+
+    def _complete_end_turn_transition(self, player_index: int) -> None:
         self._expire_modifiers(
             ModifierDuration.UNTIL_END_OF_TURN,
             player_index,
@@ -6641,51 +6789,9 @@ class GameEngine:
         self._stabilize()
         if self.terminated:
             return
-        turn_end_ids = (
-            tuple(
-                entity.entity_id
-                for entity in self.players[player_index].board
-            )
-            + tuple(
-                entity.entity_id
-                for entity in self.players[1 - player_index].board
-                if isinstance(entity, Unit)
-            )
-        )
-        self._dispatch_emblem_triggers(player_index, "turn_end")
-        if self.terminated:
-            return
         if self.state.pending_choice is not None:
-            self._suspended_action = "turn_end"
-            self._suspended_action_state = {
-                "player_index": player_index,
-                "remaining_ids": list(turn_end_ids),
-            }
+            self._suspend_turn_end(player_index, "transition")
             return
-        for idx, entity_id in enumerate(turn_end_ids):
-            try:
-                unit = self._find_board_entity(entity_id)
-            except IllegalCommand:
-                continue
-            owner = self._entity_owner(entity_id)
-            ops = self._turn_end_operations(unit, owner, player_index)
-            if ops:
-                self._start_effects(
-                    unit.definition,
-                    unit.entity_id,
-                    ops,
-                    controller=owner,
-                    label="回合结束",
-                )
-                if self.terminated:
-                    return
-                if self.state.pending_choice is not None:
-                    self._suspended_action = "turn_end"
-                    self._suspended_action_state = {
-                        "player_index": player_index,
-                        "remaining_ids": list(turn_end_ids[idx + 1:]),
-                    }
-                    return
         self._emit(GameEvent(EventType.TURN_ENDED, player_index))
         self._log(player_index, "结束回合")
         self.players[player_index].cards_played_this_turn = 0
@@ -6694,45 +6800,65 @@ class GameEngine:
         self.state.turn += 1
         self._start_turn(self.current_player)
 
-    def _resume_end_turn(self, state: dict) -> None:
-        self._suspended_action = None
-        self._suspended_action_state = None
-        player_index = state["player_index"]
-        remaining_ids = state.get("remaining_ids", [])
+    @staticmethod
+    def _source_snapshot_from_board_card(
+        entity: BoardCard,
+        owner: int,
+    ) -> SourceStateSnapshot:
+        return SourceStateSnapshot(
+            entity_id=entity.entity_id,
+            controller=owner,
+            card_id=entity.definition.card_id,
+            card_type=entity.definition.card_type,
+            attack=entity.attack if isinstance(entity, Unit) else None,
+            health=entity.health if isinstance(entity, Unit) else None,
+            evolved=entity.evolved if isinstance(entity, Unit) else False,
+            super_evolved=(
+                entity.super_evolved if isinstance(entity, Unit) else False
+            ),
+            effective_keywords=(
+                entity.effective_keywords
+                if isinstance(entity, Unit)
+                else frozenset()
+            ),
+        )
 
-        while remaining_ids:
-            entity_id = remaining_ids[0]
-            remaining_ids = remaining_ids[1:]
-            try:
-                unit = self._find_board_entity(entity_id)
-            except IllegalCommand:
+    def _freeze_timing_operations(
+        self,
+        operations: tuple[EffectOperation, ...],
+        controller: int,
+        source_entity_id: int,
+        source_snapshot: SourceStateSnapshot,
+    ) -> tuple[EffectOperation, ...]:
+        frozen: list[EffectOperation] = []
+        meta_effects = {
+            EffectKind.CONDITIONAL,
+            EffectKind.CHOOSE_ONE,
+            EffectKind.OPTIONAL,
+            EffectKind.TARGET_EXISTS,
+        }
+        context = self._eval_context(
+            controller,
+            source_entity_id=source_entity_id,
+            source_card_id=source_snapshot.card_id,
+            source_snapshot=source_snapshot,
+        )
+        for operation in operations:
+            if not operation.conditions or operation.kind in meta_effects:
+                frozen.append(operation)
                 continue
-            owner = self._entity_owner(entity_id)
-            ops = self._turn_end_operations(unit, owner, player_index)
-            if ops:
-                self._start_effects(
-                    unit.definition,
-                    unit.entity_id,
-                    ops,
-                    controller=owner,
-                    label="回合结束",
-                )
-                if self.terminated:
-                    return
-                if self.state.pending_choice is not None:
-                    self._suspended_action = "turn_end"
-                    self._suspended_action_state = {
-                        "player_index": player_index,
-                        "remaining_ids": remaining_ids,
-                    }
-                    return
-        self._emit(GameEvent(EventType.TURN_ENDED, player_index))
-        self._log(player_index, "结束回合")
-        self.players[player_index].cards_played_this_turn = 0
-        self.players[player_index].follower_attacks_this_turn = 0
-        self.state.active_player = 1 - player_index
-        self.state.turn += 1
-        self._start_turn(self.current_player)
+            state = evaluate_conditions_without_target(
+                operation.conditions,
+                context,
+            )
+            if state is PartialConditionResult.FALSE:
+                continue
+            frozen.append(
+                replace(operation, conditions=())
+                if state is PartialConditionResult.TRUE
+                else operation
+            )
+        return tuple(frozen)
 
     def _turn_end_operations(
         self,
@@ -6968,7 +7094,10 @@ class GameEngine:
         self._try_spellboost_hand()
 
     def _start_turn(self, player_index: int) -> None:
-        if self._suspended_action_state is not None and self._suspended_action == "turn_start":
+        if (
+            self._suspended_action_state is not None
+            and self._suspended_action == "turn_start"
+        ):
             state = self._suspended_action_state
             self._suspended_action = None
             self._suspended_action_state = None
@@ -6995,33 +7124,52 @@ class GameEngine:
         player.followers_destroyed_this_turn = 0
         player.max_mana = min(self.config.max_mana, player.max_mana + 1)
         player.mana = player.max_mana
+        self._begin_last_words_deferral()
         self._tick_countdowns(player_index)
         self._tick_emblem_countdowns(player_index)
-        board = tuple(player.board)
-        if self.state.pending_choice is not None:
-            self._suspended_action = "turn_start"
-            self._suspended_action_state = {
-                "player_index": player_index,
-                "phase": "emblem_triggers",
-                "remaining_ids": [
-                    entity.entity_id for entity in board
-                    if isinstance(entity, Unit)
-                ],
-            }
+        if self.terminated:
+            self._abort_last_words_deferral()
             return
-        self._dispatch_emblem_triggers(player_index, "turn_start")
         if self.state.pending_choice is not None:
-            self._suspended_action = "turn_start"
-            self._suspended_action_state = {
-                "player_index": player_index,
-                "phase": "board",
-                "remaining_ids": [
-                    entity.entity_id for entity in board
-                    if isinstance(entity, Unit)
-                ],
-            }
+            self._suspend_start_turn(player_index, "collect_timing")
             return
-        for idx, unit in enumerate(board):
+        self._continue_start_turn_after_countdowns(player_index)
+
+    def _continue_start_turn_after_countdowns(self, player_index: int) -> None:
+        board_records = self._collect_turn_start_records(player_index)
+        invocation_card_ids = [
+            card_id
+            for card_id in self._turn_start_invocation_candidates(player_index)
+            if self._invocation_conditions_met(player_index, card_id)
+        ]
+        self._dispatch_emblem_triggers(
+            player_index,
+            "turn_start",
+            freeze_conditions=True,
+        )
+        if self.terminated:
+            self._abort_last_words_deferral()
+            return
+        if self.state.pending_choice is not None:
+            self._suspend_start_turn(
+                player_index,
+                "prepare_invocations",
+                board_records=board_records,
+                remaining_card_ids=invocation_card_ids,
+            )
+            return
+        self._prepare_turn_start_invocations(
+            player_index,
+            board_records,
+            invocation_card_ids,
+        )
+
+    def _collect_turn_start_records(
+        self,
+        player_index: int,
+    ) -> list[dict[str, object]]:
+        records: list[dict[str, object]] = []
+        for unit in tuple(self.players[player_index].board):
             if not isinstance(unit, Unit):
                 continue
             unit.can_attack = True
@@ -7031,30 +7179,39 @@ class GameEngine:
             self._dispatch_ability(
                 AbilityEvent.TURN_STARTED, unit, player_index=player_index
             )
-            ops = (
+            operations = (
                 ()
-                if isinstance(unit, Unit) and unit.printed_abilities_removed
+                if unit.printed_abilities_removed
                 else self.rulebook.operations_for(
                     unit.definition.card_id, Trigger.TURN_START
                 )
             )
-            if ops:
-                self._start_effects(unit.definition, unit.entity_id, ops, label="回合开始")
-                if self.state.pending_choice is not None:
-                    self._suspended_action = "turn_start"
-                    self._suspended_action_state = {
-                        "player_index": player_index,
-                        "phase": "board",
-                        "remaining_ids": [
-                            e.entity_id
-                            for e in board[idx + 1:]
-                            if isinstance(e, Unit)
-                        ],
-                    }
-                    return
-        self._finish_start_turn(player_index)
+            snapshot = self._source_snapshot_from_board_card(
+                unit,
+                player_index,
+            )
+            operations = self._freeze_timing_operations(
+                operations,
+                player_index,
+                unit.entity_id,
+                snapshot,
+            )
+            if operations:
+                records.append({
+                    "definition": unit.definition,
+                    "entity_id": unit.entity_id,
+                    "owner": player_index,
+                    "operations": operations,
+                    "source_snapshot": snapshot,
+                })
+        return records
 
-    def _finish_start_turn(self, player_index: int) -> None:
+    def _prepare_turn_start_invocations(
+        self,
+        player_index: int,
+        board_records: list[dict[str, object]],
+        remaining_card_ids: list[int],
+    ) -> None:
         player = self.players[player_index]
         for card in player.hand:
             card_definition = (
@@ -7073,7 +7230,9 @@ class GameEngine:
             )
         self._continue_turn_start_invocations(
             player_index,
-            self._turn_start_invocation_candidates(player_index),
+            remaining_card_ids,
+            board_records=board_records,
+            invoked_records=[],
         )
 
     def _turn_start_invocation_candidates(self, player_index: int) -> list[int]:
@@ -7099,57 +7258,51 @@ class GameEngine:
         )
         return result is PartialConditionResult.TRUE
 
-    def _suspend_start_turn_invocation(
+    def _suspend_start_turn(
         self,
         player_index: int,
         phase: str,
-        remaining_card_ids: list[int],
         *,
-        invoked_entity_id: int | None = None,
+        board_records: list[dict[str, object]] | None = None,
+        remaining_card_ids: list[int] | None = None,
+        invoked_records: list[dict[str, object]] | None = None,
     ) -> None:
         self._suspended_action = "turn_start"
         self._suspended_action_state = {
             "player_index": player_index,
             "phase": phase,
-            "remaining_card_ids": list(remaining_card_ids),
         }
-        if invoked_entity_id is not None:
-            self._suspended_action_state["invoked_entity_id"] = invoked_entity_id
-
-    def _finish_invoked_card(self, player_index: int, entity_id: int) -> None:
-        try:
-            unit = self._find_board_entity(entity_id)
-        except IllegalCommand:
-            return
-        if not isinstance(unit, Unit) or self._entity_owner(entity_id) != player_index:
-            return
-        operations = self.rulebook.operations_for(
-            unit.definition.card_id,
-            Trigger.INVOKE,
-        )
-        if operations:
-            self._start_effects(
-                unit.definition,
-                unit.entity_id,
-                operations,
-                controller=player_index,
-                label="瞬念召唤",
+        if board_records is not None:
+            self._suspended_action_state["board_records"] = list(
+                board_records
+            )
+        if remaining_card_ids is not None:
+            self._suspended_action_state["remaining_card_ids"] = list(
+                remaining_card_ids
+            )
+        if invoked_records is not None:
+            self._suspended_action_state["invoked_records"] = list(
+                invoked_records
             )
 
     def _continue_turn_start_invocations(
         self,
         player_index: int,
         remaining_card_ids: list[int],
+        *,
+        board_records: list[dict[str, object]],
+        invoked_records: list[dict[str, object]],
     ) -> None:
         player = self.players[player_index]
+        remaining_card_ids = list(remaining_card_ids)
+        invoked_records = list(invoked_records)
         while remaining_card_ids:
             if len(player.board) >= self.config.max_board:
                 break
             eligible_card_ids = [
                 card_id
                 for card_id in remaining_card_ids
-                if self._invocation_conditions_met(player_index, card_id)
-                and any(card.card_id == card_id for card in player.deck)
+                if any(card.card_id == card_id for card in player.deck)
             ]
             if not eligible_card_ids:
                 break
@@ -7226,21 +7379,119 @@ class GameEngine:
                     },
                 )
             )
+            invoke_operations = self.rulebook.operations_for(
+                unit.definition.card_id,
+                Trigger.INVOKE,
+            )
+            if invoke_operations:
+                invoked_records.append({
+                    "definition": unit.definition,
+                    "entity_id": unit.entity_id,
+                    "owner": player_index,
+                    "operations": invoke_operations,
+                    "source_snapshot": (
+                        self._source_snapshot_from_board_card(
+                            unit,
+                            player_index,
+                        )
+                    ),
+                })
             self._resolve_event_queue()
+            self._stabilize()
             if self.state.pending_choice is not None:
-                self._suspend_start_turn_invocation(
-                    player_index,
-                    "invocation_source",
-                    remaining_card_ids,
-                    invoked_entity_id=unit.entity_id,
-                )
-                return
-            self._finish_invoked_card(player_index, unit.entity_id)
-            if self.state.pending_choice is not None:
-                self._suspend_start_turn_invocation(
+                self._suspend_start_turn(
                     player_index,
                     "invocation_scan",
-                    remaining_card_ids,
+                    board_records=board_records,
+                    remaining_card_ids=remaining_card_ids,
+                    invoked_records=invoked_records,
+                )
+                return
+        self._finish_start_turn_timing(
+            player_index,
+            board_records,
+            invoked_records,
+        )
+
+    def _finish_start_turn_timing(
+        self,
+        player_index: int,
+        board_records: list[dict[str, object]],
+        invoked_records: list[dict[str, object]],
+    ) -> None:
+        self._defer_last_words = False
+        if not self._flush_deferred_death_batches():
+            self._suspend_start_turn(
+                player_index,
+                "deferred_last_words",
+                board_records=board_records,
+                invoked_records=invoked_records,
+            )
+            return
+        if self.terminated:
+            self._abort_last_words_deferral()
+            return
+        self._continue_start_turn_board_records(
+            player_index,
+            board_records,
+            invoked_records,
+        )
+
+    def _continue_start_turn_board_records(
+        self,
+        player_index: int,
+        board_records: list[dict[str, object]],
+        invoked_records: list[dict[str, object]],
+    ) -> None:
+        records = list(board_records)
+        while records:
+            record = records.pop(0)
+            self._start_effects(
+                record["definition"],
+                record["entity_id"],
+                record["operations"],
+                controller=record["owner"],
+                label="回合开始",
+                source_snapshot=record["source_snapshot"],
+            )
+            if self.terminated:
+                return
+            if self.state.pending_choice is not None:
+                self._suspend_start_turn(
+                    player_index,
+                    "board",
+                    board_records=records,
+                    invoked_records=invoked_records,
+                )
+                return
+        self._continue_start_turn_invoked_effects(
+            player_index,
+            invoked_records,
+        )
+
+    def _continue_start_turn_invoked_effects(
+        self,
+        player_index: int,
+        invoked_records: list[dict[str, object]],
+    ) -> None:
+        records = list(invoked_records)
+        while records:
+            record = records.pop(0)
+            self._start_effects(
+                record["definition"],
+                record["entity_id"],
+                record["operations"],
+                controller=record["owner"],
+                label="瞬念召唤",
+                source_snapshot=record["source_snapshot"],
+            )
+            if self.terminated:
+                return
+            if self.state.pending_choice is not None:
+                self._suspend_start_turn(
+                    player_index,
+                    "invoked_effects",
+                    invoked_records=records,
                 )
                 return
         self._complete_start_turn(player_index)
@@ -7261,20 +7512,15 @@ class GameEngine:
         self._suspended_action_state = None
         player_index = state["player_index"]
         phase = state["phase"]
-        if phase == "invocation_source":
-            self._finish_invoked_card(
+        board_records = state.get("board_records", [])
+        invoked_records = state.get("invoked_records", [])
+        if phase == "collect_timing":
+            self._continue_start_turn_after_countdowns(player_index)
+            return
+        if phase == "prepare_invocations":
+            self._prepare_turn_start_invocations(
                 player_index,
-                state["invoked_entity_id"],
-            )
-            if self.state.pending_choice is not None:
-                self._suspend_start_turn_invocation(
-                    player_index,
-                    "invocation_scan",
-                    state.get("remaining_card_ids", []),
-                )
-                return
-            self._continue_turn_start_invocations(
-                player_index,
+                board_records,
                 state.get("remaining_card_ids", []),
             )
             return
@@ -7282,58 +7528,31 @@ class GameEngine:
             self._continue_turn_start_invocations(
                 player_index,
                 state.get("remaining_card_ids", []),
+                board_records=board_records,
+                invoked_records=invoked_records,
             )
             return
-        remaining_ids = state.get("remaining_ids", [])
-        if phase == "emblem_triggers":
-            self._dispatch_emblem_triggers(player_index, "turn_start")
-            if self.state.pending_choice is not None:
-                self._suspended_action = "turn_start"
-                self._suspended_action_state = {
-                    "player_index": player_index,
-                    "phase": "board",
-                    "remaining_ids": remaining_ids,
-                }
-                return
-            phase = "board"
+        if phase == "deferred_last_words":
+            self._finish_start_turn_timing(
+                player_index,
+                board_records,
+                invoked_records,
+            )
+            return
         if phase == "board":
-            while remaining_ids:
-                entity_id = remaining_ids[0]
-                remaining_ids = remaining_ids[1:]
-                try:
-                    unit = self._find_board_entity(entity_id)
-                except IllegalCommand:
-                    continue
-                if not isinstance(unit, Unit):
-                    continue
-                owner = self._entity_owner(entity_id)
-                if owner != player_index:
-                    continue
-                unit.can_attack = True
-                unit.attacks_remaining = unit.attacks_per_turn
-                unit.rush_only = False
-                unit.summoned_this_turn = False
-                self._dispatch_ability(
-                    AbilityEvent.TURN_STARTED, unit, player_index=player_index
-                )
-                ops = (
-                    ()
-                    if isinstance(unit, Unit) and unit.printed_abilities_removed
-                    else self.rulebook.operations_for(
-                        unit.definition.card_id, Trigger.TURN_START
-                    )
-                )
-                if ops:
-                    self._start_effects(unit.definition, unit.entity_id, ops, label="回合开始")
-                    if self.state.pending_choice is not None:
-                        self._suspended_action = "turn_start"
-                        self._suspended_action_state = {
-                            "player_index": player_index,
-                            "phase": "board",
-                            "remaining_ids": remaining_ids,
-                        }
-                        return
-        self._finish_start_turn(player_index)
+            self._continue_start_turn_board_records(
+                player_index,
+                board_records,
+                invoked_records,
+            )
+            return
+        if phase == "invoked_effects":
+            self._continue_start_turn_invoked_effects(
+                player_index,
+                invoked_records,
+            )
+            return
+        raise IllegalCommand(f"Unknown turn-start resume phase: {phase}")
 
     def _draw(
         self,
@@ -11717,8 +11936,9 @@ class GameEngine:
         source_id: int | None = None,
         event_metadata: dict[str, object] | None = None,
         eligible_sources: tuple[tuple[int, int], ...] | None = None,
+        freeze_conditions: bool = False,
     ) -> None:
-        records: list[tuple[int, int, int, str]] = []
+        records: list[tuple[int, int, int, str, bool]] = []
         for pi in (0, 1):
             player = self.players[pi]
             for ei in player.emblems:
@@ -11736,7 +11956,39 @@ class GameEngine:
                             event_type,
                             event_metadata,
                         ):
-                            records.append((pi, ei.entity_id, ti, event_type))
+                            if freeze_conditions:
+                                context = self._eval_context(
+                                    pi,
+                                    source_entity_id=source_id,
+                                )
+                                condition_state = (
+                                    evaluate_conditions_without_target(
+                                        tr.conditions,
+                                        context,
+                                    )
+                                )
+                                if (
+                                    condition_state
+                                    is not PartialConditionResult.TRUE
+                                ):
+                                    continue
+                                if not tr.operations or not any(
+                                    self._emblem_operation_can_start(
+                                        operation,
+                                        pi,
+                                        source_id,
+                                        ei.entity_id,
+                                    )
+                                    for operation in tr.operations
+                                ):
+                                    continue
+                            records.append((
+                                pi,
+                                ei.entity_id,
+                                ti,
+                                event_type,
+                                freeze_conditions,
+                            ))
         records.sort(
             key=lambda record: self._emblem_order_key(
                 record[0],
@@ -11855,7 +12107,14 @@ class GameEngine:
             return
         records = batch["records"]
         while records:
-            player_index, entity_id, trigger_index, event_type = records.pop(0)
+            record = records.pop(0)
+            (
+                player_index,
+                entity_id,
+                trigger_index,
+                event_type,
+            ) = record[:4]
+            conditions_frozen = len(record) >= 5 and bool(record[4])
             player = self.players[player_index]
             ei = next(
                 (
@@ -11873,7 +12132,7 @@ class GameEngine:
                 continue
             if not ei.can_activate(trigger_index):
                 continue
-            if tr.conditions:
+            if tr.conditions and not conditions_frozen:
                 ctx = self._eval_context(
                     player_index,
                     source_entity_id=batch.get("source_id"),
@@ -11887,7 +12146,9 @@ class GameEngine:
                 )
                 if result is not PartialConditionResult.TRUE:
                     continue
-            if not tr.operations or not any(
+            if not tr.operations:
+                continue
+            if not conditions_frozen and not any(
                 self._emblem_operation_can_start(
                     operation,
                     player_index,
@@ -13819,8 +14080,12 @@ class GameEngine:
             self._step()
             event = self.state.event_queue.popleft()
             self._record_event(event)
+            if self.terminated:
+                continue
             if event.type is EventType.FOLLOWER_DESTROYED:
                 self._resolve_super_evolution_attack_bonus(event)
+                if self.terminated:
+                    continue
             if self._event_is_enhanced_card_play(event):
                 self._advance_faiths_for_event(
                     event.player_index,
@@ -13987,6 +14252,7 @@ class GameEngine:
             f"{context.attacker_name} 的超进化攻击规则对对方主战者造成 1 点伤害"
             f"（生命 {self.players[target_player].health}）",
         )
+        self._check_game_over()
 
     def _save_event_continuation(self, event, source, target, ability_event, phase):
         remaining = []
@@ -14079,6 +14345,30 @@ class GameEngine:
             or frame.listener_batch_id is not None
             for frame in self.state.effect_stack
         )
+
+    def _begin_last_words_deferral(self) -> None:
+        if self._defer_last_words or self._deferred_death_batches:
+            raise RuntimeError("last-words deferral is already active")
+        self._defer_last_words = True
+
+    def _abort_last_words_deferral(self) -> None:
+        self._defer_last_words = False
+        self._deferred_death_batches.clear()
+
+    def _flush_deferred_death_batches(self) -> bool:
+        while self._suspended_batch is not None or self._deferred_death_batches:
+            if self._suspended_batch is None:
+                batch, lw_records = self._deferred_death_batches.pop(0)
+                self._suspended_batch = batch
+                self._suspended_lw_records = list(lw_records)
+            self._stabilize()
+            if self.state.pending_choice is not None:
+                return False
+            if self._suspended_batch is not None:
+                raise RuntimeError(
+                    "deferred last-words batch did not make progress"
+                )
+        return True
 
     def _stabilize(self) -> None:
         if self._stabilizing:
@@ -14198,12 +14488,27 @@ class GameEngine:
                 ))
 
             lw_records = [r for r in ordered_records if r.allows_last_words]
-            self._suspended_batch = batch
-            self._suspended_lw_records = list(lw_records)
             self._resolve_event_queue()
+            if self.terminated:
+                return
             if self.state.pending_choice is not None:
+                if self._defer_last_words:
+                    self._deferred_death_batches.append(
+                        (batch, list(lw_records))
+                    )
+                else:
+                    self._suspended_batch = batch
+                    self._suspended_lw_records = list(lw_records)
                 return
 
+            if self._defer_last_words:
+                self._deferred_death_batches.append(
+                    (batch, list(lw_records))
+                )
+                continue
+
+            self._suspended_batch = batch
+            self._suspended_lw_records = list(lw_records)
             self._continue_batch_lws()
             if self.state.pending_choice is not None:
                 return
