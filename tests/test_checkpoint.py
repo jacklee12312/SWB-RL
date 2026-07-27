@@ -21,6 +21,7 @@ from swb.rl.fixed_decks import (
     get_fixed_training_deck,
 )
 from swb.rl.ppo import PPOConfig, PPOTrainer
+from swb.rl.policy import ENTITY_ACTION_POLICY_ARCHITECTURE
 from swb.rl.runtime import WorkerAssetsSnapshot
 
 
@@ -54,7 +55,8 @@ class CheckpointTests(unittest.TestCase):
         return trainer
 
     def test_manifest_contains_full_progress_rng_versions_and_git_state(self) -> None:
-        payload = build_checkpoint(self.trained_once())
+        trainer = self.trained_once()
+        payload = build_checkpoint(trainer)
         self.assertIn("model_state", payload)
         self.assertIn("optimizer_state", payload)
         self.assertIn("python", payload["rng"])
@@ -69,6 +71,12 @@ class CheckpointTests(unittest.TestCase):
         self.assertEqual(payload["trainer"]["config"]["match_setup"], "official")
         self.assertIn("observation_schema_sha256", payload["versions"])
         self.assertIn("action_layout_sha256", payload["versions"])
+        self.assertEqual(
+            payload["experiment_manifest"]["policy_representation"][
+                "architecture"
+            ],
+            trainer.model.architecture,
+        )
 
     def test_save_resume_matches_uninterrupted_next_update(self) -> None:
         trainer = self.trained_once()
@@ -127,6 +135,42 @@ class CheckpointTests(unittest.TestCase):
         self.assertEqual(resumed.config.training_deck, recipe.name)
         for deck in resumed.env._core.deck_lists:
             self.assertEqual(Counter(card.card_id for card in deck), Counter(recipe.card_ids))
+
+    def test_entity_action_architecture_round_trips_through_checkpoint(self) -> None:
+        trainer = PPOTrainer(
+            self.snapshot,
+            master_seed=2470,
+            config=PPOConfig(
+                rollout_steps=4,
+                sequence_length=2,
+                minibatch_sequences=1,
+                update_epochs=1,
+                hidden_size=64,
+                card_embedding_dim=16,
+                policy_architecture=ENTITY_ACTION_POLICY_ARCHITECTURE,
+                model_dim=32,
+                transformer_layers=1,
+                attention_heads=4,
+                feedforward_dim=64,
+                max_agent_steps_per_episode=4,
+            ),
+        )
+        records, bootstrap, _ = trainer.collect_rollout()
+        trainer.update(records, bootstrap)
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "entity_action.pt"
+            save_checkpoint_atomic(path, trainer)
+            resumed = load_checkpoint(path, self.snapshot)
+        self.assertEqual(
+            resumed.model.architecture,
+            ENTITY_ACTION_POLICY_ARCHITECTURE,
+        )
+        self.assertEqual(
+            resumed.model.specification(),
+            trainer.model.specification(),
+        )
+        for name, expected in trainer.model.state_dict().items():
+            torch.testing.assert_close(expected, resumed.model.state_dict()[name])
 
     def test_atomic_replace_failure_preserves_existing_checkpoint(self) -> None:
         trainer = self.trained_once()

@@ -26,6 +26,7 @@ def main() -> None:
     parser.add_argument("--seed-count", type=int, default=2)
     parser.add_argument("--max-agent-steps", type=int, default=512)
     parser.add_argument("--master-seed", type=int, default=20260721)
+    parser.add_argument("--device", default="cpu")
     parser.add_argument(
         "--match-setup",
         choices=sorted(MATCH_SETUP_VALUES),
@@ -72,7 +73,12 @@ def main() -> None:
             )
         class_ids = (fixed_deck.class_id,)
     snapshot = WorkerAssetsSnapshot.build(CardRepository(args.database))
-    trainer = load_checkpoint(args.checkpoint, snapshot)
+    trainer = load_checkpoint(
+        args.checkpoint,
+        snapshot,
+        device=args.device,
+        restore_rng_state=False,
+    )
     report = evaluate(
         trainer,
         snapshot,

@@ -121,6 +121,7 @@ def build_checkpoint(trainer: PPOTrainer) -> dict[str, object]:
                 else trainer.fixed_training_deck.manifest()
             ),
             "policy_representation": {
+                "architecture": trainer.model.architecture,
                 "numeric_size": trainer.flattener.size,
                 "card_slots": trainer.flattener.card_slots,
                 "card_vocabulary_size": len(
@@ -175,6 +176,7 @@ def load_checkpoint(
     snapshot: WorkerAssetsSnapshot,
     *,
     device: str = "cpu",
+    restore_rng_state: bool = True,
 ) -> PPOTrainer:
     payload = _load_payload(path)
     trainer_state = payload["trainer"]
@@ -216,7 +218,17 @@ def load_checkpoint(
         int(player): hidden.to(trainer.device)
         for player, hidden in trainer_state["hidden_by_player"].items()
     }
-    trainer.torch_generator.set_state(trainer_state["torch_generator_state"])
+    if restore_rng_state:
+        try:
+            trainer.torch_generator.set_state(
+                trainer_state["torch_generator_state"]
+            )
+        except RuntimeError as exc:
+            raise ValueError(
+                "checkpoint policy RNG cannot be restored on "
+                f"device {trainer.device}; exact training resume requires the "
+                "same device type used to create the checkpoint"
+            ) from exc
 
     environment_state = payload["environment"]
     decks = []
@@ -253,10 +265,11 @@ def load_checkpoint(
     if trainer.opponent_hidden is not None and trainer_state["opponent_hidden"] is not None:
         trainer.opponent_hidden = trainer_state["opponent_hidden"].to(trainer.device)
 
-    rng = payload["rng"]
-    random.setstate(rng["python"])
-    np.random.set_state(rng["numpy"])
-    torch.set_rng_state(rng["torch_cpu"])
-    if torch.cuda.is_available() and rng["torch_cuda"] is not None:
-        torch.cuda.set_rng_state_all(rng["torch_cuda"])
+    if restore_rng_state:
+        rng = payload["rng"]
+        random.setstate(rng["python"])
+        np.random.set_state(rng["numpy"])
+        torch.set_rng_state(rng["torch_cpu"])
+        if torch.cuda.is_available() and rng["torch_cuda"] is not None:
+            torch.cuda.set_rng_state_all(rng["torch_cuda"])
     return trainer

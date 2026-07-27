@@ -22,6 +22,48 @@ auditable [token report](data/reports/token_audit.md) distinguishes database
 references from executable producer paths and behavior completeness for all 91
 cards: 91 complete entries, 0 partial entries, and no database-only entry gap.
 
+## Local Match Simulator
+
+The repository includes a local human-versus-PPO match interface. It shows both
+boards and public resources, reveals only the human hand, supports mulligan and
+all currently legal command/choice actions, and serves the downloaded card
+images without copying them into the frontend build.
+
+Every action is atomically persisted under ignored `data/match_history/` JSON
+records. Starting another match marks an unfinished record as abandoned instead
+of overwriting it. The UI can browse those records and their action-by-action
+resolution timelines. Schema-v2 records retain complete private snapshots,
+unredacted logs/events, and every legal action at each decision. AI decisions
+also include logits, normalized probabilities, the selected action, and the
+value estimate. Privacy is applied only to the live/UI presentation while a
+match is ongoing; completed matches expose the saved AI hand and policy
+distribution in the history drawer for diagnosis. Schema-v1 records remain
+readable, although information already redacted from them cannot be recovered.
+
+The leader panels keep deck, hand, graveyard, class resources, and a fixed
+five-slot shared Faith/emblem area visible. Structured engine events generate a
+lightweight resolution presentation for attacks, damage, spells, amulets,
+summons, evolution, destruction, healing, and game results; the raw text log
+remains available as a diagnostic fallback.
+
+Install the frontend dependencies once, then start the Python inference service
+and UI together:
+
+```powershell
+cd simulator-ui
+npm install
+cd ..
+python -m scripts.run_match_simulator
+```
+
+The default opponent is
+`data/checkpoints/ppo_evolve_haven_entity_action_100k.pt`, and both players use
+its fixed `official_qr_evolve_haven_20260727` deck profile. This 102,067-step
+checkpoint uses `entity_action_v1` and matches the current Catalog, RuleBook,
+Observation v3.6, and action-112-v2 hashes. The older legacy checkpoint remains
+loadable through the simulator's explicit inference-only RuleBook mismatch
+warning.
+
 Abilities are normalized in two relational tables:
 
 - `abilities`: canonical keyword, implementation status, trigger events, aliases
@@ -74,13 +116,23 @@ rules core:
   recurrent trajectory schema. `PolicyVectorRollout` additionally keeps those
   workers alive across PPO updates and collects trajectories under one frozen
   policy generation.
-- The CPU baseline is shared-parameter recurrent masked PPO with separate
+- The compatibility baseline is shared-parameter recurrent masked PPO with separate
   player hidden states, sparse terminal reward, terminated/truncated bootstrap,
   recurrent sequence batching, PPO clipping, gradient clipping, and finite-
   value guards. Stable vocabulary indices in hand and public-board slots feed a
   trainable card embedding instead of being treated as dynamically normalized
   ordinal numbers. Atomic schema-v2 checkpoints include the model, optimizer, live
   environment, RNGs, progress, versions, dirty git state, and opponent league.
+  Training accepts `--device cpu` or `--device cuda`; policy sampling and PPO
+  minibatch permutation use a generator on the selected device, with a
+  CUDA-conditional collection/update regression test.
+- New training runs default to `entity_action_v1`: a 6.5M-parameter policy
+  with 128-dimensional card embeddings, a 256-wide four-layer/8-head
+  Transformer over the public hand/board entities, a 512-wide recurrent
+  memory, and a source/target-conditioned action scorer. Entity-target choice
+  scores follow the candidate when option ordering changes instead of attaching
+  one independent learned weight to each choice position. Legacy
+  `legacy_gru_v1` checkpoints remain loadable and keep their original network.
 - The configurable opponent league includes current, historical checkpoint,
   random-legal, and fixed-first-legal policies with reproducible selection,
   periodic snapshots, and bounded retention. New PPO runs use a deterministic
@@ -128,7 +180,7 @@ python -m pip install -e ".[rl,train]"
 python -m scripts.vector_rollout --workers 4 --episodes 16
 python -m scripts.audit_rl_distribution --episodes 98 --workers 2
 python -m scripts.train_ppo --total-agent-steps 10000
-python -m scripts.train_ppo --training-deck official_qr_evolve_haven_20260727 --total-agent-steps 10000
+python -m scripts.train_ppo --training-deck official_qr_evolve_haven_20260727 --device cuda --rollout-workers 4 --total-agent-steps 100000 --opponent-current-weight 1 --opponent-random-weight 0 --opponent-fixed-weight 0 --opponent-historical-weight 0
 python -m scripts.evaluate_ppo data/checkpoints/ppo_evolve_haven_smoke.pt --training-deck official_qr_evolve_haven_20260727 --seed-count 250 --master-seed 20260801
 python -m scripts.train_ppo --rollout-workers 4 --total-agent-steps 10000 --opponent-current-weight 1 --opponent-random-weight 0 --opponent-fixed-weight 0 --opponent-historical-weight 0
 python -m scripts.evaluate_ppo data/checkpoints/ppo_smoke.pt
@@ -144,6 +196,15 @@ random-legal baseline (500 games, 95% CI 91.3%-95.6%); after continuing to
 against the 1,024-step checkpoint (68.3%-76.1%, +167.5 relative Elo). All
 1,500 games terminated normally with zero illegal actions or mask mismatches.
 This establishes relative learning on the mirror, not ladder strength.
+The 2026-07-27 entity/action-conditioned Havencraft run used the RTX 4080 as
+the learner and four CPU rollout actors. It reached 102,067 agent steps across
+1,236 games and 46 PPO updates in 661.9 seconds for the 2k-to-100k continuation
+(150.98 agent steps/s). On 100 held-out mirrored games it scored 100% against
+random legal and 100% against its random initialization, with zero illegal
+actions, truncations, or mask mismatches. Against its own 50,957-step snapshot
+it scored 55% (95% CI 45.2%-64.4%, +34.9 relative Elo), which is evidence of a
+working training path but not statistically significant evidence that the
+second half of this short run materially improved policy strength.
 Still unsupported: this is a baseline PPO and league/evaluation system, not a
 distributed learner, a policy-strength result, or a complete MCTS
 implementation. Multiprocess PPO currently uses current-policy self-play;

@@ -20,7 +20,8 @@ from swb.engine.events import EventType
 from swb.rl.checkpoint import load_checkpoint
 from swb.rl.class_schedule import ALL_CLASS_IDS, normalize_class_ids
 from swb.rl.fixed_decks import get_fixed_training_deck
-from swb.rl.ppo import ObservationFlattener, PPOTrainer, RecurrentMaskedActorCritic
+from swb.rl.policy import MaskedPolicyNetwork
+from swb.rl.ppo import ObservationFlattener, PPOTrainer
 from swb.rl.runtime import WorkerAssetsSnapshot
 from swb.rl.seeding import derive_seed
 from swb.rl.versioning import ExperimentVersions, stable_json_sha256
@@ -95,7 +96,7 @@ class _FirstLegalPolicy(_Policy):
 class _RecurrentPolicy(_Policy):
     def __init__(
         self,
-        model: RecurrentMaskedActorCritic,
+        model: MaskedPolicyNetwork,
         flattener: ObservationFlattener,
         device: torch.device,
     ) -> None:
@@ -162,6 +163,7 @@ def _opponent_policy(
         Path(config.opponent_checkpoint),
         snapshot,
         device=str(trainer.device),
+        restore_rng_state=False,
     )
     return _RecurrentPolicy(
         historical.model,
@@ -531,6 +533,10 @@ def evaluate(
         "validate_invariants": True,
         "training_deck": (
             None if fixed_deck is None else fixed_deck.manifest()
+        ),
+        "policy_architecture": trainer.model.architecture,
+        "model_parameters": sum(
+            parameter.numel() for parameter in trainer.model.parameters()
         ),
     }
     if opponent_checkpoint_sha256 is not None:

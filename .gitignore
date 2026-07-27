@@ -18,7 +18,9 @@ env/
 *.tmp
 
 data/backups/
+data/card_images/
 data/checkpoints/
+data/match_history/
 data/**/*.log
 
 # Local database/query scratch files

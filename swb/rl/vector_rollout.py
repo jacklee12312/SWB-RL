@@ -423,7 +423,7 @@ def _policy_worker_main(
     try:
         import torch
 
-        from swb.rl.ppo import RecurrentMaskedActorCritic
+        from swb.rl.policy import build_policy_from_specification
 
         assets = snapshot.load()
         model = None
@@ -435,7 +435,7 @@ def _policy_worker_main(
             command = message[0]
             if command == "load_policy":
                 _, generation, payload, specification = message
-                model = RecurrentMaskedActorCritic(**specification)
+                model = build_policy_from_specification(specification)
                 state = torch.load(
                     io.BytesIO(payload), map_location="cpu", weights_only=True
                 )
@@ -658,14 +658,7 @@ class PolicyVectorRollout:
             },
             buffer,
         )
-        specification = {
-            "input_size": model.input_size,
-            "action_size": model.action_size,
-            "hidden_size": model.hidden_size,
-            "card_vocabulary_size": model.card_vocabulary_size,
-            "card_slot_count": model.card_slot_count,
-            "card_embedding_dim": model.card_embedding_dim,
-        }
+        specification = model.specification()
         payload = buffer.getvalue()
         for input_queue in self._input_queues:
             input_queue.put((

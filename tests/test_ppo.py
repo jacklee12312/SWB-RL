@@ -14,6 +14,12 @@ from swb.rl.ppo import (
     PPOConfig,
     PPOTrainer,
     RecurrentMaskedActorCritic,
+    build_policy,
+)
+from swb.rl.policy import (
+    ENTITY_ACTION_POLICY_ARCHITECTURE,
+    LEGACY_POLICY_ARCHITECTURE,
+    EntityActionRecurrentActorCritic,
 )
 from swb.rl.opponents import OpponentPool
 from swb.rl.fixed_decks import (
@@ -37,6 +43,16 @@ class MaskedPolicyTests(unittest.TestCase):
             PPOConfig(match_setup="unknown")
         with self.assertRaisesRegex(ValueError, "requires training_class_ids"):
             PPOConfig(training_deck=OFFICIAL_QR_EVOLVE_HAVEN)
+        self.assertEqual(
+            PPOConfig().policy_architecture,
+            LEGACY_POLICY_ARCHITECTURE,
+        )
+        with self.assertRaisesRegex(ValueError, "divisible"):
+            PPOConfig(
+                policy_architecture=ENTITY_ACTION_POLICY_ARCHITECTURE,
+                model_dim=30,
+                attention_heads=8,
+            )
 
     def test_multiprocess_rollout_rejects_unsupported_opponent_mixing(self) -> None:
         with self.assertRaisesRegex(ValueError, "self-play only"):
@@ -107,6 +123,102 @@ class MaskedPolicyTests(unittest.TestCase):
             RecurrentMaskedActorCritic.masked_logits(
                 logits, torch.ones(1, 2, dtype=torch.bool)
             )
+
+    @staticmethod
+    def _entity_action_observation() -> dict[str, np.ndarray]:
+        choice = np.zeros(36, dtype=np.int32)
+        choice[:4] = (1, 2, 1, 0)
+        choice[4:6] = (1, 6)
+        board_cards = np.zeros(10, dtype=np.int32)
+        board_cards[0] = 5
+        board_cards[5] = 9
+        return {
+            "continuous": np.asarray([0.25, 0.75], dtype=np.float32),
+            "own_hand_cards": np.zeros(9, dtype=np.int32),
+            "public_board_cards": board_cards,
+            "own_hand_origins": np.zeros(9, dtype=np.int32),
+            "public_board_origins": np.zeros(10, dtype=np.int32),
+            "own_hand_runtime": np.zeros(126, dtype=np.float32),
+            "public_board_runtime": np.zeros(230, dtype=np.float32),
+            "public_board_keywords": np.zeros(90, dtype=np.int8),
+            "choice_categorical": choice,
+            "action_mask": np.ones(112, dtype=np.int8),
+        }
+
+    def test_entity_action_choice_scores_follow_candidate_not_option_position(
+        self,
+    ) -> None:
+        observation = self._entity_action_observation()
+        flattener = ObservationFlattener.from_observation(observation)
+        config = PPOConfig(
+            policy_architecture=ENTITY_ACTION_POLICY_ARCHITECTURE,
+            hidden_size=32,
+            card_embedding_dim=8,
+            model_dim=32,
+            transformer_layers=1,
+            attention_heads=4,
+            feedforward_dim=64,
+        )
+        model = build_policy(
+            config,
+            flattener,
+            action_size=112,
+            card_vocabulary_size=100,
+        )
+        self.assertIsInstance(model, EntityActionRecurrentActorCritic)
+        model.eval()
+
+        def forward(candidate_observation):
+            numeric = torch.from_numpy(
+                flattener.encode(candidate_observation)
+            ).unsqueeze(0)
+            cards = torch.from_numpy(
+                flattener.encode_cards(candidate_observation)
+            ).unsqueeze(0)
+            with torch.no_grad():
+                return model.forward_step(
+                    numeric,
+                    model.initial_state(1, device=torch.device("cpu")),
+                    cards,
+                )
+
+        first_logits, first_value, _ = forward(observation)
+        swapped = {
+            name: value.copy() for name, value in observation.items()
+        }
+        swapped["choice_categorical"][4:6] = (6, 1)
+        second_logits, second_value, _ = forward(swapped)
+        choice = 45
+        torch.testing.assert_close(
+            first_logits[0, choice],
+            second_logits[0, choice + 1],
+        )
+        torch.testing.assert_close(
+            first_logits[0, choice + 1],
+            second_logits[0, choice],
+        )
+        torch.testing.assert_close(first_value, second_value)
+
+    def test_standard_entity_action_configuration_is_multi_million_parameter(
+        self,
+    ) -> None:
+        observation = self._entity_action_observation()
+        flattener = ObservationFlattener.from_observation(observation)
+        model = build_policy(
+            PPOConfig(
+                policy_architecture=ENTITY_ACTION_POLICY_ARCHITECTURE,
+                hidden_size=512,
+                card_embedding_dim=128,
+            ),
+            flattener,
+            action_size=112,
+            card_vocabulary_size=826,
+        )
+        parameter_count = sum(
+            parameter.numel() for parameter in model.parameters()
+        )
+        self.assertGreater(parameter_count, 5_000_000)
+        self.assertLess(parameter_count, 10_000_000)
 
 
 @unittest.skipUnless(DATABASE.exists(), "real card database is unavailable")
@@ -190,6 +302,41 @@ class PPOTrainerTests(unittest.TestCase):
         self.assertEqual(len(records), 8)
         self.assertTrue(all(record.action_mask[record.action] for record in records))
 
+    def test_entity_action_policy_collects_and_updates_fixed_deck(self) -> None:
+        trainer = PPOTrainer(
+            self.snapshot,
+            master_seed=782,
+            config=PPOConfig(
+                rollout_steps=8,
+                rollout_workers=2,
+                sequence_length=4,
+                minibatch_sequences=2,
+                update_epochs=1,
+                hidden_size=64,
+                card_embedding_dim=16,
+                policy_architecture=ENTITY_ACTION_POLICY_ARCHITECTURE,
+                model_dim=32,
+                transformer_layers=1,
+                attention_heads=4,
+                feedforward_dim=64,
+                max_agent_steps_per_episode=8,
+                training_class_ids=(6,),
+                training_deck=OFFICIAL_QR_EVOLVE_HAVEN,
+            ),
+        )
+        try:
+            records, bootstrap, _ = trainer.collect_rollout()
+            metrics = trainer.update(records, bootstrap)
+            self.assertEqual(
+                trainer.model.architecture,
+                ENTITY_ACTION_POLICY_ARCHITECTURE,
+            )
+            self.assertTrue(
+                all(math.isfinite(value) for value in metrics.values())
+            )
+        finally:
+            trainer.close()
+
     def test_update_changes_parameters_and_reports_finite_metrics(self) -> None:
         trainer = self.make_trainer()
         records, bootstrap, _ = trainer.collect_rollout()
@@ -203,6 +350,34 @@ class PPOTrainerTests(unittest.TestCase):
             not torch.equal(before[key], value)
             for key, value in trainer.model.state_dict().items()
         ))
+
+    @unittest.skipUnless(torch.cuda.is_available(), "CUDA is unavailable")
+    def test_cuda_collection_and_update_keep_randomness_on_device(self) -> None:
+        trainer = PPOTrainer(
+            self.snapshot,
+            master_seed=781,
+            config=PPOConfig(
+                rollout_steps=16,
+                sequence_length=4,
+                minibatch_sequences=2,
+                update_epochs=1,
+                hidden_size=32,
+                max_agent_steps_per_episode=8,
+            ),
+            device="cuda",
+        )
+        try:
+            records, bootstrap, _ = trainer.collect_rollout()
+            metrics = trainer.update(records, bootstrap)
+            self.assertEqual(
+                next(trainer.model.parameters()).device.type,
+                "cuda",
+            )
+            self.assertTrue(
+                all(math.isfinite(value) for value in metrics.values())
+            )
+        finally:
+            trainer.close()
 
     def test_external_fixed_opponent_actions_are_executed_but_not_trained(self) -> None:
         trainer = self.make_trainer()

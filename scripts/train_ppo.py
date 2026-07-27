@@ -17,6 +17,10 @@ from swb.rl.fixed_decks import (
     get_fixed_training_deck,
 )
 from swb.rl.ppo import PPOConfig, PPOTrainer
+from swb.rl.policy import (
+    ENTITY_ACTION_POLICY_ARCHITECTURE,
+    POLICY_ARCHITECTURES,
+)
 from swb.rl.runtime import WorkerAssetsSnapshot
 
 
@@ -29,6 +33,20 @@ def main() -> None:
     parser.add_argument("--rollout-steps", type=int, default=256)
     parser.add_argument("--rollout-workers", type=int, default=1)
     parser.add_argument("--max-episode-steps", type=int, default=256)
+    parser.add_argument("--sequence-length", type=int, default=32)
+    parser.add_argument("--minibatch-sequences", type=int, default=8)
+    parser.add_argument("--update-epochs", type=int, default=2)
+    parser.add_argument(
+        "--policy-architecture",
+        choices=sorted(POLICY_ARCHITECTURES),
+        default=ENTITY_ACTION_POLICY_ARCHITECTURE,
+    )
+    parser.add_argument("--hidden-size", type=int, default=512)
+    parser.add_argument("--card-embedding-dim", type=int, default=128)
+    parser.add_argument("--model-dim", type=int, default=256)
+    parser.add_argument("--transformer-layers", type=int, default=4)
+    parser.add_argument("--attention-heads", type=int, default=8)
+    parser.add_argument("--feedforward-dim", type=int, default=1024)
     parser.add_argument("--master-seed", type=int, default=20260721)
     parser.add_argument(
         "--classes",
@@ -69,8 +87,21 @@ def main() -> None:
         default=Path("data/reports/ppo_smoke_training.json"),
     )
     args = parser.parse_args()
-    if args.total_agent_steps <= 0 or args.rollout_steps <= 0:
-        parser.error("total-agent-steps and rollout-steps must be positive")
+    positive_dimensions = (
+        args.total_agent_steps,
+        args.rollout_steps,
+        args.sequence_length,
+        args.minibatch_sequences,
+        args.update_epochs,
+        args.hidden_size,
+        args.card_embedding_dim,
+        args.model_dim,
+        args.transformer_layers,
+        args.attention_heads,
+        args.feedforward_dim,
+    )
+    if any(value <= 0 for value in positive_dimensions):
+        parser.error("training step counts and model dimensions must be positive")
     if args.rollout_workers <= 0:
         parser.error("rollout-workers must be positive")
     if args.resume is None and args.rollout_workers > 1 and (
@@ -114,6 +145,16 @@ def main() -> None:
             master_seed=args.master_seed,
             config=PPOConfig(
                 rollout_steps=args.rollout_steps,
+                sequence_length=args.sequence_length,
+                minibatch_sequences=args.minibatch_sequences,
+                update_epochs=args.update_epochs,
+                hidden_size=args.hidden_size,
+                card_embedding_dim=args.card_embedding_dim,
+                policy_architecture=args.policy_architecture,
+                model_dim=args.model_dim,
+                transformer_layers=args.transformer_layers,
+                attention_heads=args.attention_heads,
+                feedforward_dim=args.feedforward_dim,
                 max_agent_steps_per_episode=args.max_episode_steps,
                 opponent_current_weight=args.opponent_current_weight,
                 opponent_random_weight=args.opponent_random_weight,
@@ -182,9 +223,16 @@ def main() -> None:
     save_checkpoint_atomic(args.checkpoint, trainer)
     report = {
         "schema_version": 1,
-        "purpose": "CPU smoke only; not a policy-strength conclusion",
+        "purpose": (
+            "fixed-policy PPO training; policy strength requires a separate "
+            "held-out mirrored evaluation"
+        ),
         "torch_version": torch.__version__,
         "device": str(trainer.device),
+        "policy_architecture": trainer.model.architecture,
+        "model_parameters": sum(
+            parameter.numel() for parameter in trainer.model.parameters()
+        ),
         "master_seed": trainer.master_seed,
         "requested_agent_steps": args.total_agent_steps,
         "completed_agent_steps": trainer.agent_steps,

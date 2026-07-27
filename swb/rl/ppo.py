@@ -7,7 +7,6 @@ from typing import Mapping
 
 import numpy as np
 import torch
-from torch import nn
 
 from swb.engine.environment import (
     MATCH_SETUP_OFFICIAL,
@@ -17,6 +16,14 @@ from swb.engine.environment import (
 from swb.rl.class_schedule import class_pair_for_episode, normalize_class_ids
 from swb.rl.fixed_decks import get_fixed_training_deck
 from swb.rl.opponents import OpponentEntry, OpponentPool
+from swb.rl.policy import (
+    ENTITY_ACTION_POLICY_ARCHITECTURE,
+    LEGACY_POLICY_ARCHITECTURE,
+    POLICY_ARCHITECTURES,
+    EntityActionRecurrentActorCritic,
+    MaskedPolicyNetwork,
+    RecurrentMaskedActorCritic,
+)
 from swb.rl.runtime import WorkerAssetsSnapshot
 from swb.rl.seeding import episode_seeds
 
@@ -29,6 +36,11 @@ class PPOConfig:
     update_epochs: int = 2
     hidden_size: int = 64
     card_embedding_dim: int = 16
+    policy_architecture: str = LEGACY_POLICY_ARCHITECTURE
+    model_dim: int = 256
+    transformer_layers: int = 4
+    attention_heads: int = 8
+    feedforward_dim: int = 1024
     learning_rate: float = 3e-4
     gamma: float = 0.99
     gae_lambda: float = 0.95
@@ -63,6 +75,10 @@ class PPOConfig:
             self.update_epochs,
             self.hidden_size,
             self.card_embedding_dim,
+            self.model_dim,
+            self.transformer_layers,
+            self.attention_heads,
+            self.feedforward_dim,
             self.max_agent_steps_per_episode,
             self.opponent_max_history,
             self.opponent_snapshot_interval_steps,
@@ -70,6 +86,15 @@ class PPOConfig:
         )
         if any(value <= 0 for value in integer_fields):
             raise ValueError("PPO integer hyperparameters must be positive")
+        if self.policy_architecture not in POLICY_ARCHITECTURES:
+            raise ValueError(
+                f"unsupported policy architecture {self.policy_architecture!r}"
+            )
+        if (
+            self.policy_architecture == ENTITY_ACTION_POLICY_ARCHITECTURE
+            and self.model_dim % self.attention_heads
+        ):
+            raise ValueError("model_dim must be divisible by attention_heads")
         if not 0.0 < self.gamma <= 1.0 or not 0.0 <= self.gae_lambda <= 1.0:
             raise ValueError("gamma and gae_lambda are outside valid ranges")
         if self.learning_rate <= 0 or self.max_grad_norm <= 0:
@@ -120,6 +145,11 @@ class ObservationFlattener:
         self.card_field_names = card_field_names
         self.card_field_sizes = card_field_sizes
         self.card_slots = sum(card_field_sizes)
+        offset = 0
+        self.field_layout: dict[str, tuple[int, int]] = {}
+        for name, size in zip(field_names, field_sizes):
+            self.field_layout[name] = (offset, size)
+            offset += size
 
     @classmethod
     def from_observation(
@@ -181,86 +211,35 @@ class ObservationFlattener:
         return np.concatenate(values, dtype=np.int64)
 
 
-class RecurrentMaskedActorCritic(nn.Module):
-    def __init__(
-        self,
-        input_size: int,
-        action_size: int,
-        hidden_size: int = 64,
-        *,
-        card_vocabulary_size: int = 0,
-        card_slot_count: int = 0,
-        card_embedding_dim: int = 16,
-    ):
-        super().__init__()
-        self.input_size = input_size
-        self.action_size = action_size
-        self.hidden_size = hidden_size
-        self.card_vocabulary_size = card_vocabulary_size
-        self.card_slot_count = card_slot_count
-        self.card_embedding_dim = card_embedding_dim
-        if (card_vocabulary_size == 0) != (card_slot_count == 0):
-            raise ValueError(
-                "card_vocabulary_size and card_slot_count must both be zero or positive"
-            )
-        self.card_embedding = (
-            nn.Embedding(
-                card_vocabulary_size + 1,
-                card_embedding_dim,
-                padding_idx=0,
-            )
-            if card_vocabulary_size > 0
-            else None
+def build_policy(
+    config: PPOConfig,
+    flattener: ObservationFlattener,
+    *,
+    action_size: int,
+    card_vocabulary_size: int,
+) -> MaskedPolicyNetwork:
+    shared = {
+        "input_size": flattener.size,
+        "action_size": action_size,
+        "hidden_size": config.hidden_size,
+        "card_vocabulary_size": card_vocabulary_size,
+        "card_slot_count": flattener.card_slots,
+        "card_embedding_dim": config.card_embedding_dim,
+    }
+    if config.policy_architecture == LEGACY_POLICY_ARCHITECTURE:
+        return RecurrentMaskedActorCritic(**shared)
+    if config.policy_architecture == ENTITY_ACTION_POLICY_ARCHITECTURE:
+        return EntityActionRecurrentActorCritic(
+            **shared,
+            model_dim=config.model_dim,
+            transformer_layers=config.transformer_layers,
+            attention_heads=config.attention_heads,
+            feedforward_dim=config.feedforward_dim,
+            field_layout=flattener.field_layout,
         )
-        encoder_size = input_size + card_slot_count * card_embedding_dim
-        self.encoder = nn.Sequential(
-            nn.Linear(encoder_size, hidden_size),
-            nn.Tanh(),
-        )
-        self.recurrent = nn.GRUCell(hidden_size, hidden_size)
-        self.policy_head = nn.Linear(hidden_size, action_size)
-        self.value_head = nn.Linear(hidden_size, 1)
-
-    def initial_state(self, batch_size: int, *, device: torch.device) -> torch.Tensor:
-        return torch.zeros(batch_size, self.hidden_size, device=device)
-
-    def forward_step(
-        self,
-        observation: torch.Tensor,
-        hidden: torch.Tensor,
-        card_indices: torch.Tensor | None = None,
-    ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
-        model_input = observation
-        if self.card_embedding is not None:
-            if card_indices is None:
-                raise ValueError("card indices are required by this policy")
-            if card_indices.shape[:-1] != observation.shape[:-1]:
-                raise ValueError("card index batch shape must match observations")
-            if card_indices.shape[-1] != self.card_slot_count:
-                raise ValueError(
-                    f"expected {self.card_slot_count} card slots, "
-                    f"got {card_indices.shape[-1]}"
-                )
-            if bool((card_indices < 0).any()) or bool(
-                (card_indices > self.card_vocabulary_size).any()
-            ):
-                raise ValueError("card index is outside the policy vocabulary")
-            embedded = self.card_embedding(card_indices.to(dtype=torch.long))
-            model_input = torch.cat(
-                (observation, embedded.flatten(start_dim=-2)), dim=-1
-            )
-        encoded = self.encoder(model_input)
-        next_hidden = self.recurrent(encoded, hidden)
-        return self.policy_head(next_hidden), self.value_head(next_hidden).squeeze(-1), next_hidden
-
-    @staticmethod
-    def masked_logits(logits: torch.Tensor, action_mask: torch.Tensor) -> torch.Tensor:
-        mask = action_mask.to(dtype=torch.bool)
-        if mask.ndim != logits.ndim or mask.shape != logits.shape:
-            raise ValueError("action mask shape must match policy logits")
-        if not bool(mask.any(dim=-1).all()):
-            raise ValueError("every live policy row must contain a legal action")
-        return logits.masked_fill(~mask, torch.finfo(logits.dtype).min)
+    raise ValueError(
+        f"unsupported policy architecture {config.policy_architecture!r}"
+    )
 
 
 @dataclass
@@ -335,7 +314,7 @@ class PPOTrainer:
         self.current_opponent: OpponentEntry | None = None
         self.opponent_assignments: list[dict[str, object]] = []
         self.opponent_rng = random.Random(master_seed)
-        self.opponent_model: RecurrentMaskedActorCritic | None = None
+        self.opponent_model: MaskedPolicyNetwork | None = None
         self.opponent_hidden: torch.Tensor | None = None
         self.env: ShadowverseEnv | None = None
         self.info: dict[str, object] | None = None
@@ -354,13 +333,11 @@ class PPOTrainer:
             action_mask=self.info["action_mask"],
         )
         self.flattener = ObservationFlattener.from_observation(first_observation)
-        self.model = RecurrentMaskedActorCritic(
-            self.flattener.size,
-            self.env.ACTION_SIZE,
-            self.config.hidden_size,
+        self.model = build_policy(
+            self.config,
+            self.flattener,
+            action_size=self.env.ACTION_SIZE,
             card_vocabulary_size=len(self.assets.catalog.card_vocabulary),
-            card_slot_count=self.flattener.card_slots,
-            card_embedding_dim=self.config.card_embedding_dim,
         ).to(self.device)
         self.optimizer = torch.optim.Adam(
             self.model.parameters(),
@@ -384,24 +361,11 @@ class PPOTrainer:
         )
         expected_versions.assert_compatible(actual_versions)
         config = PPOConfig(**payload["trainer"]["config"])
-        if config.hidden_size != self.config.hidden_size:
-            raise ValueError(
-                f"historical opponent {entry.opponent_id!r} hidden size "
-                f"{config.hidden_size} does not match current {self.config.hidden_size}"
-            )
-        if config.card_embedding_dim != self.config.card_embedding_dim:
-            raise ValueError(
-                f"historical opponent {entry.opponent_id!r} card embedding "
-                f"dimension {config.card_embedding_dim} does not match current "
-                f"{self.config.card_embedding_dim}"
-            )
-        model = RecurrentMaskedActorCritic(
-            self.flattener.size,
-            self.env.ACTION_SIZE,
-            config.hidden_size,
+        model = build_policy(
+            config,
+            self.flattener,
+            action_size=self.env.ACTION_SIZE,
             card_vocabulary_size=len(self.assets.catalog.card_vocabulary),
-            card_slot_count=self.flattener.card_slots,
-            card_embedding_dim=config.card_embedding_dim,
         ).to(self.device)
         model.load_state_dict(payload["model_state"])
         model.eval()
@@ -841,7 +805,9 @@ class PPOTrainer:
         updates = 0
         for _ in range(self.config.update_epochs):
             permutation = torch.randperm(
-                len(chunks), generator=self.torch_generator
+                len(chunks),
+                generator=self.torch_generator,
+                device=self.device,
             ).tolist()
             for start in range(0, len(chunks), self.config.minibatch_sequences):
                 selected = [

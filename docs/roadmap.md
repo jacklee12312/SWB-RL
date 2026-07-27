@@ -10,8 +10,9 @@ code and tests as the source of truth when this file drifts.
 - Database: 826 cards, 735 collectible cards, 91 non-collectible/generated
   cards from set `90000`.
 - Latest SVA source: `https://sva.hypd.asia/data/cards.json`.
-- Tests: `python -m unittest discover -s tests -v` discovers 2571 behavioral
-  contracts (2026-07-27 official setup/training integration verification).
+- Tests: `python -m unittest discover -s tests -v` discovers 2589 behavioral
+  contracts (2026-07-27 entity/action-conditioned policy, CUDA/checkpoint,
+  persistent simulator history, and event-timeline verification).
 - RL adapter: fixed 112-action space; the default v1 observation is 304
   floats, opt-in v2 preserves the structured compatibility mapping, and v3
   supplies fixed-dtype NumPy arrays plus a Gymnasium observation space without
@@ -39,6 +40,27 @@ code and tests as the source of truth when this file drifts.
   all games terminated with zero illegal actions or mask mismatches. The
   random-legal matchup rose from 93.8% to 99.4%, so it is now treated as a
   saturated floor rather than the promotion opponent.
+- A local human-versus-PPO simulator now wraps the command/RL interface without
+  adding UI rules to the engine. It exposes mulligan, legal actions, pending
+  choices, attacks, evolution, Super-Evolution, and Extra PP through a local
+  JSON service, hides the AI hand, serves the downloaded card art, and uses
+  deterministic argmax inference from the 102,067-step `entity_action_v1`
+  fixed-deck checkpoint. Its Catalog, RuleBook, Observation, and action hashes
+  match the current runtime; the older 100,096-step legacy checkpoint remains
+  loadable through the explicit inference-only RuleBook mismatch path.
+  Simulator matches are now atomically persisted as local ignored JSON records,
+  with unfinished matches retained as abandoned records. Schema-v2 history
+  stores complete action-by-action snapshots for both hands, unredacted logs
+  and structured events, plus the full legal-action set for every decision.
+  PPO decisions include logits, normalized probabilities, selected-action
+  probability, architecture, and value estimate. The live/UI layer still hides
+  AI opening hands and draws during ongoing matches, while completed records
+  expose the saved private state and policy distribution for review; schema-v1
+  records remain readable. Leader
+  panels expose zone counts, class resources, Overflow state, and the fixed
+  five-slot shared Faith/emblem area. Attack, damage, play, spell, amulet,
+  evolution, destruction, healing, and result cues are derived from engine
+  events rather than parsed card rules or mutable UI logic.
 - `SWBAECEnv` is a PettingZoo AEC wrapper with per-agent rewards and done state.
   Rules endings and sampling truncations are mutually exclusive, and both game
   turn and agent-step safety limits are explicit.
@@ -51,7 +73,30 @@ code and tests as the source of truth when this file drifts.
   snapshot/restore/clone. PPO training now supports a deterministic seven-class
   7x7 ordered matchup cycle, and the fixed evaluation suite defaults to two
   seeded exact deck pairs per class with mirrored sides. Official PettingZoo
-  and Gymnasium checks pass.
+  and Gymnasium checks pass. CPU and CUDA training share the same device-local
+  policy RNG path, including CUDA-safe PPO minibatch permutation covered by a
+  conditional GPU regression test.
+- The training stack now also provides `entity_action_v1`, while preserving
+  `legacy_gru_v1` checkpoint compatibility. The new 6,505,346-parameter model
+  encodes public hand/board cards and their runtime fields as entity tokens,
+  applies a four-layer 256-wide Transformer, carries a 512-wide GRU memory, and
+  scores the fixed action layout from semantic action kind plus contextual
+  source/target entities. A permutation regression locks the important target
+  choice invariant: swapping two entity candidates swaps their logits instead
+  of leaving preferences attached to option indices. Non-entity and graveyard
+  choices still fall back to option ordinals because Observation v3 does not
+  expose ordered graveyard-choice card identities.
+- The first fixed-deck CUDA experiment with this architecture reached 102,067
+  agent steps, 1,236 games, and 46 updates using four CPU actors and an RTX
+  4080 learner. The 2k-to-100k continuation took 661.9 seconds (150.98 agent
+  steps/s). Held-out mirrored evaluation was 100/100 against random legal and
+  100/100 against initialization, with no truncations, illegal actions, or mask
+  mismatches. The final policy scored 55/100 against its 50,957-step snapshot
+  (95% CI 45.2%-64.4%), so longer training should use a stronger promotion
+  suite and must not treat the saturated random baseline as evidence of ladder
+  strength. Eight Windows spawn actors exceeded the machine's current paging
+  capacity; four actors were stable and are the recorded hardware-specific
+  setting.
 - The saved embedding/vector CPU smoke is deliberately not a strength claim:
   its 2-worker whole-episode batches requested 1,024 agent steps, completed
   1,304 steps/16 episodes, resumed to 1,571 steps/20 episodes without episode-ID
