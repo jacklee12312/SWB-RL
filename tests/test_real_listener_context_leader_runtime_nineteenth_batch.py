@@ -512,7 +512,7 @@ class ListenerContextLeaderRuntimeNineteenthBehaviorTests(unittest.TestCase):
         env.invalidate_cache(reason="nineteenth observation schema")
         structured = env.observation()
         self.assertTrue(env.observation_v3_space().contains(structured))
-        self.assertEqual(env.ACTION_SIZE, 111)
+        self.assertEqual(env.ACTION_SIZE, 112)
 
 
 class ListenerContextLeaderRuntimeNineteenthAuditTests(unittest.TestCase):

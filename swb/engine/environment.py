@@ -8,7 +8,7 @@ from typing import Callable, Sequence
 
 from swb.db.repository import CardDefinition
 from swb.engine.abilities import AbilityKeyword
-from swb.engine.commands import ActivateAmulet, Attack, BeginFusion, ChoiceKind, Choose, EndTurn, Evolve, GameCommand, PlayCard, SuperEvolve
+from swb.engine.commands import ActivateAmulet, Attack, BeginFusion, ChoiceKind, Choose, EndTurn, Evolve, GameCommand, PlayCard, SuperEvolve, UseExtraPP
 from swb.engine.conditions import OVERFLOW_MAX_MANA_THRESHOLD
 from swb.engine.card_rules import RuleBook
 from swb.engine.play_modes import MAX_SPECIAL_MODES_PER_CARD
@@ -38,14 +38,15 @@ class EnvironmentSnapshot:
 class ShadowverseEnv:
     """RL adapter around the deterministic command-based game engine."""
 
-    OBSERVATION_V1_SIZE = 294
+    OBSERVATION_V1_SIZE = 304
     MAX_HAND = 9
     MAX_BOARD = 5
     MAX_MANA = 10
     MAX_TURNS = 200
     STARTING_HAND = 4
     STARTING_EVOLUTION_POINTS = 2
-    EVOLUTION_UNLOCK_TURN = 4
+    EVOLUTION_UNLOCK_TURN = 5
+    SECOND_PLAYER_EVOLUTION_UNLOCK_TURN = 4
     STARTING_SUPER_EVOLUTION_POINTS = 2
     FIRST_PLAYER_SUPER_EVOLUTION_UNLOCK_TURN = 7
     SECOND_PLAYER_SUPER_EVOLUTION_UNLOCK_TURN = 6
@@ -69,7 +70,8 @@ class ShadowverseEnv:
 
     SUPER_EVOLVE_OFFSET = MODE_PLAY_OFFSET + MAX_HAND * MAX_SPECIAL_MODES_PER_CARD
 
-    ACTION_SIZE = SUPER_EVOLVE_OFFSET + MAX_BOARD
+    USE_EXTRA_PP = SUPER_EVOLVE_OFFSET + MAX_BOARD
+    ACTION_SIZE = USE_EXTRA_PP + 1
 
     DEFAULT_RULE_DIRECTORY = Path(__file__).resolve().parents[2] / "data" / "rules"
 
@@ -93,6 +95,8 @@ class ShadowverseEnv:
         debug_cache_validation: bool = False,
         training_mode: bool = False,
         training_event_history_limit: int = 256,
+        starting_player: int | None = 0,
+        enable_mulligan: bool = False,
     ):
         if observation_version not in {"v1", "v2", "v3"}:
             raise ValueError(
@@ -122,6 +126,8 @@ class ShadowverseEnv:
         self.debug_cache_validation = bool(debug_cache_validation)
         self.training_mode = bool(training_mode)
         self.training_event_history_limit = training_event_history_limit
+        self.starting_player = starting_player
+        self.enable_mulligan = bool(enable_mulligan)
         vocabulary = (
             []
             if observation_version == "v1" and card_vocabulary is None
@@ -169,6 +175,9 @@ class ShadowverseEnv:
                 starting_hand=self.STARTING_HAND,
                 starting_evolution_points=self.STARTING_EVOLUTION_POINTS,
                 evolution_unlock_turn=self.EVOLUTION_UNLOCK_TURN,
+                second_player_evolution_unlock_turn=(
+                    self.SECOND_PLAYER_EVOLUTION_UNLOCK_TURN
+                ),
                 starting_super_evolution_points=self.STARTING_SUPER_EVOLUTION_POINTS,
                 first_player_super_evolution_unlock_turn=(
                     self.FIRST_PLAYER_SUPER_EVOLUTION_UNLOCK_TURN
@@ -183,6 +192,8 @@ class ShadowverseEnv:
                     if self.training_mode
                     else None
                 ),
+                starting_player=self.starting_player,
+                enable_mulligan=self.enable_mulligan,
             ),
         )
         self._graveyard_page: int = 0
@@ -308,6 +319,8 @@ class ShadowverseEnv:
             debug_cache_validation=self.debug_cache_validation,
             training_mode=self.training_mode,
             training_event_history_limit=self.training_event_history_limit,
+            starting_player=self.starting_player,
+            enable_mulligan=self.enable_mulligan,
         )
         clone.restore(self.snapshot())
         return clone
@@ -671,6 +684,18 @@ class ShadowverseEnv:
             min(self._artifact_entry_kind_count(perspective), 40) / 40,
             min(self._artifact_entry_kind_count(1 - perspective), 40) / 40,
         ])
+        values.extend([
+            float(perspective == self._core.state.first_player),
+            float(self._core.state.phase.value == "mulligan"),
+            float(self._core.state.mulligan_completed[perspective]),
+            float(self._core.state.mulligan_completed[1 - perspective]),
+            float(me.extra_pp_available),
+            float(opponent.extra_pp_available),
+            me.extra_pp_uses / 2,
+            opponent.extra_pp_uses / 2,
+            float(me.extra_pp_active_turn == self.turn),
+            float(opponent.extra_pp_active_turn == self.turn),
+        ])
         return values
 
     def _artifact_entry_kind_count(self, player_index: int) -> int:
@@ -696,6 +721,11 @@ class ShadowverseEnv:
             "decision_player": self.decision_player,
             "turn": self.turn,
             "winner": self.winner,
+            "first_player": self._core.state.first_player,
+            "phase": self._core.state.phase.value,
+            "mulligan_completed": tuple(
+                self._core.state.mulligan_completed
+            ),
             "player_classes": self._core.player_classes,
             "action_mask": list(
                 self.action_mask() if action_mask is None else action_mask
@@ -703,6 +733,14 @@ class ShadowverseEnv:
             "super_evolution_points": (
                 self._core.players[0].super_evolution_points,
                 self._core.players[1].super_evolution_points,
+            ),
+            "extra_pp": tuple(
+                {
+                    "available": player.extra_pp_available,
+                    "uses": player.extra_pp_uses,
+                    "active": player.extra_pp_active_turn == self.turn,
+                }
+                for player in self._core.players
             ),
             "placeholder_ability_count": len(self.placeholder_ability_events),
             "graveyard_page": self._graveyard_page,
@@ -722,6 +760,8 @@ class ShadowverseEnv:
     def _decode_action(self, action: int) -> GameCommand:
         if action == self.END_TURN:
             return EndTurn(self.current_player)
+        if action == self.USE_EXTRA_PP:
+            return UseExtraPP(self.current_player)
         if action == self.GRAVEYARD_PREV_PAGE:
             self._graveyard_page = max(0, self._graveyard_page - 1)
             raise _PageTurn()
@@ -803,6 +843,8 @@ class ShadowverseEnv:
     def _encode_command(self, command: GameCommand) -> int | None:
         if isinstance(command, EndTurn):
             return self.END_TURN
+        if isinstance(command, UseExtraPP):
+            return self.USE_EXTRA_PP
         if isinstance(command, Choose):
             request = self._core.state.pending_choice
             if request is None:

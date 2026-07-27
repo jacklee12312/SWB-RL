@@ -914,7 +914,10 @@ class SuperEvolutionEnvironmentTests(unittest.TestCase):
             result.info["action_mask"][ShadowverseEnv.SUPER_EVOLVE_OFFSET + 1]
         )
         self.assertFalse(other.evolved)
-        self.assertEqual(len(result.observation), 294)
+        self.assertEqual(
+            len(result.observation),
+            ShadowverseEnv.OBSERVATION_V1_SIZE,
+        )
 
 
 @unittest.skipUnless(os.path.exists("data/cards.sqlite3"), "card database unavailable")

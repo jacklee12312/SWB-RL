@@ -372,8 +372,11 @@ class RealSpellboostRecycleListenerTests(unittest.TestCase):
         env.players[0].mana = env.players[0].max_mana = 10
         _put_hand(env.core, self.repository.get(10131320))
         play_action = env._encode_command(PlayCard(0, 0))
-        self.assertEqual(env.ACTION_SIZE, 111)
-        self.assertEqual(len(observation), 294)
+        self.assertEqual(env.ACTION_SIZE, 112)
+        self.assertEqual(
+            len(observation),
+            ShadowverseEnv.OBSERVATION_V1_SIZE,
+        )
         self.assertFalse(env.action_mask()[play_action])
 
         target = _put_unit(env.core, 1, _card(992100))

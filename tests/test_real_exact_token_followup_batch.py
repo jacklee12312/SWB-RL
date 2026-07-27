@@ -350,7 +350,7 @@ class RealExactTokenBehaviorTests(unittest.TestCase):
 
     def test_nameless_demon_evolve_summons_two_drain_bats_with_capacity_limit(self):
         normal = self.fresh_engine(seed=617)
-        normal.players[0].turns_started = 4
+        normal.players[0].turns_started = normal.config.evolution_unlock_turn
         source = _play_real(normal, self.repository, 10151120)
         normal.apply(Evolve(0, source.entity_id))
         bats = [
@@ -362,7 +362,9 @@ class RealExactTokenBehaviorTests(unittest.TestCase):
         self.assertTrue(all(unit.has_keyword("\u5438\u8840") for unit in bats))
 
         capacity = self.fresh_engine(seed=619)
-        capacity.players[0].turns_started = 4
+        capacity.players[0].turns_started = (
+            capacity.config.evolution_unlock_turn
+        )
         for card_id in range(7200, 7203):
             _add_filler_unit(capacity, card_id)
         source = _play_real(capacity, self.repository, 10151120)

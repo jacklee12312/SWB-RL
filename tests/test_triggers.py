@@ -137,7 +137,7 @@ class EvolveTriggerTests(unittest.TestCase):
         eng = mkengine(rulebook=rulebook)
         u = mkunit(eng, 900, attack=2, life=3, keywords=frozenset({"进化时"}))
         eng.players[0].board = [u]
-        eng.players[0].turns_started = 4
+        eng.players[0].turns_started = eng.config.evolution_unlock_turn
         hp_before = eng.players[1].health
         eng.apply(Evolve(0, u.entity_id))
         self.assertEqual(eng.players[1].health, hp_before - 3)
@@ -293,7 +293,7 @@ class TriggerContinuationTests(unittest.TestCase):
         eng = mkengine(rulebook=rulebook)
         u = mkunit(eng, 900, attack=2, life=3, keywords=frozenset({"进化时"}))
         eng.players[0].board = [u]
-        eng.players[0].turns_started = 4
+        eng.players[0].turns_started = eng.config.evolution_unlock_turn
         d = mkunit(eng, 901, attack=1, life=2)
         eng.players[1].board = [d]
         eng.apply(Evolve(0, u.entity_id))

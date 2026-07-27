@@ -381,7 +381,7 @@ class RealDeckSummonBehaviorTests(unittest.TestCase):
         source = _play_real(engine, self.repository, 10322120)
         summoned = next(unit for unit in engine.players[0].board if unit is not source)
         self.assertEqual(summoned.definition.card_id, 140)
-        engine.players[0].turns_started = 4
+        engine.players[0].turns_started = engine.config.evolution_unlock_turn
         engine.apply(Evolve(0, source.entity_id))
         self.assertIsNotNone(engine.state.pending_choice)
         engine.apply(Choose(0, f"entity:{summoned.entity_id}"))

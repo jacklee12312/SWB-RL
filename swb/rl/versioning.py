@@ -12,8 +12,8 @@ if TYPE_CHECKING:
     from swb.rl.catalog import TrainableCardCatalog
 
 
-OBSERVATION_SCHEMA_VERSION = "observation-v3.5"
-ACTION_LAYOUT_VERSION = "action-111-v1"
+OBSERVATION_SCHEMA_VERSION = "observation-v3.6"
+ACTION_LAYOUT_VERSION = "action-112-v2"
 SEED_DERIVATION_VERSION = 1
 
 
@@ -66,7 +66,8 @@ def action_layout_manifest(env: ShadowverseEnv) -> dict[str, object]:
             {"name": "graveyard_navigation", "start": env.GRAVEYARD_CHOICE_OFFSET, "stop": env.GRAVEYARD_SLOT_OFFSET},
             {"name": "graveyard_slots", "start": env.GRAVEYARD_SLOT_OFFSET, "stop": env.MODE_PLAY_OFFSET},
             {"name": "fusion_or_special_mode", "start": env.MODE_PLAY_OFFSET, "stop": env.SUPER_EVOLVE_OFFSET},
-            {"name": "super_evolve", "start": env.SUPER_EVOLVE_OFFSET, "stop": env.ACTION_SIZE},
+            {"name": "super_evolve", "start": env.SUPER_EVOLVE_OFFSET, "stop": env.USE_EXTRA_PP},
+            {"name": "use_extra_pp", "start": env.USE_EXTRA_PP, "stop": env.ACTION_SIZE},
         ],
         "max_hand": env.MAX_HAND,
         "max_board": env.MAX_BOARD,

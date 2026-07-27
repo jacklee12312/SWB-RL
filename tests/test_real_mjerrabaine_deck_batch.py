@@ -340,8 +340,11 @@ class RealMjerrabaineDeckTests(unittest.TestCase):
         self.assertTrue(env.action_mask()[choice_action])
         env.step(choice_action)
         self.assertNotIn(target, env.players[1].board)
-        self.assertEqual(env.ACTION_SIZE, 111)
-        self.assertEqual(len(env.observation()["continuous_v1"]), 294)
+        self.assertEqual(env.ACTION_SIZE, 112)
+        self.assertEqual(
+            len(env.observation()["continuous_v1"]),
+            ShadowverseEnv.OBSERVATION_V1_SIZE,
+        )
 
 
 class MjerrabaineDatabaseAuditTests(unittest.TestCase):

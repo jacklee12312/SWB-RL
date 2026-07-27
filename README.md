@@ -55,7 +55,7 @@ the complete imported source snapshot hash.
 The P1/P2 platform-hardening slice is implemented around the deterministic
 rules core:
 
-- Observation v3 and the 111-action layout have named schemas and stable
+- Observation v3 and the 112-action layout have named schemas and stable
   SHA-256 manifests. Catalog, card vocabulary, training pool, coverage report,
   RuleBook, observation, action, and seed-derivation versions travel with every
   trajectory and checkpoint; incompatible checkpoints are rejected by field
@@ -137,6 +137,14 @@ exact training catalog.
 
 The deterministic rules core supports:
 
+- official match setup and shared limits: four-card opening hands, an optional
+  interactive 0-to-4-card mulligan that cannot redraw the same physical card,
+  seeded random first-player selection, the second player's one-use Extra PP
+  with a one-time refresh at the start of its sixth turn, first-player turn-5
+  versus second-player turn-4 normal evolution, nine-card hand capacity, and a
+  five-slot leader area shared by Faiths and emblems. Deterministic callers may
+  pin `starting_player`; pass `starting_player=None` for seeded random
+  assignment and `enable_mulligan=True` to expose the mulligan decision;
 - generic leader maximum-health state, healing caps, invariant/fingerprint
   coverage, v2 public observation, and an auditable `set_leader_max_health`
   operation. Exact `10104120` replaces its controller's deck with the official
@@ -1274,7 +1282,13 @@ Each visible own-hand slot also exposes a normalized `奥义` gauge only when
 that card has a structured Union Burst definition. The gauge is the current
 player turn number plus evolutions completed while that specific card remained
 in hand; entering hand resets its evolution contribution. This adds nine
-features without changing the 111-action layout.
+features without changing the pre-existing action IDs.
+The final ten v1 fields expose first-player identity, mulligan progress, and
+both players' public Extra PP availability, use count, and active-turn state.
+This moves v1 to 304 floats and `observation-v3.6`. Extra PP is appended as
+action 111, moving the layout to 112 actions without renumbering actions
+0 through 110. During an interactive mulligan, the existing 16 choice actions
+represent all subsets of the four-card opening hand.
 Automatic super evolution adds no RL action: its public board state reuses the
 existing evolved/super-evolved features, while the unaffected follower slots
 retain their normal manual super-evolution actions. Manual SEP evolution now
@@ -1309,9 +1323,10 @@ or future-content risks, not uncovered clauses in the current catalog:
 - Faith currently supports verified `follower_evolved`, `amulet_destroyed`,
   genuine Enhance-card progression, and filtered named-follower entry, plus
   atomic value spending, non-consuming random payoff reads, and dynamically
-  gained structured abilities. Mode-selection progression and the shared
-  five-slot leader-area limit remain explicit unsupported edges; other generated cards remain
-  individually classified in the token/generated-card audit;
+  gained structured abilities. Mode-selection progression remains an explicit
+  unsupported edge; Faiths and emblems now enforce the official shared
+  five-slot leader-area limit. Other generated cards remain individually
+  classified in the token/generated-card audit;
 - Fusion-driven hand transforms and refusion are implemented. Other cards can
   listen to `card_fused`, but their individual reactions and later generated
   Artifact end-form abilities still require audited structured rules;
@@ -1429,7 +1444,7 @@ Machine-authored card rules live in `data/rules`. Explicit rules are preferred
 over the temporary Chinese-text fanfare parser; the parser remains only as a
 compatibility fallback while card coverage is migrated.
 
-The environment has 111 actions:
+The environment has 112 actions:
 
 - `0`: end turn
 - `1..9`: play a hand slot
@@ -1439,6 +1454,7 @@ The environment has 111 actions:
 - `61..78`: graveyard choice paging and slots
 - `79..105`: fusion or special play-mode actions for hand slots
 - `106..110`: super-evolve a board slot
+- `111`: use the second player's Extra PP when available
 
 Always apply `info["action_mask"]` before sampling or selecting an action.
 By default, `info()` is public and redacts debug transcripts/events. Use

@@ -78,6 +78,8 @@ class EventType(str, Enum):
     RANDOM_DISTRIBUTION_RESOLVED = "random_distribution_resolved"
     RANDOM_CHOICES_SELECTED = "random_choices_selected"
     MAX_MANA_CHANGED = "max_mana_changed"
+    EXTRA_PP_USED = "extra_pp_used"
+    EXTRA_PP_REFRESHED = "extra_pp_refreshed"
     EVOLUTION_POINTS_RESTORED = "evolution_points_restored"
     SUPER_EVOLUTION_POINTS_RESTORED = "super_evolution_points_restored"
     UNION_BURST_ACTIVATED = "union_burst_activated"

@@ -65,7 +65,7 @@ class MaxHealthTests(unittest.TestCase):
         eng = mkengine()
         u = mkunit(eng, 1, attack=2, life=3)
         eng.players[0].board = [u]
-        eng.players[0].turns_started = 4
+        eng.players[0].turns_started = eng.config.evolution_unlock_turn
         eng.apply(Evolve(0, u.entity_id))
         self.assertEqual(u.attack, 4)
         self.assertEqual(u.health, 5)
@@ -1272,7 +1272,7 @@ class SpellboostTests(unittest.TestCase):
         )
         env.reset(seed=1)
         obs = env.observation()
-        self.assertEqual(len(obs), 294)
+        self.assertEqual(len(obs), ShadowverseEnv.OBSERVATION_V1_SIZE)
 
     def test_auto_boost_after_choice_spell(self):
         rulebook = RuleBook((

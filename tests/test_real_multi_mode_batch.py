@@ -193,7 +193,7 @@ class RealMultiModeTests(unittest.TestCase):
             if env.action_mask()[action]
         ]
         self.assertEqual(len(first_actions), 4)
-        self.assertEqual(env.observation()[-10:-8], [2 / 16, 0.0])
+        self.assertEqual(env.observation()[-20:-18], [2 / 16, 0.0])
 
         env.step(first_actions[0])
         second_actions = [
@@ -202,7 +202,7 @@ class RealMultiModeTests(unittest.TestCase):
             if env.action_mask()[action]
         ]
         self.assertEqual(len(second_actions), 3)
-        self.assertEqual(env.observation()[-10:-8], [2 / 16, 0.5])
+        self.assertEqual(env.observation()[-20:-18], [2 / 16, 0.5])
         env.step(second_actions[0])
 
         self.assertIsNone(env.core.state.pending_choice)

@@ -279,10 +279,10 @@ class RealPortalArtifactEntryHistoryTests(unittest.TestCase):
         self.assertTrue(mask[env.CHOICE_OFFSET + 1])
         env.step(env.CHOICE_OFFSET)
         self.assertIsNone(env.core.state.pending_choice)
-        self.assertEqual(env.observation()[-2:], [0.0, 0.0])
+        self.assertEqual(env.observation()[-12:-10], [0.0, 0.0])
         env.players[0].mana = 10
         env.step(env.PLAY_OFFSET)
-        self.assertEqual(env.observation()[-2:], [1 / 40, 0.0])
+        self.assertEqual(env.observation()[-12:-10], [1 / 40, 0.0])
 
     def test_bold_painter_target_no_target_and_board_space_order(self):
         below = self.fresh(seed=23)

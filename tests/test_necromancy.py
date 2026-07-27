@@ -606,7 +606,10 @@ class ResetAndObservationTests(unittest.TestCase):
         env.players[1].shadows = 3
 
         observation = env.observation()
-        self.assertEqual(len(observation), 294)
+        self.assertEqual(
+            len(observation),
+            ShadowverseEnv.OBSERVATION_V1_SIZE,
+        )
         self.assertEqual(observation[16], 7 / 20)
         self.assertEqual(observation[17], 3 / 20)
 

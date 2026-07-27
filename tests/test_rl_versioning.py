@@ -47,14 +47,14 @@ class RLVersioningTests(unittest.TestCase):
         env.reset(seed=11)
         return env
 
-    def test_observation_v3_and_action_111_have_named_stable_versions(self) -> None:
+    def test_observation_v3_and_action_112_have_named_stable_versions(self) -> None:
         env = self.make_env()
         observation = observation_schema_manifest(env)
         action = action_layout_manifest(env)
         self.assertEqual(observation["version"], OBSERVATION_SCHEMA_VERSION)
         self.assertEqual(action["version"], ACTION_LAYOUT_VERSION)
-        self.assertEqual(action["size"], 111)
-        self.assertEqual(action["ranges"][-1]["stop"], 111)
+        self.assertEqual(action["size"], 112)
+        self.assertEqual(action["ranges"][-1]["stop"], 112)
         self.assertEqual(len(stable_json_sha256(observation)), 64)
         self.assertEqual(len(stable_json_sha256(action)), 64)
 

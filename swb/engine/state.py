@@ -24,6 +24,7 @@ if TYPE_CHECKING:
 
 
 class Phase(str, Enum):
+    MULLIGAN = "mulligan"
     MAIN = "main"
     AWAITING_CHOICE = "awaiting_choice"
     FINISHED = "finished"
@@ -1094,6 +1095,10 @@ class PlayerState:
     max_health: int = 20
     max_mana: int = 0
     mana: int = 0
+    extra_pp_available: bool = False
+    extra_pp_uses: int = 0
+    extra_pp_refresh_done: bool = False
+    extra_pp_active_turn: int | None = None
     fatigue: int = 0
     empty_deck_outcome: EmptyDeckOutcome = EmptyDeckOutcome.DEFEAT
     evolution_points: int = 2
@@ -1162,6 +1167,10 @@ class PlayerState:
 class GameState:
     players: list[PlayerState]
     active_player: int = 0
+    first_player: int = 0
+    mulligan_completed: list[bool] = field(
+        default_factory=lambda: [False, False]
+    )
     turn: int = 1
     phase: Phase = Phase.MAIN
     winner: int | None = None

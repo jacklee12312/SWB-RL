@@ -48,7 +48,10 @@ class EnvironmentContractTests(unittest.TestCase):
     def test_reset_returns_observation_and_info(self):
         env = _env()
         observation, info = env.reset(seed=1)
-        self.assertEqual(len(observation), 294)
+        self.assertEqual(
+            len(observation),
+            ShadowverseEnv.OBSERVATION_V1_SIZE,
+        )
         self.assertEqual(info["decision_player"], 0)
 
     def test_defender_choice_terminal_reward_uses_decision_player(self):

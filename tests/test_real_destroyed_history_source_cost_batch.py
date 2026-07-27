@@ -450,7 +450,10 @@ class RealDestroyedHistorySourceCostTests(unittest.TestCase):
         env.players[0].mana = env.players[0].max_mana = 10
         _put_hand(env.core, self.repository.get(10641310))
         play_action = env._encode_command(PlayCard(0, 0))
-        self.assertEqual((env.ACTION_SIZE, len(observation)), (111, 294))
+        self.assertEqual(
+            (env.ACTION_SIZE, len(observation)),
+            (112, ShadowverseEnv.OBSERVATION_V1_SIZE),
+        )
         self.assertFalse(env.action_mask()[play_action])
         target = _put_unit(env.core, 0, _card(995650, attack=1, life=2))
         self.assertTrue(env.action_mask()[play_action])

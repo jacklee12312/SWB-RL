@@ -1256,7 +1256,7 @@ class DeterminismTests(unittest.TestCase):
 # ---------------------------------------------------------------------------
 
 class ObservationInvariantTests(unittest.TestCase):
-    def test_observation_dimension_is_294(self):
+    def test_observation_dimension_is_fixed(self):
         env = ShadowverseEnv(
             deck_a=[_card(100 + i) for i in range(40)],
             deck_b=[_card(200 + i) for i in range(40)],
@@ -1264,10 +1264,10 @@ class ObservationInvariantTests(unittest.TestCase):
             seed=42,
         )
         obs, _ = env.reset(seed=42)
-        self.assertEqual(len(obs), 294)
+        self.assertEqual(len(obs), ShadowverseEnv.OBSERVATION_V1_SIZE)
 
-    def test_action_size_is_111(self):
-        self.assertEqual(ShadowverseEnv.ACTION_SIZE, 111)
+    def test_action_size_is_112(self):
+        self.assertEqual(ShadowverseEnv.ACTION_SIZE, 112)
 
     def test_opponent_hand_not_leaked(self):
         env = ShadowverseEnv(
@@ -1277,7 +1277,7 @@ class ObservationInvariantTests(unittest.TestCase):
             seed=42,
         )
         obs, _ = env.reset(seed=42)
-        self.assertEqual(len(obs), 294)
+        self.assertEqual(len(obs), ShadowverseEnv.OBSERVATION_V1_SIZE)
 
 
 # ---------------------------------------------------------------------------

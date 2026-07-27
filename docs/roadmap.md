@@ -1,6 +1,6 @@
 # SWB Engine Roadmap
 
-Last refreshed: 2026-07-26.
+Last refreshed: 2026-07-27.
 
 This file tracks implementation priorities and known gaps. Treat executable
 code and tests as the source of truth when this file drifts.
@@ -10,12 +10,13 @@ code and tests as the source of truth when this file drifts.
 - Database: 826 cards, 735 collectible cards, 91 non-collectible/generated
   cards from set `90000`.
 - Latest SVA source: `https://sva.hypd.asia/data/cards.json`.
-- Tests: `python -m unittest discover -s tests -v` discovers 2528 behavioral
-  contracts (2026-07-26 twenty-second official complex completion verification).
-- RL adapter: fixed 111-action space; the default v1 observation is 294
+- Tests: `python -m unittest discover -s tests -v` discovers 2554 behavioral
+  contracts (2026-07-27 official base-match rules verification).
+- RL adapter: fixed 112-action space; the default v1 observation is 304
   floats, opt-in v2 preserves the structured compatibility mapping, and v3
   supplies fixed-dtype NumPy arrays plus a Gymnasium observation space without
-  changing action IDs. Hidden decklists are the v3 default.
+  renumbering the pre-existing 0..110 action IDs. Hidden decklists are the v3
+  default.
 - The exact-audit `TrainableCardCatalog` currently admits all 735 exact
   collectible cards, preloads all 826 definitions for SQLite-free matches, and
   provides deterministic class-valid deck sampling. Self-play no longer uses
@@ -85,7 +86,7 @@ code and tests as the source of truth when this file drifts.
   action-mask, and bounded public-history inputs have fixed shapes. Index 0 is
   padding/unknown. Privacy tests lock out opponent hand identity, hidden Fusion
   state, raw entity IDs, and remaining deck order. V1 stays the default at
-  111 actions and 294 floats, and the recurrent/belief-state interface leaves
+  112 actions and 304 floats, and the recurrent/belief-state interface leaves
   model hidden state under caller ownership.
   V2 also exposes both public leader maximum-health values without changing v1
   width or action IDs.
@@ -138,6 +139,13 @@ slice in this order:
 ## Implemented Or Substantially Covered
 
 - Deck validation for 40 collectible class/neutral cards.
+- Official base-match setup supports four opening cards, all 16 keep/replace
+  subsets, same-physical-card exclusion with same-name-copy redraws, seeded
+  random first-player assignment, the second player's Extra PP and sixth-turn
+  one-time refresh, asymmetric normal-evolution turns, the nine-card hand cap,
+  and the shared five-slot Faith/emblem leader area. Illegal setup/Extra-PP
+  commands preserve deterministic state. RL reuses the 16 choice slots for
+  mulligan and appends Extra PP at action 111.
 - Deterministic reset, shuffle, draw, turns, mana, hand/board limits, and deck
   exhaustion damage.
 - Followers, spells, amulets, combat, evolution, manual and effect-caused
@@ -1608,9 +1616,8 @@ slice in this order:
   implemented. `策动` and `土之秘术` /
   `土之印` core semantics are implemented, while broader real-card coverage
   remains intentionally incremental.
-- Faith and emblems are both represented in the leader area, but the official
-  shared five-slot capacity is not enforced until a real conflict case requires
-  its ordering semantics.
+- Faith and emblems share and enforce the official five-slot leader-area
+  capacity; stacking, replacement, and full-area rejection have direct tests.
 - `AMULET_ACTIVATED` and `CARD_FUSED` reach ordinary board, hand, and
   leader-area listeners. Individual real-card reactions still require authored
   rules and tests.

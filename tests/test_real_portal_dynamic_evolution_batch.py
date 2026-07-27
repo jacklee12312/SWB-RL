@@ -351,7 +351,10 @@ class RealPortalDynamicEvolutionTests(unittest.TestCase):
         self.assertTrue(result.info["action_mask"][ShadowverseEnv.CHOICE_OFFSET])
         result = env.step(ShadowverseEnv.CHOICE_OFFSET)
         self.assertTrue(enemy.has_keyword("守护"))
-        self.assertEqual(len(result.observation), 294)
+        self.assertEqual(
+            len(result.observation),
+            ShadowverseEnv.OBSERVATION_V1_SIZE,
+        )
 
 
 class PortalDynamicEvolutionAuditTests(unittest.TestCase):

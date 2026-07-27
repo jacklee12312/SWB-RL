@@ -29,6 +29,7 @@ from swb.engine.commands import (
     GameCommand,
     PlayCard,
     SuperEvolve,
+    UseExtraPP,
 )
 from swb.engine.deck import CLASS_NAMES, validate_deck
 from swb.engine.effects import (
@@ -350,11 +351,16 @@ class GameConfig:
     max_turns: int | None = None
     starting_hand: int = 4
     starting_evolution_points: int = 2
-    evolution_unlock_turn: int = 4
+    evolution_unlock_turn: int = 5
+    second_player_evolution_unlock_turn: int = 4
     starting_super_evolution_points: int = 2
     first_player_super_evolution_unlock_turn: int = 7
     second_player_super_evolution_unlock_turn: int = 6
     starting_health: int = 20
+    starting_player: int | None = 0
+    enable_mulligan: bool = False
+    extra_pp_refresh_turn: int = 6
+    leader_area_limit: int = 5
     validate_invariants: bool = False
     retain_text_logs: bool = True
     event_history_limit: int | None = None
@@ -406,6 +412,12 @@ class GameEngine:
             or self.config.event_history_limit <= 0
         ):
             raise ValueError("event_history_limit must be a positive integer or None")
+        if self.config.starting_player not in (None, 0, 1):
+            raise ValueError("starting_player must be 0, 1, or None")
+        if self.config.leader_area_limit <= 0:
+            raise ValueError("leader_area_limit must be positive")
+        if self.config.extra_pp_refresh_turn <= 0:
+            raise ValueError("extra_pp_refresh_turn must be positive")
         self.rulebook = rulebook or RuleBook()
         self.card_resolver = card_resolver
         self.random = random.Random(seed)
@@ -754,10 +766,17 @@ class GameEngine:
     def reset(self, *, seed: int | None = None) -> GameState:
         if seed is not None:
             self.random.seed(seed)
+        first_player = (
+            self.random.randrange(2)
+            if self.config.starting_player is None
+            else self.config.starting_player
+        )
         decks = [list(deck) for deck in self.deck_lists]
         for deck in decks:
             self.random.shuffle(deck)
         self.state = GameState(
+            active_player=first_player,
+            first_player=first_player,
             players=[
                 PlayerState(
                     deck=deck,
@@ -767,6 +786,7 @@ class GameEngine:
                     max_health=self.config.starting_health,
                     evolution_points=self.config.starting_evolution_points,
                     super_evolution_points=self.config.starting_super_evolution_points,
+                    extra_pp_available=(index != first_player),
                 )
                 for index, deck in enumerate(decks)
             ]
@@ -815,13 +835,106 @@ class GameEngine:
         self._initialize_faiths()
         for player_index in range(2):
             for _ in range(self.config.starting_hand):
-                self._draw(player_index, reason="起手")
-        self._start_turn(0)
-        self._resolve_event_queue()
+                card = self.players[player_index].deck.pop()
+                self._append_hand_card(
+                    self.players[player_index],
+                    card,
+                    origin=CardOrigin.DECK,
+                )
+                self._log(player_index, f"起手：{card.name}")
+        if self.config.enable_mulligan:
+            self.state.phase = Phase.MULLIGAN
+            self._request_mulligan(first_player)
+        else:
+            self.state.mulligan_completed[:] = [True, True]
+            self._start_turn(first_player)
+            self._resolve_event_queue()
         if self.config.validate_invariants:
             self.assert_invariants()
         self._state_version += 1
         return self.state
+
+    def _request_mulligan(self, player_index: int) -> None:
+        player = self.players[player_index]
+        options: list[ChoiceOption] = []
+        for mask in range(1 << len(player.hand)):
+            names = [
+                card.name
+                for index, card in enumerate(player.hand)
+                if mask & (1 << index)
+            ]
+            label = "保留全部" if not names else f"更换：{'、'.join(names)}"
+            options.append(
+                ChoiceOption(
+                    option_id=f"mulligan:{mask}",
+                    label=label,
+                )
+            )
+        self.state.active_player = player_index
+        self.state.phase = Phase.MULLIGAN
+        self.state.pending_choice = ChoiceRequest(
+            player_index=player_index,
+            prompt="选择要重新抽取的起手牌",
+            options=tuple(options),
+            continuation_id="match_mulligan",
+            choice_kind=ChoiceKind.GENERIC,
+            request_id=self._allocate_choice_request_id(),
+        )
+
+    def _resolve_mulligan_choice(
+        self,
+        command: Choose,
+        request: ChoiceRequest,
+    ) -> None:
+        try:
+            mask = int(command.option_id.split(":", 1)[1])
+        except (IndexError, ValueError) as exc:
+            raise IllegalCommand("Mulligan option is malformed") from exc
+        player = self.players[command.player_index]
+        if mask < 0 or mask >= (1 << len(player.hand)):
+            raise IllegalCommand("Mulligan mask is out of range")
+
+        original_hand = list(player.hand)
+        replacements: dict[int, HandCard] = {}
+        returned: list[CardDefinition] = []
+        for index, card in enumerate(original_hand):
+            if not mask & (1 << index):
+                continue
+            if not player.deck:
+                raise IllegalCommand("Mulligan replacement requires a deck card")
+            replacement_source = player.deck.pop()
+            replacement = self._append_hand_card(
+                player,
+                replacement_source,
+                origin=CardOrigin.DECK,
+            )
+            player.hand.pop()
+            player.hand_entity_ids.pop()
+            replacements[index] = replacement
+            returned.append(card.definition)
+
+        player.hand = [
+            replacements.get(index, card)
+            for index, card in enumerate(original_hand)
+        ]
+        player.hand_entity_ids = [card.entity_id for card in player.hand]
+        player.deck.extend(returned)
+        self.random.shuffle(player.deck)
+        self.state.mulligan_completed[command.player_index] = True
+        self._log(
+            command.player_index,
+            f"起手换牌：更换 {len(returned)} 张",
+        )
+        self.state.pending_choice = None
+
+        other_player = 1 - command.player_index
+        if not self.state.mulligan_completed[other_player]:
+            self._request_mulligan(other_player)
+            return
+
+        self.state.active_player = self.state.first_player
+        self.state.phase = Phase.MAIN
+        self._start_turn(self.state.first_player)
 
     def _initialize_faiths(self) -> None:
         for player_index, initial_deck in enumerate(self.deck_lists):
@@ -840,6 +953,12 @@ class GameEngine:
                 if definition.faith_id in seen_faith_ids:
                     continue
                 seen_faith_ids.add(definition.faith_id)
+                if not self._leader_area_has_capacity(player_index):
+                    self._log(
+                        player_index,
+                        f"主战者区域已满，无法放置信仰 {definition.faith_id}",
+                    )
+                    continue
                 sequence = player._next_faith_sequence
                 player._next_faith_sequence += 1
                 instance = FaithInstance(
@@ -868,6 +987,13 @@ class GameEngine:
                     f"信仰 {instance.faith_id} 置入主战者区域"
                     f"（信仰值 {instance.value}）",
                 )
+
+    def _leader_area_has_capacity(self, player_index: int) -> bool:
+        player = self.players[player_index]
+        return (
+            len(player.faiths) + len(player.emblems)
+            < self.config.leader_area_limit
+        )
 
     def _advance_faiths_for_event(
         self,
@@ -1002,6 +1128,8 @@ class GameEngine:
                 self._begin_fusion(command)
             elif isinstance(command, ActivateAmulet):
                 self._activate_amulet(command)
+            elif isinstance(command, UseExtraPP):
+                self._use_extra_pp(command)
             elif isinstance(command, Choose):
                 self._choose(command)
             else:
@@ -1081,6 +1209,8 @@ class GameEngine:
         player = self.players[self.current_player]
         opponent = self.players[1 - self.current_player]
         commands: list[GameCommand] = [EndTurn(self.current_player)]
+        if self._can_use_extra_pp(self.current_player):
+            commands.append(UseExtraPP(self.current_player))
         board_full = len(player.board) >= self.config.max_board
         for index, card in enumerate(player.hand[: self.config.max_hand]):
             modes = self.rulebook.modes_for(card.card_id)
@@ -1100,7 +1230,8 @@ class GameEngine:
         )
         can_evolve = (
             player.evolution_points > 0
-            and player.turns_started >= self.config.evolution_unlock_turn
+            and player.turns_started
+            >= self._evolution_unlock_turn(self.current_player)
             and not player.evolved_this_turn
         )
         can_super_evolve = (
@@ -1149,6 +1280,46 @@ class GameEngine:
                     for target in targets
                 )
         return commands
+
+    def _can_use_extra_pp(self, player_index: int) -> bool:
+        player = self.players[player_index]
+        return (
+            self.state.phase is Phase.MAIN
+            and player_index != self.state.first_player
+            and player.extra_pp_available
+            and player.extra_pp_uses < 2
+            and player.extra_pp_active_turn is None
+        )
+
+    def _use_extra_pp(self, command: UseExtraPP) -> None:
+        if not self._can_use_extra_pp(command.player_index):
+            raise IllegalCommand("Extra PP is not available")
+        player = self.players[command.player_index]
+        before = player.mana
+        player.extra_pp_available = False
+        player.extra_pp_uses += 1
+        player.extra_pp_active_turn = self.turn
+        player.mana += 1
+        self._emit(
+            GameEvent(
+                EventType.EXTRA_PP_USED,
+                command.player_index,
+                amount=1,
+                metadata={
+                    "before": before,
+                    "after": player.mana,
+                    "max_mana": player.max_mana,
+                    "uses": player.extra_pp_uses,
+                },
+            )
+        )
+        self._log(
+            command.player_index,
+            f"使用额外PP：{before} → {player.mana}",
+        )
+
+    def _effective_mana_cap(self, player: PlayerState) -> int:
+        return player.max_mana + int(player.extra_pp_active_turn == self.turn)
 
     @staticmethod
     def _is_follower_attack_target(target: Unit) -> bool:
@@ -1258,8 +1429,13 @@ class GameEngine:
             label="策动",
         )
 
+    def _evolution_unlock_turn(self, player_index: int) -> int:
+        if player_index == self.state.first_player:
+            return self.config.evolution_unlock_turn
+        return self.config.second_player_evolution_unlock_turn
+
     def _super_evolution_unlock_turn(self, player_index: int) -> int:
-        if player_index == 0:
+        if player_index == self.state.first_player:
             return self.config.first_player_super_evolution_unlock_turn
         return self.config.second_player_super_evolution_unlock_turn
 
@@ -3100,6 +3276,8 @@ class GameEngine:
         return {
             "state": {
                 "active_player": self.state.active_player,
+                "first_player": self.state.first_player,
+                "mulligan_completed": tuple(self.state.mulligan_completed),
                 "turn": self.state.turn,
                 "phase": self.state.phase.value,
                 "winner": self.state.winner,
@@ -3252,6 +3430,10 @@ class GameEngine:
             "max_health": player.max_health,
             "max_mana": player.max_mana,
             "mana": player.mana,
+            "extra_pp_available": player.extra_pp_available,
+            "extra_pp_uses": player.extra_pp_uses,
+            "extra_pp_refresh_done": player.extra_pp_refresh_done,
+            "extra_pp_active_turn": player.extra_pp_active_turn,
             "fatigue": player.fatigue,
             "empty_deck_outcome": player.empty_deck_outcome.value,
             "evolution_points": player.evolution_points,
@@ -6321,7 +6503,9 @@ class GameEngine:
         else:
             if player.evolution_points <= 0:
                 raise IllegalCommand("No evolution points")
-            if player.turns_started < self.config.evolution_unlock_turn:
+            if player.turns_started < self._evolution_unlock_turn(
+                self.current_player
+            ):
                 raise IllegalCommand("Evolution is not unlocked")
         if super_evolve:
             player.super_evolution_points -= 1
@@ -6814,6 +6998,11 @@ class GameEngine:
         self._log(player_index, "结束回合")
         self.players[player_index].cards_played_this_turn = 0
         self.players[player_index].follower_attacks_this_turn = 0
+        self.players[player_index].mana = min(
+            self.players[player_index].mana,
+            self.players[player_index].max_mana,
+        )
+        self.players[player_index].extra_pp_active_turn = None
         self.state.active_player = 1 - player_index
         self.state.turn += 1
         self._start_turn(self.current_player)
@@ -6941,6 +7130,9 @@ class GameEngine:
         option = next(
             option for option in request.options if option.option_id == command.option_id
         )
+        if request.continuation_id == "match_mulligan":
+            self._resolve_mulligan_choice(command, request)
+            return
         if request.choice_kind is ChoiceKind.FUSION:
             self._resolve_fusion_choice(command, request)
             return
@@ -7135,6 +7327,23 @@ class GameEngine:
                 ei.reset_turn_limits()
         self.state.listener_once_per_turn_used.clear()
         player.turns_started += 1
+        player.extra_pp_active_turn = None
+        if (
+            player_index != self.state.first_player
+            and player.turns_started == self.config.extra_pp_refresh_turn
+        ):
+            player.extra_pp_refresh_done = True
+            if player.extra_pp_uses == 1:
+                player.extra_pp_available = True
+                self._emit(
+                    GameEvent(
+                        EventType.EXTRA_PP_REFRESHED,
+                        player_index,
+                        amount=1,
+                        metadata={"turns_started": player.turns_started},
+                    )
+                )
+
         player.evolved_this_turn = False
         player.super_evolved_this_turn = False
         player.cards_played_this_turn = 0
@@ -8156,7 +8365,10 @@ class GameEngine:
         elif effect.kind is EffectKind.DISTRIBUTE_DAMAGE:
             self._execute_distribute_damage(effect, frame)
         elif effect.kind is EffectKind.RESTORE_MANA:
-            restored = min(effect.amount, player.max_mana - player.mana)
+            restored = min(
+                effect.amount,
+                self._effective_mana_cap(player) - player.mana,
+            )
             player.mana += restored
             self._log(
                 frame.controller,
@@ -8214,7 +8426,10 @@ class GameEngine:
                 0,
                 min(self.config.max_mana, before_max + effect.amount),
             )
-            target_player.mana = min(target_player.mana, target_player.max_mana)
+            target_player.mana = min(
+                target_player.mana,
+                self._effective_mana_cap(target_player),
+            )
             self._emit(GameEvent(
                 EventType.MAX_MANA_CHANGED,
                 target_player_index,
@@ -11216,6 +11431,13 @@ class GameEngine:
                         existing,
                         removal_cause="replace",
                     )
+
+        if not self._leader_area_has_capacity(player_index):
+            self._log(
+                player_index,
+                f"主战者区域已满，无法获得纹章 {emblem_def.emblem_id}",
+            )
+            return
 
         seq = player._next_emblem_sequence
         player._next_emblem_sequence += 1
@@ -14860,6 +15082,17 @@ class GameEngine:
             raise IllegalCommand(
                 f"Invariant failed: active_player out of range: {state.active_player}"
             )
+        if state.first_player not in (0, 1):
+            raise IllegalCommand(
+                f"Invariant failed: first_player out of range: {state.first_player}"
+            )
+        if (
+            len(state.mulligan_completed) != 2
+            or any(not isinstance(value, bool) for value in state.mulligan_completed)
+        ):
+            raise IllegalCommand(
+                "Invariant failed: mulligan completion state is invalid"
+            )
         if state.turn < 1:
             raise IllegalCommand(f"Invariant failed: turn must be positive: {state.turn}")
         if state.next_entity_id <= 0:
@@ -14901,9 +15134,14 @@ class GameEngine:
 
         if state.pending_choice is not None:
             request = state.pending_choice
-            if state.phase is not Phase.AWAITING_CHOICE:
+            expected_choice_phase = (
+                Phase.MULLIGAN
+                if request.continuation_id == "match_mulligan"
+                else Phase.AWAITING_CHOICE
+            )
+            if state.phase is not expected_choice_phase:
                 raise IllegalCommand(
-                    "Invariant failed: pending_choice requires AWAITING_CHOICE phase"
+                    "Invariant failed: pending_choice phase mismatch"
                 )
             if request.player_index not in (0, 1):
                 raise IllegalCommand(
@@ -15084,8 +15322,10 @@ class GameEngine:
                             f"Invariant failed: {zone} leader option_id mismatch: "
                             f"{option.option_id!r} != {expected_option_id!r}"
                         )
-        elif state.phase is Phase.AWAITING_CHOICE:
-            raise IllegalCommand("Invariant failed: AWAITING_CHOICE without pending_choice")
+        elif state.phase in (Phase.AWAITING_CHOICE, Phase.MULLIGAN):
+            raise IllegalCommand(
+                "Invariant failed: decision phase without pending_choice"
+            )
 
         for key, count in state.listener_activation_counts.items():
             if (
@@ -15208,13 +15448,50 @@ class GameEngine:
                 raise IllegalCommand(
                     f"Invariant failed: {prefix} board exceeds max_board"
                 )
+            if (
+                len(player.faiths) + len(player.emblems)
+                > self.config.leader_area_limit
+            ):
+                raise IllegalCommand(
+                    f"Invariant failed: {prefix} leader area exceeds limit"
+                )
             if not (0 <= player.max_mana <= self.config.max_mana):
                 raise IllegalCommand(
                     f"Invariant failed: {prefix} max_mana out of range: {player.max_mana}"
                 )
-            if not (0 <= player.mana <= player.max_mana):
+            if not (0 <= player.mana <= self._effective_mana_cap(player)):
                 raise IllegalCommand(
                     f"Invariant failed: {prefix} mana out of range: {player.mana}/{player.max_mana}"
+                )
+            if (
+                not isinstance(player.extra_pp_available, bool)
+                or not isinstance(player.extra_pp_refresh_done, bool)
+                or not isinstance(player.extra_pp_uses, int)
+                or isinstance(player.extra_pp_uses, bool)
+                or not 0 <= player.extra_pp_uses <= 2
+                or (
+                    player.extra_pp_active_turn is not None
+                    and (
+                        not isinstance(player.extra_pp_active_turn, int)
+                        or isinstance(player.extra_pp_active_turn, bool)
+                        or player.extra_pp_active_turn != self.turn
+                    )
+                )
+            ):
+                raise IllegalCommand(
+                    f"Invariant failed: {prefix} extra PP state is invalid"
+                )
+            if (
+                player_index == state.first_player
+                and (
+                    player.extra_pp_available
+                    or player.extra_pp_uses
+                    or player.extra_pp_refresh_done
+                    or player.extra_pp_active_turn is not None
+                )
+            ):
+                raise IllegalCommand(
+                    f"Invariant failed: {prefix} first player has extra PP"
                 )
             if player.max_health < 1:
                 raise IllegalCommand(

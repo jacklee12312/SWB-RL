@@ -676,7 +676,10 @@ class UnionBurstEnvironmentTests(unittest.TestCase):
 
         self.assertEqual(env._card_features(burst)[-3], 10 / 15)
         self.assertEqual(env._card_features(ordinary)[-3], 0.0)
-        self.assertEqual(len(env.observation()), 294)
+        self.assertEqual(
+            len(env.observation()),
+            ShadowverseEnv.OBSERVATION_V1_SIZE,
+        )
 
 
 @unittest.skipUnless(os.path.exists("data/cards.sqlite3"), "card database unavailable")

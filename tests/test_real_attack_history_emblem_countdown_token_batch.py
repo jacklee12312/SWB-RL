@@ -358,19 +358,25 @@ class RealAttackHistoryEmblemCountdownTokenTests(unittest.TestCase):
             player.board.clear()
         attacker = _ready_attacker(env.core, 0, 99850)
         action = env._encode_command(Attack(0, attacker.entity_id, None))
-        self.assertEqual(ShadowverseEnv.ACTION_SIZE, 111)
-        self.assertEqual(ShadowverseEnv.OBSERVATION_V1_SIZE, 294)
+        self.assertEqual(ShadowverseEnv.ACTION_SIZE, 112)
+        self.assertEqual(ShadowverseEnv.OBSERVATION_V1_SIZE, 304)
         self.assertTrue(env.action_mask()[action])
         self.assertEqual(env.observation()[22:24], [0.0, 0.0])
 
         result = env.step(action)
 
-        self.assertEqual(len(result.observation), 294)
+        self.assertEqual(
+            len(result.observation),
+            ShadowverseEnv.OBSERVATION_V1_SIZE,
+        )
         self.assertEqual(result.observation[22:24], [0.1, 0.0])
 
         env.observation_version = "v2"
         structured = env.observation()
-        self.assertEqual(len(structured["continuous_v1"]), 294)
+        self.assertEqual(
+            len(structured["continuous_v1"]),
+            ShadowverseEnv.OBSERVATION_V1_SIZE,
+        )
         self.assertEqual(structured["continuous_v1"][22:24], (0.1, 0.0))
 
 

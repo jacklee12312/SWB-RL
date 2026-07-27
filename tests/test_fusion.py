@@ -662,8 +662,11 @@ class FusionEnvironmentTests(unittest.TestCase):
 
         self.assertEqual(env._card_features(target_hand)[-2:], [1 / 9, 1.0])
         self.assertFalse(env.action_mask()[fusion_action])
-        self.assertEqual(len(env.observation()), 294)
-        self.assertEqual(ShadowverseEnv.ACTION_SIZE, 111)
+        self.assertEqual(
+            len(env.observation()),
+            ShadowverseEnv.OBSERVATION_V1_SIZE,
+        )
+        self.assertEqual(ShadowverseEnv.ACTION_SIZE, 112)
 
     def test_opponent_hidden_fusion_state_does_not_change_observation(self):
         env = ShadowverseEnv(

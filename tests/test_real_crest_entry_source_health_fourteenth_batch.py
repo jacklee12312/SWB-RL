@@ -384,7 +384,7 @@ class CrestEntrySourceHealthFourteenthBehaviorTests(unittest.TestCase):
         opposing_turn.apply(Attack(1, attacker.entity_id, source.entity_id))
         self.assertEqual(opposing_turn.players[1].health, 20)
 
-    def test_lhynkal_emblems_stack_reduce_and_clamp_max_health(self):
+    def test_lhynkal_emblems_stack_until_shared_leader_area_is_full(self):
         engine = self.fresh(seed=29)
         first = _play(engine, self.repository, 10534110)
         self.assertTrue(first.has_keyword("突进"))
@@ -400,19 +400,20 @@ class CrestEntrySourceHealthFourteenthBehaviorTests(unittest.TestCase):
         definition = self.rulebook.emblem_def("lhynkal_wandering_fool")
         for _ in range(10):
             clamped._add_emblem_to_player(0, definition, 10534110)
+        self.assertEqual(len(clamped.players[0].emblems), 5)
         clamped.players[1].health = 20
         _play(clamped, self.repository, 10534110)
         self.assertEqual(
             (clamped.players[1].max_health, clamped.players[1].health),
-            (1, 1),
+            (10, 10),
         )
         changed = [
             event
             for event in clamped.event_history
             if event.type is EventType.LEADER_MAX_HEALTH_CHANGED
         ]
-        self.assertEqual(sum(event.amount for event in changed), -19)
-        self.assertEqual(changed[-1].metadata["applied_amount"], -1)
+        self.assertEqual(sum(event.amount for event in changed), -10)
+        self.assertEqual(changed[-1].metadata["applied_amount"], -2)
         clamped.assert_invariants()
 
     def test_lhynkal_super_evolve_adds_ten_seeded_copies(self):

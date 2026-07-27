@@ -5,11 +5,18 @@ P0 修复状态更新：2026-07-21
 P1/P2 平台验收更新：2026-07-21
 七职业评估与训练分布更新：2026-07-22
 全卡规则覆盖完成更新：2026-07-26
+官方基础对局规则更新：2026-07-27
 
 ## 2026-07-21 修复结果
 
 本次平台硬化已经完成审计中的四项 P0，并完成目标内的 P1/P2 训练平台闭环：
 
+- 基础对局规则现已覆盖4张起手、16种保留/换牌子集、同一物理卡不可重抽但可
+  抽到同名副本、固定种子随机先后手、后手额外PP及第6回合一次性恢复、先手
+  第5回合/后手第4回合普通进化、9张手牌上限，以及信仰/纹章共享5格主战者
+  区域。换牌复用既有16个choice动作，额外PP追加为动作111，旧0..110编号
+  不变；v1追加10项公开状态至304维，正式版本更新为
+  `observation-v3.6` / `action-112-v2`；
 - `TrainableCardCatalog` 以 `rule_coverage.json` 的 `covered_exact` 为准，
   当前纳入 735 张可收集卡；全部 826 张定义在 worker 启动时进入只读内存，
   对局解析不再访问 SQLite；
@@ -88,7 +95,7 @@ P1/P2 平台验收更新：2026-07-21
 - training mode 关闭无界中文日志、限制诊断事件历史，同时保留完整
   `CoreTransition.events` 和确定性；Catalog/RuleBook 由父进程构建不可变、
   可序列化的 spawn-safe worker 快照，对局热路径不访问 SQLite 或规则文件；
-- Observation v3、111-action、trajectory、Catalog、词表、训练池、覆盖报告、
+- Observation v3、112-action、trajectory、Catalog、词表、训练池、覆盖报告、
   RuleBook 和种子派生都具有正式版本或稳定 SHA-256；
 - persistent spawn vector worker、稳定卡牌 embedding、共享参数 recurrent masked
   PPO、PPO 多 worker 策略采样、原子中局

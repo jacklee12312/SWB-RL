@@ -13,6 +13,7 @@ class CommandType(str, Enum):
     CHOOSE = "choose"
     BEGIN_FUSION = "begin_fusion"
     ACTIVATE_AMULET = "activate_amulet"
+    USE_EXTRA_PP = "use_extra_pp"
 
 
 class ChoiceKind(str, Enum):
@@ -82,6 +83,12 @@ class ActivateAmulet:
     type: CommandType = CommandType.ACTIVATE_AMULET
 
 
+@dataclass(frozen=True)
+class UseExtraPP:
+    player_index: int
+    type: CommandType = CommandType.USE_EXTRA_PP
+
+
 GameCommand = (
     EndTurn
     | PlayCard
@@ -91,6 +98,7 @@ GameCommand = (
     | Choose
     | BeginFusion
     | ActivateAmulet
+    | UseExtraPP
 )
 
 

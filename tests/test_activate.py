@@ -550,7 +550,10 @@ class ActivateEnvironmentTests(unittest.TestCase):
         self.assertEqual(env.players[0].health, 11)
         self.assertFalse(result.info["action_mask"][action])
         self.assertEqual(env._board_features(amulet)[10], 1.0)
-        self.assertEqual(len(result.observation), 294)
+        self.assertEqual(
+            len(result.observation),
+            ShadowverseEnv.OBSERVATION_V1_SIZE,
+        )
 
 
 @unittest.skipUnless(os.path.exists("data/cards.sqlite3"), "card database unavailable")

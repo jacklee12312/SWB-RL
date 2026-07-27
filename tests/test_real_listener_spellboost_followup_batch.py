@@ -541,7 +541,10 @@ class RealListenerSpellboostFollowupTests(unittest.TestCase):
         play = PlayCard(0, env.players[0].hand.index(source))
         play_action = env._encode_command(play)
 
-        self.assertEqual((env.ACTION_SIZE, len(env.observation())), (111, 294))
+        self.assertEqual(
+            (env.ACTION_SIZE, len(env.observation())),
+            (112, ShadowverseEnv.OBSERVATION_V1_SIZE),
+        )
         self.assertTrue(env.action_mask()[play_action])
         env.step(play_action)
         request = env.core.state.pending_choice

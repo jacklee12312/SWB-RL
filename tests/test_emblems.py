@@ -884,7 +884,7 @@ class ObservationTests(unittest.TestCase):
             class_a=1, class_b=1, seed=42,
         )
         obs, _ = env.reset(seed=42)
-        self.assertEqual(len(obs), 294)
+        self.assertEqual(len(obs), ShadowverseEnv.OBSERVATION_V1_SIZE)
 
     def test_observation_exposes_public_emblem_state(self):
         env = ShadowverseEnv(
@@ -900,7 +900,7 @@ class ObservationTests(unittest.TestCase):
         self.assertEqual(after[26:32], [0.1, 0.0, 1.0, 0.0, 0.3, 0.0])
 
     def test_action_size(self):
-        self.assertEqual(ShadowverseEnv.ACTION_SIZE, 111)
+        self.assertEqual(ShadowverseEnv.ACTION_SIZE, 112)
 
 
 # ---------------------------------------------------------------------------

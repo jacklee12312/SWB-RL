@@ -376,7 +376,10 @@ class AuraEnvironmentTests(unittest.TestCase):
         ]
         self.assertEqual(len(choice_actions), 1)
         self.assertEqual(env._board_features(aura)[13], 1.0)
-        self.assertEqual(len(env.observation()), 294)
+        self.assertEqual(
+            len(env.observation()),
+            ShadowverseEnv.OBSERVATION_V1_SIZE,
+        )
 
         aura_amulet = Amulet(
             definition=_card(

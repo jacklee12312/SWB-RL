@@ -145,8 +145,8 @@ class HandStatModifierObservationTests(unittest.TestCase):
         after = env.observation()
         changed = [index for index, values in enumerate(zip(before, after)) if values[0] != values[1]]
 
-        self.assertEqual(len(before), 294)
-        self.assertEqual(len(after), 294)
+        self.assertEqual(len(before), ShadowverseEnv.OBSERVATION_V1_SIZE)
+        self.assertEqual(len(after), ShadowverseEnv.OBSERVATION_V1_SIZE)
         self.assertEqual(len(changed), 2)
         self.assertAlmostEqual(after[changed[0]] - before[changed[0]], 1 / 20)
         self.assertAlmostEqual(after[changed[1]] - before[changed[1]], 2 / 20)

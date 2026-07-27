@@ -68,7 +68,7 @@ class ObservationV2Tests(unittest.TestCase):
         observation, _ = env.reset(seed=42)
         self.assertIsInstance(observation, list)
         self.assertEqual(len(observation), ShadowverseEnv.OBSERVATION_V1_SIZE)
-        self.assertEqual(ShadowverseEnv.ACTION_SIZE, 111)
+        self.assertEqual(ShadowverseEnv.ACTION_SIZE, 112)
         with self.assertRaisesRegex(ValueError, "observation_version='v2'"):
             env.observation_v2_spec()
         with self.assertRaisesRegex(ValueError, "observation_version='v2'"):
@@ -96,7 +96,7 @@ class ObservationV2Tests(unittest.TestCase):
             96,
         )
         self.assertEqual(observation["action_mask"], tuple(env.action_mask()))
-        self.assertEqual(spec["action_size"], 111)
+        self.assertEqual(spec["action_size"], 112)
         self.assertEqual(spec["card_vocabulary_size"], 140)
         self.assertEqual(spec["categorical_vocabulary"]["cards"], self.vocabulary)
 

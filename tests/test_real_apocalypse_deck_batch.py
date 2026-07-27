@@ -338,7 +338,10 @@ class RealApocalypseDeckTests(unittest.TestCase):
             (20, 1),
         )
         self.assertEqual(env.observation_v2_spec()["leader_max_healths"], 2)
-        self.assertEqual((env.ACTION_SIZE, len(result.observation["continuous_v1"])), (111, 294))
+        self.assertEqual(
+            (env.ACTION_SIZE, len(result.observation["continuous_v1"])),
+            (112, ShadowverseEnv.OBSERVATION_V1_SIZE),
+        )
 
 
 class ApocalypseDeckDatabaseAndAuditTests(unittest.TestCase):

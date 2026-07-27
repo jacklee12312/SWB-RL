@@ -450,8 +450,11 @@ class EarthSigilEnvironmentTests(unittest.TestCase):
 
         observation = env.observation()
 
-        self.assertEqual(len(observation), 294)
-        self.assertEqual(observation[-8:-6], [0.2, 0.1])
+        self.assertEqual(
+            len(observation),
+            ShadowverseEnv.OBSERVATION_V1_SIZE,
+        )
+        self.assertEqual(observation[-18:-16], [0.2, 0.1])
 
 
 @unittest.skipUnless(os.path.exists("data/cards.sqlite3"), "card database unavailable")

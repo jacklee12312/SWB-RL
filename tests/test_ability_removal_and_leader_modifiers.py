@@ -131,7 +131,7 @@ class AbilityRemovalStateTests(unittest.TestCase):
         target = Unit.summon(card(11, life=5), entity_id=game.state.allocate_entity_id())
         game.players[0].board.append(source)
         game.players[1].board.append(target)
-        game.players[0].turns_started = 4
+        game.players[0].turns_started = game.config.evolution_unlock_turn
         game._start_effects(
             source.definition,
             source.entity_id,
