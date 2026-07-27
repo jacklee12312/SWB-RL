@@ -9,6 +9,7 @@ import time
 from pathlib import Path
 
 from swb.db.repository import CardRepository
+from swb.engine.environment import MATCH_SETUP_OFFICIAL, MATCH_SETUP_VALUES
 from swb.rl.runtime import WorkerAssetsSnapshot
 from swb.rl.vector_rollout import RolloutConfig, VectorRollout
 
@@ -26,6 +27,11 @@ def main() -> None:
     parser.add_argument("--max-agent-steps", type=int, default=256)
     parser.add_argument("--master-seed", type=int, default=20260721)
     parser.add_argument("--output", type=Path, default=DEFAULT_OUTPUT)
+    parser.add_argument(
+        "--match-setup",
+        choices=sorted(MATCH_SETUP_VALUES),
+        default=MATCH_SETUP_OFFICIAL,
+    )
     args = parser.parse_args()
     if args.workers <= 0 or args.episodes <= 0 or args.max_agent_steps <= 0:
         parser.error("workers, episodes, and max-agent-steps must be positive")
@@ -37,6 +43,7 @@ def main() -> None:
         master_seed=args.master_seed,
         worker_count=args.workers,
         max_agent_steps=args.max_agent_steps,
+        match_setup=args.match_setup,
     )
     rollout_started = time.perf_counter()
     with VectorRollout(snapshot, config) as rollout:
@@ -57,6 +64,7 @@ def main() -> None:
             "episodes": args.episodes,
             "max_agent_steps": args.max_agent_steps,
             "start_method": config.start_method,
+            "match_setup": config.match_setup,
         },
         "versions": {
             "catalog_sha256": snapshot.catalog.catalog_sha256,

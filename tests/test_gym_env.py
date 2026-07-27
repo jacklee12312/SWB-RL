@@ -39,7 +39,14 @@ class GymEnvironmentTests(unittest.TestCase):
         )
 
     def test_passes_official_gymnasium_checker(self) -> None:
-        check_env(self.make_env(), skip_render_check=True)
+        # Gymnasium samples once before the seeded reset and has no standard
+        # concept of a phase-dependent action mask. Exercise the protocol
+        # checker with the stable legacy opening; official setup behavior is
+        # covered separately below.
+        check_env(
+            self.make_env(match_setup="legacy"),
+            skip_render_check=True,
+        )
 
     def test_second_player_wrapper_advances_builtin_opponent(self) -> None:
         env = self.make_env(
@@ -54,7 +61,7 @@ class GymEnvironmentTests(unittest.TestCase):
         self.assertFalse(terminated and truncated)
 
     def test_bounds_mask_order_and_dead_step_are_guarded(self) -> None:
-        env = self.make_env(max_agent_steps=1)
+        env = self.make_env(max_agent_steps=1, match_setup="legacy")
         with self.assertRaisesRegex(RuntimeError, "finished"):
             env.step(0)
         _, info = env.reset(seed=3)
@@ -75,9 +82,16 @@ class GymEnvironmentTests(unittest.TestCase):
         env = self.make_env(
             learner_player=1,
             opponent_policy=lambda engine, mask: engine.ACTION_SIZE,
+            match_setup="legacy",
         )
         with self.assertRaisesRegex(RuntimeError, "opponent selected an illegal"):
             env.reset(seed=3)
+
+    def test_wrapper_defaults_to_official_match_setup(self) -> None:
+        env = self.make_env()
+        _, info = env.reset(seed=3)
+        self.assertEqual(env.engine_env.match_setup, "official")
+        self.assertTrue(all(info["mulligan_completed"]) or info["phase"] == "mulligan")
 
 
 if __name__ == "__main__":

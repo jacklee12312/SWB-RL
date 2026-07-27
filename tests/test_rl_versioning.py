@@ -100,6 +100,20 @@ class RLVersioningTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "observation_schema_sha256"):
             closed.assert_compatible(opened)
 
+    def test_match_setup_is_part_of_experiment_compatibility(self) -> None:
+        legacy = ExperimentVersions.capture(
+            self.make_env(match_setup="legacy"),
+            self.catalog,
+            rulebook_sha256=self.rulebook_sha256,
+        )
+        official = ExperimentVersions.capture(
+            self.make_env(match_setup="official"),
+            self.catalog,
+            rulebook_sha256=self.rulebook_sha256,
+        )
+        with self.assertRaisesRegex(ValueError, "match_setup"):
+            legacy.assert_compatible(official)
+
     def test_mismatch_error_names_every_incompatible_component(self) -> None:
         current = ExperimentVersions.capture(
             self.make_env(),

@@ -9,7 +9,11 @@ import numpy as np
 import torch
 from torch import nn
 
-from swb.engine.environment import ShadowverseEnv
+from swb.engine.environment import (
+    MATCH_SETUP_OFFICIAL,
+    MATCH_SETUP_VALUES,
+    ShadowverseEnv,
+)
 from swb.rl.class_schedule import class_pair_for_episode, normalize_class_ids
 from swb.rl.opponents import OpponentEntry, OpponentPool
 from swb.rl.runtime import WorkerAssetsSnapshot
@@ -42,6 +46,7 @@ class PPOConfig:
     rollout_workers: int = 1
     rollout_result_timeout_seconds: float = 120.0
     training_class_ids: tuple[int, ...] = (1,)
+    match_setup: str = MATCH_SETUP_OFFICIAL
 
     def __post_init__(self) -> None:
         object.__setattr__(
@@ -69,6 +74,8 @@ class PPOConfig:
             raise ValueError("learning_rate and max_grad_norm must be positive")
         if self.rollout_result_timeout_seconds <= 0:
             raise ValueError("rollout_result_timeout_seconds must be positive")
+        if self.match_setup not in MATCH_SETUP_VALUES:
+            raise ValueError("match_setup must be 'legacy' or 'official'")
         opponent_weights = (
             self.opponent_current_weight,
             self.opponent_random_weight,
@@ -439,6 +446,7 @@ class PPOTrainer:
             max_game_turns=self.config.max_game_turns,
             max_agent_steps=self.config.max_agent_steps_per_episode,
             training_mode=True,
+            match_setup=self.config.match_setup,
         )
         _, self.info = self.env.reset(seed=seeds.engine_seed)
         self.current_episode_id = episode_id
@@ -640,6 +648,7 @@ class PPOTrainer:
                     result_timeout_seconds=(
                         self.config.rollout_result_timeout_seconds
                     ),
+                    match_setup=self.config.match_setup,
                 ),
             )
         records: list[_Record] = []

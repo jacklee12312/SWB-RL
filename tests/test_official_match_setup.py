@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import random
 import unittest
 from dataclasses import replace
 
@@ -11,6 +12,8 @@ from swb.engine.events import EventType
 from swb.engine.faith import FaithDefinition, FaithInstance
 from swb.engine.resolution import GameConfig, GameEngine, IllegalCommand
 from swb.engine.state import Phase, Unit
+from swb.rl.baseline_policy import select_baseline_action
+from scripts.random_self_play import official_acceptance_failures
 
 
 def card(card_id: int) -> CardDefinition:
@@ -193,6 +196,107 @@ class OfficialCapacityAndRLTests(unittest.TestCase):
         self.assertTrue(env.action_mask()[env.USE_EXTRA_PP])
         result = env.step(env.USE_EXTRA_PP)
         self.assertEqual(result.info["extra_pp"][1]["uses"], 1)
+
+    def test_official_environment_preset_enables_random_start_and_mulligan(self):
+        first = ShadowverseEnv(
+            deck(),
+            deck(100),
+            class_a=1,
+            class_b=1,
+            seed=37,
+            match_setup="official",
+        )
+        second = ShadowverseEnv(
+            deck(),
+            deck(100),
+            class_a=1,
+            class_b=1,
+            seed=37,
+            match_setup="official",
+        )
+        _, first_info = first.reset(seed=37)
+        _, second_info = second.reset(seed=37)
+
+        self.assertEqual(first.match_setup, "official")
+        self.assertIsNone(first.starting_player)
+        self.assertTrue(first.enable_mulligan)
+        self.assertEqual(first_info["phase"], "mulligan")
+        self.assertEqual(
+            first_info["first_player"],
+            second_info["first_player"],
+        )
+
+    def test_curve_mulligan_replaces_only_cards_above_threshold(self):
+        expensive_deck = [
+            replace(card(2000 + index), cost=(index % 5) + 1)
+            for index in range(40)
+        ]
+        env = ShadowverseEnv(
+            expensive_deck,
+            deck(100),
+            class_a=1,
+            class_b=1,
+            seed=41,
+            match_setup="official",
+        )
+        _, info = env.reset(seed=41)
+        hand = tuple(env._core.players[env.decision_player].hand)
+        expected_mask = sum(
+            1 << index
+            for index, hand_card in enumerate(hand)
+            if hand_card.definition.cost > 3
+        )
+
+        action = select_baseline_action(
+            env,
+            info["action_mask"],
+            random.Random(9),
+            mulligan_policy="curve",
+            curve_keep_cost=3,
+        )
+
+        self.assertEqual(action, env.CHOICE_OFFSET + expected_mask)
+        self.assertTrue(info["action_mask"][action])
+
+    def test_snapshot_clone_preserves_official_setup_decision(self):
+        env = ShadowverseEnv(
+            deck(),
+            deck(100),
+            class_a=1,
+            class_b=1,
+            seed=43,
+            match_setup="official",
+        )
+        env.reset(seed=43)
+        env.step(env.CHOICE_OFFSET + 5)
+        clone = env.clone()
+
+        self.assertEqual(clone.match_setup, "official")
+        self.assertEqual(
+            clone._core.deterministic_fingerprint(),
+            env._core.deterministic_fingerprint(),
+        )
+        self.assertEqual(clone.action_mask(), env.action_mask())
+
+    def test_official_acceptance_contract_reports_named_failures(self):
+        report = {
+            "games": 100,
+            "match_setup": "official",
+            "first_players": [48, 52],
+            "mulligan_games_entered": 100,
+            "mulligan_games_completed": 100,
+            "mulligan_decisions": 200,
+            "extra_pp_uses": 35,
+            "illegal_actions": 0,
+            "action_mask_mismatches": 0,
+            "truncations": 0,
+        }
+        self.assertEqual(official_acceptance_failures(report), [])
+        report["action_mask_mismatches"] = 1
+        self.assertIn(
+            "reported and executable action masks disagreed",
+            official_acceptance_failures(report),
+        )
 
 
 if __name__ == "__main__":

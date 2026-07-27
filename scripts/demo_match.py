@@ -4,7 +4,12 @@ import argparse
 from pathlib import Path
 
 from swb.db.repository import CardRepository
-from swb.engine import CLASS_NAMES, DECK_SIZE, ShadowverseEnv
+from swb.engine import (
+    CLASS_NAMES,
+    DECK_SIZE,
+    MATCH_SETUP_OFFICIAL,
+    ShadowverseEnv,
+)
 from swb.engine.card_rules import RuleBook
 from swb.rl.catalog import TrainableCardCatalog
 
@@ -16,6 +21,8 @@ def choose_action(env: ShadowverseEnv) -> int:
         choices = [action for action, allowed in enumerate(mask) if allowed]
         if choices:
             return choices[0]
+    if mask[env.USE_EXTRA_PP]:
+        return env.USE_EXTRA_PP
 
     playable = [
         action
@@ -48,7 +55,7 @@ def choose_action(env: ShadowverseEnv) -> int:
 
     super_evolutions = [
         action
-        for action in range(env.SUPER_EVOLVE_OFFSET, env.ACTION_SIZE)
+        for action in range(env.SUPER_EVOLVE_OFFSET, env.USE_EXTRA_PP)
         if mask[action]
     ]
     if super_evolutions:
@@ -97,6 +104,7 @@ def main() -> None:
         seed=args.seed,
         rulebook=rulebook,
         card_resolver=catalog.resolve,
+        match_setup=MATCH_SETUP_OFFICIAL,
     )
     env.reset(seed=args.seed)
 

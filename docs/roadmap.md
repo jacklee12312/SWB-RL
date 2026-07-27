@@ -10,13 +10,18 @@ code and tests as the source of truth when this file drifts.
 - Database: 826 cards, 735 collectible cards, 91 non-collectible/generated
   cards from set `90000`.
 - Latest SVA source: `https://sva.hypd.asia/data/cards.json`.
-- Tests: `python -m unittest discover -s tests -v` discovers 2554 behavioral
-  contracts (2026-07-27 official base-match rules verification).
+- Tests: `python -m unittest discover -s tests -v` discovers 2561 behavioral
+  contracts (2026-07-27 official setup/training integration verification).
 - RL adapter: fixed 112-action space; the default v1 observation is 304
   floats, opt-in v2 preserves the structured compatibility mapping, and v3
   supplies fixed-dtype NumPy arrays plus a Gymnasium observation space without
   renumbering the pre-existing 0..110 action IDs. Hidden decklists are the v3
   default.
+- Training-facing AEC/Gym, single- and multi-process PPO rollouts, fixed
+  evaluation, and match scripts default to the official setup preset, so
+  seeded random first-player assignment, both mulligan decisions, and Extra PP
+  are present in actual trajectories. Match setup is checkpoint/versioned;
+  historical checkpoints without the field explicitly retain legacy setup.
 - The exact-audit `TrainableCardCatalog` currently admits all 735 exact
   collectible cards, preloads all 826 definitions for SQLite-free matches, and
   provides deterministic class-valid deck sampling. Self-play no longer uses
@@ -145,7 +150,13 @@ slice in this order:
   one-time refresh, asymmetric normal-evolution turns, the nine-card hand cap,
   and the shared five-slot Faith/emblem leader area. Illegal setup/Extra-PP
   commands preserve deterministic state. RL reuses the 16 choice slots for
-  mulligan and appends Extra PP at action 111.
+  mulligan and appends Extra PP at action 111. Official self-play acceptance
+  reports setup completion, first-player balance, mulligan volume, Extra PP
+  exercise, illegal actions, mask agreement, and truncations; random and
+  printed-cost curve mulligan baselines are available. The checked-in seed-7
+  1,000-game invariant run passed with first-player counts 499/501, all 2,000
+  mulligan decisions completed, 3,964 cards replaced, 1,885 Extra PP uses,
+  and zero truncations, illegal actions, or mask mismatches.
 - Deterministic reset, shuffle, draw, turns, mana, hand/board limits, and deck
   exhaustion damage.
 - Followers, spells, amulets, combat, evolution, manual and effect-caused

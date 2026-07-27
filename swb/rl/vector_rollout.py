@@ -12,7 +12,11 @@ from typing import Any, Mapping
 
 import numpy as np
 
-from swb.engine.environment import ShadowverseEnv
+from swb.engine.environment import (
+    MATCH_SETUP_OFFICIAL,
+    MATCH_SETUP_VALUES,
+    ShadowverseEnv,
+)
 from swb.rl.class_schedule import class_pair_for_episode, normalize_class_ids
 from swb.rl.runtime import WorkerAssetsSnapshot
 from swb.rl.seeding import episode_seeds
@@ -37,6 +41,7 @@ class RolloutConfig:
     start_method: str = "spawn"
     result_timeout_seconds: float = 120.0
     fail_episode_id: int | None = None
+    match_setup: str = MATCH_SETUP_OFFICIAL
 
     def __post_init__(self) -> None:
         if self.worker_count <= 0:
@@ -55,6 +60,8 @@ class RolloutConfig:
             raise ValueError("result_timeout_seconds must be positive")
         if self.start_method not in mp.get_all_start_methods():
             raise ValueError(f"unsupported multiprocessing start method {self.start_method!r}")
+        if self.match_setup not in MATCH_SETUP_VALUES:
+            raise ValueError("match_setup must be 'legacy' or 'official'")
 
 
 class RolloutWorkerError(RuntimeError):
@@ -128,6 +135,7 @@ def _run_episode(
         max_game_turns=config.max_game_turns,
         max_agent_steps=config.max_agent_steps,
         training_mode=True,
+        match_setup=config.match_setup,
     )
     _, info = env.reset(seed=seeds.engine_seed)
     versions = ExperimentVersions.capture(
@@ -268,6 +276,7 @@ def _run_policy_episode(
         max_game_turns=config.max_game_turns,
         max_agent_steps=config.max_agent_steps,
         training_mode=True,
+        match_setup=config.match_setup,
     )
     _, info = env.reset(seed=seeds.engine_seed)
     first_observation = env.observation(

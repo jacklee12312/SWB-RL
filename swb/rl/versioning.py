@@ -5,6 +5,7 @@ import json
 from dataclasses import asdict, dataclass
 from typing import TYPE_CHECKING
 
+from swb.engine.environment import MATCH_SETUP_LEGACY
 from swb.rl.class_schedule import CLASS_SCHEDULE_VERSION
 
 if TYPE_CHECKING:
@@ -89,6 +90,7 @@ class ExperimentVersions:
     training_pool_sha256: str
     seed_derivation_version: int = SEED_DERIVATION_VERSION
     class_schedule_version: int = CLASS_SCHEDULE_VERSION
+    match_setup: str = MATCH_SETUP_LEGACY
 
     @classmethod
     def capture(
@@ -110,6 +112,7 @@ class ExperimentVersions:
             rulebook_sha256=rulebook_sha256,
             coverage_report_sha256=catalog.coverage_report_sha256,
             training_pool_sha256=catalog.training_pool_sha256,
+            match_setup=env.match_setup,
         )
 
     def to_dict(self) -> dict[str, object]:

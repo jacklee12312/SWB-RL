@@ -7,7 +7,7 @@ from gymnasium import spaces
 from pettingzoo import AECEnv
 
 from swb.db.repository import CardDefinition
-from swb.engine.environment import ShadowverseEnv
+from swb.engine.environment import MATCH_SETUP_OFFICIAL, ShadowverseEnv
 
 
 class SWBAECEnv(AECEnv):
@@ -37,6 +37,7 @@ class SWBAECEnv(AECEnv):
             raise ValueError("SWBAECEnv requires observation_version='v3'")
         environment_kwargs["observation_version"] = "v3"
         environment_kwargs["card_vocabulary"] = card_vocabulary
+        environment_kwargs.setdefault("match_setup", MATCH_SETUP_OFFICIAL)
         self.engine_env = ShadowverseEnv(
             deck_a,
             deck_b,

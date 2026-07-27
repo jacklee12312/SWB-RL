@@ -15,6 +15,11 @@ from swb.engine.play_modes import MAX_SPECIAL_MODES_PER_CARD
 from swb.engine.resolution import GameConfig, GameEngine, GameEngineSnapshot
 from swb.engine.state import Amulet, BoardCard, HandCard, PlayerState, Unit
 
+MATCH_SETUP_LEGACY = "legacy"
+MATCH_SETUP_OFFICIAL = "official"
+MATCH_SETUP_VALUES = frozenset({MATCH_SETUP_LEGACY, MATCH_SETUP_OFFICIAL})
+_MATCH_SETUP_DEFAULT = object()
+
 
 @dataclass(frozen=True)
 class StepResult:
@@ -95,8 +100,9 @@ class ShadowverseEnv:
         debug_cache_validation: bool = False,
         training_mode: bool = False,
         training_event_history_limit: int = 256,
-        starting_player: int | None = 0,
-        enable_mulligan: bool = False,
+        match_setup: str = MATCH_SETUP_LEGACY,
+        starting_player: int | None | object = _MATCH_SETUP_DEFAULT,
+        enable_mulligan: bool | None = None,
     ):
         if observation_version not in {"v1", "v2", "v3"}:
             raise ValueError(
@@ -119,6 +125,24 @@ class ShadowverseEnv:
             raise ValueError(
                 "training_event_history_limit must be a positive integer"
             )
+        if match_setup not in MATCH_SETUP_VALUES:
+            raise ValueError(
+                "match_setup must be 'legacy' or 'official', "
+                f"got {match_setup!r}"
+            )
+        if starting_player is _MATCH_SETUP_DEFAULT:
+            resolved_starting_player = (
+                None if match_setup == MATCH_SETUP_OFFICIAL else 0
+            )
+        else:
+            resolved_starting_player = starting_player
+        if resolved_starting_player not in (None, 0, 1):
+            raise ValueError("starting_player must be 0, 1, or None")
+        resolved_enable_mulligan = (
+            match_setup == MATCH_SETUP_OFFICIAL
+            if enable_mulligan is None
+            else bool(enable_mulligan)
+        )
         self.observation_version = observation_version
         self.open_decklists = bool(open_decklists)
         self.max_game_turns = max_game_turns
@@ -126,8 +150,9 @@ class ShadowverseEnv:
         self.debug_cache_validation = bool(debug_cache_validation)
         self.training_mode = bool(training_mode)
         self.training_event_history_limit = training_event_history_limit
-        self.starting_player = starting_player
-        self.enable_mulligan = bool(enable_mulligan)
+        self.match_setup = match_setup
+        self.starting_player = resolved_starting_player
+        self.enable_mulligan = resolved_enable_mulligan
         vocabulary = (
             []
             if observation_version == "v1" and card_vocabulary is None
@@ -319,6 +344,7 @@ class ShadowverseEnv:
             debug_cache_validation=self.debug_cache_validation,
             training_mode=self.training_mode,
             training_event_history_limit=self.training_event_history_limit,
+            match_setup=self.match_setup,
             starting_player=self.starting_player,
             enable_mulligan=self.enable_mulligan,
         )

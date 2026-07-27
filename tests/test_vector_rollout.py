@@ -7,6 +7,7 @@ from pathlib import Path
 import numpy as np
 
 from swb.db.repository import CardRepository
+from swb.engine.environment import ShadowverseEnv
 from swb.rl.runtime import WorkerAssetsSnapshot
 from swb.rl.seeding import derive_seed, episode_seeds
 from swb.rl.trajectory import TRAJECTORY_SCHEMA_VERSION
@@ -111,6 +112,16 @@ class VectorRolloutTests(unittest.TestCase):
             self.assertIn("action_layout_sha256", step.versions)
             self.assertIn("catalog_sha256", step.versions)
             self.assertIn("rulebook_sha256", step.versions)
+        self.assertTrue(all(
+            ShadowverseEnv.CHOICE_OFFSET
+            <= step.action
+            < ShadowverseEnv.CHOICE_OFFSET + 16
+            for step in trajectory.steps[:2]
+        ))
+        self.assertNotEqual(
+            trajectory.steps[0].player_id,
+            trajectory.steps[1].player_id,
+        )
 
     def test_worker_exception_is_propagated_and_processes_stop(self) -> None:
         rollout = VectorRollout(

@@ -43,7 +43,7 @@ class AECEnvironmentTests(unittest.TestCase):
         api_test(self.make_env(), num_cycles=60)
 
     def test_agent_selection_tracks_pending_decision_player(self) -> None:
-        env = self.make_env()
+        env = self.make_env(match_setup="legacy")
         env.reset(seed=3)
         acting = env.agent_selection
         env.step(env.engine_env.END_TURN)
@@ -52,7 +52,7 @@ class AECEnvironmentTests(unittest.TestCase):
         self.assertFalse(env.observe(acting)["action_mask"].any())
 
     def test_terminal_reward_and_done_state_are_per_agent(self) -> None:
-        env = self.make_env()
+        env = self.make_env(match_setup="legacy")
         env.reset(seed=3)
         attacker = Unit.summon(
             card(999),
@@ -69,13 +69,19 @@ class AECEnvironmentTests(unittest.TestCase):
         self.assertFalse(any(env.truncations.values()))
 
     def test_truncation_has_no_synthetic_winner_or_reward(self) -> None:
-        env = self.make_env(max_game_turns=1)
+        env = self.make_env(max_game_turns=1, match_setup="legacy")
         env.reset(seed=3)
         env.step(env.engine_env.END_TURN)
         self.assertTrue(all(env.truncations.values()))
         self.assertFalse(any(env.terminations.values()))
         self.assertEqual(env.rewards, {"player_0": 0.0, "player_1": 0.0})
         self.assertIsNone(env.engine_env.winner)
+
+    def test_adapter_defaults_to_official_match_setup(self) -> None:
+        env = self.make_env()
+        env.reset(seed=3)
+        self.assertEqual(env.engine_env.match_setup, "official")
+        self.assertEqual(env.engine_env.info()["phase"], "mulligan")
 
 
 if __name__ == "__main__":

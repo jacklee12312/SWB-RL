@@ -12,7 +12,7 @@ from typing import Any
 import numpy as np
 import torch
 
-from swb.engine.environment import ShadowverseEnv
+from swb.engine.environment import MATCH_SETUP_LEGACY, ShadowverseEnv
 from swb.rl.ppo import PPOConfig, PPOTrainer
 from swb.rl.opponents import OpponentEntry, OpponentPool
 from swb.rl.runtime import WorkerAssetsSnapshot
@@ -114,6 +114,7 @@ def build_checkpoint(trainer: PPOTrainer) -> dict[str, object]:
             "rulebook_sha256": trainer.snapshot.rulebook_sha256,
             "observation_version": "v3",
             "action_size": trainer.env.ACTION_SIZE,
+            "match_setup": trainer.config.match_setup,
             "policy_representation": {
                 "numeric_size": trainer.flattener.size,
                 "card_slots": trainer.flattener.card_slots,
@@ -172,10 +173,15 @@ def load_checkpoint(
 ) -> PPOTrainer:
     payload = _load_payload(path)
     trainer_state = payload["trainer"]
+    config_payload = dict(trainer_state["config"])
+    # Schema-v2 checkpoints created before official setup integration did not
+    # record this field and must retain their historical fixed-player/no-
+    # mulligan behavior when resumed.
+    config_payload.setdefault("match_setup", MATCH_SETUP_LEGACY)
     trainer = PPOTrainer(
         snapshot,
         master_seed=int(trainer_state["master_seed"]),
-        config=PPOConfig(**trainer_state["config"]),
+        config=PPOConfig(**config_payload),
         device=device,
     )
     checkpoint_versions = ExperimentVersions(**payload["versions"])
@@ -233,6 +239,7 @@ def load_checkpoint(
         max_game_turns=trainer.config.max_game_turns,
         max_agent_steps=trainer.config.max_agent_steps_per_episode,
         training_mode=True,
+        match_setup=trainer.config.match_setup,
     )
     trainer.env.restore(environment_state["snapshot"])
     mask = trainer.env.action_mask()

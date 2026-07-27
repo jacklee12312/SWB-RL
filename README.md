@@ -92,6 +92,11 @@ rules core:
   cards/classes/mechanisms/resources without mutating training state.
 - `SWBAECEnv` and the one-learner `SWBGymEnv` wrappers pass the official
   PettingZoo API test and Gymnasium environment checker, respectively.
+- Training-facing AEC/Gym adapters, single- and multi-process PPO rollout,
+  fixed evaluation, and match scripts default to `match_setup="official"`.
+  The setup name is stored in trajectory/checkpoint experiment versions;
+  pre-integration schema-v2 checkpoints without the field resume as `legacy`
+  instead of silently changing their opening distribution.
 
 The checked-in reports under `data/reports/` are reproducibility and smoke
 artifacts, not policy-strength claims. The 2026-07-21 embedding/vector CPU
@@ -142,9 +147,11 @@ The deterministic rules core supports:
   seeded random first-player selection, the second player's one-use Extra PP
   with a one-time refresh at the start of its sixth turn, first-player turn-5
   versus second-player turn-4 normal evolution, nine-card hand capacity, and a
-  five-slot leader area shared by Faiths and emblems. Deterministic callers may
-  pin `starting_player`; pass `starting_player=None` for seeded random
-  assignment and `enable_mulligan=True` to expose the mulligan decision;
+  five-slot leader area shared by Faiths and emblems. Pass
+  `match_setup="official"` for seeded random first-player assignment and the
+  interactive mulligan. Low-level deterministic fixtures retain the
+  `match_setup="legacy"` default and may still override `starting_player` or
+  `enable_mulligan` explicitly;
 - generic leader maximum-health state, healing caps, invariant/fingerprint
   coverage, v2 public observation, and an auditable `set_leader_max_health`
   operation. Exact `10104120` replaces its controller's deck with the official
@@ -1396,11 +1403,19 @@ python -m compileall -q swb scripts tests
 python -m scripts.random_self_play --games 100
 ```
 
-Enable runtime state-invariant checks during a smoke run with:
+Random self-play defaults to the official setup and reports first-player
+distribution, completed mulligans, replaced cards, Extra PP use, illegal
+actions, and reported/executable mask mismatches. The optional curve baseline
+replaces opening cards above the configured printed-cost threshold. Run the
+full acceptance gate with:
 
 ```powershell
-python -m scripts.random_self_play --games 100 --validate-invariants
+python -m scripts.random_self_play --games 1000 --mulligan-policy curve --validate-invariants --assert-official-acceptance --output data/reports/official_self_play_acceptance.json
 ```
+
+The checked-in seed-7 acceptance run completed all 1,000 mulligans, sampled
+first player 499/501, made exactly 2,000 mulligan decisions, exercised Extra PP
+1,885 times, and had zero truncations, illegal actions, or mask mismatches.
 
 Runtime invariants cover zone/entity consistency, pending-choice shape including
 target/leader choice identity, and effect-stack frame structure so corrupted

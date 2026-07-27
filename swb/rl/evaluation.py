@@ -10,7 +10,11 @@ import torch
 
 from swb.engine.commands import ChoiceKind
 from swb.engine.deck import CLASS_NAMES
-from swb.engine.environment import ShadowverseEnv
+from swb.engine.environment import (
+    MATCH_SETUP_OFFICIAL,
+    MATCH_SETUP_VALUES,
+    ShadowverseEnv,
+)
 from swb.engine.events import EventType
 from swb.rl.checkpoint import load_checkpoint
 from swb.rl.class_schedule import ALL_CLASS_IDS, normalize_class_ids
@@ -28,6 +32,7 @@ class EvaluationConfig:
     opponent_kind: str = "random_legal"
     opponent_checkpoint: str | None = None
     class_ids: tuple[int, ...] = ALL_CLASS_IDS
+    match_setup: str = MATCH_SETUP_OFFICIAL
 
     def __post_init__(self) -> None:
         object.__setattr__(
@@ -46,6 +51,8 @@ class EvaluationConfig:
             raise ValueError(f"unsupported opponent kind {self.opponent_kind!r}")
         if self.opponent_kind == "historical" and not self.opponent_checkpoint:
             raise ValueError("historical evaluation requires opponent_checkpoint")
+        if self.match_setup not in MATCH_SETUP_VALUES:
+            raise ValueError("match_setup must be 'legacy' or 'official'")
 
 
 class _Policy:
@@ -340,6 +347,7 @@ def evaluate(
                         training_mode=True,
                         training_event_history_limit=4096,
                         validate_invariants=True,
+                        match_setup=config.match_setup,
                     )
                     _, info = env.reset(seed=engine_seed)
                     learner_policy = _RecurrentPolicy(
@@ -495,6 +503,7 @@ def evaluate(
         "opponent_kind": config.opponent_kind,
         "opponent_checkpoint": config.opponent_checkpoint,
         "max_agent_steps": config.max_agent_steps,
+        "match_setup": config.match_setup,
         "validate_invariants": True,
     }
     report = {

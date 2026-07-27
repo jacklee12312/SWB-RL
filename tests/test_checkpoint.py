@@ -60,6 +60,8 @@ class CheckpointTests(unittest.TestCase):
         self.assertIn("hidden_by_player", payload["trainer"])
         self.assertIn("git", payload["experiment_manifest"])
         self.assertIn("opponent_pool", payload["experiment_manifest"])
+        self.assertEqual(payload["experiment_manifest"]["match_setup"], "official")
+        self.assertEqual(payload["trainer"]["config"]["match_setup"], "official")
         self.assertIn("observation_schema_sha256", payload["versions"])
         self.assertIn("action_layout_sha256", payload["versions"])
 

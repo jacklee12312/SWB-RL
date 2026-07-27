@@ -9,6 +9,7 @@ from pathlib import Path
 import torch
 
 from swb.db.repository import CardRepository
+from swb.engine.environment import MATCH_SETUP_OFFICIAL, MATCH_SETUP_VALUES
 from swb.rl.checkpoint import load_checkpoint, save_checkpoint_atomic
 from swb.rl.class_schedule import ALL_CLASS_IDS, CLASS_SCHEDULE_VERSION
 from swb.rl.ppo import PPOConfig, PPOTrainer
@@ -33,6 +34,12 @@ def main() -> None:
         help="ordered playable class IDs used by the deterministic matchup cycle",
     )
     parser.add_argument("--device", default="cpu")
+    parser.add_argument(
+        "--match-setup",
+        choices=sorted(MATCH_SETUP_VALUES),
+        default=MATCH_SETUP_OFFICIAL,
+        help="official enables seeded random first player and interactive mulligan",
+    )
     parser.add_argument("--opponent-current-weight", type=float, default=0.6)
     parser.add_argument("--opponent-random-weight", type=float, default=0.2)
     parser.add_argument("--opponent-fixed-weight", type=float, default=0.2)
@@ -88,6 +95,7 @@ def main() -> None:
                 ),
                 rollout_workers=args.rollout_workers,
                 training_class_ids=tuple(args.classes),
+                match_setup=args.match_setup,
             ),
             device=args.device,
         )
@@ -168,6 +176,7 @@ def main() -> None:
             "card_vocabulary_sha256": snapshot.catalog.card_vocabulary_sha256,
             "rulebook_sha256": snapshot.rulebook_sha256,
             "class_schedule_version": CLASS_SCHEDULE_VERSION,
+            "match_setup": trainer.config.match_setup,
         },
     }
     args.metrics_output.parent.mkdir(parents=True, exist_ok=True)

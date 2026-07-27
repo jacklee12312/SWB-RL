@@ -5,7 +5,7 @@ import random
 from pathlib import Path
 
 from swb.db.repository import CardRepository
-from swb.engine import DECK_SIZE, ShadowverseEnv
+from swb.engine import DECK_SIZE, MATCH_SETUP_OFFICIAL, ShadowverseEnv
 from swb.engine.card_rules import RuleBook
 from swb.rl.catalog import TrainableCardCatalog
 
@@ -26,6 +26,8 @@ def choose_action(env: ShadowverseEnv, rng: random.Random) -> int:
     legal = [index for index, allowed in enumerate(mask) if allowed]
     if env.core.state.pending_choice is not None:
         return rng.choice(legal)
+    if mask[env.USE_EXTRA_PP]:
+        return env.USE_EXTRA_PP
     plays = [
         action
         for action in legal
@@ -50,7 +52,7 @@ def choose_action(env: ShadowverseEnv, rng: random.Random) -> int:
     super_evolutions = [
         action
         for action in legal
-        if env.SUPER_EVOLVE_OFFSET <= action < env.ACTION_SIZE
+        if env.SUPER_EVOLVE_OFFSET <= action < env.USE_EXTRA_PP
     ]
     if super_evolutions:
         return rng.choice(super_evolutions)
@@ -95,6 +97,7 @@ def main() -> None:
         rulebook=rulebook,
         card_resolver=catalog.resolve,
         validate_invariants=args.validate_invariants,
+        match_setup=MATCH_SETUP_OFFICIAL,
     )
     env.reset(seed=args.seed)
     rng = random.Random(args.seed)

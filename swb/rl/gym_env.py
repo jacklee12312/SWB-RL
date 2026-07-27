@@ -8,7 +8,7 @@ import numpy as np
 from gymnasium import spaces
 
 from swb.db.repository import CardDefinition
-from swb.engine.environment import ShadowverseEnv
+from swb.engine.environment import MATCH_SETUP_OFFICIAL, ShadowverseEnv
 
 
 class _LegalDiscrete(spaces.Discrete):
@@ -55,6 +55,7 @@ class SWBGymEnv(gym.Env):
             raise ValueError("unknown built-in opponent policy")
         environment_kwargs["observation_version"] = "v3"
         environment_kwargs["card_vocabulary"] = card_vocabulary
+        environment_kwargs.setdefault("match_setup", MATCH_SETUP_OFFICIAL)
         self.engine_env = ShadowverseEnv(
             deck_a,
             deck_b,
@@ -77,7 +78,14 @@ class SWBGymEnv(gym.Env):
     def _sample_mask(self) -> Sequence[bool]:
         if self._finished:
             mask = np.zeros(self.engine_env.ACTION_SIZE, dtype=np.int8)
-            mask[self.engine_env.END_TURN] = 1
+            if self.engine_env.enable_mulligan:
+                mask[
+                    self.engine_env.CHOICE_OFFSET:
+                    self.engine_env.CHOICE_OFFSET
+                    + self.engine_env.MAX_CHOICE_OPTIONS
+                ] = 1
+            else:
+                mask[self.engine_env.END_TURN] = 1
             return mask
         return self._last_info.get(
             "action_mask", self.engine_env.action_mask()

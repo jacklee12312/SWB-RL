@@ -25,8 +25,11 @@ class MaskedPolicyTests(unittest.TestCase):
     def test_training_class_ids_are_validated_and_frozen(self) -> None:
         config = PPOConfig(training_class_ids=[1, 2, 3])
         self.assertEqual(config.training_class_ids, (1, 2, 3))
+        self.assertEqual(config.match_setup, "official")
         with self.assertRaises(ValueError):
             PPOConfig(training_class_ids=(1, 1))
+        with self.assertRaisesRegex(ValueError, "match_setup"):
+            PPOConfig(match_setup="unknown")
 
     def test_multiprocess_rollout_rejects_unsupported_opponent_mixing(self) -> None:
         with self.assertRaisesRegex(ValueError, "self-play only"):

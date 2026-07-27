@@ -6,6 +6,7 @@ import json
 from pathlib import Path
 
 from swb.db.repository import CardRepository
+from swb.engine.environment import MATCH_SETUP_OFFICIAL, MATCH_SETUP_VALUES
 from swb.rl.checkpoint import load_checkpoint
 from swb.rl.class_schedule import ALL_CLASS_IDS
 from swb.rl.evaluation import EvaluationConfig, evaluate
@@ -21,6 +22,11 @@ def main() -> None:
     parser.add_argument("--seed-count", type=int, default=2)
     parser.add_argument("--max-agent-steps", type=int, default=512)
     parser.add_argument("--master-seed", type=int, default=20260721)
+    parser.add_argument(
+        "--match-setup",
+        choices=sorted(MATCH_SETUP_VALUES),
+        default=MATCH_SETUP_OFFICIAL,
+    )
     parser.add_argument(
         "--classes",
         type=int,
@@ -55,6 +61,7 @@ def main() -> None:
                 else str(args.opponent_checkpoint)
             ),
             class_ids=tuple(args.classes),
+            match_setup=args.match_setup,
         ),
     )
     report["checkpoint"] = {
