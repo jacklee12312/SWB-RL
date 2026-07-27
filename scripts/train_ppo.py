@@ -12,6 +12,10 @@ from swb.db.repository import CardRepository
 from swb.engine.environment import MATCH_SETUP_OFFICIAL, MATCH_SETUP_VALUES
 from swb.rl.checkpoint import load_checkpoint, save_checkpoint_atomic
 from swb.rl.class_schedule import ALL_CLASS_IDS, CLASS_SCHEDULE_VERSION
+from swb.rl.fixed_decks import (
+    fixed_training_deck_names,
+    get_fixed_training_deck,
+)
 from swb.rl.ppo import PPOConfig, PPOTrainer
 from swb.rl.runtime import WorkerAssetsSnapshot
 
@@ -30,8 +34,13 @@ def main() -> None:
         "--classes",
         type=int,
         nargs="+",
-        default=list(ALL_CLASS_IDS),
+        default=None,
         help="ordered playable class IDs used by the deterministic matchup cycle",
+    )
+    parser.add_argument(
+        "--training-deck",
+        choices=fixed_training_deck_names(),
+        help="use one named fixed deck for mirrored self-play training",
     )
     parser.add_argument("--device", default="cpu")
     parser.add_argument(
@@ -74,6 +83,27 @@ def main() -> None:
             "multiprocess rollout currently requires current-policy self-play "
             "weights: 1, 0, 0, 0"
         )
+    if args.resume is not None and args.training_deck is not None:
+        parser.error(
+            "--training-deck cannot be combined with --resume; the checkpoint "
+            "owns its training deck"
+        )
+    training_class_ids = (
+        tuple(ALL_CLASS_IDS)
+        if args.classes is None
+        else tuple(args.classes)
+    )
+    if args.training_deck is not None:
+        fixed_deck = get_fixed_training_deck(args.training_deck)
+        if (
+            args.classes is not None
+            and training_class_ids != (fixed_deck.class_id,)
+        ):
+            parser.error(
+                f"--training-deck {args.training_deck} requires "
+                f"--classes {fixed_deck.class_id}"
+            )
+        training_class_ids = (fixed_deck.class_id,)
 
     snapshot = WorkerAssetsSnapshot.build(CardRepository(args.database))
     if args.resume is not None:
@@ -94,7 +124,8 @@ def main() -> None:
                     args.opponent_snapshot_interval_steps
                 ),
                 rollout_workers=args.rollout_workers,
-                training_class_ids=tuple(args.classes),
+                training_class_ids=training_class_ids,
+                training_deck=args.training_deck,
                 match_setup=args.match_setup,
             ),
             device=args.device,
@@ -167,6 +198,11 @@ def main() -> None:
         "resumed_from": None if args.resume is None else str(args.resume),
         "hyperparameters": trainer.hyperparameters(),
         "training_class_ids": list(trainer.config.training_class_ids),
+        "training_deck": (
+            None
+            if trainer.fixed_training_deck is None
+            else trainer.fixed_training_deck.manifest()
+        ),
         "final_metrics": metrics[-1],
         "opponent_pool": trainer.opponent_pool.state_dict(),
         "opponent_assignments": list(trainer.opponent_assignments),
@@ -177,6 +213,11 @@ def main() -> None:
             "rulebook_sha256": snapshot.rulebook_sha256,
             "class_schedule_version": CLASS_SCHEDULE_VERSION,
             "match_setup": trainer.config.match_setup,
+            "training_deck_sha256": (
+                None
+                if trainer.fixed_training_deck is None
+                else trainer.fixed_training_deck.sha256
+            ),
         },
     }
     args.metrics_output.parent.mkdir(parents=True, exist_ok=True)

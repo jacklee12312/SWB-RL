@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import math
 import random
 from dataclasses import dataclass
@@ -18,6 +19,7 @@ from swb.engine.environment import (
 from swb.engine.events import EventType
 from swb.rl.checkpoint import load_checkpoint
 from swb.rl.class_schedule import ALL_CLASS_IDS, normalize_class_ids
+from swb.rl.fixed_decks import get_fixed_training_deck
 from swb.rl.ppo import ObservationFlattener, PPOTrainer, RecurrentMaskedActorCritic
 from swb.rl.runtime import WorkerAssetsSnapshot
 from swb.rl.seeding import derive_seed
@@ -33,6 +35,7 @@ class EvaluationConfig:
     opponent_checkpoint: str | None = None
     class_ids: tuple[int, ...] = ALL_CLASS_IDS
     match_setup: str = MATCH_SETUP_OFFICIAL
+    training_deck: str | None = None
 
     def __post_init__(self) -> None:
         object.__setattr__(
@@ -53,6 +56,13 @@ class EvaluationConfig:
             raise ValueError("historical evaluation requires opponent_checkpoint")
         if self.match_setup not in MATCH_SETUP_VALUES:
             raise ValueError("match_setup must be 'legacy' or 'official'")
+        if self.training_deck is not None:
+            fixed_deck = get_fixed_training_deck(self.training_deck)
+            if self.class_ids != (fixed_deck.class_id,):
+                raise ValueError(
+                    f"training_deck {self.training_deck!r} requires "
+                    f"class_ids=({fixed_deck.class_id},)"
+                )
 
 
 class _Policy:
@@ -284,6 +294,16 @@ def evaluate(
     visited_classes: set[int] = set()
     visited_mechanisms: set[str] = set()
     resource_maxima: dict[str, int] = {}
+    fixed_deck = (
+        None
+        if config.training_deck is None
+        else get_fixed_training_deck(config.training_deck)
+    )
+    opponent_checkpoint_sha256 = None
+    if config.opponent_kind == "historical":
+        opponent_checkpoint_sha256 = hashlib.sha256(
+            Path(config.opponent_checkpoint).read_bytes()
+        ).hexdigest()
     try:
         for class_id in config.class_ids:
             for deck_index in range(config.seed_count):
@@ -295,14 +315,18 @@ def evaluate(
                 )
                 learner_deck_seed = derive_seed(deck_seed, "learner")
                 opponent_deck_seed = derive_seed(deck_seed, "opponent")
-                learner_deck = snapshot.catalog.sample_deck(
-                    class_id,
-                    random.Random(learner_deck_seed),
-                )
-                opponent_deck = snapshot.catalog.sample_deck(
-                    class_id,
-                    random.Random(opponent_deck_seed),
-                )
+                if fixed_deck is None:
+                    learner_deck = snapshot.catalog.sample_deck(
+                        class_id,
+                        random.Random(learner_deck_seed),
+                    )
+                    opponent_deck = snapshot.catalog.sample_deck(
+                        class_id,
+                        random.Random(opponent_deck_seed),
+                    )
+                else:
+                    learner_deck = fixed_deck.build(snapshot.catalog)
+                    opponent_deck = fixed_deck.build(snapshot.catalog)
                 learner_manifest = _deck_manifest(
                     class_id=class_id,
                     deck_index=deck_index,
@@ -505,7 +529,14 @@ def evaluate(
         "max_agent_steps": config.max_agent_steps,
         "match_setup": config.match_setup,
         "validate_invariants": True,
+        "training_deck": (
+            None if fixed_deck is None else fixed_deck.manifest()
+        ),
     }
+    if opponent_checkpoint_sha256 is not None:
+        configuration["opponent_checkpoint_sha256"] = (
+            opponent_checkpoint_sha256
+        )
     report = {
         "schema_version": 2,
         "purpose": (

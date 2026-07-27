@@ -115,6 +115,11 @@ def build_checkpoint(trainer: PPOTrainer) -> dict[str, object]:
             "observation_version": "v3",
             "action_size": trainer.env.ACTION_SIZE,
             "match_setup": trainer.config.match_setup,
+            "training_deck": (
+                None
+                if trainer.fixed_training_deck is None
+                else trainer.fixed_training_deck.manifest()
+            ),
             "policy_representation": {
                 "numeric_size": trainer.flattener.size,
                 "card_slots": trainer.flattener.card_slots,

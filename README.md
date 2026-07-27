@@ -97,6 +97,12 @@ rules core:
   The setup name is stored in trajectory/checkpoint experiment versions;
   pre-integration schema-v2 checkpoints without the field resume as `legacy`
   instead of silently changing their opening distribution.
+- Named fixed-deck training includes
+  `official_qr_evolve_haven_20260727`, the 40-card official QR
+  super-evolution Havencraft list. Fixed mode uses the exact same deck for both
+  players while retaining seeded shuffle, mulligan, random first player, and
+  all ordinary match randomness. Its source hash and immutable deck SHA-256
+  are stored in training reports and checkpoints.
 
 The checked-in reports under `data/reports/` are reproducibility and smoke
 artifacts, not policy-strength claims. The 2026-07-21 embedding/vector CPU
@@ -122,11 +128,22 @@ python -m pip install -e ".[rl,train]"
 python -m scripts.vector_rollout --workers 4 --episodes 16
 python -m scripts.audit_rl_distribution --episodes 98 --workers 2
 python -m scripts.train_ppo --total-agent-steps 10000
+python -m scripts.train_ppo --training-deck official_qr_evolve_haven_20260727 --total-agent-steps 10000
+python -m scripts.evaluate_ppo data/checkpoints/ppo_evolve_haven_smoke.pt --training-deck official_qr_evolve_haven_20260727 --seed-count 250 --master-seed 20260801
 python -m scripts.train_ppo --rollout-workers 4 --total-agent-steps 10000 --opponent-current-weight 1 --opponent-random-weight 0 --opponent-fixed-weight 0 --opponent-historical-weight 0
 python -m scripts.evaluate_ppo data/checkpoints/ppo_smoke.pt
 python -m scripts.benchmark_rl_env
 ```
 
+Fixed evaluation can mirror a named training deck on both sides and records
+the immutable deck manifest in its evaluation-suite hash. Historical-opponent
+reports also hash the opponent checkpoint. In the 2026-07-27 held-out
+fixed-deck experiment, the 1,024-step checkpoint scored 93.8% against the
+random-legal baseline (500 games, 95% CI 91.3%-95.6%); after continuing to
+100,096 steps, it scored 99.4% against random legal (98.3%-99.8%) and 72.4%
+against the 1,024-step checkpoint (68.3%-76.1%, +167.5 relative Elo). All
+1,500 games terminated normally with zero illegal actions or mask mismatches.
+This establishes relative learning on the mirror, not ladder strength.
 Still unsupported: this is a baseline PPO and league/evaluation system, not a
 distributed learner, a policy-strength result, or a complete MCTS
 implementation. Multiprocess PPO currently uses current-policy self-play;

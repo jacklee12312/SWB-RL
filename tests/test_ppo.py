@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import math
 import unittest
+from collections import Counter
 from pathlib import Path
 
 import numpy as np
@@ -15,6 +16,10 @@ from swb.rl.ppo import (
     RecurrentMaskedActorCritic,
 )
 from swb.rl.opponents import OpponentPool
+from swb.rl.fixed_decks import (
+    OFFICIAL_QR_EVOLVE_HAVEN,
+    get_fixed_training_deck,
+)
 from swb.rl.runtime import WorkerAssetsSnapshot
 
 
@@ -30,6 +35,8 @@ class MaskedPolicyTests(unittest.TestCase):
             PPOConfig(training_class_ids=(1, 1))
         with self.assertRaisesRegex(ValueError, "match_setup"):
             PPOConfig(match_setup="unknown")
+        with self.assertRaisesRegex(ValueError, "requires training_class_ids"):
+            PPOConfig(training_deck=OFFICIAL_QR_EVOLVE_HAVEN)
 
     def test_multiprocess_rollout_rejects_unsupported_opponent_mixing(self) -> None:
         with self.assertRaisesRegex(ValueError, "self-play only"):
@@ -156,6 +163,32 @@ class PPOTrainerTests(unittest.TestCase):
         self.assertEqual(trainer.env._core.player_classes, (1, 2))
         assignment = trainer.opponent_assignments[-1]
         self.assertEqual((assignment["class_a"], assignment["class_b"]), (1, 2))
+
+    def test_fixed_training_deck_is_used_for_both_players(self) -> None:
+        trainer = PPOTrainer(
+            self.snapshot,
+            master_seed=780,
+            config=PPOConfig(
+                rollout_steps=8,
+                hidden_size=16,
+                max_agent_steps_per_episode=8,
+                training_class_ids=(6,),
+                training_deck=OFFICIAL_QR_EVOLVE_HAVEN,
+            ),
+        )
+        recipe = get_fixed_training_deck(OFFICIAL_QR_EVOLVE_HAVEN)
+        expected = Counter(recipe.card_ids)
+        self.assertEqual(trainer.env._core.player_classes, (6, 6))
+        for deck in trainer.env._core.deck_lists:
+            self.assertEqual(Counter(card.card_id for card in deck), expected)
+        assignment = trainer.opponent_assignments[-1]
+        self.assertEqual(
+            assignment["training_deck"],
+            OFFICIAL_QR_EVOLVE_HAVEN,
+        )
+        records, _, _ = trainer.collect_rollout()
+        self.assertEqual(len(records), 8)
+        self.assertTrue(all(record.action_mask[record.action] for record in records))
 
     def test_update_changes_parameters_and_reports_finite_metrics(self) -> None:
         trainer = self.make_trainer()

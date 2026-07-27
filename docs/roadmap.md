@@ -10,7 +10,7 @@ code and tests as the source of truth when this file drifts.
 - Database: 826 cards, 735 collectible cards, 91 non-collectible/generated
   cards from set `90000`.
 - Latest SVA source: `https://sva.hypd.asia/data/cards.json`.
-- Tests: `python -m unittest discover -s tests -v` discovers 2561 behavioral
+- Tests: `python -m unittest discover -s tests -v` discovers 2571 behavioral
   contracts (2026-07-27 official setup/training integration verification).
 - RL adapter: fixed 112-action space; the default v1 observation is 304
   floats, opt-in v2 preserves the structured compatibility mapping, and v3
@@ -26,6 +26,19 @@ code and tests as the source of truth when this file drifts.
   collectible cards, preloads all 826 definitions for SQLite-free matches, and
   provides deterministic class-valid deck sampling. Self-play no longer uses
   the legacy 2-to-5-card follower pool.
+- The official QR super-evolution Havencraft list is registered as immutable
+  fixed training profile `official_qr_evolve_haven_20260727`. Single- and
+  multi-process PPO can mirror its exact 40 cards for both players; reports and
+  checkpoints retain the source hash and deck SHA-256 while shuffle,
+  mulligan, first-player assignment, and engine randomness remain seeded.
+  Fixed-seed evaluation can use the same named profile, mirror learner sides,
+  and bind the complete deck manifest into the evaluation-suite hash.
+  Historical-opponent suites also hash the opponent checkpoint. On held-out
+  seeds, the 100,096-step policy scored 72.4% against the 1,024-step policy
+  over 500 mirrored games (95% CI 68.3%-76.1%, +167.5 relative Elo), while
+  all games terminated with zero illegal actions or mask mismatches. The
+  random-legal matchup rose from 93.8% to 99.4%, so it is now treated as a
+  saturated floor rather than the promotion opponent.
 - `SWBAECEnv` is a PettingZoo AEC wrapper with per-agent rewards and done state.
   Rules endings and sampling truncations are mutually exclusive, and both game
   turn and agent-step safety limits are explicit.

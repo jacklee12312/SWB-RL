@@ -10,6 +10,10 @@ from swb.engine.environment import MATCH_SETUP_OFFICIAL, MATCH_SETUP_VALUES
 from swb.rl.checkpoint import load_checkpoint
 from swb.rl.class_schedule import ALL_CLASS_IDS
 from swb.rl.evaluation import EvaluationConfig, evaluate
+from swb.rl.fixed_decks import (
+    fixed_training_deck_names,
+    get_fixed_training_deck,
+)
 from swb.rl.runtime import WorkerAssetsSnapshot
 
 
@@ -31,7 +35,13 @@ def main() -> None:
         "--classes",
         type=int,
         nargs="+",
-        default=list(ALL_CLASS_IDS),
+        default=None,
+        help="playable class IDs; fixed-deck evaluation selects its class",
+    )
+    parser.add_argument(
+        "--training-deck",
+        choices=fixed_training_deck_names(),
+        help="mirror one named fixed training deck on both sides",
     )
     parser.add_argument(
         "--opponent",
@@ -45,6 +55,22 @@ def main() -> None:
         default=Path("data/reports/ppo_evaluation.json"),
     )
     args = parser.parse_args()
+    class_ids = (
+        tuple(ALL_CLASS_IDS)
+        if args.classes is None
+        else tuple(args.classes)
+    )
+    if args.training_deck is not None:
+        fixed_deck = get_fixed_training_deck(args.training_deck)
+        if (
+            args.classes is not None
+            and class_ids != (fixed_deck.class_id,)
+        ):
+            parser.error(
+                f"--training-deck {args.training_deck} requires "
+                f"--classes {fixed_deck.class_id}"
+            )
+        class_ids = (fixed_deck.class_id,)
     snapshot = WorkerAssetsSnapshot.build(CardRepository(args.database))
     trainer = load_checkpoint(args.checkpoint, snapshot)
     report = evaluate(
@@ -60,8 +86,9 @@ def main() -> None:
                 if args.opponent_checkpoint is None
                 else str(args.opponent_checkpoint)
             ),
-            class_ids=tuple(args.classes),
+            class_ids=class_ids,
             match_setup=args.match_setup,
+            training_deck=args.training_deck,
         ),
     )
     report["checkpoint"] = {

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import tempfile
 import unittest
+from collections import Counter
 from dataclasses import replace
 from pathlib import Path
 from unittest.mock import patch
@@ -14,6 +15,10 @@ from swb.rl.checkpoint import (
     build_checkpoint,
     load_checkpoint,
     save_checkpoint_atomic,
+)
+from swb.rl.fixed_decks import (
+    OFFICIAL_QR_EVOLVE_HAVEN,
+    get_fixed_training_deck,
 )
 from swb.rl.ppo import PPOConfig, PPOTrainer
 from swb.rl.runtime import WorkerAssetsSnapshot
@@ -97,6 +102,31 @@ class CheckpointTests(unittest.TestCase):
         self.assertEqual(trainer.current_episode_id, resumed.current_episode_id)
         for key, expected in direct_parameters.items():
             torch.testing.assert_close(expected, resumed.model.state_dict()[key])
+
+    def test_fixed_training_deck_is_manifested_and_resumed(self) -> None:
+        trainer = PPOTrainer(
+            self.snapshot,
+            master_seed=2469,
+            config=PPOConfig(
+                rollout_steps=4,
+                hidden_size=16,
+                max_agent_steps_per_episode=4,
+                training_class_ids=(6,),
+                training_deck=OFFICIAL_QR_EVOLVE_HAVEN,
+            ),
+        )
+        payload = build_checkpoint(trainer)
+        manifest = payload["experiment_manifest"]["training_deck"]
+        recipe = get_fixed_training_deck(OFFICIAL_QR_EVOLVE_HAVEN)
+        self.assertEqual(manifest["name"], recipe.name)
+        self.assertEqual(manifest["sha256"], recipe.sha256)
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "fixed.pt"
+            save_checkpoint_atomic(path, trainer)
+            resumed = load_checkpoint(path, self.snapshot)
+        self.assertEqual(resumed.config.training_deck, recipe.name)
+        for deck in resumed.env._core.deck_lists:
+            self.assertEqual(Counter(card.card_id for card in deck), Counter(recipe.card_ids))
 
     def test_atomic_replace_failure_preserves_existing_checkpoint(self) -> None:
         trainer = self.trained_once()

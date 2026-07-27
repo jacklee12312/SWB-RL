@@ -18,6 +18,7 @@ from swb.engine.environment import (
     ShadowverseEnv,
 )
 from swb.rl.class_schedule import class_pair_for_episode, normalize_class_ids
+from swb.rl.fixed_decks import get_fixed_training_deck
 from swb.rl.runtime import WorkerAssetsSnapshot
 from swb.rl.seeding import episode_seeds
 from swb.rl.trajectory import (
@@ -41,6 +42,7 @@ class RolloutConfig:
     start_method: str = "spawn"
     result_timeout_seconds: float = 120.0
     fail_episode_id: int | None = None
+    training_deck: str | None = None
     match_setup: str = MATCH_SETUP_OFFICIAL
 
     def __post_init__(self) -> None:
@@ -62,6 +64,21 @@ class RolloutConfig:
             raise ValueError(f"unsupported multiprocessing start method {self.start_method!r}")
         if self.match_setup not in MATCH_SETUP_VALUES:
             raise ValueError("match_setup must be 'legacy' or 'official'")
+        if self.training_deck is not None:
+            fixed_deck = get_fixed_training_deck(self.training_deck)
+            configured_classes = (
+                self.class_ids
+                if self.class_ids
+                else (self.class_a, self.class_b)
+            )
+            if any(
+                class_id != fixed_deck.class_id
+                for class_id in configured_classes
+            ):
+                raise ValueError(
+                    f"fixed training deck {self.training_deck!r} requires "
+                    f"class {fixed_deck.class_id}"
+                )
 
 
 class RolloutWorkerError(RuntimeError):
@@ -102,6 +119,25 @@ def _episode_classes(
     return config.class_a, config.class_b
 
 
+def _episode_decks(assets, config, seeds, class_a: int, class_b: int):
+    if config.training_deck is not None:
+        fixed_deck = get_fixed_training_deck(config.training_deck)
+        return (
+            fixed_deck.build(assets.catalog),
+            fixed_deck.build(assets.catalog),
+        )
+    return (
+        assets.catalog.sample_deck(
+            class_a,
+            random.Random(seeds.deck_seed_a),
+        ),
+        assets.catalog.sample_deck(
+            class_b,
+            random.Random(seeds.deck_seed_b),
+        ),
+    )
+
+
 def _run_episode(
     snapshot: WorkerAssetsSnapshot,
     assets,
@@ -113,13 +149,12 @@ def _run_episode(
         raise RuntimeError(f"injected rollout failure for episode {episode_id}")
     seeds = episode_seeds(config.master_seed, worker_id, episode_id)
     class_a, class_b = _episode_classes(config, episode_id)
-    deck_a = assets.catalog.sample_deck(
+    deck_a, deck_b = _episode_decks(
+        assets,
+        config,
+        seeds,
         class_a,
-        random.Random(seeds.deck_seed_a),
-    )
-    deck_b = assets.catalog.sample_deck(
         class_b,
-        random.Random(seeds.deck_seed_b),
     )
     env = ShadowverseEnv(
         deck_a,
@@ -256,11 +291,12 @@ def _run_policy_episode(
 
     seeds = episode_seeds(config.master_seed, worker_id, episode_id)
     class_a, class_b = _episode_classes(config, episode_id)
-    deck_a = assets.catalog.sample_deck(
-        class_a, random.Random(seeds.deck_seed_a)
-    )
-    deck_b = assets.catalog.sample_deck(
-        class_b, random.Random(seeds.deck_seed_b)
+    deck_a, deck_b = _episode_decks(
+        assets,
+        config,
+        seeds,
+        class_a,
+        class_b,
     )
     env = ShadowverseEnv(
         deck_a,

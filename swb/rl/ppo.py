@@ -15,6 +15,7 @@ from swb.engine.environment import (
     ShadowverseEnv,
 )
 from swb.rl.class_schedule import class_pair_for_episode, normalize_class_ids
+from swb.rl.fixed_decks import get_fixed_training_deck
 from swb.rl.opponents import OpponentEntry, OpponentPool
 from swb.rl.runtime import WorkerAssetsSnapshot
 from swb.rl.seeding import episode_seeds
@@ -46,6 +47,7 @@ class PPOConfig:
     rollout_workers: int = 1
     rollout_result_timeout_seconds: float = 120.0
     training_class_ids: tuple[int, ...] = (1,)
+    training_deck: str | None = None
     match_setup: str = MATCH_SETUP_OFFICIAL
 
     def __post_init__(self) -> None:
@@ -76,6 +78,13 @@ class PPOConfig:
             raise ValueError("rollout_result_timeout_seconds must be positive")
         if self.match_setup not in MATCH_SETUP_VALUES:
             raise ValueError("match_setup must be 'legacy' or 'official'")
+        if self.training_deck is not None:
+            fixed_deck = get_fixed_training_deck(self.training_deck)
+            if self.training_class_ids != (fixed_deck.class_id,):
+                raise ValueError(
+                    f"fixed training deck {self.training_deck!r} requires "
+                    f"training_class_ids=({fixed_deck.class_id},)"
+                )
         opponent_weights = (
             self.opponent_current_weight,
             self.opponent_random_weight,
@@ -298,6 +307,11 @@ class PPOTrainer:
         self.assets = snapshot.load()
         self.master_seed = master_seed
         self.config = config or PPOConfig()
+        self.fixed_training_deck = (
+            None
+            if self.config.training_deck is None
+            else get_fixed_training_deck(self.config.training_deck)
+        )
         self.device = torch.device(device)
         random.seed(master_seed)
         np.random.seed(master_seed % (2**32))
@@ -424,15 +438,20 @@ class PPOTrainer:
             "class_b": class_b,
             "learner_class": (class_a, class_b)[self.learner_player],
             "opponent_class": (class_a, class_b)[1 - self.learner_player],
+            "training_deck": self.config.training_deck,
         })
         self.opponent_assignments = self.opponent_assignments[-4096:]
         seeds = episode_seeds(self.master_seed, 0, episode_id)
-        deck_a = self.assets.catalog.sample_deck(
-            class_a, random.Random(seeds.deck_seed_a)
-        )
-        deck_b = self.assets.catalog.sample_deck(
-            class_b, random.Random(seeds.deck_seed_b)
-        )
+        if self.fixed_training_deck is None:
+            deck_a = self.assets.catalog.sample_deck(
+                class_a, random.Random(seeds.deck_seed_a)
+            )
+            deck_b = self.assets.catalog.sample_deck(
+                class_b, random.Random(seeds.deck_seed_b)
+            )
+        else:
+            deck_a = self.fixed_training_deck.build(self.assets.catalog)
+            deck_b = self.fixed_training_deck.build(self.assets.catalog)
         self.env = ShadowverseEnv(
             deck_a,
             deck_b,
@@ -648,6 +667,7 @@ class PPOTrainer:
                     result_timeout_seconds=(
                         self.config.rollout_result_timeout_seconds
                     ),
+                    training_deck=self.config.training_deck,
                     match_setup=self.config.match_setup,
                 ),
             )
@@ -680,6 +700,7 @@ class PPOTrainer:
                     "class_b": class_b,
                     "learner_class": "both",
                     "opponent_class": "self_play",
+                    "training_deck": self.config.training_deck,
                 })
                 for step in episode.records:
                     records.append(_Record(

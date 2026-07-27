@@ -2,12 +2,17 @@ from __future__ import annotations
 
 import multiprocessing as mp
 import unittest
+from collections import Counter
 from pathlib import Path
 
 import numpy as np
 
 from swb.db.repository import CardRepository
 from swb.engine.environment import ShadowverseEnv
+from swb.rl.fixed_decks import (
+    OFFICIAL_QR_EVOLVE_HAVEN,
+    get_fixed_training_deck,
+)
 from swb.rl.runtime import WorkerAssetsSnapshot
 from swb.rl.seeding import derive_seed, episode_seeds
 from swb.rl.trajectory import TRAJECTORY_SCHEMA_VERSION
@@ -122,6 +127,24 @@ class VectorRolloutTests(unittest.TestCase):
             trajectory.steps[0].player_id,
             trajectory.steps[1].player_id,
         )
+
+    def test_fixed_training_deck_reaches_spawn_worker_unchanged(self) -> None:
+        recipe = get_fixed_training_deck(OFFICIAL_QR_EVOLVE_HAVEN)
+        trajectory = self.collect(
+            self.config(
+                class_a=recipe.class_id,
+                class_b=recipe.class_id,
+                training_deck=recipe.name,
+            ),
+            1,
+        )[0]
+        expected = Counter(recipe.card_ids)
+        self.assertEqual(Counter(trajectory.deck_card_ids[0]), expected)
+        self.assertEqual(Counter(trajectory.deck_card_ids[1]), expected)
+
+    def test_fixed_training_deck_rejects_wrong_class(self) -> None:
+        with self.assertRaisesRegex(ValueError, "requires class 6"):
+            self.config(training_deck=OFFICIAL_QR_EVOLVE_HAVEN)
 
     def test_worker_exception_is_propagated_and_processes_stop(self) -> None:
         rollout = VectorRollout(

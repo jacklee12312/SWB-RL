@@ -10,6 +10,10 @@ from pathlib import Path
 
 from swb.db.repository import CardRepository
 from swb.engine.environment import MATCH_SETUP_OFFICIAL, MATCH_SETUP_VALUES
+from swb.rl.fixed_decks import (
+    fixed_training_deck_names,
+    get_fixed_training_deck,
+)
 from swb.rl.runtime import WorkerAssetsSnapshot
 from swb.rl.vector_rollout import RolloutConfig, VectorRollout
 
@@ -28,6 +32,11 @@ def main() -> None:
     parser.add_argument("--master-seed", type=int, default=20260721)
     parser.add_argument("--output", type=Path, default=DEFAULT_OUTPUT)
     parser.add_argument(
+        "--training-deck",
+        choices=fixed_training_deck_names(),
+        help="use one named fixed deck for both players",
+    )
+    parser.add_argument(
         "--match-setup",
         choices=sorted(MATCH_SETUP_VALUES),
         default=MATCH_SETUP_OFFICIAL,
@@ -39,10 +48,18 @@ def main() -> None:
     startup = time.perf_counter()
     snapshot = WorkerAssetsSnapshot.build(CardRepository(args.database))
     snapshot_seconds = time.perf_counter() - startup
+    fixed_deck = (
+        None
+        if args.training_deck is None
+        else get_fixed_training_deck(args.training_deck)
+    )
     config = RolloutConfig(
         master_seed=args.master_seed,
         worker_count=args.workers,
+        class_a=1 if fixed_deck is None else fixed_deck.class_id,
+        class_b=1 if fixed_deck is None else fixed_deck.class_id,
         max_agent_steps=args.max_agent_steps,
+        training_deck=args.training_deck,
         match_setup=args.match_setup,
     )
     rollout_started = time.perf_counter()
@@ -65,6 +82,9 @@ def main() -> None:
             "max_agent_steps": args.max_agent_steps,
             "start_method": config.start_method,
             "match_setup": config.match_setup,
+            "training_deck": (
+                None if fixed_deck is None else fixed_deck.manifest()
+            ),
         },
         "versions": {
             "catalog_sha256": snapshot.catalog.catalog_sha256,
