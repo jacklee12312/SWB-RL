@@ -10,7 +10,7 @@ code and tests as the source of truth when this file drifts.
 - Database: 826 cards, 735 collectible cards, 91 non-collectible/generated
   cards from set `90000`.
 - Latest SVA source: `https://sva.hypd.asia/data/cards.json`.
-- Tests: `python -m unittest discover -s tests -v` discovers 2592 behavioral
+- Tests: `python -m unittest discover -s tests -v` discovers 2595 behavioral
   contracts (2026-07-27 entity/action-conditioned policy, CUDA/checkpoint,
   persistent simulator history, and event-timeline verification).
 - RL adapter: fixed 112-action space; the default v1 observation is 304
@@ -100,6 +100,18 @@ code and tests as the source of truth when this file drifts.
   strength. Eight Windows spawn actors exceeded the machine's current paging
   capacity; four actors were stable and are the recorded hardware-specific
   setting.
+- PPO training now emits aggregate stage timings, and the non-destructive
+  profiler retains per-update samples plus median/P95 summaries without saving
+  its in-memory continuation over the source checkpoint. On the RTX
+  4080/i7-13700KF, a 101,183-step profile over 45 updates sustained 153.39
+  agent steps/s. The 43-update steady sample spent 52.5% of wall time in
+  rollout and 47.5% in CUDA updates. Batch-one CPU policy inference represented
+  75.1% of aggregate worker episode time, rules-engine steps 22.1%, and
+  observation construction 2.1%. Rollout broadcast the roughly 24.8 MiB policy
+  about 6.74 times per update; the four workers collectively rebuilt/reloaded
+  about 27 model copies and received roughly 670 MiB/update. Within CUDA
+  updates, backward/gradient clipping used 53.3% and forward/loss 43.2%; batch
+  construction/device transfer was under 1%.
 - The saved embedding/vector CPU smoke is deliberately not a strength claim:
   its 2-worker whole-episode batches requested 1,024 agent steps, completed
   1,304 steps/16 episodes, resumed to 1,571 steps/20 episodes without episode-ID

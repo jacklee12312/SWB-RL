@@ -334,6 +334,40 @@ class PPOTrainerTests(unittest.TestCase):
             self.assertTrue(
                 all(math.isfinite(value) for value in metrics.values())
             )
+            self.assertEqual(
+                trainer.last_collect_timing["records"],
+                float(len(records)),
+            )
+            self.assertEqual(
+                trainer.last_collect_timing["worker_agent_steps"],
+                float(len(records)),
+            )
+            self.assertGreater(
+                trainer.last_collect_timing["worker_inference_seconds"],
+                0.0,
+            )
+            self.assertGreater(
+                trainer.last_collect_timing["worker_engine_step_seconds"],
+                0.0,
+            )
+            self.assertGreater(
+                trainer.last_collect_timing[
+                    "worker_policy_load_total_seconds_sum"
+                ],
+                0.0,
+            )
+            self.assertGreater(
+                trainer.last_update_timing["forward_loss_seconds"],
+                0.0,
+            )
+            self.assertGreater(
+                trainer.last_update_timing["backward_clip_seconds"],
+                0.0,
+            )
+            self.assertEqual(
+                trainer.last_update_timing["records"],
+                float(len(records)),
+            )
         finally:
             trainer.close()
 

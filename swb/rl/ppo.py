@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import math
 import random
+import time
 from dataclasses import asdict, dataclass
 from typing import Mapping
 
@@ -321,6 +322,8 @@ class PPOTrainer:
         self.current_episode_id: int | None = None
         self.hidden_by_player: dict[int, torch.Tensor] = {}
         self._policy_vector_rollout = None
+        self.last_collect_timing: dict[str, float] = {}
+        self.last_update_timing: dict[str, float] = {}
         self._start_episode()
         if self.config.rollout_workers > 1:
             # The local environment is retained only as a version/schema anchor.
@@ -532,6 +535,8 @@ class PPOTrainer:
     ) -> tuple[list[_Record], dict[tuple[int, int], float], dict[int, str]]:
         if self.config.rollout_workers > 1:
             return self._collect_vector_rollout()
+        collect_started = time.perf_counter()
+        starting_episodes = self.completed_episodes
         records: list[_Record] = []
         bootstrap: dict[tuple[int, int], float] = {}
         boundaries: dict[int, str] = {}
@@ -603,6 +608,12 @@ class PPOTrainer:
                 bootstrap[(self.current_episode_id, candidate)] = self._value_for_player(
                     candidate
                 )
+        self.last_collect_timing = {
+            "collect_total_seconds": time.perf_counter() - collect_started,
+            "collect_calls": 1.0,
+            "episodes": float(self.completed_episodes - starting_episodes),
+            "records": float(len(records)),
+        }
         return records, bootstrap, boundaries
 
     def _collect_vector_rollout(
@@ -610,6 +621,7 @@ class PPOTrainer:
     ) -> tuple[list[_Record], dict[tuple[int, int], float], dict[int, str]]:
         from swb.rl.vector_rollout import PolicyVectorRollout, RolloutConfig
 
+        collect_started = time.perf_counter()
         if self._policy_vector_rollout is None:
             per_worker_steps = max(
                 1,
@@ -638,6 +650,9 @@ class PPOTrainer:
         records: list[_Record] = []
         bootstrap: dict[tuple[int, int], float] = {}
         boundaries: dict[int, str] = {}
+        aggregate_timing: dict[str, float] = {}
+        collect_calls = 0
+        conversion_seconds = 0.0
         while len(records) < self.config.rollout_steps:
             episode_ids = tuple(
                 range(
@@ -649,6 +664,12 @@ class PPOTrainer:
             episodes = self._policy_vector_rollout.collect(
                 self.model, episode_ids
             )
+            collect_calls += 1
+            for key, value in self._policy_vector_rollout.last_timing.items():
+                aggregate_timing[key] = (
+                    aggregate_timing.get(key, 0.0) + float(value)
+                )
+            conversion_started = time.perf_counter()
             for episode in episodes:
                 class_a, class_b = class_pair_for_episode(
                     self.config.training_class_ids,
@@ -684,8 +705,17 @@ class PPOTrainer:
                 bootstrap.update(episode.bootstrap)
                 boundaries[episode.episode_id] = episode.boundary
                 self.completed_episodes += 1
+            conversion_seconds += time.perf_counter() - conversion_started
         self.opponent_assignments = self.opponent_assignments[-4096:]
         self.agent_steps += len(records)
+        aggregate_timing.update({
+            "trajectory_conversion_seconds": conversion_seconds,
+            "collect_total_seconds": time.perf_counter() - collect_started,
+            "collect_calls": float(collect_calls),
+            "records": float(len(records)),
+            "episodes": float(len(boundaries)),
+        })
+        self.last_collect_timing = aggregate_timing
         return records, bootstrap, boundaries
 
     def close(self) -> None:
@@ -799,22 +829,43 @@ class PPOTrainer:
         )
 
     def update(self, records: list[_Record], bootstrap) -> dict[str, float]:
+        if self.device.type == "cuda":
+            torch.cuda.synchronize(self.device)
+        update_started = time.perf_counter()
+        advantages_started = time.perf_counter()
         advantages, returns = self._advantages(records, bootstrap)
+        advantages_seconds = time.perf_counter() - advantages_started
+        sequence_started = time.perf_counter()
         chunks = self._sequence_batches(records, advantages, returns)
+        sequence_seconds = time.perf_counter() - sequence_started
         metrics = {"policy_loss": 0.0, "value_loss": 0.0, "entropy": 0.0, "grad_norm": 0.0}
         updates = 0
+        permutation_seconds = 0.0
+        batch_prepare_seconds = 0.0
+        forward_loss_seconds = 0.0
+        backward_seconds = 0.0
+        optimizer_seconds = 0.0
+        parameter_validation_seconds = 0.0
+        metric_extraction_seconds = 0.0
         for _ in range(self.config.update_epochs):
+            permutation_started = time.perf_counter()
             permutation = torch.randperm(
                 len(chunks),
                 generator=self.torch_generator,
                 device=self.device,
             ).tolist()
+            permutation_seconds += time.perf_counter() - permutation_started
             for start in range(0, len(chunks), self.config.minibatch_sequences):
+                batch_prepare_started = time.perf_counter()
                 selected = [
                     chunks[index]
                     for index in permutation[start : start + self.config.minibatch_sequences]
                 ]
                 batch = self._collate(selected, records, advantages, returns)
+                batch_prepare_seconds += (
+                    time.perf_counter() - batch_prepare_started
+                )
+                forward_loss_started = time.perf_counter()
                 hidden = batch.initial_hidden
                 logits_rows = []
                 value_rows = []
@@ -856,6 +907,10 @@ class PPOTrainer:
                 )
                 if not bool(torch.isfinite(loss)):
                     raise FloatingPointError("non-finite PPO loss")
+                forward_loss_seconds += (
+                    time.perf_counter() - forward_loss_started
+                )
+                backward_started = time.perf_counter()
                 self.optimizer.zero_grad(set_to_none=True)
                 loss.backward()
                 grad_norm = torch.nn.utils.clip_grad_norm_(
@@ -863,16 +918,29 @@ class PPOTrainer:
                 )
                 if not bool(torch.isfinite(grad_norm)):
                     raise FloatingPointError("non-finite PPO gradient norm")
+                backward_seconds += time.perf_counter() - backward_started
+                optimizer_started = time.perf_counter()
                 self.optimizer.step()
+                if self.device.type == "cuda":
+                    torch.cuda.synchronize(self.device)
+                optimizer_seconds += time.perf_counter() - optimizer_started
+                validation_started = time.perf_counter()
                 if not all(
                     bool(torch.isfinite(parameter).all())
                     for parameter in self.model.parameters()
                 ):
                     raise FloatingPointError("non-finite PPO model parameter")
+                parameter_validation_seconds += (
+                    time.perf_counter() - validation_started
+                )
+                metric_started = time.perf_counter()
                 metrics["policy_loss"] += float(policy_loss.item())
                 metrics["value_loss"] += float(value_loss.item())
                 metrics["entropy"] += float(entropy.item())
                 metrics["grad_norm"] += float(grad_norm.item())
+                metric_extraction_seconds += (
+                    time.perf_counter() - metric_started
+                )
                 updates += 1
         self.update_count += 1
         for key in metrics:
@@ -882,6 +950,36 @@ class PPOTrainer:
             "completed_episodes": float(self.completed_episodes),
             "updates": float(self.update_count),
         })
+        update_total_seconds = time.perf_counter() - update_started
+        measured_stage_seconds = sum((
+            advantages_seconds,
+            sequence_seconds,
+            permutation_seconds,
+            batch_prepare_seconds,
+            forward_loss_seconds,
+            backward_seconds,
+            optimizer_seconds,
+            parameter_validation_seconds,
+            metric_extraction_seconds,
+        ))
+        self.last_update_timing = {
+            "update_total_seconds": update_total_seconds,
+            "advantages_seconds": advantages_seconds,
+            "sequence_batching_seconds": sequence_seconds,
+            "permutation_seconds": permutation_seconds,
+            "batch_prepare_to_device_seconds": batch_prepare_seconds,
+            "forward_loss_seconds": forward_loss_seconds,
+            "backward_clip_seconds": backward_seconds,
+            "optimizer_step_seconds": optimizer_seconds,
+            "parameter_validation_seconds": parameter_validation_seconds,
+            "metric_extraction_seconds": metric_extraction_seconds,
+            "unattributed_seconds": max(
+                0.0, update_total_seconds - measured_stage_seconds
+            ),
+            "minibatches": float(updates),
+            "chunks": float(len(chunks)),
+            "records": float(len(records)),
+        }
         return metrics
 
     def train(self, total_agent_steps: int) -> list[dict[str, float]]:

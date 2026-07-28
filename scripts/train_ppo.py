@@ -21,6 +21,7 @@ from swb.rl.policy import (
     ENTITY_ACTION_POLICY_ARCHITECTURE,
     POLICY_ARCHITECTURES,
 )
+from swb.rl.profiling import training_timing_report
 from swb.rl.runtime import WorkerAssetsSnapshot
 
 
@@ -181,6 +182,8 @@ def main() -> None:
     started = time.perf_counter()
     starting_agent_steps = trainer.agent_steps
     metrics = []
+    collect_timing_samples = []
+    update_timing_samples = []
     historical_snapshots = []
     history_directory = (
         args.checkpoint.parent / f"{args.checkpoint.stem}_history"
@@ -189,7 +192,16 @@ def main() -> None:
         records, bootstrap, _ = trainer.collect_rollout()
         update_metrics = trainer.update(records, bootstrap)
         metrics.append(update_metrics)
-        print(json.dumps(update_metrics, sort_keys=True))
+        collect_timing_samples.append(dict(trainer.last_collect_timing))
+        update_timing_samples.append(dict(trainer.last_update_timing))
+        progress = {
+            **update_metrics,
+            "timing": {
+                "collect": trainer.last_collect_timing,
+                "update": trainer.last_update_timing,
+            },
+        }
+        print(json.dumps(progress, sort_keys=True))
         if trainer.opponent_pool.snapshot_due(trainer.agent_steps):
             history_path = history_directory / (
                 f"step_{trainer.agent_steps:012d}.pt"
@@ -252,6 +264,10 @@ def main() -> None:
             else trainer.fixed_training_deck.manifest()
         ),
         "final_metrics": metrics[-1],
+        "timing": training_timing_report(
+            collect_timing_samples,
+            update_timing_samples,
+        ),
         "opponent_pool": trainer.opponent_pool.state_dict(),
         "opponent_assignments": list(trainer.opponent_assignments),
         "historical_snapshots_created": historical_snapshots,

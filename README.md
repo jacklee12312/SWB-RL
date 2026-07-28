@@ -187,6 +187,7 @@ python -m scripts.evaluate_ppo data/checkpoints/ppo_evolve_haven_smoke.pt --trai
 python -m scripts.train_ppo --rollout-workers 4 --total-agent-steps 10000 --opponent-current-weight 1 --opponent-random-weight 0 --opponent-fixed-weight 0 --opponent-historical-weight 0
 python -m scripts.evaluate_ppo data/checkpoints/ppo_smoke.pt
 python -m scripts.benchmark_rl_env
+python -m scripts.profile_ppo_training --checkpoint data/checkpoints/ppo_evolve_haven_entity_action_4m.pt --additional-agent-steps 100000 --device cuda --output data/reports/ppo_evolve_haven_entity_action_4m_profile_100k.json
 ```
 
 Fixed evaluation can mirror a named training deck on both sides and records
@@ -207,6 +208,19 @@ actions, truncations, or mask mismatches. Against its own 50,957-step snapshot
 it scored 55% (95% CI 45.2%-64.4%, +34.9 relative Elo), which is evidence of a
 working training path but not statistically significant evidence that the
 second half of this short run materially improved policy strength.
+The non-destructive PPO profiler reports parent-process rollout phases, worker
+policy construction/loading, environment setup, observation encoding, CPU
+inference, engine steps, trajectory packaging, and learner advantage, batching,
+device transfer, forward/loss, backward, optimizer, and validation phases. It
+updates the loaded policy only in memory and verifies that the source checkpoint
+was not modified. A 101,183-step RTX 4080/i7-13700KF run over 45 updates
+measured 153.39 agent steps/s; after excluding two warm-up updates, rollout
+accounted for 52.5% of measured wall time and the CUDA learner for 47.5%.
+Within the four rollout workers, batch-one CPU policy inference consumed 75.1%
+of worker episode time versus 22.1% for rules-engine steps. The collector also
+broadcast the roughly 24.8 MiB policy about 6.74 times per PPO update; the four
+workers collectively rebuilt/reloaded about 27 model copies and received about
+670 MiB of policy payload per update.
 Still unsupported: this is a baseline PPO and league/evaluation system, not a
 distributed learner, a policy-strength result, or a complete MCTS
 implementation. Multiprocess PPO currently uses current-policy self-play;
