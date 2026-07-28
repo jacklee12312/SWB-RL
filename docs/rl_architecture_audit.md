@@ -239,6 +239,13 @@ Observation v3 已使用 NumPy 数组；PPO 将手牌和公共场面卡牌的稳
 Gymnasium `spaces.Dict`。默认 `open_decklists=False`，对手初始牌组直方图固定
 为零；非当前决策方的 action mask 也固定为零。
 
+2026-07-28 的逐字段复审发现，v3.6 仍会把“手牌动态关键词不同”和“费用修改器
+持续时间不同”的局面编码成完全相同的输入，墓场候选也缺少动作对应的卡牌身份；
+部分规则历史、纹章/信仰/监听器运行时和类别 ordinal 只能有条件表达。因此 v3.6
+冻结为旧 checkpoint 兼容格式，新训练迁移到 `observation_version="v4"`。
+V4 的 49 字段定义、隐私边界、固定容量、迁移规则与逐项测试证据见
+[`observation_v4_field_audit.md`](observation_v4_field_audit.md)。
+
 ### P0：双人环境协议尚未标准化（已修复 AEC 层）
 
 `decision_player` 已经表达了“当前应由谁处理普通行动或待选择”，这与轮流行动的

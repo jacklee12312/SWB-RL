@@ -13,7 +13,11 @@ if TYPE_CHECKING:
     from swb.rl.catalog import TrainableCardCatalog
 
 
-OBSERVATION_SCHEMA_VERSION = "observation-v3.6"
+OBSERVATION_SCHEMA_VERSIONS = {
+    "v3": "observation-v3.6",
+    "v4": "observation-v4.0",
+}
+OBSERVATION_SCHEMA_VERSION = OBSERVATION_SCHEMA_VERSIONS["v4"]
 ACTION_LAYOUT_VERSION = "action-112-v2"
 SEED_DERIVATION_VERSION = 1
 
@@ -29,7 +33,16 @@ def stable_json_sha256(value: object) -> str:
 
 
 def observation_schema_manifest(env: ShadowverseEnv) -> dict[str, object]:
-    space = env.observation_v3_space()
+    if env.observation_version not in OBSERVATION_SCHEMA_VERSIONS:
+        raise ValueError(
+            "versioned observation manifest requires observation_version "
+            "'v3' or 'v4'"
+        )
+    space = (
+        env.observation_v4_space()
+        if env.observation_version == "v4"
+        else env.observation_v3_space()
+    )
     fields = []
     for name, field in space.spaces.items():
         fields.append({
@@ -38,8 +51,8 @@ def observation_schema_manifest(env: ShadowverseEnv) -> dict[str, object]:
             "dtype": str(field.dtype),
             "space_type": type(field).__name__,
         })
-    return {
-        "version": OBSERVATION_SCHEMA_VERSION,
+    manifest = {
+        "version": OBSERVATION_SCHEMA_VERSIONS[env.observation_version],
         "fields": fields,
         "card_vocabulary_size": len(env.card_vocabulary),
         "privacy": {
@@ -52,6 +65,35 @@ def observation_schema_manifest(env: ShadowverseEnv) -> dict[str, object]:
             "non_decision_action_mask": "all-zero",
         },
     }
+    if env.observation_version == "v4":
+        from swb.engine import observation_v4
+
+        manifest["encoding"] = {
+            "categorical_values": "one-hot",
+            "card_identity": "shared-card-vocabulary-index",
+            "structured_effect_identity": (
+                f"stable-sha256-{observation_v4.SEMANTIC_BITS}-bits"
+            ),
+            "histogram_scaling": "divide-by-40-in-policy-flattener",
+            "raw_entity_ids": "never-encoded",
+        }
+        manifest["fixed_limits"] = {
+            "public_history": observation_v4.HISTORY_LENGTH,
+            "history_records_per_player": (
+                observation_v4.HISTORY_RECORDS_PER_PLAYER
+            ),
+            "leader_area_slots": observation_v4.MAX_LEADER_AREA_SLOTS,
+            "cost_modifiers_per_card": observation_v4.MAX_COST_MODIFIERS,
+            "stat_modifiers_per_card": observation_v4.MAX_STAT_MODIFIERS,
+            "keyword_modifiers_per_card": (
+                observation_v4.MAX_KEYWORD_MODIFIERS
+            ),
+            "listeners_per_source": observation_v4.MAX_LISTENERS_PER_SOURCE,
+            "granted_abilities_per_source": (
+                observation_v4.MAX_GRANTED_ABILITIES
+            ),
+        }
+    return manifest
 
 
 def action_layout_manifest(env: ShadowverseEnv) -> dict[str, object]:
@@ -103,7 +145,7 @@ class ExperimentVersions:
         observation = observation_schema_manifest(env)
         action = action_layout_manifest(env)
         return cls(
-            observation_version=OBSERVATION_SCHEMA_VERSION,
+            observation_version=str(observation["version"]),
             observation_schema_sha256=stable_json_sha256(observation),
             action_layout_version=ACTION_LAYOUT_VERSION,
             action_layout_sha256=stable_json_sha256(action),

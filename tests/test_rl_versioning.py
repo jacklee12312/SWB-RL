@@ -13,6 +13,7 @@ from swb.rl.runtime import hash_rule_directory
 from swb.rl.versioning import (
     ACTION_LAYOUT_VERSION,
     OBSERVATION_SCHEMA_VERSION,
+    OBSERVATION_SCHEMA_VERSIONS,
     ExperimentVersions,
     action_layout_manifest,
     observation_schema_manifest,
@@ -51,12 +52,40 @@ class RLVersioningTests(unittest.TestCase):
         env = self.make_env()
         observation = observation_schema_manifest(env)
         action = action_layout_manifest(env)
-        self.assertEqual(observation["version"], OBSERVATION_SCHEMA_VERSION)
+        self.assertEqual(
+            observation["version"],
+            OBSERVATION_SCHEMA_VERSIONS["v3"],
+        )
         self.assertEqual(action["version"], ACTION_LAYOUT_VERSION)
         self.assertEqual(action["size"], 112)
         self.assertEqual(action["ranges"][-1]["stop"], 112)
         self.assertEqual(len(stable_json_sha256(observation)), 64)
         self.assertEqual(len(stable_json_sha256(action)), 64)
+
+    def test_observation_v4_has_distinct_version_and_encoding_contract(self) -> None:
+        env = self.make_env()
+        env.observation_version = "v4"
+        observation = observation_schema_manifest(env)
+        self.assertEqual(observation["version"], OBSERVATION_SCHEMA_VERSION)
+        self.assertEqual(
+            observation["version"],
+            OBSERVATION_SCHEMA_VERSIONS["v4"],
+        )
+        self.assertEqual(
+            observation["encoding"]["categorical_values"],
+            "one-hot",
+        )
+        self.assertEqual(
+            observation["encoding"]["raw_entity_ids"],
+            "never-encoded",
+        )
+        self.assertIn("cost_modifiers_per_card", observation["fixed_limits"])
+        self.assertNotEqual(
+            stable_json_sha256(observation),
+            stable_json_sha256(
+                observation_schema_manifest(self.make_env())
+            ),
+        )
 
     def test_versions_are_deck_and_reset_independent(self) -> None:
         first = ExperimentVersions.capture(

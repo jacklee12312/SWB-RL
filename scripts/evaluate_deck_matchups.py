@@ -130,7 +130,9 @@ def main() -> None:
                         seed=engine_seed,
                         rulebook=learner_trainer.assets.rulebook,
                         card_resolver=learner_trainer.assets.catalog.resolve,
-                        observation_version="v3",
+                        observation_version=(
+                            learner_trainer.config.observation_version
+                        ),
                         card_vocabulary=(
                             learner_trainer.assets.catalog.card_vocabulary
                         ),

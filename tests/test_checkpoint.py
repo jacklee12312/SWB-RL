@@ -176,6 +176,28 @@ class CheckpointTests(unittest.TestCase):
         for name, expected in trainer.model.state_dict().items():
             torch.testing.assert_close(expected, resumed.model.state_dict()[name])
 
+    def test_v3_checkpoint_without_config_field_keeps_legacy_observation(
+        self,
+    ) -> None:
+        trainer = PPOTrainer(
+            self.snapshot,
+            master_seed=2472,
+            config=PPOConfig(
+                rollout_steps=4,
+                hidden_size=16,
+                max_agent_steps_per_episode=4,
+                observation_version="v3",
+            ),
+        )
+        payload = build_checkpoint(trainer)
+        payload["trainer"]["config"].pop("observation_version")
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "legacy_v3.pt"
+            torch.save(payload, path)
+            resumed = load_checkpoint(path, self.snapshot)
+        self.assertEqual(resumed.config.observation_version, "v3")
+        self.assertEqual(resumed.env.observation_version, "v3")
+
     def test_specialist_deck_schedule_and_statistics_round_trip(self) -> None:
         trainer = PPOTrainer(
             self.snapshot,

@@ -104,9 +104,9 @@ class ShadowverseEnv:
         starting_player: int | None | object = _MATCH_SETUP_DEFAULT,
         enable_mulligan: bool | None = None,
     ):
-        if observation_version not in {"v1", "v2", "v3"}:
+        if observation_version not in {"v1", "v2", "v3", "v4"}:
             raise ValueError(
-                "observation_version must be 'v1', 'v2', or 'v3', "
+                "observation_version must be 'v1', 'v2', 'v3', or 'v4', "
                 f"got {observation_version!r}"
             )
         for name, value in (
@@ -553,7 +553,7 @@ class ShadowverseEnv:
         # V1/v2 are compatibility formats and historically reflect direct
         # mutation through retained entity references. Keep that behavior;
         # formal NumPy-only v3 training observations use the versioned cache.
-        cacheable = self.observation_version == "v3"
+        cacheable = self.observation_version in {"v3", "v4"}
         cached = self._observation_cache.get(cache_key) if cacheable else None
         if cached is not None:
             self._assert_cache_coherent()
@@ -571,6 +571,15 @@ class ShadowverseEnv:
             from swb.engine.observation_v3 import encode_observation_v3
 
             result = encode_observation_v3(
+                self,
+                perspective=resolved_perspective,
+                action_mask=action_mask,
+                open_decklists=self.open_decklists,
+            )
+        elif self.observation_version == "v4":
+            from swb.engine.observation_v4 import encode_observation_v4
+
+            result = encode_observation_v4(
                 self,
                 perspective=resolved_perspective,
                 action_mask=action_mask,
@@ -605,6 +614,13 @@ class ShadowverseEnv:
         from swb.engine.observation_v3 import observation_v3_space
 
         return observation_v3_space(self)
+
+    def observation_v4_space(self):
+        if self.observation_version != "v4":
+            raise ValueError("observation_v4_space requires observation_version='v4'")
+        from swb.engine.observation_v4 import observation_v4_space
+
+        return observation_v4_space(self)
 
     def _observation_v1(self, perspective: int | None = None) -> list[float]:
         self._sync_choice_page()

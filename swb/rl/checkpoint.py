@@ -117,7 +117,7 @@ def build_checkpoint(trainer: PPOTrainer) -> dict[str, object]:
             ),
             "catalog_sha256": trainer.assets.catalog.catalog_sha256,
             "rulebook_sha256": trainer.snapshot.rulebook_sha256,
-            "observation_version": "v3",
+            "observation_version": trainer.env.observation_version,
             "action_size": trainer.env.ACTION_SIZE,
             "match_setup": trainer.config.match_setup,
             "training_deck": (
@@ -194,6 +194,13 @@ def load_checkpoint(
     # record this field and must retain their historical fixed-player/no-
     # mulligan behavior when resumed.
     config_payload.setdefault("match_setup", MATCH_SETUP_LEGACY)
+    checkpoint_observation = str(
+        payload.get("versions", {}).get("observation_version", "")
+    )
+    config_payload.setdefault(
+        "observation_version",
+        "v3" if checkpoint_observation.startswith("observation-v3") else "v4",
+    )
     trainer = PPOTrainer(
         snapshot,
         master_seed=int(trainer_state["master_seed"]),
@@ -274,7 +281,7 @@ def load_checkpoint(
         seed=0,
         rulebook=trainer.assets.rulebook,
         card_resolver=trainer.assets.catalog.resolve,
-        observation_version="v3",
+        observation_version=trainer.config.observation_version,
         card_vocabulary=trainer.assets.catalog.card_vocabulary,
         max_game_turns=trainer.config.max_game_turns,
         max_agent_steps=trainer.config.max_agent_steps_per_episode,

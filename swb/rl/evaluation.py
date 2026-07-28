@@ -367,7 +367,7 @@ def evaluate(
                         seed=engine_seed,
                         rulebook=trainer.assets.rulebook,
                         card_resolver=trainer.assets.catalog.resolve,
-                        observation_version="v3",
+                        observation_version=trainer.config.observation_version,
                         card_vocabulary=trainer.assets.catalog.card_vocabulary,
                         max_agent_steps=config.max_agent_steps,
                         training_mode=True,

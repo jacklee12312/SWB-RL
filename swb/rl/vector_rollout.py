@@ -53,6 +53,7 @@ class RolloutConfig:
     match_setup: str = MATCH_SETUP_OFFICIAL
     worker_torch_threads: int = 2
     central_inference_batch_wait_seconds: float = 0.0005
+    observation_version: str = "v4"
 
     def __post_init__(self) -> None:
         if self.worker_count <= 0:
@@ -79,6 +80,8 @@ class RolloutConfig:
             raise ValueError(f"unsupported multiprocessing start method {self.start_method!r}")
         if self.match_setup not in MATCH_SETUP_VALUES:
             raise ValueError("match_setup must be 'legacy' or 'official'")
+        if self.observation_version not in {"v3", "v4"}:
+            raise ValueError("observation_version must be 'v3' or 'v4'")
         if self.opponent_decks:
             if self.training_deck is None:
                 raise ValueError(
@@ -226,7 +229,7 @@ def _run_episode(
         seed=seeds.engine_seed,
         rulebook=assets.rulebook,
         card_resolver=assets.catalog.resolve,
-        observation_version="v3",
+        observation_version=config.observation_version,
         card_vocabulary=assets.catalog.card_vocabulary,
         open_decklists=config.open_decklists,
         max_game_turns=config.max_game_turns,
@@ -373,7 +376,7 @@ def _run_central_policy_episode(
         seed=seeds.engine_seed,
         rulebook=assets.rulebook,
         card_resolver=assets.catalog.resolve,
-        observation_version="v3",
+        observation_version=config.observation_version,
         card_vocabulary=assets.catalog.card_vocabulary,
         open_decklists=config.open_decklists,
         max_game_turns=config.max_game_turns,

@@ -49,6 +49,15 @@ def main() -> None:
         choices=sorted(POLICY_ARCHITECTURES),
         default=ENTITY_ACTION_POLICY_ARCHITECTURE,
     )
+    parser.add_argument(
+        "--observation-version",
+        choices=("v3", "v4"),
+        default="v4",
+        help=(
+            "v4 is the corrected observation schema for new training; "
+            "v3 is retained only for legacy checkpoint compatibility"
+        ),
+    )
     parser.add_argument("--hidden-size", type=int, default=512)
     parser.add_argument("--card-embedding-dim", type=int, default=128)
     parser.add_argument("--model-dim", type=int, default=256)
@@ -177,6 +186,7 @@ def main() -> None:
                 hidden_size=args.hidden_size,
                 card_embedding_dim=args.card_embedding_dim,
                 policy_architecture=args.policy_architecture,
+                observation_version=args.observation_version,
                 model_dim=args.model_dim,
                 transformer_layers=args.transformer_layers,
                 attention_heads=args.attention_heads,
@@ -311,6 +321,7 @@ def main() -> None:
         "opponent_assignments": list(trainer.opponent_assignments),
         "historical_snapshots_created": historical_snapshots,
         "versions": {
+            "observation_version": trainer.config.observation_version,
             "catalog_sha256": snapshot.catalog.catalog_sha256,
             "card_vocabulary_sha256": snapshot.catalog.card_vocabulary_sha256,
             "rulebook_sha256": snapshot.rulebook_sha256,

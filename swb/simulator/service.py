@@ -206,6 +206,17 @@ class MatchSimulator:
         trainer_state = payload["trainer"]
         config_payload = dict(trainer_state["config"])
         config_payload.setdefault("match_setup", "legacy")
+        checkpoint_observation = str(
+            payload.get("versions", {}).get("observation_version", "")
+        )
+        config_payload.setdefault(
+            "observation_version",
+            (
+                "v3"
+                if checkpoint_observation.startswith("observation-v3")
+                else "v4"
+            ),
+        )
         trainer = PPOTrainer(
             snapshot,
             master_seed=int(trainer_state["master_seed"]),
@@ -303,7 +314,7 @@ class MatchSimulator:
                 seed=self.seed,
                 rulebook=self.assets.rulebook,
                 card_resolver=self.assets.catalog.resolve,
-                observation_version="v3",
+                observation_version=self.trainer.config.observation_version,
                 card_vocabulary=self.assets.catalog.card_vocabulary,
                 max_game_turns=self.trainer.config.max_game_turns,
                 max_agent_steps=self.trainer.config.max_agent_steps_per_episode,

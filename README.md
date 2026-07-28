@@ -1352,13 +1352,28 @@ attack and selected-effect mask entries come from the same command legality as
 The structured leader-area section also exposes both public leader maximum
 health values; this does not change the fixed v1 width or any action ID.
 
-For training, `observation_version="v3"` converts the same public state into
+For legacy training, `observation_version="v3"` converts the same public state into
 fixed-shape NumPy arrays with an explicit Gymnasium `spaces.Dict`. Hidden
 decklists are the default: the learner receives its own initial-deck histogram,
 while the opponent histogram is zero unless `open_decklists=True` is selected.
 V3 observations for a non-acting player expose an all-zero action mask. V1 and
-V2 remain compatibility interfaces; V3 is the supported input boundary for new
-full-card training code.
+V2 remain compatibility interfaces. V3.6 is now frozen for existing checkpoint
+compatibility.
+
+New full-card training defaults to `observation_version="v4"`. V4 removes
+known v3.6 state collisions by encoding effective hand keywords; exact
+cost/stat/keyword modifier type, duration, and expiry; candidate-specific
+graveyard/card identity; Faith, emblem, and listener activation runtime; full
+destroyed/entered-card histograms plus recent detailed records; own remaining
+deck composition without deck order; explicit Union Burst kind, threshold,
+progress, and readiness; and action-centered choice features. Categories use
+one-hot fields, while every card identity uses the shared vocabulary
+embedding rather than a continuous ID. It still excludes opponent hidden
+hands, unknown deck contents/order, future randomness, and raw entity IDs.
+The 112-action layout is unchanged. See
+[`docs/observation_v4_field_audit.md`](docs/observation_v4_field_audit.md) for
+the complete 49-field contract, privacy rules, caps, migration behavior, and
+test evidence.
 
 `swb.rl.TrainableCardCatalog` builds the training pool from exact collectible
 entries in `data/reports/rule_coverage.json`, rather than the legacy

@@ -10,16 +10,21 @@ code and tests as the source of truth when this file drifts.
 - Database: 826 cards, 735 collectible cards, 91 non-collectible/generated
   cards from set `90000`.
 - Latest SVA source: `https://sva.hypd.asia/data/cards.json`.
-- Tests: `python -m unittest discover -s tests -v` discovers 2625 behavioral
-  contracts (2026-07-28 fixed-deck specialist scheduling, official deck QR
-  import/registry, entity/action-conditioned policy, CUDA/checkpoint,
-  persistent simulator history, event-timeline verification, and
-  Accelerate/conditional-keyword legality).
+- Tests: `python -m unittest discover -s tests -v` discovers 2643 behavioral
+  contracts (2026-07-28 Observation v4 field/privacy/version migration,
+  fixed-deck specialist scheduling, official deck QR import/registry,
+  entity/action-conditioned policy, CUDA/checkpoint, persistent simulator
+  history, event-timeline verification, and Accelerate/conditional-keyword
+  legality).
 - RL adapter: fixed 112-action space; the default v1 observation is 304
-  floats, opt-in v2 preserves the structured compatibility mapping, and v3
-  supplies fixed-dtype NumPy arrays plus a Gymnasium observation space without
-  renumbering the pre-existing 0..110 action IDs. Hidden decklists are the v3
-  default.
+  floats, opt-in v2 preserves the structured compatibility mapping, and v3.6
+  is frozen for old checkpoint compatibility. New training defaults to the
+  corrected v4 NumPy/Gymnasium schema without renumbering actions. V4 removes
+  audited state collisions for dynamic hand abilities, modifier duration, and
+  graveyard candidates; adds current own-deck composition, detailed rule
+  history, leader-area/listener runtime, fusion/granted-effect identity, and
+  explicit Union Burst state; and routes action candidates through shared card
+  embeddings. Hidden decklists remain the default.
 - Training-facing AEC/Gym, single- and multi-process PPO rollouts, fixed
   evaluation, and match scripts default to the official setup preset, so
   seeded random first-player assignment, both mulligan decisions, and Extra PP
@@ -237,6 +242,17 @@ designed policy-strength experiment exists. A full MCTS/search algorithm and a
 distributed learner are not implemented. Multiprocess PPO currently freezes
 one current policy generation per collection batch and supports self-play only;
 mixed random/fixed/historical opponents remain on the single-process collector.
+Observation v4 now replaces v3.6 for new experiments; its complete field audit,
+privacy contract, fixed caps, and migration rules live in
+[`observation_v4_field_audit.md`](observation_v4_field_audit.md). The next
+training task should first benchmark v4 rollout/update throughput and then
+start a fresh checkpoint; v3.6 policy weights must not be resumed against the
+new input schema.
+The focused environment benchmark at
+`data/reports/observation_v4_benchmark.json` passed both cache thresholds:
+47.1x cached-observation speedup, 267.2 random legal steps/s over the 200-step
+sample, and 436.96 cold observations/s. These are environment-path acceptance
+numbers, not a PPO rollout/update throughput comparison or a strength result.
 
 Unless the user gives a different priority, choose the next coherent vertical
 slice in this order:

@@ -117,7 +117,7 @@ def run_benchmark(
         seed=seed,
         rulebook=rulebook,
         card_resolver=catalog.resolve,
-        observation_version="v3",
+        observation_version="v4",
         card_vocabulary=catalog.card_vocabulary,
         max_agent_steps=2000,
     )
@@ -154,7 +154,7 @@ def run_benchmark(
             "agent_steps": steps,
             "card_vocabulary_size": len(catalog.card_vocabulary),
             "exact_collectible_count": len(catalog.exact_collectible_ids),
-            "observation_version": "v3",
+            "observation_version": "v4",
             "action_size": env.ACTION_SIZE,
         },
         "startup": {

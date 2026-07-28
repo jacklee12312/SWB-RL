@@ -46,6 +46,7 @@ class PPOConfig:
     transformer_layers: int = 4
     attention_heads: int = 8
     feedforward_dim: int = 1024
+    observation_version: str = "v4"
     learning_rate: float = 3e-4
     gamma: float = 0.99
     gae_lambda: float = 0.95
@@ -99,6 +100,8 @@ class PPOConfig:
             raise ValueError(
                 f"unsupported policy architecture {self.policy_architecture!r}"
             )
+        if self.observation_version not in {"v3", "v4"}:
+            raise ValueError("observation_version must be 'v3' or 'v4'")
         if (
             self.policy_architecture == ENTITY_ACTION_POLICY_ARCHITECTURE
             and self.model_dim % self.attention_heads
@@ -156,7 +159,31 @@ class PPOConfig:
 
 
 class ObservationFlattener:
-    CARD_INDEX_FIELDS = ("own_hand_cards", "public_board_cards")
+    CARD_INDEX_FIELDS = (
+        "own_hand_cards",
+        "public_board_cards",
+        "leader_area_cards",
+        "graveyard_page_cards",
+        "choice_option_cards",
+        "history_source_cards",
+        "history_target_cards",
+        "destroyed_follower_cards",
+        "destroyed_amulet_cards",
+        "follower_entry_cards",
+        "own_hand_fusion_cards",
+        "public_board_fusion_cards",
+        "leader_modifier_source_cards",
+    )
+    HISTOGRAM_FIELDS = frozenset({
+        "own_initial_deck",
+        "opponent_initial_deck",
+        "own_current_deck",
+        "public_graveyards",
+        "public_banished",
+        "destroyed_follower_histograms",
+        "destroyed_amulet_histograms",
+        "follower_entry_histograms",
+    })
 
     def __init__(
         self,
@@ -176,6 +203,11 @@ class ObservationFlattener:
         for name, size in zip(field_names, field_sizes):
             self.field_layout[name] = (offset, size)
             offset += size
+        card_offset = 0
+        self.card_field_layout: dict[str, tuple[int, int]] = {}
+        for name, size in zip(card_field_names, card_field_sizes):
+            self.card_field_layout[name] = (card_offset, size)
+            card_offset += size
 
     @classmethod
     def from_observation(
@@ -206,12 +238,7 @@ class ObservationFlattener:
                     f"observation field {name!r} changed size: "
                     f"expected {expected_size}, got {array.size}"
                 )
-            if name in {
-                "own_initial_deck",
-                "opponent_initial_deck",
-                "public_graveyards",
-                "public_banished",
-            }:
+            if name in self.HISTOGRAM_FIELDS:
                 array = array / 40.0
             elif name.endswith("_categorical"):
                 array = array / 1024.0
@@ -262,6 +289,7 @@ def build_policy(
             attention_heads=config.attention_heads,
             feedforward_dim=config.feedforward_dim,
             field_layout=flattener.field_layout,
+            card_field_layout=flattener.card_field_layout,
         )
     raise ValueError(
         f"unsupported policy architecture {config.policy_architecture!r}"
@@ -395,7 +423,18 @@ class PPOTrainer:
             rulebook_sha256=self.snapshot.rulebook_sha256,
         )
         expected_versions.assert_compatible(actual_versions)
-        config = PPOConfig(**payload["trainer"]["config"])
+        config_values = dict(payload["trainer"]["config"])
+        config_values.setdefault(
+            "observation_version",
+            (
+                "v3"
+                if expected_versions.observation_version.startswith(
+                    "observation-v3"
+                )
+                else "v4"
+            ),
+        )
+        config = PPOConfig(**config_values)
         model = build_policy(
             config,
             self.flattener,
@@ -487,7 +526,7 @@ class PPOTrainer:
             seed=seeds.engine_seed,
             rulebook=self.assets.rulebook,
             card_resolver=self.assets.catalog.resolve,
-            observation_version="v3",
+            observation_version=self.config.observation_version,
             card_vocabulary=self.assets.catalog.card_vocabulary,
             max_game_turns=self.config.max_game_turns,
             max_agent_steps=self.config.max_agent_steps_per_episode,
@@ -766,6 +805,7 @@ class PPOTrainer:
                     central_inference_batch_wait_seconds=(
                         self.config.central_inference_batch_wait_seconds
                     ),
+                    observation_version=self.config.observation_version,
                 ),
             )
         records: list[_Record] = []
