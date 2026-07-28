@@ -560,7 +560,7 @@ class ListenerEnhanceRandomKeywordEleventhBehaviorTests(unittest.TestCase):
         )
         self.assertEqual(
             [emblem.countdown for emblem in engine.players[0].emblems],
-            [4, 4],
+            [4],
         )
         self.assertEqual(
             sum(
@@ -575,7 +575,7 @@ class ListenerEnhanceRandomKeywordEleventhBehaviorTests(unittest.TestCase):
         _play(normal_only, self.repository, 10622310)
         self.assertEqual(
             [emblem.countdown for emblem in normal_only.players[0].emblems],
-            [2, 2],
+            [2],
         )
         self.assertFalse(normal_only.players[0].board)
 
@@ -592,7 +592,7 @@ class ListenerEnhanceRandomKeywordEleventhBehaviorTests(unittest.TestCase):
         self.assertEqual(len(full.players[0].board), 5)
         self.assertEqual(
             [emblem.countdown for emblem in full.players[0].emblems],
-            [4, 4],
+            [4],
         )
         full.assert_invariants()
 

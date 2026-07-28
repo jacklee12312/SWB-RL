@@ -38,6 +38,7 @@ from swb.engine.effects import (
     TargetKind,
     TurnEndDestroyTiming,
 )
+from swb.engine.emblem import EmblemDefinition
 from swb.engine.environment import ShadowverseEnv
 from swb.engine.events import EventType
 from swb.engine.origin import CardOrigin
@@ -586,7 +587,16 @@ class FusionComboCostReposeSixteenthBehaviorTests(unittest.TestCase):
         first = _play(engine, self.repository, 10364110)
         engine.players[0].mana = 10
         _play(engine, self.repository, 10364110)
+        engine._add_emblem_to_player(
+            0,
+            EmblemDefinition("himeka_crest_count_fixture", 996599),
+            996599,
+        )
         self.assertEqual(len(engine.players[0].emblems), 2)
+        self.assertEqual(
+            {emblem.emblem_id for emblem in engine.players[0].emblems},
+            {"himeka_heir_to_repose", "himeka_crest_count_fixture"},
+        )
         eligible = [
             _put_unit(engine, 1, _card(996600 + index, attack=attack))
             for index, attack in enumerate((2, 4))

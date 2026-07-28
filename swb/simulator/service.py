@@ -25,6 +25,7 @@ from swb.engine.commands import (
 )
 from swb.engine.environment import MATCH_SETUP_OFFICIAL, ShadowverseEnv
 from swb.engine.state import Amulet, HandCard, Unit
+from swb.engine.union_burst import UnionBurstKind
 from swb.rl.checkpoint import CHECKPOINT_SCHEMA_VERSION
 from swb.rl.fixed_decks import get_fixed_training_deck
 from swb.rl.ppo import PPOConfig, PPOTrainer
@@ -720,7 +721,35 @@ class MatchSimulator:
         filename = filename or textures.get("base")
         return None if filename is None else f"/api/images/{filename}"
 
-    def _serialize_hand_card(self, index: int, card: HandCard) -> dict[str, Any]:
+    def _serialize_hand_card(
+        self,
+        index: int,
+        card: HandCard,
+        *,
+        turns_started: int,
+    ) -> dict[str, Any]:
+        gauge = card.union_burst_gauge(turns_started)
+        burst_labels = {
+            UnionBurstKind.UNION_BURST: "奥义",
+            UnionBurstKind.SUPER_SKYBOUND_ART: "解放奥义",
+        }
+        union_bursts = [
+            {
+                "kind": definition.kind.value,
+                "label": burst_labels[definition.kind],
+                "gauge": gauge,
+                "threshold": definition.threshold,
+                "remaining": max(0, definition.threshold - gauge),
+                "ready": gauge >= definition.threshold,
+            }
+            for definition in sorted(
+                self.assets.rulebook.union_bursts_for(card.card_id),
+                key=lambda definition: (
+                    definition.threshold,
+                    definition.kind.value,
+                ),
+            )
+        ]
         return {
             "index": index,
             "entity_id": card.entity_id,
@@ -733,6 +762,7 @@ class MatchSimulator:
             "health": card.life,
             "keywords": sorted(card.effective_keywords),
             "spellboost": card.spellboost_count,
+            "union_bursts": union_bursts,
             "image_url": self._image_url(card.card_id),
         }
 
@@ -809,7 +839,11 @@ class MatchSimulator:
             "board": [self._serialize_board_card(card) for card in player.board],
             "hand": (
                 [
-                    self._serialize_hand_card(index, card)
+                    self._serialize_hand_card(
+                        index,
+                        card,
+                        turns_started=player.turns_started,
+                    )
                     for index, card in enumerate(player.hand)
                 ]
                 if reveal_hand

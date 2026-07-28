@@ -1,6 +1,6 @@
 # SWB Engine Roadmap
 
-Last refreshed: 2026-07-27.
+Last refreshed: 2026-07-28.
 
 This file tracks implementation priorities and known gaps. Treat executable
 code and tests as the source of truth when this file drifts.
@@ -10,7 +10,7 @@ code and tests as the source of truth when this file drifts.
 - Database: 826 cards, 735 collectible cards, 91 non-collectible/generated
   cards from set `90000`.
 - Latest SVA source: `https://sva.hypd.asia/data/cards.json`.
-- Tests: `python -m unittest discover -s tests -v` discovers 2589 behavioral
+- Tests: `python -m unittest discover -s tests -v` discovers 2592 behavioral
   contracts (2026-07-27 entity/action-conditioned policy, CUDA/checkpoint,
   persistent simulator history, and event-timeline verification).
 - RL adapter: fixed 112-action space; the default v1 observation is 304
@@ -58,9 +58,12 @@ code and tests as the source of truth when this file drifts.
   expose the saved private state and policy distribution for review; schema-v1
   records remain readable. Leader
   panels expose zone counts, class resources, Overflow state, and the fixed
-  five-slot shared Faith/emblem area. Attack, damage, play, spell, amulet,
-  evolution, destruction, healing, and result cues are derived from engine
-  events rather than parsed card rules or mutable UI logic.
+  five-slot shared Faith/emblem area. Same-ID emblems are rejected by the
+  shared gain primitive and state invariants, including legacy rules marked
+  `allow`; hand cards expose live `奥义` / `解放奥义` progress and ready state.
+  Attack, damage, play, spell, amulet, evolution, destruction, healing, and
+  result cues are derived from engine events rather than parsed card rules or
+  mutable UI logic.
 - `SWBAECEnv` is a PettingZoo AEC wrapper with per-agent rewards and done state.
   Rules endings and sampling truncations are mutually exclusive, and both game
   turn and agent-step safety limits are explicit.

@@ -11419,11 +11419,12 @@ class GameEngine:
         else:
             source_card_id = source_card.card_id
 
-        if emblem_def.stacking is EmblemStacking.IGNORE:
-            existing = [e for e in player.emblems if e.emblem_id == emblem_def.emblem_id]
-            if existing:
-                return
-        elif emblem_def.stacking is EmblemStacking.REPLACE:
+        existing_emblems = [
+            emblem
+            for emblem in player.emblems
+            if emblem.emblem_id == emblem_def.emblem_id
+        ]
+        if emblem_def.stacking is EmblemStacking.REPLACE:
             for existing in tuple(player.emblems):
                 if existing.emblem_id == emblem_def.emblem_id:
                     self._remove_emblem_instance(
@@ -11431,6 +11432,12 @@ class GameEngine:
                         existing,
                         removal_cause="replace",
                     )
+        elif existing_emblems:
+            # SWB's leader area cannot contain multiple copies of the same
+            # emblem.  ``allow`` remains parseable for old rule files, but it
+            # only permits different emblems to coexist; it never stacks an
+            # identical emblem's triggers.
+            return
 
         if not self._leader_area_has_capacity(player_index):
             self._log(
@@ -16036,6 +16043,7 @@ class GameEngine:
                     )
                 remember(graveyard_card.entity_id, zone)
 
+            emblem_ids: set[str] = set()
             for emblem_index, emblem in enumerate(player.emblems):
                 zone = f"{prefix} emblems[{emblem_index}]"
                 if emblem.controller != player_index:
@@ -16050,6 +16058,12 @@ class GameEngine:
                     raise IllegalCommand(
                         f"Invariant failed: {zone} countdown is negative"
                     )
+                if emblem.emblem_id in emblem_ids:
+                    raise IllegalCommand(
+                        f"Invariant failed: {prefix} has duplicate emblem "
+                        f"{emblem.emblem_id!r}"
+                    )
+                emblem_ids.add(emblem.emblem_id)
                 if (
                     not isinstance(emblem.random_choice_history, dict)
                     or any(

@@ -7,6 +7,7 @@ from pathlib import Path
 from types import SimpleNamespace
 
 from swb.engine.events import EventType, GameEvent
+from swb.engine.state import HandCard
 from swb.simulator import MatchSimulator
 from swb.simulator.history import MatchHistoryStore
 from swb.simulator.timeline import build_animation_cues, serialize_event
@@ -159,6 +160,43 @@ class MatchSimulatorTests(unittest.TestCase):
         state = self.simulator.new_match(seed=13, human_player=0)
         filename = Path(state["players"][0]["hand"][0]["image_url"]).name
         self.assertTrue(self.simulator.image_path(filename).is_file())
+
+    def test_hand_card_serializes_union_burst_progress(self) -> None:
+        definition = self.simulator.assets.catalog.resolve(10413110)
+        self.assertIsNotNone(definition)
+        card = HandCard(
+            definition=definition,
+            entity_id=123,
+            evolutions_while_in_hand=3,
+        )
+
+        serialized = self.simulator._serialize_hand_card(
+            0,
+            card,
+            turns_started=7,
+        )
+
+        self.assertEqual(
+            serialized["union_bursts"],
+            [
+                {
+                    "kind": "union_burst",
+                    "label": "奥义",
+                    "gauge": 10,
+                    "threshold": 10,
+                    "remaining": 0,
+                    "ready": True,
+                },
+                {
+                    "kind": "super_skybound_art",
+                    "label": "解放奥义",
+                    "gauge": 10,
+                    "threshold": 15,
+                    "remaining": 5,
+                    "ready": False,
+                },
+            ],
+        )
 
     def test_starting_new_match_marks_previous_record_abandoned(self) -> None:
         previous = self.simulator.new_match(seed=17, human_player=0)

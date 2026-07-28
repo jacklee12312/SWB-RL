@@ -41,7 +41,9 @@ distribution in the history drawer for diagnosis. Schema-v1 records remain
 readable, although information already redacted from them cannot be recovered.
 
 The leader panels keep deck, hand, graveyard, class resources, and a fixed
-five-slot shared Faith/emblem area visible. Structured engine events generate a
+five-slot shared Faith/emblem area visible. Identical emblems cannot coexist,
+and hand cards with structured Union Burst rules show their live `奥义` /
+`解放奥义` gauge and ready state. Structured engine events generate a
 lightweight resolution presentation for attacks, damage, spells, amulets,
 summons, evolution, destruction, healing, and game results; the raw text log
 remains available as a diagnostic fallback.

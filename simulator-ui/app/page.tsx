@@ -17,6 +17,15 @@ type MatchAction = {
   target_entity_id?: number | null;
 };
 
+type UnionBurstProgress = {
+  kind: "union_burst" | "super_skybound_art";
+  label: "奥义" | "解放奥义";
+  gauge: number;
+  threshold: number;
+  remaining: number;
+  ready: boolean;
+};
+
 type CardView = {
   index?: number;
   entity_id: number;
@@ -34,6 +43,7 @@ type CardView = {
   super_evolved?: boolean;
   can_attack?: boolean;
   keywords: string[];
+  union_bursts?: UnionBurstProgress[];
   image_url?: string | null;
 };
 
@@ -333,6 +343,23 @@ function CardTile({
         <span className="card-stats">{stats}</span>
       </span>
       <span className="card-name">{card.name}</span>
+      {card.union_bursts && card.union_bursts.length > 0 && (
+        <span className="card-burst-progress" aria-label="奥义进度">
+          {card.union_bursts.map((burst) => (
+            <span
+              className={`card-burst-badge ${burst.ready ? "ready" : ""}`}
+              key={burst.kind}
+              title={
+                burst.ready
+                  ? `${burst.label}已就绪`
+                  : `${burst.label}还差 ${burst.remaining}`
+              }
+            >
+              {burst.label} {Math.min(burst.gauge, burst.threshold)}/{burst.threshold}
+            </span>
+          ))}
+        </span>
+      )}
       {card.keywords.length > 0 && (
         <span className="card-keywords">{card.keywords.slice(0, 3).join(" · ")}</span>
       )}

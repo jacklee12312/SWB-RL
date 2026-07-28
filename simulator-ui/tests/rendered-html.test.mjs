@@ -60,9 +60,14 @@ test("ships product UI and removes starter-only assets", async () => {
   assert.match(page, /墓影/);
   assert.match(page, /ai\.hand_count/);
   assert.match(page, /human\.hand\?\.map/);
+  assert.match(page, /card\.union_bursts/);
+  assert.match(page, /奥义进度/);
+  assert.match(page, /解放奥义/);
   assert.match(layout, /title:\s*"SWB 对局模拟器"/);
   assert.match(css, /\.game-layout/);
   assert.match(css, /\.card-tile/);
+  assert.match(css, /\.card-burst-progress/);
+  assert.match(css, /\.card-burst-badge\.ready/);
   assert.match(css, /\.leader-zone-slots/);
   assert.match(css, /\.battle-broadcast/);
   assert.match(css, /\.history-drawer/);

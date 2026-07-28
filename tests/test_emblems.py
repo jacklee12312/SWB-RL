@@ -86,7 +86,7 @@ class EmblemGainTests(unittest.TestCase):
         engine.apply(PlayCard(0, 0))
         self.assertEqual(len(engine.players[0].emblems), 1)
 
-    def test_multiple_emblems_stacking_allow(self):
+    def test_same_emblem_does_not_stack_under_legacy_allow_policy(self):
         ed = EmblemDefinition("multi", 999900, stacking=EmblemStacking.ALLOW, triggers=())
         engine = _engine(_fr(999900, EffectOperation(EffectKind.GAIN_EMBLEM, TargetKind.OWN_LEADER, emblem_id="multi"), EffectOperation(EffectKind.GAIN_EMBLEM, TargetKind.OWN_LEADER, emblem_id="multi")))
         engine.reset(seed=42)
@@ -94,7 +94,34 @@ class EmblemGainTests(unittest.TestCase):
         _insert_card(engine, _card(999900, cost=1))
         engine.players[0].mana = 10
         engine.apply(PlayCard(0, 0))
-        self.assertEqual(len(engine.players[0].emblems), 2)
+        self.assertEqual(len(engine.players[0].emblems), 1)
+        gained = [
+            event for event in engine.event_history
+            if event.type is EventType.EMBLEM_GAINED
+        ]
+        self.assertEqual(len(gained), 1)
+
+    def test_invariant_rejects_duplicate_same_emblem(self):
+        definition = EmblemDefinition("duplicate", 999900)
+        engine = _engine()
+        engine.reset(seed=42)
+        engine._add_emblem_to_player(0, definition, definition.source_card_id)
+        player = engine.players[0]
+        player.emblems.append(
+            EmblemInstance(
+                emblem_id=definition.emblem_id,
+                definition=definition,
+                entity_id=engine.state.allocate_entity_id(),
+                controller=0,
+                created_sequence=player._next_emblem_sequence,
+                countdown=definition.countdown,
+                countdown_before=definition.countdown,
+            )
+        )
+        player._next_emblem_sequence += 1
+
+        with self.assertRaisesRegex(IllegalCommand, "duplicate emblem"):
+            engine.assert_invariants()
 
     def test_emblem_stacking_replace(self):
         ed = EmblemDefinition("replace_me", 999900, stacking=EmblemStacking.REPLACE, triggers=())
@@ -850,7 +877,19 @@ class SchemaValidationTests(unittest.TestCase):
         engine = _engine(remove_rule)
         engine.reset(seed=42)
         engine._add_emblem_to_player(0, definition, definition.source_card_id)
-        engine._add_emblem_to_player(0, definition, definition.source_card_id)
+        player = engine.players[0]
+        player.emblems.append(
+            EmblemInstance(
+                emblem_id=definition.emblem_id,
+                definition=definition,
+                entity_id=engine.state.allocate_entity_id(),
+                controller=0,
+                created_sequence=player._next_emblem_sequence,
+                countdown=definition.countdown,
+                countdown_before=definition.countdown,
+            )
+        )
+        player._next_emblem_sequence += 1
         _insert_card(engine, _card(999901, cost=1))
         engine.players[0].mana = 10
         engine.apply(PlayCard(0, 0))

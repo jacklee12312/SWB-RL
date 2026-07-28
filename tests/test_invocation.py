@@ -530,6 +530,32 @@ class RealSandalphonInvocationTests(unittest.TestCase):
         self.assertEqual(player.health, 16)
         self.assertEqual(ally.health, 3)
 
+    def test_repeated_sandalphon_invocation_does_not_stack_crest(self):
+        engine = self._real_engine()
+        sandalphon = self.repo.get(10404110)
+        player = engine.players[0]
+        player.followers_evolved_this_match = 6
+        _put_in_deck_for_next_turn(engine, sandalphon, sandalphon)
+
+        _advance_to_next_own_turn(engine)
+        self.assertEqual(len(player.emblems), 1)
+        self.assertEqual(player.emblems[0].countdown, 2)
+
+        _advance_to_next_own_turn(engine)
+
+        self.assertEqual(len(player.emblems), 1)
+        self.assertEqual(player.emblems[0].countdown, 1)
+        gained = [
+            event for event in engine.event_history
+            if event.type is EventType.EMBLEM_GAINED
+        ]
+        invoked = [
+            event for event in engine.event_history
+            if event.type is EventType.CARD_INVOKED
+        ]
+        self.assertEqual(len(gained), 1)
+        self.assertEqual(len(invoked), 2)
+
     def test_sandalphon_rule_is_exact_after_union_burst_slice(self):
         report = _build_coverage_report("data/cards.sqlite3", "data/rules")
         info = report["classifications"]["10404110"]

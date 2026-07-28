@@ -411,19 +411,19 @@ class RealRoyalRuneBishopMixedBehaviorTests(unittest.TestCase):
         self.assertEqual((source.attack, source.health), (2, 2))
         self.assertFalse(source.has_keyword("守护"))
 
-    def test_crystal_gazing_stacks_and_each_expiration_draws_then_damages(self):
+    def test_crystal_gazing_duplicate_is_ignored_and_expires_once(self):
         engine = self.fresh(seed=41)
         enemies = [_put_unit(engine, 1, _card(13500 + index)) for index in range(2)]
         _play(engine, self.repository, 10331310)
         _play(engine, self.repository, 10331310)
-        self.assertEqual(len(engine.players[0].emblems), 2)
+        self.assertEqual(len(engine.players[0].emblems), 1)
         deck_before = len(engine.players[0].deck)
         for _ in range(2):
             engine.apply(EndTurn(engine.current_player))
             engine.apply(EndTurn(engine.current_player))
         self.assertFalse(engine.players[0].emblems)
-        self.assertEqual(len(engine.players[0].deck), deck_before - 6)
-        self.assertEqual([enemy.health for enemy in enemies], [0, 0])
+        self.assertEqual(len(engine.players[0].deck), deck_before - 4)
+        self.assertEqual([enemy.health for enemy in enemies], [4, 4])
 
     def test_terraforming_and_librarian_super_evolve_outputs_respect_capacity(self):
         terraform = self.fresh(seed=43)
