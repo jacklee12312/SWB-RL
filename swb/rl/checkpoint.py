@@ -72,6 +72,11 @@ def build_checkpoint(trainer: PPOTrainer) -> dict[str, object]:
             ),
             "opponent_pool": trainer.opponent_pool.state_dict(),
             "opponent_assignments": list(trainer.opponent_assignments),
+            "matchup_statistics": dict(trainer.matchup_statistics),
+            "current_matchup_assignment": trainer.current_matchup_assignment,
+            "current_episode_agent_steps": (
+                trainer.current_episode_agent_steps
+            ),
             "opponent_rng_state": trainer.opponent_rng.getstate(),
             "opponent_hidden": (
                 None
@@ -120,6 +125,10 @@ def build_checkpoint(trainer: PPOTrainer) -> dict[str, object]:
                 if trainer.fixed_training_deck is None
                 else trainer.fixed_training_deck.manifest()
             ),
+            "opponent_decks": [
+                deck.manifest()
+                for deck in trainer.fixed_opponent_decks
+            ],
             "policy_representation": {
                 "architecture": trainer.model.architecture,
                 "numeric_size": trainer.flattener.size,
@@ -212,6 +221,20 @@ def load_checkpoint(
     )
     trainer.opponent_assignments = list(
         trainer_state.get("opponent_assignments", [])
+    )
+    trainer.matchup_statistics = dict(
+        trainer_state.get("matchup_statistics", {})
+    )
+    for stats in trainer.matchup_statistics.values():
+        if "learner_first" in stats:
+            stats["learner_player_0"] = stats.pop("learner_first")
+        if "learner_second" in stats:
+            stats["learner_player_1"] = stats.pop("learner_second")
+    trainer.current_matchup_assignment = trainer_state.get(
+        "current_matchup_assignment"
+    )
+    trainer.current_episode_agent_steps = int(
+        trainer_state.get("current_episode_agent_steps", 0)
     )
     trainer.opponent_rng.setstate(trainer_state["opponent_rng_state"])
     trainer.hidden_by_player = {

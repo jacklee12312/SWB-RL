@@ -1549,6 +1549,12 @@ class GameEngine:
             except ValueError:
                 return False
             if mode_def.is_accelerate:
+                # Accelerate is an alternate play route only while the
+                # card's current normal cost is greater than the player's
+                # remaining PP.  This comparison intentionally uses the
+                # hand card's runtime cost so cost changes are respected.
+                if player.mana >= self.effective_play_cost(card, None):
+                    return False
                 effective_type = "法术"
             elif mode_def.is_crystallize:
                 effective_type = "护符"

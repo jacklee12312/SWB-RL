@@ -12,6 +12,7 @@ from swb.db.repository import CardRepository
 from swb.engine.environment import MATCH_SETUP_OFFICIAL, MATCH_SETUP_VALUES
 from swb.rl.checkpoint import load_checkpoint, save_checkpoint_atomic
 from swb.rl.class_schedule import ALL_CLASS_IDS, CLASS_SCHEDULE_VERSION
+from swb.rl.deck_schedule import DECK_MATCHUP_SCHEDULE_VERSION
 from swb.rl.fixed_decks import (
     fixed_training_deck_names,
     get_fixed_training_deck,
@@ -66,6 +67,15 @@ def main() -> None:
         "--training-deck",
         choices=fixed_training_deck_names(),
         help="use one named fixed deck for mirrored self-play training",
+    )
+    parser.add_argument(
+        "--opponent-decks",
+        nargs="+",
+        choices=fixed_training_deck_names(),
+        help=(
+            "train only the --training-deck side while deterministically "
+            "cycling these fixed opponent decks and both player positions"
+        ),
     )
     parser.add_argument("--device", default="cpu")
     parser.add_argument(
@@ -125,11 +135,16 @@ def main() -> None:
             "multiprocess rollout currently requires current-policy self-play "
             "weights: 1, 0, 0, 0"
         )
-    if args.resume is not None and args.training_deck is not None:
+    if args.resume is not None and (
+        args.training_deck is not None
+        or args.opponent_decks is not None
+    ):
         parser.error(
-            "--training-deck cannot be combined with --resume; the checkpoint "
-            "owns its training deck"
+            "--training-deck/--opponent-decks cannot be combined with "
+            "--resume; the checkpoint owns its deck schedule"
         )
+    if args.opponent_decks is not None and args.training_deck is None:
+        parser.error("--opponent-decks requires --training-deck")
     training_class_ids = (
         tuple(ALL_CLASS_IDS)
         if args.classes is None
@@ -182,6 +197,11 @@ def main() -> None:
                 ),
                 training_class_ids=training_class_ids,
                 training_deck=args.training_deck,
+                opponent_decks=(
+                    ()
+                    if args.opponent_decks is None
+                    else tuple(args.opponent_decks)
+                ),
                 match_setup=args.match_setup,
             ),
             device=args.device,
@@ -277,6 +297,11 @@ def main() -> None:
             if trainer.fixed_training_deck is None
             else trainer.fixed_training_deck.manifest()
         ),
+        "opponent_decks": [
+            deck.manifest()
+            for deck in trainer.fixed_opponent_decks
+        ],
+        "matchup_statistics": dict(trainer.matchup_statistics),
         "final_metrics": metrics[-1],
         "timing": training_timing_report(
             collect_timing_samples,
@@ -290,6 +315,9 @@ def main() -> None:
             "card_vocabulary_sha256": snapshot.catalog.card_vocabulary_sha256,
             "rulebook_sha256": snapshot.rulebook_sha256,
             "class_schedule_version": CLASS_SCHEDULE_VERSION,
+            "deck_matchup_schedule_version": (
+                DECK_MATCHUP_SCHEDULE_VERSION
+            ),
             "match_setup": trainer.config.match_setup,
             "training_deck_sha256": (
                 None

@@ -33,7 +33,8 @@ body {
 }
 
 button,
-input {
+input,
+select {
   font: inherit;
 }
 
@@ -129,9 +130,11 @@ button {
 .new-match {
   justify-content: flex-end;
   gap: 8px;
+  flex-wrap: wrap;
 }
 
-.new-match input {
+.new-match input,
+.deck-picker select {
   width: 132px;
   padding: 9px 11px;
   color: var(--ink);
@@ -141,8 +144,28 @@ button {
   background: #0b151a;
 }
 
-.new-match input:focus {
+.deck-picker {
+  display: grid;
+  gap: 2px;
+}
+
+.deck-picker small {
+  color: var(--muted);
+  font-size: 9px;
+}
+
+.deck-picker select {
+  width: 176px;
+  padding: 7px 9px;
+}
+
+.new-match input:focus,
+.deck-picker select:focus {
   border-color: #4e8e7b;
+}
+
+.deck-picker select:disabled {
+  opacity: 0.55;
 }
 
 .new-match button,

@@ -302,6 +302,27 @@ class ListenerContextLeaderRuntimeNineteenthBehaviorTests(unittest.TestCase):
         self.assertTrue(barrier.barrier_consumed)
         self.assertEqual(engine.players[0].health, 1)
 
+    def test_zooey_only_gains_storm_from_enhance_ten(self):
+        self.assertEqual(
+            self.rulebook.non_intrinsic_keywords(10444120),
+            frozenset({"疾驰"}),
+        )
+
+        normal = self.fresh(seed=14)
+        normal_zooey = _play(normal, self.repository, 10444120)
+        self.assertFalse(normal_zooey.has_keyword("疾驰"))
+        self.assertFalse(normal_zooey.can_attack)
+
+        enhanced = self.fresh(seed=15)
+        enhanced_zooey = _play(
+            enhanced,
+            self.repository,
+            10444120,
+            mode_id="enhance_10",
+        )
+        self.assertTrue(enhanced_zooey.has_keyword("疾驰"))
+        self.assertTrue(enhanced_zooey.can_attack)
+
     def test_world_of_games_uses_frozen_base_cost_and_respects_hand_capacity(self):
         engine = self.fresh(seed=17)
         world = _play(engine, self.repository, 10503210)

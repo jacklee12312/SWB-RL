@@ -1,4 +1,12 @@
 {
+  "passives": [
+    {
+      "card_id": 10444120,
+      "kind": "non_intrinsic_keyword",
+      "keyword": "疾驰",
+      "notes": "疾驰仅由爆能强化10授予，并非本体初始关键词。"
+    }
+  ],
   "activations": [
     {"card_id": 10362210, "cost": 0},
     {"card_id": 10703210, "cost": 1}

@@ -547,6 +547,41 @@ class RealExistingPrimitivesSecondCompletionTests(unittest.TestCase):
         self.assertEqual((enemy.health, accelerated.players[1].health), (8, 20))
         self.assertEqual(accelerated.players[0].graveyard[-1].definition.card_id, 10844120)
 
+    def test_all_real_accelerate_cards_require_body_to_be_unaffordable(self):
+        expected = {
+            10671110: ("accelerate_2", 2),
+            10672110: ("accelerate_3", 3),
+            10673110: ("accelerate_4", 4),
+            10844120: ("accelerate_3", 3),
+        }
+        for card_id, (mode_id, accelerate_cost) in expected.items():
+            with self.subTest(card_id=card_id):
+                card = self.repository.get(card_id)
+                mode = next(
+                    mode
+                    for mode in self.rulebook.modes_for(card_id)
+                    if mode.mode_id == mode_id
+                )
+                self.assertEqual(mode.cost, accelerate_cost)
+
+                affordable = self.fresh(seed=card_id)
+                affordable.players[0].mana = affordable.players[0].max_mana = card.cost
+                _put_hand(affordable, card)
+                self.assertNotIn(
+                    PlayCard(0, 0, mode_id=mode_id),
+                    affordable.legal_commands(),
+                )
+
+                unaffordable = self.fresh(seed=card_id + 1)
+                unaffordable.players[0].mana = (
+                    unaffordable.players[0].max_mana
+                ) = accelerate_cost
+                _put_hand(unaffordable, card)
+                self.assertIn(
+                    PlayCard(0, 0, mode_id=mode_id),
+                    unaffordable.legal_commands(),
+                )
+
     def test_real_mode_and_activate_action_masks_match_command_layer(self):
         deck = [_card(995000 + index, class_id=0, class_name="中立") for index in range(40)]
         env = ShadowverseEnv(
@@ -624,7 +659,14 @@ class RealExistingPrimitivesSecondCompletionTests(unittest.TestCase):
         normal = PlayCard(0, 0)
         self.assertIn(accelerate, accelerate_env.core.legal_commands())
         self.assertNotIn(normal, accelerate_env.core.legal_commands())
-        self.assertTrue(accelerate_env.action_mask()[accelerate_env._encode_command(accelerate)])
+        accelerate_action = accelerate_env._encode_command(accelerate)
+        self.assertIsNotNone(accelerate_action)
+        self.assertTrue(accelerate_env.action_mask()[accelerate_action])
+        accelerate_env.players[0].mana = accelerate_env.players[0].max_mana = 8
+        self.assertNotIn(accelerate, accelerate_env.core.legal_commands())
+        self.assertIn(normal, accelerate_env.core.legal_commands())
+        self.assertFalse(accelerate_env.action_mask()[accelerate_action])
+        self.assertTrue(accelerate_env.action_mask()[accelerate_env._encode_command(normal)])
 
 
 class ExistingPrimitivesSecondCompletionAuditTests(unittest.TestCase):

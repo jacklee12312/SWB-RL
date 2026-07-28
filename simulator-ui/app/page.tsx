@@ -7,7 +7,8 @@ import {
   useState,
 } from "react";
 
-const API_BASE = "http://127.0.0.1:8765";
+const API_BASE =
+  process.env.NEXT_PUBLIC_SWB_API_BASE ?? "http://127.0.0.1:8765";
 
 type MatchAction = {
   id: number;
@@ -109,10 +110,21 @@ type AnimationCue = {
   duration_ms: number;
 };
 
+type DeckOption = {
+  name: string;
+  display_name: string;
+  class_id: number;
+  sha256: string;
+};
+
 type MatchState = {
   seed: number;
   match_id: string;
   deck: { name: string; display_name: string; sha256: string };
+  human_deck: DeckOption;
+  ai_deck: DeckOption;
+  specialist_deck: DeckOption;
+  available_decks: DeckOption[];
   checkpoint: string;
   warnings: string[];
   human_player: number;
@@ -737,6 +749,8 @@ export default function Home() {
   const [busy, setBusy] = useState(true);
   const [error, setError] = useState("");
   const [seed, setSeed] = useState("");
+  const [humanDeck, setHumanDeck] = useState("");
+  const [aiDeck, setAiDeck] = useState("");
   const [selectedEntity, setSelectedEntity] = useState<number | null>(null);
   const [showLog, setShowLog] = useState(false);
   const [animationQueue, setAnimationQueue] = useState<AnimationCue[]>([]);
@@ -750,6 +764,8 @@ export default function Home() {
   const acceptState = useCallback((next: MatchState, animate: boolean) => {
     setState(next);
     setSeed(String(next.seed));
+    setHumanDeck(next.human_deck.name);
+    setAiDeck(next.ai_deck.name);
     setSelectedEntity(null);
     if (animate && next.animation_batch.length > 0) {
       setAnimationQueue(next.animation_batch);
@@ -772,7 +788,12 @@ export default function Home() {
       }
       const next = await request<MatchState>("/api/new-match", {
         method: "POST",
-        body: JSON.stringify({ seed: parsedSeed, human_player: 0 }),
+        body: JSON.stringify({
+          seed: parsedSeed,
+          human_player: 0,
+          human_deck: humanDeck || undefined,
+          ai_deck: aiDeck || undefined,
+        }),
       });
       acceptState(next, false);
     } catch (caught) {
@@ -780,7 +801,7 @@ export default function Home() {
     } finally {
       setBusy(false);
     }
-  }, [acceptState, seed]);
+  }, [acceptState, aiDeck, humanDeck, seed]);
 
   useEffect(() => {
     let active = true;
@@ -937,7 +958,8 @@ export default function Home() {
           </span>
         </div>
         <div className="match-meta">
-          <span>{state.deck.display_name}</span>
+          <span>你：{state.human_deck.display_name}</span>
+          <span>AI：{state.ai_deck.display_name}</span>
           <span>Turn {state.turn}</span>
           <span>Seed {state.seed}</span>
         </div>
@@ -945,6 +967,37 @@ export default function Home() {
           <button type="button" className="history-button" onClick={() => void openHistory()}>
             对局记录
           </button>
+          <label className="deck-picker">
+            <small>我的卡组</small>
+            <select
+              value={humanDeck}
+              onChange={(event) => setHumanDeck(event.target.value)}
+              aria-label="选择我的卡组"
+              disabled={busy}
+            >
+              {state.available_decks.map((deck) => (
+                <option value={deck.name} key={deck.name}>
+                  {deck.display_name}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="deck-picker">
+            <small>AI 卡组</small>
+            <select
+              value={aiDeck}
+              onChange={(event) => setAiDeck(event.target.value)}
+              aria-label="选择 AI 卡组"
+              disabled={busy}
+            >
+              {state.available_decks.map((deck) => (
+                <option value={deck.name} key={deck.name}>
+                  {deck.display_name}
+                  {deck.name === state.specialist_deck.name ? " · 专精" : ""}
+                </option>
+              ))}
+            </select>
+          </label>
           <input
             value={seed}
             onChange={(event) => setSeed(event.target.value)}

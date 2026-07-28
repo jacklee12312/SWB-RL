@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import os
 import shutil
 import subprocess
 import time
@@ -26,13 +27,21 @@ def wait_for_url(url: str, timeout: float = 60.0) -> None:
     raise TimeoutError(f"frontend did not become ready: {url}")
 
 
-def start_frontend(directory: Path) -> subprocess.Popen:
+def start_frontend(
+    directory: Path,
+    *,
+    port: int,
+    api_base: str,
+) -> subprocess.Popen:
     npm = shutil.which("npm.cmd") or shutil.which("npm")
     if npm is None:
         raise FileNotFoundError("npm was not found")
+    environment = os.environ.copy()
+    environment["NEXT_PUBLIC_SWB_API_BASE"] = api_base
     return subprocess.Popen(
-        [npm, "run", "dev"],
+        [npm, "run", "dev", "--", "--port", str(port)],
         cwd=directory,
+        env=environment,
         stdin=subprocess.DEVNULL,
     )
 
@@ -52,7 +61,7 @@ def main() -> None:
         default=PROJECT_ROOT
         / "data"
         / "checkpoints"
-        / "ppo_evolve_haven_entity_action_100k.pt",
+        / "ppo_haven_specialist_8deck_1200k.pt",
     )
     parser.add_argument(
         "--card-catalog",
@@ -71,6 +80,12 @@ def main() -> None:
     )
     parser.add_argument("--host", default="127.0.0.1")
     parser.add_argument("--port", type=int, default=8765)
+    parser.add_argument("--frontend-port", type=int, default=3000)
+    parser.add_argument(
+        "--device",
+        choices=("cpu", "cuda"),
+        default="cpu",
+    )
     parser.add_argument("--no-frontend", action="store_true")
     parser.add_argument("--no-browser", action="store_true")
     args = parser.parse_args()
@@ -81,16 +96,24 @@ def main() -> None:
         card_catalog=args.card_catalog,
         image_directory=args.images,
         history_directory=args.history_directory,
+        device=args.device,
     )
     server = build_server(simulator, host=args.host, port=args.port)
     frontend = None
     try:
         if not args.no_frontend:
-            frontend = start_frontend(PROJECT_ROOT / "simulator-ui")
-            wait_for_url("http://localhost:3000/")
+            frontend = start_frontend(
+                PROJECT_ROOT / "simulator-ui",
+                port=args.frontend_port,
+                api_base=f"http://{args.host}:{args.port}",
+            )
+            wait_for_url(f"http://localhost:{args.frontend_port}/")
         if not args.no_browser and not args.no_frontend:
-            webbrowser.open("http://localhost:3000/")
-        print("SWB simulator ready: http://localhost:3000/", flush=True)
+            webbrowser.open(f"http://localhost:{args.frontend_port}/")
+        print(
+            f"SWB simulator ready: http://localhost:{args.frontend_port}/",
+            flush=True,
+        )
         print(f"Local API: http://{args.host}:{args.port}/api/health")
         server.serve_forever()
     except KeyboardInterrupt:

@@ -374,6 +374,7 @@ class RealGeneratedDistributedDamageCrestTests(unittest.TestCase):
         self.assertEqual(target.health, 18)
 
         accelerated = self.fresh(seed=44)
+        accelerated.players[0].mana = 7
         _play(
             accelerated,
             self.repository,
@@ -384,7 +385,7 @@ class RealGeneratedDistributedDamageCrestTests(unittest.TestCase):
             [unit.definition.card_id for unit in accelerated.players[0].board],
             [10673110],
         )
-        self.assertEqual(accelerated.players[0].mana, 6)
+        self.assertEqual(accelerated.players[0].mana, 3)
 
     def test_concert_necromancy_is_optional_by_resource_availability(self):
         enough = self.fresh(seed=47)

@@ -18,6 +18,7 @@ from swb.engine.play_modes import PlayModeDefinition
 from swb.engine.resolution import GameEngine, IllegalCommand
 from swb.engine.state import (
     Amulet,
+    CostModifier,
     DeathCause,
     DestroyedFollowerRecord,
     GraveyardCard,
@@ -418,7 +419,7 @@ class AccelerateTests(unittest.TestCase):
         hc = HandCard(definition=_card(999802, cost=5, card_type="\u968f\u4ece"), entity_id=999002)
         self.engine.players[0].hand.insert(0, hc)
         self.engine.players[0].hand_entity_ids.insert(0, 999002)
-        self.engine.players[0].mana = 10
+        self.engine.players[0].mana = 2
 
     def test_accelerate_does_not_summon_follower(self):
         self.engine.apply(PlayCard(0, 0, "accelerate_2"))
@@ -461,6 +462,44 @@ class AccelerateTests(unittest.TestCase):
         fs_events = [e for e in self.engine.event_history
                      if e.type == EventType.FOLLOWER_SUMMONED]
         self.assertEqual(len(fs_events), 0)
+
+    def test_accelerate_is_unavailable_once_current_body_cost_is_affordable(self):
+        self.engine.players[0].mana = 5
+        accelerate = PlayCard(0, 0, "accelerate_2")
+        normal = PlayCard(0, 0, "normal")
+
+        self.assertNotIn(accelerate, self.engine.legal_commands())
+        self.assertIn(normal, self.engine.legal_commands())
+
+        fingerprint = self.engine.deterministic_fingerprint()
+        with self.assertRaises(IllegalCommand):
+            self.engine.apply(accelerate)
+        self.assertEqual(self.engine.deterministic_fingerprint(), fingerprint)
+
+    def test_accelerate_threshold_uses_runtime_body_cost(self):
+        self.engine.players[0].mana = 4
+        accelerate = PlayCard(0, 0, "accelerate_2")
+        normal = PlayCard(0, 0, "normal")
+        self.assertIn(accelerate, self.engine.legal_commands())
+        self.assertNotIn(normal, self.engine.legal_commands())
+
+        hand_card = self.engine.players[0].hand[0]
+        hand_card.cost_modifiers.append(
+            CostModifier(999002, "set", 4, "permanent")
+        )
+        self.assertNotIn(accelerate, self.engine.legal_commands())
+        self.assertIn(normal, self.engine.legal_commands())
+
+    def test_full_board_does_not_reenable_accelerate_when_body_cost_is_affordable(self):
+        self.engine.players[0].mana = 5
+        self.engine.players[0].board = [
+            Unit.summon(_card(999100 + index), entity_id=999100 + index)
+            for index in range(self.engine.config.max_board)
+        ]
+
+        legal = self.engine.legal_commands()
+        self.assertNotIn(PlayCard(0, 0, "normal"), legal)
+        self.assertNotIn(PlayCard(0, 0, "accelerate_2"), legal)
 
 
 # ---------------------------------------------------------------------------

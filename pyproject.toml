@@ -14,6 +14,10 @@ rl = [
 train = [
     "torch>=2.6,<2.14",
 ]
+qr = [
+    "Pillow>=10,<13",
+    "zxing-cpp>=3,<4",
+]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

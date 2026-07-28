@@ -15,6 +15,10 @@ from swb.engine.environment import (
     ShadowverseEnv,
 )
 from swb.rl.class_schedule import class_pair_for_episode, normalize_class_ids
+from swb.rl.deck_schedule import (
+    deck_matchup_for_episode,
+    normalize_opponent_decks,
+)
 from swb.rl.fixed_decks import get_fixed_training_deck
 from swb.rl.opponents import OpponentEntry, OpponentPool
 from swb.rl.policy import (
@@ -63,6 +67,7 @@ class PPOConfig:
     central_inference_batch_wait_seconds: float = 0.0005
     training_class_ids: tuple[int, ...] = (1,)
     training_deck: str | None = None
+    opponent_decks: tuple[str, ...] = ()
     match_setup: str = MATCH_SETUP_OFFICIAL
 
     def __post_init__(self) -> None:
@@ -118,6 +123,19 @@ class PPOConfig:
                     f"fixed training deck {self.training_deck!r} requires "
                     f"training_class_ids=({fixed_deck.class_id},)"
                 )
+        if self.opponent_decks:
+            if self.training_deck is None:
+                raise ValueError(
+                    "opponent_decks requires one fixed training_deck"
+                )
+            object.__setattr__(
+                self,
+                "opponent_decks",
+                normalize_opponent_decks(
+                    self.training_deck,
+                    self.opponent_decks,
+                ),
+            )
         opponent_weights = (
             self.opponent_current_weight,
             self.opponent_random_weight,
@@ -299,6 +317,10 @@ class PPOTrainer:
             if self.config.training_deck is None
             else get_fixed_training_deck(self.config.training_deck)
         )
+        self.fixed_opponent_decks = tuple(
+            get_fixed_training_deck(name)
+            for name in self.config.opponent_decks
+        )
         self.device = torch.device(device)
         random.seed(master_seed)
         np.random.seed(master_seed % (2**32))
@@ -321,6 +343,9 @@ class PPOTrainer:
         self.learner_player = 0
         self.current_opponent: OpponentEntry | None = None
         self.opponent_assignments: list[dict[str, object]] = []
+        self.matchup_statistics: dict[str, dict[str, object]] = {}
+        self.current_matchup_assignment: dict[str, object] | None = None
+        self.current_episode_agent_steps = 0
         self.opponent_rng = random.Random(master_seed)
         self.opponent_model: MaskedPolicyNetwork | None = None
         self.opponent_hidden: torch.Tensor | None = None
@@ -394,16 +419,30 @@ class PPOTrainer:
     def _start_episode(self) -> None:
         episode_id = self.next_episode_id
         self.next_episode_id += 1
-        self.learner_player = episode_id % 2
-        class_a, class_b = class_pair_for_episode(
-            self.config.training_class_ids,
-            episode_id,
-        )
+        learner_deck_name = self.config.training_deck
+        opponent_deck_name = self.config.training_deck
+        if self.config.opponent_decks:
+            assert self.config.training_deck is not None
+            matchup = deck_matchup_for_episode(
+                self.config.training_deck,
+                self.config.opponent_decks,
+                episode_id,
+            )
+            self.learner_player = matchup.learner_player
+            class_a, class_b = matchup.class_ids
+            learner_deck_name = matchup.learner_deck.name
+            opponent_deck_name = matchup.opponent_deck.name
+        else:
+            self.learner_player = episode_id % 2
+            class_a, class_b = class_pair_for_episode(
+                self.config.training_class_ids,
+                episode_id,
+            )
         self.current_opponent = self.opponent_pool.select(
             episode_id=episode_id,
             learner_player=self.learner_player,
         )
-        self.opponent_assignments.append({
+        assignment = {
             "episode_id": episode_id,
             "learner_player": self.learner_player,
             "opponent_id": self.current_opponent.opponent_id,
@@ -413,10 +452,24 @@ class PPOTrainer:
             "learner_class": (class_a, class_b)[self.learner_player],
             "opponent_class": (class_a, class_b)[1 - self.learner_player],
             "training_deck": self.config.training_deck,
-        })
+            "learner_deck": learner_deck_name,
+            "opponent_deck": opponent_deck_name,
+        }
+        self.current_matchup_assignment = assignment
+        self.opponent_assignments.append(assignment)
         self.opponent_assignments = self.opponent_assignments[-4096:]
         seeds = episode_seeds(self.master_seed, 0, episode_id)
-        if self.fixed_training_deck is None:
+        if self.config.opponent_decks:
+            assert self.config.training_deck is not None
+            matchup = deck_matchup_for_episode(
+                self.config.training_deck,
+                self.config.opponent_decks,
+                episode_id,
+            )
+            recipe_a, recipe_b = matchup.decks
+            deck_a = recipe_a.build(self.assets.catalog)
+            deck_b = recipe_b.build(self.assets.catalog)
+        elif self.fixed_training_deck is None:
             deck_a = self.assets.catalog.sample_deck(
                 class_a, random.Random(seeds.deck_seed_a)
             )
@@ -443,6 +496,7 @@ class PPOTrainer:
         )
         _, self.info = self.env.reset(seed=seeds.engine_seed)
         self.current_episode_id = episode_id
+        self.current_episode_agent_steps = 0
         if hasattr(self, "model"):
             self.hidden_by_player = {
                 player: self.model.initial_state(1, device=self.device)
@@ -482,7 +536,10 @@ class PPOTrainer:
                 float(log_prob.item()),
                 float(value.item()),
                 hidden_before,
-                True,
+                (
+                    not self.config.opponent_decks
+                    or player_id == self.learner_player
+                ),
             )
 
         legal = torch.nonzero(mask.squeeze(0), as_tuple=False).squeeze(-1)
@@ -537,6 +594,48 @@ class PPOTrainer:
             )
         return float(value.item())
 
+    def _record_matchup_result(
+        self,
+        assignment: Mapping[str, object],
+        *,
+        winner: int | None,
+        boundary: str,
+        agent_steps: int,
+    ) -> None:
+        if not self.config.opponent_decks:
+            return
+        learner_deck = str(assignment["learner_deck"])
+        opponent_deck = str(assignment["opponent_deck"])
+        learner_player = int(assignment["learner_player"])
+        key = f"{learner_deck}__vs__{opponent_deck}"
+        stats = self.matchup_statistics.setdefault(key, {
+            "learner_deck": learner_deck,
+            "opponent_deck": opponent_deck,
+            "episodes": 0,
+            "learner_wins": 0,
+            "opponent_wins": 0,
+            "draws": 0,
+            "terminated": 0,
+            "truncated": 0,
+            "agent_steps": 0,
+            "learner_player_0": 0,
+            "learner_player_1": 0,
+        })
+        stats["episodes"] = int(stats["episodes"]) + 1
+        stats["agent_steps"] = int(stats["agent_steps"]) + agent_steps
+        side_key = f"learner_player_{learner_player}"
+        stats[side_key] = int(stats[side_key]) + 1
+        if boundary == "terminated":
+            stats["terminated"] = int(stats["terminated"]) + 1
+            if winner is None:
+                stats["draws"] = int(stats["draws"]) + 1
+            elif winner == learner_player:
+                stats["learner_wins"] = int(stats["learner_wins"]) + 1
+            else:
+                stats["opponent_wins"] = int(stats["opponent_wins"]) + 1
+        else:
+            stats["truncated"] = int(stats["truncated"]) + 1
+
     def collect_rollout(
         self,
     ) -> tuple[list[_Record], dict[tuple[int, int], float], dict[int, str]]:
@@ -588,6 +687,7 @@ class PPOTrainer:
                 episode_record_indices.setdefault((episode_id, player_id), []).append(index)
             self.info = result.info
             self.agent_steps += 1
+            self.current_episode_agent_steps += 1
 
             if result.terminated or result.truncated:
                 boundary = "terminated" if result.terminated else "truncated"
@@ -605,6 +705,13 @@ class PPOTrainer:
                         if result.terminated
                         else self._value_for_player(candidate)
                     )
+                assert self.current_matchup_assignment is not None
+                self._record_matchup_result(
+                    self.current_matchup_assignment,
+                    winner=self.env.winner,
+                    boundary=boundary,
+                    agent_steps=self.current_episode_agent_steps,
+                )
                 self.completed_episodes += 1
                 self._start_episode()
 
@@ -651,6 +758,7 @@ class PPOTrainer:
                         self.config.rollout_result_timeout_seconds
                     ),
                     training_deck=self.config.training_deck,
+                    opponent_decks=self.config.opponent_decks,
                     match_setup=self.config.match_setup,
                     worker_torch_threads=(
                         self.config.rollout_worker_torch_threads
@@ -693,22 +801,38 @@ class PPOTrainer:
                     )
             conversion_started = time.perf_counter()
             for episode in episodes:
-                class_a, class_b = class_pair_for_episode(
-                    self.config.training_class_ids,
-                    episode.episode_id,
-                )
-                self.opponent_assignments.append({
-                    "episode_id": episode.episode_id,
-                    "learner_player": "both",
-                    "opponent_id": "current",
-                    "opponent_kind": "current",
-                    "worker_id": episode.worker_id,
-                    "class_a": class_a,
-                    "class_b": class_b,
-                    "learner_class": "both",
-                    "opponent_class": "self_play",
-                    "training_deck": self.config.training_deck,
-                })
+                if episode.matchup is None:
+                    class_a, class_b = class_pair_for_episode(
+                        self.config.training_class_ids,
+                        episode.episode_id,
+                    )
+                    assignment = {
+                        "episode_id": episode.episode_id,
+                        "learner_player": "both",
+                        "opponent_id": "current",
+                        "opponent_kind": "current",
+                        "worker_id": episode.worker_id,
+                        "class_a": class_a,
+                        "class_b": class_b,
+                        "learner_class": "both",
+                        "opponent_class": "self_play",
+                        "training_deck": self.config.training_deck,
+                        "learner_deck": self.config.training_deck,
+                        "opponent_deck": self.config.training_deck,
+                    }
+                    learner_player = None
+                else:
+                    assignment = {
+                        **episode.matchup,
+                        "opponent_id": "current",
+                        "opponent_kind": "current",
+                        "worker_id": episode.worker_id,
+                        "training_deck": self.config.training_deck,
+                    }
+                    learner_player = int(
+                        episode.matchup["learner_player"]
+                    )
+                self.opponent_assignments.append(assignment)
                 for step in episode.records:
                     records.append(_Record(
                         episode_id=step.episode_id,
@@ -721,11 +845,20 @@ class PPOTrainer:
                         value=step.value,
                         reward=step.reward,
                         hidden_before=step.hidden_before,
-                        trainable=True,
+                        trainable=(
+                            learner_player is None
+                            or step.player_id == learner_player
+                        ),
                         opponent_id="current",
                     ))
                 bootstrap.update(episode.bootstrap)
                 boundaries[episode.episode_id] = episode.boundary
+                self._record_matchup_result(
+                    assignment,
+                    winner=episode.winner,
+                    boundary=episode.boundary,
+                    agent_steps=len(episode.records),
+                )
                 self.completed_episodes += 1
             conversion_seconds += time.perf_counter() - conversion_started
         self.opponent_assignments = self.opponent_assignments[-4096:]

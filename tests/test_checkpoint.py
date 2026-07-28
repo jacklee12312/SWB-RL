@@ -26,6 +26,10 @@ from swb.rl.runtime import WorkerAssetsSnapshot
 
 
 DATABASE = Path("data/cards.sqlite3")
+SPECIALIST_OPPONENT_DECKS = (
+    "international_qr_forest_20260728",
+    "international_qr_sword_20260728",
+)
 
 
 @unittest.skipUnless(DATABASE.exists(), "real card database is unavailable")
@@ -171,6 +175,54 @@ class CheckpointTests(unittest.TestCase):
         )
         for name, expected in trainer.model.state_dict().items():
             torch.testing.assert_close(expected, resumed.model.state_dict()[name])
+
+    def test_specialist_deck_schedule_and_statistics_round_trip(self) -> None:
+        trainer = PPOTrainer(
+            self.snapshot,
+            master_seed=2471,
+            config=PPOConfig(
+                rollout_steps=16,
+                rollout_workers=2,
+                hidden_size=16,
+                max_agent_steps_per_episode=8,
+                training_class_ids=(6,),
+                training_deck=OFFICIAL_QR_EVOLVE_HAVEN,
+                opponent_decks=SPECIALIST_OPPONENT_DECKS,
+            ),
+        )
+        try:
+            trainer.collect_rollout()
+            with tempfile.TemporaryDirectory() as directory:
+                path = Path(directory) / "specialist.pt"
+                save_checkpoint_atomic(path, trainer)
+                payload = build_checkpoint(trainer)
+                resumed = load_checkpoint(path, self.snapshot)
+            self.assertEqual(
+                resumed.config.opponent_decks,
+                SPECIALIST_OPPONENT_DECKS,
+            )
+            self.assertEqual(
+                resumed.matchup_statistics,
+                trainer.matchup_statistics,
+            )
+            self.assertTrue(all(
+                "learner_player_0" in stats
+                and "learner_player_1" in stats
+                for stats in resumed.matchup_statistics.values()
+            ))
+            self.assertEqual(
+                [
+                    manifest["name"]
+                    for manifest in payload[
+                        "experiment_manifest"
+                    ]["opponent_decks"]
+                ],
+                list(SPECIALIST_OPPONENT_DECKS),
+            )
+        finally:
+            trainer.close()
+            if "resumed" in locals():
+                resumed.close()
 
     def test_atomic_replace_failure_preserves_existing_checkpoint(self) -> None:
         trainer = self.trained_once()

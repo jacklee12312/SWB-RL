@@ -27,10 +27,14 @@ from swb.engine.environment import MATCH_SETUP_OFFICIAL, ShadowverseEnv
 from swb.engine.state import Amulet, HandCard, Unit
 from swb.engine.union_burst import UnionBurstKind
 from swb.rl.checkpoint import CHECKPOINT_SCHEMA_VERSION
-from swb.rl.fixed_decks import get_fixed_training_deck
+from swb.rl.fixed_decks import (
+    FixedTrainingDeck,
+    fixed_training_deck_names,
+    get_fixed_training_deck,
+)
 from swb.rl.ppo import PPOConfig, PPOTrainer
 from swb.rl.runtime import WorkerAssetsSnapshot
-from swb.rl.versioning import ExperimentVersions
+from swb.rl.versioning import ExperimentVersions, stable_json_sha256
 from swb.simulator.history import MatchHistoryStore
 from swb.simulator.timeline import build_animation_cues, serialize_event
 
@@ -152,7 +156,19 @@ class MatchSimulator:
         training_deck_name = self.trainer.config.training_deck
         if training_deck_name is None:
             raise ValueError("simulator checkpoint does not declare a fixed training deck")
-        self.deck_recipe = get_fixed_training_deck(training_deck_name)
+        self.specialist_deck_recipe = get_fixed_training_deck(
+            training_deck_name
+        )
+        self.available_deck_recipes = tuple(
+            get_fixed_training_deck(name)
+            for name in fixed_training_deck_names()
+        )
+        self._available_decks_by_name = {
+            recipe.name: recipe
+            for recipe in self.available_deck_recipes
+        }
+        self.human_deck_recipe = self.specialist_deck_recipe
+        self.ai_deck_recipe = self.specialist_deck_recipe
         self.policy = DeterministicPPOPolicy.from_trainer(self.trainer)
         self.texture_paths = self._load_texture_paths()
         self.history_store = MatchHistoryStore(history_directory)
@@ -245,10 +261,31 @@ class MatchSimulator:
         *,
         seed: int | None = None,
         human_player: int = 0,
+        human_deck: str | None = None,
+        ai_deck: str | None = None,
     ) -> dict[str, Any]:
         if human_player not in (0, 1):
             raise ValueError("human_player must be 0 or 1")
         with self._lock:
+            human_recipe = self._resolve_deck(
+                human_deck,
+                default=self.specialist_deck_recipe,
+                label="human_deck",
+            )
+            ai_recipe = self._resolve_deck(
+                ai_deck,
+                default=self.specialist_deck_recipe,
+                label="ai_deck",
+            )
+            recipes_by_player: list[FixedTrainingDeck] = [
+                human_recipe,
+                ai_recipe,
+            ]
+            recipes_by_player[human_player] = human_recipe
+            recipes_by_player[1 - human_player] = ai_recipe
+            deck_a = recipes_by_player[0].build(self.assets.catalog)
+            deck_b = recipes_by_player[1].build(self.assets.catalog)
+
             self._finalize_current_record("abandoned")
             self.seed = (
                 int(time.time_ns() & 0x7FFFFFFF)
@@ -256,13 +293,13 @@ class MatchSimulator:
                 else int(seed)
             )
             self.human_player = human_player
-            deck_a = self.deck_recipe.build(self.assets.catalog)
-            deck_b = self.deck_recipe.build(self.assets.catalog)
+            self.human_deck_recipe = human_recipe
+            self.ai_deck_recipe = ai_recipe
             self.env = ShadowverseEnv(
                 deck_a,
                 deck_b,
-                class_a=self.deck_recipe.class_id,
-                class_b=self.deck_recipe.class_id,
+                class_a=recipes_by_player[0].class_id,
+                class_b=recipes_by_player[1].class_id,
                 seed=self.seed,
                 rulebook=self.assets.rulebook,
                 card_resolver=self.assets.catalog.resolve,
@@ -282,13 +319,9 @@ class MatchSimulator:
             self.current_record = self.history_store.new_record(
                 seed=self.seed,
                 human_player=self.human_player,
-                deck={
-                    "name": self.deck_recipe.name,
-                    "display_name": self.deck_recipe.display_name,
-                    "sha256": self.deck_recipe.sha256,
-                },
+                deck=self._match_deck_manifest(),
                 checkpoint=self.checkpoint_path.name,
-                warnings=list(self.compatibility_warnings),
+                warnings=self._active_warnings(),
                 initial_state=self._history_snapshot(),
                 initial_logs=list(self.env.logs),
             )
@@ -358,13 +391,20 @@ class MatchSimulator:
                     if self.current_record is None
                     else self.current_record["match_id"]
                 ),
-                "deck": {
-                    "name": self.deck_recipe.name,
-                    "display_name": self.deck_recipe.display_name,
-                    "sha256": self.deck_recipe.sha256,
-                },
+                "deck": self._match_deck_manifest(),
+                "human_deck": self._deck_manifest(
+                    self.human_deck_recipe
+                ),
+                "ai_deck": self._deck_manifest(self.ai_deck_recipe),
+                "specialist_deck": self._deck_manifest(
+                    self.specialist_deck_recipe
+                ),
+                "available_decks": [
+                    self._deck_manifest(recipe)
+                    for recipe in self.available_deck_recipes
+                ],
                 "checkpoint": self.checkpoint_path.name,
-                "warnings": list(self.compatibility_warnings),
+                "warnings": self._active_warnings(),
                 "human_player": self.human_player,
                 "ai_player": 1 - self.human_player,
                 "current_player": env.current_player,
@@ -404,6 +444,59 @@ class MatchSimulator:
                 "animation_batch": list(self.animation_batch),
                 "logs": self._public_logs(env.logs[-80:]),
             }
+
+    @staticmethod
+    def _deck_manifest(recipe: FixedTrainingDeck) -> dict[str, Any]:
+        return {
+            "name": recipe.name,
+            "display_name": recipe.display_name,
+            "class_id": recipe.class_id,
+            "sha256": recipe.sha256,
+        }
+
+    def _match_deck_manifest(self) -> dict[str, Any]:
+        human = self._deck_manifest(self.human_deck_recipe)
+        ai = self._deck_manifest(self.ai_deck_recipe)
+        display_name = (
+            human["display_name"]
+            if human["name"] == ai["name"]
+            else f"{human['display_name']} vs {ai['display_name']}"
+        )
+        return {
+            "name": human["name"],
+            "display_name": display_name,
+            "sha256": stable_json_sha256({
+                "human": human["sha256"],
+                "ai": ai["sha256"],
+            }),
+            "human": human,
+            "ai": ai,
+        }
+
+    def _resolve_deck(
+        self,
+        name: str | None,
+        *,
+        default: FixedTrainingDeck,
+        label: str,
+    ) -> FixedTrainingDeck:
+        if name is None:
+            return default
+        if not isinstance(name, str) or not name:
+            raise ValueError(f"{label} must be a non-empty deck name")
+        try:
+            return self._available_decks_by_name[name]
+        except KeyError as error:
+            raise ValueError(f"unknown {label}: {name!r}") from error
+
+    def _active_warnings(self) -> list[str]:
+        warnings = list(self.compatibility_warnings)
+        if self.ai_deck_recipe.name != self.specialist_deck_recipe.name:
+            warnings.append(
+                "当前模型只用主教侧轨迹更新；让 AI 使用其他卡组仅适合"
+                "测试通用动作能力，不代表该卡组的训练强度。"
+            )
+        return warnings
 
     def image_path(self, filename: str) -> Path | None:
         if not IMAGE_FILENAME_PATTERN.fullmatch(filename):

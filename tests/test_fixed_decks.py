@@ -14,6 +14,21 @@ from swb.rl.runtime import WorkerAssetsSnapshot
 
 
 DATABASE = Path("data/cards.sqlite3")
+IMPORTED_QR_DECKS = {
+    "international_qr_forest_20260728": (1, "国际服二维码·精灵样本"),
+    "international_qr_sword_20260728": (2, "国际服二维码·皇家护卫"),
+    "international_qr_runecraft_20260728": (3, "国际服二维码·巫师"),
+    "international_qr_dragon_20260728": (4, "国际服二维码·龙族"),
+    "international_qr_nightmare_20260728": (5, "国际服二维码·梦魇"),
+    "international_qr_portal_myuu_20260728": (
+        7,
+        "国际服二维码·超越者·米乌",
+    ),
+    "international_qr_portal_lishenna_20260728": (
+        7,
+        "国际服二维码·超越者·莉洁纳",
+    ),
+}
 
 EXPECTED_COUNTS = {
     10403120: 2,
@@ -49,6 +64,20 @@ class FixedTrainingDeckRegistryTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "unknown fixed training deck"):
             get_fixed_training_deck("missing")
 
+    def test_trainable_qr_manifests_are_discovered(self) -> None:
+        names = fixed_training_deck_names()
+        self.assertTrue(set(IMPORTED_QR_DECKS).issubset(names))
+        self.assertEqual(
+            {get_fixed_training_deck(name).class_id for name in names},
+            set(range(1, 8)),
+        )
+        for name, (class_id, display_name) in IMPORTED_QR_DECKS.items():
+            with self.subTest(name=name):
+                deck = get_fixed_training_deck(name)
+                self.assertEqual(deck.class_id, class_id)
+                self.assertEqual(len(deck.card_ids), 40)
+                self.assertEqual(deck.display_name, display_name)
+
 
 @unittest.skipUnless(DATABASE.exists(), "real card database is unavailable")
 class FixedTrainingDeckCatalogTests(unittest.TestCase):
@@ -65,6 +94,21 @@ class FixedTrainingDeckCatalogTests(unittest.TestCase):
         self.assertTrue(all(card.is_collectible for card in deck))
         exact_ids = frozenset(self.snapshot.catalog.exact_collectible_ids)
         self.assertTrue(all(card.card_id in exact_ids for card in deck))
+
+    def test_imported_qr_decks_resolve_to_exact_collectible_cards(self) -> None:
+        exact_ids = frozenset(self.snapshot.catalog.exact_collectible_ids)
+        for name, (class_id, _) in IMPORTED_QR_DECKS.items():
+            with self.subTest(name=name):
+                recipe = get_fixed_training_deck(name)
+                deck = recipe.build(self.snapshot.catalog)
+                self.assertEqual(len(deck), 40)
+                self.assertTrue(
+                    all(card.class_id in (0, class_id) for card in deck)
+                )
+                self.assertTrue(all(card.is_collectible for card in deck))
+                self.assertTrue(
+                    all(card.card_id in exact_ids for card in deck)
+                )
 
 
 if __name__ == "__main__":

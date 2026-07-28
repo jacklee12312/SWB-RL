@@ -58,13 +58,15 @@ cd ..
 python -m scripts.run_match_simulator
 ```
 
-The default opponent is
-`data/checkpoints/ppo_evolve_haven_entity_action_100k.pt`, and both players use
-its fixed `official_qr_evolve_haven_20260727` deck profile. This 102,067-step
-checkpoint uses `entity_action_v1` and matches the current Catalog, RuleBook,
-Observation v3.6, and action-112-v2 hashes. The older legacy checkpoint remains
-loadable through the simulator's explicit inference-only RuleBook mismatch
-warning.
+The default opponent is the 1,206,159-decision Havencraft specialist at
+`data/checkpoints/ppo_haven_specialist_8deck_1200k.pt`. The toolbar can start
+either side with any validated fixed-deck QR profile while keeping the selected
+deck manifests in match history. The checkpoint was updated only from
+Havencraft-side trajectories, so selecting another AI deck is useful for
+engine/UI testing but is not evidence that the policy specializes in that
+deck. The specialist Havencraft profile remains the default for both sides.
+Use `--device cuda` for local GPU inference and `--frontend-port` / `--port`
+when the default UI or API port is already occupied.
 
 Abilities are normalized in two relational tables:
 
@@ -154,9 +156,21 @@ rules core:
 - Named fixed-deck training includes
   `official_qr_evolve_haven_20260727`, the 40-card official QR
   super-evolution Havencraft list. Fixed mode uses the exact same deck for both
-  players while retaining seeded shuffle, mulligan, random first player, and
-  all ordinary match randomness. Its source hash and immutable deck SHA-256
-  are stored in training reports and checkpoints.
+  players by default. Specialist mode keeps that learner deck fixed while
+  `--opponent-decks` deterministically cycles named opposing decks and both
+  player positions. The current policy still acts for both sides, but only
+  learner-deck transitions enter the PPO update. Checkpoints and reports store
+  the complete schedule, assignments, and per-opponent results. Both modes
+  retain seeded shuffle, mulligan, random first player, and all ordinary match
+  randomness. Source hashes and immutable deck SHA-256 values are stored in
+  training reports and checkpoints. Official deck QR images can
+  also be decoded locally with `scripts.import_deck_qr`. International
+  `shadowverse-wb.com` URLs and NetEase's nested `163.com` wrapper share the
+  same four-character card-token codec, so no official-server request is
+  required once the image is available. Imports are saved under `data/decks/`
+  with the raw payload, 40 card IDs, content hash, database snapshot, and
+  per-card exact-rule coverage. Only manifests with zero validation issues are
+  automatically exposed as named fixed training/evaluation decks.
 
 The checked-in reports under `data/reports/` are reproducibility and smoke
 artifacts, not policy-strength claims. The 2026-07-21 embedding/vector CPU
@@ -178,11 +192,14 @@ machine; the four-worker report records 369.22 rollout steps/s.
 Install the optional training stack and run the reproducible entry points with:
 
 ```powershell
-python -m pip install -e ".[rl,train]"
+python -m pip install -e ".[rl,train,qr]"
+python -m scripts.import_deck_qr path/to/deck-qr.png --name my_deck --display-name "My Deck" --require-trainable
 python -m scripts.vector_rollout --workers 4 --episodes 16
 python -m scripts.audit_rl_distribution --episodes 98 --workers 2
 python -m scripts.train_ppo --total-agent-steps 10000
 python -m scripts.train_ppo --training-deck official_qr_evolve_haven_20260727 --device cuda --rollout-workers 4 --total-agent-steps 100000 --opponent-current-weight 1 --opponent-random-weight 0 --opponent-fixed-weight 0 --opponent-historical-weight 0
+python -m scripts.train_ppo --training-deck official_qr_evolve_haven_20260727 --opponent-decks international_qr_forest_20260728 international_qr_sword_20260728 international_qr_runecraft_20260728 international_qr_dragon_20260728 international_qr_nightmare_20260728 international_qr_portal_myuu_20260728 international_qr_portal_lishenna_20260728 --device cuda --rollout-workers 4 --total-agent-steps 1200000 --opponent-current-weight 1 --opponent-random-weight 0 --opponent-fixed-weight 0 --opponent-historical-weight 0
+python -m scripts.evaluate_deck_matchups data/checkpoints/ppo_haven_specialist_8deck_1200k.pt --opponent-checkpoint data/checkpoints/ppo_haven_specialist_8deck_10k.pt --learner-deck official_qr_evolve_haven_20260727 --opponent-decks international_qr_forest_20260728 international_qr_sword_20260728 international_qr_runecraft_20260728 international_qr_dragon_20260728 international_qr_nightmare_20260728 international_qr_portal_myuu_20260728 international_qr_portal_lishenna_20260728 --seed-count 20 --max-agent-steps 512 --master-seed 20260808 --device cuda
 python -m scripts.evaluate_ppo data/checkpoints/ppo_evolve_haven_smoke.pt --training-deck official_qr_evolve_haven_20260727 --seed-count 250 --master-seed 20260801
 python -m scripts.train_ppo --rollout-workers 4 --total-agent-steps 10000 --opponent-current-weight 1 --opponent-random-weight 0 --opponent-fixed-weight 0 --opponent-historical-weight 0
 python -m scripts.evaluate_ppo data/checkpoints/ppo_smoke.pt
@@ -208,6 +225,16 @@ actions, truncations, or mask mismatches. Against its own 50,957-step snapshot
 it scored 55% (95% CI 45.2%-64.4%, +34.9 relative Elo), which is evidence of a
 working training path but not statistically significant evidence that the
 second half of this short run materially improved policy strength.
+The 2026-07-28 eight-deck Havencraft-specialist run reached 1,206,159 total
+environment decisions, 15,664 whole games, and 545 updates. Its main
+10k-to-1.2M continuation sustained 257.19 environment decisions/s. In a
+held-out 280-game suite against the frozen 10k policy, the final checkpoint
+scored 87.3% (95% CI 82.9%-90.7%, +335.2 relative Elo); the 10k checkpoint
+scored 48.6% on the identical decks and seeds, a gain of 38.8 percentage
+points. Every opponent improved, with final per-deck rates from 77.5% to
+95.0%. Across both 280-game suites there were zero illegal actions or
+action-mask mismatches; the baseline had two 512-step truncations and the
+final policy had one.
 The non-destructive PPO profiler reports parent-process rollout phases, worker
 policy construction/loading, environment setup, observation encoding, CPU
 inference, engine steps, trajectory packaging, and learner advantage, batching,

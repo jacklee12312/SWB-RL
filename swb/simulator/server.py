@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import re
 from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from typing import Any
@@ -10,6 +11,9 @@ from swb.simulator.service import MatchSimulator
 
 
 MAX_REQUEST_BYTES = 64 * 1024
+LOCAL_FRONTEND_ORIGIN = re.compile(
+    r"^http://(?:localhost|127\.0\.0\.1):[0-9]{1,5}$"
+)
 
 
 class SimulatorHTTPServer(ThreadingHTTPServer):
@@ -80,6 +84,8 @@ class SimulatorRequestHandler(BaseHTTPRequestHandler):
                 state = self.server.simulator.new_match(
                     seed=body.get("seed"),
                     human_player=int(body.get("human_player", 0)),
+                    human_deck=body.get("human_deck"),
+                    ai_deck=body.get("ai_deck"),
                 )
                 self._send_json(state)
                 return
@@ -129,10 +135,7 @@ class SimulatorRequestHandler(BaseHTTPRequestHandler):
 
     def _cors_headers(self) -> None:
         origin = self.headers.get("Origin", "")
-        if origin in {
-            "http://localhost:3000",
-            "http://127.0.0.1:3000",
-        }:
+        if LOCAL_FRONTEND_ORIGIN.fullmatch(origin):
             self.send_header("Access-Control-Allow-Origin", origin)
             self.send_header("Vary", "Origin")
         self.send_header("Access-Control-Allow-Headers", "Content-Type")

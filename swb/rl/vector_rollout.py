@@ -19,6 +19,11 @@ from swb.engine.environment import (
     ShadowverseEnv,
 )
 from swb.rl.class_schedule import class_pair_for_episode, normalize_class_ids
+from swb.rl.deck_schedule import (
+    DeckMatchup,
+    deck_matchup_for_episode,
+    normalize_opponent_decks,
+)
 from swb.rl.fixed_decks import get_fixed_training_deck
 from swb.rl.runtime import WorkerAssetsSnapshot
 from swb.rl.seeding import episode_seeds
@@ -44,6 +49,7 @@ class RolloutConfig:
     result_timeout_seconds: float = 120.0
     fail_episode_id: int | None = None
     training_deck: str | None = None
+    opponent_decks: tuple[str, ...] = ()
     match_setup: str = MATCH_SETUP_OFFICIAL
     worker_torch_threads: int = 2
     central_inference_batch_wait_seconds: float = 0.0005
@@ -73,7 +79,20 @@ class RolloutConfig:
             raise ValueError(f"unsupported multiprocessing start method {self.start_method!r}")
         if self.match_setup not in MATCH_SETUP_VALUES:
             raise ValueError("match_setup must be 'legacy' or 'official'")
-        if self.training_deck is not None:
+        if self.opponent_decks:
+            if self.training_deck is None:
+                raise ValueError(
+                    "opponent_decks requires one fixed training_deck"
+                )
+            object.__setattr__(
+                self,
+                "opponent_decks",
+                normalize_opponent_decks(
+                    self.training_deck,
+                    self.opponent_decks,
+                ),
+            )
+        elif self.training_deck is not None:
             fixed_deck = get_fixed_training_deck(self.training_deck)
             configured_classes = (
                 self.class_ids
@@ -117,19 +136,51 @@ class PolicyEpisode:
     bootstrap: Mapping[tuple[int, int], float]
     boundary: str
     winner: int | None
+    matchup: Mapping[str, object] | None = None
     timing: Mapping[str, float] = field(default_factory=dict)
+
+
+def _episode_matchup(
+    config: RolloutConfig,
+    episode_id: int,
+) -> DeckMatchup | None:
+    if not config.opponent_decks:
+        return None
+    assert config.training_deck is not None
+    return deck_matchup_for_episode(
+        config.training_deck,
+        config.opponent_decks,
+        episode_id,
+    )
 
 
 def _episode_classes(
     config: RolloutConfig,
     episode_id: int,
 ) -> tuple[int, int]:
+    matchup = _episode_matchup(config, episode_id)
+    if matchup is not None:
+        return matchup.class_ids
     if config.class_ids:
         return class_pair_for_episode(config.class_ids, episode_id)
     return config.class_a, config.class_b
 
 
-def _episode_decks(assets, config, seeds, class_a: int, class_b: int):
+def _episode_decks(
+    assets,
+    config,
+    seeds,
+    class_a: int,
+    class_b: int,
+    episode_id: int,
+):
+    matchup = _episode_matchup(config, episode_id)
+    if matchup is not None:
+        recipe_a, recipe_b = matchup.decks
+        return (
+            recipe_a.build(assets.catalog),
+            recipe_b.build(assets.catalog),
+        )
     if config.training_deck is not None:
         fixed_deck = get_fixed_training_deck(config.training_deck)
         return (
@@ -165,6 +216,7 @@ def _run_episode(
         seeds,
         class_a,
         class_b,
+        episode_id,
     )
     env = ShadowverseEnv(
         deck_a,
@@ -303,6 +355,7 @@ def _run_central_policy_episode(
     episode_started = time.perf_counter()
     setup_started = time.perf_counter()
     seeds = episode_seeds(config.master_seed, worker_id, episode_id)
+    matchup = _episode_matchup(config, episode_id)
     class_a, class_b = _episode_classes(config, episode_id)
     deck_a, deck_b = _episode_decks(
         assets,
@@ -310,6 +363,7 @@ def _run_central_policy_episode(
         seeds,
         class_a,
         class_b,
+        episode_id,
     )
     env = ShadowverseEnv(
         deck_a,
@@ -409,6 +463,7 @@ def _run_central_policy_episode(
         boundary,
         env.winner,
         bootstrap_inputs,
+        None if matchup is None else matchup.manifest(),
         {
             "worker_episode_total_seconds": episode_total_seconds,
             "worker_setup_seconds": setup_seconds,
@@ -945,6 +1000,7 @@ class PolicyVectorRollout:
                     boundary,
                     winner,
                     bootstrap_inputs,
+                    matchup,
                     worker_timing,
                 ) = message
                 episode_id = int(episode_id)
@@ -998,6 +1054,7 @@ class PolicyVectorRollout:
                     bootstrap=bootstrap,
                     boundary=str(boundary),
                     winner=None if winner is None else int(winner),
+                    matchup=matchup,
                     timing=worker_timing,
                 )
         except Exception:

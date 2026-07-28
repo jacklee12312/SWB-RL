@@ -79,7 +79,7 @@ class ModeLegalityTests(unittest.TestCase):
         engine.reset(seed=42)
         engine.rulebook._play_modes = {999801: (accel_mode,)}
         _insert_card(engine, _card(999801, cost=5))
-        engine.players[0].mana = 10
+        engine.players[0].mana = 1
         cmds = engine.legal_commands()
         play_cmds = [c for c in cmds if isinstance(c, PlayCard) and c.hand_index == 0]
         mode_ids = {c.mode_id for c in play_cmds}
@@ -94,7 +94,7 @@ class ModeLegalityTests(unittest.TestCase):
         engine.reset(seed=42)
         engine.rulebook._play_modes = {999801: (accel_mode,)}
         _insert_card(engine, _card(999801, cost=5))
-        engine.players[0].mana = 10
+        engine.players[0].mana = 1
         snap_mana = engine.players[0].mana
         snap_hand = len(engine.players[0].hand)
         with self.assertRaises(IllegalCommand):
@@ -642,7 +642,7 @@ class AccelerateContinuationTests(unittest.TestCase):
         engine.rulebook._play_modes = {999802: (accel,)}
         engine.players[1].board.append(Unit.summon(_card(900), entity_id=900))
         _insert_card(engine, _card(999802, cost=5, attack=2, life=2))
-        engine.players[0].mana = 10
+        engine.players[0].mana = 1
         engine.apply(PlayCard(0, 0, "accel_1"))
         self.assertIsNotNone(engine.state.pending_choice)
         cmds = engine.legal_commands()
@@ -663,7 +663,7 @@ class AccelerateContinuationTests(unittest.TestCase):
         engine.rulebook._play_modes = {999802: (accel,)}
         engine.players[1].board.append(Unit.summon(_card(900), entity_id=900))
         _insert_card(engine, _card(999802, cost=5, attack=2, life=2))
-        engine.players[0].mana = 10
+        engine.players[0].mana = 1
         engine.apply(PlayCard(0, 0, "accel_1"))
         engine.players[1].board.clear()
         cmds = engine.legal_commands()
@@ -684,7 +684,7 @@ class AccelerateContinuationTests(unittest.TestCase):
         engine.players[1].board.append(Unit.summon(_card(900), entity_id=900))
         _insert_card(engine, _card(999802, cost=5, attack=2, life=2),
                      origin=CardOrigin.TOKEN)
-        engine.players[0].mana = 10
+        engine.players[0].mana = 1
         engine.apply(PlayCard(0, 0, "accel_1"))
         cmds = engine.legal_commands()
         choose_cmds = [c for c in cmds if isinstance(c, Choose)]
@@ -786,7 +786,7 @@ class RealCardEndToEndTests(unittest.TestCase):
             card_resolver=repo.get,
         )
         engine.reset(seed=42)
-        engine.players[0].mana = 10
+        engine.players[0].mana = 2
         _insert_card(engine, real_card)
         deck_before = len(engine.players[0].deck)
         engine.apply(PlayCard(0, 0, "accelerate_2"))

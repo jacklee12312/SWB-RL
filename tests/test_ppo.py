@@ -30,6 +30,10 @@ from swb.rl.runtime import WorkerAssetsSnapshot
 
 
 DATABASE = Path("data/cards.sqlite3")
+SPECIALIST_OPPONENT_DECKS = (
+    "international_qr_forest_20260728",
+    "international_qr_sword_20260728",
+)
 
 
 class MaskedPolicyTests(unittest.TestCase):
@@ -43,6 +47,17 @@ class MaskedPolicyTests(unittest.TestCase):
             PPOConfig(match_setup="unknown")
         with self.assertRaisesRegex(ValueError, "requires training_class_ids"):
             PPOConfig(training_deck=OFFICIAL_QR_EVOLVE_HAVEN)
+        with self.assertRaisesRegex(ValueError, "requires one fixed"):
+            PPOConfig(opponent_decks=SPECIALIST_OPPONENT_DECKS)
+        with self.assertRaisesRegex(ValueError, "must not contain duplicates"):
+            PPOConfig(
+                training_class_ids=(6,),
+                training_deck=OFFICIAL_QR_EVOLVE_HAVEN,
+                opponent_decks=(
+                    SPECIALIST_OPPONENT_DECKS[0],
+                    SPECIALIST_OPPONENT_DECKS[0],
+                ),
+            )
         self.assertEqual(
             PPOConfig().policy_architecture,
             LEGACY_POLICY_ARCHITECTURE,
@@ -301,6 +316,64 @@ class PPOTrainerTests(unittest.TestCase):
         records, _, _ = trainer.collect_rollout()
         self.assertEqual(len(records), 8)
         self.assertTrue(all(record.action_mask[record.action] for record in records))
+
+    def test_specialist_rollout_trains_only_haven_against_deck_cycle(
+        self,
+    ) -> None:
+        trainer = PPOTrainer(
+            self.snapshot,
+            master_seed=783,
+            config=PPOConfig(
+                rollout_steps=16,
+                rollout_workers=2,
+                sequence_length=4,
+                minibatch_sequences=2,
+                update_epochs=1,
+                hidden_size=16,
+                max_agent_steps_per_episode=8,
+                training_class_ids=(6,),
+                training_deck=OFFICIAL_QR_EVOLVE_HAVEN,
+                opponent_decks=SPECIALIST_OPPONENT_DECKS,
+            ),
+        )
+        try:
+            records, bootstrap, _ = trainer.collect_rollout()
+            assignments = {
+                int(assignment["episode_id"]): assignment
+                for assignment in trainer.opponent_assignments
+            }
+            self.assertEqual(
+                {
+                    assignment["opponent_deck"]
+                    for assignment in assignments.values()
+                },
+                {SPECIALIST_OPPONENT_DECKS[0]},
+            )
+            self.assertTrue(any(record.trainable for record in records))
+            self.assertTrue(any(not record.trainable for record in records))
+            for record in records:
+                with self.subTest(
+                    episode_id=record.episode_id,
+                    player_id=record.player_id,
+                ):
+                    self.assertEqual(
+                        record.trainable,
+                        record.player_id
+                        == int(
+                            assignments[record.episode_id]["learner_player"]
+                        ),
+                    )
+            trainer.update(records, bootstrap)
+            trainer.collect_rollout()
+            self.assertEqual(
+                {
+                    stats["opponent_deck"]
+                    for stats in trainer.matchup_statistics.values()
+                },
+                set(SPECIALIST_OPPONENT_DECKS),
+            )
+        finally:
+            trainer.close()
 
     def test_entity_action_policy_collects_and_updates_fixed_deck(self) -> None:
         trainer = PPOTrainer(

@@ -44,6 +44,15 @@ class MatchSimulatorTests(unittest.TestCase):
         state = self.simulator.new_match(seed=7, human_player=0)
 
         self.assertEqual(state["deck"]["name"], "official_qr_evolve_haven_20260727")
+        self.assertEqual(
+            state["human_deck"]["name"],
+            "official_qr_evolve_haven_20260727",
+        )
+        self.assertEqual(
+            state["ai_deck"]["name"],
+            "official_qr_evolve_haven_20260727",
+        )
+        self.assertGreaterEqual(len(state["available_decks"]), 8)
         self.assertTrue(state["match_id"])
         self.assertTrue(state["human_turn"])
         self.assertIsNotNone(state["players"][0]["hand"])
@@ -207,6 +216,48 @@ class MatchSimulatorTests(unittest.TestCase):
         self.assertEqual(record["status"], "abandoned")
         summaries = self.simulator.list_history()["matches"]
         self.assertIn(current["match_id"], {item["match_id"] for item in summaries})
+
+    def test_new_match_can_select_distinct_human_and_ai_decks(self) -> None:
+        state = self.simulator.new_match(
+            seed=31,
+            human_player=0,
+            human_deck="international_qr_forest_20260728",
+            ai_deck="official_qr_evolve_haven_20260727",
+        )
+
+        self.assertEqual(
+            state["human_deck"]["name"],
+            "international_qr_forest_20260728",
+        )
+        self.assertEqual(
+            state["ai_deck"]["name"],
+            "official_qr_evolve_haven_20260727",
+        )
+        self.assertEqual(state["players"][0]["class_id"], 1)
+        self.assertEqual(state["players"][1]["class_id"], 6)
+        self.assertIn(" vs ", state["deck"]["display_name"])
+        record = self.simulator.match_history(state["match_id"])
+        self.assertEqual(
+            record["deck"]["human"]["name"],
+            state["human_deck"]["name"],
+        )
+        self.assertEqual(
+            record["deck"]["ai"]["name"],
+            state["ai_deck"]["name"],
+        )
+
+    def test_invalid_deck_selection_does_not_abandon_current_match(self) -> None:
+        current = self.simulator.new_match(seed=37, human_player=0)
+
+        with self.assertRaisesRegex(ValueError, "unknown human_deck"):
+            self.simulator.new_match(
+                seed=41,
+                human_player=0,
+                human_deck="missing",
+            )
+
+        record = self.simulator.match_history(current["match_id"])
+        self.assertEqual(record["status"], "ongoing")
 
     def test_history_lookup_rejects_path_traversal(self) -> None:
         with self.assertRaises(ValueError):

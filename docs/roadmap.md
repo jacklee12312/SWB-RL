@@ -10,9 +10,11 @@ code and tests as the source of truth when this file drifts.
 - Database: 826 cards, 735 collectible cards, 91 non-collectible/generated
   cards from set `90000`.
 - Latest SVA source: `https://sva.hypd.asia/data/cards.json`.
-- Tests: `python -m unittest discover -s tests -v` discovers 2597 behavioral
-  contracts (2026-07-27 entity/action-conditioned policy, CUDA/checkpoint,
-  persistent simulator history, and event-timeline verification).
+- Tests: `python -m unittest discover -s tests -v` discovers 2625 behavioral
+  contracts (2026-07-28 fixed-deck specialist scheduling, official deck QR
+  import/registry, entity/action-conditioned policy, CUDA/checkpoint,
+  persistent simulator history, event-timeline verification, and
+  Accelerate/conditional-keyword legality).
 - RL adapter: fixed 112-action space; the default v1 observation is 304
   floats, opt-in v2 preserves the structured compatibility mapping, and v3
   supplies fixed-dtype NumPy arrays plus a Gymnasium observation space without
@@ -40,14 +42,49 @@ code and tests as the source of truth when this file drifts.
   all games terminated with zero illegal actions or mask mismatches. The
   random-legal matchup rose from 93.8% to 99.4%, so it is now treated as a
   saturated floor rather than the promotion opponent.
+- Official deck QR import now has a server-independent codec and auditable
+  registry. It extracts both international `shadowverse-wb.com` payloads and
+  NetEase's nested `163.com` payloads, decodes each four-character card token
+  directly to its database card ID, enforces the 40-card/three-copy/class
+  rules, and records database plus coverage hashes. Real PNG regression
+  coverage uses the supplied international Forestcraft QR. Six additional
+  supplied images register Swordcraft, Runecraft, Dragoncraft, Abysscraft,
+  and two Portalcraft lists. Together with the built-in Havencraft profile,
+  the fixed-deck selectors now expose eight distinct 40-card decks covering
+  all seven playable classes. Every registered card is currently
+  `covered_exact`; two-game seeded rollouts for each of the six new lists
+  finished by rules with zero truncations. Imports with missing,
+  non-collectible, off-class, or non-exact cards remain visible in
+  `data/decks/` but cannot enter training.
+- Fixed-deck PPO supports a versioned specialist schedule: one named learner
+  deck is held constant while an ordered opponent pool cycles every named deck
+  twice, once for each player position. Central current-policy inference still
+  operates both sides without policy-generation lag, but only learner-side
+  transitions enter PPO updates. Checkpoints and reports preserve opponent
+  deck manifests, the deterministic assignments, and per-matchup wins,
+  losses, draws, termination counts, side balance, and environment steps.
+  The first eight-deck Havencraft specialist reached 1,206,159 total
+  environment decisions, 15,664 games, and 545 PPO updates. The main
+  continuation averaged 257.19 environment decisions/s. Against the frozen
+  10k checkpoint on 280 held-out mirrored games, the final policy scored
+  87.3% (95% CI 82.9%-90.7%, +335.2 relative Elo), versus the 10k baseline's
+  48.6% on the same decks and seeds. All seven per-deck rates improved; the
+  final range was 77.5%-95.0%. Both suites had zero illegal actions and mask
+  mismatches. The baseline had two 512-step truncations and the final policy
+  had one. During sampling, the Portalcraft Myuu matchup produced 379
+  truncations among 2,238 scheduled episodes, so future work should diagnose
+  its long-game loop and should not interpret training-pool win counters as a
+  held-out strength estimate.
 - A local human-versus-PPO simulator now wraps the command/RL interface without
   adding UI rules to the engine. It exposes mulligan, legal actions, pending
   choices, attacks, evolution, Super-Evolution, and Extra PP through a local
-  JSON service, hides the AI hand, serves the downloaded card art, and uses
-  deterministic argmax inference from the 102,067-step `entity_action_v1`
-  fixed-deck checkpoint. Its Catalog, RuleBook, Observation, and action hashes
-  match the current runtime; the older 100,096-step legacy checkpoint remains
-  loadable through the explicit inference-only RuleBook mismatch path.
+  JSON service, hides the AI hand, serves the downloaded card art, and defaults
+  to deterministic argmax inference from the 1,206,159-decision Havencraft
+  specialist. Both human and AI deck selectors expose every validated named
+  fixed deck, persist the exact paired manifests in history, and retain the
+  specialist Havencraft list as the default. Selecting a non-Havencraft AI deck
+  emits a visible strength warning because only Havencraft-side trajectories
+  entered this checkpoint's PPO updates.
   Simulator matches are now atomically persisted as local ignored JSON records,
   with unfinished matches retained as abandoned records. Schema-v2 history
   stores complete action-by-action snapshots for both hands, unredacted logs
@@ -694,7 +731,12 @@ slice in this order:
   default, and supports explicit `replace_base_operations` for printed
   replacement clauses. Legality evaluates only the effective operation set;
   enhanced spells still resolve once into the graveyard and emit the selected
-  mode ID without adding RL actions.
+  mode ID without adding RL actions. Accelerate is legal only when the
+  controller can pay its alternate cost but cannot pay the hand card's current
+  normal cost; command validation and the RL action mask share this gate.
+  Conditional keyword mentions remain removed from initial card state until
+  their structured branch grants them, including Zooey's Enhance-10-only
+  Storm.
 - Partial primitives and demos for cooperation, `觉醒`, `连击`, necromancy, reanimate,
   spellboost-style costs, emblems, optional decisions, and choose-one decisions.
 - RL action mask, action decoding, public observation, terminal reward, pending

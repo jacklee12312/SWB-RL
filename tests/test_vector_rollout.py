@@ -24,6 +24,10 @@ from swb.rl.vector_rollout import (
 
 
 DATABASE = Path("data/cards.sqlite3")
+SPECIALIST_OPPONENT_DECKS = (
+    "international_qr_forest_20260728",
+    "international_qr_sword_20260728",
+)
 
 
 def trajectory_summary(trajectory) -> tuple:
@@ -145,6 +149,39 @@ class VectorRolloutTests(unittest.TestCase):
     def test_fixed_training_deck_rejects_wrong_class(self) -> None:
         with self.assertRaisesRegex(ValueError, "requires class 6"):
             self.config(training_deck=OFFICIAL_QR_EVOLVE_HAVEN)
+
+    def test_specialist_deck_cycle_reaches_spawn_workers(self) -> None:
+        learner = get_fixed_training_deck(OFFICIAL_QR_EVOLVE_HAVEN)
+        opponents = tuple(
+            get_fixed_training_deck(name)
+            for name in SPECIALIST_OPPONENT_DECKS
+        )
+        trajectories = self.collect(
+            self.config(
+                worker_count=2,
+                class_a=learner.class_id,
+                class_b=learner.class_id,
+                training_deck=learner.name,
+                opponent_decks=SPECIALIST_OPPONENT_DECKS,
+            ),
+            4,
+        )
+        expected = (
+            (learner, opponents[0]),
+            (opponents[0], learner),
+            (learner, opponents[1]),
+            (opponents[1], learner),
+        )
+        for trajectory, recipes in zip(trajectories, expected):
+            with self.subTest(episode_id=trajectory.episode_id):
+                for card_ids, recipe in zip(
+                    trajectory.deck_card_ids,
+                    recipes,
+                ):
+                    self.assertEqual(
+                        Counter(card_ids),
+                        Counter(recipe.card_ids),
+                    )
 
     def test_worker_exception_is_propagated_and_processes_stop(self) -> None:
         rollout = VectorRollout(
