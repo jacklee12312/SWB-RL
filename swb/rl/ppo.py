@@ -59,6 +59,8 @@ class PPOConfig:
     opponent_snapshot_interval_steps: int = 50_000
     rollout_workers: int = 1
     rollout_result_timeout_seconds: float = 120.0
+    rollout_worker_torch_threads: int = 2
+    central_inference_batch_wait_seconds: float = 0.0005
     training_class_ids: tuple[int, ...] = (1,)
     training_deck: str | None = None
     match_setup: str = MATCH_SETUP_OFFICIAL
@@ -84,6 +86,7 @@ class PPOConfig:
             self.opponent_max_history,
             self.opponent_snapshot_interval_steps,
             self.rollout_workers,
+            self.rollout_worker_torch_threads,
         )
         if any(value <= 0 for value in integer_fields):
             raise ValueError("PPO integer hyperparameters must be positive")
@@ -102,6 +105,10 @@ class PPOConfig:
             raise ValueError("learning_rate and max_grad_norm must be positive")
         if self.rollout_result_timeout_seconds <= 0:
             raise ValueError("rollout_result_timeout_seconds must be positive")
+        if self.central_inference_batch_wait_seconds < 0:
+            raise ValueError(
+                "central_inference_batch_wait_seconds must be non-negative"
+            )
         if self.match_setup not in MATCH_SETUP_VALUES:
             raise ValueError("match_setup must be 'legacy' or 'official'")
         if self.training_deck is not None:
@@ -645,6 +652,12 @@ class PPOTrainer:
                     ),
                     training_deck=self.config.training_deck,
                     match_setup=self.config.match_setup,
+                    worker_torch_threads=(
+                        self.config.rollout_worker_torch_threads
+                    ),
+                    central_inference_batch_wait_seconds=(
+                        self.config.central_inference_batch_wait_seconds
+                    ),
                 ),
             )
         records: list[_Record] = []
@@ -666,9 +679,18 @@ class PPOTrainer:
             )
             collect_calls += 1
             for key, value in self._policy_vector_rollout.last_timing.items():
-                aggregate_timing[key] = (
-                    aggregate_timing.get(key, 0.0) + float(value)
-                )
+                if key in {
+                    "central_max_batch_size",
+                    "worker_torch_threads",
+                }:
+                    aggregate_timing[key] = max(
+                        aggregate_timing.get(key, 0.0),
+                        float(value),
+                    )
+                else:
+                    aggregate_timing[key] = (
+                        aggregate_timing.get(key, 0.0) + float(value)
+                    )
             conversion_started = time.perf_counter()
             for episode in episodes:
                 class_a, class_b = class_pair_for_episode(
@@ -708,6 +730,14 @@ class PPOTrainer:
             conversion_seconds += time.perf_counter() - conversion_started
         self.opponent_assignments = self.opponent_assignments[-4096:]
         self.agent_steps += len(records)
+        inference_batches = aggregate_timing.get(
+            "central_inference_batches", 0.0
+        )
+        if inference_batches:
+            aggregate_timing["central_average_batch_size"] = (
+                aggregate_timing.get("central_inference_requests", 0.0)
+                / inference_batches
+            )
         aggregate_timing.update({
             "trajectory_conversion_seconds": conversion_seconds,
             "collect_total_seconds": time.perf_counter() - collect_started,

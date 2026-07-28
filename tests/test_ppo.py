@@ -326,6 +326,33 @@ class PPOTrainerTests(unittest.TestCase):
         )
         try:
             records, bootstrap, _ = trainer.collect_rollout()
+            first = records[0]
+            trainer.model.eval()
+            with torch.no_grad():
+                logits, value, _ = trainer.model.forward_step(
+                    torch.from_numpy(first.observation).unsqueeze(0),
+                    torch.from_numpy(first.hidden_before).unsqueeze(0),
+                    torch.from_numpy(first.card_indices).unsqueeze(0),
+                )
+                masked = trainer.model.masked_logits(
+                    logits,
+                    torch.from_numpy(first.action_mask).unsqueeze(0),
+                )
+                recomputed_log_prob = torch.log_softmax(
+                    masked,
+                    dim=-1,
+                )[0, first.action]
+            self.assertAlmostEqual(
+                float(recomputed_log_prob.item()),
+                first.old_log_prob,
+                places=6,
+            )
+            self.assertAlmostEqual(
+                float(value.item()),
+                first.value,
+                places=6,
+            )
+            trainer.model.train()
             metrics = trainer.update(records, bootstrap)
             self.assertEqual(
                 trainer.model.architecture,
@@ -343,19 +370,38 @@ class PPOTrainerTests(unittest.TestCase):
                 float(len(records)),
             )
             self.assertGreater(
-                trainer.last_collect_timing["worker_inference_seconds"],
+                trainer.last_collect_timing[
+                    "worker_inference_round_trip_seconds"
+                ],
                 0.0,
             )
             self.assertGreater(
                 trainer.last_collect_timing["worker_engine_step_seconds"],
                 0.0,
             )
+            self.assertEqual(
+                trainer.last_collect_timing["central_inference_requests"],
+                float(len(records)),
+            )
             self.assertGreater(
-                trainer.last_collect_timing[
-                    "worker_policy_load_total_seconds_sum"
-                ],
+                trainer.last_collect_timing["central_forward_seconds"],
                 0.0,
             )
+            self.assertEqual(
+                trainer.last_collect_timing["policy_transmitted_bytes"],
+                0.0,
+            )
+            self.assertGreaterEqual(
+                trainer.last_collect_timing[
+                    "central_average_batch_size"
+                ],
+                1.0,
+            )
+            self.assertEqual(
+                trainer.last_collect_timing["worker_torch_threads"],
+                2.0,
+            )
+            self.assertTrue(trainer.model.training)
             self.assertGreater(
                 trainer.last_update_timing["forward_loss_seconds"],
                 0.0,
@@ -413,6 +459,50 @@ class PPOTrainerTests(unittest.TestCase):
         finally:
             trainer.close()
 
+    @unittest.skipUnless(torch.cuda.is_available(), "CUDA is unavailable")
+    def test_multiprocess_rollout_uses_central_cuda_policy(self) -> None:
+        trainer = PPOTrainer(
+            self.snapshot,
+            master_seed=783,
+            config=PPOConfig(
+                rollout_steps=8,
+                rollout_workers=2,
+                sequence_length=4,
+                minibatch_sequences=2,
+                update_epochs=1,
+                hidden_size=32,
+                max_agent_steps_per_episode=8,
+            ),
+            device="cuda",
+        )
+        try:
+            before = {
+                key: value.detach().clone()
+                for key, value in trainer.model.state_dict().items()
+            }
+            records, _, _ = trainer.collect_rollout()
+            self.assertTrue(all(
+                record.action_mask[record.action]
+                for record in records
+            ))
+            self.assertEqual(
+                trainer.last_collect_timing["central_inference_requests"],
+                float(len(records)),
+            )
+            self.assertGreater(
+                trainer.last_collect_timing["central_forward_seconds"],
+                0.0,
+            )
+            self.assertEqual(
+                trainer.last_collect_timing["policy_transmitted_bytes"],
+                0.0,
+            )
+            self.assertTrue(trainer.model.training)
+            for key, value in trainer.model.state_dict().items():
+                torch.testing.assert_close(value, before[key])
+        finally:
+            trainer.close()
+
     def test_external_fixed_opponent_actions_are_executed_but_not_trained(self) -> None:
         trainer = self.make_trainer()
         trainer.opponent_pool = OpponentPool(
@@ -453,6 +543,56 @@ class PPOTrainerTests(unittest.TestCase):
             np.testing.assert_array_equal(
                 summaries[0][2][key], summaries[1][2][key]
             )
+
+    def test_seeded_central_policy_rollout_is_reproducible(self) -> None:
+        summaries = []
+        for _ in range(2):
+            trainer = PPOTrainer(
+                self.snapshot,
+                master_seed=784,
+                config=PPOConfig(
+                    rollout_steps=8,
+                    rollout_workers=2,
+                    sequence_length=4,
+                    minibatch_sequences=2,
+                    update_epochs=1,
+                    hidden_size=16,
+                    max_agent_steps_per_episode=8,
+                ),
+            )
+            try:
+                records, bootstrap, boundaries = trainer.collect_rollout()
+                summaries.append((
+                    [
+                        (
+                            record.episode_id,
+                            record.player_id,
+                            record.action,
+                            record.old_log_prob,
+                            record.value,
+                            record.reward,
+                            record.hidden_before.copy(),
+                        )
+                        for record in records
+                    ],
+                    dict(bootstrap),
+                    dict(boundaries),
+                ))
+            finally:
+                trainer.close()
+        self.assertEqual(
+            [
+                item[:-1]
+                for item in summaries[0][0]
+            ],
+            [
+                item[:-1]
+                for item in summaries[1][0]
+            ],
+        )
+        for first, second in zip(summaries[0][0], summaries[1][0]):
+            np.testing.assert_array_equal(first[-1], second[-1])
+        self.assertEqual(summaries[0][1:], summaries[1][1:])
 
     def test_multiprocess_policy_rollout_is_persistent_and_trainable(self) -> None:
         trainer = PPOTrainer(

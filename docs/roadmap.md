@@ -10,7 +10,7 @@ code and tests as the source of truth when this file drifts.
 - Database: 826 cards, 735 collectible cards, 91 non-collectible/generated
   cards from set `90000`.
 - Latest SVA source: `https://sva.hypd.asia/data/cards.json`.
-- Tests: `python -m unittest discover -s tests -v` discovers 2595 behavioral
+- Tests: `python -m unittest discover -s tests -v` discovers 2597 behavioral
   contracts (2026-07-27 entity/action-conditioned policy, CUDA/checkpoint,
   persistent simulator history, and event-timeline verification).
 - RL adapter: fixed 112-action space; the default v1 observation is 304
@@ -112,6 +112,18 @@ code and tests as the source of truth when this file drifts.
   about 27 model copies and received roughly 670 MiB/update. Within CUDA
   updates, backward/gradient clipping used 53.3% and forward/loss 43.2%; batch
   construction/device transfer was under 1%.
+- Multiprocess PPO rollout now keeps only rules engines in its persistent
+  workers. The learner process owns the single rollout model, preserves
+  independent recurrent state and CPU sampling RNG per episode, batches
+  observation requests for 0.5 ms, and runs inference on the learner's CUDA
+  device. Workers default to two Torch threads after measured 1/2/4-thread
+  comparisons. A same-checkpoint 100,716-step profile reached 193.28 agent
+  steps/s versus 153.39 before this change (+26.0%). Steady rollout cost fell
+  from 3.39 to 2.07 ms/step and policy transmission from 28.1 GiB to zero;
+  learner update cost stayed at 3.03 ms/step. Central sampling is deterministic
+  under the fixed topology, legal-mask checked, and stores log probabilities,
+  values, and pre-action recurrent state that are directly recomputable by the
+  same model.
 - The saved embedding/vector CPU smoke is deliberately not a strength claim:
   its 2-worker whole-episode batches requested 1,024 agent steps, completed
   1,304 steps/16 episodes, resumed to 1,571 steps/20 episodes without episode-ID

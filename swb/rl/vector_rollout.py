@@ -1,13 +1,13 @@
 from __future__ import annotations
 
 import hashlib
-import io
 import math
 import multiprocessing as mp
 import queue
 import random
 import time
 import traceback
+from collections import deque
 from dataclasses import dataclass, field
 from typing import Any, Mapping
 
@@ -45,6 +45,8 @@ class RolloutConfig:
     fail_episode_id: int | None = None
     training_deck: str | None = None
     match_setup: str = MATCH_SETUP_OFFICIAL
+    worker_torch_threads: int = 2
+    central_inference_batch_wait_seconds: float = 0.0005
 
     def __post_init__(self) -> None:
         if self.worker_count <= 0:
@@ -61,6 +63,12 @@ class RolloutConfig:
             raise ValueError("max_agent_steps must be positive")
         if self.result_timeout_seconds <= 0:
             raise ValueError("result_timeout_seconds must be positive")
+        if self.worker_torch_threads <= 0:
+            raise ValueError("worker_torch_threads must be positive")
+        if self.central_inference_batch_wait_seconds < 0:
+            raise ValueError(
+                "central_inference_batch_wait_seconds must be non-negative"
+            )
         if self.start_method not in mp.get_all_start_methods():
             raise ValueError(f"unsupported multiprocessing start method {self.start_method!r}")
         if self.match_setup not in MATCH_SETUP_VALUES:
@@ -279,15 +287,16 @@ def _worker_main(
         ))
 
 
-def _run_policy_episode(
+def _run_central_policy_episode(
     snapshot: WorkerAssetsSnapshot,
     assets,
     config: RolloutConfig,
     worker_id: int,
+    generation: int,
     episode_id: int,
-    model,
-) -> PolicyEpisode:
-    import torch
+    input_queue: Any,
+    output_queue: Any,
+) -> None:
 
     from swb.rl.ppo import ObservationFlattener
 
@@ -324,24 +333,11 @@ def _run_policy_episode(
         action_mask=info["action_mask"],
     )
     flattener = ObservationFlattener.from_observation(first_observation)
-    if (
-        flattener.size != model.input_size
-        or flattener.card_slots != model.card_slot_count
-    ):
-        raise ValueError("worker observation representation disagrees with policy")
-    generator = torch.Generator(device="cpu")
-    generator.manual_seed(seeds.policy_seed)
-    hidden = {
-        player: model.initial_state(1, device=torch.device("cpu"))
-        for player in (0, 1)
-    }
     setup_seconds = time.perf_counter() - setup_started
     observation_seconds = 0.0
-    inference_seconds = 0.0
+    inference_round_trip_seconds = 0.0
     engine_step_seconds = 0.0
-    record_packaging_seconds = 0.0
-    records: list[PolicyStep] = []
-    indices_by_player: dict[int, list[int]] = {0: [], 1: []}
+    step_index = 0
     while not env.terminated and not env.truncated:
         observation_started = time.perf_counter()
         player_id = env.decision_player
@@ -352,98 +348,80 @@ def _run_policy_episode(
         vector_np = flattener.encode(observation)
         card_indices_np = flattener.encode_cards(observation)
         mask_np = np.asarray(info["action_mask"], dtype=np.bool_)
-        vector = torch.from_numpy(vector_np).unsqueeze(0)
-        card_indices = torch.from_numpy(card_indices_np).unsqueeze(0)
-        mask = torch.from_numpy(mask_np).unsqueeze(0)
-        hidden_before = hidden[player_id]
         observation_seconds += time.perf_counter() - observation_started
 
         inference_started = time.perf_counter()
-        with torch.no_grad():
-            logits, value, next_hidden = model.forward_step(
-                vector, hidden_before, card_indices
+        output_queue.put((
+            "policy_inference",
+            worker_id,
+            generation,
+            episode_id,
+            step_index,
+            player_id,
+            vector_np,
+            card_indices_np,
+            mask_np,
+        ))
+        response = input_queue.get()
+        if response is None:
+            raise RuntimeError("central policy inference was interrupted")
+        if (
+            response[0] != "policy_action"
+            or response[1] != generation
+            or response[2] != episode_id
+            or response[3] != step_index
+        ):
+            raise RuntimeError(
+                f"unexpected central policy response {response[0]!r}"
             )
-            masked = model.masked_logits(logits, mask)
-            probabilities = torch.softmax(masked, dim=-1)
-            action_tensor = torch.multinomial(
-                probabilities, 1, generator=generator
-            )
-            log_prob = torch.log_softmax(masked, dim=-1).gather(
-                -1, action_tensor
-            )
-        action = int(action_tensor.item())
-        inference_seconds += time.perf_counter() - inference_started
+        action = int(response[4])
+        inference_round_trip_seconds += (
+            time.perf_counter() - inference_started
+        )
 
         engine_step_started = time.perf_counter()
         result = env.step(action)
         engine_step_seconds += time.perf_counter() - engine_step_started
 
-        packaging_started = time.perf_counter()
-        indices_by_player[player_id].append(len(records))
-        records.append(PolicyStep(
-            episode_id=episode_id,
-            worker_id=worker_id,
-            player_id=player_id,
-            observation=vector_np,
-            card_indices=card_indices_np,
-            action_mask=mask_np,
-            action=action,
-            old_log_prob=float(log_prob.item()),
-            value=float(value.item()),
-            reward=0.0,
-            hidden_before=hidden_before.squeeze(0).numpy().copy(),
-        ))
-        hidden[player_id] = next_hidden.detach()
         info = result.info
-        record_packaging_seconds += time.perf_counter() - packaging_started
+        step_index += 1
 
     bootstrap_started = time.perf_counter()
     boundary = "terminated" if env.terminated else "truncated"
-    bootstrap: dict[tuple[int, int], float] = {}
-    for player_id in (0, 1):
-        if env.terminated:
-            indices = indices_by_player[player_id]
-            if indices:
-                records[indices[-1]].reward = (
-                    0.0
-                    if env.winner is None
-                    else (1.0 if env.winner == player_id else -1.0)
-                )
-            bootstrap[(episode_id, player_id)] = 0.0
-            continue
-        observation = env.observation(
-            perspective=player_id,
-            action_mask=[False] * env.ACTION_SIZE,
-        )
-        vector = torch.from_numpy(flattener.encode(observation)).unsqueeze(0)
-        card_indices = torch.from_numpy(
-            flattener.encode_cards(observation)
-        ).unsqueeze(0)
-        with torch.no_grad():
-            _, value, _ = model.forward_step(
-                vector, hidden[player_id], card_indices
+    bootstrap_inputs: dict[int, tuple[np.ndarray, np.ndarray]] = {}
+    if env.truncated:
+        for player_id in (0, 1):
+            observation = env.observation(
+                perspective=player_id,
+                action_mask=[False] * env.ACTION_SIZE,
             )
-        bootstrap[(episode_id, player_id)] = float(value.item())
+            bootstrap_inputs[player_id] = (
+                flattener.encode(observation),
+                flattener.encode_cards(observation),
+            )
     bootstrap_seconds = time.perf_counter() - bootstrap_started
     episode_total_seconds = time.perf_counter() - episode_started
-    return PolicyEpisode(
-        episode_id=episode_id,
-        worker_id=worker_id,
-        records=tuple(records),
-        bootstrap=bootstrap,
-        boundary=boundary,
-        winner=env.winner,
-        timing={
+    output_queue.put((
+        "policy_episode_end",
+        episode_id,
+        worker_id,
+        generation,
+        boundary,
+        env.winner,
+        bootstrap_inputs,
+        {
             "worker_episode_total_seconds": episode_total_seconds,
             "worker_setup_seconds": setup_seconds,
             "worker_observation_seconds": observation_seconds,
-            "worker_inference_seconds": inference_seconds,
+            "worker_inference_round_trip_seconds": (
+                inference_round_trip_seconds
+            ),
             "worker_engine_step_seconds": engine_step_seconds,
-            "worker_record_packaging_seconds": record_packaging_seconds,
             "worker_bootstrap_seconds": bootstrap_seconds,
-            "worker_agent_steps": float(len(records)),
+            "worker_agent_steps": float(step_index),
+            "worker_torch_threads": float(config.worker_torch_threads),
         },
-    )
+    ))
 
 
 def _policy_worker_main(
@@ -456,64 +434,27 @@ def _policy_worker_main(
     try:
         import torch
 
-        from swb.rl.policy import build_policy_from_specification
-
+        torch.set_num_threads(config.worker_torch_threads)
+        torch.set_num_interop_threads(1)
         assets = snapshot.load()
-        model = None
-        generation = -1
         while True:
             message = input_queue.get()
             if message is None:
                 return
             command = message[0]
-            if command == "load_policy":
-                _, generation, payload, specification = message
-                load_started = time.perf_counter()
-                build_started = time.perf_counter()
-                model = build_policy_from_specification(specification)
-                build_seconds = time.perf_counter() - build_started
-                deserialize_started = time.perf_counter()
-                state = torch.load(
-                    io.BytesIO(payload), map_location="cpu", weights_only=True
-                )
-                deserialize_seconds = (
-                    time.perf_counter() - deserialize_started
-                )
-                state_load_started = time.perf_counter()
-                model.load_state_dict(state)
-                model.eval()
-                state_load_seconds = time.perf_counter() - state_load_started
-                output_queue.put((
-                    "ready",
-                    worker_id,
-                    generation,
-                    {
-                        "worker_policy_load_total_seconds": (
-                            time.perf_counter() - load_started
-                        ),
-                        "worker_policy_build_seconds": build_seconds,
-                        "worker_policy_deserialize_seconds": (
-                            deserialize_seconds
-                        ),
-                        "worker_policy_state_load_seconds": (
-                            state_load_seconds
-                        ),
-                    },
-                ))
-                continue
-            if command != "episode" or model is None:
+            if command != "episode":
                 raise RuntimeError(f"unexpected policy worker command {command!r}")
-            _, requested_generation, episode_id = message
-            if requested_generation != generation:
-                raise RuntimeError("policy generation was not loaded by worker")
+            _, generation, episode_id = message
             try:
-                episode = _run_policy_episode(
+                _run_central_policy_episode(
                     snapshot,
                     assets,
                     config,
                     worker_id,
+                    int(generation),
                     int(episode_id),
-                    model,
+                    input_queue,
+                    output_queue,
                 )
             except Exception as exc:
                 output_queue.put((
@@ -525,7 +466,6 @@ def _policy_worker_main(
                     traceback.format_exc(),
                 ))
                 return
-            output_queue.put(("policy_episode", int(episode_id), episode))
     except Exception as exc:
         output_queue.put((
             "error",
@@ -638,7 +578,7 @@ class VectorRollout:
 
 
 class PolicyVectorRollout:
-    """Persistent environment workers collecting episodes with fixed policy weights."""
+    """Persistent engine workers using one central batched policy model."""
 
     def __init__(
         self,
@@ -679,13 +619,24 @@ class PolicyVectorRollout:
             self._input_queues.append(input_queue)
             self._processes.append(process)
 
-    def _next_message(self):
+    def _next_message(
+        self,
+        *,
+        timeout_seconds: float | None = None,
+        allow_timeout: bool = False,
+    ):
         assert self._output_queue is not None
         try:
             message = self._output_queue.get(
-                timeout=self.config.result_timeout_seconds
+                timeout=(
+                    self.config.result_timeout_seconds
+                    if timeout_seconds is None
+                    else timeout_seconds
+                )
             )
         except queue.Empty as exc:
+            if allow_timeout:
+                return None
             self.close()
             raise RolloutWorkerError(
                 "timed out waiting for policy rollout worker results"
@@ -699,56 +650,209 @@ class PolicyVectorRollout:
             )
         return message
 
+    @staticmethod
+    def _serve_inference_batch(
+        model,
+        requests: list[tuple],
+        episode_records: dict[int, list[PolicyStep]],
+        hidden_by_player: dict[tuple[int, int], Any],
+        generators: dict[int, Any],
+    ) -> dict[str, float]:
+        import torch
+
+        prepare_started = time.perf_counter()
+        device = next(model.parameters()).device
+        observations = torch.as_tensor(
+            np.stack([request[6] for request in requests]),
+            device=device,
+        )
+        card_indices = torch.as_tensor(
+            np.stack([request[7] for request in requests]),
+            dtype=torch.long,
+            device=device,
+        )
+        action_masks = torch.as_tensor(
+            np.stack([request[8] for request in requests]),
+            dtype=torch.bool,
+            device=device,
+        )
+        hidden = torch.cat([
+            hidden_by_player[(int(request[3]), int(request[5]))]
+            for request in requests
+        ])
+        prepare_seconds = time.perf_counter() - prepare_started
+
+        forward_started = time.perf_counter()
+        with torch.no_grad():
+            logits, values, next_hidden = model.forward_step(
+                observations,
+                hidden,
+                card_indices,
+            )
+            masked_logits = model.masked_logits(logits, action_masks)
+            probabilities = torch.softmax(masked_logits, dim=-1)
+            log_probs = torch.log_softmax(masked_logits, dim=-1)
+        if device.type == "cuda":
+            torch.cuda.synchronize(device)
+        forward_seconds = time.perf_counter() - forward_started
+
+        sample_started = time.perf_counter()
+        probabilities_cpu = probabilities.detach().cpu()
+        log_probs_cpu = log_probs.detach().cpu()
+        values_cpu = values.detach().cpu()
+        hidden_cpu = hidden.detach().cpu().numpy()
+        actions: list[int] = []
+        for row, request in enumerate(requests):
+            episode_id = int(request[3])
+            action_tensor = torch.multinomial(
+                probabilities_cpu[row],
+                1,
+                generator=generators[episode_id],
+            )
+            actions.append(int(action_tensor.item()))
+        sample_seconds = time.perf_counter() - sample_started
+
+        dispatch_started = time.perf_counter()
+        for row, (request, action) in enumerate(zip(requests, actions)):
+            (
+                _,
+                worker_id,
+                generation,
+                episode_id,
+                step_index,
+                player_id,
+                observation,
+                cards,
+                action_mask,
+            ) = request
+            episode_id = int(episode_id)
+            player_id = int(player_id)
+            step_index = int(step_index)
+            if step_index != len(episode_records[episode_id]):
+                raise RolloutWorkerError(
+                    f"episode {episode_id} sent out-of-order policy step "
+                    f"{step_index}"
+                )
+            if not bool(action_mask[action]):
+                raise RolloutWorkerError(
+                    f"central policy selected illegal action {action}"
+                )
+            episode_records[episode_id].append(PolicyStep(
+                episode_id=episode_id,
+                worker_id=int(worker_id),
+                player_id=player_id,
+                observation=observation,
+                card_indices=cards,
+                action_mask=action_mask,
+                action=action,
+                old_log_prob=float(log_probs_cpu[row, action].item()),
+                value=float(values_cpu[row].item()),
+                reward=0.0,
+                hidden_before=hidden_cpu[row].copy(),
+            ))
+            hidden_by_player[(episode_id, player_id)] = (
+                next_hidden[row : row + 1].detach()
+            )
+        dispatch_seconds = time.perf_counter() - dispatch_started
+        return {
+            "central_batch_prepare_to_device_seconds": prepare_seconds,
+            "central_forward_seconds": forward_seconds,
+            "central_device_to_host_and_sample_seconds": sample_seconds,
+            "central_record_packaging_seconds": dispatch_seconds,
+            "central_inference_requests": float(len(requests)),
+            "central_inference_batches": 1.0,
+            "central_max_batch_size": float(len(requests)),
+        }
+
+    @staticmethod
+    def _bootstrap_values(
+        model,
+        episode_id: int,
+        bootstrap_inputs: Mapping[
+            int,
+            tuple[np.ndarray, np.ndarray],
+        ],
+        hidden_by_player: Mapping[tuple[int, int], Any],
+    ) -> tuple[dict[tuple[int, int], float], float]:
+        import torch
+
+        started = time.perf_counter()
+        players = sorted(bootstrap_inputs)
+        device = next(model.parameters()).device
+        observations = torch.as_tensor(
+            np.stack([
+                bootstrap_inputs[player][0]
+                for player in players
+            ]),
+            device=device,
+        )
+        card_indices = torch.as_tensor(
+            np.stack([
+                bootstrap_inputs[player][1]
+                for player in players
+            ]),
+            dtype=torch.long,
+            device=device,
+        )
+        hidden = torch.cat([
+            hidden_by_player[(episode_id, player)]
+            for player in players
+        ])
+        with torch.no_grad():
+            _, values, _ = model.forward_step(
+                observations,
+                hidden,
+                card_indices,
+            )
+        values_cpu = values.detach().cpu()
+        return (
+            {
+                (episode_id, player): float(values_cpu[row].item())
+                for row, player in enumerate(players)
+            },
+            time.perf_counter() - started,
+        )
+
     def collect(self, model, episode_ids: tuple[int, ...]) -> tuple[PolicyEpisode, ...]:
         if not episode_ids:
             raise ValueError("episode_ids must not be empty")
         if len(set(episode_ids)) != len(episode_ids):
             raise ValueError("episode_ids must be unique")
+        if len(episode_ids) > self.config.worker_count:
+            raise ValueError(
+                "one central-policy collection can assign at most one "
+                "episode per worker"
+            )
         collect_started = time.perf_counter()
         self.start()
         self._generation += 1
         generation = self._generation
-        buffer = io.BytesIO()
         import torch
 
-        policy_to_cpu_started = time.perf_counter()
-        cpu_state = {
-            name: value.detach().cpu()
-            for name, value in model.state_dict().items()
+        device = next(model.parameters()).device
+        episode_records: dict[int, list[PolicyStep]] = {
+            episode_id: [] for episode_id in episode_ids
         }
-        policy_to_cpu_seconds = (
-            time.perf_counter() - policy_to_cpu_started
-        )
-        serialize_started = time.perf_counter()
-        torch.save(
-            cpu_state,
-            buffer,
-        )
-        specification = model.specification()
-        payload = buffer.getvalue()
-        serialize_seconds = time.perf_counter() - serialize_started
-        dispatch_started = time.perf_counter()
-        for input_queue in self._input_queues:
-            input_queue.put((
-                "load_policy", generation, payload, specification
-            ))
-        policy_dispatch_seconds = time.perf_counter() - dispatch_started
-        policy_load_wait_started = time.perf_counter()
-        ready: set[int] = set()
-        worker_policy_timings: list[Mapping[str, float]] = []
-        while len(ready) < self.config.worker_count:
-            message = self._next_message()
-            if message[0] != "ready" or message[2] != generation:
-                self.close()
-                raise RolloutWorkerError(
-                    f"unexpected policy worker message {message[0]!r}"
-                )
-            ready.add(int(message[1]))
-            worker_policy_timings.append(message[3])
-        policy_load_wait_seconds = (
-            time.perf_counter() - policy_load_wait_started
-        )
+        hidden_by_player = {
+            (episode_id, player_id): model.initial_state(1, device=device)
+            for episode_id in episode_ids
+            for player_id in (0, 1)
+        }
+        generators = {}
+        for episode_id in episode_ids:
+            worker_id = episode_id % self.config.worker_count
+            generator = torch.Generator(device="cpu")
+            generator.manual_seed(
+                episode_seeds(
+                    self.config.master_seed,
+                    worker_id,
+                    episode_id,
+                ).policy_seed
+            )
+            generators[episode_id] = generator
 
+        was_training = model.training
+        model.eval()
         episode_dispatch_started = time.perf_counter()
         for episode_id in episode_ids:
             worker_id = episode_id % self.config.worker_count
@@ -760,40 +864,170 @@ class PolicyVectorRollout:
         )
         episode_wait_started = time.perf_counter()
         completed: dict[int, PolicyEpisode] = {}
-        while len(completed) < len(episode_ids):
-            message = self._next_message()
-            if message[0] != "policy_episode":
-                self.close()
-                raise RolloutWorkerError(
-                    f"unexpected policy worker message {message[0]!r}"
+        pending_messages: deque[tuple] = deque()
+        central_timing: dict[str, float] = {}
+        batch_wait_seconds = 0.0
+        try:
+            while len(completed) < len(episode_ids):
+                message = (
+                    pending_messages.popleft()
+                    if pending_messages
+                    else self._next_message()
                 )
-            _, episode_id, episode = message
-            completed[int(episode_id)] = episode
+                assert message is not None
+                if message[0] == "policy_inference":
+                    requests = [message]
+                    wait_started = time.perf_counter()
+                    deadline = (
+                        wait_started
+                        + self.config.central_inference_batch_wait_seconds
+                    )
+                    while len(requests) < self.config.worker_count:
+                        remaining = deadline - time.perf_counter()
+                        if remaining <= 0:
+                            break
+                        candidate = self._next_message(
+                            timeout_seconds=remaining,
+                            allow_timeout=True,
+                        )
+                        if candidate is None:
+                            break
+                        if candidate[0] == "policy_inference":
+                            requests.append(candidate)
+                        else:
+                            pending_messages.append(candidate)
+                    batch_wait_seconds += time.perf_counter() - wait_started
+                    batch_timing = self._serve_inference_batch(
+                        model,
+                        requests,
+                        episode_records,
+                        hidden_by_player,
+                        generators,
+                    )
+                    dispatch_started = time.perf_counter()
+                    for request in requests:
+                        worker_id = int(request[1])
+                        episode_id = int(request[3])
+                        step_index = int(request[4])
+                        action = episode_records[episode_id][-1].action
+                        self._input_queues[worker_id].put((
+                            "policy_action",
+                            generation,
+                            episode_id,
+                            step_index,
+                            action,
+                        ))
+                    batch_timing["central_response_dispatch_seconds"] = (
+                        time.perf_counter() - dispatch_started
+                    )
+                    for key, value in batch_timing.items():
+                        if key == "central_max_batch_size":
+                            central_timing[key] = max(
+                                central_timing.get(key, 0.0),
+                                float(value),
+                            )
+                        else:
+                            central_timing[key] = (
+                                central_timing.get(key, 0.0)
+                                + float(value)
+                            )
+                    continue
+                if message[0] != "policy_episode_end":
+                    self.close()
+                    raise RolloutWorkerError(
+                        f"unexpected policy worker message {message[0]!r}"
+                    )
+                (
+                    _,
+                    episode_id,
+                    worker_id,
+                    requested_generation,
+                    boundary,
+                    winner,
+                    bootstrap_inputs,
+                    worker_timing,
+                ) = message
+                episode_id = int(episode_id)
+                if int(requested_generation) != generation:
+                    raise RolloutWorkerError(
+                        "worker completed the wrong policy generation"
+                    )
+                records = episode_records[episode_id]
+                if int(worker_timing["worker_agent_steps"]) != len(records):
+                    raise RolloutWorkerError(
+                        "worker and central policy record counts disagree"
+                    )
+                bootstrap: dict[tuple[int, int], float]
+                bootstrap_seconds = 0.0
+                if boundary == "terminated":
+                    bootstrap = {
+                        (episode_id, player_id): 0.0
+                        for player_id in (0, 1)
+                    }
+                    for player_id in (0, 1):
+                        indices = [
+                            index
+                            for index, record in enumerate(records)
+                            if record.player_id == player_id
+                        ]
+                        if indices:
+                            records[indices[-1]].reward = (
+                                0.0
+                                if winner is None
+                                else (
+                                    1.0
+                                    if int(winner) == player_id
+                                    else -1.0
+                                )
+                            )
+                else:
+                    bootstrap, bootstrap_seconds = self._bootstrap_values(
+                        model,
+                        episode_id,
+                        bootstrap_inputs,
+                        hidden_by_player,
+                    )
+                central_timing["central_bootstrap_seconds"] = (
+                    central_timing.get("central_bootstrap_seconds", 0.0)
+                    + bootstrap_seconds
+                )
+                completed[episode_id] = PolicyEpisode(
+                    episode_id=episode_id,
+                    worker_id=int(worker_id),
+                    records=tuple(records),
+                    bootstrap=bootstrap,
+                    boundary=str(boundary),
+                    winner=None if winner is None else int(winner),
+                    timing=worker_timing,
+                )
+        except Exception:
+            self.close()
+            raise
+        finally:
+            model.train(was_training)
         episode_wait_seconds = time.perf_counter() - episode_wait_started
         ordered = tuple(completed[episode_id] for episode_id in episode_ids)
         timing = {
-            "policy_to_cpu_seconds": policy_to_cpu_seconds,
-            "policy_serialize_seconds": serialize_seconds,
-            "policy_dispatch_seconds": policy_dispatch_seconds,
-            "worker_policy_load_wait_seconds": policy_load_wait_seconds,
             "episode_dispatch_seconds": episode_dispatch_seconds,
             "episode_wait_seconds": episode_wait_seconds,
+            "central_batch_wait_seconds": batch_wait_seconds,
             "collect_call_total_seconds": (
                 time.perf_counter() - collect_started
             ),
-            "policy_payload_bytes": float(len(payload)),
-            "policy_transmitted_bytes": float(
-                len(payload) * self.config.worker_count
-            ),
+            "policy_payload_bytes": 0.0,
+            "policy_transmitted_bytes": 0.0,
             "episodes": float(len(ordered)),
         }
-        for key in worker_policy_timings[0]:
-            values = [float(item[key]) for item in worker_policy_timings]
-            timing[f"{key}_sum"] = sum(values)
-            timing[f"{key}_max"] = max(values)
+        timing.update(central_timing)
         for episode in ordered:
             for key, value in episode.timing.items():
-                timing[key] = timing.get(key, 0.0) + float(value)
+                if key == "worker_torch_threads":
+                    timing[key] = max(
+                        timing.get(key, 0.0),
+                        float(value),
+                    )
+                else:
+                    timing[key] = timing.get(key, 0.0) + float(value)
         self.last_timing = timing
         return ordered
 

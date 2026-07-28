@@ -33,6 +33,12 @@ def main() -> None:
     parser.add_argument("--total-agent-steps", type=int, default=10_000)
     parser.add_argument("--rollout-steps", type=int, default=256)
     parser.add_argument("--rollout-workers", type=int, default=1)
+    parser.add_argument("--rollout-worker-threads", type=int, default=2)
+    parser.add_argument(
+        "--central-inference-batch-wait-ms",
+        type=float,
+        default=0.5,
+    )
     parser.add_argument("--max-episode-steps", type=int, default=256)
     parser.add_argument("--sequence-length", type=int, default=32)
     parser.add_argument("--minibatch-sequences", type=int, default=8)
@@ -105,6 +111,10 @@ def main() -> None:
         parser.error("training step counts and model dimensions must be positive")
     if args.rollout_workers <= 0:
         parser.error("rollout-workers must be positive")
+    if args.rollout_worker_threads <= 0:
+        parser.error("rollout-worker-threads must be positive")
+    if args.central_inference_batch_wait_ms < 0:
+        parser.error("central-inference-batch-wait-ms must be non-negative")
     if args.resume is None and args.rollout_workers > 1 and (
         args.opponent_current_weight,
         args.opponent_random_weight,
@@ -166,6 +176,10 @@ def main() -> None:
                     args.opponent_snapshot_interval_steps
                 ),
                 rollout_workers=args.rollout_workers,
+                rollout_worker_torch_threads=args.rollout_worker_threads,
+                central_inference_batch_wait_seconds=(
+                    args.central_inference_batch_wait_ms / 1000.0
+                ),
                 training_class_ids=training_class_ids,
                 training_deck=args.training_deck,
                 match_setup=args.match_setup,

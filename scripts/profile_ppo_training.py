@@ -6,6 +6,7 @@ import json
 import os
 import platform
 import time
+from dataclasses import replace
 from pathlib import Path
 
 import torch
@@ -27,6 +28,11 @@ def main() -> None:
     parser.add_argument("--additional-agent-steps", type=int, default=100_000)
     parser.add_argument("--exclude-warmup-updates", type=int, default=2)
     parser.add_argument("--device", default="cuda")
+    parser.add_argument("--rollout-worker-threads", type=int)
+    parser.add_argument(
+        "--central-inference-batch-wait-ms",
+        type=float,
+    )
     parser.add_argument(
         "--output",
         type=Path,
@@ -37,12 +43,35 @@ def main() -> None:
         parser.error("--additional-agent-steps must be positive")
     if args.exclude_warmup_updates < 0:
         parser.error("--exclude-warmup-updates must be non-negative")
+    if (
+        args.rollout_worker_threads is not None
+        and args.rollout_worker_threads <= 0
+    ):
+        parser.error("--rollout-worker-threads must be positive")
+    if (
+        args.central_inference_batch_wait_ms is not None
+        and args.central_inference_batch_wait_ms < 0
+    ):
+        parser.error(
+            "--central-inference-batch-wait-ms must be non-negative"
+        )
     if args.device.startswith("cuda") and not torch.cuda.is_available():
         parser.error("CUDA was requested but is unavailable")
 
     snapshot = WorkerAssetsSnapshot.build(CardRepository(args.database))
     checkpoint_stat = args.checkpoint.stat()
     trainer = load_checkpoint(args.checkpoint, snapshot, device=args.device)
+    runtime_overrides = {}
+    if args.rollout_worker_threads is not None:
+        runtime_overrides["rollout_worker_torch_threads"] = (
+            args.rollout_worker_threads
+        )
+    if args.central_inference_batch_wait_ms is not None:
+        runtime_overrides["central_inference_batch_wait_seconds"] = (
+            args.central_inference_batch_wait_ms / 1000.0
+        )
+    if runtime_overrides:
+        trainer.config = replace(trainer.config, **runtime_overrides)
     atexit.register(trainer.close)
     starting_agent_steps = trainer.agent_steps
     starting_episodes = trainer.completed_episodes
@@ -95,6 +124,15 @@ def main() -> None:
             and checkpoint_stat.st_mtime_ns == checkpoint_after.st_mtime_ns
         ),
         "device": str(trainer.device),
+        "runtime_rollout_configuration": {
+            "rollout_workers": trainer.config.rollout_workers,
+            "worker_torch_threads": (
+                trainer.config.rollout_worker_torch_threads
+            ),
+            "central_inference_batch_wait_seconds": (
+                trainer.config.central_inference_batch_wait_seconds
+            ),
+        },
         "hardware": {
             "platform": platform.platform(),
             "logical_cpu_count": os.cpu_count(),

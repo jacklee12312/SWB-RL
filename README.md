@@ -221,6 +221,17 @@ of worker episode time versus 22.1% for rules-engine steps. The collector also
 broadcast the roughly 24.8 MiB policy about 6.74 times per PPO update; the four
 workers collectively rebuilt/reloaded about 27 model copies and received about
 670 MiB of policy payload per update.
+The central-inference collector keeps those engine workers persistent but owns
+the only rollout policy in the learner process. Workers send observations and
+receive actions; the learner batches requests for 0.5 ms, evaluates them on the
+same CUDA model, and keeps independent recurrent state and seeded sampling per
+episode. A like-for-like 100,716-step profile from the same 4M checkpoint used
+four workers with two Torch threads each and reached 193.28 agent steps/s,
+26.0% above the previous 153.39-step/s path. Steady rollout cost fell from
+3.39 to 2.07 ms/step (38.9%), median/P95 rollout time fell from 7.70/8.13 to
+4.64/5.01 seconds, and policy transmission fell from 28.1 GiB to zero. Learner
+update cost remained effectively unchanged at 3.03 ms/step, confirming that
+the PPO update boundary and workload were not shortened to produce the gain.
 Still unsupported: this is a baseline PPO and league/evaluation system, not a
 distributed learner, a policy-strength result, or a complete MCTS
 implementation. Multiprocess PPO currently uses current-policy self-play;
