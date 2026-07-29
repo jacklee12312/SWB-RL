@@ -388,6 +388,7 @@ class PPOTrainerTests(unittest.TestCase):
                 hidden_size=64,
                 card_embedding_dim=16,
                 policy_architecture=ENTITY_ACTION_POLICY_ARCHITECTURE,
+                observation_version="v4.1",
                 model_dim=32,
                 transformer_layers=1,
                 attention_heads=4,

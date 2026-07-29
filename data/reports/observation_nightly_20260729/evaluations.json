@@ -1,0 +1,59 @@
+[
+  {
+    "kind": "common_reference",
+    "seed": 20260730,
+    "version": "v4_1",
+    "report": "E:\\SWB project\\data\\reports\\observation_nightly_20260729\\evaluation\\common_v4_1_seed_20260730.json"
+  },
+  {
+    "kind": "common_reference",
+    "seed": 20260730,
+    "version": "v3_6",
+    "report": "E:\\SWB project\\data\\reports\\observation_nightly_20260729\\evaluation\\common_v3_6_seed_20260730.json"
+  },
+  {
+    "kind": "head_to_head",
+    "seed": 20260730,
+    "learner_version": "v4_1",
+    "opponent_version": "v3_6",
+    "report": "E:\\SWB project\\data\\reports\\observation_nightly_20260729\\evaluation\\head_to_head_seed_20260730.json"
+  },
+  {
+    "kind": "common_reference",
+    "seed": 20260731,
+    "version": "v4_1",
+    "report": "E:\\SWB project\\data\\reports\\observation_nightly_20260729\\evaluation\\common_v4_1_seed_20260731.json"
+  },
+  {
+    "kind": "common_reference",
+    "seed": 20260731,
+    "version": "v3_6",
+    "report": "E:\\SWB project\\data\\reports\\observation_nightly_20260729\\evaluation\\common_v3_6_seed_20260731.json"
+  },
+  {
+    "kind": "head_to_head",
+    "seed": 20260731,
+    "learner_version": "v4_1",
+    "opponent_version": "v3_6",
+    "report": "E:\\SWB project\\data\\reports\\observation_nightly_20260729\\evaluation\\head_to_head_seed_20260731.json"
+  },
+  {
+    "kind": "common_reference",
+    "seed": 20260801,
+    "version": "v4_1",
+    "report": "E:\\SWB project\\data\\reports\\observation_nightly_20260729\\evaluation\\common_v4_1_seed_20260801.json"
+  },
+  {
+    "kind": "common_reference",
+    "seed": 20260801,
+    "version": "v3_6",
+    "report": "E:\\SWB project\\data\\reports\\observation_nightly_20260729\\evaluation\\common_v3_6_seed_20260801.json"
+  },
+  {
+    "kind": "head_to_head",
+    "seed": 20260801,
+    "learner_version": "v4_1",
+    "opponent_version": "v3_6",
+    "report": "E:\\SWB project\\data\\reports\\observation_nightly_20260729\\evaluation\\head_to_head_seed_20260801.json"
+  }
+]

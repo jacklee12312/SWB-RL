@@ -1,0 +1,38 @@
+{
+  "20260730": {
+    "v4_1": {
+      "100000": "E:\\SWB project\\data\\checkpoints\\observation_nightly_20260729\\final\\v4_1_seed_20260730_100k.pt",
+      "300000": "E:\\SWB project\\data\\checkpoints\\observation_nightly_20260729\\final\\v4_1_seed_20260730_300k.pt",
+      "500000": "E:\\SWB project\\data\\checkpoints\\observation_nightly_20260729\\final\\v4_1_seed_20260730_500k.pt"
+    },
+    "v3_6": {
+      "100000": "E:\\SWB project\\data\\checkpoints\\observation_nightly_20260729\\final\\v3_6_seed_20260730_100k.pt",
+      "300000": "E:\\SWB project\\data\\checkpoints\\observation_nightly_20260729\\final\\v3_6_seed_20260730_300k.pt",
+      "500000": "E:\\SWB project\\data\\checkpoints\\observation_nightly_20260729\\final\\v3_6_seed_20260730_500k.pt"
+    }
+  },
+  "20260731": {
+    "v4_1": {
+      "100000": "E:\\SWB project\\data\\checkpoints\\observation_nightly_20260729\\final\\v4_1_seed_20260731_100k.pt",
+      "300000": "E:\\SWB project\\data\\checkpoints\\observation_nightly_20260729\\final\\v4_1_seed_20260731_300k.pt",
+      "500000": "E:\\SWB project\\data\\checkpoints\\observation_nightly_20260729\\final\\v4_1_seed_20260731_500k.pt"
+    },
+    "v3_6": {
+      "100000": "E:\\SWB project\\data\\checkpoints\\observation_nightly_20260729\\final\\v3_6_seed_20260731_100k.pt",
+      "300000": "E:\\SWB project\\data\\checkpoints\\observation_nightly_20260729\\final\\v3_6_seed_20260731_300k.pt",
+      "500000": "E:\\SWB project\\data\\checkpoints\\observation_nightly_20260729\\final\\v3_6_seed_20260731_500k.pt"
+    }
+  },
+  "20260801": {
+    "v4_1": {
+      "100000": "E:\\SWB project\\data\\checkpoints\\observation_nightly_20260729\\final\\v4_1_seed_20260801_100k.pt",
+      "300000": "E:\\SWB project\\data\\checkpoints\\observation_nightly_20260729\\final\\v4_1_seed_20260801_300k.pt",
+      "500000": "E:\\SWB project\\data\\checkpoints\\observation_nightly_20260729\\final\\v4_1_seed_20260801_500k.pt"
+    },
+    "v3_6": {
+      "100000": "E:\\SWB project\\data\\checkpoints\\observation_nightly_20260729\\final\\v3_6_seed_20260801_100k.pt",
+      "300000": "E:\\SWB project\\data\\checkpoints\\observation_nightly_20260729\\final\\v3_6_seed_20260801_300k.pt",
+      "500000": "E:\\SWB project\\data\\checkpoints\\observation_nightly_20260729\\final\\v3_6_seed_20260801_500k.pt"
+    }
+  }
+}

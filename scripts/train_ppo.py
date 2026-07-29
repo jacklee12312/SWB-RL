@@ -51,11 +51,11 @@ def main() -> None:
     )
     parser.add_argument(
         "--observation-version",
-        choices=("v3", "v4"),
-        default="v4",
+        choices=("v3", "v4", "v4.1"),
+        default="v4.1",
         help=(
-            "v4 is the corrected observation schema for new training; "
-            "v3 is retained only for legacy checkpoint compatibility"
+            "v4.1 is the structured-token schema for new training; "
+            "v4 and v3 are retained for checkpoint compatibility"
         ),
     )
     parser.add_argument("--hidden-size", type=int, default=512)
@@ -64,6 +64,9 @@ def main() -> None:
     parser.add_argument("--transformer-layers", type=int, default=4)
     parser.add_argument("--attention-heads", type=int, default=8)
     parser.add_argument("--feedforward-dim", type=int, default=1024)
+    parser.add_argument("--learning-rate", type=float, default=3e-4)
+    parser.add_argument("--entropy-coefficient", type=float, default=0.01)
+    parser.add_argument("--clip-ratio", type=float, default=0.2)
     parser.add_argument("--master-seed", type=int, default=20260721)
     parser.add_argument(
         "--classes",
@@ -134,6 +137,12 @@ def main() -> None:
         parser.error("rollout-worker-threads must be positive")
     if args.central_inference_batch_wait_ms < 0:
         parser.error("central-inference-batch-wait-ms must be non-negative")
+    if args.learning_rate <= 0:
+        parser.error("learning-rate must be positive")
+    if args.entropy_coefficient < 0:
+        parser.error("entropy-coefficient must be non-negative")
+    if not 0 < args.clip_ratio < 1:
+        parser.error("clip-ratio must be between zero and one")
     if args.resume is None and args.rollout_workers > 1 and (
         args.opponent_current_weight,
         args.opponent_random_weight,
@@ -191,6 +200,9 @@ def main() -> None:
                 transformer_layers=args.transformer_layers,
                 attention_heads=args.attention_heads,
                 feedforward_dim=args.feedforward_dim,
+                learning_rate=args.learning_rate,
+                entropy_coefficient=args.entropy_coefficient,
+                clip_ratio=args.clip_ratio,
                 max_agent_steps_per_episode=args.max_episode_steps,
                 opponent_current_weight=args.opponent_current_weight,
                 opponent_random_weight=args.opponent_random_weight,

@@ -56,8 +56,11 @@ class SWBGymEnv(gym.Env):
         observation_version = environment_kwargs.setdefault(
             "observation_version", "v4"
         )
-        if observation_version not in {"v3", "v4"}:
-            raise ValueError("SWBGymEnv requires observation_version='v3' or 'v4'")
+        if observation_version not in {"v3", "v4", "v4.1"}:
+            raise ValueError(
+                "SWBGymEnv requires observation_version='v3', 'v4', "
+                "or 'v4.1'"
+            )
         environment_kwargs["card_vocabulary"] = card_vocabulary
         environment_kwargs.setdefault("match_setup", MATCH_SETUP_OFFICIAL)
         self.engine_env = ShadowverseEnv(
@@ -70,11 +73,14 @@ class SWBGymEnv(gym.Env):
         self.learner_player = learner_player
         self.opponent_policy = opponent_policy
         self.render_mode = render_mode
-        self.observation_space = (
-            self.engine_env.observation_v4_space()
-            if observation_version == "v4"
-            else self.engine_env.observation_v3_space()
-        )
+        if observation_version == "v4.1":
+            self.observation_space = (
+                self.engine_env.observation_v4_1_space()
+            )
+        elif observation_version == "v4":
+            self.observation_space = self.engine_env.observation_v4_space()
+        else:
+            self.observation_space = self.engine_env.observation_v3_space()
         self.action_space = _LegalDiscrete(
             self.engine_env.ACTION_SIZE,
             self._sample_mask,

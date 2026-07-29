@@ -4,8 +4,10 @@
 
 ## 结论
 
-Observation v3.6 冻结为旧模型兼容格式；新训练默认使用
-`observation_version="v4"` / `observation-v4.0`。v4 不改变引擎
+Observation v3.6 冻结为旧模型兼容格式；本文件记录的
+`observation_version="v4"` / `observation-v4.0` 也已冻结为字段审计和旧模型
+兼容格式。新训练使用其结构化后继 v4.1，详见
+[`observation_v4_1_design.md`](observation_v4_1_design.md)。v4 不改变引擎
 `GameState`，也不改变 112 个动作编号，只负责把当前玩家依法可见、会影响后续
 转移或最优决策的状态编码给策略。
 
@@ -104,8 +106,11 @@ Observation v3.6 冻结为旧模型兼容格式；新训练默认使用
 
 ## 迁移规则
 
-- 新 PPO、Gym/AEC 包装、向量采样和模拟器模型加载默认使用 v4。
+- v4.0 继续可由 PPO、Gym/AEC、向量采样和模拟器显式选择；新训练 CLI 默认
+  使用 v4.1。
 - v3.6 checkpoint 没有 `observation_version` 配置时，加载器根据存档中的
   `observation-v3.*` 清单自动恢复 v3，不会拿 v4 输入硬套旧权重。
 - v4 改变输入层和 entity-action 字段布局，现有 v3.6 权重不能直接继续训练。
   112 动作含义没有变化。
+- v4.1 再次改变输入层和 token 布局，因此 v4.0 权重也不能由 checkpoint
+  加载器直接续训；两个旧版本仍按原 schema 严格恢复。

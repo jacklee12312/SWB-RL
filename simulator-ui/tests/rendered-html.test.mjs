@@ -65,7 +65,9 @@ test("ships product UI and removes starter-only assets", async () => {
   assert.match(page, /解放奥义/);
   assert.match(page, /选择我的卡组/);
   assert.match(page, /选择 AI 卡组/);
+  assert.match(page, /选择 AI 模型/);
   assert.match(page, /state\.available_decks/);
+  assert.match(page, /availableModels/);
   assert.match(layout, /title:\s*"SWB 对局模拟器"/);
   assert.match(css, /\.game-layout/);
   assert.match(css, /\.card-tile/);

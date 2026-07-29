@@ -16,7 +16,10 @@ if TYPE_CHECKING:
 OBSERVATION_SCHEMA_VERSIONS = {
     "v3": "observation-v3.6",
     "v4": "observation-v4.0",
+    "v4.1": "observation-v4.1",
 }
+# Historical compatibility alias. New code should index
+# OBSERVATION_SCHEMA_VERSIONS by the selected environment version.
 OBSERVATION_SCHEMA_VERSION = OBSERVATION_SCHEMA_VERSIONS["v4"]
 ACTION_LAYOUT_VERSION = "action-112-v2"
 SEED_DERIVATION_VERSION = 1
@@ -36,13 +39,14 @@ def observation_schema_manifest(env: ShadowverseEnv) -> dict[str, object]:
     if env.observation_version not in OBSERVATION_SCHEMA_VERSIONS:
         raise ValueError(
             "versioned observation manifest requires observation_version "
-            "'v3' or 'v4'"
+            "'v3', 'v4', or 'v4.1'"
         )
-    space = (
-        env.observation_v4_space()
-        if env.observation_version == "v4"
-        else env.observation_v3_space()
-    )
+    if env.observation_version == "v4.1":
+        space = env.observation_v4_1_space()
+    elif env.observation_version == "v4":
+        space = env.observation_v4_space()
+    else:
+        space = env.observation_v3_space()
     fields = []
     for name, field in space.spaces.items():
         fields.append({
@@ -91,6 +95,44 @@ def observation_schema_manifest(env: ShadowverseEnv) -> dict[str, object]:
             "listeners_per_source": observation_v4.MAX_LISTENERS_PER_SOURCE,
             "granted_abilities_per_source": (
                 observation_v4.MAX_GRANTED_ABILITIES
+            ),
+        }
+    elif env.observation_version == "v4.1":
+        from swb.engine import observation_v4_1
+
+        manifest["encoding"] = {
+            "categorical_values": "typed-indices",
+            "card_identity": "shared-card-vocabulary-index",
+            "structured_effect_identity": (
+                "stable-sha256-32-bits-as-four-byte-tokens"
+            ),
+            "zone_identity": "sparse-card-count-pairs-with-overflow",
+            "current_own_deck": "order-independent-physical-card-rows",
+            "raw_entity_ids": "never-encoded",
+        }
+        manifest["fixed_limits"] = {
+            "transformer_tokens": observation_v4_1.STRUCTURED_TOKEN_COUNT,
+            "public_history": observation_v4_1.HISTORY_LENGTH,
+            "history_records_per_group": (
+                observation_v4_1.HISTORY_RECORDS_PER_GROUP
+            ),
+            "record_groups": observation_v4_1.RECORD_GROUPS,
+            "leader_area_slots": observation_v4_1.LEADER_AREA_SLOTS,
+            "zone_groups": observation_v4_1.ZONE_GROUPS,
+            "zone_card_kinds_per_group": (
+                observation_v4_1.MAX_ZONE_CARD_KINDS
+            ),
+            "hand_modifiers_per_card": (
+                observation_v4_1.MAX_HAND_MODIFIERS
+            ),
+            "board_modifiers_per_card": (
+                observation_v4_1.MAX_BOARD_MODIFIERS
+            ),
+            "listeners_per_source": (
+                observation_v4_1.v4.MAX_LISTENERS_PER_SOURCE
+            ),
+            "granted_abilities_per_source": (
+                observation_v4_1.v4.MAX_GRANTED_ABILITIES
             ),
         }
     return manifest

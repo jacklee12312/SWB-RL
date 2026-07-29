@@ -86,6 +86,7 @@ class SimulatorRequestHandler(BaseHTTPRequestHandler):
                     human_player=int(body.get("human_player", 0)),
                     human_deck=body.get("human_deck"),
                     ai_deck=body.get("ai_deck"),
+                    model=body.get("model"),
                 )
                 self._send_json(state)
                 return

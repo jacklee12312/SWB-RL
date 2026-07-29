@@ -48,6 +48,15 @@ class GymEnvironmentTests(unittest.TestCase):
             skip_render_check=True,
         )
 
+    def test_v4_1_wrapper_uses_structured_observation_space(self) -> None:
+        env = self.make_env(
+            observation_version="v4.1",
+            match_setup="legacy",
+        )
+        observation, _ = env.reset(seed=3)
+        self.assertEqual(env.engine_env.observation_version, "v4.1")
+        self.assertTrue(env.observation_space.contains(observation))
+
     def test_second_player_wrapper_advances_builtin_opponent(self) -> None:
         env = self.make_env(
             learner_player=1,

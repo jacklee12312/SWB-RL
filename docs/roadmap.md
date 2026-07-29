@@ -1,6 +1,6 @@
 # SWB Engine Roadmap
 
-Last refreshed: 2026-07-28.
+Last refreshed: 2026-07-29.
 
 This file tracks implementation priorities and known gaps. Treat executable
 code and tests as the source of truth when this file drifts.
@@ -10,21 +10,34 @@ code and tests as the source of truth when this file drifts.
 - Database: 826 cards, 735 collectible cards, 91 non-collectible/generated
   cards from set `90000`.
 - Latest SVA source: `https://sva.hypd.asia/data/cards.json`.
-- Tests: `python -m unittest discover -s tests -v` discovers 2643 behavioral
-  contracts (2026-07-28 Observation v4 field/privacy/version migration,
+- Tests: `python -m unittest discover -s tests -v` discovers 2664 behavioral
+  contracts (2026-07-29 Observation v4 field/privacy/version migration,
   fixed-deck specialist scheduling, official deck QR import/registry,
   entity/action-conditioned policy, CUDA/checkpoint, persistent simulator
   history, event-timeline verification, and Accelerate/conditional-keyword
   legality).
 - RL adapter: fixed 112-action space; the default v1 observation is 304
   floats, opt-in v2 preserves the structured compatibility mapping, and v3.6
-  is frozen for old checkpoint compatibility. New training defaults to the
-  corrected v4 NumPy/Gymnasium schema without renumbering actions. V4 removes
-  audited state collisions for dynamic hand abilities, modifier duration, and
-  graveyard candidates; adds current own-deck composition, detailed rule
-  history, leader-area/listener runtime, fusion/granted-effect identity, and
-  explicit Union Burst state; and routes action candidates through shared card
-  embeddings. Hidden decklists remain the default.
+  plus v4.0 are frozen for checkpoint compatibility. New command-line training selects
+  v4.1, which retains v4.0's audited information/privacy contract but replaces
+  its broad flat input with 15,757 non-card values, 1,290 shared card indices,
+  and 93 semantic Transformer tokens. The standard 256-wide Transformer plus
+  512-wide GRU remains unchanged while the current 826-card model falls to
+  5,581,698 parameters. Modifiers/effects/listeners are pooled into their
+  owning entity, choice candidates are action-centered, own-deck physical rows
+  are order-independent, and hidden decklists remain the default.
+- The completed v3.6/v4.1 follow-up screened six v4.1 PPO configurations,
+  selected learning rate `1e-4` with two epochs and minibatch sequences of
+  eight, then trained both versions from scratch to about 500k learner
+  decisions on three seeds. Against one frozen reference, v4.1 averaged
+  84.52% versus v3.6's 82.02%, but the seed-level difference interval
+  (-2.11 to +7.11 points) includes zero. In 600 direct same-deck games, v4.1
+  scored 49.33% (Wilson 95% CI 45.35%-53.33%, exact `p=0.775`). The versions
+  are therefore currently tied rather than evidence that either is stronger.
+  V4.1 averaged 99.84 steps/s versus v3.6's 271.25, a 2.72x wall-clock cost.
+  Keep the richer v4.1 route, but reduce token/inference cost and diagnose
+  Myuu truncations before increasing model size. Full staged and three-seed
+  results are in `docs/observation_v3_6_v4_1_learning_ablation.md`.
 - Training-facing AEC/Gym, single- and multi-process PPO rollouts, fixed
   evaluation, and match scripts default to the official setup preset, so
   seeded random first-player assignment, both mulligan decisions, and Extra PP
@@ -85,11 +98,15 @@ code and tests as the source of truth when this file drifts.
   choices, attacks, evolution, Super-Evolution, and Extra PP through a local
   JSON service, hides the AI hand, serves the downloaded card art, and defaults
   to deterministic argmax inference from the 1,206,159-decision Havencraft
-  specialist. Both human and AI deck selectors expose every validated named
-  fixed deck, persist the exact paired manifests in history, and retain the
-  specialist Havencraft list as the default. Selecting a non-Havencraft AI deck
-  emits a visible strength warning because only Havencraft-side trajectories
-  entered this checkpoint's PPO updates.
+  specialist. The toolbar can switch, at new-match boundaries, among the
+  inference checkpoints recursively discovered from an allowlisted local
+  directory; auxiliary history/tuning/init/preflight files are hidden and
+  arbitrary request paths are rejected. Both human and AI deck selectors expose
+  every validated named fixed deck, persist the model ID and exact paired
+  manifests in history, and retain each checkpoint's declared specialist deck
+  as the default. Selecting a non-Havencraft AI deck emits a visible strength
+  warning because only Havencraft-side trajectories entered the current
+  specialist checkpoints' PPO updates.
   Simulator matches are now atomically persisted as local ignored JSON records,
   with unfinished matches retained as abandoned records. Schema-v2 history
   stores complete action-by-action snapshots for both hands, unredacted logs

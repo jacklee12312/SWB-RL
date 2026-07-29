@@ -199,7 +199,15 @@ def load_checkpoint(
     )
     config_payload.setdefault(
         "observation_version",
-        "v3" if checkpoint_observation.startswith("observation-v3") else "v4",
+        (
+            "v3"
+            if checkpoint_observation.startswith("observation-v3")
+            else (
+                "v4.1"
+                if checkpoint_observation.startswith("observation-v4.1")
+                else "v4"
+            )
+        ),
     )
     trainer = PPOTrainer(
         snapshot,

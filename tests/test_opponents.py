@@ -45,6 +45,16 @@ class OpponentPoolTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "increase monotonically"):
             pool.register_snapshot("stale.pt", agent_steps=300)
 
+    def test_zero_weight_history_does_not_write_unused_snapshots(self) -> None:
+        pool = OpponentPool(
+            42,
+            current_weight=1.0,
+            historical_weight=0.0,
+            snapshot_interval_steps=100,
+        )
+        self.assertFalse(pool.snapshot_due(100))
+        self.assertFalse(pool.snapshot_due(1_000_000))
+
     def test_state_round_trip_preserves_selection_progress(self) -> None:
         pool = self.make_pool()
         pool.register_snapshot("one.pt", agent_steps=100)

@@ -100,8 +100,19 @@ class PPOConfig:
             raise ValueError(
                 f"unsupported policy architecture {self.policy_architecture!r}"
             )
-        if self.observation_version not in {"v3", "v4"}:
-            raise ValueError("observation_version must be 'v3' or 'v4'")
+        if self.observation_version not in {"v3", "v4", "v4.1"}:
+            raise ValueError(
+                "observation_version must be 'v3', 'v4', or 'v4.1'"
+            )
+        if (
+            self.observation_version == "v4.1"
+            and self.policy_architecture
+            != ENTITY_ACTION_POLICY_ARCHITECTURE
+        ):
+            raise ValueError(
+                "observation_version='v4.1' requires "
+                "policy_architecture='entity_action_v1'"
+            )
         if (
             self.policy_architecture == ENTITY_ACTION_POLICY_ARCHITECTURE
             and self.model_dim % self.attention_heads
@@ -173,6 +184,9 @@ class ObservationFlattener:
         "own_hand_fusion_cards",
         "public_board_fusion_cards",
         "leader_modifier_source_cards",
+        "zone_cards",
+        "own_deck_cards",
+        "record_cards",
     )
     HISTOGRAM_FIELDS = frozenset({
         "own_initial_deck",
@@ -431,7 +445,13 @@ class PPOTrainer:
                 if expected_versions.observation_version.startswith(
                     "observation-v3"
                 )
-                else "v4"
+                else (
+                    "v4.1"
+                    if expected_versions.observation_version.startswith(
+                        "observation-v4.1"
+                    )
+                    else "v4"
+                )
             ),
         )
         config = PPOConfig(**config_values)

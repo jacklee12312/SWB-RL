@@ -99,10 +99,12 @@ class _RecurrentPolicy(_Policy):
         model: MaskedPolicyNetwork,
         flattener: ObservationFlattener,
         device: torch.device,
+        observation_version: str,
     ) -> None:
         self.model = model
         self.flattener = flattener
         self.device = device
+        self.observation_version = observation_version
         self.hidden: dict[int, torch.Tensor] = {}
 
     def reset(self) -> None:
@@ -112,7 +114,9 @@ class _RecurrentPolicy(_Policy):
         }
 
     def action(self, env, player_id, action_mask) -> int:
-        observation = env.observation(
+        observation = _policy_observation(
+            env,
+            observation_version=self.observation_version,
             perspective=player_id,
             action_mask=action_mask,
         )
@@ -134,6 +138,58 @@ class _RecurrentPolicy(_Policy):
         return int(masked.argmax(dim=-1).item())
 
 
+def _policy_observation(
+    env: ShadowverseEnv,
+    *,
+    observation_version: str,
+    perspective: int,
+    action_mask: np.ndarray,
+) -> object:
+    """Encode one shared engine state in the policy's own schema.
+
+    Cross-version evaluation must not force both frozen policies through the
+    learner's observation encoder. Calling the encoder directly also avoids
+    mutating the live environment's configured schema or its observation
+    cache.
+    """
+    if observation_version == env.observation_version:
+        return env.observation(
+            perspective=perspective,
+            action_mask=action_mask,
+        )
+    if observation_version == "v3":
+        from swb.engine.observation_v3 import encode_observation_v3
+
+        return encode_observation_v3(
+            env,
+            perspective=perspective,
+            action_mask=action_mask,
+            open_decklists=env.open_decklists,
+        )
+    if observation_version == "v4":
+        from swb.engine.observation_v4 import encode_observation_v4
+
+        return encode_observation_v4(
+            env,
+            perspective=perspective,
+            action_mask=action_mask,
+            open_decklists=env.open_decklists,
+        )
+    if observation_version == "v4.1":
+        from swb.engine.observation_v4_1 import encode_observation_v4_1
+
+        return encode_observation_v4_1(
+            env,
+            perspective=perspective,
+            action_mask=action_mask,
+            open_decklists=env.open_decklists,
+        )
+    raise ValueError(
+        f"unsupported recurrent-policy observation version "
+        f"{observation_version!r}"
+    )
+
+
 def _wilson_interval(wins: float, games: int) -> tuple[float, float]:
     if games == 0:
         return (0.0, 0.0)
@@ -152,23 +208,32 @@ def _opponent_policy(
     trainer: PPOTrainer,
     snapshot: WorkerAssetsSnapshot,
     seed: int,
+    historical_trainer: PPOTrainer | None = None,
 ) -> _Policy:
     if config.opponent_kind == "random_legal":
         return _RandomLegalPolicy(seed)
     if config.opponent_kind == "fixed":
         return _FirstLegalPolicy()
     if config.opponent_kind == "current":
-        return _RecurrentPolicy(trainer.model, trainer.flattener, trainer.device)
-    historical = load_checkpoint(
-        Path(config.opponent_checkpoint),
-        snapshot,
-        device=str(trainer.device),
-        restore_rng_state=False,
-    )
+        return _RecurrentPolicy(
+            trainer.model,
+            trainer.flattener,
+            trainer.device,
+            trainer.config.observation_version,
+        )
+    historical = historical_trainer
+    if historical is None:
+        historical = load_checkpoint(
+            Path(config.opponent_checkpoint),
+            snapshot,
+            device=str(trainer.device),
+            restore_rng_state=False,
+        )
     return _RecurrentPolicy(
         historical.model,
         historical.flattener,
         historical.device,
+        historical.config.observation_version,
     )
 
 
@@ -301,12 +366,21 @@ def evaluate(
         if config.training_deck is None
         else get_fixed_training_deck(config.training_deck)
     )
+    historical_trainer = None
     opponent_checkpoint_sha256 = None
     if config.opponent_kind == "historical":
         opponent_checkpoint_sha256 = hashlib.sha256(
             Path(config.opponent_checkpoint).read_bytes()
         ).hexdigest()
     try:
+        if config.opponent_kind == "historical":
+            historical_trainer = load_checkpoint(
+                Path(config.opponent_checkpoint),
+                snapshot,
+                device=str(trainer.device),
+                restore_rng_state=False,
+            )
+            historical_trainer.model.eval()
         for class_id in config.class_ids:
             for deck_index in range(config.seed_count):
                 deck_seed = derive_seed(
@@ -377,13 +451,17 @@ def evaluate(
                     )
                     _, info = env.reset(seed=engine_seed)
                     learner_policy = _RecurrentPolicy(
-                        trainer.model, trainer.flattener, trainer.device
+                        trainer.model,
+                        trainer.flattener,
+                        trainer.device,
+                        trainer.config.observation_version,
                     )
                     opponent = _opponent_policy(
                         config,
                         trainer,
                         snapshot,
                         derive_seed(engine_seed, "opponent_policy"),
+                        historical_trainer,
                     )
                     learner_policy.reset()
                     opponent.reset()
@@ -475,6 +553,8 @@ def evaluate(
         torch.set_rng_state(torch_rng)
         trainer.torch_generator.set_state(generator_rng)
         trainer.model.train(was_training)
+        if historical_trainer is not None:
+            historical_trainer.close()
 
     mechanism_universe = {
         *(event_type.value for event_type in EventType),

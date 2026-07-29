@@ -73,7 +73,11 @@ class OpponentPool:
         return selected
 
     def snapshot_due(self, agent_steps: int) -> bool:
-        return agent_steps - self.last_snapshot_steps >= self.snapshot_interval_steps
+        return (
+            self.historical_weight > 0
+            and agent_steps - self.last_snapshot_steps
+            >= self.snapshot_interval_steps
+        )
 
     def register_snapshot(self, path: str | Path, *, agent_steps: int) -> OpponentEntry:
         if agent_steps <= self.last_snapshot_steps:

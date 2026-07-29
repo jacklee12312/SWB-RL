@@ -147,11 +147,13 @@ def main() -> None:
                         learner_trainer.model,
                         learner_trainer.flattener,
                         learner_trainer.device,
+                        learner_trainer.config.observation_version,
                     )
                     opponent_policy = _RecurrentPolicy(
                         opponent_trainer.model,
                         opponent_trainer.flattener,
                         opponent_trainer.device,
+                        opponent_trainer.config.observation_version,
                     )
                     learner_policy.reset()
                     opponent_policy.reset()

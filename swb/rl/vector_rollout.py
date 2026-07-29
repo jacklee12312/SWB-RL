@@ -80,8 +80,10 @@ class RolloutConfig:
             raise ValueError(f"unsupported multiprocessing start method {self.start_method!r}")
         if self.match_setup not in MATCH_SETUP_VALUES:
             raise ValueError("match_setup must be 'legacy' or 'official'")
-        if self.observation_version not in {"v3", "v4"}:
-            raise ValueError("observation_version must be 'v3' or 'v4'")
+        if self.observation_version not in {"v3", "v4", "v4.1"}:
+            raise ValueError(
+                "observation_version must be 'v3', 'v4', or 'v4.1'"
+            )
         if self.opponent_decks:
             if self.training_deck is None:
                 raise ValueError(

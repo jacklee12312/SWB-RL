@@ -1,0 +1,493 @@
+{
+  "schema_version": 1,
+  "started_at": "2026-07-28T20:24:28",
+  "finished_at": "2026-07-29T03:43:18",
+  "deadline": "2026-07-29T08:20:00",
+  "selected_v4_1_hyperparameters": {
+    "name": "c_lr1e4",
+    "learning_rate": 0.0001,
+    "update_epochs": 2,
+    "minibatch_sequences": 8,
+    "rollout_steps": 2048,
+    "entropy_coefficient": 0.01,
+    "clip_ratio": 0.2
+  },
+  "final_models": {
+    "20260730": {
+      "v4_1": {
+        "100000": "E:\\SWB project\\data\\checkpoints\\observation_nightly_20260729\\final\\v4_1_seed_20260730_100k.pt",
+        "300000": "E:\\SWB project\\data\\checkpoints\\observation_nightly_20260729\\final\\v4_1_seed_20260730_300k.pt",
+        "500000": "E:\\SWB project\\data\\checkpoints\\observation_nightly_20260729\\final\\v4_1_seed_20260730_500k.pt"
+      },
+      "v3_6": {
+        "100000": "E:\\SWB project\\data\\checkpoints\\observation_nightly_20260729\\final\\v3_6_seed_20260730_100k.pt",
+        "300000": "E:\\SWB project\\data\\checkpoints\\observation_nightly_20260729\\final\\v3_6_seed_20260730_300k.pt",
+        "500000": "E:\\SWB project\\data\\checkpoints\\observation_nightly_20260729\\final\\v3_6_seed_20260730_500k.pt"
+      }
+    },
+    "20260731": {
+      "v4_1": {
+        "100000": "E:\\SWB project\\data\\checkpoints\\observation_nightly_20260729\\final\\v4_1_seed_20260731_100k.pt",
+        "300000": "E:\\SWB project\\data\\checkpoints\\observation_nightly_20260729\\final\\v4_1_seed_20260731_300k.pt",
+        "500000": "E:\\SWB project\\data\\checkpoints\\observation_nightly_20260729\\final\\v4_1_seed_20260731_500k.pt"
+      },
+      "v3_6": {
+        "100000": "E:\\SWB project\\data\\checkpoints\\observation_nightly_20260729\\final\\v3_6_seed_20260731_100k.pt",
+        "300000": "E:\\SWB project\\data\\checkpoints\\observation_nightly_20260729\\final\\v3_6_seed_20260731_300k.pt",
+        "500000": "E:\\SWB project\\data\\checkpoints\\observation_nightly_20260729\\final\\v3_6_seed_20260731_500k.pt"
+      }
+    },
+    "20260801": {
+      "v4_1": {
+        "100000": "E:\\SWB project\\data\\checkpoints\\observation_nightly_20260729\\final\\v4_1_seed_20260801_100k.pt",
+        "300000": "E:\\SWB project\\data\\checkpoints\\observation_nightly_20260729\\final\\v4_1_seed_20260801_300k.pt",
+        "500000": "E:\\SWB project\\data\\checkpoints\\observation_nightly_20260729\\final\\v4_1_seed_20260801_500k.pt"
+      },
+      "v3_6": {
+        "100000": "E:\\SWB project\\data\\checkpoints\\observation_nightly_20260729\\final\\v3_6_seed_20260801_100k.pt",
+        "300000": "E:\\SWB project\\data\\checkpoints\\observation_nightly_20260729\\final\\v3_6_seed_20260801_300k.pt",
+        "500000": "E:\\SWB project\\data\\checkpoints\\observation_nightly_20260729\\final\\v3_6_seed_20260801_500k.pt"
+      }
+    }
+  },
+  "evaluations": [
+    {
+      "kind": "common_reference",
+      "seed": 20260730,
+      "version": "v4_1",
+      "report": "E:\\SWB project\\data\\reports\\observation_nightly_20260729\\evaluation\\common_v4_1_seed_20260730.json",
+      "win_rate": 0.8428571428571429,
+      "confidence_interval_95": [
+        0.773525579783431,
+        0.8938758828204002
+      ],
+      "games": 140,
+      "truncated": 2,
+      "illegal_actions": 0,
+      "action_mask_mismatches": 0
+    },
+    {
+      "kind": "common_reference",
+      "seed": 20260730,
+      "version": "v3_6",
+      "report": "E:\\SWB project\\data\\reports\\observation_nightly_20260729\\evaluation\\common_v3_6_seed_20260730.json",
+      "win_rate": 0.8392857142857143,
+      "confidence_interval_95": [
+        0.769525640897924,
+        0.8909237231371173
+      ],
+      "games": 140,
+      "truncated": 3,
+      "illegal_actions": 0,
+      "action_mask_mismatches": 0
+    },
+    {
+      "kind": "head_to_head",
+      "seed": 20260730,
+      "learner_version": "v4_1",
+      "opponent_version": "v3_6",
+      "report": "E:\\SWB project\\data\\reports\\observation_nightly_20260729\\evaluation\\head_to_head_seed_20260730.json",
+      "win_rate": 0.515,
+      "confidence_interval_95": [
+        0.4461084919274572,
+        0.5833261482812249
+      ],
+      "games": 200,
+      "truncated": 0,
+      "illegal_actions": 0,
+      "action_mask_mismatches": 0
+    },
+    {
+      "kind": "common_reference",
+      "seed": 20260731,
+      "version": "v4_1",
+      "report": "E:\\SWB project\\data\\reports\\observation_nightly_20260729\\evaluation\\common_v4_1_seed_20260731.json",
+      "win_rate": 0.85,
+      "confidence_interval_95": [
+        0.7815562129072435,
+        0.8997494468341674
+      ],
+      "games": 140,
+      "truncated": 2,
+      "illegal_actions": 0,
+      "action_mask_mismatches": 0
+    },
+    {
+      "kind": "common_reference",
+      "seed": 20260731,
+      "version": "v3_6",
+      "report": "E:\\SWB project\\data\\reports\\observation_nightly_20260729\\evaluation\\common_v3_6_seed_20260731.json",
+      "win_rate": 0.8142857142857143,
+      "confidence_interval_95": [
+        0.7417902285819999,
+        0.8699944454715118
+      ],
+      "games": 140,
+      "truncated": 2,
+      "illegal_actions": 0,
+      "action_mask_mismatches": 0
+    },
+    {
+      "kind": "head_to_head",
+      "seed": 20260731,
+      "learner_version": "v4_1",
+      "opponent_version": "v3_6",
+      "report": "E:\\SWB project\\data\\reports\\observation_nightly_20260729\\evaluation\\head_to_head_seed_20260731.json",
+      "win_rate": 0.435,
+      "confidence_interval_95": [
+        0.36815725502699076,
+        0.504292637402054
+      ],
+      "games": 200,
+      "truncated": 0,
+      "illegal_actions": 0,
+      "action_mask_mismatches": 0
+    },
+    {
+      "kind": "common_reference",
+      "seed": 20260801,
+      "version": "v4_1",
+      "report": "E:\\SWB project\\data\\reports\\observation_nightly_20260729\\evaluation\\common_v4_1_seed_20260801.json",
+      "win_rate": 0.8428571428571429,
+      "confidence_interval_95": [
+        0.773525579783431,
+        0.8938758828204002
+      ],
+      "games": 140,
+      "truncated": 2,
+      "illegal_actions": 0,
+      "action_mask_mismatches": 0
+    },
+    {
+      "kind": "common_reference",
+      "seed": 20260801,
+      "version": "v3_6",
+      "report": "E:\\SWB project\\data\\reports\\observation_nightly_20260729\\evaluation\\common_v3_6_seed_20260801.json",
+      "win_rate": 0.8071428571428572,
+      "confidence_interval_95": [
+        0.7339444131557813,
+        0.8639360637601508
+      ],
+      "games": 140,
+      "truncated": 2,
+      "illegal_actions": 0,
+      "action_mask_mismatches": 0
+    },
+    {
+      "kind": "head_to_head",
+      "seed": 20260801,
+      "learner_version": "v4_1",
+      "opponent_version": "v3_6",
+      "report": "E:\\SWB project\\data\\reports\\observation_nightly_20260729\\evaluation\\head_to_head_seed_20260801.json",
+      "win_rate": 0.53,
+      "confidence_interval_95": [
+        0.4609168291500183,
+        0.5979524512673458
+      ],
+      "games": 200,
+      "truncated": 0,
+      "illegal_actions": 0,
+      "action_mask_mismatches": 0
+    }
+  ],
+  "aggregates": {
+    "v3_6": {
+      "seed_win_rates": [
+        0.8392857142857143,
+        0.8142857142857143,
+        0.8071428571428572
+      ],
+      "mean_win_rate": 0.8202380952380953,
+      "population_stddev": 0.013780758217607414
+    },
+    "v4_1": {
+      "seed_win_rates": [
+        0.8428571428571429,
+        0.85,
+        0.8428571428571429
+      ],
+      "mean_win_rate": 0.8452380952380952,
+      "population_stddev": 0.003367175148507357
+    },
+    "v4_1_head_to_head": {
+      "seed_win_rates": [
+        0.515,
+        0.435,
+        0.53
+      ],
+      "mean_win_rate": 0.49333333333333335,
+      "population_stddev": 0.04169998667732269,
+      "pooled_win_rate": 0.49333333333333335,
+      "pooled_wilson_95": [
+        0.45349913110256507,
+        0.5332523582442844
+      ]
+    }
+  },
+  "integrity": {
+    "illegal_actions": 0,
+    "action_mask_mismatches": 0,
+    "truncated": 13
+  },
+  "completed_commands": [
+    {
+      "name": "tune_a_baseline_40k_train",
+      "returncode": 0,
+      "elapsed_seconds": 409.02521019999404,
+      "log": "E:\\SWB project\\data\\reports\\observation_nightly_20260729\\logs\\tune_a_baseline_40k_train.log"
+    },
+    {
+      "name": "tune_a_baseline_40k_eval",
+      "returncode": 0,
+      "elapsed_seconds": 53.52182770008221,
+      "log": "E:\\SWB project\\data\\reports\\observation_nightly_20260729\\logs\\tune_a_baseline_40k_eval.log"
+    },
+    {
+      "name": "tune_b_lr2e4_40k_train",
+      "returncode": 0,
+      "elapsed_seconds": 425.04481230000965,
+      "log": "E:\\SWB project\\data\\reports\\observation_nightly_20260729\\logs\\tune_b_lr2e4_40k_train.log"
+    },
+    {
+      "name": "tune_b_lr2e4_40k_eval",
+      "returncode": 0,
+      "elapsed_seconds": 59.54045369999949,
+      "log": "E:\\SWB project\\data\\reports\\observation_nightly_20260729\\logs\\tune_b_lr2e4_40k_eval.log"
+    },
+    {
+      "name": "tune_c_lr1e4_40k_train",
+      "returncode": 0,
+      "elapsed_seconds": 438.7210122999968,
+      "log": "E:\\SWB project\\data\\reports\\observation_nightly_20260729\\logs\\tune_c_lr1e4_40k_train.log"
+    },
+    {
+      "name": "tune_c_lr1e4_40k_eval",
+      "returncode": 0,
+      "elapsed_seconds": 55.31751310010441,
+      "log": "E:\\SWB project\\data\\reports\\observation_nightly_20260729\\logs\\tune_c_lr1e4_40k_eval.log"
+    },
+    {
+      "name": "tune_d_lr2e4_e3_mb16_40k_train",
+      "returncode": 0,
+      "elapsed_seconds": 400.49741309997626,
+      "log": "E:\\SWB project\\data\\reports\\observation_nightly_20260729\\logs\\tune_d_lr2e4_e3_mb16_40k_train.log"
+    },
+    {
+      "name": "tune_d_lr2e4_e3_mb16_40k_eval",
+      "returncode": 0,
+      "elapsed_seconds": 55.51560249994509,
+      "log": "E:\\SWB project\\data\\reports\\observation_nightly_20260729\\logs\\tune_d_lr2e4_e3_mb16_40k_eval.log"
+    },
+    {
+      "name": "tune_e_lr1e4_e4_mb16_40k_train",
+      "returncode": 0,
+      "elapsed_seconds": 443.42699009994976,
+      "log": "E:\\SWB project\\data\\reports\\observation_nightly_20260729\\logs\\tune_e_lr1e4_e4_mb16_40k_train.log"
+    },
+    {
+      "name": "tune_e_lr1e4_e4_mb16_40k_eval",
+      "returncode": 0,
+      "elapsed_seconds": 57.51905590004753,
+      "log": "E:\\SWB project\\data\\reports\\observation_nightly_20260729\\logs\\tune_e_lr1e4_e4_mb16_40k_eval.log"
+    },
+    {
+      "name": "tune_f_lr2e4_e3_mb16_r4096_40k_train",
+      "returncode": 0,
+      "elapsed_seconds": 413.10081019997597,
+      "log": "E:\\SWB project\\data\\reports\\observation_nightly_20260729\\logs\\tune_f_lr2e4_e3_mb16_r4096_40k_train.log"
+    },
+    {
+      "name": "tune_f_lr2e4_e3_mb16_r4096_40k_eval",
+      "returncode": 0,
+      "elapsed_seconds": 60.63324700004887,
+      "log": "E:\\SWB project\\data\\reports\\observation_nightly_20260729\\logs\\tune_f_lr2e4_e3_mb16_r4096_40k_eval.log"
+    },
+    {
+      "name": "tune_c_lr1e4_120k_train",
+      "returncode": 0,
+      "elapsed_seconds": 805.8567119999789,
+      "log": "E:\\SWB project\\data\\reports\\observation_nightly_20260729\\logs\\tune_c_lr1e4_120k_train.log"
+    },
+    {
+      "name": "tune_c_lr1e4_120k_eval",
+      "returncode": 0,
+      "elapsed_seconds": 102.01819049997721,
+      "log": "E:\\SWB project\\data\\reports\\observation_nightly_20260729\\logs\\tune_c_lr1e4_120k_eval.log"
+    },
+    {
+      "name": "tune_e_lr1e4_e4_mb16_120k_train",
+      "returncode": 0,
+      "elapsed_seconds": 803.9972769999877,
+      "log": "E:\\SWB project\\data\\reports\\observation_nightly_20260729\\logs\\tune_e_lr1e4_e4_mb16_120k_train.log"
+    },
+    {
+      "name": "tune_e_lr1e4_e4_mb16_120k_eval",
+      "returncode": 0,
+      "elapsed_seconds": 103.74573030008469,
+      "log": "E:\\SWB project\\data\\reports\\observation_nightly_20260729\\logs\\tune_e_lr1e4_e4_mb16_120k_eval.log"
+    },
+    {
+      "name": "final_v4_1_seed_20260730_100k",
+      "returncode": 0,
+      "elapsed_seconds": 1010.8103804999264,
+      "log": "E:\\SWB project\\data\\reports\\observation_nightly_20260729\\logs\\final_v4_1_seed_20260730_100k.log"
+    },
+    {
+      "name": "final_v4_1_seed_20260730_300k",
+      "returncode": 0,
+      "elapsed_seconds": 1997.7558558000019,
+      "log": "E:\\SWB project\\data\\reports\\observation_nightly_20260729\\logs\\final_v4_1_seed_20260730_300k.log"
+    },
+    {
+      "name": "final_v4_1_seed_20260730_500k",
+      "returncode": 0,
+      "elapsed_seconds": 1987.676569400006,
+      "log": "E:\\SWB project\\data\\reports\\observation_nightly_20260729\\logs\\final_v4_1_seed_20260730_500k.log"
+    },
+    {
+      "name": "final_v3_6_seed_20260730_100k",
+      "returncode": 0,
+      "elapsed_seconds": 381.0260172999697,
+      "log": "E:\\SWB project\\data\\reports\\observation_nightly_20260729\\logs\\final_v3_6_seed_20260730_100k.log"
+    },
+    {
+      "name": "final_v3_6_seed_20260730_300k",
+      "returncode": 0,
+      "elapsed_seconds": 737.9532851000549,
+      "log": "E:\\SWB project\\data\\reports\\observation_nightly_20260729\\logs\\final_v3_6_seed_20260730_300k.log"
+    },
+    {
+      "name": "final_v3_6_seed_20260730_500k",
+      "returncode": 0,
+      "elapsed_seconds": 745.9107811000431,
+      "log": "E:\\SWB project\\data\\reports\\observation_nightly_20260729\\logs\\final_v3_6_seed_20260730_500k.log"
+    },
+    {
+      "name": "final_v4_1_seed_20260731_100k",
+      "returncode": 0,
+      "elapsed_seconds": 1026.5946078000125,
+      "log": "E:\\SWB project\\data\\reports\\observation_nightly_20260729\\logs\\final_v4_1_seed_20260731_100k.log"
+    },
+    {
+      "name": "final_v4_1_seed_20260731_300k",
+      "returncode": 0,
+      "elapsed_seconds": 1977.3032848000294,
+      "log": "E:\\SWB project\\data\\reports\\observation_nightly_20260729\\logs\\final_v4_1_seed_20260731_300k.log"
+    },
+    {
+      "name": "final_v4_1_seed_20260731_500k",
+      "returncode": 0,
+      "elapsed_seconds": 2027.0613770000637,
+      "log": "E:\\SWB project\\data\\reports\\observation_nightly_20260729\\logs\\final_v4_1_seed_20260731_500k.log"
+    },
+    {
+      "name": "final_v3_6_seed_20260731_100k",
+      "returncode": 0,
+      "elapsed_seconds": 381.7893601999385,
+      "log": "E:\\SWB project\\data\\reports\\observation_nightly_20260729\\logs\\final_v3_6_seed_20260731_100k.log"
+    },
+    {
+      "name": "final_v3_6_seed_20260731_300k",
+      "returncode": 0,
+      "elapsed_seconds": 747.9847668999573,
+      "log": "E:\\SWB project\\data\\reports\\observation_nightly_20260729\\logs\\final_v3_6_seed_20260731_300k.log"
+    },
+    {
+      "name": "final_v3_6_seed_20260731_500k",
+      "returncode": 0,
+      "elapsed_seconds": 741.0971900000004,
+      "log": "E:\\SWB project\\data\\reports\\observation_nightly_20260729\\logs\\final_v3_6_seed_20260731_500k.log"
+    },
+    {
+      "name": "final_v4_1_seed_20260801_100k",
+      "returncode": 0,
+      "elapsed_seconds": 1054.6863439000444,
+      "log": "E:\\SWB project\\data\\reports\\observation_nightly_20260729\\logs\\final_v4_1_seed_20260801_100k.log"
+    },
+    {
+      "name": "final_v4_1_seed_20260801_300k",
+      "returncode": 0,
+      "elapsed_seconds": 1999.1800239000004,
+      "log": "E:\\SWB project\\data\\reports\\observation_nightly_20260729\\logs\\final_v4_1_seed_20260801_300k.log"
+    },
+    {
+      "name": "final_v4_1_seed_20260801_500k",
+      "returncode": 0,
+      "elapsed_seconds": 2010.5204780000495,
+      "log": "E:\\SWB project\\data\\reports\\observation_nightly_20260729\\logs\\final_v4_1_seed_20260801_500k.log"
+    },
+    {
+      "name": "final_v3_6_seed_20260801_100k",
+      "returncode": 0,
+      "elapsed_seconds": 383.8101471000118,
+      "log": "E:\\SWB project\\data\\reports\\observation_nightly_20260729\\logs\\final_v3_6_seed_20260801_100k.log"
+    },
+    {
+      "name": "final_v3_6_seed_20260801_300k",
+      "returncode": 0,
+      "elapsed_seconds": 728.7902122000232,
+      "log": "E:\\SWB project\\data\\reports\\observation_nightly_20260729\\logs\\final_v3_6_seed_20260801_300k.log"
+    },
+    {
+      "name": "final_v3_6_seed_20260801_500k",
+      "returncode": 0,
+      "elapsed_seconds": 744.3509862000355,
+      "log": "E:\\SWB project\\data\\reports\\observation_nightly_20260729\\logs\\final_v3_6_seed_20260801_500k.log"
+    },
+    {
+      "name": "eval_common_v4_1_seed_20260730",
+      "returncode": 0,
+      "elapsed_seconds": 105.66340239997953,
+      "log": "E:\\SWB project\\data\\reports\\observation_nightly_20260729\\logs\\eval_common_v4_1_seed_20260730.log"
+    },
+    {
+      "name": "eval_common_v3_6_seed_20260730",
+      "returncode": 0,
+      "elapsed_seconds": 59.70330750010908,
+      "log": "E:\\SWB project\\data\\reports\\observation_nightly_20260729\\logs\\eval_common_v3_6_seed_20260730.log"
+    },
+    {
+      "name": "eval_head_to_head_seed_20260730",
+      "returncode": 0,
+      "elapsed_seconds": 159.67764389992226,
+      "log": "E:\\SWB project\\data\\reports\\observation_nightly_20260729\\logs\\eval_head_to_head_seed_20260730.log"
+    },
+    {
+      "name": "eval_common_v4_1_seed_20260731",
+      "returncode": 0,
+      "elapsed_seconds": 104.8394196999725,
+      "log": "E:\\SWB project\\data\\reports\\observation_nightly_20260729\\logs\\eval_common_v4_1_seed_20260731.log"
+    },
+    {
+      "name": "eval_common_v3_6_seed_20260731",
+      "returncode": 0,
+      "elapsed_seconds": 58.74064399988856,
+      "log": "E:\\SWB project\\data\\reports\\observation_nightly_20260729\\logs\\eval_common_v3_6_seed_20260731.log"
+    },
+    {
+      "name": "eval_head_to_head_seed_20260731",
+      "returncode": 0,
+      "elapsed_seconds": 152.25213050004095,
+      "log": "E:\\SWB project\\data\\reports\\observation_nightly_20260729\\logs\\eval_head_to_head_seed_20260731.log"
+    },
+    {
+      "name": "eval_common_v4_1_seed_20260801",
+      "returncode": 0,
+      "elapsed_seconds": 98.2494091000408,
+      "log": "E:\\SWB project\\data\\reports\\observation_nightly_20260729\\logs\\eval_common_v4_1_seed_20260801.log"
+    },
+    {
+      "name": "eval_common_v3_6_seed_20260801",
+      "returncode": 0,
+      "elapsed_seconds": 56.56535600009374,
+      "log": "E:\\SWB project\\data\\reports\\observation_nightly_20260729\\logs\\eval_common_v3_6_seed_20260801.log"
+    },
+    {
+      "name": "eval_head_to_head_seed_20260801",
+      "returncode": 0,
+      "elapsed_seconds": 161.72655510006007,
+      "log": "E:\\SWB project\\data\\reports\\observation_nightly_20260729\\logs\\eval_head_to_head_seed_20260801.log"
+    }
+  ],
+  "failures": []
+}

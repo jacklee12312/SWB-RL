@@ -1,0 +1,62 @@
+{
+  "schema_version": 1,
+  "machine": {
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.13.5 | packaged by Anaconda, Inc. | (main, Jun 12 2025, 16:37:03) [MSC v.1929 64 bit (AMD64)]",
+    "implementation": "CPython",
+    "processor": "Intel64 Family 6 Model 183 Stepping 1, GenuineIntel",
+    "logical_cpu_count": 24
+  },
+  "configuration": {
+    "seed": 20260721,
+    "iterations": 100,
+    "agent_steps": 300,
+    "card_vocabulary_size": 826,
+    "exact_collectible_count": 735,
+    "observation_version": "v4",
+    "action_size": 112
+  },
+  "startup": {
+    "catalog_rulebook_env_reset_seconds": 3.7310748000163585,
+    "tracemalloc_peak_bytes": 9938806
+  },
+  "rates": {
+    "mask_cached_per_second": 2053387.180455621,
+    "mask_cold_per_second": 50528.01645143568,
+    "mask_cache_speedup": 40.6385867616475,
+    "observe_cached_per_second": 20683.806534191855,
+    "observe_cold_per_second": 429.03944927253826,
+    "observe_cache_speedup": 48.20956806946884,
+    "agent_steps": 300,
+    "episodes_completed": 3,
+    "step_per_second": 261.432144450157,
+    "snapshot_per_second": 116.80983465184858,
+    "clone_per_second": 32.70888153399899,
+    "snapshot_payload_bytes": 1272867
+  },
+  "thresholds": {
+    "minimum_mask_cache_speedup": 1.5,
+    "minimum_observe_cache_speedup": 1.25
+  },
+  "thresholds_passed": true,
+  "historical_reference": {
+    "source": "docs/rl_architecture_audit.md pre-cache legacy-pool audit",
+    "core_action_per_second": 627.0,
+    "v1_environment_action_per_second": 404.0,
+    "v2_observation_milliseconds": 0.98,
+    "comparability": "Directional only: the historical run used the legacy follower pool and is not an exact-card v3 regression baseline."
+  },
+  "cache_stats": {
+    "invalidations": 505,
+    "invalidation:reset": 5,
+    "legal_command_misses": 502,
+    "action_mask_misses": 505,
+    "observation_misses": 406,
+    "action_mask_hits": 402,
+    "observation_hits": 100,
+    "invalidation:benchmark cold mask": 100,
+    "invalidation:benchmark cold observation": 100,
+    "invalidation:legal step": 300,
+    "legal_command_hits": 24
+  }
+}

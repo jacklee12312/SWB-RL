@@ -36,8 +36,11 @@ class SWBAECEnv(AECEnv):
         observation_version = environment_kwargs.setdefault(
             "observation_version", "v4"
         )
-        if observation_version not in {"v3", "v4"}:
-            raise ValueError("SWBAECEnv requires observation_version='v3' or 'v4'")
+        if observation_version not in {"v3", "v4", "v4.1"}:
+            raise ValueError(
+                "SWBAECEnv requires observation_version='v3', 'v4', "
+                "or 'v4.1'"
+            )
         environment_kwargs["card_vocabulary"] = card_vocabulary
         environment_kwargs.setdefault("match_setup", MATCH_SETUP_OFFICIAL)
         self.engine_env = ShadowverseEnv(
@@ -51,11 +54,12 @@ class SWBAECEnv(AECEnv):
         self.agent_name_mapping = {
             agent: index for index, agent in enumerate(self.possible_agents)
         }
-        observation_space = (
-            self.engine_env.observation_v4_space()
-            if observation_version == "v4"
-            else self.engine_env.observation_v3_space()
-        )
+        if observation_version == "v4.1":
+            observation_space = self.engine_env.observation_v4_1_space()
+        elif observation_version == "v4":
+            observation_space = self.engine_env.observation_v4_space()
+        else:
+            observation_space = self.engine_env.observation_v3_space()
         action_space = spaces.Discrete(self.engine_env.ACTION_SIZE)
         self.observation_spaces = {
             agent: observation_space for agent in self.possible_agents

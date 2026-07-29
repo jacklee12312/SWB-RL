@@ -57,6 +57,32 @@ class PolicyDecision:
     probabilities: dict[int, float]
 
 
+@dataclass(frozen=True)
+class SimulatorModelOption:
+    model_id: str
+    path: Path
+    display_name: str
+    group: str
+
+    def manifest(self) -> dict[str, Any]:
+        return {
+            "id": self.model_id,
+            "display_name": self.display_name,
+            "group": self.group,
+            "filename": self.path.name,
+            "size_bytes": self.path.stat().st_size,
+        }
+
+
+@dataclass
+class InferenceModelBundle:
+    option: SimulatorModelOption
+    trainer: PPOTrainer
+    warnings: list[str]
+    specialist_deck: FixedTrainingDeck
+    policy: "DeterministicPPOPolicy"
+
+
 @dataclass
 class DeterministicPPOPolicy:
     model: Any
@@ -129,36 +155,52 @@ class MatchSimulator:
         card_catalog: str | Path,
         image_directory: str | Path,
         history_directory: str | Path,
+        checkpoint_directory: str | Path | None = None,
         device: str = "cpu",
     ) -> None:
         self.database_path = Path(database)
         self.checkpoint_path = Path(checkpoint)
+        self.checkpoint_directory = (
+            self.checkpoint_path.parent
+            if checkpoint_directory is None
+            else Path(checkpoint_directory)
+        )
         self.card_catalog_path = Path(card_catalog)
         self.image_directory = Path(image_directory)
         for label, path in (
             ("database", self.database_path),
             ("checkpoint", self.checkpoint_path),
+            ("checkpoint directory", self.checkpoint_directory),
             ("card catalog", self.card_catalog_path),
             ("image directory", self.image_directory),
         ):
             if not path.exists():
                 raise FileNotFoundError(f"{label} not found: {path}")
 
-        snapshot = WorkerAssetsSnapshot.build(CardRepository(self.database_path))
-        self.assets = snapshot.load()
-        self.trainer, self.compatibility_warnings = (
-            self._load_inference_checkpoint(
-                self.checkpoint_path,
-                snapshot,
-                device=device,
-            )
+        self.device = device
+        self.snapshot = WorkerAssetsSnapshot.build(
+            CardRepository(self.database_path)
         )
-        training_deck_name = self.trainer.config.training_deck
-        if training_deck_name is None:
-            raise ValueError("simulator checkpoint does not declare a fixed training deck")
-        self.specialist_deck_recipe = get_fixed_training_deck(
-            training_deck_name
+        self.assets = self.snapshot.load()
+        self.available_models = self._discover_models(
+            self.checkpoint_path,
+            self.checkpoint_directory,
         )
+        self._available_models_by_id = {
+            option.model_id: option
+            for option in self.available_models
+        }
+        current_option = next(
+            option
+            for option in self.available_models
+            if option.path.resolve() == self.checkpoint_path.resolve()
+        )
+        initial_model = self._load_model_bundle(current_option)
+        self.current_model = initial_model.option
+        self.trainer = initial_model.trainer
+        self.compatibility_warnings = initial_model.warnings
+        self.specialist_deck_recipe = initial_model.specialist_deck
+        self.policy = initial_model.policy
         self.available_deck_recipes = tuple(
             get_fixed_training_deck(name)
             for name in fixed_training_deck_names()
@@ -169,7 +211,6 @@ class MatchSimulator:
         }
         self.human_deck_recipe = self.specialist_deck_recipe
         self.ai_deck_recipe = self.specialist_deck_recipe
-        self.policy = DeterministicPPOPolicy.from_trainer(self.trainer)
         self.texture_paths = self._load_texture_paths()
         self.history_store = MatchHistoryStore(history_directory)
         self.env: ShadowverseEnv | None = None
@@ -180,6 +221,102 @@ class MatchSimulator:
         self.animation_batch: list[dict[str, Any]] = []
         self.animation_generation = 0
         self._lock = threading.RLock()
+
+    @staticmethod
+    def _discover_models(
+        checkpoint_path: Path,
+        checkpoint_directory: Path,
+    ) -> tuple[SimulatorModelOption, ...]:
+        root = checkpoint_directory.resolve()
+        default = checkpoint_path.resolve()
+        candidates = {default}
+        candidates.update(path.resolve() for path in root.rglob("*.pt"))
+        options: list[SimulatorModelOption] = []
+        used_ids: set[str] = set()
+        for candidate in sorted(candidates, key=lambda path: str(path).lower()):
+            if candidate != default:
+                try:
+                    relative = candidate.relative_to(root)
+                except ValueError:
+                    continue
+                auxiliary_directory = any(
+                    part == "tuning" or part.endswith("_history")
+                    for part in relative.parts[:-1]
+                )
+                auxiliary_file = (
+                    "preflight" in candidate.stem.lower()
+                    or candidate.stem.lower().endswith("_init")
+                )
+                if auxiliary_directory or auxiliary_file:
+                    continue
+            try:
+                relative = candidate.relative_to(root)
+                model_id = relative.as_posix()
+            except ValueError:
+                model_id = f"default/{candidate.name}"
+            if model_id in used_ids:
+                raise ValueError(f"duplicate simulator model id: {model_id}")
+            used_ids.add(model_id)
+            parent = Path(model_id).parent.as_posix()
+            group = "根目录" if parent == "." else parent
+            label = Path(model_id).with_suffix("").as_posix()
+            options.append(SimulatorModelOption(
+                model_id=model_id,
+                path=candidate,
+                display_name=label.replace("/", " · "),
+                group=group,
+            ))
+        options.sort(
+            key=lambda option: (
+                option.path.resolve() != default,
+                option.model_id.lower(),
+            )
+        )
+        return tuple(options)
+
+    def _load_model_bundle(
+        self,
+        option: SimulatorModelOption,
+    ) -> InferenceModelBundle:
+        trainer, warnings = self._load_inference_checkpoint(
+            option.path,
+            self.snapshot,
+            device=self.device,
+        )
+        training_deck_name = trainer.config.training_deck
+        if training_deck_name is None:
+            raise ValueError(
+                "simulator checkpoint does not declare a fixed training deck"
+            )
+        specialist_deck = get_fixed_training_deck(training_deck_name)
+        return InferenceModelBundle(
+            option=option,
+            trainer=trainer,
+            warnings=warnings,
+            specialist_deck=specialist_deck,
+            policy=DeterministicPPOPolicy.from_trainer(trainer),
+        )
+
+    def _resolve_model(
+        self,
+        model_id: str | None,
+    ) -> SimulatorModelOption:
+        if model_id is None:
+            return self.current_model
+        if not isinstance(model_id, str) or not model_id:
+            raise ValueError("model must be a non-empty model id")
+        try:
+            return self._available_models_by_id[model_id]
+        except KeyError as error:
+            raise ValueError(f"unknown model: {model_id!r}") from error
+
+    def _activate_model(self, bundle: InferenceModelBundle) -> None:
+        self.current_model = bundle.option
+        self.checkpoint_path = bundle.option.path
+        self.trainer = bundle.trainer
+        self.compatibility_warnings = bundle.warnings
+        self.specialist_deck_recipe = bundle.specialist_deck
+        self.policy = bundle.policy
 
     @staticmethod
     def _load_inference_checkpoint(
@@ -214,7 +351,13 @@ class MatchSimulator:
             (
                 "v3"
                 if checkpoint_observation.startswith("observation-v3")
-                else "v4"
+                else (
+                    "v4.1"
+                    if checkpoint_observation.startswith(
+                        "observation-v4.1"
+                    )
+                    else "v4"
+                )
             ),
         )
         trainer = PPOTrainer(
@@ -274,18 +417,30 @@ class MatchSimulator:
         human_player: int = 0,
         human_deck: str | None = None,
         ai_deck: str | None = None,
+        model: str | None = None,
     ) -> dict[str, Any]:
         if human_player not in (0, 1):
             raise ValueError("human_player must be 0 or 1")
         with self._lock:
+            selected_model = self._resolve_model(model)
+            loaded_model = (
+                None
+                if selected_model.model_id == self.current_model.model_id
+                else self._load_model_bundle(selected_model)
+            )
+            active_specialist = (
+                self.specialist_deck_recipe
+                if loaded_model is None
+                else loaded_model.specialist_deck
+            )
             human_recipe = self._resolve_deck(
                 human_deck,
-                default=self.specialist_deck_recipe,
+                default=active_specialist,
                 label="human_deck",
             )
             ai_recipe = self._resolve_deck(
                 ai_deck,
-                default=self.specialist_deck_recipe,
+                default=active_specialist,
                 label="ai_deck",
             )
             recipes_by_player: list[FixedTrainingDeck] = [
@@ -298,6 +453,8 @@ class MatchSimulator:
             deck_b = recipes_by_player[1].build(self.assets.catalog)
 
             self._finalize_current_record("abandoned")
+            if loaded_model is not None:
+                self._activate_model(loaded_model)
             self.seed = (
                 int(time.time_ns() & 0x7FFFFFFF)
                 if seed is None
@@ -331,7 +488,7 @@ class MatchSimulator:
                 seed=self.seed,
                 human_player=self.human_player,
                 deck=self._match_deck_manifest(),
-                checkpoint=self.checkpoint_path.name,
+                checkpoint=self.current_model.model_id,
                 warnings=self._active_warnings(),
                 initial_state=self._history_snapshot(),
                 initial_logs=list(self.env.logs),
@@ -413,6 +570,11 @@ class MatchSimulator:
                 "available_decks": [
                     self._deck_manifest(recipe)
                     for recipe in self.available_deck_recipes
+                ],
+                "model": self.current_model.manifest(),
+                "available_models": [
+                    option.manifest()
+                    for option in self.available_models
                 ],
                 "checkpoint": self.checkpoint_path.name,
                 "warnings": self._active_warnings(),

@@ -42,6 +42,18 @@ class AECEnvironmentTests(unittest.TestCase):
     def test_passes_pettingzoo_api_contract(self) -> None:
         api_test(self.make_env(), num_cycles=60)
 
+    def test_v4_1_wrapper_uses_structured_observation_space(self) -> None:
+        env = self.make_env(
+            observation_version="v4.1",
+            match_setup="legacy",
+        )
+        env.reset(seed=3)
+        observation = env.observe(env.agent_selection)
+        self.assertEqual(env.engine_env.observation_version, "v4.1")
+        self.assertTrue(
+            env.observation_space(env.agent_selection).contains(observation)
+        )
+
     def test_agent_selection_tracks_pending_decision_player(self) -> None:
         env = self.make_env(match_setup="legacy")
         env.reset(seed=3)

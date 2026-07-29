@@ -1,0 +1,110 @@
+[
+  {
+    "candidate": {
+      "name": "a_baseline",
+      "learning_rate": 0.0003,
+      "update_epochs": 2,
+      "minibatch_sequences": 8,
+      "rollout_steps": 2048,
+      "entropy_coefficient": 0.01,
+      "clip_ratio": 0.2
+    },
+    "checkpoint": "E:\\SWB project\\data\\checkpoints\\observation_nightly_20260729\\tuning\\a_baseline_40k.pt",
+    "training_report": "E:\\SWB project\\data\\reports\\observation_nightly_20260729\\tuning\\a_baseline_40k_training.json",
+    "evaluation_report": "E:\\SWB project\\data\\reports\\observation_nightly_20260729\\tuning\\a_baseline_40k_eval.json",
+    "score": [
+      0.6,
+      -0.02857142857142857
+    ]
+  },
+  {
+    "candidate": {
+      "name": "b_lr2e4",
+      "learning_rate": 0.0002,
+      "update_epochs": 2,
+      "minibatch_sequences": 8,
+      "rollout_steps": 2048,
+      "entropy_coefficient": 0.01,
+      "clip_ratio": 0.2
+    },
+    "checkpoint": "E:\\SWB project\\data\\checkpoints\\observation_nightly_20260729\\tuning\\b_lr2e4_40k.pt",
+    "training_report": "E:\\SWB project\\data\\reports\\observation_nightly_20260729\\tuning\\b_lr2e4_40k_training.json",
+    "evaluation_report": "E:\\SWB project\\data\\reports\\observation_nightly_20260729\\tuning\\b_lr2e4_40k_eval.json",
+    "score": [
+      0.7071428571428572,
+      -0.04285714285714286
+    ]
+  },
+  {
+    "candidate": {
+      "name": "c_lr1e4",
+      "learning_rate": 0.0001,
+      "update_epochs": 2,
+      "minibatch_sequences": 8,
+      "rollout_steps": 2048,
+      "entropy_coefficient": 0.01,
+      "clip_ratio": 0.2
+    },
+    "checkpoint": "E:\\SWB project\\data\\checkpoints\\observation_nightly_20260729\\tuning\\c_lr1e4_40k.pt",
+    "training_report": "E:\\SWB project\\data\\reports\\observation_nightly_20260729\\tuning\\c_lr1e4_40k_training.json",
+    "evaluation_report": "E:\\SWB project\\data\\reports\\observation_nightly_20260729\\tuning\\c_lr1e4_40k_eval.json",
+    "score": [
+      0.7857142857142857,
+      -0.02857142857142857
+    ]
+  },
+  {
+    "candidate": {
+      "name": "d_lr2e4_e3_mb16",
+      "learning_rate": 0.0002,
+      "update_epochs": 3,
+      "minibatch_sequences": 16,
+      "rollout_steps": 2048,
+      "entropy_coefficient": 0.01,
+      "clip_ratio": 0.2
+    },
+    "checkpoint": "E:\\SWB project\\data\\checkpoints\\observation_nightly_20260729\\tuning\\d_lr2e4_e3_mb16_40k.pt",
+    "training_report": "E:\\SWB project\\data\\reports\\observation_nightly_20260729\\tuning\\d_lr2e4_e3_mb16_40k_training.json",
+    "evaluation_report": "E:\\SWB project\\data\\reports\\observation_nightly_20260729\\tuning\\d_lr2e4_e3_mb16_40k_eval.json",
+    "score": [
+      0.7428571428571429,
+      -0.02857142857142857
+    ]
+  },
+  {
+    "candidate": {
+      "name": "e_lr1e4_e4_mb16",
+      "learning_rate": 0.0001,
+      "update_epochs": 4,
+      "minibatch_sequences": 16,
+      "rollout_steps": 2048,
+      "entropy_coefficient": 0.01,
+      "clip_ratio": 0.2
+    },
+    "checkpoint": "E:\\SWB project\\data\\checkpoints\\observation_nightly_20260729\\tuning\\e_lr1e4_e4_mb16_40k.pt",
+    "training_report": "E:\\SWB project\\data\\reports\\observation_nightly_20260729\\tuning\\e_lr1e4_e4_mb16_40k_training.json",
+    "evaluation_report": "E:\\SWB project\\data\\reports\\observation_nightly_20260729\\tuning\\e_lr1e4_e4_mb16_40k_eval.json",
+    "score": [
+      0.7571428571428571,
+      -0.02857142857142857
+    ]
+  },
+  {
+    "candidate": {
+      "name": "f_lr2e4_e3_mb16_r4096",
+      "learning_rate": 0.0002,
+      "update_epochs": 3,
+      "minibatch_sequences": 16,
+      "rollout_steps": 4096,
+      "entropy_coefficient": 0.01,
+      "clip_ratio": 0.2
+    },
+    "checkpoint": "E:\\SWB project\\data\\checkpoints\\observation_nightly_20260729\\tuning\\f_lr2e4_e3_mb16_r4096_40k.pt",
+    "training_report": "E:\\SWB project\\data\\reports\\observation_nightly_20260729\\tuning\\f_lr2e4_e3_mb16_r4096_40k_training.json",
+    "evaluation_report": "E:\\SWB project\\data\\reports\\observation_nightly_20260729\\tuning\\f_lr2e4_e3_mb16_r4096_40k_eval.json",
+    "score": [
+      0.75,
+      -0.04285714285714286
+    ]
+  }
+]

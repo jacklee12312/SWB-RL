@@ -176,6 +176,45 @@ class CheckpointTests(unittest.TestCase):
         for name, expected in trainer.model.state_dict().items():
             torch.testing.assert_close(expected, resumed.model.state_dict()[name])
 
+    def test_v4_1_checkpoint_round_trips_with_structured_policy(self) -> None:
+        trainer = PPOTrainer(
+            self.snapshot,
+            master_seed=2473,
+            config=PPOConfig(
+                rollout_steps=2,
+                sequence_length=2,
+                minibatch_sequences=1,
+                update_epochs=1,
+                hidden_size=32,
+                card_embedding_dim=8,
+                policy_architecture=ENTITY_ACTION_POLICY_ARCHITECTURE,
+                observation_version="v4.1",
+                model_dim=32,
+                transformer_layers=1,
+                attention_heads=4,
+                feedforward_dim=64,
+                max_agent_steps_per_episode=2,
+            ),
+        )
+        records, bootstrap, _ = trainer.collect_rollout()
+        metrics = trainer.update(records, bootstrap)
+        self.assertTrue(torch.isfinite(torch.tensor(
+            metrics["policy_loss"] + metrics["value_loss"]
+        )))
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "observation_v4_1.pt"
+            save_checkpoint_atomic(path, trainer)
+            resumed = load_checkpoint(path, self.snapshot)
+        self.assertEqual(resumed.config.observation_version, "v4.1")
+        self.assertEqual(resumed.env.observation_version, "v4.1")
+        self.assertEqual(resumed.model.structured_token_count, 93)
+        self.assertEqual(
+            resumed.model.specification(),
+            trainer.model.specification(),
+        )
+        for name, expected in trainer.model.state_dict().items():
+            torch.testing.assert_close(expected, resumed.model.state_dict()[name])
+
     def test_v3_checkpoint_without_config_field_keeps_legacy_observation(
         self,
     ) -> None:

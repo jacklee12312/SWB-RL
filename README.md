@@ -60,13 +60,21 @@ python -m scripts.run_match_simulator
 
 The default opponent is the 1,206,159-decision Havencraft specialist at
 `data/checkpoints/ppo_haven_specialist_8deck_1200k.pt`. The toolbar can start
-either side with any validated fixed-deck QR profile while keeping the selected
-deck manifests in match history. The checkpoint was updated only from
-Havencraft-side trajectories, so selecting another AI deck is useful for
-engine/UI testing but is not evidence that the policy specializes in that
-deck. The specialist Havencraft profile remains the default for both sides.
-Use `--device cuda` for local GPU inference and `--frontend-port` / `--port`
-when the default UI or API port is already occupied.
+either side with any validated fixed-deck QR profile and can select a different
+PPO checkpoint before starting a new match. By default the server recursively
+discovers `.pt` files under `data/checkpoints`; training-history, tuning,
+initialization, and preflight artifacts are hidden. Model IDs come only from
+that startup catalog, so the HTTP API cannot load an arbitrary submitted path.
+The selected model ID and both exact deck manifests are retained in match
+history. Use `--checkpoint` to choose the initial model,
+`--checkpoint-directory` to change the selectable catalog, `--device cuda` for
+local GPU inference, and `--frontend-port` / `--port` when the default ports are
+occupied.
+
+The current specialist checkpoints were updated only from Havencraft-side
+trajectories, so selecting another AI deck is useful for engine/UI testing but
+is not evidence that the policy specializes in that deck. The model's declared
+specialist profile remains the default for both sides.
 
 Abilities are normalized in two relational tables:
 
@@ -1360,20 +1368,39 @@ V3 observations for a non-acting player expose an all-zero action mask. V1 and
 V2 remain compatibility interfaces. V3.6 is now frozen for existing checkpoint
 compatibility.
 
-New full-card training defaults to `observation_version="v4"`. V4 removes
-known v3.6 state collisions by encoding effective hand keywords; exact
-cost/stat/keyword modifier type, duration, and expiry; candidate-specific
-graveyard/card identity; Faith, emblem, and listener activation runtime; full
-destroyed/entered-card histograms plus recent detailed records; own remaining
-deck composition without deck order; explicit Union Burst kind, threshold,
-progress, and readiness; and action-centered choice features. Categories use
-one-hot fields, while every card identity uses the shared vocabulary
-embedding rather than a continuous ID. It still excludes opponent hidden
-hands, unknown deck contents/order, future randomness, and raw entity IDs.
-The 112-action layout is unchanged. See
+Observation v4.0 is retained as the audited migration format that removed the
+known v3.6 state collisions. New command-line training now selects
+`observation_version="v4.1"`. V4.1 keeps the same information and privacy
+boundary but replaces v4.0's broad one-hot/flat input with typed categorical
+rows, sparse card/count pairs, compact semantic tokens, and action-centered
+candidate rows. In the current schema, 15,757 numeric values and 1,290 shared
+card-vocabulary indices are assembled into 93 meaningful Transformer tokens:
+one match token, two player tokens, 19 hand/board entities, 20 Faith/emblem
+slots, 13 zone summaries, 32 public events, and six rule-record summaries.
+Local modifiers, granted effects, fusion materials, and listener state are
+pooled into their owning entity instead of becoming unrelated global values.
+The standard model remains 256-wide with four Transformer layers and a
+512-wide GRU, but falls to about 5.58M parameters with the current 826-card
+vocabulary.
+
+V4.1 still excludes opponent hidden hands, unknown deck contents/order, future
+randomness, and raw entity IDs. It preserves the 112-action layout and requires
+the entity/action policy; v3.6 and v4.0 checkpoint loading remains unchanged.
+See [`docs/observation_v4_1_design.md`](docs/observation_v4_1_design.md) for
+the v4.1 field groups, token construction, limits, and migration rules, and
 [`docs/observation_v4_field_audit.md`](docs/observation_v4_field_audit.md) for
-the complete 49-field contract, privacy rules, caps, migration behavior, and
-test evidence.
+the original information audit.
+
+A completed three-seed follow-up tuned v4.1 and trained both v3.6 and v4.1
+from scratch to about 500k learner decisions per seed. V4.1 averaged 84.52%
+against the common frozen reference versus 82.02% for v3.6, but the
+seed-level difference interval included zero. Their 600-game direct matchup
+was effectively tied at 49.33% for v4.1 (95% CI 45.35%-53.33%), while v4.1
+cost 2.72 times as much wall-clock training time. The current direction is
+therefore to retain v4.1's richer state contract while optimizing its token
+and inference cost. See
+[`docs/observation_v3_6_v4_1_learning_ablation.md`](docs/observation_v3_6_v4_1_learning_ablation.md)
+for the staged tuning, per-seed results, integrity checks, and limitations.
 
 `swb.rl.TrainableCardCatalog` builds the training pool from exact collectible
 entries in `data/reports/rule_coverage.json`, rather than the legacy

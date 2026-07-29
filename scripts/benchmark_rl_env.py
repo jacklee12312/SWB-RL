@@ -100,6 +100,7 @@ def run_benchmark(
     iterations: int,
     steps: int,
     seed: int,
+    observation_version: str = "v4.1",
 ) -> dict[str, object]:
     tracemalloc.start()
     startup_started = time.perf_counter()
@@ -117,7 +118,7 @@ def run_benchmark(
         seed=seed,
         rulebook=rulebook,
         card_resolver=catalog.resolve,
-        observation_version="v4",
+        observation_version=observation_version,
         card_vocabulary=catalog.card_vocabulary,
         max_agent_steps=2000,
     )
@@ -154,7 +155,7 @@ def run_benchmark(
             "agent_steps": steps,
             "card_vocabulary_size": len(catalog.card_vocabulary),
             "exact_collectible_count": len(catalog.exact_collectible_ids),
-            "observation_version": "v4",
+            "observation_version": observation_version,
             "action_size": env.ACTION_SIZE,
         },
         "startup": {
@@ -185,6 +186,11 @@ def main() -> None:
     parser.add_argument("--iterations", type=int, default=500)
     parser.add_argument("--steps", type=int, default=1000)
     parser.add_argument("--seed", type=int, default=20260721)
+    parser.add_argument(
+        "--observation-version",
+        choices=("v3", "v4", "v4.1"),
+        default="v4.1",
+    )
     args = parser.parse_args()
     if args.iterations <= 0 or args.steps <= 0:
         parser.error("--iterations and --steps must be positive")
@@ -194,6 +200,7 @@ def main() -> None:
         iterations=args.iterations,
         steps=args.steps,
         seed=args.seed,
+        observation_version=args.observation_version,
     )
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(

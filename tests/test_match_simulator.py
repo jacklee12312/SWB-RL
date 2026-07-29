@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import shutil
 import tempfile
 import unittest
 from pathlib import Path
@@ -53,6 +54,11 @@ class MatchSimulatorTests(unittest.TestCase):
             "official_qr_evolve_haven_20260727",
         )
         self.assertGreaterEqual(len(state["available_decks"]), 8)
+        self.assertGreaterEqual(len(state["available_models"]), 1)
+        self.assertEqual(
+            state["model"]["filename"],
+            "ppo_evolve_haven_100k.pt",
+        )
         self.assertTrue(state["match_id"])
         self.assertTrue(state["human_turn"])
         self.assertIsNotNone(state["players"][0]["hand"])
@@ -254,6 +260,57 @@ class MatchSimulatorTests(unittest.TestCase):
                 seed=41,
                 human_player=0,
                 human_deck="missing",
+            )
+
+        record = self.simulator.match_history(current["match_id"])
+        self.assertEqual(record["status"], "ongoing")
+
+    def test_new_match_can_switch_between_discovered_models(self) -> None:
+        source = (
+            PROJECT_ROOT
+            / "data"
+            / "checkpoints"
+            / "ppo_evolve_haven_100k.pt"
+        )
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            first = root / "model-a.pt"
+            second = root / "model-b.pt"
+            shutil.copy2(source, first)
+            shutil.copy2(source, second)
+            simulator = MatchSimulator(
+                database=PROJECT_ROOT / "data" / "cards.sqlite3",
+                checkpoint=first,
+                checkpoint_directory=root,
+                card_catalog=PROJECT_ROOT / "shadowverse_cards.json",
+                image_directory=PROJECT_ROOT / "data" / "card_images",
+                history_directory=root / "history",
+            )
+
+            initial = simulator.new_match(seed=43, human_player=0)
+            switched = simulator.new_match(
+                seed=47,
+                human_player=0,
+                model="model-b.pt",
+            )
+
+            self.assertEqual(
+                [model["id"] for model in initial["available_models"]],
+                ["model-a.pt", "model-b.pt"],
+            )
+            self.assertEqual(switched["model"]["id"], "model-b.pt")
+            self.assertEqual(switched["checkpoint"], "model-b.pt")
+            record = simulator.match_history(switched["match_id"])
+            self.assertEqual(record["checkpoint"], "model-b.pt")
+
+    def test_invalid_model_selection_does_not_abandon_current_match(self) -> None:
+        current = self.simulator.new_match(seed=53, human_player=0)
+
+        with self.assertRaisesRegex(ValueError, "unknown model"):
+            self.simulator.new_match(
+                seed=59,
+                human_player=0,
+                model="../outside.pt",
             )
 
         record = self.simulator.match_history(current["match_id"])

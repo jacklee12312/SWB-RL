@@ -64,6 +64,16 @@ def main() -> None:
         / "ppo_haven_specialist_8deck_1200k.pt",
     )
     parser.add_argument(
+        "--checkpoint-directory",
+        type=Path,
+        default=PROJECT_ROOT / "data" / "checkpoints",
+        help=(
+            "recursively discover selectable simulator models in this "
+            "directory; training history, tuning, init, and preflight "
+            "checkpoints are hidden"
+        ),
+    )
+    parser.add_argument(
         "--card-catalog",
         type=Path,
         default=PROJECT_ROOT / "shadowverse_cards.json",
@@ -96,6 +106,7 @@ def main() -> None:
         card_catalog=args.card_catalog,
         image_directory=args.images,
         history_directory=args.history_directory,
+        checkpoint_directory=args.checkpoint_directory,
         device=args.device,
     )
     server = build_server(simulator, host=args.host, port=args.port)

@@ -117,6 +117,14 @@ type DeckOption = {
   sha256: string;
 };
 
+type ModelOption = {
+  id: string;
+  display_name: string;
+  group: string;
+  filename: string;
+  size_bytes: number;
+};
+
 type MatchState = {
   seed: number;
   match_id: string;
@@ -125,6 +133,8 @@ type MatchState = {
   ai_deck: DeckOption;
   specialist_deck: DeckOption;
   available_decks: DeckOption[];
+  model?: ModelOption;
+  available_models?: ModelOption[];
   checkpoint: string;
   warnings: string[];
   human_player: number;
@@ -751,6 +761,7 @@ export default function Home() {
   const [seed, setSeed] = useState("");
   const [humanDeck, setHumanDeck] = useState("");
   const [aiDeck, setAiDeck] = useState("");
+  const [selectedModel, setSelectedModel] = useState("");
   const [selectedEntity, setSelectedEntity] = useState<number | null>(null);
   const [showLog, setShowLog] = useState(false);
   const [animationQueue, setAnimationQueue] = useState<AnimationCue[]>([]);
@@ -766,6 +777,11 @@ export default function Home() {
     setSeed(String(next.seed));
     setHumanDeck(next.human_deck.name);
     setAiDeck(next.ai_deck.name);
+    setSelectedModel(
+      next.model?.id ??
+        next.available_models?.[0]?.id ??
+        next.checkpoint,
+    );
     setSelectedEntity(null);
     if (animate && next.animation_batch.length > 0) {
       setAnimationQueue(next.animation_batch);
@@ -793,6 +809,7 @@ export default function Home() {
           human_player: 0,
           human_deck: humanDeck || undefined,
           ai_deck: aiDeck || undefined,
+          model: selectedModel || undefined,
         }),
       });
       acceptState(next, false);
@@ -801,7 +818,7 @@ export default function Home() {
     } finally {
       setBusy(false);
     }
-  }, [acceptState, aiDeck, humanDeck, seed]);
+  }, [acceptState, aiDeck, humanDeck, seed, selectedModel]);
 
   useEffect(() => {
     let active = true;
@@ -934,6 +951,14 @@ export default function Home() {
 
   const human = state.players[state.human_player];
   const ai = state.players[state.ai_player];
+  const activeModel = state.model ?? {
+    id: state.checkpoint,
+    display_name: state.checkpoint,
+    group: "当前模型",
+    filename: state.checkpoint,
+    size_bytes: 0,
+  };
+  const availableModels = state.available_models ?? [activeModel];
   const outcome = state.terminated
     ? state.winner === state.human_player
       ? "你获胜了"
@@ -960,6 +985,7 @@ export default function Home() {
         <div className="match-meta">
           <span>你：{state.human_deck.display_name}</span>
           <span>AI：{state.ai_deck.display_name}</span>
+          <span>模型：{activeModel.display_name}</span>
           <span>Turn {state.turn}</span>
           <span>Seed {state.seed}</span>
         </div>
@@ -967,6 +993,21 @@ export default function Home() {
           <button type="button" className="history-button" onClick={() => void openHistory()}>
             对局记录
           </button>
+          <label className="deck-picker">
+            <small>AI 模型</small>
+            <select
+              value={selectedModel}
+              onChange={(event) => setSelectedModel(event.target.value)}
+              aria-label="选择 AI 模型"
+              disabled={busy}
+            >
+              {availableModels.map((model) => (
+                <option value={model.id} key={model.id}>
+                  {model.display_name}
+                </option>
+              ))}
+            </select>
+          </label>
           <label className="deck-picker">
             <small>我的卡组</small>
             <select

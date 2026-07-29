@@ -6,17 +6,19 @@ import tempfile
 import unittest
 from collections import Counter
 from pathlib import Path
+from unittest import mock
 
 import torch
 
 from swb.db.repository import CardRepository
-from swb.rl.checkpoint import save_checkpoint_atomic
+from swb.rl.checkpoint import load_checkpoint, save_checkpoint_atomic
 from swb.rl.evaluation import EvaluationConfig, evaluate
 from swb.rl.fixed_decks import (
     OFFICIAL_QR_EVOLVE_HAVEN,
     get_fixed_training_deck,
 )
 from swb.rl.ppo import PPOConfig, PPOTrainer
+from swb.rl.policy import ENTITY_ACTION_POLICY_ARCHITECTURE
 from swb.rl.runtime import WorkerAssetsSnapshot
 
 
@@ -161,8 +163,58 @@ class EvaluationTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temp_dir:
             checkpoint = Path(temp_dir) / "opponent.pt"
             save_checkpoint_atomic(checkpoint, opponent)
+            with mock.patch(
+                "swb.rl.evaluation.load_checkpoint",
+                wraps=load_checkpoint,
+            ) as checkpoint_loader:
+                report = evaluate(
+                    trainer,
+                    self.snapshot,
+                    EvaluationConfig(
+                        seed_count=1,
+                        max_agent_steps=8,
+                        opponent_kind="historical",
+                        opponent_checkpoint=str(checkpoint),
+                        class_ids=(recipe.class_id,),
+                        training_deck=recipe.name,
+                    ),
+                )
+            self.assertEqual(checkpoint_loader.call_count, 1)
+            expected = hashlib.sha256(checkpoint.read_bytes()).hexdigest()
+        self.assertEqual(
+            report["configuration"]["opponent_checkpoint_sha256"],
+            expected,
+        )
+
+    def test_historical_opponent_uses_its_own_observation_version(self) -> None:
+        common = {
+            "rollout_steps": 8,
+            "sequence_length": 4,
+            "hidden_size": 32,
+            "card_embedding_dim": 16,
+            "policy_architecture": ENTITY_ACTION_POLICY_ARCHITECTURE,
+            "model_dim": 32,
+            "transformer_layers": 1,
+            "attention_heads": 4,
+            "feedforward_dim": 64,
+            "max_agent_steps_per_episode": 8,
+        }
+        learner = PPOTrainer(
+            self.snapshot,
+            master_seed=1234,
+            config=PPOConfig(**common, observation_version="v4.1"),
+        )
+        opponent = PPOTrainer(
+            self.snapshot,
+            master_seed=5678,
+            config=PPOConfig(**common, observation_version="v3"),
+        )
+        recipe = get_fixed_training_deck(OFFICIAL_QR_EVOLVE_HAVEN)
+        with tempfile.TemporaryDirectory() as temp_dir:
+            checkpoint = Path(temp_dir) / "v3-opponent.pt"
+            save_checkpoint_atomic(checkpoint, opponent)
             report = evaluate(
-                trainer,
+                learner,
                 self.snapshot,
                 EvaluationConfig(
                     seed_count=1,
@@ -173,11 +225,9 @@ class EvaluationTests(unittest.TestCase):
                     training_deck=recipe.name,
                 ),
             )
-            expected = hashlib.sha256(checkpoint.read_bytes()).hexdigest()
-        self.assertEqual(
-            report["configuration"]["opponent_checkpoint_sha256"],
-            expected,
-        )
+        self.assertEqual(report["metrics"]["games"], 2)
+        self.assertEqual(report["metrics"]["illegal_actions"], 0)
+        self.assertEqual(report["metrics"]["action_mask_mismatches"], 0)
 
 
 if __name__ == "__main__":

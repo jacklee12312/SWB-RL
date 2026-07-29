@@ -1,0 +1,156 @@
+{
+  "schema_version": 1,
+  "purpose": "single-seed small-budget learning-effectiveness comparison between Observation v3.6 and v4.1",
+  "protocol": {
+    "master_seed": 20260729,
+    "held_out_head_to_head_seed": 20260902,
+    "held_out_seven_deck_seed": 20260903,
+    "learner_deck": "official_qr_evolve_haven_20260727",
+    "opponent_decks": [
+      "international_qr_forest_20260728",
+      "international_qr_sword_20260728",
+      "international_qr_runecraft_20260728",
+      "international_qr_dragon_20260728",
+      "international_qr_nightmare_20260728",
+      "international_qr_portal_myuu_20260728",
+      "international_qr_portal_lishenna_20260728"
+    ],
+    "policy_architecture": "entity_action_v1",
+    "core_model": {
+      "model_dim": 256,
+      "transformer_layers": 4,
+      "attention_heads": 8,
+      "feedforward_dim": 1024,
+      "gru_hidden_size": 512,
+      "card_embedding_dim": 128
+    },
+    "ppo_updates": 46,
+    "rollout_workers": 4,
+    "rollout_steps": 2048,
+    "sequence_length": 32,
+    "update_epochs": 2,
+    "match_setup": "official"
+  },
+  "training": {
+    "v3.6": {
+      "observation_version": "v3",
+      "completed_agent_steps": 100542,
+      "completed_episodes": 1288,
+      "model_parameters": 6505346,
+      "total_wall_seconds": 426.0522113000043,
+      "overall_agent_steps_per_second": 235.98516175568784
+    },
+    "v4.1": {
+      "observation_version": "v4.1",
+      "completed_agent_steps": 101186,
+      "completed_episodes": 1300,
+      "model_parameters": 5581698,
+      "total_wall_seconds": 1413.8347724000923,
+      "overall_agent_steps_per_second": 71.56847601663456
+    },
+    "v4.1_parameter_reduction": 0.1419829168194897,
+    "v4.1_wall_time_ratio": 3.318454252557656,
+    "actual_step_difference_fraction": 0.006405283364166219
+  },
+  "held_out_head_to_head": {
+    "10k": {
+      "games": 100,
+      "v4.1_win_rate": 0.47,
+      "confidence_interval_95": [
+        0.3751081795934127,
+        0.5671114302990063
+      ]
+    },
+    "100k": {
+      "games": 200,
+      "v4.1_wins": 64,
+      "v3.6_wins": 136,
+      "draws": 0,
+      "v4.1_win_rate": 0.32,
+      "confidence_interval_95": [
+        0.25926533315468053,
+        0.38751898434113546
+      ],
+      "side_win_rates": {
+        "learner_player_0": 0.34,
+        "learner_player_1": 0.3
+      },
+      "exact_two_sided_binomial_p": 3.90446777991637e-7
+    }
+  },
+  "held_out_common_reference": {
+    "reference": "v3_6_seed_20260729_10k.pt",
+    "games_per_candidate": 280,
+    "v3.6": {
+      "win_rate": 0.8625,
+      "confidence_interval_95": [
+        0.8172319389092008,
+        0.8979560425908432
+      ],
+      "terminated": 275,
+      "truncated": 5
+    },
+    "v4.1": {
+      "win_rate": 0.8178571428571428,
+      "confidence_interval_95": [
+        0.7684488278153919,
+        0.8586618160614937
+      ],
+      "terminated": 276,
+      "truncated": 4
+    },
+    "paired_v4.1_minus_v3.6": {
+      "mean_score_difference": -0.044642857142857144,
+      "bootstrap_confidence_interval_95": [
+        -0.09464285714285714,
+        0.0035714285714285713
+      ],
+      "bootstrap_replicates": 50000,
+      "bootstrap_seed": 20260904,
+      "v4.1_better_games": 19,
+      "v3.6_better_games": 32,
+      "same_score_games": 229,
+      "exact_paired_sign_p": 0.09191454981585423
+    },
+    "per_opponent_win_rates": {
+      "international_qr_forest_20260728": {
+        "v3.6": 0.775,
+        "v4.1": 0.8
+      },
+      "international_qr_sword_20260728": {
+        "v3.6": 0.725,
+        "v4.1": 0.7
+      },
+      "international_qr_runecraft_20260728": {
+        "v3.6": 1.0,
+        "v4.1": 0.925
+      },
+      "international_qr_dragon_20260728": {
+        "v3.6": 0.8,
+        "v4.1": 0.825
+      },
+      "international_qr_nightmare_20260728": {
+        "v3.6": 1.0,
+        "v4.1": 0.925
+      },
+      "international_qr_portal_myuu_20260728": {
+        "v3.6": 0.8375,
+        "v4.1": 0.625
+      },
+      "international_qr_portal_lishenna_20260728": {
+        "v3.6": 0.9,
+        "v4.1": 0.925
+      }
+    }
+  },
+  "integrity": {
+    "illegal_actions": 0,
+    "action_mask_mismatches": 0,
+    "all_head_to_head_games_terminated": true
+  },
+  "conclusion": {
+    "v4.1_learned_a_nontrivial_policy": true,
+    "v4.1_outperformed_v3.6_at_100k": false,
+    "interpretation": "At this budget and seed, v4.1 was substantially slower and lost the direct matchup. Its common-reference deficit was smaller and did not exclude zero in the paired bootstrap interval. Multiple independent training seeds are required before attributing the result to the observation schema itself."
+  }
+}
