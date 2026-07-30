@@ -228,23 +228,52 @@
 适用范围：Accelerate/激奏、Crystallize/结晶、Enhance/增强、Mode、
 Invocation/瞬念召唤及其他替代出牌方式。
 
-- [ ] 自动枚举每张适用卡的剩余 PP：0、替代费用前一档、恰好替代费用、
+- [x] 自动枚举每张适用卡的剩余 PP：0、替代费用前一档、恰好替代费用、
   本体费用前一档、恰好本体费用和高于本体费用。
-- [ ] 区分印刷费用、当前费用、剩余 PP 和模式要求，禁止混用。
-- [ ] 测试手牌临时/永久加费和减费后，模式可用性是否仍按官方规则判断。
-- [ ] 测试可以打本体时是否错误暴露激奏或结晶动作。
-- [ ] 测试模式互斥；一次出牌不能同时执行本体和替代模式能力。
-- [ ] 测试替代模式是否使用正确卡牌类型、墓场去向和职业资源计数。
-- [ ] 测试无合法目标、场面满和手牌满时的“禁止出牌”或“跳过效果”语义。
-- [ ] 对每个费用点同时比较 `legal_commands()`、`action_mask()` 和实际执行结果。
-- [ ] 对非法命令验证状态 fingerprint、RNG 和所有区域均不改变。
-- [ ] 为此前发现的高 PP 仍能激奏问题保留真实卡牌回归测试。
+- [x] 区分印刷费用、当前费用、剩余 PP 和模式要求，禁止混用。
+- [x] 测试手牌临时/永久加费和减费后，模式可用性是否仍按官方规则判断。
+- [x] 测试可以打本体时是否错误暴露激奏或结晶动作。
+- [x] 测试模式互斥；一次出牌不能同时执行本体和替代模式能力。
+- [x] 测试替代模式是否使用正确卡牌类型、墓场去向和职业资源计数。
+- [x] 测试无合法目标、场面满和手牌满时的“禁止出牌”或“跳过效果”语义。
+- [x] 对每个费用点同时比较 `legal_commands()`、`action_mask()` 和实际执行结果。
+- [x] 对非法命令验证状态 fingerprint、RNG 和所有区域均不改变。
+- [x] 为此前发现的高 PP 仍能激奏问题保留真实卡牌回归测试。
 
 完成标准：
 
 - 八套训练卡组闭包中所有适用卡通过扫描。
 - 全卡池所有适用卡通过相同生成器扫描。
 - 零 command/action mask 分歧。
+
+2026-07-30 完成证据：
+
+- 修复提交 `f895051` 统一执行官方替代模式互斥语义：达到增强阈值时强制
+  使用最高可支付增强；仅在本体当前费用不可支付时暴露激奏/结晶。修复前
+  最小复现保存在
+  `data/reports/card_bug_audit/reproductions/SWB-CARD-0001.json` 和
+  `SWB-CARD-0002.json`，外部裁定 URL、访问日期、预期与实际结果均随包保存。
+- `scripts/report_play_mode_boundary_audit.py` 从当前数据库和规则目录动态枚举
+  54 张适用卡、55 个 PP 替代模式，其中训练闭包 17 张；对印刷费用以及
+  临时/永久加减费五种场景执行 1,546 个费用边界案例和 55 个满场案例。
+  Mode/Invocation 不属于 PP 替代模式，继续由既有专门测试覆盖，报告明确记录
+  该范围界线。机器可读与 Markdown 结果分别为
+  `data/reports/card_bug_audit/play_mode_boundary_audit.json` 和 `.md`：
+  0 command/action-mask 分歧、0 非法操作原子性失败、0 执行失败。
+- `tests/test_play_mode_boundary_audit.py` 的 7 项报告契约测试通过；
+  受增强语义影响的 518 项真实卡与替代模式聚焦测试通过。
+- `E:\anaconda\python.exe -m unittest discover -s tests -v`：
+  2,710 项通过，1 项条件跳过；耗时 410.514 秒。
+- `E:\anaconda\python.exe -m compileall -q swb scripts tests`：通过。
+- `E:\anaconda\python.exe -m scripts.random_self_play --games 100
+  --output data/reports/card_bug_audit/smoke/stage_1_4_random_self_play_100.json
+  --validate-invariants`：100 局，0 平局、0 截断、0 mask 分歧，acceptance=pass。
+- 同配置 1,000 局广泛共享引擎门禁保存在
+  `data/reports/card_bug_audit/smoke/stage_1_4_random_self_play_1000.json`：
+  507/493，0 平局、0 截断、0 mask 分歧，acceptance=pass。
+- `E:\anaconda\python.exe -m scripts.rl_mixed_match --output
+  data/rl_mixed_match.log`：通过。Bug 台账的两个 P0 均已由永久回归测试关闭；
+  当前 P0/P1 为 0。
 
 ## 1.5 关键词来源和进入方式扫描
 

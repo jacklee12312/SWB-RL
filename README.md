@@ -1511,6 +1511,14 @@ resolve to the named target version. The deterministic ruling queue is
 currently empty for source-to-structure ambiguities, but that source-only
 result does not close any of the remaining runtime or official/client evidence
 dimensions.
+The first runtime gate now covers every PP-based alternate play route in the
+current snapshot. `scripts/report_play_mode_boundary_audit.py` scans 54 cards
+and 55 Enhance/Accelerate/Crystallize modes across 1,546 cost-boundary cases
+plus 55 full-board cases, including temporary and permanent cost changes.
+The saved report has zero command/action-mask mismatches, illegal-mutation
+failures, or execution failures; the two resulting P0 bugs are fixed in
+`f895051` and closed in the card-bug ledger. Mode and Invocation remain
+separate non-PP route families covered by their dedicated behavioral tests.
 
 - `repeat` currently supports automatic/optional nested targeting and rejects
   nested `requires_target`; a future card whose repeated sequence must prohibit

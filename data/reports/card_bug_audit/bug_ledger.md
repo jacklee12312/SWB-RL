@@ -36,10 +36,10 @@ P0 立即暂停正式训练；P1 必须在正式长训练前清零；P2 可与�
 ## Summary
 
 - Total entries: 2
-- Open P0 blockers: 2
+- Open P0 blockers: 0
 - Open P1 blockers: 0
-- Ledger P0 clear: false
-- Ledger P0/P1 clear: false
+- Ledger P0 clear: true
+- Ledger P0/P1 clear: true
 
 These ledger flags do not authorize training by themselves; the eight-deck and full-catalog checklist gates must also pass.
 
@@ -47,5 +47,5 @@ These ledger flags do not authorize training by themselves; the eight-deck and f
 
 | ID | Severity | Status | Card | Mechanic | Reproduction |
 |---|---|---|---|---|---|
-| SWB-CARD-0001 | P0 | open | 10661110 崇奉的懦者 | Crystallize high-PP mode exclusivity and RL action legality | `data/reports/card_bug_audit/reproductions/SWB-CARD-0001.json` |
-| SWB-CARD-0002 | P0 | open | 10424110 真红与群青·塞达&贝阿朵丽丝 | Enhance mandatory cost substitution and RL action legality | `data/reports/card_bug_audit/reproductions/SWB-CARD-0002.json` |
+| SWB-CARD-0001 | P0 | fixed | 10661110 崇奉的懦者 | Crystallize high-PP mode exclusivity and RL action legality | `data/reports/card_bug_audit/reproductions/SWB-CARD-0001.json` |
+| SWB-CARD-0002 | P0 | fixed | 10424110 真红与群青·塞达&贝阿朵丽丝 | Enhance mandatory cost substitution and RL action legality | `data/reports/card_bug_audit/reproductions/SWB-CARD-0002.json` |

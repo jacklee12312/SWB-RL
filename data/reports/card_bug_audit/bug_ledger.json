@@ -154,23 +154,23 @@
       "P3": 0
     },
     "by_status": {
-      "open": 2,
+      "open": 0,
       "ruling_uncertain": 0,
-      "fixed": 0,
+      "fixed": 2,
       "closed_not_bug": 0
     },
     "open_training_blockers": {
-      "P0": 2,
+      "P0": 0,
       "P1": 0
     },
-    "ledger_p0_clear": false,
-    "ledger_p0_p1_clear": false
+    "ledger_p0_clear": true,
+    "ledger_p0_p1_clear": true
   },
   "entries": [
     {
       "bug_id": "SWB-CARD-0001",
       "severity": "P0",
-      "status": "open",
+      "status": "fixed",
       "card": {
         "card_id": 10661110,
         "name": "崇奉的懦者"
@@ -185,14 +185,17 @@
       "affected_decks": [
         "official_qr_evolve_haven_20260727"
       ],
-      "fix_commit": null,
-      "regression_tests": [],
-      "notes": "2026-07-29 已保存修复前真实卡复现；官方 Cygames 结晶机制说明见 reproduction evidence。修复代码仍位于未提交的 checklist 1.4 工作树中，因此本 checkpoint 保持 open，待 1.4 完整门禁与 checkpoint 一并关闭。"
+      "fix_commit": "f895051",
+      "regression_tests": [
+        "tests/test_play_mode_boundary_audit.py::PlayModeBoundaryAuditTests::test_real_regression_cards_have_high_pp_exclusivity_evidence",
+        "tests/test_play_modes_audit.py::PlayModeAuditTests::test_10661110_crystallize_is_hidden_when_body_is_affordable"
+      ],
+      "notes": "2026-07-29 已保存修复前真实卡复现；官方 Cygames 结晶机制说明见 reproduction evidence。2026-07-30 由 f895051 修复并通过全卡池费用边界扫描、完整测试和 1,000 局随机自博弈。"
     },
     {
       "bug_id": "SWB-CARD-0002",
       "severity": "P0",
-      "status": "open",
+      "status": "fixed",
       "card": {
         "card_id": 10424110,
         "name": "真红与群青·塞达&贝阿朵丽丝"
@@ -207,9 +210,13 @@
       "affected_decks": [
         "international_qr_sword_20260728"
       ],
-      "fix_commit": null,
-      "regression_tests": [],
-      "notes": "2026-07-29 已保存修复前真实卡复现；当前官方 Worlds Beyond 帮助页明确说明达到增强值时以增强值替代本体费用并发动能力。正式训练重新阻断。"
+      "fix_commit": "f895051",
+      "regression_tests": [
+        "tests/test_play_mode_boundary_audit.py::PlayModeBoundaryAuditTests::test_real_regression_cards_have_high_pp_exclusivity_evidence",
+        "tests/test_play_modes.py::PlayModeTests::test_only_highest_affordable_enhance_mode_is_legal",
+        "tests/test_play_modes_audit.py::PlayModeAuditTests::test_10424110_enhance_replaces_normal_command_and_action"
+      ],
+      "notes": "2026-07-29 已保存修复前真实卡复现；当前官方 Worlds Beyond 帮助页明确说明达到增强值时以增强值替代本体费用并发动能力。2026-07-30 由 f895051 修复并通过全卡池费用边界扫描、完整测试和 1,000 局随机自博弈。"
     }
   ]
 }
