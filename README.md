@@ -301,6 +301,13 @@ instead of being overwritten. Runtime sampling labels also remain literal:
 2,136 unsampled, untriggered, or unexecuted clauses are explained by separate
 direct tests, not relabeled as runtime passes.
 
+Training-speed work starts from the frozen Stage 1 checkpoint `fae33c2`.
+Before implementation, 15 candidates are classified in
+[`candidate_registry.json`](data/reports/training_speed/candidate_registry.json)
+as A (semantic-preserving), B (possible numeric drift), or C (algorithmic
+change). Performance commits must not mix card rules, engine semantics,
+Observation meaning, or rewards.
+
 ## Reproducible RL Platform
 
 The P1/P2 platform-hardening slice is implemented around the deterministic

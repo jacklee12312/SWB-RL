@@ -972,10 +972,31 @@ Invocation/瞬念召唤及其他替代出牌方式。
 - C 类：改变采样或优化语义，例如 actor/learner 异步、策略滞后、rollout
   长度、epoch、minibatch、网络宽度和 Observation 删减。
 
-- [ ] 每个候选优化在实施前标记 A/B/C 类。
-- [ ] 优先完成 A 类；B 类必须补数值和学习有效性实验。
-- [ ] C 类不作为单纯“速度优化”合并，必须另做算法实验和三 seed 强度对比。
-- [ ] 性能提交不得同时修改卡牌规则、Observation 含义或奖励函数。
+- [x] 每个候选优化在实施前标记 A/B/C 类。
+- [x] 优先完成 A 类；B 类必须补数值和学习有效性实验。
+- [x] C 类不作为单纯“速度优化”合并，必须另做算法实验和三 seed 强度对比。
+- [x] 性能提交不得同时修改卡牌规则、Observation 含义或奖励函数。
+
+2.0 已验证证据（2026-07-31）：
+
+- `data/reports/training_speed/candidate_registry.json` 在实施前登记 15 项候选：
+  10 项 A 类、2 项 B 类、3 项 C 类，并为每项记录语义边界和当前处置。
+- 注册表固定执行顺序为 A → B → C；B 类要求数值、长局和三 seed
+  小规模学习证据，C 类只允许作为独立算法实验并要求至少三 seed
+  固定对阵强度比较。
+- 性能提交的禁止混合范围明确包含 `data/rules/`、`swb/engine/`、
+  Observation 语义和奖励函数。
+- `E:\anaconda\python.exe -m unittest
+  tests.test_training_speed_candidate_registry -v`：4 项通过。
+- 首次完整套件正确暴露 1.15 报告将冻结测试目录错误地与未来 HEAD
+  比较；失败输出保存在
+  `data/reports/training_speed/stage_2_0_unittest.log`。冻结回归现改为验证
+  `fae33c2` 中已提交的报告 blob，未来新增性能测试只归一化动态目录哈希，
+  不重写历史门禁。
+- 修正后的 `E:\anaconda\python.exe -m unittest discover -s tests -v`：
+  2,843 项通过，1 项条件跳过，耗时 438.762 秒，API test 通过；完整输出
+  保存于 `data/reports/training_speed/stage_2_0_unittest_final.log`。
+- `E:\anaconda\python.exe -m compileall -q swb scripts tests`：通过。
 
 ## 2.1 建立公平性能基线
 

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import subprocess
 import unittest
 from pathlib import Path
 
@@ -18,15 +19,67 @@ class FullPoolGateTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
         cls.report = build_report()
+        cls.saved_report = json.loads(
+            (ROOT / DEFAULT_OUTPUT).read_text(encoding="utf-8")
+        )
 
-    def test_saved_reports_match_deterministic_generation(self) -> None:
+    def test_saved_reports_match_frozen_generation(self) -> None:
+        freeze_commit = subprocess.run(
+            [
+                "git",
+                "log",
+                "-1",
+                "--format=%H",
+                "--",
+                DEFAULT_OUTPUT.as_posix(),
+            ],
+            cwd=ROOT,
+            check=True,
+            capture_output=True,
+            text=True,
+        ).stdout.strip()
+        self.assertEqual(len(freeze_commit), 40)
+        for path in (
+            DEFAULT_OUTPUT,
+            DEFAULT_MARKDOWN,
+        ):
+            self.assertEqual(
+                (ROOT / path).read_text(encoding="utf-8"),
+                subprocess.run(
+                    ["git", "show", f"{freeze_commit}:{path.as_posix()}"],
+                    cwd=ROOT,
+                    check=True,
+                    capture_output=True,
+                    text=True,
+                    encoding="utf-8",
+                ).stdout,
+            )
+
+        current_normalized = json.loads(render_json(self.report))
+        for field in ("tests_sha256", "scripts_sha256"):
+            current_normalized["frozen"][field] = (
+                self.saved_report["frozen"][field]
+            )
+        current_freeze_gate = next(
+            gate
+            for gate in current_normalized["gates"]
+            if gate["gate_id"] == "1.15.9"
+        )
+        saved_freeze_gate = next(
+            gate
+            for gate in self.saved_report["gates"]
+            if gate["gate_id"] == "1.15.9"
+        )
+        current_freeze_gate["metrics"]["tests_sha256"] = (
+            saved_freeze_gate["metrics"]["tests_sha256"]
+        )
         self.assertEqual(
-            (ROOT / DEFAULT_OUTPUT).read_text(encoding="utf-8"),
-            render_json(self.report),
+            self.saved_report,
+            current_normalized,
         )
         self.assertEqual(
             (ROOT / DEFAULT_MARKDOWN).read_text(encoding="utf-8"),
-            render_markdown(self.report),
+            render_markdown(current_normalized),
         )
 
     def test_all_nine_checklist_gates_pass(self) -> None:

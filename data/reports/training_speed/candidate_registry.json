@@ -1,0 +1,123 @@
+{
+  "schema_version": 1,
+  "frozen_rules_checkpoint": "fae33c2",
+  "policy": {
+    "execution_order": ["A", "B", "C"],
+    "class_a_requirement": "Fixed-seed trajectory, action, log probability, value, hidden state, PPO generation boundary, checkpoint-resume and end-to-end throughput equivalence.",
+    "class_b_requirement": "Class A safety checks plus numeric error, NaN/Inf, long-episode and three-seed small-scale learning evidence.",
+    "class_c_requirement": "Separate algorithm experiment with at least three learning seeds and fixed-match strength comparisons; never merge as implementation-only speed work.",
+    "forbidden_mixed_changes": [
+      "data/rules/",
+      "swb/engine/",
+      "observation_semantics",
+      "reward_function"
+    ]
+  },
+  "candidates": [
+    {
+      "id": "A-PROFILE-001",
+      "class": "A",
+      "description": "Complete mutually exclusive worker, central inference and learner timing plus optional system monitoring.",
+      "semantics": "Instrumentation only; timing disabled must preserve the existing execution path and throughput within run variance.",
+      "disposition": "baseline_prerequisite"
+    },
+    {
+      "id": "A-BATCH-WAIT-001",
+      "class": "A",
+      "description": "Scan central inference batch wait at 0, 0.1, 0.25, 0.5 and 1.0 ms.",
+      "semantics": "Episode RNG and recurrent state remain isolated; weights stay fixed for the complete rollout generation.",
+      "disposition": "evaluate_after_baseline"
+    },
+    {
+      "id": "A-WORKERS-001",
+      "class": "A",
+      "description": "Scan 2/3/4/5/6 rollout workers and 1/2/4 PyTorch threads per worker.",
+      "semantics": "Only execution parallelism changes; matchup schedule, per-episode seeds and PPO generation boundaries stay fixed.",
+      "disposition": "evaluate_after_baseline"
+    },
+    {
+      "id": "A-IPC-001",
+      "class": "A",
+      "description": "Reduce inference IPC messages and reuse or preallocate request/result buffers.",
+      "semantics": "Every request retains episode, player, step and generation identity; payload values and ordering contracts are unchanged.",
+      "disposition": "pending_profile"
+    },
+    {
+      "id": "A-OBS-001",
+      "class": "A",
+      "description": "Cache one v4.1 observation and action mask per unchanged state version and precompute static card fields.",
+      "semantics": "The v4.1 manifest, hidden-information boundary, token order, values and dtypes are unchanged.",
+      "disposition": "pending_profile"
+    },
+    {
+      "id": "A-OBS-002",
+      "class": "A",
+      "description": "Write the fixed 93-token v4.1 layout into reusable contiguous arrays without temporary dictionaries or lists.",
+      "semantics": "Byte-for-byte observation and card-index outputs are required for audited states.",
+      "disposition": "pending_profile"
+    },
+    {
+      "id": "A-FORWARD-001",
+      "class": "A",
+      "description": "Remove redundant permute/contiguous operations and use an equivalent native scaled-dot-product-attention backend.",
+      "semantics": "Logits, value and recurrent hidden state must meet the registered exact/tolerance contract on every tested batch bucket.",
+      "disposition": "pending_inference_breakdown"
+    },
+    {
+      "id": "A-STATIC-ENC-001",
+      "class": "A",
+      "description": "Cache genuinely static inference-only card encodings.",
+      "semantics": "No training graph or gradient-bearing value may be cached; policy outputs must remain equivalent.",
+      "disposition": "pending_inference_breakdown"
+    },
+    {
+      "id": "A-LEARNER-001",
+      "class": "A",
+      "description": "Reuse rollout tensors and move invariant padding and mask construction outside the minibatch loop.",
+      "semantics": "Minibatch permutation, valid tokens, losses, gradients, optimizer steps and checkpoint state remain equivalent.",
+      "disposition": "pending_profile"
+    },
+    {
+      "id": "A-OVERLAP-001",
+      "class": "A",
+      "description": "Overlap CPU preparation, host-to-device copies and CUDA work inside the same synchronous rollout or learner generation.",
+      "semantics": "Workers never observe updating weights and no policy generation lag is introduced.",
+      "disposition": "pending_profile"
+    },
+    {
+      "id": "B-PRECISION-001",
+      "class": "B",
+      "description": "Evaluate TF32, FP16 autocast and BF16 autocast independently.",
+      "semantics": "Data flow stays fixed, but numeric outputs and optimizer behavior may change.",
+      "disposition": "deferred_until_a_exhausted"
+    },
+    {
+      "id": "B-COMPILE-001",
+      "class": "B",
+      "description": "Evaluate torch.compile, fused optimizer and foreach gradient clipping independently.",
+      "semantics": "Kernel fusion or operation ordering may introduce numeric drift and Windows stability risk.",
+      "disposition": "deferred_until_a_exhausted"
+    },
+    {
+      "id": "C-ASYNC-001",
+      "class": "C",
+      "description": "Asynchronous actor/learner execution with policy lag.",
+      "semantics": "Changes the behavior-policy generation and PPO on-policy boundary.",
+      "disposition": "separate_algorithm_experiment"
+    },
+    {
+      "id": "C-HYPERPARAM-001",
+      "class": "C",
+      "description": "Change rollout length, sequence length, epochs or minibatch size for throughput.",
+      "semantics": "Changes sampling or optimization semantics even when network code is unchanged.",
+      "disposition": "separate_algorithm_experiment"
+    },
+    {
+      "id": "C-MODEL-001",
+      "class": "C",
+      "description": "Reduce Observation content or network width/depth.",
+      "semantics": "Changes policy inputs or capacity and therefore learning semantics.",
+      "disposition": "separate_algorithm_experiment"
+    }
+  ]
+}
