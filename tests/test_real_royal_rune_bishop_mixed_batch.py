@@ -24,6 +24,7 @@ from swb.engine.environment import ShadowverseEnv
 from swb.engine.origin import CardOrigin
 from swb.engine.resolution import GameConfig, GameEngine
 from swb.engine.state import Amulet, HandCard, Unit
+from tests.play_mode_test_support import prepare_mana_for_play_mode
 
 
 BATCH_CARD_IDS = (
@@ -178,6 +179,7 @@ def _play(
     mode_id: str = "normal",
 ) -> Unit | Amulet | None:
     source = _put_hand(engine, repository.get(card_id))
+    prepare_mana_for_play_mode(engine, source, mode_id)
     engine.apply(
         PlayCard(
             0,
@@ -553,6 +555,7 @@ class RealRoyalRuneBishopMixedBehaviorTests(unittest.TestCase):
         ))
 
         crystal = self.fresh(seed=103)
+        crystal.players[0].mana = 1
         amulet = _play(
             crystal,
             self.repository,
@@ -626,15 +629,17 @@ class RealRoyalRuneBishopMixedBehaviorTests(unittest.TestCase):
         env.players[0].mana = env.players[0].max_mana = 10
 
         _put_hand(env.core, self.repository.get(10662110))
+        env.players[0].mana = 1
         normal = PlayCard(0, 0)
         crystal = PlayCard(0, 0, mode_id="crystallize_1")
-        self.assertTrue(env.action_mask()[env._encode_command(normal)])
+        self.assertFalse(env.action_mask()[env._encode_command(normal)])
         self.assertTrue(env.action_mask()[env._encode_command(crystal)])
         env.step(env._encode_command(crystal))
         amulet = next(entity for entity in env.players[0].board if isinstance(entity, Amulet))
         activate = ActivateAmulet(0, amulet.entity_id)
         self.assertNotIn(activate, env.core.legal_commands())
 
+        env.players[0].mana = 10
         gems = _play(env.core, self.repository, 10463210)
         activate = ActivateAmulet(0, gems.entity_id)
         self.assertTrue(env.action_mask()[env._encode_command(activate)])

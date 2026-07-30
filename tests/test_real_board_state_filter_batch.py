@@ -15,6 +15,7 @@ from swb.engine.commands import Choose, EndTurn, Evolve, PlayCard, SuperEvolve
 from swb.engine.environment import ShadowverseEnv
 from swb.engine.resolution import GameConfig, GameEngine, IllegalCommand
 from swb.engine.state import HandCard, Unit
+from tests.play_mode_test_support import prepare_mana_for_play_mode
 
 
 CARD_IDS = (
@@ -107,7 +108,8 @@ def _play(
     mode: str = "normal",
 ):
     definition = repository.get(card_id)
-    _put(engine, definition)
+    hand_card = _put(engine, definition)
+    prepare_mana_for_play_mode(engine, hand_card, mode)
     engine.apply(PlayCard(0, 0, mode))
     if definition.card_type == "法术":
         return None

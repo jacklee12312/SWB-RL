@@ -16,6 +16,7 @@ from swb.engine.commands import Attack, BeginFusion, Choose, Evolve, PlayCard, S
 from swb.engine.effects import EffectKind, EffectOperation, TargetKind
 from swb.engine.environment import ShadowverseEnv
 from swb.engine.resolution import IllegalCommand
+from tests.play_mode_test_support import prepare_mana_for_play_mode
 from tests.test_real_basic_existing_primitives_batch import _card, _fresh, _put_hand, _put_unit
 
 
@@ -49,6 +50,7 @@ def _play(
     mode_id: str = "normal",
 ):
     hand_card = _put_hand(engine, repository.get(card_id))
+    prepare_mana_for_play_mode(engine, hand_card, mode_id)
     engine.apply(
         PlayCard(
             0,
@@ -481,10 +483,15 @@ class RealExistingPrimitivesFourthCompletionTests(unittest.TestCase):
             if allowed
         }
         self.assertEqual(decoded, legal)
-        for mode_id in ("normal", "enhance_7", "enhance_8"):
+        for mode_id in ("normal", "enhance_7"):
             command = PlayCard(0, 0, mode_id=mode_id)
-            self.assertIn(command, legal)
-            self.assertTrue(env.action_mask()[env._encode_command(command)])
+            self.assertNotIn(command, legal)
+            action = env._encode_command(command)
+            if action is not None:
+                self.assertFalse(env.action_mask()[action])
+        command = PlayCard(0, 0, mode_id="enhance_8")
+        self.assertIn(command, legal)
+        self.assertTrue(env.action_mask()[env._encode_command(command)])
 
         target_env = ShadowverseEnv(
             deck,

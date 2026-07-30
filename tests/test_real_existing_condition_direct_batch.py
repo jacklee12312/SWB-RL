@@ -13,6 +13,7 @@ from swb.engine.environment import ShadowverseEnv
 from swb.engine.events import EventType
 from swb.engine.resolution import GameConfig, GameEngine
 from swb.engine.state import Amulet, HandCard, Phase, Unit
+from tests.play_mode_test_support import prepare_mana_for_play_mode
 
 
 CARD_IDS = (
@@ -107,7 +108,8 @@ def _put(engine: GameEngine, definition: CardDefinition) -> HandCard:
 
 
 def _play(engine: GameEngine, repository: CardRepository, card_id: int, mode: str = "normal") -> Unit:
-    _put(engine, repository.get(card_id))
+    hand_card = _put(engine, repository.get(card_id))
+    prepare_mana_for_play_mode(engine, hand_card, mode)
     engine.apply(PlayCard(0, 0, mode))
     return next(unit for unit in engine.players[0].board if unit.definition.card_id == card_id)
 

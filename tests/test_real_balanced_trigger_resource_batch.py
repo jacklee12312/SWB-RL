@@ -454,6 +454,7 @@ class BalancedTriggerResourceBehaviorTests(unittest.TestCase):
 
         crystal = self.fresh(seed=103)
         crystal.players[0].health = 14
+        crystal.players[0].mana = 2
         amulet = _play(crystal, self.repository, 10661110, mode_id="crystallize_2")
         self.assertIsInstance(amulet, Amulet)
         self.assertEqual((amulet.countdown, crystal.players[0].health), (3, 14))
@@ -488,11 +489,12 @@ class BalancedTriggerResourceBehaviorTests(unittest.TestCase):
         normal = PlayCard(0, env.players[0].hand.index(grimoire))
         enhance = PlayCard(0, env.players[0].hand.index(grimoire), "enhance_6")
         env.invalidate_cache(reason="enhance setup")
-        self.assertTrue(env.action_mask()[env._encode_command(normal)])
+        self.assertFalse(env.action_mask()[env._encode_command(normal)])
         self.assertTrue(env.action_mask()[env._encode_command(enhance)])
 
         env.players[0].hand.clear()
         env.players[0].hand_entity_ids.clear()
+        env.players[0].mana = 2
         bishop = _put_hand(env.core, self.repository.get(10661110))
         crystal = PlayCard(0, env.players[0].hand.index(bishop), "crystallize_2")
         env.invalidate_cache(reason="crystallize setup")
@@ -500,6 +502,7 @@ class BalancedTriggerResourceBehaviorTests(unittest.TestCase):
 
         env.players[0].hand.clear()
         env.players[0].hand_entity_ids.clear()
+        env.players[0].mana = 10
         dragon = _put_hand(env.core, self.repository.get(10542110))
         dragon_play = PlayCard(0, env.players[0].hand.index(dragon))
         env.invalidate_cache(reason="no target summon setup")

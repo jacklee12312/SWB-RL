@@ -239,6 +239,7 @@ class DestroyedAmuletBulkZoneEighteenthBehaviorTests(unittest.TestCase):
 
     def test_crystallized_follower_history_preserves_amulet_form(self):
         engine = self.fresh(seed=5)
+        engine.players[0].mana = 2
         crystal = _play(
             engine,
             self.repository,

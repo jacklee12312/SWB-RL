@@ -12,6 +12,7 @@ from swb.engine.commands import ActivateAmulet, Choose, EndTurn, PlayCard
 from swb.engine.origin import CardOrigin
 from swb.engine.resolution import GameConfig, GameEngine
 from swb.engine.state import Amulet, HandCard, Unit
+from tests.play_mode_test_support import prepare_mana_for_play_mode
 
 
 CARD_IDS = (
@@ -89,7 +90,8 @@ def _play(
     *,
     mode_id: str = "normal",
 ):
-    _put_hand(engine, repository.get(card_id))
+    hand_card = _put_hand(engine, repository.get(card_id))
+    prepare_mana_for_play_mode(engine, hand_card, mode_id)
     engine.apply(PlayCard(0, 0, mode_id=mode_id))
     return next(
         (

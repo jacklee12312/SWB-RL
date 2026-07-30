@@ -310,6 +310,7 @@ class WardMarineCrestListenerBehaviorTests(unittest.TestCase):
         self.assertIsNone(stale.state.pending_choice)
 
         crystal = self.fresh(seed=53)
+        crystal.players[0].mana = 1
         amulet = _play(crystal, self.repository, 10663110, mode_id="crystallize_1")
         self.assertIsInstance(amulet, Amulet)
         self.assertEqual(amulet.countdown, 3)
@@ -575,11 +576,12 @@ class WardMarineCrestListenerBehaviorTests(unittest.TestCase):
         normal = PlayCard(0, env.players[0].hand.index(zeta))
         enhance = PlayCard(0, env.players[0].hand.index(zeta), "enhance_6")
         env.invalidate_cache(reason="zeta modes")
-        self.assertTrue(env.action_mask()[env._encode_command(normal)])
+        self.assertFalse(env.action_mask()[env._encode_command(normal)])
         self.assertTrue(env.action_mask()[env._encode_command(enhance)])
 
         env.players[0].hand.clear()
         env.players[0].hand_entity_ids.clear()
+        env.players[0].mana = 1
         crusader = _put_hand(env.core, self.repository.get(10663110))
         crystal = PlayCard(0, env.players[0].hand.index(crusader), "crystallize_1")
         env.invalidate_cache(reason="crusader crystallize")
@@ -587,6 +589,7 @@ class WardMarineCrestListenerBehaviorTests(unittest.TestCase):
 
         env.players[0].hand.clear()
         env.players[0].hand_entity_ids.clear()
+        env.players[0].mana = 10
         partner = _put_hand(env.core, self.repository.get(10512110))
         combo_play = PlayCard(0, env.players[0].hand.index(partner))
         env.invalidate_cache(reason="combo play")

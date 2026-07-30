@@ -282,6 +282,7 @@ class RealEnhanceFaithShikigamiTests(unittest.TestCase):
         faith, yidmetra = self._play_and_evolve_yidmetra(engine, faith_value=5)
         normal_target = _put_unit(engine, 1, _card(7001, life=8))
 
+        engine.players[0].mana = 0
         engine.apply(PlayCard(0, 0, mode_id="normal"))
         _choose_entity(engine, normal_target.entity_id)
         self.assertEqual(normal_target.health, 7)
@@ -316,6 +317,7 @@ class RealEnhanceFaithShikigamiTests(unittest.TestCase):
     def test_kuon_base_summons_ordered_tokens_and_super_evolve_grants_storm(self):
         engine = self.fresh(seed=19)
         _put_hand(engine, self.repository.get(10134110))
+        engine.players[0].mana = 9
         engine.apply(PlayCard(0, 0))
 
         self.assertEqual(

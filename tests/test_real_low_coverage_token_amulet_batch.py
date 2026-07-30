@@ -27,6 +27,7 @@ from swb.engine.environment import ShadowverseEnv
 from swb.engine.origin import CardOrigin
 from swb.engine.resolution import GameConfig, GameEngine, IllegalCommand
 from swb.engine.state import Amulet, HandCard, Unit
+from tests.play_mode_test_support import prepare_mana_for_play_mode
 
 
 BATCH_CARD_IDS = (
@@ -155,6 +156,7 @@ def _play(
     mode_id: str = "normal",
 ) -> Unit | Amulet | None:
     source = _put_hand(engine, repository.get(card_id))
+    prepare_mana_for_play_mode(engine, source, mode_id)
     engine.apply(
         PlayCard(
             0,
@@ -609,7 +611,7 @@ class LowCoverageTokenAmuletBehaviorTests(unittest.TestCase):
         normal = PlayCard(0, env.players[0].hand.index(promoter))
         enhance = PlayCard(0, env.players[0].hand.index(promoter), "enhance_4")
         env.invalidate_cache(reason="enhance setup")
-        self.assertTrue(env.action_mask()[env._encode_command(normal)])
+        self.assertFalse(env.action_mask()[env._encode_command(normal)])
         self.assertTrue(env.action_mask()[env._encode_command(enhance)])
 
         env.players[0].hand.clear()

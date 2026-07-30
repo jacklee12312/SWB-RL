@@ -113,6 +113,7 @@ class EnhanceTests(unittest.TestCase):
         self.engine.players[0].mana = 10
 
     def test_normal_enhance_card_deals_2_damage(self):
+        self.engine.players[0].mana = 3
         opp_health_before = self.engine.players[1].health
         self.engine.apply(PlayCard(0, 0, "normal"))
         self.assertEqual(self.engine.players[1].health, opp_health_before - 2)
@@ -135,12 +136,16 @@ class EnhanceTests(unittest.TestCase):
         with self.assertRaises(IllegalCommand):
             self.engine.apply(PlayCard(0, 0, "enhance_5"))
 
-    def test_both_modes_in_legal_commands(self):
+    def test_enhance_replaces_normal_mode_once_threshold_is_reached(self):
         cmds = self.engine.legal_commands()
         play_cmds = [c for c in cmds if isinstance(c, PlayCard) and c.hand_index == 0]
         mode_ids = {c.mode_id for c in play_cmds}
-        self.assertIn("normal", mode_ids)
+        self.assertNotIn("normal", mode_ids)
         self.assertIn("enhance_5", mode_ids)
+        fingerprint = self.engine.deterministic_fingerprint()
+        with self.assertRaises(IllegalCommand):
+            self.engine.apply(PlayCard(0, 0, "normal"))
+        self.assertEqual(self.engine.deterministic_fingerprint(), fingerprint)
 
     def test_only_normal_legal_when_mana_insufficient(self):
         self.engine.players[0].mana = 3
@@ -149,6 +154,45 @@ class EnhanceTests(unittest.TestCase):
         mode_ids = {c.mode_id for c in play_cmds}
         self.assertIn("normal", mode_ids)
         self.assertNotIn("enhance_5", mode_ids)
+
+    def test_enhance_threshold_is_independent_of_runtime_body_cost(self):
+        hand_card = self.engine.players[0].hand[0]
+        self.engine.players[0].mana = 5
+
+        for modifier in (
+            CostModifier(999011, "set", 0, "permanent"),
+            CostModifier(999012, "set", 9, "until_end_of_turn"),
+        ):
+            with self.subTest(current_cost=modifier.amount):
+                hand_card.cost_modifiers[:] = [modifier]
+                legal = self.engine.legal_commands()
+                self.assertNotIn(PlayCard(0, 0, "normal"), legal)
+                self.assertIn(PlayCard(0, 0, "enhance_5"), legal)
+
+    def test_only_highest_affordable_enhance_mode_is_legal(self):
+        low = PlayModeDefinition(
+            mode_id="enhance_5",
+            mode_type="enhance",
+            cost=5,
+        )
+        high = PlayModeDefinition(
+            mode_id="enhance_8",
+            mode_type="enhance",
+            cost=8,
+        )
+        self.engine.rulebook._play_modes = {999801: (low, high)}
+
+        self.engine.players[0].mana = 7
+        legal = self.engine.legal_commands()
+        self.assertNotIn(PlayCard(0, 0, "normal"), legal)
+        self.assertIn(PlayCard(0, 0, "enhance_5"), legal)
+        self.assertNotIn(PlayCard(0, 0, "enhance_8"), legal)
+
+        self.engine.players[0].mana = 8
+        legal = self.engine.legal_commands()
+        self.assertNotIn(PlayCard(0, 0, "normal"), legal)
+        self.assertNotIn(PlayCard(0, 0, "enhance_5"), legal)
+        self.assertIn(PlayCard(0, 0, "enhance_8"), legal)
 
     def test_enhance_keeps_deck_origin(self):
         self.engine.apply(PlayCard(0, 0, "enhance_5"))
@@ -524,7 +568,9 @@ class CrystallizeTests(unittest.TestCase):
         hc = HandCard(definition=_card(999803, cost=5, card_type="\u968f\u4ece"), entity_id=999003)
         self.engine.players[0].hand.insert(0, hc)
         self.engine.players[0].hand_entity_ids.insert(0, 999003)
-        self.engine.players[0].mana = 10
+        # Crystallize is legal only while the 5-PP follower body cannot be
+        # paid. Keep the effect fixtures at the alternate mode's legal PP.
+        self.engine.players[0].mana = 2
 
     def test_crystallize_creates_amulet_not_follower(self):
         self.engine.apply(PlayCard(0, 0, "crystallize_2"))
@@ -575,6 +621,39 @@ class CrystallizeTests(unittest.TestCase):
             self.engine.players[0].board.append(Unit.summon(_card(400 + i), entity_id=400 + i))
         with self.assertRaises(IllegalCommand):
             self.engine.apply(PlayCard(0, 0, "crystallize_2"))
+
+    def test_crystallize_is_unavailable_once_current_body_cost_is_affordable(self):
+        self.engine.players[0].mana = 5
+        crystallize = PlayCard(0, 0, "crystallize_2")
+        normal = PlayCard(0, 0, "normal")
+
+        self.assertNotIn(crystallize, self.engine.legal_commands())
+        self.assertIn(normal, self.engine.legal_commands())
+
+        fingerprint = self.engine.deterministic_fingerprint()
+        with self.assertRaises(IllegalCommand):
+            self.engine.apply(crystallize)
+        self.assertEqual(self.engine.deterministic_fingerprint(), fingerprint)
+
+    def test_crystallize_threshold_uses_runtime_body_cost(self):
+        self.engine.players[0].mana = 4
+        crystallize = PlayCard(0, 0, "crystallize_2")
+        normal = PlayCard(0, 0, "normal")
+        self.assertIn(crystallize, self.engine.legal_commands())
+        self.assertNotIn(normal, self.engine.legal_commands())
+
+        hand_card = self.engine.players[0].hand[0]
+        hand_card.cost_modifiers.append(
+            CostModifier(999003, "set", 4, "permanent")
+        )
+        self.assertNotIn(crystallize, self.engine.legal_commands())
+        self.assertIn(normal, self.engine.legal_commands())
+
+        hand_card.cost_modifiers.append(
+            CostModifier(999004, "set", 6, "until_end_of_turn")
+        )
+        self.assertIn(crystallize, self.engine.legal_commands())
+        self.assertNotIn(normal, self.engine.legal_commands())
 
 
 # ---------------------------------------------------------------------------
@@ -744,7 +823,7 @@ class OriginPropagationTests(unittest.TestCase):
         hc = HandCard(definition=_card(999901, cost=5), entity_id=999901, origin=CardOrigin.GENERATED)
         engine.players[0].hand.insert(0, hc)
         engine.players[0].hand_entity_ids.insert(0, 999901)
-        engine.players[0].mana = 10
+        engine.players[0].mana = 1
         engine.apply(PlayCard(0, 0, "crystallize_1"))
         self.assertEqual(engine.players[0].board[0].origin, CardOrigin.GENERATED)
 

@@ -560,7 +560,7 @@ class OriginSemanticsTests(unittest.TestCase):
     def test_crystallize_preserves_source_origin(self):
         engine = _engine()
         engine.reset(seed=42)
-        engine.players[0].mana = 10
+        engine.players[0].mana = 1
         crys_mode = PlayModeDefinition(
             mode_id="crystal", mode_type="crystallize", cost=1,
             countdown=3, operations=(),
@@ -574,7 +574,7 @@ class OriginSemanticsTests(unittest.TestCase):
     def test_crystallize_amulet_not_damage_target(self):
         engine = _engine()
         engine.reset(seed=42)
-        engine.players[0].mana = 10
+        engine.players[0].mana = 1
         crys_mode = PlayModeDefinition(
             mode_id="crystal", mode_type="crystallize", cost=1,
             countdown=3, operations=(),
@@ -593,7 +593,7 @@ class OriginSemanticsTests(unittest.TestCase):
     def test_crystallize_amulet_is_amulet_target(self):
         engine = _engine()
         engine.reset(seed=42)
-        engine.players[0].mana = 10
+        engine.players[0].mana = 1
         crys_mode = PlayModeDefinition(
             mode_id="crystal", mode_type="crystallize", cost=1,
             countdown=3, operations=(),
@@ -612,7 +612,7 @@ class OriginSemanticsTests(unittest.TestCase):
     def test_crystallize_death_no_destroyed_follower(self):
         engine = _engine()
         engine.reset(seed=42)
-        engine.players[0].mana = 10
+        engine.players[0].mana = 1
         crys_mode = PlayModeDefinition(
             mode_id="crystal", mode_type="crystallize", cost=1,
             countdown=1, operations=(),
@@ -799,6 +799,91 @@ class RealCardEndToEndTests(unittest.TestCase):
         gy = [g for g in engine.players[0].graveyard
               if g.definition.card_id == 10671110]
         self.assertEqual(len(gy), 1)
+
+    def test_10661110_crystallize_is_hidden_when_body_is_affordable(self):
+        from swb.db.repository import CardRepository
+
+        repo = CardRepository(str(self.db_path))
+        try:
+            real_card = repo.get(10661110)
+        except KeyError:
+            self.skipTest("Card 10661110 not found")
+        rulebook = RuleBook.from_directory("data/rules")
+        self.assertEqual(
+            [mode.mode_id for mode in rulebook.modes_for(10661110)],
+            ["crystallize_2"],
+        )
+        env = ShadowverseEnv(
+            deck_a=[_card(i) for i in range(1000, 1040)],
+            deck_b=[_card(i) for i in range(2000, 2040)],
+            class_a=1,
+            class_b=1,
+            seed=10661110,
+            rulebook=rulebook,
+            card_resolver=repo.get,
+        )
+        env.reset(seed=10661110)
+        _insert_card(env.core, real_card)
+        env.core.players[0].mana = real_card.cost
+
+        normal = PlayCard(0, 0, "normal")
+        crystallize = PlayCard(0, 0, "crystallize_2")
+        legal = env.core.legal_commands()
+        mask = env.action_mask()
+        self.assertIn(normal, legal)
+        self.assertNotIn(crystallize, legal)
+        self.assertTrue(mask[env.PLAY_OFFSET])
+        self.assertFalse(
+            any(
+                mask[env.MODE_PLAY_OFFSET + slot]
+                for slot in range(MAX_SPECIAL_MODES_PER_CARD)
+            )
+        )
+
+        fingerprint = env.core.deterministic_fingerprint()
+        with self.assertRaises(IllegalCommand):
+            env.core.apply(crystallize)
+        self.assertEqual(env.core.deterministic_fingerprint(), fingerprint)
+
+    def test_10424110_enhance_replaces_normal_command_and_action(self):
+        from swb.db.repository import CardRepository
+
+        repo = CardRepository(str(self.db_path))
+        try:
+            real_card = repo.get(10424110)
+        except KeyError:
+            self.skipTest("Card 10424110 not found")
+        rulebook = RuleBook.from_directory("data/rules")
+        self.assertEqual(
+            [mode.mode_id for mode in rulebook.modes_for(10424110)],
+            ["enhance_6"],
+        )
+        env = ShadowverseEnv(
+            deck_a=[_card(i) for i in range(1000, 1040)],
+            deck_b=[_card(i) for i in range(2000, 2040)],
+            class_a=1,
+            class_b=1,
+            seed=10424110,
+            rulebook=rulebook,
+            card_resolver=repo.get,
+        )
+        env.reset(seed=10424110)
+        _insert_card(env.core, real_card)
+        env.core.players[0].mana = 10
+
+        normal = PlayCard(0, 0, "normal")
+        enhance = PlayCard(0, 0, "enhance_6")
+        legal = env.core.legal_commands()
+        mask = env.action_mask()
+        self.assertNotIn(normal, legal)
+        self.assertIn(enhance, legal)
+        self.assertFalse(mask[env._encode_command(normal)])
+        self.assertTrue(mask[env._encode_command(enhance)])
+
+        fingerprint = env.core.deterministic_fingerprint()
+        with self.assertRaises(IllegalCommand):
+            env.core.apply(normal)
+        self.assertEqual(env.core.deterministic_fingerprint(), fingerprint)
 
 
 if __name__ == "__main__":

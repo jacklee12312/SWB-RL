@@ -18,6 +18,7 @@ from swb.engine.environment import ShadowverseEnv
 from swb.engine.origin import CardOrigin, is_derived
 from swb.engine.resolution import GameConfig, GameEngine
 from swb.engine.state import HandCard
+from tests.play_mode_test_support import prepare_mana_for_play_mode
 
 
 COLLECTIBLE_IDS = (10101120, 10152110, 10312120, 10751110, 10872110)
@@ -109,7 +110,8 @@ def _play_real(
     mode_id: str = "normal",
 ):
     definition = repository.get(card_id)
-    _put_in_hand(engine, definition)
+    hand_card = _put_in_hand(engine, definition)
+    prepare_mana_for_play_mode(engine, hand_card, mode_id)
     engine.apply(PlayCard(0, len(engine.players[0].hand) - 1, mode_id))
     return next(
         entity
@@ -341,7 +343,7 @@ class RealGeneratedHandLastWordsBehaviorTests(unittest.TestCase):
         normal = self.fresh_engine(seed=421)
         _clear_hand(normal)
         normal_source = _play_real(normal, self.repository, 10152110)
-        self.assertEqual(normal.players[0].mana, 8)
+        self.assertEqual(normal.players[0].mana, 1)
         self.assertFalse(normal_source.has_keyword("突进"))
         self.assertFalse(normal_source.has_keyword("必杀"))
         self.assertFalse(normal_source.can_attack)
@@ -445,14 +447,14 @@ class RealGeneratedHandLastWordsBehaviorTests(unittest.TestCase):
 
         normal = PlayCard(0, 0)
         enhanced = PlayCard(0, 0, "enhance_4")
-        self.assertIn(normal, env.core.legal_commands())
+        self.assertNotIn(normal, env.core.legal_commands())
         self.assertIn(enhanced, env.core.legal_commands())
         normal_action = env._encode_command(normal)
         enhanced_action = env._encode_command(enhanced)
         self.assertIsNotNone(normal_action)
         self.assertIsNotNone(enhanced_action)
         mask = env.action_mask()
-        self.assertTrue(mask[normal_action])
+        self.assertFalse(mask[normal_action])
         self.assertTrue(mask[enhanced_action])
 
     def test_same_seed_and_sequence_have_identical_fingerprint(self):

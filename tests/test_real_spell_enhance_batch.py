@@ -18,6 +18,7 @@ from swb.engine.environment import ShadowverseEnv
 from swb.engine.origin import CardOrigin
 from swb.engine.resolution import GameConfig, GameEngine
 from swb.engine.state import HandCard, Unit
+from tests.play_mode_test_support import prepare_mana_for_play_mode
 
 
 BATCH_CARD_IDS = (
@@ -280,7 +281,8 @@ class RealSpellEnhanceBehaviorTests(unittest.TestCase):
         card_id: int,
         mode_id: str = "normal",
     ) -> None:
-        _put_in_hand(engine, self.repository.get(card_id))
+        hand_card = _put_in_hand(engine, self.repository.get(card_id))
+        prepare_mana_for_play_mode(engine, hand_card, mode_id)
         engine.apply(PlayCard(0, 0, mode_id))
 
     def test_rule_shapes_make_append_and_replacement_explicit(self):
@@ -461,7 +463,7 @@ class RealSpellEnhanceBehaviorTests(unittest.TestCase):
         normal = PlayCard(0, 0, "normal")
         enhanced = PlayCard(0, 0, "enhance_5")
         legal = env.core.legal_commands()
-        self.assertIn(normal, legal)
+        self.assertNotIn(normal, legal)
         self.assertIn(enhanced, legal)
         action = env._encode_command(enhanced)
         self.assertIsNotNone(action)

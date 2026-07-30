@@ -1533,8 +1533,44 @@ class GameEngine:
             for emblem in self.players[player_index].emblems
         )
 
+    def _selected_enhance_mode(self, card, player):
+        """Return the mandatory highest affordable applicable Enhance mode."""
+        applicable = []
+        for mode_def in self.rulebook.modes_for(card.card_id):
+            try:
+                validate_runtime_play_mode(
+                    mode_def,
+                    f"card {card.card_id}/play_modes/{mode_def.mode_id}",
+                )
+            except ValueError:
+                continue
+            if not mode_def.is_enhance or mode_def.cost > player.mana:
+                continue
+            if mode_def.conditions:
+                ctx = self._eval_context(self.current_player)
+                from swb.engine.conditions import (
+                    PartialConditionResult,
+                    evaluate_conditions_without_target,
+                )
+                result = evaluate_conditions_without_target(
+                    mode_def.conditions,
+                    ctx,
+                )
+                if result is not PartialConditionResult.TRUE:
+                    continue
+            applicable.append(mode_def)
+        if not applicable:
+            return None
+        return max(applicable, key=lambda item: item.cost)
+
     def _is_mode_playable(self, card, player, mode_def) -> bool:
         if isinstance(card, HandCard) and card.cannot_be_played:
+            return False
+        selected_enhance = self._selected_enhance_mode(card, player)
+        if mode_def is None:
+            if selected_enhance is not None:
+                return False
+        elif mode_def.is_enhance and mode_def is not selected_enhance:
             return False
         cost = self.effective_play_cost(card, mode_def)
         if cost > player.mana:
@@ -1548,16 +1584,16 @@ class GameEngine:
                 )
             except ValueError:
                 return False
-            if mode_def.is_accelerate:
-                # Accelerate is an alternate play route only while the
-                # card's current normal cost is greater than the player's
-                # remaining PP.  This comparison intentionally uses the
-                # hand card's runtime cost so cost changes are respected.
+            if mode_def.is_accelerate or mode_def.is_crystallize:
+                # Accelerate and Crystallize are alternate play routes only
+                # while the card's current normal cost is greater than the
+                # player's remaining PP. This comparison intentionally uses
+                # the hand card's runtime cost so cost changes are respected.
                 if player.mana >= self.effective_play_cost(card, None):
                     return False
-                effective_type = "法术"
-            elif mode_def.is_crystallize:
-                effective_type = "护符"
+                effective_type = (
+                    "法术" if mode_def.is_accelerate else "护符"
+                )
             elif mode_def.resulting_card_type:
                 effective_type = mode_def.resulting_card_type
         if effective_type in {"随从", "护符"} and len(player.board) >= self.config.max_board:

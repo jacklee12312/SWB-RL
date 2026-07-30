@@ -417,7 +417,7 @@ class ListenerEnhanceRandomKeywordEleventhBehaviorTests(unittest.TestCase):
             engine,
             self.repository.get(10622310),
         )
-        engine.players[0].mana = 10
+        engine.players[0].mana = 2
         engine.apply(PlayCard(0, engine.players[0].hand.index(spell)))
         self.assertEqual(
             sum(
@@ -432,7 +432,7 @@ class ListenerEnhanceRandomKeywordEleventhBehaviorTests(unittest.TestCase):
             engine,
             self.repository.get(10622310),
         )
-        engine.players[0].mana = 10
+        engine.players[0].mana = 2
         engine.apply(
             PlayCard(0, engine.players[0].hand.index(second_spell))
         )
@@ -628,7 +628,7 @@ class ListenerEnhanceRandomKeywordEleventhBehaviorTests(unittest.TestCase):
             if allowed
         }
         self.assertEqual(decoded, set(env.core.legal_commands()))
-        self.assertIn(
+        self.assertNotIn(
             PlayCard(0, 0, mode_id="normal"),
             decoded,
         )

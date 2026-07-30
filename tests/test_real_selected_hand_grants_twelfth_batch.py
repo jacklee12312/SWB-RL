@@ -502,6 +502,7 @@ class SelectedHandGrantsTwelfthBehaviorTests(unittest.TestCase):
         normal = self.fresh(seed=41)
         target = _put_hand(normal, self.repository.get(10111140))
         chloe = _put_hand(normal, self.repository.get(10412110))
+        normal.players[0].mana = 7
         normal.apply(PlayCard(0, normal.players[0].hand.index(chloe)))
         self.assertIn(target, normal.players[0].hand)
         self.assertTrue(
@@ -615,7 +616,7 @@ class SelectedHandGrantsTwelfthBehaviorTests(unittest.TestCase):
                 )
             )
         self.assertEqual(missing.deterministic_fingerprint(), before)
-        self.assertIn(
+        self.assertNotIn(
             PlayCard(0, 0, mode_id="normal"),
             missing.legal_commands(),
         )
@@ -747,7 +748,7 @@ class SelectedHandGrantsTwelfthBehaviorTests(unittest.TestCase):
             if allowed
         }
         self.assertEqual(decoded, set(env.core.legal_commands()))
-        self.assertIn(
+        self.assertNotIn(
             PlayCard(0, 1, mode_id="normal"),
             decoded,
         )

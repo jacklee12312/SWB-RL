@@ -17,6 +17,7 @@ from swb.engine.environment import ShadowverseEnv
 from swb.engine.origin import CardOrigin
 from swb.engine.resolution import GameConfig, GameEngine
 from swb.engine.state import HandCard, Unit
+from tests.play_mode_test_support import prepare_mana_for_play_mode
 
 
 CARD_ID = 10203120
@@ -181,7 +182,8 @@ class RealLastWordsSourceSnapshotBehaviorTests(unittest.TestCase):
         *,
         mode_id: str = "normal",
     ) -> Unit:
-        _put_in_hand(engine, self.repository.get(CARD_ID))
+        hand_card = _put_in_hand(engine, self.repository.get(CARD_ID))
+        prepare_mana_for_play_mode(engine, hand_card, mode_id)
         engine.apply(PlayCard(0, 0, mode_id))
         return next(
             unit
@@ -210,7 +212,7 @@ class RealLastWordsSourceSnapshotBehaviorTests(unittest.TestCase):
         normal_target = _add_enemy(normal, 3000)
         normal_source = self.play_real(normal)
         self.assertFalse(normal_source.evolved)
-        self.assertEqual(normal.players[0].mana, 8)
+        self.assertEqual(normal.players[0].mana, 2)
         normal_source.health = 0
         normal._stabilize()
         self.assertEqual(normal_target.health, 5)

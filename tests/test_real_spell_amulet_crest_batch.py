@@ -17,6 +17,7 @@ from swb.engine.environment import ShadowverseEnv
 from swb.engine.origin import CardOrigin
 from swb.engine.resolution import GameConfig, GameEngine
 from swb.engine.state import Amulet, CostModifier, HandCard, Unit
+from tests.play_mode_test_support import prepare_mana_for_play_mode
 
 
 BATCH_CARD_IDS = (
@@ -163,6 +164,7 @@ def _play(
     mode_id: str = "normal",
 ) -> Unit | Amulet | None:
     source = _put_hand(engine, repository.get(card_id))
+    prepare_mana_for_play_mode(engine, source, mode_id)
     engine.apply(
         PlayCard(
             0,
@@ -475,8 +477,13 @@ class RealSpellAmuletCrestBehaviorTests(unittest.TestCase):
         _put_hand(env.core, self.repository.get(10633310))
         normal = PlayCard(0, 0)
         enhance = PlayCard(0, 0, mode_id="enhance_5")
-        self.assertTrue(env.action_mask()[env._encode_command(normal)])
+        self.assertFalse(env.action_mask()[env._encode_command(normal)])
         self.assertTrue(env.action_mask()[env._encode_command(enhance)])
+
+        env.players[0].mana = 4
+        env.invalidate_cache(reason="bewitching crystals normal threshold")
+        self.assertTrue(env.action_mask()[env._encode_command(normal)])
+        self.assertIsNone(env._encode_command(enhance))
         env.step(env._encode_command(normal))
         choices = [command for command in env.core.legal_commands() if isinstance(command, Choose)]
         self.assertEqual(len(choices), 2)

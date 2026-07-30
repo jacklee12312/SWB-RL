@@ -463,8 +463,14 @@ class CrestTokenActivationBehaviorTests(unittest.TestCase):
         enhanced = PlayCard(0, env.players[0].hand.index(golden), "enhance_9")
         env.invalidate_cache(reason="golden modes")
         mask = env.action_mask()
-        self.assertTrue(mask[env._encode_command(normal)])
+        self.assertFalse(mask[env._encode_command(normal)])
         self.assertTrue(mask[env._encode_command(enhanced)])
+
+        env.players[0].mana = 8
+        env.invalidate_cache(reason="golden normal threshold")
+        mask = env.action_mask()
+        self.assertTrue(mask[env._encode_command(normal)])
+        self.assertIsNone(env._encode_command(enhanced))
         env.core.apply(normal)
         env.invalidate_cache(reason="golden choose one")
         mask = env.action_mask()
