@@ -77,6 +77,7 @@ from swb.engine.origin import (
     origin_for_summoned_card,
 )
 from swb.engine.play_modes import PlayModeDefinition, validate_runtime_play_mode
+from swb.engine.runtime_coverage import RuntimeCoverageRecorder
 from swb.engine.state import (
     Amulet,
     BoardCard,
@@ -364,6 +365,7 @@ class GameConfig:
     validate_invariants: bool = False
     retain_text_logs: bool = True
     event_history_limit: int | None = None
+    audit_runtime_coverage: bool = False
 
 
 @dataclass(frozen=True)
@@ -430,6 +432,11 @@ class GameEngine:
         self.event_history: list[GameEvent] = []
         self._active_transition_events: list[GameEvent] | None = None
         self.placeholder_ability_events: list[PlaceholderAbilityEvent] = []
+        self.runtime_coverage = (
+            RuntimeCoverageRecorder(self.rulebook)
+            if self.config.audit_runtime_coverage
+            else None
+        )
         self.ability_handlers = AbilityHandlers(self)
         self._stabilizing: bool = False
         self._death_causes: dict[int, DeathCause] = {}
@@ -532,6 +539,79 @@ class GameEngine:
             return self.rulebook.faith_for(card.card_id) is not None
         if ability is AbilityKeyword.UNION_BURST:
             return bool(self.rulebook.union_bursts_for(card.card_id))
+        if ability in {
+            AbilityKeyword.ENHANCE,
+            AbilityKeyword.ACCELERATE,
+            AbilityKeyword.CRYSTALLIZE,
+        }:
+            expected_mode_type = {
+                AbilityKeyword.ENHANCE: "enhance",
+                AbilityKeyword.ACCELERATE: "accelerate",
+                AbilityKeyword.CRYSTALLIZE: "crystallize",
+            }[ability]
+            return any(
+                mode.mode_type == expected_mode_type
+                for mode in self.rulebook.modes_for(card.card_id)
+            )
+        if ability is AbilityKeyword.COUNTDOWN:
+            return (
+                self.rulebook.countdown_for(card.card_id) is not None
+                or any(
+                    mode.is_crystallize and mode.countdown is not None
+                    for mode in self.rulebook.modes_for(card.card_id)
+                )
+                or any(
+                    definition.source_card_id == card.card_id
+                    and definition.countdown is not None
+                    for definition in self.rulebook._emblem_defs.values()
+                )
+            )
+        if ability is AbilityKeyword.CHOOSE:
+            def contains_choose(
+                operations: tuple[EffectOperation, ...],
+            ) -> bool:
+                for operation in operations:
+                    if operation.kind is EffectKind.CHOOSE_ONE:
+                        return True
+                    nested = (
+                        operation.earth_rite_operations
+                        + operation.necromancy_operations
+                        + operation.faith_operations
+                        + operation.then_operations
+                        + operation.else_operations
+                        + operation.optional_operations
+                        + operation.repeat_operations
+                        + tuple(
+                            child
+                            for option in operation.random_choice_options
+                            for child in option.operations
+                        )
+                        + tuple(
+                            child
+                            for bucket in (
+                                operation.random_distribution_operations
+                            )
+                            for child in bucket
+                        )
+                    )
+                    if contains_choose(nested):
+                        return True
+                    if any(
+                        contains_choose(option.operations)
+                        for option in operation.choose_one_options
+                    ):
+                        return True
+                return False
+
+            return any(
+                contains_choose(
+                    self.rulebook.operations_for(card.card_id, trigger)
+                )
+                for trigger in Trigger
+            ) or any(
+                contains_choose(mode.operations)
+                for mode in self.rulebook.modes_for(card.card_id)
+            )
         if ability is AbilityKeyword.FANFARE:
             return bool(
                 self.rulebook.operations_for(card.card_id, Trigger.FANFARE)
@@ -710,6 +790,7 @@ class GameEngine:
             "rulebook",
             "card_resolver",
             "ability_handlers",
+            "runtime_coverage",
         }
         mutable = {
             name: value
@@ -805,6 +886,8 @@ class GameEngine:
         self.event_history = []
         self._active_transition_events = None
         self.placeholder_ability_events = []
+        if self.runtime_coverage is not None:
+            self.runtime_coverage.reset()
         self._next_modifier_id = 1
         self._next_choice_request_id = 1
         self._suspended_batch = None
@@ -1097,6 +1180,16 @@ class GameEngine:
             self._continue_effects()
 
     def apply(self, command: GameCommand) -> CoreTransition:
+        try:
+            return self._apply_command(command)
+        except IllegalCommand as exc:
+            self._record_runtime_diagnostic(
+                "illegal_command",
+                detail=type(command).__name__ + ":" + str(exc),
+            )
+            raise
+
+    def _apply_command(self, command: GameCommand) -> CoreTransition:
         self._ensure_entity_ids()
         if self.config.validate_invariants:
             self.assert_invariants()
@@ -4565,6 +4658,10 @@ class GameEngine:
         self.state.resolution_steps += 1
         if self.state.resolution_steps > MAX_RESOLUTION_STEPS:
             diagnostics = self._loop_diagnostics()
+            self._record_runtime_diagnostic(
+                "resolution_step_limit",
+                detail="resolution_steps",
+            )
             raise ResolutionLoopError(
                 f"Resolution step limit exceeded at turn {self.turn}, "
                 f"player {self.current_player + 1}. "
@@ -5209,6 +5306,195 @@ class GameEngine:
         )
         self.state._next_follower_entry_sequence += 1
 
+    def _runtime_clause_id(
+        self,
+        operation: EffectOperation,
+        frame: EffectFrame,
+    ) -> str | None:
+        if self.runtime_coverage is None:
+            return None
+        return self.runtime_coverage.resolve_clause_id(
+            frame.source_card_id,
+            operation,
+            frame.operations,
+        )
+
+    def _runtime_target_candidate_count(
+        self,
+        operation: EffectOperation,
+        frame: EffectFrame,
+        condition_state: PartialConditionResult,
+    ) -> int | None:
+        if operation.target in {
+            TargetKind.SELF,
+            TargetKind.EMBLEM_SELF,
+            TargetKind.EVENT_SOURCE,
+            TargetKind.ATTACK_TARGET,
+            TargetKind.OWN_LEADER,
+            TargetKind.ENEMY_LEADER,
+        }:
+            return None
+        if operation.target is TargetKind.PREVIOUS_TARGET:
+            return len(frame._target_bindings.get(operation.target_key or "", ()))
+        if operation.target in {
+            TargetKind.OWN_HAND,
+            TargetKind.RANDOM_OWN_HAND,
+            TargetKind.RANDOM_ENEMY_HAND,
+            TargetKind.ALL_OWN_HAND,
+            TargetKind.ALL_ENEMY_HAND,
+        }:
+            return len(
+                hand_candidates(
+                    operation,
+                    frame.controller,
+                    self.players,
+                    source_entity_id=frame.source_entity_id,
+                )
+            )
+        if is_graveyard_target(operation.target):
+            return len(
+                graveyard_candidates(
+                    operation,
+                    frame.controller,
+                    self.players,
+                )
+            )
+        if operation.target is TargetKind.ALL_LEADERS:
+            return len(
+                leader_target_ids(
+                    operation,
+                    frame.controller,
+                    self.players,
+                )
+            )
+        if operation.target is TargetKind.ALL_ENEMY_UNITS_AND_LEADER:
+            return 1 + sum(
+                isinstance(entity, Unit)
+                for entity in self.players[1 - frame.controller].board
+            )
+        if operation.target is TargetKind.ALL_OWN_EMBLEMS:
+            return sum(
+                emblem.countdown is not None
+                and (
+                    operation.emblem_id is None
+                    or emblem.emblem_id == operation.emblem_id
+                )
+                for emblem in self.players[frame.controller].emblems
+            )
+        candidates = target_candidates(
+            operation,
+            frame.controller,
+            self.players,
+            source_entity_id=frame.source_entity_id,
+        )
+        if condition_state is PartialConditionResult.DEPENDS_ON_TARGET:
+            candidates = [
+                entity
+                for entity in candidates
+                if self._target_conditions_met(
+                    operation.conditions,
+                    entity,
+                    frame.controller,
+                    source_entity_id=frame.source_entity_id,
+                    source_fusion_count=len(frame.fusion_materials),
+                )
+            ]
+        if (
+            operation.exclude_attack_target
+            and frame.attack_target_entity_id is not None
+        ):
+            candidates = [
+                entity
+                for entity in candidates
+                if entity.entity_id != frame.attack_target_entity_id
+            ]
+        leader_count = len(
+            leader_choice_options(
+                operation.target,
+                frame.controller,
+                self.players,
+            )
+        )
+        return len(candidates) + leader_count
+
+    def _record_runtime_target(
+        self,
+        operation: EffectOperation,
+        frame: EffectFrame,
+        clause_id: str | None,
+        condition_state: PartialConditionResult,
+    ) -> None:
+        if self.runtime_coverage is None or clause_id is None:
+            return
+        candidate_count = self._runtime_target_candidate_count(
+            operation,
+            frame,
+            condition_state,
+        )
+        self.runtime_coverage.record_target(
+            clause_id,
+            operation.target,
+            candidate_count=candidate_count,
+            random=is_random_target(operation.target),
+            no_target=candidate_count == 0,
+        )
+
+    def _record_runtime_capacity(
+        self,
+        operation: EffectOperation,
+        frame: EffectFrame,
+        clause_id: str | None,
+    ) -> None:
+        if self.runtime_coverage is None or clause_id is None:
+            return
+        player = self.players[frame.controller]
+        board_kinds = {
+            EffectKind.SUMMON,
+            EffectKind.SUMMON_COPY,
+            EffectKind.SUMMON_EXACT_COPY,
+            EffectKind.SUMMON_HAND_COPY,
+            EffectKind.SUMMON_FROM_HAND,
+            EffectKind.SUMMON_FROM_DECK,
+            EffectKind.SUMMON_DESTROYED_AMULETS,
+            EffectKind.REANIMATE,
+            EffectKind.SUMMON_FROM_GRAVEYARD,
+        }
+        hand_kinds = {
+            EffectKind.DRAW,
+            EffectKind.DRAW_FILTERED,
+            EffectKind.ADD_CARD,
+            EffectKind.COPY_TO_HAND,
+            EffectKind.COPY_DESTROYED_FOLLOWERS_TO_HAND,
+            EffectKind.COPY_RANDOM_ENEMY_DECK_TO_HAND,
+            EffectKind.COPY_LEFTMOST_HAND_TO_HAND,
+            EffectKind.RETURN_TO_HAND,
+            EffectKind.RETURN_FROM_GRAVEYARD_TO_HAND,
+        }
+        if (
+            operation.kind in board_kinds
+            and len(player.board) >= self.config.max_board
+        ):
+            self.runtime_coverage.record_capacity_shortage(
+                clause_id,
+                "board",
+            )
+        if (
+            operation.kind in hand_kinds
+            and len(player.hand) >= self.config.max_hand
+        ):
+            self.runtime_coverage.record_capacity_shortage(
+                clause_id,
+                "hand",
+            )
+        if (
+            operation.kind in {EffectKind.GAIN_EMBLEM, EffectKind.ADD_EMBLEM}
+            and len(player.emblems) >= self.config.leader_area_limit
+        ):
+            self.runtime_coverage.record_capacity_shortage(
+                clause_id,
+                "leader_area",
+            )
+
     def _continue_effects(self) -> None:
         while self.state.effect_stack and self.state.pending_choice is None:
             if self.terminated:
@@ -5256,6 +5542,9 @@ class GameEngine:
                 continue
 
             operation = frame.operations[frame.next_index]
+            clause_id = self._runtime_clause_id(operation, frame)
+            if self.runtime_coverage is not None and clause_id is not None:
+                self.runtime_coverage.record_clause(clause_id, "entered")
             if (
                 operation.target_key
                 and operation.target is not TargetKind.PREVIOUS_TARGET
@@ -5282,9 +5571,38 @@ class GameEngine:
                     operation.conditions,
                     self._build_eval_context(frame, None),
                 )
+                if (
+                    self.runtime_coverage is not None
+                    and clause_id is not None
+                    and operation.conditions
+                ):
+                    self.runtime_coverage.record_clause(
+                        clause_id,
+                        "condition_evaluated",
+                    )
+                    self.runtime_coverage.record_clause(
+                        clause_id,
+                        (
+                            "condition_false"
+                            if condition_state is PartialConditionResult.FALSE
+                            else (
+                                "condition_true"
+                                if condition_state is PartialConditionResult.TRUE
+                                else "condition_deferred"
+                            )
+                        ),
+                    )
                 if condition_state is PartialConditionResult.FALSE:
                     frame.next_index += 1
                     continue
+            else:
+                condition_state = PartialConditionResult.TRUE
+            self._record_runtime_target(
+                operation,
+                frame,
+                clause_id,
+                condition_state,
+            )
 
             if operation.kind is EffectKind.TARGET_EXISTS:
                 self._checked_execute(operation, frame, None)
@@ -8185,6 +8503,7 @@ class GameEngine:
     def _checked_execute(
         self, operation: EffectOperation, frame: EffectFrame, target_id: int | None,
     ) -> None:
+        clause_id = self._runtime_clause_id(operation, frame)
         source_in_play = self._source_entity_in_play(frame)
         if self._operation_requires_live_source_target(operation) and not source_in_play:
             return
@@ -8243,7 +8562,32 @@ class GameEngine:
         if not is_meta:
             for cond in operation.conditions:
                 if not evaluate_condition(cond, ctx):
+                    if (
+                        self.runtime_coverage is not None
+                        and clause_id is not None
+                    ):
+                        self.runtime_coverage.record_clause(
+                            clause_id,
+                            "condition_evaluated",
+                        )
+                        self.runtime_coverage.record_clause(
+                            clause_id,
+                            "condition_false",
+                        )
                     return
+            if (
+                self.runtime_coverage is not None
+                and clause_id is not None
+                and operation.conditions
+            ):
+                self.runtime_coverage.record_clause(
+                    clause_id,
+                    "condition_evaluated",
+                )
+                self.runtime_coverage.record_clause(
+                    clause_id,
+                    "condition_true",
+                )
         amount = self._resolve_amount(operation, ctx)
         secondary = self._resolve_secondary(operation, ctx)
         resolved_deck_filter = operation.deck_filter
@@ -8263,6 +8607,12 @@ class GameEngine:
             EffectKind.HEAL_UNIT_AND_LEADER,
         ):
             amount = max(0, amount)
+        self._record_runtime_capacity(operation, frame, clause_id)
+        if self.runtime_coverage is not None and clause_id is not None:
+            self.runtime_coverage.record_clause(
+                clause_id,
+                "operation_executed",
+            )
         if (
             operation.amount_expr is not None
             or operation.secondary_expr is not None
@@ -8990,6 +9340,12 @@ class GameEngine:
         elif effect.kind is EffectKind.REPLAY_SOURCE_FANFARE:
             self._execute_replay_source_fanfare(frame, target_id)
         else:
+            self._record_runtime_diagnostic(
+                "unsupported",
+                card_id=frame.source_card_id,
+                clause_id=self._runtime_clause_id(effect, frame),
+                detail=effect.kind.value,
+            )
             self._log(
                 frame.controller,
                 f"[未实现效果] {name} {frame.label}: {effect.kind.value}",
@@ -9207,6 +9563,15 @@ class GameEngine:
         frame: EffectFrame,
         target_id: int | None,
     ) -> None:
+        clause_id = self._runtime_clause_id(effect, frame)
+        if self.runtime_coverage is not None and clause_id is not None:
+            self.runtime_coverage.record_target(
+                clause_id,
+                "random_keyword",
+                candidate_count=len(effect.keywords),
+                random=True,
+                no_target=not effect.keywords,
+            )
         if not effect.keywords or effect.amount > len(effect.keywords):
             raise IllegalCommand(
                 "add_random_keywords requires enough keyword candidates"
@@ -12639,6 +13004,7 @@ class GameEngine:
             )
 
     def _execute_conditional(self, effect, frame) -> None:
+        clause_id = self._runtime_clause_id(effect, frame)
         target_snapshot = None
         if effect.condition_target_key is not None:
             snapshots = frame._target_binding_snapshots.get(
@@ -12646,6 +13012,15 @@ class GameEngine:
                 (),
             )
             if not snapshots:
+                if self.runtime_coverage is not None and clause_id is not None:
+                    self.runtime_coverage.record_clause(
+                        clause_id,
+                        "condition_evaluated",
+                    )
+                    self.runtime_coverage.record_clause(
+                        clause_id,
+                        "condition_false",
+                    )
                 self._log(
                     frame.controller,
                     f"{frame.source_name} 的条件目标已离开，跳过条件分支",
@@ -12682,6 +13057,15 @@ class GameEngine:
                 evaluate_condition(condition, ctx)
                 for condition in effect.conditions
             )
+        if self.runtime_coverage is not None and clause_id is not None:
+            self.runtime_coverage.record_clause(
+                clause_id,
+                "condition_evaluated",
+            )
+            self.runtime_coverage.record_clause(
+                clause_id,
+                "condition_true" if condition_matches else "condition_false",
+            )
         branch_ops = effect.then_operations if condition_matches else effect.else_operations
         if branch_ops:
             self._queue_effects_from_frame(
@@ -12705,6 +13089,11 @@ class GameEngine:
                 "repeat_limit": MAX_REPEAT_COUNT,
                 "repeat_source_card_id": frame.source_card_id,
             })
+            self._record_runtime_diagnostic(
+                "resolution_step_limit",
+                card_id=frame.source_card_id,
+                detail="repeat_count",
+            )
             raise ResolutionLoopError(
                 f"Repeat count {repeat_count} exceeds maximum of "
                 f"{MAX_REPEAT_COUNT} for card {frame.source_card_id}",
@@ -12717,15 +13106,24 @@ class GameEngine:
         )
 
     def _execute_target_exists(self, effect, frame) -> None:
-        branch_ops = (
-            effect.then_operations
-            if self._target_exists_for(
-                effect,
-                frame.controller,
-                source_entity_id=frame.source_entity_id,
-                source_fusion_count=len(frame.fusion_materials),
+        target_exists = self._target_exists_for(
+            effect,
+            frame.controller,
+            source_entity_id=frame.source_entity_id,
+            source_fusion_count=len(frame.fusion_materials),
+        )
+        clause_id = self._runtime_clause_id(effect, frame)
+        if self.runtime_coverage is not None and clause_id is not None:
+            self.runtime_coverage.record_clause(
+                clause_id,
+                "condition_evaluated",
             )
-            else effect.else_operations
+            self.runtime_coverage.record_clause(
+                clause_id,
+                "condition_true" if target_exists else "condition_false",
+            )
+        branch_ops = (
+            effect.then_operations if target_exists else effect.else_operations
         )
         if branch_ops:
             self._queue_effects_from_frame(
@@ -13542,6 +13940,15 @@ class GameEngine:
         if effect.faith_id is None:
             raise IllegalCommand("random_distribute requires faith_id")
         buckets = effect.random_distribution_operations
+        clause_id = self._runtime_clause_id(effect, frame)
+        if self.runtime_coverage is not None and clause_id is not None:
+            self.runtime_coverage.record_target(
+                clause_id,
+                "random_distribution_bucket",
+                candidate_count=len(buckets),
+                random=True,
+                no_target=not buckets,
+            )
         if len(buckets) < 2 or any(not bucket for bucket in buckets):
             raise IllegalCommand(
                 "random_distribute requires at least two non-empty buckets"
@@ -13604,6 +14011,7 @@ class GameEngine:
     ) -> None:
         options = effect.random_choice_options
         choice_count = effect.amount
+        clause_id = self._runtime_clause_id(effect, frame)
         if (
             len(options) < 2
             or choice_count < 1
@@ -13651,6 +14059,14 @@ class GameEngine:
             for index in range(len(options))
             if index not in previous_indices
         )
+        if self.runtime_coverage is not None and clause_id is not None:
+            self.runtime_coverage.record_target(
+                clause_id,
+                "random_option",
+                candidate_count=len(available_indices),
+                random=True,
+                no_target=len(available_indices) < choice_count,
+            )
         if len(available_indices) < choice_count:
             self._log(
                 frame.controller,
@@ -17043,11 +17459,29 @@ class GameEngine:
     def _record_event(self, event: GameEvent) -> None:
         """Record diagnostics without truncating the current transition."""
         self.event_history.append(event)
+        if self.runtime_coverage is not None:
+            self.runtime_coverage.record_event(event)
         if self._active_transition_events is not None:
             self._active_transition_events.append(event)
         limit = self.config.event_history_limit
         if limit is not None and len(self.event_history) > limit:
             del self.event_history[:-limit]
+
+    def _record_runtime_diagnostic(
+        self,
+        kind: str,
+        *,
+        card_id: int | None = None,
+        clause_id: str | None = None,
+        detail: str | None = None,
+    ) -> None:
+        if self.runtime_coverage is not None:
+            self.runtime_coverage.record_diagnostic(
+                kind,
+                card_id=card_id,
+                clause_id=clause_id,
+                detail=detail,
+            )
 
     def _emit(self, event: GameEvent) -> None:
         if event.listener_sources is None:

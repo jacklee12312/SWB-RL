@@ -145,6 +145,40 @@ decision that neither this transport fix nor the Bane semantics fix changes
 Observation fields or the action layout, so no Observation migration is
 required. The checked-in ledger again has no open P0/P1 entry.
 
+Checklist 1.11 adds an opt-in, non-semantic runtime coverage recorder through
+`audit_runtime_coverage=True`. It consumes structured engine events and stable
+`card:<id>/.../operation:<index>` rule-tree IDs rather than localized logs,
+records lifecycle and alternate-mode execution, condition branches, operation
+execution, target/no-target/capacity/random-candidate paths, and all required
+runtime diagnostics. The recorder is disabled by default and excluded from
+snapshots and deterministic fingerprints. Run
+`python -m scripts.report_runtime_coverage` to regenerate the
+[JSON](data/reports/card_bug_audit/runtime_coverage.json) and
+[Markdown](data/reports/card_bug_audit/runtime_coverage.md) reports, including
+card/mechanic/deck/matchup aggregations. The saved deterministic fixed-deck
+smoke ended normally after 44 agent steps with 0 placeholder, unsupported,
+resolution-limit, illegal-action/command, or action-mask-mismatch diagnostics.
+It catalogues 458 structured operation clauses in the 147-card training
+closure: 15 triggered and executed, 3 triggered without operation execution,
+and 440 not triggered. Those 440 remain open coverage work for 1.12 and are
+explicitly not reported as passing. This slice also removed a diagnostic false
+positive where a structured countdown emblem still emitted the generic
+`COUNTDOWN` placeholder; match-state semantics and the Observation/action
+schemas did not change.
+
+Multi-session aggregation merges each stable clause by its highest observed
+coverage state, so a later execution cannot remain counted as globally
+untriggered. Snapshot/clone operation round-trips also retain the original
+rule-tree clause ID instead of falling back to a dynamic ID.
+
+The 1.11 shared-engine gate also passed the full 2,784-test suite (one skip),
+compileall, the required 100-game invariant smoke, the mixed RL match, and a
+1,000-game invariant self-play run with zero draws, truncations, or action-mask
+mismatches. The machine-readable 1,000-game result is saved at
+[`runtime_coverage_self_play_1000.json`](data/reports/card_bug_audit/runtime_coverage_self_play_1000.json).
+This broad regression smoke is not the eight-deck matchup matrix or the
+coverage-guided scenarios still required by checklist 1.12.
+
 ## Reproducible RL Platform
 
 The P1/P2 platform-hardening slice is implemented around the deterministic

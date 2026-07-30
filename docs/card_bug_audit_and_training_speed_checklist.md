@@ -618,20 +618,57 @@ Invocation/瞬念召唤及其他替代出牌方式。
 
 ## 1.11 建立运行时能力覆盖
 
-- [ ] 在测试/审计模式记录卡牌被抽到、打出、进化、超进化、攻击和离场。
-- [ ] 记录每种替代模式是否实际执行。
-- [ ] 记录每条结构化 clause 是否进入条件判断、真分支、假分支和操作执行。
-- [ ] 记录每种目标种类、无目标分支、容量不足分支和随机候选规模。
-- [ ] 记录 placeholder、unsupported、resolution step limit、非法动作和
+- [x] 在测试/审计模式记录卡牌被抽到、打出、进化、超进化、攻击和离场。
+- [x] 记录每种替代模式是否实际执行。
+- [x] 记录每条结构化 clause 是否进入条件判断、真分支、假分支和操作执行。
+- [x] 记录每种目标种类、无目标分支、容量不足分支和随机候选规模。
+- [x] 记录 placeholder、unsupported、resolution step limit、非法动作和
   action mask mismatch。
-- [ ] 覆盖数据只使用稳定 card/clause ID，不依赖中文日志解析。
-- [ ] 将覆盖数据按卡牌、机制、卡组和对阵汇总为 JSON/Markdown。
-- [ ] 报告明确区分“能力没有触发”和“能力触发并通过”。
+- [x] 覆盖数据只使用稳定 card/clause ID，不依赖中文日志解析。
+- [x] 将覆盖数据按卡牌、机制、卡组和对阵汇总为 JSON/Markdown。
+- [x] 报告明确区分“能力没有触发”和“能力触发并通过”。
 
 产物：
 
 - `data/reports/card_bug_audit/runtime_coverage.json`
 - `data/reports/card_bug_audit/runtime_coverage.md`
+
+实现与证据（2026-07-30）：
+
+- `swb/engine/runtime_coverage.py` 提供默认关闭、排除在 snapshot 和确定性
+  fingerprint 之外的结构化采集器；稳定 ID 来自 card/trigger/mode/listener/
+  emblem/operation 规则树路径，不读取中文日志。
+- `tests/test_runtime_coverage.py` 的 9 项直接合同覆盖生命周期、六类替代
+  入口、条件真/假、执行/未执行、无目标、容量不足、随机候选、六类异常
+  计数、稳定 ID、snapshot operation round-trip、多 session clause 状态合并、
+  聚合维度及审计开关不改变确定性状态。
+- `E:\anaconda\python.exe -m scripts.report_runtime_coverage`：通过；固定卡组
+  smoke 使用 seed 111，44 个 agent step 正常终局、未截断，登记训练闭包
+  458 条结构化 operation clause，其中 15 条 `triggered_passed`、3 条
+  `triggered_not_executed`、440 条 `not_triggered`；六类异常均为 0。
+- 本切片发现并修复运行时诊断假阳性：已有结构化倒计时纹章仍会重复记录
+  通用 `COUNTDOWN` placeholder。修复只校正能力覆盖判定，不改变对局状态、
+  Observation 或动作布局；无结构化入口的同关键词仍由回归测试保证可见。
+- 覆盖工具回归还锁定两项边界：同一 clause 跨 session 以
+  `triggered_passed` > `triggered_not_executed` > `not_triggered` 合并，避免
+  重复累计未触发；snapshot/clone 反序列化后的 operation 仍映射回原规则树
+  clause ID，不退化成 dynamic ID。
+- `E:\anaconda\python.exe -m unittest discover -s tests -v`：2,784 项通过，
+  1 项跳过；`E:\anaconda\python.exe -m compileall -q swb scripts tests`：
+  通过。
+- `E:\anaconda\python.exe -m scripts.random_self_play --games 100
+  --validate-invariants --assert-official-acceptance`：100 局完成，胜场
+  `[50, 50]`、平局 0、截断 0、动作掩码不一致 0，acceptance `pass`。
+- `E:\anaconda\python.exe -m scripts.random_self_play --games 1000
+  --validate-invariants --assert-official-acceptance --output
+  data/reports/card_bug_audit/runtime_coverage_self_play_1000.json`：1,000 局
+  完成，胜场 `[488, 512]`、平局 0、截断 0、动作掩码不一致 0，
+  acceptance `pass`；机器可读结果已保存。该运行是 1.11 共享引擎改动
+  门禁，不替代 1.12 的八套卡组对阵矩阵和 runtime coverage 定向采样。
+- `E:\anaconda\python.exe -m scripts.rl_mixed_match --output
+  data/rl_mixed_match.log --validate-invariants`：完成，玩家 2 获胜，日志已保存。
+- 440 条未触发项明确保留给 1.12 的强制场景、八套卡组矩阵和覆盖引导采样，
+  不能作为卡牌能力已通过的证据。
 
 ## 1.12 强制场景生成和随机对局
 

@@ -357,6 +357,22 @@ class AbilityHandlers:
                 event=context.event,
             )
         )
+        recorder = getattr(
+            self.environment,
+            "_record_runtime_diagnostic",
+            None,
+        )
+        if callable(recorder):
+            recorder(
+                "placeholder",
+                card_id=card.card_id,
+                detail=f"{ability.name}:{context.event.value}",
+            )
+            recorder(
+                "unsupported",
+                card_id=card.card_id,
+                detail=f"{ability.name}:{context.event.value}",
+            )
 
     def handle_combo(self, context: AbilityContext) -> None:
         covered = getattr(self.environment, "_is_ability_covered", None)
@@ -411,7 +427,9 @@ class AbilityHandlers:
         pass
 
     def handle_countdown(self, context: AbilityContext) -> None:
-        self._placeholder(context, AbilityKeyword.COUNTDOWN)
+        covered = getattr(self.environment, "_is_ability_covered", None)
+        if covered is None or not covered(context, AbilityKeyword.COUNTDOWN):
+            self._placeholder(context, AbilityKeyword.COUNTDOWN)
 
     def handle_intimidate(self, context: AbilityContext) -> None:
         pass
@@ -467,16 +485,24 @@ class AbilityHandlers:
             engine(trigger, context)
 
     def handle_enhance(self, context: AbilityContext) -> None:
-        self._placeholder(context, AbilityKeyword.ENHANCE)
+        covered = getattr(self.environment, "_is_ability_covered", None)
+        if covered is None or not covered(context, AbilityKeyword.ENHANCE):
+            self._placeholder(context, AbilityKeyword.ENHANCE)
 
     def handle_accelerate(self, context: AbilityContext) -> None:
-        self._placeholder(context, AbilityKeyword.ACCELERATE)
+        covered = getattr(self.environment, "_is_ability_covered", None)
+        if covered is None or not covered(context, AbilityKeyword.ACCELERATE):
+            self._placeholder(context, AbilityKeyword.ACCELERATE)
 
     def handle_crystallize(self, context: AbilityContext) -> None:
-        self._placeholder(context, AbilityKeyword.CRYSTALLIZE)
+        covered = getattr(self.environment, "_is_ability_covered", None)
+        if covered is None or not covered(context, AbilityKeyword.CRYSTALLIZE):
+            self._placeholder(context, AbilityKeyword.CRYSTALLIZE)
 
     def handle_choose(self, context: AbilityContext) -> None:
-        self._placeholder(context, AbilityKeyword.CHOOSE)
+        covered = getattr(self.environment, "_is_ability_covered", None)
+        if covered is None or not covered(context, AbilityKeyword.CHOOSE):
+            self._placeholder(context, AbilityKeyword.CHOOSE)
 
     def handle_fusion(self, context: AbilityContext) -> None:
         covered = getattr(self.environment, "_is_ability_covered", None)

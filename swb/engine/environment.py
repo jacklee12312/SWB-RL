@@ -100,6 +100,8 @@ class ShadowverseEnv:
         debug_cache_validation: bool = False,
         training_mode: bool = False,
         training_event_history_limit: int = 256,
+        audit_runtime_coverage: bool = False,
+        audit_context: dict[str, object] | None = None,
         match_setup: str = MATCH_SETUP_LEGACY,
         starting_player: int | None | object = _MATCH_SETUP_DEFAULT,
         enable_mulligan: bool | None = None,
@@ -151,6 +153,8 @@ class ShadowverseEnv:
         self.debug_cache_validation = bool(debug_cache_validation)
         self.training_mode = bool(training_mode)
         self.training_event_history_limit = training_event_history_limit
+        self.audit_runtime_coverage = bool(audit_runtime_coverage)
+        self.audit_context = dict(audit_context or {})
         self.match_setup = match_setup
         self.starting_player = resolved_starting_player
         self.enable_mulligan = resolved_enable_mulligan
@@ -218,10 +222,13 @@ class ShadowverseEnv:
                     if self.training_mode
                     else None
                 ),
+                audit_runtime_coverage=self.audit_runtime_coverage,
                 starting_player=self.starting_player,
                 enable_mulligan=self.enable_mulligan,
             ),
         )
+        if self._core.runtime_coverage is not None:
+            self._core.runtime_coverage.set_context(**self.audit_context)
         self._graveyard_page: int = 0
         self._last_choice_request_key: tuple[str, int] | None = None
         self._truncated = False
@@ -345,6 +352,8 @@ class ShadowverseEnv:
             debug_cache_validation=self.debug_cache_validation,
             training_mode=self.training_mode,
             training_event_history_limit=self.training_event_history_limit,
+            audit_runtime_coverage=self.audit_runtime_coverage,
+            audit_context=self.audit_context,
             match_setup=self.match_setup,
             starting_player=self.starting_player,
             enable_mulligan=self.enable_mulligan,
@@ -454,6 +463,10 @@ class ShadowverseEnv:
     def placeholder_ability_events(self) -> list[object]:
         return self._core.placeholder_ability_events
 
+    @property
+    def runtime_coverage(self):
+        return self._core.runtime_coverage
+
     def reset(
         self, *, seed: int | None = None
     ) -> tuple[object, dict[str, object]]:
@@ -472,11 +485,19 @@ class ShadowverseEnv:
         page_before = self._graveyard_page
         choice_key_before = self._last_choice_request_key
         if action < 0 or action >= self.ACTION_SIZE:
+            self._core._record_runtime_diagnostic(
+                "illegal_action",
+                detail=str(action),
+            )
             raise ValueError(f"Illegal action: {action}")
         mask = self.action_mask()
         if not mask[action]:
             self._graveyard_page = page_before
             self._last_choice_request_key = choice_key_before
+            self._core._record_runtime_diagnostic(
+                "illegal_action",
+                detail=str(action),
+            )
             raise ValueError(f"Illegal action: {action}")
         acting_player = self.decision_player
         try:
@@ -499,6 +520,10 @@ class ShadowverseEnv:
         except ValueError:
             self._graveyard_page = page_before
             self._last_choice_request_key = choice_key_before
+            self._core._record_runtime_diagnostic(
+                "illegal_action",
+                detail=str(action),
+            )
             raise
         result = self._core.apply(command)
         self._agent_steps += 1
@@ -1045,9 +1070,44 @@ class ShadowverseEnv:
             else:
                 mask = self._legal_non_choice_mask(commands)
         self._action_mask_cache = tuple(mask)
+        self._audit_action_mask(mask)
         self._cache_stats["action_mask_misses"] += 1
         self._record_debug_cache_fingerprint()
         return mask
+
+    def _audit_action_mask(self, mask: Sequence[bool]) -> None:
+        recorder = self._core.runtime_coverage
+        if recorder is None:
+            return
+        commands = self._cached_legal_commands()
+        mismatches: list[str] = []
+        encoded: dict[int, GameCommand] = {}
+        for command in commands:
+            action = self._encode_command(command)
+            if action is None:
+                mismatches.append(f"unencoded:{type(command).__name__}")
+                continue
+            encoded[action] = command
+            if action >= len(mask) or not mask[action]:
+                mismatches.append(
+                    f"masked:{type(command).__name__}:{action}"
+                )
+        page_actions = {self.GRAVEYARD_PREV_PAGE, self.GRAVEYARD_NEXT_PAGE}
+        for action, allowed in enumerate(mask):
+            if not allowed or action in page_actions:
+                continue
+            try:
+                decoded = self._decode_action(action)
+            except (IndexError, ValueError):
+                mismatches.append(f"undecodable:{action}")
+                continue
+            if encoded.get(action) != decoded:
+                mismatches.append(f"decode_disagrees:{action}")
+        if mismatches:
+            recorder.record_diagnostic(
+                "action_mask_mismatch",
+                detail="|".join(sorted(mismatches)),
+            )
 
     def _graveyard_total_pages(self) -> int:
         request = self._core.state.pending_choice
