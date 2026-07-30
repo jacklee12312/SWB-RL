@@ -865,10 +865,10 @@ Invocation/瞬念召唤及其他替代出牌方式。
 
 ## 1.15 完整卡池门禁
 
-- [ ] 735 张可收集卡全部具备逐 clause 审计状态。
-- [ ] 91 张衍生卡全部具备入口、行为和生产者审计。
-- [ ] 所有适用机制矩阵对完整卡池运行完毕。
-- [ ] 所有规则不确定项已有裁定，或被明确排除在训练 Catalog 外。
+- [x] 735 张可收集卡全部具备逐 clause 审计状态。
+- [x] 91 张衍生卡全部具备入口、行为和生产者审计。
+- [x] 所有适用机制矩阵对完整卡池运行完毕。
+- [x] 所有规则不确定项已有裁定，或被明确排除在训练 Catalog 外。
 - [ ] Runtime coverage 没有把“未触发”误报为“通过”。
 - [ ] 10,000 局分层采样无状态不变量、掩码、确定性和未支持能力错误。
 - [ ] 零 P0、零 P1；剩余 P2/P3 有明确影响说明和复现。
@@ -880,6 +880,50 @@ Invocation/瞬念召唤及其他替代出牌方式。
 
 - `docs/card_bug_audit_report.md`
 - `data/reports/card_bug_audit/final_gate.json`
+
+1.15 已验证证据（2026-07-31，进行中）：
+
+- `data/reports/rule_coverage.json` 重新经完整测试的确定性生成检查：
+  826 张数据库定义中，735/735 张可收集卡均为 `covered_exact` 且
+  clause audit 为 `mapped_exact`；`unverified_exact`、partial、
+  missing rule/schema/primitive/targeting、timing/text uncertain 和
+  external blocker 均为 0。
+- `data/reports/token_audit.json` 覆盖 91/91 张非收集/衍生卡，
+  `entry_behavior_complete=91`；partial、无入口、文本不清楚和外部
+  blocker 均为 0。
+- 完整卡池机制报告均在 2,829 项完整测试中重新生成比对并通过：
+  play-mode 54 张卡/55 个模式/1,546 个费用边界/55 个满场边界，
+  keyword-entry 0 failure，target/choice 477 个正式来源，
+  trigger/timing 770 个正式来源，zone/resource 611 个正式来源，
+  combat/endgame/random 643 个正式来源；各报告 failure 均为 0。
+- 唯一待确认项 `SWB-RULING-SET-STATS-TEMP-001` 于 2026-07-31
+  再次按官方卡牌 Q&A → 帮助/用语集 → 公告/勘误 → 其他语言的顺序检索。
+  官方仍只直接确认《雪人觉醒》设定生命后的进化增量，没有回答较早临时
+  修正到期。查询、官方页面、可选解释、影响和后续均保存于
+  `data/audits/card_ruling_reviews.json`，状态继续保持
+  `ruling_uncertain`，没有用当前引擎或测试反推官方规则。
+- 本地规则与数据库路径核对证明该边界可经跨职业复制进入实战，不能以职业
+  限制判为不可达。`data/audits/training_catalog_exclusions.json`
+  因此仅将 `10233310`《帕梅拉的舞蹈》排除在新采样初始牌组外；
+  735 张仍全部审计和可解析，训练池为 734 张。被排除卡仍可用于显式 fixture
+  和历史回放；获得直接官方 Q&A 或版本化客户端复现后才能重新纳入。
+- Catalog/裁定/冻结 baseline/固定卡组/版本合同聚焦验证：
+  `E:\anaconda\python.exe -m unittest tests.test_training_catalog
+  tests.test_card_ruling_reviews tests.test_card_bug_audit_baseline
+  tests.test_fixed_decks tests.test_rl_versioning -v`，35 项通过。
+- 首次完整运行暴露旧 checkpoint 的 Catalog/训练池哈希不匹配，保存于
+  `stage_1_15_catalog_exclusion_unittest.log`。修复后训练恢复继续严格拒绝
+  不兼容 checkpoint；固定卡组纯推理仅在卡牌词表、Observation 和动作合同
+  兼容时允许加载，并明确警告不能恢复训练、复现原分布或公平比较。模拟器、
+  checkpoint 和 Catalog 聚焦回归 38 项通过。
+- 第二次完整运行的唯一失败是 RL 接口审计输入文件哈希随新增测试过期，
+  保存于 `stage_1_15_catalog_exclusion_unittest_rerun.log`；重新生成
+  `rl_interface_privacy_audit` 后 1,546 个 case、0 failure，其 10 项测试
+  与联动的 1.14 汇总 6 项测试均通过。
+- 最终 `E:\anaconda\python.exe -m unittest discover -s tests -v`：
+  2,831 项通过，1 项条件跳过，耗时 437.101 秒，API test 通过；完整输出
+  保存于 `stage_1_15_catalog_exclusion_unittest_final.log`。
+- `E:\anaconda\python.exe -m compileall -q swb scripts tests`：通过。
 
 阶段 1 完成定义：
 

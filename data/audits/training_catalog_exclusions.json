@@ -1,0 +1,40 @@
+{
+  "schema_version": 1,
+  "report_kind": "swb_training_catalog_exclusions",
+  "last_updated": "2026-07-31",
+  "policy": {
+    "purpose": "Keep unresolved official-ruling edges out of newly sampled training decks without changing the deterministic engine's provisional semantics.",
+    "scope": "Initial deck sampling only. Excluded cards remain in the immutable resolver so historical replays and explicit audit fixtures can still load them.",
+    "reentry_requirement": "Remove an exclusion only after a direct official ruling or a versioned, reproducible client result closes every linked ruling_id."
+  },
+  "exclusions": [
+    {
+      "card_id": 10233310,
+      "card_name": "帕梅拉的舞蹈",
+      "ruling_ids": [
+        "SWB-RULING-SET-STATS-TEMP-001"
+      ],
+      "reason": "Its turn-end emblem can set both attack and health after an older until-end-of-turn stat modifier. No direct official Q&A was found for whether that older modifier should affect the newly set value when it expires.",
+      "reachability": {
+        "same_class_direct_deck": false,
+        "cross_class_copy_possible": true,
+        "copy_sources": [
+          10514110,
+          10602210,
+          10802310
+        ],
+        "direct_producers_from_other_cards": [],
+        "temporary_stat_sources_in_current_rules": [
+          10474110,
+          10544120
+        ],
+        "other_set_stats_sources_reviewed": [
+          10113110,
+          10364110
+        ],
+        "conclusion": "The interaction is reachable through cross-class copying while 10233310 is admitted to either player's sampled deck. Excluding 10233310 from both sampled pools removes the only current full-pool SET_STATS source whose target, timing, and modified dimension can overlap an older temporary stat modifier."
+      },
+      "engine_semantics": "The current provisional SET_STATS behavior remains explicit and testable; this policy does not claim it is the official ruling."
+    }
+  ]
+}

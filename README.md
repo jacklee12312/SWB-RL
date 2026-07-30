@@ -22,6 +22,16 @@ auditable [token report](data/reports/token_audit.md) distinguishes database
 references from executable producer paths and behavior completeness for all 91
 cards: 91 complete entries, 0 partial entries, and no database-only entry gap.
 
+All 735 collectible cards remain structurally audited and resolvable. New
+randomly sampled training decks currently admit 734 of them:
+[`training_catalog_exclusions.json`](data/audits/training_catalog_exclusions.json)
+keeps `10233310` (`帕梅拉的舞蹈`) out of initial sampled decks while
+`SWB-RULING-SET-STATS-TEMP-001` remains officially unconfirmed. The card stays
+available to explicit audits and historical replay. The exclusion can be
+removed only after a direct official ruling or versioned client reproduction
+settles how an older temporary stat modifier expires after a later exact stat
+assignment.
+
 ## Local Match Simulator
 
 The repository includes a local human-versus-PPO match interface. It shows both
@@ -449,8 +459,9 @@ collector. The balanced class schedule is not an adaptive curriculum, and the
 same-class fixed evaluation suite is not yet a 7x7 cross-class policy-strength
 matrix. Snapshot/clone is the search foundation only. Card-rule coverage also
 remains deliberately separate from policy strength: the current frozen
-database snapshot has 735/735 exact collectible rules, and all 735 enter the
-exact training catalog.
+database snapshot has 735/735 exact collectible rules; 734 enter newly sampled
+training decks, while one ruling-uncertain card is explicitly excluded by the
+auditable Catalog policy above.
 
 ## Implemented Engine Surface
 

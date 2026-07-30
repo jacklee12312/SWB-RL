@@ -382,7 +382,12 @@ class MatchSimulator:
             for key in expected
             if expected[key] != actual[key]
         }
-        unsupported = set(mismatches) - {"rulebook_sha256"}
+        inference_only_mismatches = {
+            "rulebook_sha256",
+            "catalog_sha256",
+            "training_pool_sha256",
+        }
+        unsupported = set(mismatches) - inference_only_mismatches
         if unsupported:
             details = ", ".join(sorted(unsupported))
             raise ValueError(
@@ -396,6 +401,15 @@ class MatchSimulator:
                 "该模型训练时的规则库与当前 main 不同；动作与观察版本一致，"
                 "本模拟器允许纯推理加载，但对局结果不能视为原训练环境的严格复现。"
                 f" checkpoint={values['checkpoint']} runtime={values['runtime']}"
+            )
+        if {
+            "catalog_sha256",
+            "training_pool_sha256",
+        } & mismatches.keys():
+            warnings.append(
+                "该模型训练时的 Catalog/训练卡池与当前运行时不同；"
+                "卡牌词表、动作和观察版本一致，因此固定卡组纯推理可以加载，"
+                "但不能据此恢复训练、重现原训练分布或进行公平强度比较。"
             )
         trainer.model.load_state_dict(payload["model_state"])
         trainer.model.eval()

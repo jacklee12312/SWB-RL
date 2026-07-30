@@ -20,6 +20,7 @@ from swb.rl.runtime import WorkerAssetsSnapshot, hash_rule_directory
 
 
 DATABASE = Path("data/cards.sqlite3")
+EXCLUSION_POLICY = Path("data/audits/training_catalog_exclusions.json")
 
 
 @unittest.skipUnless(DATABASE.exists(), "real card database is unavailable")
@@ -34,15 +35,73 @@ class TrainableCardCatalogTests(unittest.TestCase):
         report = json.loads(
             Path("data/reports/rule_coverage.json").read_text(encoding="utf-8")
         )
-        expected_ids = {
+        audited_ids = {
             int(card_id)
             for card_id, classification in report["classifications"].items()
             if classification["coverage"] == "covered_exact"
             and classification["is_collectible"]
         }
-        self.assertEqual({card.card_id for card in pool}, expected_ids)
+        policy = json.loads(EXCLUSION_POLICY.read_text(encoding="utf-8"))
+        excluded_ids = {
+            entry["card_id"] for entry in policy["exclusions"]
+        }
+        self.assertEqual(
+            set(self.catalog.audited_exact_collectible_ids),
+            audited_ids,
+        )
+        self.assertEqual(
+            set(self.catalog.excluded_collectible_ids),
+            excluded_ids,
+        )
+        self.assertEqual(
+            {card.card_id for card in pool},
+            audited_ids - excluded_ids,
+        )
         self.assertEqual({card.card_type for card in pool}, {"随从", "法术", "护符"})
         self.assertTrue(all(card.is_collectible for card in pool))
+
+    def test_uncertain_ruling_exclusion_is_auditable_and_resolvable(self) -> None:
+        reviews = json.loads(
+            Path("data/audits/card_ruling_reviews.json").read_text(
+                encoding="utf-8"
+            )
+        )
+        review_by_id = {
+            entry["ruling_id"]: entry for entry in reviews["entries"]
+        }
+        policy = json.loads(EXCLUSION_POLICY.read_text(encoding="utf-8"))
+
+        for exclusion in policy["exclusions"]:
+            with self.subTest(card_id=exclusion["card_id"]):
+                self.assertNotIn(
+                    exclusion["card_id"],
+                    self.catalog.exact_collectible_ids,
+                )
+                self.assertIsNotNone(
+                    self.catalog.resolve(exclusion["card_id"])
+                )
+                for ruling_id in exclusion["ruling_ids"]:
+                    self.assertEqual(
+                        review_by_id[ruling_id]["status"],
+                        "ruling_uncertain",
+                    )
+                    self.assertIn(
+                        exclusion["card_id"],
+                        review_by_id[ruling_id][
+                            "catalog_disposition"
+                        ]["excluded_card_ids"],
+                    )
+
+    def test_disabling_exclusions_preserves_frozen_audit_baseline(self) -> None:
+        unfiltered = TrainableCardCatalog.from_repository(
+            self.repository,
+            exclusion_policy=None,
+        )
+        self.assertEqual(
+            unfiltered.exact_collectible_ids,
+            unfiltered.audited_exact_collectible_ids,
+        )
+        self.assertEqual(unfiltered.excluded_collectible_ids, ())
 
     def test_class_pool_contains_only_neutral_or_requested_class(self) -> None:
         for class_id in range(1, 8):

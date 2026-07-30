@@ -15,6 +15,12 @@ from swb.engine.deck import DECK_SIZE
 DEFAULT_COVERAGE_REPORT = (
     Path(__file__).resolve().parents[2] / "data" / "reports" / "rule_coverage.json"
 )
+DEFAULT_EXCLUSION_POLICY = (
+    Path(__file__).resolve().parents[2]
+    / "data"
+    / "audits"
+    / "training_catalog_exclusions.json"
+)
 
 
 @dataclass(frozen=True)
@@ -27,8 +33,11 @@ class TrainableCardCatalog:
     """
 
     cards_by_id: Mapping[int, CardDefinition]
+    audited_exact_collectible_ids: tuple[int, ...]
     exact_collectible_ids: tuple[int, ...]
+    excluded_collectible_ids: tuple[int, ...]
     coverage_report_sha256: str
+    exclusion_policy_sha256: str
     source_snapshot: Mapping[str, object]
     catalog_sha256: str
     card_vocabulary_sha256: str
@@ -40,6 +49,7 @@ class TrainableCardCatalog:
         repository: CardRepository,
         *,
         coverage_report: str | Path = DEFAULT_COVERAGE_REPORT,
+        exclusion_policy: str | Path | None = DEFAULT_EXCLUSION_POLICY,
     ) -> TrainableCardCatalog:
         report_path = Path(coverage_report)
         report_bytes = report_path.read_bytes()
@@ -49,28 +59,94 @@ class TrainableCardCatalog:
             raise ValueError("Coverage report has no classifications mapping")
 
         cards = {card.card_id: card for card in repository.all_cards()}
-        exact_ids = tuple(sorted(
+        audited_exact_ids = tuple(sorted(
             int(card_id)
             for card_id, classification in classifications.items()
             if classification.get("coverage") == "covered_exact"
             and classification.get("is_collectible") is True
         ))
-        missing = [card_id for card_id in exact_ids if card_id not in cards]
+        missing = [
+            card_id for card_id in audited_exact_ids if card_id not in cards
+        ]
         if missing:
             raise ValueError(
                 "Coverage report references cards absent from the database: "
                 f"{missing[:5]}"
             )
         non_collectible = [
-            card_id for card_id in exact_ids if not cards[card_id].is_collectible
+            card_id
+            for card_id in audited_exact_ids
+            if not cards[card_id].is_collectible
         ]
         if non_collectible:
             raise ValueError(
                 "Coverage report marks non-collectible cards as trainable: "
                 f"{non_collectible[:5]}"
             )
-        if not exact_ids:
+        if not audited_exact_ids:
             raise ValueError("Coverage report contains no exact collectible cards")
+
+        exclusion_policy_sha256 = hashlib.sha256(b"disabled").hexdigest()
+        excluded_ids: tuple[int, ...] = ()
+        if exclusion_policy is not None:
+            policy_path = Path(exclusion_policy)
+            policy_bytes = policy_path.read_bytes()
+            policy = json.loads(policy_bytes.decode("utf-8"))
+            entries = policy.get("exclusions")
+            if not isinstance(entries, list):
+                raise ValueError(
+                    "Catalog exclusion policy has no exclusions list"
+                )
+            raw_ids = [
+                entry.get("card_id")
+                for entry in entries
+                if isinstance(entry, dict)
+            ]
+            if len(raw_ids) != len(entries) or any(
+                not isinstance(card_id, int) for card_id in raw_ids
+            ):
+                raise ValueError(
+                    "Catalog exclusions must each contain an integer card_id"
+                )
+            if len(set(raw_ids)) != len(raw_ids):
+                raise ValueError(
+                    "Catalog exclusion policy contains duplicate card IDs"
+                )
+            invalid = sorted(set(raw_ids) - set(audited_exact_ids))
+            if invalid:
+                raise ValueError(
+                    "Catalog exclusions are not exact collectible cards: "
+                    f"{invalid[:5]}"
+                )
+            missing_rulings = [
+                entry["card_id"]
+                for entry in entries
+                if not isinstance(entry.get("ruling_ids"), list)
+                or not entry["ruling_ids"]
+                or not all(
+                    isinstance(ruling_id, str) and ruling_id
+                    for ruling_id in entry["ruling_ids"]
+                )
+            ]
+            if missing_rulings:
+                raise ValueError(
+                    "Catalog exclusions require non-empty ruling_ids: "
+                    f"{missing_rulings[:5]}"
+                )
+            excluded_ids = tuple(sorted(raw_ids))
+            exclusion_policy_sha256 = hashlib.sha256(
+                policy_bytes
+            ).hexdigest()
+
+        exact_ids = tuple(
+            card_id
+            for card_id in audited_exact_ids
+            if card_id not in set(excluded_ids)
+        )
+        if not exact_ids:
+            raise ValueError(
+                "Catalog exclusion policy removed every exact collectible card"
+            )
 
         generated_from = report.get("generated_from", {})
         source_snapshot = generated_from.get("source_snapshot", {})
@@ -122,6 +198,12 @@ class TrainableCardCatalog:
                 for card in cards.values()
             ],
         }
+        if exclusion_policy is not None:
+            catalog_payload.update({
+                "exclusion_policy_sha256": exclusion_policy_sha256,
+                "audited_exact_collectible_ids": audited_exact_ids,
+                "excluded_collectible_ids": excluded_ids,
+            })
         catalog_bytes = json.dumps(
             catalog_payload,
             ensure_ascii=False,
@@ -130,8 +212,11 @@ class TrainableCardCatalog:
         ).encode("utf-8")
         return cls(
             cards_by_id=MappingProxyType(cards),
+            audited_exact_collectible_ids=audited_exact_ids,
             exact_collectible_ids=exact_ids,
+            excluded_collectible_ids=excluded_ids,
             coverage_report_sha256=coverage_sha256,
+            exclusion_policy_sha256=exclusion_policy_sha256,
             source_snapshot=MappingProxyType(dict(source_snapshot)),
             catalog_sha256=hashlib.sha256(catalog_bytes).hexdigest(),
             card_vocabulary_sha256=hashlib.sha256(vocabulary_bytes).hexdigest(),
@@ -144,8 +229,11 @@ class TrainableCardCatalog:
             _restore_catalog,
             (
                 tuple(self.cards_by_id.values()),
+                self.audited_exact_collectible_ids,
                 self.exact_collectible_ids,
+                self.excluded_collectible_ids,
                 self.coverage_report_sha256,
+                self.exclusion_policy_sha256,
                 tuple(self.source_snapshot.items()),
                 self.catalog_sha256,
                 self.card_vocabulary_sha256,
@@ -203,8 +291,11 @@ class TrainableCardCatalog:
 
 def _restore_catalog(
     cards: tuple[CardDefinition, ...],
+    audited_exact_collectible_ids: tuple[int, ...],
     exact_collectible_ids: tuple[int, ...],
+    excluded_collectible_ids: tuple[int, ...],
     coverage_report_sha256: str,
+    exclusion_policy_sha256: str,
     source_snapshot_items: tuple[tuple[str, object], ...],
     catalog_sha256: str,
     card_vocabulary_sha256: str,
@@ -212,8 +303,11 @@ def _restore_catalog(
 ) -> TrainableCardCatalog:
     return TrainableCardCatalog(
         cards_by_id=MappingProxyType({card.card_id: card for card in cards}),
+        audited_exact_collectible_ids=audited_exact_collectible_ids,
         exact_collectible_ids=exact_collectible_ids,
+        excluded_collectible_ids=excluded_collectible_ids,
         coverage_report_sha256=coverage_report_sha256,
+        exclusion_policy_sha256=exclusion_policy_sha256,
         source_snapshot=MappingProxyType(dict(source_snapshot_items)),
         catalog_sha256=catalog_sha256,
         card_vocabulary_sha256=card_vocabulary_sha256,

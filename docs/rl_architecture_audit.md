@@ -7,6 +7,7 @@ P1/P2 平台验收更新：2026-07-21
 全卡规则覆盖完成更新：2026-07-26
 官方基础对局规则更新：2026-07-27
 官方对局训练接入更新：2026-07-27
+规则不确定项 Catalog 隔离更新：2026-07-31
 
 ## 2026-07-21 修复结果
 
@@ -27,8 +28,11 @@ P1/P2 平台验收更新：2026-07-21
   换牌决策、替换3964张、使用额外PP 1885次；0平局、0截断、0非法动作、
   0 mask偏差，验收结果为`pass`；
 - `TrainableCardCatalog` 以 `rule_coverage.json` 的 `covered_exact` 为准，
-  当前纳入 735 张可收集卡；全部 826 张定义在 worker 启动时进入只读内存，
-  对局解析不再访问 SQLite；
+  735 张可收集卡仍全部经过结构化审计；当前新采样训练池纳入 734 张，并按
+  `data/audits/training_catalog_exclusions.json` 排除 1 张涉及官方未确认
+  SET_STATS/临时修正到期边界的卡。全部 826 张定义仍在 worker 启动时进入
+  只读内存，因此显式审计和历史回放仍可解析被排除卡，对局热路径不访问
+  SQLite；
 - Observation v3 使用固定 shape/dtype 的 NumPy 数组和 Gymnasium space，
   默认隐藏对手初始牌组，只有 `open_decklists=True` 才公开；
 - 第九批规则将“仅失去谢幕曲”作为公开随从状态加入 Observation v2/v3，

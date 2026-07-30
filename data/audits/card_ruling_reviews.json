@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "report_kind": "swb_card_ruling_reviews",
-  "last_updated": "2026-07-30",
+  "last_updated": "2026-07-31",
   "search_policy": {
     "required_order": [
       {
@@ -89,31 +89,43 @@
       "search_queries": [
         "site:shadowverse-wb.com/ja/deck/cardslist/card/ \"体力1にな\" \"ターン終了\"",
         "site:shadowverse-wb.com/ja/deck/cardslist/card/ \"攻撃力4になる\" \"+\" \"Q＆A\"",
-        "site:shadowverse-wb.com/ja/deck/cardslist/card/ \"攻撃力や体力を特定の値にする\""
+        "site:shadowverse-wb.com/ja/deck/cardslist/card/ \"攻撃力や体力を特定の値にする\"",
+        "site:shadowverse-wb.com/ja/deck/cardslist/card/ \"ターン終了まで\" \"になる\" 攻撃力 体力 Q&A",
+        "site:shadowverse-wb.com/ja/deck/cardslist/card/ \"元の攻撃力\" \"ターン終了時\" Q&A",
+        "site:shadowverse-wb.com/ja/help/ 攻撃力 体力 特定の値 なる ターン終了",
+        "site:shadowverse-wb.com/ja/news/ 攻撃力 体力 特定 値 不具合 修正",
+        "site:shadowverse-wb.com/en/deck/cardslist/card/ \"set\" \"until the end of the turn\" \"attack\" \"health\"",
+        "site:shadowverse-wb.com/ja/deck/cardslist/card/ \"パメラの舞踏\" Q&A"
       ],
       "official_pages_checked": [
         {
           "authority": "official_card_qa",
           "url": "https://shadowverse-wb.com/ja/deck/cardslist/card/?card_id=10132320",
-          "accessed_on": "2026-07-30",
+          "accessed_on": "2026-07-31",
           "result": "确认生命设为 1 后的普通/超进化增量，但没有回答更早临时修正到期。"
         },
         {
           "authority": "official_card_text",
           "url": "https://shadowverse-wb.com/ja/deck/cardslist/card/?card_id=10364110",
-          "accessed_on": "2026-07-30",
+          "accessed_on": "2026-07-31",
           "result": "确认妃花把敌方随从攻击力设为 4，但没有回答更早临时修正到期。"
+        },
+        {
+          "authority": "official_card_page",
+          "url": "https://shadowverse-wb.com/ja/deck/cardslist/card/?card_id=10233310",
+          "accessed_on": "2026-07-31",
+          "result": "检查《帕梅拉的舞蹈》官方卡牌页及 Q&A 区域，未检出临时增减先发生、随后设定数值、最后到期的裁定。"
         },
         {
           "authority": "official_card_qa",
           "url": "https://shadowverse-wb.com/ja/deck/cardslist/card/?card_id=10361120",
-          "accessed_on": "2026-07-30",
+          "accessed_on": "2026-07-31",
           "result": "确认设为特定数值不属于攻击力/生命增加，但没有回答更早临时修正到期。"
         },
         {
           "authority": "official_help_glossary",
           "url": "https://shadowverse-wb.com/ja/help/?tab=tab0",
-          "accessed_on": "2026-07-30",
+          "accessed_on": "2026-07-31",
           "result": "没有检出该临时修正到期组合的专门说明。"
         }
       ],
@@ -124,7 +136,17 @@
       ],
       "reason": "“变为特定数值”与官方确认的后续进化增量最一致，也避免内部隐藏旧修正在未来重新套用；当前未找到直接覆盖临时到期的官方 Q&A。",
       "impact": "影响低频的 SET_STATS 与先前有期限增减组合；核心 SWB-CARD-0008 永久 -2、生命设为 1、超进化链已有直接官方证据，不依赖此待确认边界。",
-      "follow_up": "优先使用客户端构造临时增减→设定数值→回合结束到期的可重复复现，或等待官方 Q&A；在获得证据前保持 ruling_uncertain。"
+      "follow_up": "优先使用客户端构造临时增减→设定数值→回合结束到期的可重复复现，或等待官方 Q&A；在获得证据前保持 ruling_uncertain。",
+      "catalog_disposition": {
+        "status": "excluded_pending_ruling",
+        "policy": "data/audits/training_catalog_exclusions.json",
+        "excluded_card_ids": [
+          10233310
+        ],
+        "scope": "从新采样训练牌组排除《帕梅拉的舞蹈》；保留引擎 provisional 行为、显式审计 fixture、完整卡池审计和历史回放能力。",
+        "reachability_conclusion": "当前卡池可通过中立或跨牌组复制让其他职业获得相关卡牌，因此不能以职业牌组限制宣称该边界不可达。排除 10233310 后，现有完整规则中其余 SET_STATS 来源没有同时满足相同目标、同一临时维度及到期时序的路径。",
+        "reentry_requirement": "获得直接官方 Q&A 或版本化客户端复现后，先更新本裁定记录和永久回归测试，再移除 Catalog 排除。"
+      }
     }
   ]
 }

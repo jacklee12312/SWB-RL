@@ -59,6 +59,12 @@ class MatchSimulatorTests(unittest.TestCase):
             state["model"]["filename"],
             "ppo_evolve_haven_100k.pt",
         )
+        self.assertTrue(
+            any(
+                "Catalog/训练卡池" in warning
+                for warning in state["warnings"]
+            )
+        )
         self.assertTrue(state["match_id"])
         self.assertTrue(state["human_turn"])
         self.assertIsNotNone(state["players"][0]["hand"])

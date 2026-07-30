@@ -550,6 +550,7 @@ def build_baseline(
     catalog = TrainableCardCatalog.from_repository(
         repository,
         coverage_report=coverage_report,
+        exclusion_policy=None,
     )
     deck_manifests = [
         get_fixed_training_deck(name).manifest()
