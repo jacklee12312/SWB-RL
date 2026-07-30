@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "report_kind": "swb_card_bug_audit_start",
+  "capture_scope": "Git state observed immediately before checklist 1.1 implementation, after checklist 1.0 completed.",
+  "git_state": {
+    "commit": "845b3c99257b28e77e52db42d98e2e9de9f61f98",
+    "branch": "main",
+    "upstream": "origin/main",
+    "ahead": 5,
+    "behind": 0,
+    "is_clean": false,
+    "status_porcelain": [
+      " M README.md",
+      " M docs/roadmap.md",
+      "?? data/reports/card_bug_audit/bug_ledger.json",
+      "?? data/reports/card_bug_audit/bug_ledger.md",
+      "?? docs/card_bug_audit_and_training_speed_checklist.md",
+      "?? scripts/report_card_bug_audit.py",
+      "?? tests/test_card_bug_audit_ledger.py"
+    ]
+  }
+}
