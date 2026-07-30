@@ -146,25 +146,25 @@
     }
   ],
   "summary": {
-    "total": 3,
+    "total": 4,
     "by_severity": {
-      "P0": 3,
+      "P0": 4,
       "P1": 0,
       "P2": 0,
       "P3": 0
     },
     "by_status": {
-      "open": 0,
+      "open": 1,
       "ruling_uncertain": 0,
       "fixed": 3,
       "closed_not_bug": 0
     },
     "open_training_blockers": {
-      "P0": 0,
+      "P0": 1,
       "P1": 0
     },
-    "ledger_p0_clear": true,
-    "ledger_p0_p1_clear": true
+    "ledger_p0_clear": false,
+    "ledger_p0_p1_clear": false
   },
   "entries": [
     {
@@ -247,6 +247,35 @@
         "tests/test_keywords.py::BaneTests::test_zero_attack_bane_still_destroys"
       ],
       "notes": "2026-07-30 于 1.9 战斗扫描发现并保存修复前最小复现；官方 Cygames 必杀词条明确覆盖 0 攻击力及被对手能力把伤害变为 0 的情况。由 60d1c2f 修复，必杀现在按战斗接触触发并复用通用效果破坏保护路径；聚焦回归、100/1,000 局随机自博弈和 RL 混合对局均通过。"
+    },
+    {
+      "bug_id": "SWB-CARD-0004",
+      "severity": "P0",
+      "status": "open",
+      "card": {
+        "card_id": null,
+        "name": "在线复盘隐私边界"
+      },
+      "mechanic": "Ongoing match history API privacy boundary",
+      "discovery_commit": "d83751eb504e1592f986c0444aff2d586a20c267",
+      "minimal_seed": 23,
+      "reproduction_file": "data/reports/card_bug_audit/reproductions/SWB-CARD-0004.json",
+      "expected": "进行中对局的在线 state 和 history API 均隐藏 AI 手牌身份及私密日志；本地持久化记录继续保存完整私密复盘状态。",
+      "actual": "state() 已脱敏，但 match_history() 将磁盘中的完整 ongoing 记录原样提供给 /api/history/<id>，在线 UI 可读取 AI 手牌和私密日志。",
+      "impact": "通过在线复盘接口泄漏隐藏信息，改变人类决策可见信息并违反 UI/Observation 隐私边界。",
+      "affected_decks": [
+        "international_qr_dragon_20260728",
+        "international_qr_forest_20260728",
+        "international_qr_portal_20260728",
+        "international_qr_rune_20260728",
+        "international_qr_sword_20260728",
+        "official_qr_evolve_haven_20260727",
+        "official_qr_midrange_shadow_20260727",
+        "official_qr_ramp_dragon_20260727"
+      ],
+      "fix_commit": null,
+      "regression_tests": [],
+      "notes": "2026-07-30 于 1.10 隐藏信息扫描发现并保存修复前最小复现。P0 未关闭前正式训练保持阻塞。"
     }
   ]
 }

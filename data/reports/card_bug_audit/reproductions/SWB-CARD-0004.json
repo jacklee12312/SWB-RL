@@ -1,0 +1,56 @@
+{
+  "schema_version": 1,
+  "bug_id": "SWB-CARD-0004",
+  "captured_at": "2026-07-30",
+  "discovery_commit": "d83751eb504e1592f986c0444aff2d586a20c267",
+  "seed": 23,
+  "card": {
+    "card_id": null,
+    "name": "在线复盘隐私边界"
+  },
+  "setup": {
+    "human_player": 0,
+    "ai_player": 1,
+    "match_status": "ongoing",
+    "history_schema_version": 2,
+    "history_api": "/api/history/<current-match-id>"
+  },
+  "pre_fix_actual": {
+    "live_state_ai_hand": null,
+    "persisted_record_ai_hand": "full card objects",
+    "history_api_ai_hand": "full card objects",
+    "history_api_private_opening_log": true
+  },
+  "expected": "进行中对局的在线 state 和 history API 均不得返回 AI 手牌身份、私密抽牌日志或其他完整私密快照；本地持久化 JSON 必须继续保存完整复盘数据，且只在对局结束后作为复盘读取。",
+  "actual": "state() 正确隐藏 AI 手牌，但 match_history() 直接返回磁盘中的完整 ongoing 记录；HTTP /api/history/<id> 复用该方法，因此在线 UI 可读取 AI 手牌和未脱敏日志。",
+  "impact": "隐藏信息可通过在线复盘接口泄漏，直接改变人类决策可见信息并违反 Observation/在线 UI 隐私边界；不改变 PPO 策略张量，但属于 P0 隐藏信息泄漏。",
+  "affected_decks": [
+    "international_qr_dragon_20260728",
+    "international_qr_forest_20260728",
+    "international_qr_portal_20260728",
+    "international_qr_rune_20260728",
+    "international_qr_sword_20260728",
+    "official_qr_evolve_haven_20260727",
+    "official_qr_midrange_shadow_20260727",
+    "official_qr_ramp_dragon_20260727"
+  ],
+  "evidence": [
+    {
+      "source": "AGENTS.md",
+      "conclusion": "隐藏对手手牌内容和未知牌库顺序不得进入 RL Observation。"
+    },
+    {
+      "source": "docs/card_bug_audit_and_training_speed_checklist.md#1.10",
+      "conclusion": "完整私密状态只能保存在持久化复盘日志，不得通过在线 UI 或策略输入泄漏。"
+    },
+    {
+      "source": "README.md",
+      "conclusion": "进行中对局的隐私边界应应用于 live/UI；完成后的历史复盘才展示保存的 AI 手牌和策略分布。"
+    }
+  ],
+  "pre_fix_regressions": [
+    "tests/test_match_simulator.py::MatchSimulatorTests::test_history_persists_private_state_and_complete_policy_decisions"
+  ],
+  "reproduction_command": "E:\\anaconda\\python.exe -m unittest tests.test_match_simulator.MatchSimulatorTests.test_new_match_hides_ai_hand_and_waits_for_human tests.test_match_simulator.MatchSimulatorTests.test_history_persists_private_state_and_complete_policy_decisions -v",
+  "status_at_capture": "open"
+}
