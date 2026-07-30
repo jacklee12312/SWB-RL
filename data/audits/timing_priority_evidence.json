@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "report_kind": "swb_timing_priority_evidence",
+  "entries": [
+    {
+      "evidence_id": "SWB-TIMING-OFFICIAL-001",
+      "authority": "official_qa",
+      "url": "https://shadowverse-wb.com/en/deck/cardslist/card/?card_id=10404110",
+      "accessed_on": "2026-07-30",
+      "card_id": 10404110,
+      "conclusion": "The official Sandalphon Q&A fixes turn-start order: crest effects resolve before Invocation; countdown destruction is collected before Invocation, its Last Words resolves after Invocation, and the ordinary turn draw is last.",
+      "summary": "官方 Q&A 明确了纹章、倒数破坏、瞬念召唤、谢幕曲、瞬念后续能力和通常抽牌的回合开始顺序。"
+    },
+    {
+      "evidence_id": "SWB-TIMING-OFFICIAL-002",
+      "authority": "official_qa",
+      "url": "https://shadowverse-wb.com/en/deck/cardslist/card/?card_id=10153140",
+      "accessed_on": "2026-07-30",
+      "card_id": 10153140,
+      "conclusion": "The official Balt Q&A says the opponent wins when both leaders are at 1 defense and the controller ends the turn with Balt's all-leader crest.",
+      "summary": "官方 Q&A 明确巴尔特纹章在双方主战者均为 1 时由对手获胜，证明致死立即确定并停止剩余伤害。"
+    },
+    {
+      "evidence_id": "SWB-TIMING-CARD-003",
+      "authority": "official_card_text_plus_retained_regression",
+      "url": "https://shadowverse-wb.com/ja/deck/cardslist/card/?card_id=10364120",
+      "accessed_on": "2026-07-30",
+      "card_id": 10364120,
+      "conclusion": "The official card text identifies Marwynn's crest as a turn-end source. The repository retains a real-card regression that places this crest before field-card turn-end abilities.",
+      "summary": "官网卡牌文字确认玛温纹章的回合结束触发；跨来源优先级由既有真实卡回归保留，当前官网未检出专门回答该组合的 Q&A。"
+    }
+  ]
+}
