@@ -96,7 +96,8 @@ class MatchSimulatorTests(unittest.TestCase):
 
     def test_history_persists_private_state_and_complete_policy_decisions(self) -> None:
         state = self.simulator.new_match(seed=23, human_player=0)
-        record = self.simulator.match_history(state["match_id"])
+        record = self.simulator.history_store.load(state["match_id"])
+        self.assertIsNotNone(record)
 
         self.assertEqual(record["schema_version"], 2)
         self.assertEqual(record["privacy"]["persistence"], "full")
@@ -145,6 +146,80 @@ class MatchSimulatorTests(unittest.TestCase):
         self.assertAlmostEqual(
             selected[0]["probability"],
             decision["selected_probability"],
+        )
+
+    def test_online_history_redacts_private_persistent_state(self) -> None:
+        state = self.simulator.new_match(seed=23, human_player=0)
+        public_record = self.simulator.match_history(state["match_id"])
+        persisted_record = self.simulator.history_store.load(state["match_id"])
+        self.assertIsNotNone(persisted_record)
+
+        ai_player = state["ai_player"]
+        self.assertIsNone(
+            public_record["initial_state"]["players"][ai_player]["hand"]
+        )
+        self.assertIsNone(
+            public_record["latest_state"]["players"][ai_player]["hand"]
+        )
+        self.assertIsNotNone(
+            persisted_record["initial_state"]["players"][ai_player]["hand"]
+        )
+        self.assertIsNotNone(
+            persisted_record["latest_state"]["players"][ai_player]["hand"]
+        )
+
+        ai_marker = f"[玩家 {ai_player + 1}]"
+        public_opening_logs = [
+            line
+            for line in public_record["logs"]
+            if ai_marker in line and "起手：" in line
+        ]
+        persisted_opening_logs = [
+            line
+            for line in persisted_record["logs"]
+            if ai_marker in line and "起手：" in line
+        ]
+        self.assertTrue(public_opening_logs)
+        self.assertTrue(
+            all(line.endswith("起手：隐藏卡牌") for line in public_opening_logs)
+        )
+        self.assertTrue(
+            all("隐藏卡牌" not in line for line in persisted_opening_logs)
+        )
+
+        public_ai_action = next(
+            action
+            for action in public_record["actions"]
+            if action["actor_role"] == "ai"
+        )
+        persisted_ai_action = next(
+            action
+            for action in persisted_record["actions"]
+            if action["actor_role"] == "ai"
+        )
+        self.assertEqual(
+            public_ai_action["decision"]["privacy"],
+            "redacted",
+        )
+        self.assertNotIn(
+            "legal_actions",
+            public_ai_action["decision"],
+        )
+        self.assertGreater(
+            len(persisted_ai_action["decision"]["legal_actions"]),
+            1,
+        )
+        self.assertIsNone(
+            public_ai_action["before"]["players"][ai_player]["hand"]
+        )
+        self.assertIsNone(
+            public_ai_action["after"]["players"][ai_player]["hand"]
+        )
+        self.assertIsNotNone(
+            persisted_ai_action["before"]["players"][ai_player]["hand"]
+        )
+        self.assertIsNotNone(
+            persisted_ai_action["after"]["players"][ai_player]["hand"]
         )
 
     def test_human_decision_records_all_legal_actions_without_fake_probabilities(

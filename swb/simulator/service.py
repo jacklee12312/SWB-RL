@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import copy
 import json
 import re
 import threading
@@ -529,7 +530,7 @@ class MatchSimulator:
             record = self.history_store.load(match_id)
             if record is None:
                 raise FileNotFoundError(f"match history not found: {match_id}")
-            return record
+            return self._public_history_record(record)
 
     def state(self) -> dict[str, Any]:
         with self._lock:
@@ -931,9 +932,117 @@ class MatchSimulator:
                 )
         return names
 
-    def _public_event(self, event: dict[str, Any]) -> dict[str, Any]:
+    def _public_history_record(
+        self,
+        record: dict[str, Any],
+    ) -> dict[str, Any]:
+        public = copy.deepcopy(record)
+        human_player = int(public["human_player"])
+        hidden_player = 1 - human_player
+        privacy = dict(public.get("privacy") or {})
+        privacy["persistence"] = "full"
+        privacy["online_history"] = "redacted"
+        public["privacy"] = privacy
+
+        def redact_snapshot(snapshot: object) -> None:
+            if not isinstance(snapshot, dict):
+                return
+            players = snapshot.get("players")
+            if not isinstance(players, list):
+                return
+            for player in players:
+                if (
+                    isinstance(player, dict)
+                    and player.get("player_index") == hidden_player
+                ):
+                    player["hand"] = None
+
+        redact_snapshot(public.get("initial_state"))
+        redact_snapshot(public.get("latest_state"))
+        public["logs"] = self._public_logs(
+            public.get("logs", ()),
+            human_player=human_player,
+        )
+
+        for action in public.get("actions", ()):
+            if not isinstance(action, dict):
+                continue
+            redact_snapshot(action.get("before"))
+            redact_snapshot(action.get("after"))
+            action["logs"] = self._public_logs(
+                action.get("logs", ()),
+                human_player=human_player,
+            )
+            action["events"] = [
+                self._public_event(
+                    event,
+                    human_player=human_player,
+                )
+                for event in action.get("events", ())
+                if isinstance(event, dict)
+            ]
+            actor_role = action.get("actor_role")
+            description = action.get("action")
+            if actor_role == "ai" and isinstance(description, dict):
+                action["action"] = self._redact_ai_history_action(description)
+            if actor_role == "ai" and isinstance(action.get("decision"), dict):
+                action["decision"] = {
+                    "type": action["decision"].get("type"),
+                    "privacy": "redacted",
+                    "selected_action_id": action.get("action_id"),
+                }
+
+            action_label = (
+                action.get("action", {}).get("label", "公开动作")
+                if isinstance(action.get("action"), dict)
+                else "公开动作"
+            )
+            cues = build_animation_cues(
+                action["events"],
+                logs=action["logs"],
+                action_label=action_label,
+            )
+            sequence = int(action.get("sequence", 0))
+            for cue_index, cue in enumerate(cues, start=1):
+                cue["id"] = (
+                    f"{public['match_id']}:{sequence}:{cue_index}"
+                )
+                cue["action_sequence"] = sequence
+            action["animations"] = cues
+        return public
+
+    @staticmethod
+    def _redact_ai_history_action(
+        description: dict[str, Any],
+    ) -> dict[str, Any]:
+        kind = description.get("kind")
+        if kind == "choice":
+            return {
+                "id": description.get("id"),
+                "kind": "choice",
+                "label": "完成隐藏选择",
+            }
+        if kind == "fusion":
+            return {
+                "id": description.get("id"),
+                "kind": "fusion",
+                "label": "进行融合",
+            }
+        return description
+
+    def _public_event(
+        self,
+        event: dict[str, Any],
+        *,
+        human_player: int | None = None,
+    ) -> dict[str, Any]:
+        visible_player = (
+            self.human_player
+            if human_player is None
+            else human_player
+        )
         if (
-            event["player_index"] != self.human_player
+            event["player_index"] != visible_player
             and event["type"] in PRIVATE_DRAW_EVENT_TYPES
         ):
             event = dict(event)
@@ -963,8 +1072,18 @@ class MatchSimulator:
             }
         return description
 
-    def _public_logs(self, lines: Any) -> list[str]:
-        hidden_player = 1 - self.human_player
+    def _public_logs(
+        self,
+        lines: Any,
+        *,
+        human_player: int | None = None,
+    ) -> list[str]:
+        visible_player = (
+            self.human_player
+            if human_player is None
+            else human_player
+        )
+        hidden_player = 1 - visible_player
         marker = f"[玩家 {hidden_player + 1}]"
         public: list[str] = []
         for original in lines:
@@ -973,6 +1092,8 @@ class MatchSimulator:
                 line = line.split("起手：", 1)[0] + "起手：隐藏卡牌"
             elif marker in line and "回合抽牌：" in line:
                 line = line.split("回合抽牌：", 1)[0] + "回合抽牌：1 张"
+            elif marker in line:
+                continue
             public.append(line)
         return public
 
