@@ -104,6 +104,18 @@ per-card structured-rule blocker. Rule metadata also supports version, errata,
 official-source URL, retrieval date, and ruling fields, and the report records
 the complete imported source snapshot hash.
 
+The checklist 1.8
+[zone/resource audit](data/reports/card_bug_audit/zone_resource_audit.md)
+cross-checks the 826-card database and structured rules against official
+capacity and resource semantics. It inventories 611 production cards that
+touch zones, capacity, leader-area state, or class resources, including 107 in
+the recursive eight-deck training closure. Direct contracts cover 0/8/9-card
+hand and 0/4/5-card board boundaries, unique entity ownership across zone
+changes, countdown/destruction/banish/Act distinctions, the shared five-slot
+Faith/crest area, empty-deck outcomes, resource timing, successful-draw
+listeners, and exact public graveyard/banished histograms. The checked-in
+report has zero inventory, evidence, matrix, or behavioral-contract failures.
+
 ## Reproducible RL Platform
 
 The P1/P2 platform-hardening slice is implemented around the deterministic

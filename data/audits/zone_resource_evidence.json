@@ -1,0 +1,29 @@
+{
+  "schema_version": 1,
+  "report_kind": "swb_zone_resource_official_evidence",
+  "accessed_on": "2026-07-30",
+  "sources": [
+    {
+      "evidence_id": "SWB-ZONE-OFFICIAL-001",
+      "authority": "official_help",
+      "url": "https://shadowverse-wb.com/ja/help/?tab=tab0",
+      "conclusion": "The official help defines the 9-card hand, 5-card field, shared 5-slot leader area for crests and Faith, empty-deck defeat, draw/add over-capacity behavior, graveyard, destruction, banish, discard, transform, countdown, Act, Combo, Cooperation, Overflow, Necromancy, Earth Sigils, Spellboost, Fusion, Union Burst, and Super Skybound Art semantics.",
+      "summary": "官方帮助页统一固定手牌九张、场面五张、纹章与信仰共享五格、空牌库抽牌败北、过量抽牌/加入手牌增加墓场、破坏/消失/舍弃/变身、倒数/启动，以及连击、协作、觉醒、唤灵、土之印、魔力增幅、融合、奥义和解放奥义的基础规则。"
+    },
+    {
+      "evidence_id": "SWB-ZONE-OFFICIAL-002",
+      "authority": "official_system_guide",
+      "url": "https://shadowverse-wb.com/ja/system/cardbattle/battle/",
+      "conclusion": "The official battle guide states that a hand holds at most nine cards and the tenth drawn card is placed in the graveyard.",
+      "summary": "官网对战说明明确手牌最多九张，第十张抽到的卡会进入墓场。"
+    },
+    {
+      "evidence_id": "SWB-ZONE-OFFICIAL-003",
+      "authority": "official_card_qa",
+      "url": "https://shadowverse-wb.com/ja/deck/cardslist/card/?card_id=10362210",
+      "card_id": 10362210,
+      "conclusion": "The official Serene Sanctuary Q&A states that Faith is not counted by effects that count crests, even though both occupy the leader area.",
+      "summary": "祥和圣堂官方 Q&A 明确信仰不计入“纹章数量”；报告据此区分共享区域容量与卡牌效果中的纹章计数。"
+    }
+  ]
+}
