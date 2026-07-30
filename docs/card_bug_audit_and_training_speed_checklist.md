@@ -1109,8 +1109,8 @@ Learner 侧：
   tests.test_environment.EnvironmentTests.test_optional_step_timing_preserves_result_and_state
   tests.test_ppo.PPOTrainerTests.test_entity_action_policy_collects_and_updates_fixed_deck
   -v`：2 项通过。
-- `E:\anaconda\python.exe -m unittest discover -s tests -v`：2,848 项通过，
-  1 项条件跳过，耗时 438.608 秒，API test 通过；完整输出保存于
+- `E:\anaconda\python.exe -m unittest discover -s tests -v`：运行 2,848 项，
+  1 项条件跳过、其余通过，耗时 438.608 秒，API test 通过；完整输出保存于
   `data/reports/training_speed/stage_2_2_command_timing_unittest_final.log`。
 - `E:\anaconda\python.exe -m compileall -q swb scripts tests`：通过。
 - `E:\anaconda\python.exe -m scripts.random_self_play --games 100`：100 局
@@ -1135,8 +1135,8 @@ Learner 侧：
   checkpoint 哈希保持不变。机器可读结果保存于
   `data/reports/training_speed/stage_2_2_action_mask_smoke.json`。
 - 两项聚焦等价/汇总回归通过；最终
-  `E:\anaconda\python.exe -m unittest discover -s tests -v`：2,848 项通过，
-  1 项条件跳过，耗时 438.597 秒，API test 通过；完整输出保存于
+  `E:\anaconda\python.exe -m unittest discover -s tests -v`：运行 2,848 项，
+  1 项条件跳过、其余通过，耗时 438.597 秒，API test 通过；完整输出保存于
   `data/reports/training_speed/stage_2_2_action_mask_unittest.log`。
 - `E:\anaconda\python.exe -m compileall -q swb scripts tests`：通过。
 - `E:\anaconda\python.exe -m scripts.random_self_play --games 100`：100 局
@@ -1159,8 +1159,8 @@ Learner 侧：
   执行路径。机器可读结果保存于
   `data/reports/training_speed/stage_2_2_observation_v4_1_smoke.json`。
 - 两项聚焦等价/汇总回归通过；最终
-  `E:\anaconda\python.exe -m unittest discover -s tests -v`：2,848 项通过，
-  1 项条件跳过，耗时 438.899 秒，API test 通过；完整输出保存于
+  `E:\anaconda\python.exe -m unittest discover -s tests -v`：运行 2,848 项，
+  1 项条件跳过、其余通过，耗时 438.899 秒，API test 通过；完整输出保存于
   `data/reports/training_speed/stage_2_2_observation_v4_1_unittest.log`。
 - `E:\anaconda\python.exe -m compileall -q swb scripts tests`：通过。
 - `E:\anaconda\python.exe -m scripts.random_self_play --games 100`：100 局
