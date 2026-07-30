@@ -1000,24 +1000,66 @@ Invocation/瞬念召唤及其他替代出牌方式。
 
 ## 2.1 建立公平性能基线
 
-- [ ] 在阶段 1 的冻结规则提交上选择固定 v4.1 checkpoint。
-- [ ] 记录 CPU、GPU、内存、PyTorch、CUDA、驱动、Python 和 Windows 版本。
-- [ ] 记录电源模式、后台训练进程和 GPU 显存占用。
-- [ ] 固定八套卡组对阵调度、master seed、4 worker、线程数、rollout、
+- [x] 在阶段 1 的冻结规则提交上选择固定 v4.1 checkpoint。
+- [x] 记录 CPU、GPU、内存、PyTorch、CUDA、驱动、Python 和 Windows 版本。
+- [x] 记录电源模式、后台训练进程和 GPU 显存占用。
+- [x] 固定八套卡组对阵调度、master seed、4 worker、线程数、rollout、
   sequence length、epoch 和 minibatch。
-- [ ] 先运行预热更新，预热数据不计入统计。
-- [ ] 每次测量至少 100,000 agent steps。
-- [ ] 基线独立运行三次，保存 median、P95 和波动范围。
-- [ ] 同时测量 v3.6 和 v4.1，但只比较相同 Observation/模型内部的优化前后；
+- [x] 先运行预热更新，预热数据不计入统计。
+- [x] 每次测量至少 100,000 agent steps。
+- [x] 基线独立运行三次，保存 median、P95 和波动范围。
+- [x] 同时测量 v3.6 和 v4.1，但只比较相同 Observation/模型内部的优化前后；
   不把不同输入宽度直接当作实现回归。
-- [ ] 验证 checkpoint 在 profile 前后大小和 mtime 不变。
-- [ ] 保存系统监控采样：CPU 总负载/每核负载、GPU utilization、显存、
+- [x] 验证 checkpoint 在 profile 前后大小和 mtime 不变。
+- [x] 保存系统监控采样：CPU 总负载/每核负载、GPU utilization、显存、
   功耗和 RAM/页面文件。
 
 产物：
 
 - `data/reports/training_speed/baseline_run_*.json`
 - `data/reports/training_speed/baseline_summary.json`
+
+2.1 已验证证据（2026-07-31）：
+
+- 固定规则基线为 `fae33c2`。源 500k checkpoint 早于 Catalog 隔离策略，
+  且历史环境快照引用旧 Catalog pickle 签名；工具没有放宽正式
+  `load_checkpoint`。它验证规则、卡牌词表、Observation、动作布局等合同
+  完全相同且隔离卡 `10233310` 不在八套固定牌后，用当前冻结环境/RNG
+  容器严格载入原模型与 optimizer 权重，生成专用只读测速副本。源文件
+  SHA-256、大小和 mtime 保持不变，迁移仅限 `catalog_sha256` 与
+  `training_pool_sha256`；完整来源记录在
+  `data/reports/training_speed/baseline_configuration.json`。
+- 固定配置为 master seed `20260801`、官方主教训练牌组及 7 套对手牌组、
+  4 worker、每 worker 2 个 PyTorch 线程、0.5ms 合批等待、rollout 2048、
+  sequence length 32、2 epoch、8 minibatch sequences；v4.1 学习率
+  `1e-4`，v3.6 保留其自身 checkpoint 的 `3e-4`，跨 Observation 不做
+  直接实现回归比较。
+- 每次请求 104,096 steps，先排除 2 个完整预热 update，再验证正式统计段
+  至少 100,000 steps。v4.1 三次正式段分别为 101,258 / 101,437 /
+  101,132 steps，吞吐 44.705 / 44.578 / 44.739 steps/s；median
+  44.705，范围 0.161 steps/s，rollout/update P95 为
+  32.234 / 22.901 秒。
+- v3.6 三次正式段分别为 101,141 / 101,666 / 101,666 steps，吞吐
+  130.276 / 129.801 / 129.404 steps/s；median 129.801，范围
+  0.871 steps/s，rollout/update P95 为 9.961 / 8.765 秒。该差异仅说明
+  两个冻结输入/模型的各自成本，不作为优化前后比较。
+- 三次 v4.1 共保存 3,470 个、三次 v3.6 共保存 1,204 个 2 秒系统样本，
+  包含 CPU 总量/每核、RAM、页面文件、GPU 利用率、显存和功耗；机器为
+  i7-13700KF、RTX 4080 16GiB、32GiB RAM、Windows 11 build 26200、
+  PyTorch 2.13.0+cu130、驱动 591.86、卓越性能电源方案。每份报告还保存
+  Python/CUDA/cuDNN、后台训练进程和 profile 前后系统快照。
+- 六次均验证测速 checkpoint 的 SHA-256、大小和 mtime 不变；逐次报告为
+  `data/reports/training_speed/baseline_run_*.json`，汇总为
+  `data/reports/training_speed/baseline_summary.json`。多进程请求到达
+  时序使 run 1 与 run 2/3 在后段出现少量 episode 长度分叉，因此后续
+  A 类轨迹等价验证必须另用受控请求序列，不能把端到端同 seed 误称为
+  字节级轨迹确定。
+- `E:\anaconda\python.exe -m unittest tests.test_training_speed_baseline -v`：
+  与既有 profiling 汇总回归合计 7 项通过；最终
+  `E:\anaconda\python.exe -m unittest discover -s tests -v`：
+  2,847 项通过，1 项条件跳过，耗时 440.987 秒，API test 通过，完整输出
+  保存于 `data/reports/training_speed/stage_2_1_unittest.log`。
+- `E:\anaconda\python.exe -m compileall -q swb scripts tests`：通过。
 
 ## 2.2 补全分阶段耗时统计
 

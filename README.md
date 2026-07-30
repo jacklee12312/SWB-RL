@@ -308,6 +308,14 @@ as A (semantic-preserving), B (possible numeric drift), or C (algorithmic
 change). Performance commits must not mix card rules, engine semantics,
 Observation meaning, or rewards.
 
+The frozen PPO speed baseline is now recorded in
+[`baseline_summary.json`](data/reports/training_speed/baseline_summary.json).
+After two excluded warm-up updates, each of three v4.1 runs measured more than
+100,000 agent steps and produced a median 44.705 agent steps/s (range
+44.578–44.739); the independently reported v3.6 median is 129.801 steps/s.
+Every run preserves the checkpoint SHA-256, size, and mtime and includes
+two-second CPU/core, GPU/memory/power, RAM, and pagefile samples.
+
 ## Reproducible RL Platform
 
 The P1/P2 platform-hardening slice is implemented around the deterministic

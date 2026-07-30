@@ -1,0 +1,77 @@
+{
+  "schema_version": 1,
+  "report_kind": "swb_training_speed_baseline_summary",
+  "stage_1_freeze_commit": "fae33c2",
+  "comparison_policy": "v3.6 and v4.1 are reported independently. Different Observation widths are not interpreted as implementation regressions.",
+  "observations": {
+    "v3.6": {
+      "run_count": 3,
+      "agent_steps_per_second": {
+        "runs": [
+          130.27560385614146,
+          129.8007494582015,
+          129.40436904572414
+        ],
+        "median": 129.8007494582015,
+        "minimum": 129.40436904572414,
+        "maximum": 130.27560385614146,
+        "range": 0.8712348104173202
+      },
+      "stage_time_seconds": {
+        "collect_p95": 9.961382700130343,
+        "update_p95": 8.764633700018749
+      },
+      "system_monitor": {
+        "sample_count": 1204,
+        "cpu_total_median_percent": 9.73125,
+        "ram_used_peak_bytes": 23345999872,
+        "pagefile_used_peak_bytes": 22149980160,
+        "gpu_utilization_median_percent": 36.0,
+        "gpu_memory_peak_mib": 4461.0,
+        "gpu_power_p95_watts": 48.25
+      },
+      "checkpoint_sha256": [
+        "5ab6466d59f1f762e84e973dafde4130f374a97aa0e3b2e3825ccdb576844c59"
+      ]
+    },
+    "v4.1": {
+      "run_count": 3,
+      "agent_steps_per_second": {
+        "runs": [
+          44.705437741344035,
+          44.57805049861664,
+          44.739038966525655
+        ],
+        "median": 44.705437741344035,
+        "minimum": 44.57805049861664,
+        "maximum": 44.739038966525655,
+        "range": 0.16098846790901433
+      },
+      "stage_time_seconds": {
+        "collect_p95": 32.23424459993839,
+        "update_p95": 22.900918800150976
+      },
+      "system_monitor": {
+        "sample_count": 3470,
+        "cpu_total_median_percent": 9.395833333333334,
+        "ram_used_peak_bytes": 23707131904,
+        "pagefile_used_peak_bytes": 27701579776,
+        "gpu_utilization_median_percent": 36.0,
+        "gpu_memory_peak_mib": 9644.0,
+        "gpu_power_p95_watts": 61.79
+      },
+      "checkpoint_sha256": [
+        "4d6a8dd7d32f4e530766aab8d2ec4691de4925bc73e188021da1f45dbe54e0bd"
+      ]
+    }
+  },
+  "input_reports": [
+    "data\\reports\\training_speed\\baseline_run_v4_1_1.json",
+    "data\\reports\\training_speed\\baseline_run_v4_1_2.json",
+    "data\\reports\\training_speed\\baseline_run_v4_1_3.json",
+    "data\\reports\\training_speed\\baseline_run_v3_6_1.json",
+    "data\\reports\\training_speed\\baseline_run_v3_6_2.json",
+    "data\\reports\\training_speed\\baseline_run_v3_6_3.json"
+  ],
+  "passed": true
+}

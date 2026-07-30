@@ -1,0 +1,140 @@
+{
+  "schema_version": 1,
+  "stage_1_freeze_commit": "fae33c2",
+  "checkpoints": {
+    "v4.1": {
+      "source": "data\\checkpoints\\observation_nightly_20260729\\final\\v4_1_seed_20260801_500k.pt",
+      "source_sha256": "7ca6f0c05aab4dda59702176716e70e871ba944f574252213c6422be7419bf63",
+      "source_size": 69687857,
+      "source_mtime_ns": 1785264982861235000,
+      "destination": "data\\checkpoints\\training_speed\\frozen_v4_1_seed_20260801_500k.pt",
+      "destination_sha256": "4d6a8dd7d32f4e530766aab8d2ec4691de4925bc73e188021da1f45dbe54e0bd",
+      "destination_size": 68377329,
+      "destination_mtime_ns": 1785438586793295200,
+      "checkpoint_structure_load_verified_on_cpu": true,
+      "checkpoint_cuda_rng_restore_verified": false,
+      "migrated_version_fields": [
+        "catalog_sha256",
+        "training_pool_sha256"
+      ],
+      "excluded_collectible_ids": [
+        10233310
+      ],
+      "excluded_cards_in_fixed_decks": [],
+      "configuration": {
+        "rollout_steps": 2048,
+        "sequence_length": 32,
+        "minibatch_sequences": 8,
+        "update_epochs": 2,
+        "hidden_size": 512,
+        "card_embedding_dim": 128,
+        "policy_architecture": "entity_action_v1",
+        "model_dim": 256,
+        "transformer_layers": 4,
+        "attention_heads": 8,
+        "feedforward_dim": 1024,
+        "observation_version": "v4.1",
+        "learning_rate": 0.0001,
+        "gamma": 0.99,
+        "gae_lambda": 0.95,
+        "clip_ratio": 0.2,
+        "value_coefficient": 0.5,
+        "entropy_coefficient": 0.01,
+        "max_grad_norm": 0.5,
+        "max_agent_steps_per_episode": 256,
+        "max_game_turns": 200,
+        "opponent_current_weight": 1.0,
+        "opponent_random_weight": 0.0,
+        "opponent_fixed_weight": 0.0,
+        "opponent_historical_weight": 0.0,
+        "opponent_max_history": 4,
+        "opponent_snapshot_interval_steps": 2500,
+        "rollout_workers": 4,
+        "rollout_result_timeout_seconds": 120.0,
+        "rollout_worker_torch_threads": 2,
+        "central_inference_batch_wait_seconds": 0.0005,
+        "training_class_ids": [
+          6
+        ],
+        "training_deck": "official_qr_evolve_haven_20260727",
+        "opponent_decks": [
+          "international_qr_forest_20260728",
+          "international_qr_sword_20260728",
+          "international_qr_runecraft_20260728",
+          "international_qr_dragon_20260728",
+          "international_qr_nightmare_20260728",
+          "international_qr_portal_myuu_20260728",
+          "international_qr_portal_lishenna_20260728"
+        ],
+        "match_setup": "official"
+      }
+    },
+    "v3.6": {
+      "source": "data\\checkpoints\\observation_nightly_20260729\\final\\v3_6_seed_20260801_500k.pt",
+      "source_sha256": "d6e0a1d662f2a51cf13b8400e2bdf0e9aea34858d07072d4ca4dec1a9b9d596c",
+      "source_size": 80872229,
+      "source_mtime_ns": 1785266839876372700,
+      "destination": "data\\checkpoints\\training_speed\\frozen_v3_6_seed_20260801_500k.pt",
+      "destination_sha256": "5ab6466d59f1f762e84e973dafde4130f374a97aa0e3b2e3825ccdb576844c59",
+      "destination_size": 79561701,
+      "destination_mtime_ns": 1785438587620522500,
+      "checkpoint_structure_load_verified_on_cpu": true,
+      "checkpoint_cuda_rng_restore_verified": false,
+      "migrated_version_fields": [
+        "catalog_sha256",
+        "training_pool_sha256"
+      ],
+      "excluded_collectible_ids": [
+        10233310
+      ],
+      "excluded_cards_in_fixed_decks": [],
+      "configuration": {
+        "rollout_steps": 2048,
+        "sequence_length": 32,
+        "minibatch_sequences": 8,
+        "update_epochs": 2,
+        "hidden_size": 512,
+        "card_embedding_dim": 128,
+        "policy_architecture": "entity_action_v1",
+        "model_dim": 256,
+        "transformer_layers": 4,
+        "attention_heads": 8,
+        "feedforward_dim": 1024,
+        "observation_version": "v3",
+        "learning_rate": 0.0003,
+        "gamma": 0.99,
+        "gae_lambda": 0.95,
+        "clip_ratio": 0.2,
+        "value_coefficient": 0.5,
+        "entropy_coefficient": 0.01,
+        "max_grad_norm": 0.5,
+        "max_agent_steps_per_episode": 256,
+        "max_game_turns": 200,
+        "opponent_current_weight": 1.0,
+        "opponent_random_weight": 0.0,
+        "opponent_fixed_weight": 0.0,
+        "opponent_historical_weight": 0.0,
+        "opponent_max_history": 4,
+        "opponent_snapshot_interval_steps": 2500,
+        "rollout_workers": 4,
+        "rollout_result_timeout_seconds": 120.0,
+        "rollout_worker_torch_threads": 2,
+        "central_inference_batch_wait_seconds": 0.0005,
+        "training_class_ids": [
+          6
+        ],
+        "training_deck": "official_qr_evolve_haven_20260727",
+        "opponent_decks": [
+          "international_qr_forest_20260728",
+          "international_qr_sword_20260728",
+          "international_qr_runecraft_20260728",
+          "international_qr_dragon_20260728",
+          "international_qr_nightmare_20260728",
+          "international_qr_portal_myuu_20260728",
+          "international_qr_portal_lishenna_20260728"
+        ],
+        "match_setup": "official"
+      }
+    }
+  }
+}
