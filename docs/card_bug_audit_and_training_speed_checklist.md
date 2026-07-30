@@ -869,11 +869,11 @@ Invocation/瞬念召唤及其他替代出牌方式。
 - [x] 91 张衍生卡全部具备入口、行为和生产者审计。
 - [x] 所有适用机制矩阵对完整卡池运行完毕。
 - [x] 所有规则不确定项已有裁定，或被明确排除在训练 Catalog 外。
-- [ ] Runtime coverage 没有把“未触发”误报为“通过”。
-- [ ] 10,000 局分层采样无状态不变量、掩码、确定性和未支持能力错误。
-- [ ] 零 P0、零 P1；剩余 P2/P3 有明确影响说明和复现。
-- [ ] 同一复现集合在最终规则提交上全部通过。
-- [ ] 生成最终总结并冻结 Git、数据库、规则、Catalog、Observation 和
+- [x] Runtime coverage 没有把“未触发”误报为“通过”。
+- [x] 10,000 局分层采样无状态不变量、掩码、确定性和未支持能力错误。
+- [x] 零 P0、零 P1；剩余 P2/P3 有明确影响说明和复现。
+- [x] 同一复现集合在最终规则提交上全部通过。
+- [x] 生成最终总结并冻结 Git、数据库、规则、Catalog、Observation 和
   测试哈希。
 
 产物：
@@ -881,7 +881,7 @@ Invocation/瞬念召唤及其他替代出牌方式。
 - `docs/card_bug_audit_report.md`
 - `data/reports/card_bug_audit/final_gate.json`
 
-1.15 已验证证据（2026-07-31，进行中）：
+1.15 已验证证据（2026-07-31，完成）：
 
 - `data/reports/rule_coverage.json` 重新经完整测试的确定性生成检查：
   826 张数据库定义中，735/735 张可收集卡均为 `covered_exact` 且
@@ -920,10 +920,36 @@ Invocation/瞬念召唤及其他替代出牌方式。
   保存于 `stage_1_15_catalog_exclusion_unittest_rerun.log`；重新生成
   `rl_interface_privacy_audit` 后 1,546 个 case、0 failure，其 10 项测试
   与联动的 1.14 汇总 6 项测试均通过。
-- 最终 `E:\anaconda\python.exe -m unittest discover -s tests -v`：
+- Catalog 隔离切片完成时的完整
+  `E:\anaconda\python.exe -m unittest discover -s tests -v`：
   2,831 项通过，1 项条件跳过，耗时 437.101 秒，API test 通过；完整输出
   保存于 `stage_1_15_catalog_exclusion_unittest_final.log`。
+- 加入最终门禁生成器与 8 项门禁回归后的最终完整套件：
+  `E:\anaconda\python.exe -m unittest discover -s tests -v`，
+  2,839 项通过，1 项条件跳过，耗时 437.775 秒，API test 通过；完整输出
+  保存于 `data/reports/card_bug_audit/stage_1_15_final_gate_unittest.log`。
 - `E:\anaconda\python.exe -m compileall -q swb scripts tests`：通过。
+- `data/reports/card_bug_audit/forced_scenario_audit.json` 保留 2,151 个
+  runtime clause 的原始分类：1,693 个 `not_sampled_full_pool`、440 个
+  `not_triggered`、3 个 `triggered_not_executed`、15 个
+  `triggered_passed`；前 2,136 个没有被改标为通过，未解释条款为 0。
+- 最终 `full_pool_sampling_10000.json` 完成 10,000/10,000 局、
+  98 个职业/策略分层、735/735 张可收集卡入组、824 张卡实际遇见、
+  909,158 次 mask check 和 98 次固定 seed 重放；异常、截断、非法动作、
+  placeholder、mask mismatch 和重放失败均为 0。更早失败报告
+  `full_pool_sampling_10000_failed_20260730.json` 保留 2 次异常和
+  194 个 placeholder，没有被成功报告覆盖。
+- Bug ledger 的 8 个已确认问题全部 fixed（6 个 P0、2 个 P1），未关闭
+  P0/P1/P2/P3 均为 0。`card_bug_repro_package --validate-only` 在冻结规则
+  提交重放 86 个合法动作并得到官方预期 8/4/4；同一复现/回归集合与最终
+  门禁合计 20 项聚焦测试通过。
+- `scripts/report_full_pool_gate.py` 汇总上述独立证据，9/9 门禁通过；
+  聚焦 `tests.test_full_pool_gate` 8 项通过。机器可读报告为
+  `data/reports/card_bug_audit/final_gate.json`，可读最终报告为
+  `docs/card_bug_audit_report.md`。
+- 最终冻结标识包括规则引擎提交 `b6f1d95`、Catalog 策略提交
+  `9699ab9`、数据库/规则/Catalog/训练池 SHA-256、v3.6/v4.1
+  Observation manifest、112-action layout、测试和脚本目录哈希。
 
 阶段 1 完成定义：
 

@@ -286,7 +286,20 @@ bugs, and a 1,024-game matrix with 95,230 mask checks and 1,024 deterministic
 replays. Raw runtime coverage remains honest: 440 untriggered and three
 triggered-but-unexecuted clauses keep those labels and are closed for this gate
 only by separately re-executed direct tests. This permits short experiments;
-the 735+91 full-pool gate remains separate and unfinished.
+the 735+91 full-pool gate remains a separate decision.
+
+Checklist 1.15 now passes all nine decisions in the
+[final card audit report](docs/card_bug_audit_report.md), with the complete
+machine-readable result in
+[`final_gate.json`](data/reports/card_bug_audit/final_gate.json). The final
+10,000-game stratified run covered all 735 collectible cards in sampled decks,
+encountered 824 of 826 definitions, performed 909,158 mask checks and 98
+deterministic replays, and recorded zero exceptions, truncations, illegal
+actions, placeholders, mask mismatches, or replay failures. All eight confirmed
+P0/P1 bugs are fixed. The earlier failed 10,000-game report remains preserved
+instead of being overwritten. Runtime sampling labels also remain literal:
+2,136 unsampled, untriggered, or unexecuted clauses are explained by separate
+direct tests, not relabeled as runtime passes.
 
 ## Reproducible RL Platform
 

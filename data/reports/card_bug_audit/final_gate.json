@@ -1,0 +1,362 @@
+{
+  "schema_version": 1,
+  "report_kind": "swb_card_bug_audit_final_gate",
+  "checklist_stage": "1.15",
+  "audit_date": "2026-07-31",
+  "inputs": {
+    "rule_coverage": {
+      "path": "data/reports/rule_coverage.json",
+      "sha256": "f489dfcc645e4f3c6c83772fea0f5c8d75452547b8733bfdad80839c8c5c31d4"
+    },
+    "token_audit": {
+      "path": "data/reports/token_audit.json",
+      "sha256": "9ec84aa16fe97ec61deb0511edd082204b3a74afd1173b72c8670c413557f530"
+    },
+    "play_modes": {
+      "path": "data/reports/card_bug_audit/play_mode_boundary_audit.json",
+      "sha256": "e988e4e05f6ce7159059643512b7b9fa5f2560193e81d857b05a5dcbef046249"
+    },
+    "keywords": {
+      "path": "data/reports/card_bug_audit/keyword_entry_audit.json",
+      "sha256": "eb400589d8cf37870ee02bda2ac6cb4e94f1e4e50b7fa0d0d122851cea1d442e"
+    },
+    "targets": {
+      "path": "data/reports/card_bug_audit/target_choice_audit.json",
+      "sha256": "f877ad9f8085d16876e2f135609d09804c9bfbecd5fc24af49acd78bc466133b"
+    },
+    "timing": {
+      "path": "data/reports/card_bug_audit/trigger_timing_audit.json",
+      "sha256": "cb2896eff0e2e887a005ba1d00bcc66455b587b006dfeeff5da2aa206d536ec0"
+    },
+    "zones": {
+      "path": "data/reports/card_bug_audit/zone_resource_audit.json",
+      "sha256": "8c2bde044d2cff190f6fdb517a7f5a1789905efdfcf1182a964c6a4ec96162b2"
+    },
+    "combat": {
+      "path": "data/reports/card_bug_audit/combat_endgame_random_audit.json",
+      "sha256": "356c69394c4aff4a6c14f53a3d9511b9ef9083311d7456349824f9d374b66d3a"
+    },
+    "forced": {
+      "path": "data/reports/card_bug_audit/forced_scenario_audit.json",
+      "sha256": "31b427625fd87800708b5129e69b43a327451d26b5f5ddbfedfc540f8dd7e146"
+    },
+    "sampling_10000": {
+      "path": "data/reports/card_bug_audit/full_pool_sampling_10000.json",
+      "sha256": "e4a637995b750ff0400b59d4e61b59d2cd0d67b7c19c76064acaeb362879b2f5"
+    },
+    "sampling_failed_preserved": {
+      "path": "data/reports/card_bug_audit/full_pool_sampling_10000_failed_20260730.json",
+      "sha256": "7289762d042f7a131f72d00d6870804a92aaf01f2b711b5ad95e123c456f6233"
+    },
+    "bugs": {
+      "path": "data/reports/card_bug_audit/bug_ledger.json",
+      "sha256": "28915bbaca5aa54d7592da62c237182b791c807a21827c1d80a4077118504e5f"
+    },
+    "reproductions": {
+      "path": "data/reports/card_bug_audit/stage_1_13_repro_closure.json",
+      "sha256": "ad87862f1dc64ab76bddde9cdb06d2bf59620d1ada15eb828478cd44b5c456df"
+    },
+    "rulings": {
+      "path": "data/audits/card_ruling_reviews.json",
+      "sha256": "d60f0e995482a2faa7efb5d5bb4f2ed224982f1319aa703d3e0ac3ed6fc7a61e"
+    },
+    "catalog_exclusions": {
+      "path": "data/audits/training_catalog_exclusions.json",
+      "sha256": "d5f00d1d974bbdf747b68fafe779cfbd5a2f450d4bacb4f8eaa98bc853e8ccee"
+    },
+    "rl_interface": {
+      "path": "data/reports/card_bug_audit/rl_interface_privacy_audit.json",
+      "sha256": "076ba2d5430d7213d56fcbf87ba61024ccb80cbdf4553c47d0187f2f926f4306"
+    },
+    "database": {
+      "path": "data/cards.sqlite3",
+      "sha256": "df069e713a97493c885266b72f303874035beea571147ba14b77c57c9e631376"
+    }
+  },
+  "frozen": {
+    "rules_engine_commit": "b6f1d95cd2336cc86772e717e5bd09440a8f38a7",
+    "catalog_policy_commit": "9699ab97b3c9865b047c29168df284f0a933a3ee",
+    "database_sha256": "df069e713a97493c885266b72f303874035beea571147ba14b77c57c9e631376",
+    "rules_sha256": "449230d69db016ff99fa27de963f89adc9ac9ac5b54e913991ffe3314e4f2017",
+    "coverage_report_sha256": "f489dfcc645e4f3c6c83772fea0f5c8d75452547b8733bfdad80839c8c5c31d4",
+    "catalog_exclusion_policy_sha256": "d5f00d1d974bbdf747b68fafe779cfbd5a2f450d4bacb4f8eaa98bc853e8ccee",
+    "catalog_sha256": "57a9c1927de54ea5901a02d48d27438211ad9edc24f61ee6bc92d624d707f2f6",
+    "card_vocabulary_sha256": "b1b0001b0e54fef8092dfc74f2674c7443417ca8d8391e0ae6c8039d2ad1b055",
+    "training_pool_sha256": "7bdf090f725fcf80bcef59fb42a94d9c2d0b85affd15cde8d838df46016e7146",
+    "audited_exact_collectible_count": 735,
+    "trainable_collectible_count": 734,
+    "excluded_collectible_ids": [
+      10233310
+    ],
+    "observation": {
+      "observation-v3.6": {
+        "manifest_sha256": "380bba38c548b392ab4e993e574bc9357d36bf38c6c4415332f68d133c1afcef",
+        "field_count": 18
+      },
+      "observation-v4.1": {
+        "manifest_sha256": "bba4f4b923de6de1e5144b2725efe97907379d88b157a4b232bac3bf203b54b6",
+        "field_count": 61
+      }
+    },
+    "action_layout": {
+      "version": "action-112-v2",
+      "size": 112,
+      "sha256": "12598f3acd06e6edb819e3af8ba9299139e85d272adf7b1dca63d93b505ba0da"
+    },
+    "tests_sha256": "13bbd35f3818e23d23568b1ffcff1bc99e06b86d459a56fd236c2f84524b1d8f",
+    "scripts_sha256": "76c11019029dddfb7441289f139d14d1f665f703f49de9acd774c6184292a0cf"
+  },
+  "gates": [
+    {
+      "gate_id": "1.15.1",
+      "title": "735 collectible clause audit",
+      "status": "passed",
+      "checks": {
+        "covered_exact_735": true,
+        "mapped_exact_735": true,
+        "no_clause_gaps": true,
+        "no_blockers": true
+      },
+      "failed_checks": [],
+      "metrics": {
+        "covered_exact": 735,
+        "mapped_exact": 735,
+        "blocker_count": 0
+      },
+      "evidence": [
+        "data/reports/rule_coverage.json"
+      ],
+      "conclusion": "All 735 collectibles retain explicit clause status."
+    },
+    {
+      "gate_id": "1.15.2",
+      "title": "91 generated-card audit",
+      "status": "passed",
+      "checks": {
+        "total_91": true,
+        "all_complete": true,
+        "no_partial_or_missing": true
+      },
+      "failed_checks": [],
+      "metrics": {
+        "total": 91,
+        "complete": 91
+      },
+      "evidence": [
+        "data/reports/token_audit.json"
+      ],
+      "conclusion": "All 91 generated cards have entry and behavior evidence."
+    },
+    {
+      "gate_id": "1.15.3",
+      "title": "full-pool mechanism matrices",
+      "status": "passed",
+      "checks": {
+        "play_modes": true,
+        "keywords": true,
+        "targets": true,
+        "timing": true,
+        "zones": true,
+        "combat": true,
+        "forced": true
+      },
+      "failed_checks": [],
+      "metrics": {
+        "mechanism_report_count": 7,
+        "passed_report_count": 7,
+        "forced_assignments": 2793
+      },
+      "evidence": [
+        "data/reports/card_bug_audit/play_mode_boundary_audit.json",
+        "data/reports/card_bug_audit/keyword_entry_audit.json",
+        "data/reports/card_bug_audit/target_choice_audit.json",
+        "data/reports/card_bug_audit/trigger_timing_audit.json",
+        "data/reports/card_bug_audit/zone_resource_audit.json",
+        "data/reports/card_bug_audit/combat_endgame_random_audit.json",
+        "data/reports/card_bug_audit/forced_scenario_audit.json"
+      ],
+      "conclusion": "Every full-pool mechanism report has zero failures."
+    },
+    {
+      "gate_id": "1.15.4",
+      "title": "uncertain-ruling disposition",
+      "status": "passed",
+      "checks": {
+        "every_uncertain_ruling_is_excluded": true,
+        "catalog_policy_matches_runtime": true,
+        "all_735_still_resolvable": true,
+        "active_training_pool_is_734": true
+      },
+      "failed_checks": [],
+      "metrics": {
+        "uncertain_ruling_count": 1,
+        "excluded_collectible_count": 1,
+        "trainable_collectible_count": 734,
+        "unresolved_without_exclusion": []
+      },
+      "evidence": [
+        "data/audits/card_ruling_reviews.json",
+        "data/audits/training_catalog_exclusions.json"
+      ],
+      "conclusion": "The unresolved edge remains explicitly uncertain and its reachable source is excluded from newly sampled decks."
+    },
+    {
+      "gate_id": "1.15.5",
+      "title": "runtime-coverage honesty",
+      "status": "passed",
+      "checks": {
+        "status_counts_cover_every_clause": true,
+        "raw_nonpassed_remains_nonpassed": true,
+        "no_unexplained_clause": true,
+        "no_generic_pass_relabel": true
+      },
+      "failed_checks": [],
+      "metrics": {
+        "runtime_clause_count": 2151,
+        "runtime_status_counts": {
+          "not_sampled_full_pool": 1693,
+          "not_triggered": 440,
+          "triggered_not_executed": 3,
+          "triggered_passed": 15
+        },
+        "raw_nonpassed_count": 2136,
+        "unexplained_count": 0
+      },
+      "evidence": [
+        "data/reports/card_bug_audit/forced_scenario_audit.json"
+      ],
+      "conclusion": "Unsampled, untriggered and unexecuted clauses keep their raw labels; direct tests explain them separately."
+    },
+    {
+      "gate_id": "1.15.6",
+      "title": "10,000-game stratified sampling",
+      "status": "passed",
+      "checks": {
+        "report_passed": true,
+        "completed_10000": true,
+        "all_735_deck_cards_sampled": true,
+        "no_invariant_or_execution_error": true,
+        "no_mask_or_illegal_action": true,
+        "no_placeholder_or_truncation": true,
+        "all_replays_passed": true
+      },
+      "failed_checks": [],
+      "metrics": {
+        "games": 10000,
+        "strata": 98,
+        "mask_checks": 909158,
+        "encountered_cards": 824,
+        "replays": 98
+      },
+      "evidence": [
+        "data/reports/card_bug_audit/full_pool_sampling_10000.json",
+        "data/reports/card_bug_audit/full_pool_sampling_10000_failed_20260730.json"
+      ],
+      "conclusion": "The post-fix run passes all 98 strata. The earlier failed run remains preserved with 2 exceptions and is not overwritten."
+    },
+    {
+      "gate_id": "1.15.7",
+      "title": "bug severity closure",
+      "status": "passed",
+      "checks": {
+        "open_p0_zero": true,
+        "open_p1_zero": true,
+        "all_confirmed_fixed": true,
+        "p2_p3_have_impact_and_repro": true
+      },
+      "failed_checks": [],
+      "metrics": {
+        "total": 8,
+        "fixed": 8,
+        "open_p0": 0,
+        "open_p1": 0,
+        "open_p2_p3_without_detail": []
+      },
+      "evidence": [
+        "data/reports/card_bug_audit/bug_ledger.json"
+      ],
+      "conclusion": "All eight confirmed P0/P1 bugs are fixed."
+    },
+    {
+      "gate_id": "1.15.8",
+      "title": "portable reproduction collection",
+      "status": "passed",
+      "checks": {
+        "stage_1_13_passed": true,
+        "all_eight_fixed": true,
+        "all_saved_pre_fix_reproductions": true,
+        "all_permanent_regressions": true,
+        "portable_package_complete": true
+      },
+      "failed_checks": [],
+      "metrics": {
+        "confirmed_bugs": 8,
+        "fixed_bugs": 8,
+        "portable_package": "data/reports/card_bug_audit/repros/SWB-CARD-0008.json",
+        "minimized_actions": 86
+      },
+      "evidence": [
+        "data/reports/card_bug_audit/stage_1_13_repro_closure.json",
+        "data/reports/card_bug_audit/repros/SWB-CARD-0008.json"
+      ],
+      "conclusion": "The same eight-bug regression collection and portable SWB-CARD-0008 package pass on the frozen rules engine."
+    },
+    {
+      "gate_id": "1.15.9",
+      "title": "frozen implementation manifests",
+      "status": "passed",
+      "checks": {
+        "sampling_database_hash_matches": true,
+        "sampling_rule_hash_matches": true,
+        "git_commits_present": true,
+        "catalog_counts_frozen": true,
+        "observation_manifests_frozen": true,
+        "tests_and_scripts_frozen": true
+      },
+      "failed_checks": [],
+      "metrics": {
+        "rules_engine_commit": "b6f1d95cd2336cc86772e717e5bd09440a8f38a7",
+        "catalog_policy_commit": "9699ab97b3c9865b047c29168df284f0a933a3ee",
+        "database_sha256": "df069e713a97493c885266b72f303874035beea571147ba14b77c57c9e631376",
+        "rules_sha256": "449230d69db016ff99fa27de963f89adc9ac9ac5b54e913991ffe3314e4f2017",
+        "catalog_sha256": "57a9c1927de54ea5901a02d48d27438211ad9edc24f61ee6bc92d624d707f2f6",
+        "tests_sha256": "13bbd35f3818e23d23568b1ffcff1bc99e06b86d459a56fd236c2f84524b1d8f"
+      },
+      "evidence": [
+        "data/cards.sqlite3",
+        "data/rules",
+        "data/audits/training_catalog_exclusions.json",
+        "data/reports/card_bug_audit/rl_interface_privacy_audit.json",
+        "tests"
+      ],
+      "conclusion": "Git, database, rules, Catalog, Observation, action layout, tests and scripts have stable identifiers."
+    }
+  ],
+  "summary": {
+    "gate_count": 9,
+    "passed_gate_count": 9,
+    "failed_gate_count": 0,
+    "failed_gates": [],
+    "collectible_audited": 735,
+    "generated_audited": 91,
+    "trainable_collectible": 734,
+    "excluded_pending_ruling": 1,
+    "open_p0": 0,
+    "open_p1": 0,
+    "passed": true
+  },
+  "known_limitations": [
+    {
+      "id": "SWB-RULING-SET-STATS-TEMP-001",
+      "status": "ruling_uncertain",
+      "impact": "Older temporary stat-modifier expiry after a later specific-value assignment remains officially unconfirmed.",
+      "training_disposition": "10233310 is excluded from newly sampled initial decks; the card remains auditable and resolvable."
+    },
+    {
+      "id": "RUNTIME-COVERAGE-SAMPLING-LIMIT",
+      "status": "explained_not_runtime_passed",
+      "impact": "2136 of 2151 runtime clauses were not sampled, not triggered or not executed in the smoke corpus and retain those labels.",
+      "training_disposition": "Each is separately attributed to re-executed direct tests in the forced-scenario report."
+    }
+  ]
+}
