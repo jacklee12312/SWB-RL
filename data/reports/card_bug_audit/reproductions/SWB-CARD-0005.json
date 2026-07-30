@@ -1,0 +1,65 @@
+{
+  "schema_version": 1,
+  "bug_id": "SWB-CARD-0005",
+  "captured_at": "2026-07-30",
+  "discovery_commit": "bb5635b58709e0c3e6cf5486f6708530f47be3f2",
+  "seed": 14863150518458393026,
+  "card": {
+    "card_id": null,
+    "name": "结构化谢幕曲通用诊断"
+  },
+  "setup": {
+    "sampling_scope": "checklist_1_12_preflight",
+    "sampling_kind": "current_policy",
+    "master_seed": 77,
+    "game_id": 1023,
+    "deck_a": "official_qr_evolve_haven_20260727",
+    "deck_b": "official_qr_evolve_haven_20260727",
+    "engine_seed": 14863150518458393026,
+    "policy_seed": 10181487858619712389,
+    "checkpoint": "data/checkpoints/observation_nightly_20260729/final/v4_1_seed_20260801_500k.pt",
+    "minimal_synthetic_fixture": "一个带 AbilityKeyword.LAST_WORDS 且 RuleBook 含 Trigger.LAST_WORDS operation 的 2/2 随从，与 2/2 敌方随从交战并同时死亡。"
+  },
+  "pre_fix_actual": {
+    "placeholder_count": 4,
+    "placeholder_cards": [
+      {
+        "card_id": 10861110,
+        "name": "图书室的魔女·莉莉尤姆",
+        "turns": [
+          7,
+          13
+        ]
+      },
+      {
+        "card_id": 10864120,
+        "name": "希望的光彩·莉迪耶尔",
+        "turns": [
+          10,
+          13
+        ]
+      }
+    ],
+    "ability": "谢幕曲",
+    "event": "follower_destroyed",
+    "structured_last_words_executed": true
+  },
+  "expected": "当卡牌已有 Trigger.LAST_WORDS 结构化操作时，死亡结算执行该操作且不得再记录 unsupported/placeholder；只有没有结构化实现的谢幕曲才保留显式 placeholder。",
+  "actual": "AbilityHandlers.handle_last_words 无条件调用 placeholder。真实卡的结构化谢幕曲已经执行，但同一次死亡仍被错误记录为 unsupported/placeholder。",
+  "impact": "不改变本次游戏状态，但制造训练门禁假阳性，导致 1.12/1.14 把已实现的八套卡组能力误判为未支持，并会掩盖真正的 placeholder 信号。按审计可靠性登记为 P1，长训练前必须清零。",
+  "affected_decks": [
+    "official_qr_evolve_haven_20260727"
+  ],
+  "evidence": [
+    {
+      "source": "data/rules/",
+      "conclusion": "10861110 和 10864120 均有 Trigger.LAST_WORDS 结构化规则。"
+    },
+    {
+      "source": "swb/engine/abilities.py",
+      "conclusion": "修复前 handle_last_words 无条件记录 placeholder，未调用 GameEngine._is_ability_covered。"
+    }
+  ],
+  "reproduction_command": "E:\\anaconda\\python.exe -m unittest tests.test_card_audit_sampling.ForcedScenarioAndSamplingTests.test_structured_last_words_does_not_emit_placeholder -v",
+  "status_at_capture": "open"
+}

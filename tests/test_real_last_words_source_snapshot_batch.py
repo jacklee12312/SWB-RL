@@ -11,7 +11,7 @@ from contextlib import closing
 from scripts.report_rule_coverage import _build_coverage_report
 from swb.db.repository import CardDefinition, CardRepository
 from swb.engine.card_rules import RuleBook, Trigger
-from swb.engine.commands import Evolve, PlayCard
+from swb.engine.commands import Choose, Evolve, PlayCard
 from swb.engine.effects import ConditionType, EffectKind, TargetKind
 from swb.engine.environment import ShadowverseEnv
 from swb.engine.origin import CardOrigin
@@ -271,6 +271,27 @@ class RealLastWordsSourceSnapshotBehaviorTests(unittest.TestCase):
         second = resolve_once()
         self.assertEqual(first, second)
         self.assertEqual(sum(first), 6)
+
+    def test_last_words_lethal_stabilizes_before_parent_effect_next_choice(self):
+        engine = self.fresh_engine(seed=323)
+        _clear_hand(engine)
+        source = self.play_real(engine, mode_id="enhance_5")
+        enemy = _add_enemy(engine, 3230, life=4)
+        spell = _put_in_hand(engine, self.repository.get(10151310))
+        engine.players[0].mana = 1
+
+        engine.apply(
+            PlayCard(0, engine.players[0].hand.index(spell))
+        )
+        self.assertIsNotNone(engine.state.pending_choice)
+
+        engine.apply(Choose(0, f"entity:{source.entity_id}"))
+
+        self.assertNotIn(source, engine.players[0].board)
+        self.assertNotIn(enemy, engine.players[1].board)
+        self.assertIsNone(engine.state.pending_choice)
+        self.assertEqual(engine.state.effect_stack, [])
+        engine.assert_invariants()
 
     def test_enhance_mode_has_rl_mask_parity_and_effect_evolves(self):
         deck_a = [_card(card_id) for card_id in range(4000, 4040)]

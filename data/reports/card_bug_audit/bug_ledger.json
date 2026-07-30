@@ -146,17 +146,17 @@
     }
   ],
   "summary": {
-    "total": 4,
+    "total": 8,
     "by_severity": {
-      "P0": 4,
-      "P1": 0,
+      "P0": 6,
+      "P1": 2,
       "P2": 0,
       "P3": 0
     },
     "by_status": {
       "open": 0,
       "ruling_uncertain": 0,
-      "fixed": 4,
+      "fixed": 8,
       "closed_not_bug": 0
     },
     "open_training_blockers": {
@@ -279,6 +279,102 @@
         "tests/test_match_simulator.py::MatchSimulatorTests::test_online_history_redacts_private_persistent_state"
       ],
       "notes": "2026-07-30 于 1.10 隐藏信息扫描发现并保存修复前最小复现。由 82bd251 修复：磁盘 JSON 保留完整复盘，在线 history API 按记录中的 human_player 脱敏双方快照、日志、事件、动画、AI 隐藏选择和完整策略分布；模拟器与 Observation 隐私聚焦测试通过。"
+    },
+    {
+      "bug_id": "SWB-CARD-0005",
+      "severity": "P1",
+      "status": "fixed",
+      "card": {
+        "card_id": null,
+        "name": "结构化谢幕曲运行时覆盖诊断"
+      },
+      "mechanic": "Structured Last Words runtime coverage attribution",
+      "discovery_commit": "bb5635b58709e0c3e6cf5486f6708530f47be3f2",
+      "minimal_seed": 120012,
+      "reproduction_file": "data/reports/card_bug_audit/reproductions/SWB-CARD-0005.json",
+      "expected": "直接谢幕曲规则或来源卡纹章 on_expire/last_words 已结构化时，不得再发出 unsupported placeholder；真正没有结构化来源的谢幕曲仍保持显式未支持。",
+      "actual": "AbilityHandlers.handle_last_words 对所有触发无条件记录 placeholder，使 10861110 和 10864120 等已实现卡牌产生假阳性。",
+      "impact": "不改变游戏状态，但污染八套训练闭包的运行时覆盖证据并错误阻断正式训练门禁。",
+      "affected_decks": [
+        "official_qr_evolve_haven_20260727"
+      ],
+      "fix_commit": "working-tree:8efbd44abbe0a386d6c7b1a6258325077d0a8bd1",
+      "regression_tests": [
+        "tests/test_card_audit_sampling.py::ForcedScenarioAndSamplingTests::test_emblem_last_words_source_does_not_mark_follower_unsupported",
+        "tests/test_card_audit_sampling.py::ForcedScenarioAndSamplingTests::test_structured_last_words_does_not_emit_placeholder",
+        "tests/test_card_audit_sampling.py::ForcedScenarioAndSamplingTests::test_unstructured_last_words_remains_explicit_placeholder"
+      ],
+      "notes": "1.12 的训练卡组矩阵首次预检发现。修复采用通用结构化来源判定，无 card ID 特判；最终 1,024 局矩阵和 10,000 局全卡池报告 placeholder 均为 0。"
+    },
+    {
+      "bug_id": "SWB-CARD-0006",
+      "severity": "P1",
+      "status": "fixed",
+      "card": {
+        "card_id": null,
+        "name": "结构化关键词来源通用诊断"
+      },
+      "mechanic": "Structured ability provenance across rules, modes, listeners, emblems, passives and filters",
+      "discovery_commit": "bb5635b58709e0c3e6cf5486f6708530f47be3f2",
+      "minimal_seed": 120012,
+      "reproduction_file": "data/reports/card_bug_audit/reproductions/SWB-CARD-0006.json",
+      "expected": "关键词语义已由 condition、expression、mode、listener、emblem、passive、Faith 或过滤器等结构化来源完整表达时不得重复报 unsupported；没有任何结构化证据时仍须保持 placeholder。",
+      "actual": "覆盖判定只扫描普通 trigger 的部分字段；训练矩阵先产生 1,867 次假阳性，全卡池预检产生 52 次，首次 10,000 局又触发 194 次低频假阳性。",
+      "impact": "状态、mask 和确定性未改变，但覆盖门禁无法区分真实未支持能力与结构化来源假阳性，阻断 P1 清零和长训练。",
+      "affected_decks": [
+        "international_qr_nightmare_20260728",
+        "international_qr_runecraft_20260728",
+        "international_qr_sword_20260728"
+      ],
+      "fix_commit": "working-tree:8efbd44abbe0a386d6c7b1a6258325077d0a8bd1",
+      "regression_tests": [
+        "tests/test_card_audit_sampling.py::StructuredAbilityCoverageTests"
+      ],
+      "notes": "修复统一扫描嵌套 operation、容器 condition、表达式、play mode、listener、emblem、passive、Faith 和关键词过滤器，并保留无结构化来源的显式 placeholder。最终 908,943 次全卡池 mask 检查中 placeholder 为 0。"
+    },
+    {
+      "bug_id": "SWB-CARD-0007",
+      "severity": "P0",
+      "status": "fixed",
+      "card": {
+        "card_id": null,
+        "name": "谢幕曲致死与父效果后续选择的通用解析顺序"
+      },
+      "mechanic": "State-based death processing between nested Last Words and parent effect choices",
+      "discovery_commit": "bb5635b58709e0c3e6cf5486f6708530f47be3f2",
+      "minimal_seed": 1421221038517436626,
+      "reproduction_file": "data/reports/card_bug_audit/reproductions/SWB-CARD-0007.json",
+      "expected": "谢幕曲子效果造成的新死亡必须在恢复父效果和暴露下一次 player choice 前完成状态检查与死亡批次，选择边界不得残留非正生命随从。",
+      "actual": "双目标法术 10151310 先破坏进化后的 10203120 时，其谢幕曲击杀另一随从；解析器提前恢复父 frame 并请求第二目标，合法 Choose 在不变量检查中抛错并回滚。",
+      "impact": "合法动作导致 IllegalCommand 和整次状态转换回滚，终止采样并可能暴露非法中间状态，属于正式训练阻断问题。",
+      "affected_decks": [],
+      "fix_commit": "working-tree:8efbd44abbe0a386d6c7b1a6258325077d0a8bd1",
+      "regression_tests": [
+        "tests/test_real_last_words_source_snapshot_batch.py::RealLastWordsSourceSnapshotBehaviorTests::test_last_words_lethal_stabilizes_before_parent_effect_next_choice"
+      ],
+      "notes": "修复前 game_id 6038/6504 的完整动作序列和断言失败瞬间均已保存；修复以 effect-stack depth 限制谢幕曲子 frame 解析，不含 card ID 特判。两个 seed 定向终局，1,024 局矩阵与 10,000 局全卡池门禁均通过。"
+    },
+    {
+      "bug_id": "SWB-CARD-0008",
+      "severity": "P0",
+      "status": "fixed",
+      "card": {
+        "card_id": null,
+        "name": "进化生命增量与负生命修正的通用结算"
+      },
+      "mechanic": "Evolution health gain after max-health clamping and negative modifiers",
+      "discovery_commit": "bb5635b58709e0c3e6cf5486f6708530f47be3f2",
+      "minimal_seed": 120445,
+      "reproduction_file": "data/reports/card_bug_audit/reproductions/SWB-CARD-0008.json",
+      "expected": "进化或超进化应保持随从已损失生命不变；存在负生命修正和生命上限下限钳制时，当前生命只增加实际生命上限增量。",
+      "actual": "超进化固定增加 3 点当前生命，但实际生命上限只从 1 增至 2，使真实卡牌组合中的 10154120 变为非法的 4/2 并触发不变量异常。",
+      "impact": "合法超进化 command/action 会抛出 IllegalCommand 并终止随机自博弈或训练采样，属于正式训练阻断问题。",
+      "affected_decks": [],
+      "fix_commit": "working-tree:94af11b3355a39e54e8d482816c26117a1125778",
+      "regression_tests": [
+        "tests/test_real_generated_burst_spell_batch.py::RealGeneratedBurstSpellTests::test_super_evolution_preserves_damage_after_negative_health_modifier"
+      ],
+      "notes": "1.12 的 1,000 局广泛共享引擎门禁于 game 433、seed 120445 发现；修复前双方卡组、107 步动作、场面和状态指纹均已保存。修复按实际生命上限差更新当前生命，无 card ID 特判；同一动作序列 post-fix 回放得到 2/2 并通过不变量。"
     }
   ]
 }

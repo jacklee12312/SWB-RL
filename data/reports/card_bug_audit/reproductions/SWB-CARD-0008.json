@@ -1,0 +1,68 @@
+{
+  "schema_version": 1,
+  "bug_id": "SWB-CARD-0008",
+  "captured_at": "2026-07-30",
+  "discovery_commit": "bb5635b58709e0c3e6cf5486f6708530f47be3f2",
+  "seed": 120445,
+  "card": {
+    "card_id": null,
+    "name": "进化生命增量与负生命修正的通用结算"
+  },
+  "setup": {
+    "source_report": "data/reports/card_bug_audit/reproductions/SWB-CARD-0008-random-self-play.json",
+    "source_sha256": "55c7eb81c15d437ace535e8670c12a1541c9726d4f7f095b486d53677d1a777b",
+    "master_seed": 120012,
+    "game_index": 433,
+    "game_seed": 120445,
+    "action_index": 106,
+    "action": 107,
+    "command": "SuperEvolve(player_index=0, unit_id=69)",
+    "real_cards": {
+      "negative_health_modifier_source": 10304120,
+      "set_health_source": 10132320,
+      "evolution_target": 10154120
+    }
+  },
+  "expected": "10304120 给予 10154120 +2/-2 后，10132320 将其生命与生命上限设为 1；之后超进化应保持已损失生命不变，并按实际生命上限增量把状态结算为 2/2。",
+  "pre_fix_actual": {
+    "before_super_evolution": {
+      "attack": 5,
+      "health": 1,
+      "max_health": 1,
+      "base_attack": 3,
+      "base_health": 1,
+      "stat_modifier": {
+        "attack_delta": 2,
+        "health_delta": -2,
+        "duration": "permanent"
+      }
+    },
+    "after_super_evolution": {
+      "attack": 8,
+      "health": 4,
+      "max_health": 2,
+      "base_attack": 6,
+      "base_health": 4
+    },
+    "failure": "Invariant failed: player 1 board[1] health exceeds max_health",
+    "root_cause": "_apply_evolution_state 无条件把当前生命增加固定进化数值，但负生命修正与生命下限钳制会使实际生命上限增量小于固定数值。",
+    "deterministic_reproduction": true
+  },
+  "fix": {
+    "mechanism": "进化前保存生命上限，重算进化后的生命上限，再把当前生命增加实际生命上限差，从而保持已损失生命不变。",
+    "card_id_special_cases": 0,
+    "focused_regression": "tests/test_real_generated_burst_spell_batch.py::RealGeneratedBurstSpellTests::test_super_evolution_preserves_damage_after_negative_health_modifier",
+    "post_fix_exact_replay": {
+      "actions_replayed": 107,
+      "health": 2,
+      "max_health": 2,
+      "evolved": true,
+      "super_evolved": true,
+      "invariants_passed": true
+    }
+  },
+  "impact": "修复前合法超进化动作会在命令完成后的不变量检查中抛出 IllegalCommand，终止自博弈或训练采样，并留下当前生命大于生命上限的非法状态。",
+  "affected_decks": [],
+  "reproduction_command": "E:\\anaconda\\python.exe -m scripts.random_self_play --games 1000 --seed 120012 --output data/reports/card_bug_audit/reproductions/SWB-CARD-0008-random-self-play.json --assert-official-acceptance --validate-invariants",
+  "status_at_capture": "open"
+}

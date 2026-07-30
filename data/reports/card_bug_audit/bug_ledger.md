@@ -35,7 +35,7 @@ P0 立即暂停正式训练；P1 必须在正式长训练前清零；P2 可与�
 
 ## Summary
 
-- Total entries: 4
+- Total entries: 8
 - Open P0 blockers: 0
 - Open P1 blockers: 0
 - Ledger P0 clear: true
@@ -51,3 +51,7 @@ These ledger flags do not authorize training by themselves; the eight-deck and f
 | SWB-CARD-0002 | P0 | fixed | 10424110 真红与群青·塞达&贝阿朵丽丝 | Enhance mandatory cost substitution and RL action legality | `data/reports/card_bug_audit/reproductions/SWB-CARD-0002.json` |
 | SWB-CARD-0003 | P0 | fixed | 通用必杀机制 | Bane activation after zero combat damage and Barrier prevention | `data/reports/card_bug_audit/reproductions/SWB-CARD-0003.json` |
 | SWB-CARD-0004 | P0 | fixed | 在线复盘隐私边界 | Ongoing match history API privacy boundary | `data/reports/card_bug_audit/reproductions/SWB-CARD-0004.json` |
+| SWB-CARD-0005 | P1 | fixed | 结构化谢幕曲运行时覆盖诊断 | Structured Last Words runtime coverage attribution | `data/reports/card_bug_audit/reproductions/SWB-CARD-0005.json` |
+| SWB-CARD-0006 | P1 | fixed | 结构化关键词来源通用诊断 | Structured ability provenance across rules, modes, listeners, emblems, passives and filters | `data/reports/card_bug_audit/reproductions/SWB-CARD-0006.json` |
+| SWB-CARD-0007 | P0 | fixed | 谢幕曲致死与父效果后续选择的通用解析顺序 | State-based death processing between nested Last Words and parent effect choices | `data/reports/card_bug_audit/reproductions/SWB-CARD-0007.json` |
+| SWB-CARD-0008 | P0 | fixed | 进化生命增量与负生命修正的通用结算 | Evolution health gain after max-health clamping and negative modifiers | `data/reports/card_bug_audit/reproductions/SWB-CARD-0008.json` |

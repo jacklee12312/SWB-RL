@@ -103,6 +103,7 @@ def main() -> None:
         class_b = rng.randint(1, 7)
         deck_a = catalog.sample_deck(class_a, rng)
         deck_b = catalog.sample_deck(class_b, rng)
+        actions: list[int] = []
         env = ShadowverseEnv(
             deck_a,
             deck_b,
@@ -142,7 +143,69 @@ def main() -> None:
                 extra_pp_use_turns.append(env.turn)
             if not reported_mask[action]:
                 illegal_actions += 1
-            result = env.step(action)
+            actions.append(action)
+            try:
+                result = env.step(action)
+            except Exception as exc:
+                failure = {
+                    "schema_version": 1,
+                    "status": "failed",
+                    "games_requested": args.games,
+                    "seed": args.seed,
+                    "match_setup": args.match_setup,
+                    "mulligan_policy": args.mulligan_policy,
+                    "failure": {
+                        "game_index": game,
+                        "game_seed": args.seed + game,
+                        "class_a": class_a,
+                        "class_b": class_b,
+                        "deck_a": [card.card_id for card in deck_a],
+                        "deck_b": [card.card_id for card in deck_b],
+                        "action_index": len(actions) - 1,
+                        "action": action,
+                        "actions": actions,
+                        "turn": env.turn,
+                        "active_player": env.current_player,
+                        "phase": info["phase"],
+                        "reported_action_mask": reported_mask,
+                        "state_fingerprint": (
+                            env.core.deterministic_fingerprint()
+                        ),
+                        "boards": [
+                            [
+                                {
+                                    "entity_id": entity.entity_id,
+                                    "card_id": entity.definition.card_id,
+                                    "attack": getattr(entity, "attack", None),
+                                    "health": getattr(entity, "health", None),
+                                    "max_health": getattr(
+                                        entity, "max_health", None
+                                    ),
+                                }
+                                for entity in player.board
+                            ]
+                            for player in env.players
+                        ],
+                        "exception_type": type(exc).__name__,
+                        "exception": str(exc),
+                    },
+                }
+                if args.output is not None:
+                    args.output.parent.mkdir(parents=True, exist_ok=True)
+                    args.output.write_text(
+                        json.dumps(
+                            failure,
+                            ensure_ascii=False,
+                            indent=2,
+                        )
+                        + "\n",
+                        encoding="utf-8",
+                    )
+                raise RuntimeError(
+                    "self-play failure at "
+                    f"game={game} game_seed={args.seed + game} "
+                    f"action_index={len(actions) - 1} action={action}: {exc}"
+                ) from exc
             info = result.info
         mulligan_games_completed += int(
             entered_mulligan

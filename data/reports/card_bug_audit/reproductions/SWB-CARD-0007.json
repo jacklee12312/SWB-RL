@@ -1,0 +1,82 @@
+{
+  "schema_version": 1,
+  "bug_id": "SWB-CARD-0007",
+  "captured_at": "2026-07-30",
+  "discovery_commit": "bb5635b58709e0c3e6cf5486f6708530f47be3f2",
+  "seed": 1421221038517436626,
+  "additional_seed": 10317662187291590795,
+  "card": {
+    "card_id": null,
+    "name": "谢幕曲致死与父效果后续选择的通用解析顺序"
+  },
+  "setup": {
+    "source_report": "data/reports/card_bug_audit/full_pool_sampling_10000_failed_20260730.json",
+    "requested_games": 10000,
+    "failed_game_ids": [
+      6038,
+      6504
+    ],
+    "full_action_reproductions": [
+      "data/reports/card_bug_audit/reproductions/SWB-CARD-0007-game-6038.json",
+      "data/reports/card_bug_audit/reproductions/SWB-CARD-0007-game-6504.json"
+    ],
+    "real_cards": {
+      "parent_two_target_spell": 10151310,
+      "evolved_last_words_source": 10203120
+    }
+  },
+  "expected": "双目标法术破坏第一个目标后，若其谢幕曲伤害使另一随从生命降至 0，引擎必须先完成状态检查、死亡批次和谢幕曲结算，再恢复父效果并决定是否请求第二个目标；任何 player decision 边界都不得残留非正生命随从。",
+  "pre_fix_actual": {
+    "game_6038": {
+      "command": "Choose(player_index=0, option_id='entity:46')",
+      "failure": "Invariant failed: player 2 board[1] has non-positive health",
+      "lethal_target": {
+        "entity_id": 77,
+        "card_id": 10201110,
+        "health": 0
+      },
+      "action_count_before_failure": 104
+    },
+    "game_6504": {
+      "command": "Choose(player_index=1, option_id='entity:39')",
+      "failure": "Invariant failed: player 1 board[0] has non-positive health",
+      "lethal_target": {
+        "entity_id": 35,
+        "card_id": 10552110,
+        "health": 0
+      },
+      "action_count_before_failure": 52
+    },
+    "root_cause": "_continue_batch_lws 调用无边界的 _continue_effects，谢幕曲子 frame 完成后继续推进父 frame 并建立下一次 pending choice；外层 stabilize 尚未来得及收集谢幕曲新造成的死亡。",
+    "mask_mismatches": 0,
+    "illegal_action_selections": 0,
+    "deterministic_reproduction": true
+  },
+  "fix": {
+    "mechanism": "_continue_effects 增加 effect-stack depth 边界；死亡批次只解析本次谢幕曲新增的子 frame，返回外层状态检查清除新死亡后才恢复父效果。",
+    "card_id_special_cases": 0,
+    "focused_regression": "tests/test_real_last_words_source_snapshot_batch.py::RealLastWordsSourceSnapshotBehaviorTests::test_last_words_lethal_stabilizes_before_parent_effect_next_choice",
+    "post_fix_failed_seed_results": {
+      "6038": {
+        "terminated": true,
+        "agent_steps": 108,
+        "placeholder_events": 0,
+        "mask_mismatches": 0,
+        "illegal_actions": 0
+      },
+      "6504": {
+        "terminated": true,
+        "agent_steps": 119,
+        "placeholder_events": 0,
+        "mask_mismatches": 0,
+        "illegal_actions": 0
+      }
+    },
+    "accepted_matrix": "data/reports/card_bug_audit/training_matrix_1000.json",
+    "accepted_full_pool": "data/reports/card_bug_audit/full_pool_sampling_10000.json"
+  },
+  "impact": "修复前合法目标选择会抛出 IllegalCommand 并回滚整次状态转换，终止采样；通用解析顺序也可能错误暴露尚未完成状态检查的中间状态。属于 P0 训练阻断问题。",
+  "affected_decks": [],
+  "reproduction_command": "E:\\anaconda\\python.exe -m scripts.reproduce_card_audit_failure --game-id 6038 --output data/reports/card_bug_audit/reproductions/SWB-CARD-0007-game-6038.json",
+  "status_at_capture": "open"
+}

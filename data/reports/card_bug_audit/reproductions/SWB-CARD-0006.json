@@ -1,0 +1,178 @@
+{
+  "schema_version": 1,
+  "bug_id": "SWB-CARD-0006",
+  "captured_at": "2026-07-30",
+  "discovery_commit": "bb5635b58709e0c3e6cf5486f6708530f47be3f2",
+  "seed": 120012,
+  "card": {
+    "card_id": null,
+    "name": "结构化关键词来源通用诊断"
+  },
+  "setup": {
+    "sampling_scope": "fixed_training_deck_ordered_matrix",
+    "games": 1024,
+    "random_legal_games": 960,
+    "current_policy_games": 64,
+    "deterministic_replays": 1024,
+    "report": "data/reports/card_bug_audit/training_matrix_1000.json",
+    "checkpoint": "data/checkpoints/observation_nightly_20260729/final/v4_1_seed_20260801_500k.pt"
+  },
+  "pre_fix_actual": {
+    "placeholder_count": 1867,
+    "groups": [
+      {
+        "card_id": 10131320,
+        "name": "暴风破",
+        "ability": "魔力增幅",
+        "event": "card_played",
+        "count": 376
+      },
+      {
+        "card_id": 10833310,
+        "name": "钢铁的小憩",
+        "ability": "魔力增幅",
+        "event": "card_played",
+        "count": 347
+      },
+      {
+        "card_id": 10354110,
+        "name": "混融的继承者·莎木·纳克雅",
+        "ability": "模式",
+        "event": "check_play",
+        "count": 320
+      },
+      {
+        "card_id": 10722310,
+        "name": "无音的包围",
+        "ability": "协作",
+        "event": "check_play",
+        "count": 311
+      },
+      {
+        "card_id": 10624120,
+        "name": "古旧天剑·伊德梅塔",
+        "ability": "爆能强化",
+        "event": "check_play",
+        "count": 181
+      },
+      {
+        "card_id": 10724110,
+        "name": "统音的安纳提玛·吉尔达利娅",
+        "ability": "协作",
+        "event": "check_play",
+        "count": 155
+      },
+      {
+        "card_id": 10824110,
+        "name": "天命的子弹·巴妮&巴隆",
+        "ability": "协作",
+        "event": "check_play",
+        "count": 139
+      },
+      {
+        "card_id": 90034330,
+        "name": "天晶深渊",
+        "ability": "信仰",
+        "event": "card_played",
+        "count": 38
+      }
+    ],
+    "game_exceptions": 0,
+    "mask_mismatches": 0,
+    "illegal_actions": 0,
+    "truncations": 0,
+    "deterministic_replay_failures": 0
+  },
+  "full_pool_preflight_extension": {
+    "report": "data/reports/card_bug_audit/full_pool_preflight_98.json",
+    "games": 98,
+    "strata": 98,
+    "collectible_cards_in_decks": 735,
+    "encountered_cards": 806,
+    "placeholder_count": 52,
+    "groups": [
+      {"card_id": 10434120, "ability": "土之秘术", "count": 5},
+      {"card_id": 10733310, "ability": "土之秘术", "count": 5},
+      {"card_id": 10832110, "ability": "魔力增幅", "count": 4},
+      {"card_id": 10652110, "ability": "复苏", "count": 4},
+      {"card_id": 10233310, "ability": "土之秘术", "count": 4},
+      {"card_id": 10324120, "ability": "融合", "count": 3},
+      {"card_id": 10173210, "ability": "融合", "count": 3},
+      {"card_id": 10323110, "ability": "融合", "count": 3},
+      {"card_id": 10132120, "ability": "魔力增幅", "count": 3},
+      {"card_id": 10133110, "ability": "土之秘术", "count": 2},
+      {"card_id": 10352120, "ability": "复苏", "count": 2},
+      {"card_id": 10131110, "ability": "魔力增幅", "count": 2},
+      {"card_id": 10111140, "ability": "连击", "count": 2},
+      {"card_id": 10664110, "ability": "谢幕曲", "count": 2},
+      {"card_id": 10714120, "ability": "连击", "count": 2},
+      {"card_id": 10133310, "ability": "魔力增幅", "count": 1},
+      {"card_id": 10132320, "ability": "魔力增幅", "count": 1},
+      {"card_id": 10533110, "ability": "土之秘术", "count": 1},
+      {"card_id": 10731310, "ability": "土之秘术", "count": 1},
+      {"card_id": 10133320, "ability": "魔力增幅", "count": 1},
+      {"card_id": 10032120, "ability": "魔力增幅", "count": 1}
+    ],
+    "classification": "与训练卡组矩阵相同的结构化来源覆盖判定缺口；来源扩展到 play mode、listener、emblem、passive 以及过滤条件中的被引用关键词。",
+    "game_exceptions": 0,
+    "mask_mismatches": 0,
+    "illegal_actions": 0,
+    "truncations": 0
+  },
+  "full_pool_10000_extension": {
+    "report": "data/reports/card_bug_audit/full_pool_sampling_10000_failed_20260730.json",
+    "requested_games": 10000,
+    "completed_games": 9998,
+    "placeholder_count": 194,
+    "groups": [
+      {
+        "card_id": 10554110,
+        "ability": "爆能强化",
+        "event": "check_play",
+        "count": 129,
+        "structured_source": "source emblem passive suppress_follower_enhance"
+      },
+      {
+        "card_id": 10173130,
+        "ability": "谢幕曲",
+        "event": "follower_destroyed",
+        "count": 65,
+        "structured_source": "evolve operation grant_last_words"
+      }
+    ],
+    "classification": "同一结构化来源覆盖判定缺口的低频扩展；98 局预检未触发这两条路径，10,000 局 coverage-guided 采样才暴露。",
+    "mask_mismatches": 0,
+    "illegal_actions": 0,
+    "truncations": 0,
+    "deterministic_replay_failures": 0,
+    "separate_state_invariant_bug": "SWB-CARD-0007"
+  },
+  "expected": "结构化 condition、expression、Faith trigger/faith_id 和通用 operation 已完整表达关键词语义时，不得重复记录 unsupported/placeholder；没有任何结构化来源的关键词仍必须保持 placeholder。",
+  "actual": "AbilityHandlers 对协作和魔力增幅无条件报 placeholder；_is_ability_covered 未识别魔力增幅/协作的 condition 与 expression、Faith 的 operation faith_id、以及 Faith 文本内的模式和爆能强化触发来源。",
+  "impact": "游戏状态、mask 和确定性均未受影响，但八套训练卡组矩阵产生 1,867 个未支持假阳性，阻断 1.12/1.14 门禁并稀释真正未支持能力信号。按训练闭包审计可靠性登记为 P1。",
+  "affected_decks": [
+    "international_qr_nightmare_20260728",
+    "international_qr_runecraft_20260728",
+    "international_qr_sword_20260728"
+  ],
+  "evidence": [
+    {
+      "source": "data/reports/card_bug_audit/training_matrix_1000.json",
+      "conclusion": "1,024 个原始样本均可确定性重放；placeholder 只落在上述 8 个稳定 card/ability/event 组。"
+    },
+    {
+      "source": "data/reports/rule_coverage.json",
+      "conclusion": "上述卡牌均为 exact/token-complete，相关 condition、expression、Faith trigger 或 operation 有结构化规则和直接测试。"
+    },
+    {
+      "source": "data/reports/card_bug_audit/full_pool_preflight_98.json",
+      "conclusion": "98 个职业/策略分层覆盖全部 735 张可收集卡；52 次 placeholder 集中于 play mode、listener、emblem、passive 或过滤器引用的结构化来源，状态、mask、非法动作和截断检查均为零失败。"
+    },
+    {
+      "source": "data/reports/card_bug_audit/full_pool_sampling_10000_failed_20260730.json",
+      "conclusion": "10,000 局首次长跑新增两组低频假阳性：10554110 的纹章被动引用爆能强化、10173130 的进化效果授予谢幕曲；与另行登记的状态不变量 Bug SWB-CARD-0007 分离。"
+    }
+  ],
+  "reproduction_command": "E:\\anaconda\\python.exe -m unittest tests.test_card_audit_sampling.StructuredAbilityCoverageTests -v",
+  "status_at_capture": "open"
+}

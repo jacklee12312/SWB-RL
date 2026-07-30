@@ -380,10 +380,14 @@ class AbilityHandlers:
             self._placeholder(context, AbilityKeyword.COMBO)
 
     def handle_cooperation(self, context: AbilityContext) -> None:
-        self._placeholder(context, AbilityKeyword.COOPERATION)
+        covered = getattr(self.environment, "_is_ability_covered", None)
+        if covered is None or not covered(context, AbilityKeyword.COOPERATION):
+            self._placeholder(context, AbilityKeyword.COOPERATION)
 
     def handle_spellboost(self, context: AbilityContext) -> None:
-        self._placeholder(context, AbilityKeyword.SPELLBOOST)
+        covered = getattr(self.environment, "_is_ability_covered", None)
+        if covered is None or not covered(context, AbilityKeyword.SPELLBOOST):
+            self._placeholder(context, AbilityKeyword.SPELLBOOST)
 
     def handle_earth_rite(self, context: AbilityContext) -> None:
         covered = getattr(self.environment, "_is_ability_covered", None)
@@ -461,7 +465,9 @@ class AbilityHandlers:
             self._placeholder(context, AbilityKeyword.FANFARE)
 
     def handle_last_words(self, context: AbilityContext) -> None:
-        self._placeholder(context, AbilityKeyword.LAST_WORDS)
+        covered = getattr(self.environment, "_is_ability_covered", None)
+        if covered is None or not covered(context, AbilityKeyword.LAST_WORDS):
+            self._placeholder(context, AbilityKeyword.LAST_WORDS)
 
     def handle_on_evolve(self, context: AbilityContext) -> None:
         from swb.engine.card_rules import Trigger

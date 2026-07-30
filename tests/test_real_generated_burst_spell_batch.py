@@ -12,9 +12,11 @@ from scripts.report_rule_coverage import _build_coverage_report
 from scripts.report_token_audit import _build_token_audit
 from swb.db.repository import CardRepository
 from swb.engine.card_rules import RuleBook
-from swb.engine.commands import Choose, EndTurn, Evolve, PlayCard
+from swb.engine.commands import Choose, EndTurn, Evolve, PlayCard, SuperEvolve
+from swb.engine.origin import CardOrigin
 from swb.engine.environment import ShadowverseEnv
 from swb.engine.resolution import IllegalCommand
+from swb.engine.state import HandCard
 from tests.test_real_basic_existing_primitives_batch import (
     _card,
     _choose,
@@ -134,6 +136,35 @@ class RealGeneratedBurstSpellTests(unittest.TestCase):
             (source.attack, source.max_health),
             (before[0] + 4, before[1]),
         )
+
+    def test_super_evolution_preserves_damage_after_negative_health_modifier(self):
+        engine = self.fresh(seed=12)
+        medusa = _put_unit(engine, 0, self.repository.get(10154120))
+        _play(engine, self.repository, 10304120)
+        _choose(engine, medusa.entity_id)
+        self.assertEqual((medusa.health, medusa.max_health), (5, 5))
+
+        snowman_rampage = HandCard(
+            definition=self.repository.get(10132320),
+            entity_id=engine.state.allocate_entity_id(),
+            origin=CardOrigin.DECK,
+        )
+        opponent = engine.players[1]
+        opponent.hand = [snowman_rampage]
+        opponent.hand_entity_ids = [snowman_rampage.entity_id]
+        engine.state.active_player = 1
+        engine.apply(PlayCard(1, 0))
+        _choose(engine, medusa.entity_id)
+        self.assertEqual((medusa.health, medusa.max_health), (1, 1))
+
+        engine.state.active_player = 0
+        player = engine.players[0]
+        player.turns_started = (
+            engine.config.first_player_super_evolution_unlock_turn
+        )
+        engine.apply(SuperEvolve(0, medusa.entity_id))
+
+        self.assertEqual((medusa.health, medusa.max_health), (2, 2))
 
     def test_bunny_barons_cooperation_threshold_capacity_and_two_shots(self):
         engine = self.fresh(seed=13)

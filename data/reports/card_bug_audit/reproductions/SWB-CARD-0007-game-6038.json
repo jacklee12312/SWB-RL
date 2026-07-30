@@ -1,0 +1,2508 @@
+{
+  "schema_version": 1,
+  "report_kind": "swb_card_audit_failure_reproduction",
+  "spec": {
+    "game_id": 6038,
+    "sampling_kind": "random_legal",
+    "class_a": 5,
+    "class_b": 3,
+    "deck_a_name": null,
+    "deck_b_name": null,
+    "deck_seed_a": 17344803117456550840,
+    "deck_seed_b": 12097708293969285412,
+    "engine_seed": 1421221038517436626,
+    "policy_seed": 18002798355210719539,
+    "verify_replay": false
+  },
+  "configuration": {
+    "master_seed": 120012,
+    "max_game_turns": 200,
+    "max_agent_steps": 2000,
+    "match_setup": "official",
+    "mulligan_policy": "curve",
+    "validate_invariants": true
+  },
+  "inputs": {
+    "database": "data/cards.sqlite3",
+    "checkpoint": "data/checkpoints/observation_nightly_20260729/final/v4_1_seed_20260801_500k.pt",
+    "rulebook_sha256": "449230d69db016ff99fa27de963f89adc9ac9ac5b54e913991ffe3314e4f2017"
+  },
+  "decks": {
+    "player_1": [
+      10751310,
+      10453310,
+      10753310,
+      10203120,
+      10252110,
+      10151310,
+      10151130,
+      10503210,
+      10854110,
+      10051120,
+      10104110,
+      10203120,
+      10851120,
+      10051130,
+      10104120,
+      10551110,
+      10251110,
+      10802310,
+      10001210,
+      10754120,
+      10102310,
+      10653310,
+      10753110,
+      10151150,
+      10102110,
+      10202110,
+      10853310,
+      10203110,
+      10751110,
+      10551120,
+      10254120,
+      10701110,
+      10553110,
+      10104120,
+      10703210,
+      10552310,
+      10251120,
+      10453110,
+      10653110,
+      10201310
+    ],
+    "player_2": [
+      10703110,
+      10301110,
+      10102310,
+      10131140,
+      10101120,
+      10731310,
+      10101310,
+      10801110,
+      10001130,
+      10101310,
+      10502110,
+      10503310,
+      10001120,
+      10204110,
+      10031210,
+      10431310,
+      10734120,
+      10732110,
+      10531110,
+      10331120,
+      10204110,
+      10231310,
+      10802110,
+      10704110,
+      10132110,
+      10133310,
+      10601120,
+      10731120,
+      10031310,
+      10201110,
+      10704110,
+      10301310,
+      10133310,
+      10202110,
+      10131320,
+      10002120,
+      10032310,
+      10002210,
+      10303110,
+      10133130
+    ]
+  },
+  "exception": {
+    "type": "IllegalCommand",
+    "message": "Invariant failed: player 2 board[1] has non-positive health"
+  },
+  "action_count": 104,
+  "actions": [
+    49,
+    51,
+    0,
+    0,
+    0,
+    111,
+    4,
+    46,
+    0,
+    4,
+    0,
+    11,
+    0,
+    10,
+    6,
+    4,
+    22,
+    0,
+    4,
+    40,
+    11,
+    0,
+    41,
+    11,
+    0,
+    3,
+    12,
+    40,
+    11,
+    4,
+    0,
+    0,
+    1,
+    7,
+    107,
+    111,
+    0,
+    2,
+    6,
+    2,
+    46,
+    0,
+    3,
+    0,
+    4,
+    79,
+    0,
+    10,
+    1,
+    0,
+    41,
+    25,
+    19,
+    2,
+    4,
+    45,
+    47,
+    0,
+    106,
+    7,
+    14,
+    0,
+    25,
+    13,
+    7,
+    45,
+    5,
+    0,
+    16,
+    3,
+    4,
+    46,
+    6,
+    0,
+    26,
+    26,
+    17,
+    11,
+    0,
+    17,
+    3,
+    0,
+    4,
+    45,
+    107,
+    46,
+    10,
+    4,
+    18,
+    0,
+    6,
+    2,
+    47,
+    3,
+    0,
+    19,
+    25,
+    1,
+    10,
+    22,
+    3,
+    110,
+    4,
+    45
+  ],
+  "action_trace_sha256": "9e659373b3ab76c5d3ac6ba3ed5a65838e8503e8bd23dcdc342ea07505dae498",
+  "command_trace": [
+    {
+      "step": 0,
+      "turn": 1,
+      "decision_player": 0,
+      "action": 49,
+      "command_type": "Choose",
+      "command": "Choose(player_index=0, option_id='mulligan:4', type=<CommandType.CHOOSE: 'choose'>)"
+    },
+    {
+      "step": 1,
+      "turn": 1,
+      "decision_player": 1,
+      "action": 51,
+      "command_type": "Choose",
+      "command": "Choose(player_index=1, option_id='mulligan:6', type=<CommandType.CHOOSE: 'choose'>)"
+    },
+    {
+      "step": 2,
+      "turn": 1,
+      "decision_player": 0,
+      "action": 0,
+      "command_type": "EndTurn",
+      "command": "EndTurn(player_index=0, type=<CommandType.END_TURN: 'end_turn'>)"
+    },
+    {
+      "step": 3,
+      "turn": 2,
+      "decision_player": 1,
+      "action": 0,
+      "command_type": "EndTurn",
+      "command": "EndTurn(player_index=1, type=<CommandType.END_TURN: 'end_turn'>)"
+    },
+    {
+      "step": 4,
+      "turn": 3,
+      "decision_player": 0,
+      "action": 0,
+      "command_type": "EndTurn",
+      "command": "EndTurn(player_index=0, type=<CommandType.END_TURN: 'end_turn'>)"
+    },
+    {
+      "step": 5,
+      "turn": 4,
+      "decision_player": 1,
+      "action": 111,
+      "command_type": "UseExtraPP",
+      "command": "UseExtraPP(player_index=1, type=<CommandType.USE_EXTRA_PP: 'use_extra_pp'>)"
+    },
+    {
+      "step": 6,
+      "turn": 4,
+      "decision_player": 1,
+      "action": 4,
+      "command_type": "PlayCard",
+      "command": "PlayCard(player_index=1, hand_index=3, mode_id='normal', type=<CommandType.PLAY_CARD: 'play_card'>)"
+    },
+    {
+      "step": 7,
+      "turn": 4,
+      "decision_player": 1,
+      "action": 46,
+      "command_type": "Choose",
+      "command": "Choose(player_index=1, option_id='hand:10', type=<CommandType.CHOOSE: 'choose'>)"
+    },
+    {
+      "step": 8,
+      "turn": 4,
+      "decision_player": 1,
+      "action": 0,
+      "command_type": "EndTurn",
+      "command": "EndTurn(player_index=1, type=<CommandType.END_TURN: 'end_turn'>)"
+    },
+    {
+      "step": 9,
+      "turn": 5,
+      "decision_player": 0,
+      "action": 4,
+      "command_type": "PlayCard",
+      "command": "PlayCard(player_index=0, hand_index=3, mode_id='normal', type=<CommandType.PLAY_CARD: 'play_card'>)"
+    },
+    {
+      "step": 10,
+      "turn": 5,
+      "decision_player": 0,
+      "action": 0,
+      "command_type": "EndTurn",
+      "command": "EndTurn(player_index=0, type=<CommandType.END_TURN: 'end_turn'>)"
+    },
+    {
+      "step": 11,
+      "turn": 6,
+      "decision_player": 1,
+      "action": 11,
+      "command_type": "Attack",
+      "command": "Attack(player_index=1, attacker_id=16, target_id=18, type=<CommandType.ATTACK: 'attack'>)"
+    },
+    {
+      "step": 12,
+      "turn": 6,
+      "decision_player": 1,
+      "action": 0,
+      "command_type": "EndTurn",
+      "command": "EndTurn(player_index=1, type=<CommandType.END_TURN: 'end_turn'>)"
+    },
+    {
+      "step": 13,
+      "turn": 7,
+      "decision_player": 0,
+      "action": 10,
+      "command_type": "Attack",
+      "command": "Attack(player_index=0, attacker_id=18, target_id=None, type=<CommandType.ATTACK: 'attack'>)"
+    },
+    {
+      "step": 14,
+      "turn": 7,
+      "decision_player": 0,
+      "action": 6,
+      "command_type": "PlayCard",
+      "command": "PlayCard(player_index=0, hand_index=5, mode_id='normal', type=<CommandType.PLAY_CARD: 'play_card'>)"
+    },
+    {
+      "step": 15,
+      "turn": 7,
+      "decision_player": 0,
+      "action": 4,
+      "command_type": "PlayCard",
+      "command": "PlayCard(player_index=0, hand_index=3, mode_id='normal', type=<CommandType.PLAY_CARD: 'play_card'>)"
+    },
+    {
+      "step": 16,
+      "turn": 7,
+      "decision_player": 0,
+      "action": 22,
+      "command_type": "Attack",
+      "command": "Attack(player_index=0, attacker_id=22, target_id=None, type=<CommandType.ATTACK: 'attack'>)"
+    },
+    {
+      "step": 17,
+      "turn": 7,
+      "decision_player": 0,
+      "action": 0,
+      "command_type": "EndTurn",
+      "command": "EndTurn(player_index=0, type=<CommandType.END_TURN: 'end_turn'>)"
+    },
+    {
+      "step": 18,
+      "turn": 8,
+      "decision_player": 1,
+      "action": 4,
+      "command_type": "PlayCard",
+      "command": "PlayCard(player_index=1, hand_index=3, mode_id='normal', type=<CommandType.PLAY_CARD: 'play_card'>)"
+    },
+    {
+      "step": 19,
+      "turn": 8,
+      "decision_player": 1,
+      "action": 40,
+      "command_type": "Evolve",
+      "command": "Evolve(player_index=1, unit_id=24, type=<CommandType.EVOLVE: 'evolve'>)"
+    },
+    {
+      "step": 20,
+      "turn": 8,
+      "decision_player": 1,
+      "action": 11,
+      "command_type": "Attack",
+      "command": "Attack(player_index=1, attacker_id=24, target_id=18, type=<CommandType.ATTACK: 'attack'>)"
+    },
+    {
+      "step": 21,
+      "turn": 8,
+      "decision_player": 1,
+      "action": 0,
+      "command_type": "EndTurn",
+      "command": "EndTurn(player_index=1, type=<CommandType.END_TURN: 'end_turn'>)"
+    },
+    {
+      "step": 22,
+      "turn": 9,
+      "decision_player": 0,
+      "action": 41,
+      "command_type": "Evolve",
+      "command": "Evolve(player_index=0, unit_id=22, type=<CommandType.EVOLVE: 'evolve'>)"
+    },
+    {
+      "step": 23,
+      "turn": 9,
+      "decision_player": 0,
+      "action": 11,
+      "command_type": "Attack",
+      "command": "Attack(player_index=0, attacker_id=21, target_id=24, type=<CommandType.ATTACK: 'attack'>)"
+    },
+    {
+      "step": 24,
+      "turn": 9,
+      "decision_player": 0,
+      "action": 0,
+      "command_type": "EndTurn",
+      "command": "EndTurn(player_index=0, type=<CommandType.END_TURN: 'end_turn'>)"
+    },
+    {
+      "step": 25,
+      "turn": 10,
+      "decision_player": 1,
+      "action": 3,
+      "command_type": "PlayCard",
+      "command": "PlayCard(player_index=1, hand_index=2, mode_id='normal', type=<CommandType.PLAY_CARD: 'play_card'>)"
+    },
+    {
+      "step": 26,
+      "turn": 10,
+      "decision_player": 1,
+      "action": 12,
+      "command_type": "Attack",
+      "command": "Attack(player_index=1, attacker_id=24, target_id=27, type=<CommandType.ATTACK: 'attack'>)"
+    },
+    {
+      "step": 27,
+      "turn": 10,
+      "decision_player": 1,
+      "action": 40,
+      "command_type": "Evolve",
+      "command": "Evolve(player_index=1, unit_id=31, type=<CommandType.EVOLVE: 'evolve'>)"
+    },
+    {
+      "step": 28,
+      "turn": 10,
+      "decision_player": 1,
+      "action": 11,
+      "command_type": "Attack",
+      "command": "Attack(player_index=1, attacker_id=31, target_id=28, type=<CommandType.ATTACK: 'attack'>)"
+    },
+    {
+      "step": 29,
+      "turn": 10,
+      "decision_player": 1,
+      "action": 4,
+      "command_type": "PlayCard",
+      "command": "PlayCard(player_index=1, hand_index=3, mode_id='normal', type=<CommandType.PLAY_CARD: 'play_card'>)"
+    },
+    {
+      "step": 30,
+      "turn": 10,
+      "decision_player": 1,
+      "action": 0,
+      "command_type": "EndTurn",
+      "command": "EndTurn(player_index=1, type=<CommandType.END_TURN: 'end_turn'>)"
+    },
+    {
+      "step": 31,
+      "turn": 11,
+      "decision_player": 0,
+      "action": 0,
+      "command_type": "EndTurn",
+      "command": "EndTurn(player_index=0, type=<CommandType.END_TURN: 'end_turn'>)"
+    },
+    {
+      "step": 32,
+      "turn": 12,
+      "decision_player": 1,
+      "action": 1,
+      "command_type": "PlayCard",
+      "command": "PlayCard(player_index=1, hand_index=0, mode_id='normal', type=<CommandType.PLAY_CARD: 'play_card'>)"
+    },
+    {
+      "step": 33,
+      "turn": 12,
+      "decision_player": 1,
+      "action": 7,
+      "command_type": "PlayCard",
+      "command": "PlayCard(player_index=1, hand_index=6, mode_id='normal', type=<CommandType.PLAY_CARD: 'play_card'>)"
+    },
+    {
+      "step": 34,
+      "turn": 12,
+      "decision_player": 1,
+      "action": 107,
+      "command_type": "SuperEvolve",
+      "command": "SuperEvolve(player_index=1, unit_id=36, type=<CommandType.SUPER_EVOLVE: 'super_evolve'>)"
+    },
+    {
+      "step": 35,
+      "turn": 12,
+      "decision_player": 1,
+      "action": 111,
+      "command_type": "UseExtraPP",
+      "command": "UseExtraPP(player_index=1, type=<CommandType.USE_EXTRA_PP: 'use_extra_pp'>)"
+    },
+    {
+      "step": 36,
+      "turn": 12,
+      "decision_player": 1,
+      "action": 0,
+      "command_type": "EndTurn",
+      "command": "EndTurn(player_index=1, type=<CommandType.END_TURN: 'end_turn'>)"
+    },
+    {
+      "step": 37,
+      "turn": 13,
+      "decision_player": 0,
+      "action": 2,
+      "command_type": "PlayCard",
+      "command": "PlayCard(player_index=0, hand_index=1, mode_id='normal', type=<CommandType.PLAY_CARD: 'play_card'>)"
+    },
+    {
+      "step": 38,
+      "turn": 13,
+      "decision_player": 0,
+      "action": 6,
+      "command_type": "PlayCard",
+      "command": "PlayCard(player_index=0, hand_index=5, mode_id='normal', type=<CommandType.PLAY_CARD: 'play_card'>)"
+    },
+    {
+      "step": 39,
+      "turn": 13,
+      "decision_player": 0,
+      "action": 2,
+      "command_type": "PlayCard",
+      "command": "PlayCard(player_index=0, hand_index=1, mode_id='normal', type=<CommandType.PLAY_CARD: 'play_card'>)"
+    },
+    {
+      "step": 40,
+      "turn": 13,
+      "decision_player": 0,
+      "action": 46,
+      "command_type": "Choose",
+      "command": "Choose(player_index=0, option_id='choose_one:damage_all', type=<CommandType.CHOOSE: 'choose'>)"
+    },
+    {
+      "step": 41,
+      "turn": 13,
+      "decision_player": 0,
+      "action": 0,
+      "command_type": "EndTurn",
+      "command": "EndTurn(player_index=0, type=<CommandType.END_TURN: 'end_turn'>)"
+    },
+    {
+      "step": 42,
+      "turn": 14,
+      "decision_player": 1,
+      "action": 3,
+      "command_type": "PlayCard",
+      "command": "PlayCard(player_index=1, hand_index=2, mode_id='normal', type=<CommandType.PLAY_CARD: 'play_card'>)"
+    },
+    {
+      "step": 43,
+      "turn": 14,
+      "decision_player": 1,
+      "action": 0,
+      "command_type": "EndTurn",
+      "command": "EndTurn(player_index=1, type=<CommandType.END_TURN: 'end_turn'>)"
+    },
+    {
+      "step": 44,
+      "turn": 15,
+      "decision_player": 0,
+      "action": 4,
+      "command_type": "PlayCard",
+      "command": "PlayCard(player_index=0, hand_index=3, mode_id='normal', type=<CommandType.PLAY_CARD: 'play_card'>)"
+    },
+    {
+      "step": 45,
+      "turn": 15,
+      "decision_player": 0,
+      "action": 79,
+      "command_type": "PlayCard",
+      "command": "PlayCard(player_index=0, hand_index=0, mode_id='enhance_5', type=<CommandType.PLAY_CARD: 'play_card'>)"
+    },
+    {
+      "step": 46,
+      "turn": 15,
+      "decision_player": 0,
+      "action": 0,
+      "command_type": "EndTurn",
+      "command": "EndTurn(player_index=0, type=<CommandType.END_TURN: 'end_turn'>)"
+    },
+    {
+      "step": 47,
+      "turn": 16,
+      "decision_player": 1,
+      "action": 10,
+      "command_type": "Attack",
+      "command": "Attack(player_index=1, attacker_id=43, target_id=None, type=<CommandType.ATTACK: 'attack'>)"
+    },
+    {
+      "step": 48,
+      "turn": 16,
+      "decision_player": 1,
+      "action": 1,
+      "command_type": "PlayCard",
+      "command": "PlayCard(player_index=1, hand_index=0, mode_id='normal', type=<CommandType.PLAY_CARD: 'play_card'>)"
+    },
+    {
+      "step": 49,
+      "turn": 16,
+      "decision_player": 1,
+      "action": 0,
+      "command_type": "EndTurn",
+      "command": "EndTurn(player_index=1, type=<CommandType.END_TURN: 'end_turn'>)"
+    },
+    {
+      "step": 50,
+      "turn": 17,
+      "decision_player": 0,
+      "action": 41,
+      "command_type": "Evolve",
+      "command": "Evolve(player_index=0, unit_id=45, type=<CommandType.EVOLVE: 'evolve'>)"
+    },
+    {
+      "step": 51,
+      "turn": 17,
+      "decision_player": 0,
+      "action": 25,
+      "command_type": "Attack",
+      "command": "Attack(player_index=0, attacker_id=46, target_id=49, type=<CommandType.ATTACK: 'attack'>)"
+    },
+    {
+      "step": 52,
+      "turn": 17,
+      "decision_player": 0,
+      "action": 19,
+      "command_type": "Attack",
+      "command": "Attack(player_index=0, attacker_id=45, target_id=50, type=<CommandType.ATTACK: 'attack'>)"
+    },
+    {
+      "step": 53,
+      "turn": 17,
+      "decision_player": 0,
+      "action": 2,
+      "command_type": "PlayCard",
+      "command": "PlayCard(player_index=0, hand_index=1, mode_id='normal', type=<CommandType.PLAY_CARD: 'play_card'>)"
+    },
+    {
+      "step": 54,
+      "turn": 17,
+      "decision_player": 0,
+      "action": 4,
+      "command_type": "PlayCard",
+      "command": "PlayCard(player_index=0, hand_index=3, mode_id='normal', type=<CommandType.PLAY_CARD: 'play_card'>)"
+    },
+    {
+      "step": 55,
+      "turn": 17,
+      "decision_player": 0,
+      "action": 45,
+      "command_type": "Choose",
+      "command": "Choose(player_index=0, option_id='entity:45', type=<CommandType.CHOOSE: 'choose'>)"
+    },
+    {
+      "step": 56,
+      "turn": 17,
+      "decision_player": 0,
+      "action": 47,
+      "command_type": "Choose",
+      "command": "Choose(player_index=0, option_id='entity:54', type=<CommandType.CHOOSE: 'choose'>)"
+    },
+    {
+      "step": 57,
+      "turn": 17,
+      "decision_player": 0,
+      "action": 0,
+      "command_type": "EndTurn",
+      "command": "EndTurn(player_index=0, type=<CommandType.END_TURN: 'end_turn'>)"
+    },
+    {
+      "step": 58,
+      "turn": 18,
+      "decision_player": 1,
+      "action": 106,
+      "command_type": "SuperEvolve",
+      "command": "SuperEvolve(player_index=1, unit_id=43, type=<CommandType.SUPER_EVOLVE: 'super_evolve'>)"
+    },
+    {
+      "step": 59,
+      "turn": 18,
+      "decision_player": 1,
+      "action": 7,
+      "command_type": "PlayCard",
+      "command": "PlayCard(player_index=1, hand_index=6, mode_id='normal', type=<CommandType.PLAY_CARD: 'play_card'>)"
+    },
+    {
+      "step": 60,
+      "turn": 18,
+      "decision_player": 1,
+      "action": 14,
+      "command_type": "Attack",
+      "command": "Attack(player_index=1, attacker_id=43, target_id=53, type=<CommandType.ATTACK: 'attack'>)"
+    },
+    {
+      "step": 61,
+      "turn": 18,
+      "decision_player": 1,
+      "action": 0,
+      "command_type": "EndTurn",
+      "command": "EndTurn(player_index=1, type=<CommandType.END_TURN: 'end_turn'>)"
+    },
+    {
+      "step": 62,
+      "turn": 19,
+      "decision_player": 0,
+      "action": 25,
+      "command_type": "Attack",
+      "command": "Attack(player_index=0, attacker_id=54, target_id=51, type=<CommandType.ATTACK: 'attack'>)"
+    },
+    {
+      "step": 63,
+      "turn": 19,
+      "decision_player": 0,
+      "action": 13,
+      "command_type": "Attack",
+      "command": "Attack(player_index=0, attacker_id=45, target_id=57, type=<CommandType.ATTACK: 'attack'>)"
+    },
+    {
+      "step": 64,
+      "turn": 19,
+      "decision_player": 0,
+      "action": 7,
+      "command_type": "PlayCard",
+      "command": "PlayCard(player_index=0, hand_index=6, mode_id='normal', type=<CommandType.PLAY_CARD: 'play_card'>)"
+    },
+    {
+      "step": 65,
+      "turn": 19,
+      "decision_player": 0,
+      "action": 45,
+      "command_type": "Choose",
+      "command": "Choose(player_index=0, option_id='entity:45', type=<CommandType.CHOOSE: 'choose'>)"
+    },
+    {
+      "step": 66,
+      "turn": 19,
+      "decision_player": 0,
+      "action": 5,
+      "command_type": "PlayCard",
+      "command": "PlayCard(player_index=0, hand_index=4, mode_id='normal', type=<CommandType.PLAY_CARD: 'play_card'>)"
+    },
+    {
+      "step": 67,
+      "turn": 19,
+      "decision_player": 0,
+      "action": 0,
+      "command_type": "EndTurn",
+      "command": "EndTurn(player_index=0, type=<CommandType.END_TURN: 'end_turn'>)"
+    },
+    {
+      "step": 68,
+      "turn": 20,
+      "decision_player": 1,
+      "action": 16,
+      "command_type": "Attack",
+      "command": "Attack(player_index=1, attacker_id=48, target_id=None, type=<CommandType.ATTACK: 'attack'>)"
+    },
+    {
+      "step": 69,
+      "turn": 20,
+      "decision_player": 1,
+      "action": 3,
+      "command_type": "PlayCard",
+      "command": "PlayCard(player_index=1, hand_index=2, mode_id='normal', type=<CommandType.PLAY_CARD: 'play_card'>)"
+    },
+    {
+      "step": 70,
+      "turn": 20,
+      "decision_player": 1,
+      "action": 4,
+      "command_type": "PlayCard",
+      "command": "PlayCard(player_index=1, hand_index=3, mode_id='normal', type=<CommandType.PLAY_CARD: 'play_card'>)"
+    },
+    {
+      "step": 71,
+      "turn": 20,
+      "decision_player": 1,
+      "action": 46,
+      "command_type": "Choose",
+      "command": "Choose(player_index=1, option_id='entity:54', type=<CommandType.CHOOSE: 'choose'>)"
+    },
+    {
+      "step": 72,
+      "turn": 20,
+      "decision_player": 1,
+      "action": 6,
+      "command_type": "PlayCard",
+      "command": "PlayCard(player_index=1, hand_index=5, mode_id='normal', type=<CommandType.PLAY_CARD: 'play_card'>)"
+    },
+    {
+      "step": 73,
+      "turn": 20,
+      "decision_player": 1,
+      "action": 0,
+      "command_type": "EndTurn",
+      "command": "EndTurn(player_index=1, type=<CommandType.END_TURN: 'end_turn'>)"
+    },
+    {
+      "step": 74,
+      "turn": 21,
+      "decision_player": 0,
+      "action": 26,
+      "command_type": "Attack",
+      "command": "Attack(player_index=0, attacker_id=63, target_id=66, type=<CommandType.ATTACK: 'attack'>)"
+    },
+    {
+      "step": 75,
+      "turn": 21,
+      "decision_player": 0,
+      "action": 26,
+      "command_type": "Attack",
+      "command": "Attack(player_index=0, attacker_id=64, target_id=66, type=<CommandType.ATTACK: 'attack'>)"
+    },
+    {
+      "step": 76,
+      "turn": 21,
+      "decision_player": 0,
+      "action": 17,
+      "command_type": "Attack",
+      "command": "Attack(player_index=0, attacker_id=62, target_id=43, type=<CommandType.ATTACK: 'attack'>)"
+    },
+    {
+      "step": 77,
+      "turn": 21,
+      "decision_player": 0,
+      "action": 11,
+      "command_type": "Attack",
+      "command": "Attack(player_index=0, attacker_id=46, target_id=48, type=<CommandType.ATTACK: 'attack'>)"
+    },
+    {
+      "step": 78,
+      "turn": 21,
+      "decision_player": 0,
+      "action": 0,
+      "command_type": "EndTurn",
+      "command": "EndTurn(player_index=0, type=<CommandType.END_TURN: 'end_turn'>)"
+    },
+    {
+      "step": 79,
+      "turn": 22,
+      "decision_player": 1,
+      "action": 17,
+      "command_type": "Attack",
+      "command": "Attack(player_index=1, attacker_id=67, target_id=46, type=<CommandType.ATTACK: 'attack'>)"
+    },
+    {
+      "step": 80,
+      "turn": 22,
+      "decision_player": 1,
+      "action": 3,
+      "command_type": "PlayCard",
+      "command": "PlayCard(player_index=1, hand_index=2, mode_id='normal', type=<CommandType.PLAY_CARD: 'play_card'>)"
+    },
+    {
+      "step": 81,
+      "turn": 22,
+      "decision_player": 1,
+      "action": 0,
+      "command_type": "EndTurn",
+      "command": "EndTurn(player_index=1, type=<CommandType.END_TURN: 'end_turn'>)"
+    },
+    {
+      "step": 82,
+      "turn": 23,
+      "decision_player": 0,
+      "action": 4,
+      "command_type": "PlayCard",
+      "command": "PlayCard(player_index=0, hand_index=3, mode_id='normal', type=<CommandType.PLAY_CARD: 'play_card'>)"
+    },
+    {
+      "step": 83,
+      "turn": 23,
+      "decision_player": 0,
+      "action": 45,
+      "command_type": "Choose",
+      "command": "Choose(player_index=0, option_id='choose_one:leader_swing', type=<CommandType.CHOOSE: 'choose'>)"
+    },
+    {
+      "step": 84,
+      "turn": 23,
+      "decision_player": 0,
+      "action": 107,
+      "command_type": "SuperEvolve",
+      "command": "SuperEvolve(player_index=0, unit_id=73, type=<CommandType.SUPER_EVOLVE: 'super_evolve'>)"
+    },
+    {
+      "step": 85,
+      "turn": 23,
+      "decision_player": 0,
+      "action": 46,
+      "command_type": "Choose",
+      "command": "Choose(player_index=0, option_id='choose_one:restore_two_mana', type=<CommandType.CHOOSE: 'choose'>)"
+    },
+    {
+      "step": 86,
+      "turn": 23,
+      "decision_player": 0,
+      "action": 10,
+      "command_type": "Attack",
+      "command": "Attack(player_index=0, attacker_id=46, target_id=None, type=<CommandType.ATTACK: 'attack'>)"
+    },
+    {
+      "step": 87,
+      "turn": 23,
+      "decision_player": 0,
+      "action": 4,
+      "command_type": "PlayCard",
+      "command": "PlayCard(player_index=0, hand_index=3, mode_id='normal', type=<CommandType.PLAY_CARD: 'play_card'>)"
+    },
+    {
+      "step": 88,
+      "turn": 23,
+      "decision_player": 0,
+      "action": 18,
+      "command_type": "Attack",
+      "command": "Attack(player_index=0, attacker_id=73, target_id=71, type=<CommandType.ATTACK: 'attack'>)"
+    },
+    {
+      "step": 89,
+      "turn": 23,
+      "decision_player": 0,
+      "action": 0,
+      "command_type": "EndTurn",
+      "command": "EndTurn(player_index=0, type=<CommandType.END_TURN: 'end_turn'>)"
+    },
+    {
+      "step": 90,
+      "turn": 24,
+      "decision_player": 1,
+      "action": 6,
+      "command_type": "PlayCard",
+      "command": "PlayCard(player_index=1, hand_index=5, mode_id='normal', type=<CommandType.PLAY_CARD: 'play_card'>)"
+    },
+    {
+      "step": 91,
+      "turn": 24,
+      "decision_player": 1,
+      "action": 2,
+      "command_type": "PlayCard",
+      "command": "PlayCard(player_index=1, hand_index=1, mode_id='normal', type=<CommandType.PLAY_CARD: 'play_card'>)"
+    },
+    {
+      "step": 92,
+      "turn": 24,
+      "decision_player": 1,
+      "action": 47,
+      "command_type": "Choose",
+      "command": "Choose(player_index=1, option_id='entity:73', type=<CommandType.CHOOSE: 'choose'>)"
+    },
+    {
+      "step": 93,
+      "turn": 24,
+      "decision_player": 1,
+      "action": 3,
+      "command_type": "PlayCard",
+      "command": "PlayCard(player_index=1, hand_index=2, mode_id='normal', type=<CommandType.PLAY_CARD: 'play_card'>)"
+    },
+    {
+      "step": 94,
+      "turn": 24,
+      "decision_player": 1,
+      "action": 0,
+      "command_type": "EndTurn",
+      "command": "EndTurn(player_index=1, type=<CommandType.END_TURN: 'end_turn'>)"
+    },
+    {
+      "step": 95,
+      "turn": 25,
+      "decision_player": 0,
+      "action": 19,
+      "command_type": "Attack",
+      "command": "Attack(player_index=0, attacker_id=73, target_id=78, type=<CommandType.ATTACK: 'attack'>)"
+    },
+    {
+      "step": 96,
+      "turn": 25,
+      "decision_player": 0,
+      "action": 25,
+      "command_type": "Attack",
+      "command": "Attack(player_index=0, attacker_id=74, target_id=79, type=<CommandType.ATTACK: 'attack'>)"
+    },
+    {
+      "step": 97,
+      "turn": 25,
+      "decision_player": 0,
+      "action": 1,
+      "command_type": "PlayCard",
+      "command": "PlayCard(player_index=0, hand_index=0, mode_id='normal', type=<CommandType.PLAY_CARD: 'play_card'>)"
+    },
+    {
+      "step": 98,
+      "turn": 25,
+      "decision_player": 0,
+      "action": 10,
+      "command_type": "Attack",
+      "command": "Attack(player_index=0, attacker_id=46, target_id=None, type=<CommandType.ATTACK: 'attack'>)"
+    },
+    {
+      "step": 99,
+      "turn": 25,
+      "decision_player": 0,
+      "action": 22,
+      "command_type": "Attack",
+      "command": "Attack(player_index=0, attacker_id=75, target_id=None, type=<CommandType.ATTACK: 'attack'>)"
+    },
+    {
+      "step": 100,
+      "turn": 25,
+      "decision_player": 0,
+      "action": 3,
+      "command_type": "PlayCard",
+      "command": "PlayCard(player_index=0, hand_index=2, mode_id='normal', type=<CommandType.PLAY_CARD: 'play_card'>)"
+    },
+    {
+      "step": 101,
+      "turn": 25,
+      "decision_player": 0,
+      "action": 110,
+      "command_type": "SuperEvolve",
+      "command": "SuperEvolve(player_index=0, unit_id=82, type=<CommandType.SUPER_EVOLVE: 'super_evolve'>)"
+    },
+    {
+      "step": 102,
+      "turn": 25,
+      "decision_player": 0,
+      "action": 4,
+      "command_type": "PlayCard",
+      "command": "PlayCard(player_index=0, hand_index=3, mode_id='normal', type=<CommandType.PLAY_CARD: 'play_card'>)"
+    },
+    {
+      "step": 103,
+      "turn": 25,
+      "decision_player": 0,
+      "action": 45,
+      "command_type": "Choose",
+      "command": "Choose(player_index=0, option_id='entity:46', type=<CommandType.CHOOSE: 'choose'>)"
+    }
+  ],
+  "failure_state_before_rollback": {
+    "command": {
+      "step": 103,
+      "turn": 25,
+      "decision_player": 0,
+      "action": 45,
+      "command_type": "Choose",
+      "command": "Choose(player_index=0, option_id='entity:46', type=<CommandType.CHOOSE: 'choose'>)"
+    },
+    "state": {
+      "turn": 25,
+      "active_player": 0,
+      "decision_player": 0,
+      "agent_steps": 103,
+      "players": [
+        {
+          "health": 20,
+          "mana": 0,
+          "max_mana": 10,
+          "hand": [
+            {
+              "entity_id": 39,
+              "card_id": 10104120,
+              "name": "终极之罪·深渊之主",
+              "current_cost": 10
+            },
+            {
+              "entity_id": 44,
+              "card_id": 10453110,
+              "name": "生与死之技·涅槃",
+              "current_cost": 6
+            },
+            {
+              "entity_id": 72,
+              "card_id": 10703210,
+              "name": "巴别隆城",
+              "current_cost": 1
+            }
+          ],
+          "board": [
+            {
+              "entity_id": 73,
+              "card_id": 10854110,
+              "name": "出发的憧憬·苇剑&武津御",
+              "health": 4,
+              "max_health": 4,
+              "evolved": true,
+              "super_evolved": true
+            },
+            {
+              "entity_id": 75,
+              "card_id": 10051130,
+              "name": "恶毒的小木乃伊",
+              "health": 4,
+              "max_health": 4,
+              "evolved": true,
+              "super_evolved": false
+            },
+            {
+              "entity_id": 81,
+              "card_id": 10001210,
+              "name": "侦探的放大镜",
+              "health": null,
+              "max_health": null,
+              "evolved": false,
+              "super_evolved": false
+            },
+            {
+              "entity_id": 82,
+              "card_id": 10203110,
+              "name": "联结的天使·蕾娜",
+              "health": 8,
+              "max_health": 8,
+              "evolved": true,
+              "super_evolved": true
+            }
+          ],
+          "graveyard_tail": [
+            {
+              "card_id": 10751310,
+              "name": "灵魂调律"
+            },
+            {
+              "card_id": 10254120,
+              "name": "流动堕落的冥河·凯伦"
+            },
+            {
+              "card_id": 10503210,
+              "name": "大游戏世界"
+            },
+            {
+              "card_id": 10051120,
+              "name": "黑夜鬼人"
+            },
+            {
+              "card_id": 10203120,
+              "name": "雷火双神·福尼加尔&亚文哈尔"
+            },
+            {
+              "card_id": 90051120,
+              "name": "蝙蝠"
+            },
+            {
+              "card_id": 10551110,
+              "name": "鼓舞之狼"
+            },
+            {
+              "card_id": 10653110,
+              "name": "渴命的破坏者"
+            },
+            {
+              "card_id": 10551120,
+              "name": "红符的魂魄道士"
+            },
+            {
+              "card_id": 10203120,
+              "name": "雷火双神·福尼加尔&亚文哈尔"
+            }
+          ]
+        },
+        {
+          "health": 1,
+          "mana": 2,
+          "max_mana": 10,
+          "hand": [
+            {
+              "entity_id": 19,
+              "card_id": 10301310,
+              "name": "至高的凌驾",
+              "current_cost": 4
+            },
+            {
+              "entity_id": 38,
+              "card_id": 10002210,
+              "name": "冒险者公会",
+              "current_cost": 3
+            },
+            {
+              "entity_id": 65,
+              "card_id": 10132110,
+              "name": "惹人怜爱的教师·米兰",
+              "current_cost": 2
+            },
+            {
+              "entity_id": 70,
+              "card_id": 10133310,
+              "name": "做作业啦！",
+              "current_cost": 3
+            },
+            {
+              "entity_id": 76,
+              "card_id": 10731310,
+              "name": "召唤仆从",
+              "current_cost": 4
+            }
+          ],
+          "board": [
+            {
+              "entity_id": 58,
+              "card_id": 90031210,
+              "name": "大地之魔片",
+              "health": null,
+              "max_health": null,
+              "evolved": false,
+              "super_evolved": false
+            },
+            {
+              "entity_id": 77,
+              "card_id": 10201110,
+              "name": "双刀哥布林",
+              "health": 0,
+              "max_health": 1,
+              "evolved": false,
+              "super_evolved": false
+            }
+          ],
+          "graveyard_tail": [
+            {
+              "card_id": 90001110,
+              "name": "哥布林"
+            },
+            {
+              "card_id": 10531110,
+              "name": "创造魔法师"
+            },
+            {
+              "card_id": 10031310,
+              "name": "智慧光辉"
+            },
+            {
+              "card_id": 10001130,
+              "name": "激震的歌利亚"
+            },
+            {
+              "card_id": 10303110,
+              "name": "充满勇气之人"
+            },
+            {
+              "card_id": 90001110,
+              "name": "哥布林"
+            },
+            {
+              "card_id": 10802110,
+              "name": "激动的欢喜·阿尔菲德"
+            },
+            {
+              "card_id": 10502110,
+              "name": "星辉女神"
+            },
+            {
+              "card_id": 10301110,
+              "name": "涸绝的使徒"
+            },
+            {
+              "card_id": 10732110,
+              "name": "迷人怪兽"
+            }
+          ]
+        }
+      ],
+      "event_history_tail": [
+        {
+          "type": "damage_applied",
+          "player_index": 0,
+          "source_id": null,
+          "target_id": null,
+          "amount": 1,
+          "metadata": {
+            "target_player": 1,
+            "damage_type": "effect",
+            "base_amount": 1,
+            "modifier_amount": 0,
+            "replacement_modifier_ids": [],
+            "barrier_consumed": false
+          }
+        },
+        {
+          "type": "last_words_start",
+          "player_index": 1,
+          "source_id": 78,
+          "target_id": null,
+          "amount": 0,
+          "metadata": {
+            "card_id": 10301110,
+            "cause": "combat",
+            "batch_id": 23,
+            "batch_order_index": 0,
+            "batch_record_count": 1,
+            "batch_follower_count": 1,
+            "batch_amulet_count": 0,
+            "batch_owner_counts": [
+              {
+                "owner": 0,
+                "record_count": 0,
+                "follower_count": 0,
+                "amulet_count": 0
+              },
+              {
+                "owner": 1,
+                "record_count": 1,
+                "follower_count": 1,
+                "amulet_count": 0
+              }
+            ],
+            "active_player": 0,
+            "owner": 1,
+            "card_type": "随从",
+            "board_position": 2,
+            "keywords": [
+              "入场曲"
+            ],
+            "attack": 2,
+            "health": 0,
+            "evolved": false,
+            "super_evolved": false
+          }
+        },
+        {
+          "type": "last_words_complete",
+          "player_index": 1,
+          "source_id": 78,
+          "target_id": null,
+          "amount": 0,
+          "metadata": {
+            "card_id": 10301110,
+            "cause": "combat",
+            "batch_id": 23,
+            "batch_order_index": 0,
+            "batch_record_count": 1,
+            "batch_follower_count": 1,
+            "batch_amulet_count": 0,
+            "batch_owner_counts": [
+              {
+                "owner": 0,
+                "record_count": 0,
+                "follower_count": 0,
+                "amulet_count": 0
+              },
+              {
+                "owner": 1,
+                "record_count": 1,
+                "follower_count": 1,
+                "amulet_count": 0
+              }
+            ],
+            "active_player": 0,
+            "owner": 1,
+            "card_type": "随从",
+            "board_position": 2,
+            "keywords": [
+              "入场曲"
+            ],
+            "attack": 2,
+            "health": 0,
+            "evolved": false,
+            "super_evolved": false
+          }
+        },
+        {
+          "type": "death_batch_end",
+          "player_index": 0,
+          "source_id": null,
+          "target_id": null,
+          "amount": 0,
+          "metadata": {
+            "batch_id": 23,
+            "count": 1,
+            "batch_record_count": 1,
+            "active_player": 0,
+            "follower_count": 1,
+            "amulet_count": 0,
+            "owner_counts": [
+              {
+                "owner": 0,
+                "record_count": 0,
+                "follower_count": 0,
+                "amulet_count": 0
+              },
+              {
+                "owner": 1,
+                "record_count": 1,
+                "follower_count": 1,
+                "amulet_count": 0
+              }
+            ],
+            "ordered_records": [
+              {
+                "batch_order_index": 0,
+                "owner": 1,
+                "entity_id": 78,
+                "card_id": 10301110,
+                "card_type": "随从",
+                "board_position": 2,
+                "cause": "combat",
+                "allows_last_words": true,
+                "keywords": [
+                  "入场曲"
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "type": "attack_declared",
+          "player_index": 0,
+          "source_id": 74,
+          "target_id": 79,
+          "amount": 0,
+          "metadata": {
+            "source": "Unit(definition=CardDefinition(card_id=10551120, card_set_id=10005, class_id=5, class_name='梦魇', name='红符的魂魄道士', cost=4, card_type='随从', attack=3, life=2, keywords=frozenset({'入场曲', '进化时', '亡者召还'}), support_level='unsupported', is_collectible=True, fanfare_effects=(), ability_keywords=frozenset({<AbilityKeyword.FANFARE: '入场曲'>, <AbilityKeyword.ON_EVOLVE: '进化时'>, <AbilityKeyword.REANIMATE: '亡者召还'>}), tribe_id=0, tribe_name=''), entity_id=74, origin=<CardOrigin.DECK: 'deck'>, source_origin=None, fused_material_ids=[], attack=3, health=0, max_health=2, base_attack=3, base_health=2, can_attack=False, attacks_remaining=0, evolved=False, super_evolved=False, super_evolved_turn=None, rush_only=False, barrier_charges=0, ambush_active=False, summoned_this_turn=False, permanent_keywords=set(), temporary_keywords=[], removed_keywords=set(), temporary_keyword_removals=[], stat_modifiers=[], attack_capacity_modifiers=[], attack_restrictions=[], targeting_restrictions=[], printed_abilities_removed=False, last_words_removed=False, turn_end_destroy_timings=set(), turn_end_banish_timings=set(), granted_turn_end_abilities=[], granted_last_words=[], random_choice_history={}, effect_destroy_immunity=False)",
+            "target": "Unit(definition=CardDefinition(card_id=10732110, card_set_id=10007, class_id=3, class_name='巫师', name='迷人怪兽', cost=3, card_type='随从', attack=4, life=2, keywords=frozenset({'迷人怪兽', '超进化时', '土之秘术', '谢幕曲', '突进'}), support_level='unsupported', is_collectible=True, fanfare_effects=(), ability_keywords=frozenset({<AbilityKeyword.RUSH: '突进'>, <AbilityKeyword.LAST_WORDS: '谢幕曲'>, <AbilityKeyword.ON_SUPER_EVOLVE: '超进化时'>, <AbilityKeyword.EARTH_RITE: '土之秘术'>}), tribe_id=0, tribe_name=''), entity_id=79, origin=<CardOrigin.DECK: 'deck'>, source_origin=None, fused_material_ids=[], attack=4, health=0, max_health=2, base_attack=4, base_health=2, can_attack=True, attacks_remaining=1, evolved=False, super_evolved=False, super_evolved_turn=None, rush_only=True, barrier_charges=0, ambush_active=False, summoned_this_turn=True, permanent_keywords=set(), temporary_keywords=[], removed_keywords=set(), temporary_keyword_removals=[], stat_modifiers=[], attack_capacity_modifiers=[], attack_restrictions=[], targeting_restrictions=[], printed_abilities_removed=False, last_words_removed=False, turn_end_destroy_timings=set(), turn_end_banish_timings=set(), granted_turn_end_abilities=[], granted_last_words=[], random_choice_history={}, effect_destroy_immunity=False)",
+            "follower_attacks_this_turn": 2
+          }
+        },
+        {
+          "type": "combat_started",
+          "player_index": 0,
+          "source_id": 74,
+          "target_id": 79,
+          "amount": 0,
+          "metadata": {
+            "source": "Unit(definition=CardDefinition(card_id=10551120, card_set_id=10005, class_id=5, class_name='梦魇', name='红符的魂魄道士', cost=4, card_type='随从', attack=3, life=2, keywords=frozenset({'入场曲', '进化时', '亡者召还'}), support_level='unsupported', is_collectible=True, fanfare_effects=(), ability_keywords=frozenset({<AbilityKeyword.FANFARE: '入场曲'>, <AbilityKeyword.ON_EVOLVE: '进化时'>, <AbilityKeyword.REANIMATE: '亡者召还'>}), tribe_id=0, tribe_name=''), entity_id=74, origin=<CardOrigin.DECK: 'deck'>, source_origin=None, fused_material_ids=[], attack=3, health=0, max_health=2, base_attack=3, base_health=2, can_attack=False, attacks_remaining=0, evolved=False, super_evolved=False, super_evolved_turn=None, rush_only=False, barrier_charges=0, ambush_active=False, summoned_this_turn=False, permanent_keywords=set(), temporary_keywords=[], removed_keywords=set(), temporary_keyword_removals=[], stat_modifiers=[], attack_capacity_modifiers=[], attack_restrictions=[], targeting_restrictions=[], printed_abilities_removed=False, last_words_removed=False, turn_end_destroy_timings=set(), turn_end_banish_timings=set(), granted_turn_end_abilities=[], granted_last_words=[], random_choice_history={}, effect_destroy_immunity=False)",
+            "target": "Unit(definition=CardDefinition(card_id=10732110, card_set_id=10007, class_id=3, class_name='巫师', name='迷人怪兽', cost=3, card_type='随从', attack=4, life=2, keywords=frozenset({'迷人怪兽', '超进化时', '土之秘术', '谢幕曲', '突进'}), support_level='unsupported', is_collectible=True, fanfare_effects=(), ability_keywords=frozenset({<AbilityKeyword.RUSH: '突进'>, <AbilityKeyword.LAST_WORDS: '谢幕曲'>, <AbilityKeyword.ON_SUPER_EVOLVE: '超进化时'>, <AbilityKeyword.EARTH_RITE: '土之秘术'>}), tribe_id=0, tribe_name=''), entity_id=79, origin=<CardOrigin.DECK: 'deck'>, source_origin=None, fused_material_ids=[], attack=4, health=0, max_health=2, base_attack=4, base_health=2, can_attack=True, attacks_remaining=1, evolved=False, super_evolved=False, super_evolved_turn=None, rush_only=True, barrier_charges=0, ambush_active=False, summoned_this_turn=True, permanent_keywords=set(), temporary_keywords=[], removed_keywords=set(), temporary_keyword_removals=[], stat_modifiers=[], attack_capacity_modifiers=[], attack_restrictions=[], targeting_restrictions=[], printed_abilities_removed=False, last_words_removed=False, turn_end_destroy_timings=set(), turn_end_banish_timings=set(), granted_turn_end_abilities=[], granted_last_words=[], random_choice_history={}, effect_destroy_immunity=False)"
+          }
+        },
+        {
+          "type": "damage_applied",
+          "player_index": 1,
+          "source_id": 79,
+          "target_id": 74,
+          "amount": 2,
+          "metadata": {
+            "damage_type": "combat"
+          }
+        },
+        {
+          "type": "damage_applied",
+          "player_index": 0,
+          "source_id": 74,
+          "target_id": 79,
+          "amount": 2,
+          "metadata": {
+            "damage_type": "combat"
+          }
+        },
+        {
+          "type": "damage_dealt",
+          "player_index": 0,
+          "source_id": 74,
+          "target_id": 79,
+          "amount": 2,
+          "metadata": {
+            "source": "Unit(definition=CardDefinition(card_id=10551120, card_set_id=10005, class_id=5, class_name='梦魇', name='红符的魂魄道士', cost=4, card_type='随从', attack=3, life=2, keywords=frozenset({'入场曲', '进化时', '亡者召还'}), support_level='unsupported', is_collectible=True, fanfare_effects=(), ability_keywords=frozenset({<AbilityKeyword.FANFARE: '入场曲'>, <AbilityKeyword.ON_EVOLVE: '进化时'>, <AbilityKeyword.REANIMATE: '亡者召还'>}), tribe_id=0, tribe_name=''), entity_id=74, origin=<CardOrigin.DECK: 'deck'>, source_origin=None, fused_material_ids=[], attack=3, health=0, max_health=2, base_attack=3, base_health=2, can_attack=False, attacks_remaining=0, evolved=False, super_evolved=False, super_evolved_turn=None, rush_only=False, barrier_charges=0, ambush_active=False, summoned_this_turn=False, permanent_keywords=set(), temporary_keywords=[], removed_keywords=set(), temporary_keyword_removals=[], stat_modifiers=[], attack_capacity_modifiers=[], attack_restrictions=[], targeting_restrictions=[], printed_abilities_removed=False, last_words_removed=False, turn_end_destroy_timings=set(), turn_end_banish_timings=set(), granted_turn_end_abilities=[], granted_last_words=[], random_choice_history={}, effect_destroy_immunity=False)",
+            "target": "Unit(definition=CardDefinition(card_id=10732110, card_set_id=10007, class_id=3, class_name='巫师', name='迷人怪兽', cost=3, card_type='随从', attack=4, life=2, keywords=frozenset({'迷人怪兽', '超进化时', '土之秘术', '谢幕曲', '突进'}), support_level='unsupported', is_collectible=True, fanfare_effects=(), ability_keywords=frozenset({<AbilityKeyword.RUSH: '突进'>, <AbilityKeyword.LAST_WORDS: '谢幕曲'>, <AbilityKeyword.ON_SUPER_EVOLVE: '超进化时'>, <AbilityKeyword.EARTH_RITE: '土之秘术'>}), tribe_id=0, tribe_name=''), entity_id=79, origin=<CardOrigin.DECK: 'deck'>, source_origin=None, fused_material_ids=[], attack=4, health=0, max_health=2, base_attack=4, base_health=2, can_attack=True, attacks_remaining=1, evolved=False, super_evolved=False, super_evolved_turn=None, rush_only=True, barrier_charges=0, ambush_active=False, summoned_this_turn=True, permanent_keywords=set(), temporary_keywords=[], removed_keywords=set(), temporary_keyword_removals=[], stat_modifiers=[], attack_capacity_modifiers=[], attack_restrictions=[], targeting_restrictions=[], printed_abilities_removed=False, last_words_removed=False, turn_end_destroy_timings=set(), turn_end_banish_timings=set(), granted_turn_end_abilities=[], granted_last_words=[], random_choice_history={}, effect_destroy_immunity=False)"
+          }
+        },
+        {
+          "type": "damage_dealt",
+          "player_index": 1,
+          "source_id": 79,
+          "target_id": 74,
+          "amount": 2,
+          "metadata": {
+            "source": "Unit(definition=CardDefinition(card_id=10732110, card_set_id=10007, class_id=3, class_name='巫师', name='迷人怪兽', cost=3, card_type='随从', attack=4, life=2, keywords=frozenset({'迷人怪兽', '超进化时', '土之秘术', '谢幕曲', '突进'}), support_level='unsupported', is_collectible=True, fanfare_effects=(), ability_keywords=frozenset({<AbilityKeyword.RUSH: '突进'>, <AbilityKeyword.LAST_WORDS: '谢幕曲'>, <AbilityKeyword.ON_SUPER_EVOLVE: '超进化时'>, <AbilityKeyword.EARTH_RITE: '土之秘术'>}), tribe_id=0, tribe_name=''), entity_id=79, origin=<CardOrigin.DECK: 'deck'>, source_origin=None, fused_material_ids=[], attack=4, health=0, max_health=2, base_attack=4, base_health=2, can_attack=True, attacks_remaining=1, evolved=False, super_evolved=False, super_evolved_turn=None, rush_only=True, barrier_charges=0, ambush_active=False, summoned_this_turn=True, permanent_keywords=set(), temporary_keywords=[], removed_keywords=set(), temporary_keyword_removals=[], stat_modifiers=[], attack_capacity_modifiers=[], attack_restrictions=[], targeting_restrictions=[], printed_abilities_removed=False, last_words_removed=False, turn_end_destroy_timings=set(), turn_end_banish_timings=set(), granted_turn_end_abilities=[], granted_last_words=[], random_choice_history={}, effect_destroy_immunity=False)",
+            "target": "Unit(definition=CardDefinition(card_id=10551120, card_set_id=10005, class_id=5, class_name='梦魇', name='红符的魂魄道士', cost=4, card_type='随从', attack=3, life=2, keywords=frozenset({'入场曲', '进化时', '亡者召还'}), support_level='unsupported', is_collectible=True, fanfare_effects=(), ability_keywords=frozenset({<AbilityKeyword.FANFARE: '入场曲'>, <AbilityKeyword.ON_EVOLVE: '进化时'>, <AbilityKeyword.REANIMATE: '亡者召还'>}), tribe_id=0, tribe_name=''), entity_id=74, origin=<CardOrigin.DECK: 'deck'>, source_origin=None, fused_material_ids=[], attack=3, health=0, max_health=2, base_attack=3, base_health=2, can_attack=False, attacks_remaining=0, evolved=False, super_evolved=False, super_evolved_turn=None, rush_only=False, barrier_charges=0, ambush_active=False, summoned_this_turn=False, permanent_keywords=set(), temporary_keywords=[], removed_keywords=set(), temporary_keyword_removals=[], stat_modifiers=[], attack_capacity_modifiers=[], attack_restrictions=[], targeting_restrictions=[], printed_abilities_removed=False, last_words_removed=False, turn_end_destroy_timings=set(), turn_end_banish_timings=set(), granted_turn_end_abilities=[], granted_last_words=[], random_choice_history={}, effect_destroy_immunity=False)"
+          }
+        },
+        {
+          "type": "graveyard_entered",
+          "player_index": 0,
+          "source_id": 74,
+          "target_id": null,
+          "amount": 1,
+          "metadata": {
+            "card_id": 10551120,
+            "entity_id": 74,
+            "cause": "combat",
+            "derived": false,
+            "origin": "deck",
+            "token": false,
+            "shadows_before": 15,
+            "shadows_after": 16
+          }
+        },
+        {
+          "type": "shadows_changed",
+          "player_index": 0,
+          "source_id": null,
+          "target_id": null,
+          "amount": 1,
+          "metadata": {
+            "change": "gain",
+            "shadows_before": 15,
+            "shadows_after": 16
+          }
+        },
+        {
+          "type": "graveyard_entered",
+          "player_index": 1,
+          "source_id": 79,
+          "target_id": null,
+          "amount": 1,
+          "metadata": {
+            "card_id": 10732110,
+            "entity_id": 79,
+            "cause": "combat",
+            "derived": false,
+            "origin": "deck",
+            "token": false,
+            "shadows_before": 20,
+            "shadows_after": 21
+          }
+        },
+        {
+          "type": "shadows_changed",
+          "player_index": 1,
+          "source_id": null,
+          "target_id": null,
+          "amount": 1,
+          "metadata": {
+            "change": "gain",
+            "shadows_before": 20,
+            "shadows_after": 21
+          }
+        },
+        {
+          "type": "death_batch_start",
+          "player_index": 0,
+          "source_id": null,
+          "target_id": null,
+          "amount": 0,
+          "metadata": {
+            "batch_id": 24,
+            "count": 2,
+            "batch_record_count": 2,
+            "active_player": 0,
+            "follower_count": 2,
+            "amulet_count": 0,
+            "owner_counts": [
+              {
+                "owner": 0,
+                "record_count": 1,
+                "follower_count": 1,
+                "amulet_count": 0
+              },
+              {
+                "owner": 1,
+                "record_count": 1,
+                "follower_count": 1,
+                "amulet_count": 0
+              }
+            ],
+            "ordered_records": [
+              {
+                "batch_order_index": 0,
+                "owner": 0,
+                "entity_id": 74,
+                "card_id": 10551120,
+                "card_type": "随从",
+                "board_position": 2,
+                "cause": "combat",
+                "allows_last_words": true,
+                "keywords": [
+                  "亡者召还",
+                  "入场曲",
+                  "进化时"
+                ]
+              },
+              {
+                "batch_order_index": 1,
+                "owner": 1,
+                "entity_id": 79,
+                "card_id": 10732110,
+                "card_type": "随从",
+                "board_position": 2,
+                "cause": "combat",
+                "allows_last_words": true,
+                "keywords": [
+                  "土之秘术",
+                  "突进",
+                  "谢幕曲",
+                  "超进化时",
+                  "迷人怪兽"
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "type": "follower_destroyed",
+          "player_index": 0,
+          "source_id": 74,
+          "target_id": null,
+          "amount": 0,
+          "metadata": {
+            "card_id": 10551120,
+            "cause": "combat",
+            "batch_id": 24,
+            "batch_order_index": 0,
+            "batch_record_count": 2,
+            "batch_follower_count": 2,
+            "batch_amulet_count": 0,
+            "batch_owner_counts": [
+              {
+                "owner": 0,
+                "record_count": 1,
+                "follower_count": 1,
+                "amulet_count": 0
+              },
+              {
+                "owner": 1,
+                "record_count": 1,
+                "follower_count": 1,
+                "amulet_count": 0
+              }
+            ],
+            "active_player": 0,
+            "owner": 0,
+            "card_type": "随从",
+            "board_position": 2,
+            "keywords": [
+              "亡者召还",
+              "入场曲",
+              "进化时"
+            ],
+            "attack": 3,
+            "health": 0,
+            "evolved": false,
+            "super_evolved": false,
+            "definition": "CardDefinition(card_id=10551120, card_set_id=10005, class_id=5, class_name='梦魇', name='红符的魂魄道士', cost=4, card_type='随从', attack=3, life=2, keywords=frozenset({'入场曲', '进化时', '亡者召还'}), support_level='unsupported', is_collectible=True, fanfare_effects=(), ability_keywords=frozenset({<AbilityKeyword.FANFARE: '入场曲'>, <AbilityKeyword.ON_EVOLVE: '进化时'>, <AbilityKeyword.REANIMATE: '亡者召还'>}), tribe_id=0, tribe_name='')"
+          }
+        },
+        {
+          "type": "entity_left_play",
+          "player_index": 0,
+          "source_id": 74,
+          "target_id": null,
+          "amount": 0,
+          "metadata": {
+            "card_id": 10551120,
+            "cause": "combat",
+            "batch_id": 24,
+            "batch_order_index": 0,
+            "batch_record_count": 2,
+            "batch_follower_count": 2,
+            "batch_amulet_count": 0,
+            "batch_owner_counts": [
+              {
+                "owner": 0,
+                "record_count": 1,
+                "follower_count": 1,
+                "amulet_count": 0
+              },
+              {
+                "owner": 1,
+                "record_count": 1,
+                "follower_count": 1,
+                "amulet_count": 0
+              }
+            ],
+            "active_player": 0,
+            "owner": 0,
+            "card_type": "随从",
+            "board_position": 2,
+            "keywords": [
+              "亡者召还",
+              "入场曲",
+              "进化时"
+            ],
+            "attack": 3,
+            "health": 0,
+            "evolved": false,
+            "super_evolved": false,
+            "definition": "CardDefinition(card_id=10551120, card_set_id=10005, class_id=5, class_name='梦魇', name='红符的魂魄道士', cost=4, card_type='随从', attack=3, life=2, keywords=frozenset({'入场曲', '进化时', '亡者召还'}), support_level='unsupported', is_collectible=True, fanfare_effects=(), ability_keywords=frozenset({<AbilityKeyword.FANFARE: '入场曲'>, <AbilityKeyword.ON_EVOLVE: '进化时'>, <AbilityKeyword.REANIMATE: '亡者召还'>}), tribe_id=0, tribe_name='')"
+          }
+        },
+        {
+          "type": "follower_destroyed",
+          "player_index": 1,
+          "source_id": 79,
+          "target_id": null,
+          "amount": 0,
+          "metadata": {
+            "card_id": 10732110,
+            "cause": "combat",
+            "batch_id": 24,
+            "batch_order_index": 1,
+            "batch_record_count": 2,
+            "batch_follower_count": 2,
+            "batch_amulet_count": 0,
+            "batch_owner_counts": [
+              {
+                "owner": 0,
+                "record_count": 1,
+                "follower_count": 1,
+                "amulet_count": 0
+              },
+              {
+                "owner": 1,
+                "record_count": 1,
+                "follower_count": 1,
+                "amulet_count": 0
+              }
+            ],
+            "active_player": 0,
+            "owner": 1,
+            "card_type": "随从",
+            "board_position": 2,
+            "keywords": [
+              "土之秘术",
+              "突进",
+              "谢幕曲",
+              "超进化时",
+              "迷人怪兽"
+            ],
+            "attack": 4,
+            "health": 0,
+            "evolved": false,
+            "super_evolved": false,
+            "definition": "CardDefinition(card_id=10732110, card_set_id=10007, class_id=3, class_name='巫师', name='迷人怪兽', cost=3, card_type='随从', attack=4, life=2, keywords=frozenset({'迷人怪兽', '超进化时', '土之秘术', '谢幕曲', '突进'}), support_level='unsupported', is_collectible=True, fanfare_effects=(), ability_keywords=frozenset({<AbilityKeyword.RUSH: '突进'>, <AbilityKeyword.LAST_WORDS: '谢幕曲'>, <AbilityKeyword.ON_SUPER_EVOLVE: '超进化时'>, <AbilityKeyword.EARTH_RITE: '土之秘术'>}), tribe_id=0, tribe_name='')"
+          }
+        },
+        {
+          "type": "entity_left_play",
+          "player_index": 1,
+          "source_id": 79,
+          "target_id": null,
+          "amount": 0,
+          "metadata": {
+            "card_id": 10732110,
+            "cause": "combat",
+            "batch_id": 24,
+            "batch_order_index": 1,
+            "batch_record_count": 2,
+            "batch_follower_count": 2,
+            "batch_amulet_count": 0,
+            "batch_owner_counts": [
+              {
+                "owner": 0,
+                "record_count": 1,
+                "follower_count": 1,
+                "amulet_count": 0
+              },
+              {
+                "owner": 1,
+                "record_count": 1,
+                "follower_count": 1,
+                "amulet_count": 0
+              }
+            ],
+            "active_player": 0,
+            "owner": 1,
+            "card_type": "随从",
+            "board_position": 2,
+            "keywords": [
+              "土之秘术",
+              "突进",
+              "谢幕曲",
+              "超进化时",
+              "迷人怪兽"
+            ],
+            "attack": 4,
+            "health": 0,
+            "evolved": false,
+            "super_evolved": false,
+            "definition": "CardDefinition(card_id=10732110, card_set_id=10007, class_id=3, class_name='巫师', name='迷人怪兽', cost=3, card_type='随从', attack=4, life=2, keywords=frozenset({'迷人怪兽', '超进化时', '土之秘术', '谢幕曲', '突进'}), support_level='unsupported', is_collectible=True, fanfare_effects=(), ability_keywords=frozenset({<AbilityKeyword.RUSH: '突进'>, <AbilityKeyword.LAST_WORDS: '谢幕曲'>, <AbilityKeyword.ON_SUPER_EVOLVE: '超进化时'>, <AbilityKeyword.EARTH_RITE: '土之秘术'>}), tribe_id=0, tribe_name='')"
+          }
+        },
+        {
+          "type": "last_words_start",
+          "player_index": 0,
+          "source_id": 74,
+          "target_id": null,
+          "amount": 0,
+          "metadata": {
+            "card_id": 10551120,
+            "cause": "combat",
+            "batch_id": 24,
+            "batch_order_index": 0,
+            "batch_record_count": 2,
+            "batch_follower_count": 2,
+            "batch_amulet_count": 0,
+            "batch_owner_counts": [
+              {
+                "owner": 0,
+                "record_count": 1,
+                "follower_count": 1,
+                "amulet_count": 0
+              },
+              {
+                "owner": 1,
+                "record_count": 1,
+                "follower_count": 1,
+                "amulet_count": 0
+              }
+            ],
+            "active_player": 0,
+            "owner": 0,
+            "card_type": "随从",
+            "board_position": 2,
+            "keywords": [
+              "亡者召还",
+              "入场曲",
+              "进化时"
+            ],
+            "attack": 3,
+            "health": 0,
+            "evolved": false,
+            "super_evolved": false
+          }
+        },
+        {
+          "type": "last_words_complete",
+          "player_index": 0,
+          "source_id": 74,
+          "target_id": null,
+          "amount": 0,
+          "metadata": {
+            "card_id": 10551120,
+            "cause": "combat",
+            "batch_id": 24,
+            "batch_order_index": 0,
+            "batch_record_count": 2,
+            "batch_follower_count": 2,
+            "batch_amulet_count": 0,
+            "batch_owner_counts": [
+              {
+                "owner": 0,
+                "record_count": 1,
+                "follower_count": 1,
+                "amulet_count": 0
+              },
+              {
+                "owner": 1,
+                "record_count": 1,
+                "follower_count": 1,
+                "amulet_count": 0
+              }
+            ],
+            "active_player": 0,
+            "owner": 0,
+            "card_type": "随从",
+            "board_position": 2,
+            "keywords": [
+              "亡者召还",
+              "入场曲",
+              "进化时"
+            ],
+            "attack": 3,
+            "health": 0,
+            "evolved": false,
+            "super_evolved": false
+          }
+        },
+        {
+          "type": "last_words_start",
+          "player_index": 1,
+          "source_id": 79,
+          "target_id": null,
+          "amount": 0,
+          "metadata": {
+            "card_id": 10732110,
+            "cause": "combat",
+            "batch_id": 24,
+            "batch_order_index": 1,
+            "batch_record_count": 2,
+            "batch_follower_count": 2,
+            "batch_amulet_count": 0,
+            "batch_owner_counts": [
+              {
+                "owner": 0,
+                "record_count": 1,
+                "follower_count": 1,
+                "amulet_count": 0
+              },
+              {
+                "owner": 1,
+                "record_count": 1,
+                "follower_count": 1,
+                "amulet_count": 0
+              }
+            ],
+            "active_player": 0,
+            "owner": 1,
+            "card_type": "随从",
+            "board_position": 2,
+            "keywords": [
+              "土之秘术",
+              "突进",
+              "谢幕曲",
+              "超进化时",
+              "迷人怪兽"
+            ],
+            "attack": 4,
+            "health": 0,
+            "evolved": false,
+            "super_evolved": false
+          }
+        },
+        {
+          "type": "earth_sigils_changed",
+          "player_index": 1,
+          "source_id": 58,
+          "target_id": null,
+          "amount": 2,
+          "metadata": {
+            "change": "gain",
+            "earth_sigils_before": 2,
+            "earth_sigils_after": 4,
+            "source_card_id": 10732110
+          }
+        },
+        {
+          "type": "last_words_complete",
+          "player_index": 1,
+          "source_id": 79,
+          "target_id": null,
+          "amount": 0,
+          "metadata": {
+            "card_id": 10732110,
+            "cause": "combat",
+            "batch_id": 24,
+            "batch_order_index": 1,
+            "batch_record_count": 2,
+            "batch_follower_count": 2,
+            "batch_amulet_count": 0,
+            "batch_owner_counts": [
+              {
+                "owner": 0,
+                "record_count": 1,
+                "follower_count": 1,
+                "amulet_count": 0
+              },
+              {
+                "owner": 1,
+                "record_count": 1,
+                "follower_count": 1,
+                "amulet_count": 0
+              }
+            ],
+            "active_player": 0,
+            "owner": 1,
+            "card_type": "随从",
+            "board_position": 2,
+            "keywords": [
+              "土之秘术",
+              "突进",
+              "谢幕曲",
+              "超进化时",
+              "迷人怪兽"
+            ],
+            "attack": 4,
+            "health": 0,
+            "evolved": false,
+            "super_evolved": false
+          }
+        },
+        {
+          "type": "death_batch_end",
+          "player_index": 0,
+          "source_id": null,
+          "target_id": null,
+          "amount": 0,
+          "metadata": {
+            "batch_id": 24,
+            "count": 2,
+            "batch_record_count": 2,
+            "active_player": 0,
+            "follower_count": 2,
+            "amulet_count": 0,
+            "owner_counts": [
+              {
+                "owner": 0,
+                "record_count": 1,
+                "follower_count": 1,
+                "amulet_count": 0
+              },
+              {
+                "owner": 1,
+                "record_count": 1,
+                "follower_count": 1,
+                "amulet_count": 0
+              }
+            ],
+            "ordered_records": [
+              {
+                "batch_order_index": 0,
+                "owner": 0,
+                "entity_id": 74,
+                "card_id": 10551120,
+                "card_type": "随从",
+                "board_position": 2,
+                "cause": "combat",
+                "allows_last_words": true,
+                "keywords": [
+                  "亡者召还",
+                  "入场曲",
+                  "进化时"
+                ]
+              },
+              {
+                "batch_order_index": 1,
+                "owner": 1,
+                "entity_id": 79,
+                "card_id": 10732110,
+                "card_type": "随从",
+                "board_position": 2,
+                "cause": "combat",
+                "allows_last_words": true,
+                "keywords": [
+                  "土之秘术",
+                  "突进",
+                  "谢幕曲",
+                  "超进化时",
+                  "迷人怪兽"
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "type": "combo_changed",
+          "player_index": 0,
+          "source_id": 14,
+          "target_id": null,
+          "amount": 1,
+          "metadata": {
+            "combo_before": 0,
+            "combo_after": 1,
+            "source_card_id": 10001210,
+            "source_entity_id": 14,
+            "cause": "play"
+          }
+        },
+        {
+          "type": "card_played",
+          "player_index": 0,
+          "source_id": 81,
+          "target_id": null,
+          "amount": 0,
+          "metadata": {
+            "card_id": 10001210,
+            "source": "Amulet(definition=CardDefinition(card_id=10001210, card_set_id=10000, class_id=0, class_name='中立', name='侦探的放大镜', cost=2, card_type='护符', attack=None, life=None, keywords=frozenset({'守护', '启动'}), support_level='unsupported', is_collectible=True, fanfare_effects=(), ability_keywords=frozenset({<AbilityKeyword.WARD: '守护'>, <AbilityKeyword.ACTIVATE: '策动'>}), tribe_id=0, tribe_name=''), entity_id=81, origin=<CardOrigin.DECK: 'deck'>, source_origin=None, fused_material_ids=[], countdown=None, play_mode_id=None, earth_sigil_count=0, entered_turn=25, activated_turn=None, pending_destroy=False)",
+            "base_cost": 2,
+            "source_cost": 2,
+            "cost_changed": false
+          }
+        },
+        {
+          "type": "amulet_entered",
+          "player_index": 0,
+          "source_id": 81,
+          "target_id": null,
+          "amount": 0,
+          "metadata": {
+            "source": "Amulet(definition=CardDefinition(card_id=10001210, card_set_id=10000, class_id=0, class_name='中立', name='侦探的放大镜', cost=2, card_type='护符', attack=None, life=None, keywords=frozenset({'守护', '启动'}), support_level='unsupported', is_collectible=True, fanfare_effects=(), ability_keywords=frozenset({<AbilityKeyword.WARD: '守护'>, <AbilityKeyword.ACTIVATE: '策动'>}), tribe_id=0, tribe_name=''), entity_id=81, origin=<CardOrigin.DECK: 'deck'>, source_origin=None, fused_material_ids=[], countdown=None, play_mode_id=None, earth_sigil_count=0, entered_turn=25, activated_turn=None, pending_destroy=False)"
+          }
+        },
+        {
+          "type": "attack_declared",
+          "player_index": 0,
+          "source_id": 46,
+          "target_id": null,
+          "amount": 0,
+          "metadata": {
+            "source": "Unit(definition=CardDefinition(card_id=10203120, card_set_id=10002, class_id=0, class_name='中立', name='雷火双神·福尼加尔&亚文哈尔', cost=2, card_type='随从', attack=2, life=2, keywords=frozenset({'爆能强化', '谢幕曲'}), support_level='unsupported', is_collectible=True, fanfare_effects=(), ability_keywords=frozenset({<AbilityKeyword.ENHANCE: '爆能强化'>, <AbilityKeyword.LAST_WORDS: '谢幕曲'>}), tribe_id=0, tribe_name=''), entity_id=46, origin=<CardOrigin.DECK: 'deck'>, source_origin=None, fused_material_ids=[], attack=4, health=0, max_health=4, base_attack=4, base_health=4, can_attack=False, attacks_remaining=0, evolved=True, super_evolved=False, super_evolved_turn=None, rush_only=False, barrier_charges=0, ambush_active=False, summoned_this_turn=False, permanent_keywords=set(), temporary_keywords=[], removed_keywords=set(), temporary_keyword_removals=[], stat_modifiers=[], attack_capacity_modifiers=[], attack_restrictions=[], targeting_restrictions=[], printed_abilities_removed=False, last_words_removed=False, turn_end_destroy_timings=set(), turn_end_banish_timings=set(), granted_turn_end_abilities=[], granted_last_words=[], random_choice_history={}, effect_destroy_immunity=False)",
+            "target": null,
+            "follower_attacks_this_turn": 3
+          }
+        },
+        {
+          "type": "damage_applied",
+          "player_index": 0,
+          "source_id": 46,
+          "target_id": null,
+          "amount": 4,
+          "metadata": {
+            "target_player": 1,
+            "damage_type": "combat",
+            "base_amount": 4,
+            "modifier_amount": 0,
+            "replacement_modifier_ids": [],
+            "barrier_consumed": false
+          }
+        },
+        {
+          "type": "damage_dealt",
+          "player_index": 0,
+          "source_id": 46,
+          "target_id": null,
+          "amount": 4,
+          "metadata": {
+            "source": "Unit(definition=CardDefinition(card_id=10203120, card_set_id=10002, class_id=0, class_name='中立', name='雷火双神·福尼加尔&亚文哈尔', cost=2, card_type='随从', attack=2, life=2, keywords=frozenset({'爆能强化', '谢幕曲'}), support_level='unsupported', is_collectible=True, fanfare_effects=(), ability_keywords=frozenset({<AbilityKeyword.ENHANCE: '爆能强化'>, <AbilityKeyword.LAST_WORDS: '谢幕曲'>}), tribe_id=0, tribe_name=''), entity_id=46, origin=<CardOrigin.DECK: 'deck'>, source_origin=None, fused_material_ids=[], attack=4, health=0, max_health=4, base_attack=4, base_health=4, can_attack=False, attacks_remaining=0, evolved=True, super_evolved=False, super_evolved_turn=None, rush_only=False, barrier_charges=0, ambush_active=False, summoned_this_turn=False, permanent_keywords=set(), temporary_keywords=[], removed_keywords=set(), temporary_keyword_removals=[], stat_modifiers=[], attack_capacity_modifiers=[], attack_restrictions=[], targeting_restrictions=[], printed_abilities_removed=False, last_words_removed=False, turn_end_destroy_timings=set(), turn_end_banish_timings=set(), granted_turn_end_abilities=[], granted_last_words=[], random_choice_history={}, effect_destroy_immunity=False)",
+            "target_player": 1
+          }
+        },
+        {
+          "type": "attack_declared",
+          "player_index": 0,
+          "source_id": 75,
+          "target_id": null,
+          "amount": 0,
+          "metadata": {
+            "source": "Unit(definition=CardDefinition(card_id=10051130, card_set_id=10000, class_id=5, class_name='梦魇', name='恶毒的小木乃伊', cost=2, card_type='随从', attack=2, life=2, keywords=frozenset({'入场曲', '疾驰', '唤灵'}), support_level='unsupported', is_collectible=True, fanfare_effects=(), ability_keywords=frozenset({<AbilityKeyword.FANFARE: '入场曲'>, <AbilityKeyword.NECROMANCY: '死灵术'>, <AbilityKeyword.STORM: '疾驰'>}), tribe_id=0, tribe_name=''), entity_id=75, origin=<CardOrigin.REANIMATED: 'reanimated'>, source_origin=<CardOrigin.DECK: 'deck'>, fused_material_ids=[], attack=4, health=4, max_health=4, base_attack=4, base_health=4, can_attack=False, attacks_remaining=0, evolved=True, super_evolved=False, super_evolved_turn=None, rush_only=False, barrier_charges=0, ambush_active=False, summoned_this_turn=False, permanent_keywords=set(), temporary_keywords=[], removed_keywords=set(), temporary_keyword_removals=[], stat_modifiers=[], attack_capacity_modifiers=[], attack_restrictions=[], targeting_restrictions=[], printed_abilities_removed=False, last_words_removed=False, turn_end_destroy_timings=set(), turn_end_banish_timings=set(), granted_turn_end_abilities=[], granted_last_words=[], random_choice_history={}, effect_destroy_immunity=False)",
+            "target": null,
+            "follower_attacks_this_turn": 4
+          }
+        },
+        {
+          "type": "damage_applied",
+          "player_index": 0,
+          "source_id": 75,
+          "target_id": null,
+          "amount": 2,
+          "metadata": {
+            "target_player": 1,
+            "damage_type": "combat",
+            "base_amount": 2,
+            "modifier_amount": 0,
+            "replacement_modifier_ids": [],
+            "barrier_consumed": false
+          }
+        },
+        {
+          "type": "damage_dealt",
+          "player_index": 0,
+          "source_id": 75,
+          "target_id": null,
+          "amount": 2,
+          "metadata": {
+            "source": "Unit(definition=CardDefinition(card_id=10051130, card_set_id=10000, class_id=5, class_name='梦魇', name='恶毒的小木乃伊', cost=2, card_type='随从', attack=2, life=2, keywords=frozenset({'入场曲', '疾驰', '唤灵'}), support_level='unsupported', is_collectible=True, fanfare_effects=(), ability_keywords=frozenset({<AbilityKeyword.FANFARE: '入场曲'>, <AbilityKeyword.NECROMANCY: '死灵术'>, <AbilityKeyword.STORM: '疾驰'>}), tribe_id=0, tribe_name=''), entity_id=75, origin=<CardOrigin.REANIMATED: 'reanimated'>, source_origin=<CardOrigin.DECK: 'deck'>, fused_material_ids=[], attack=4, health=4, max_health=4, base_attack=4, base_health=4, can_attack=False, attacks_remaining=0, evolved=True, super_evolved=False, super_evolved_turn=None, rush_only=False, barrier_charges=0, ambush_active=False, summoned_this_turn=False, permanent_keywords=set(), temporary_keywords=[], removed_keywords=set(), temporary_keyword_removals=[], stat_modifiers=[], attack_capacity_modifiers=[], attack_restrictions=[], targeting_restrictions=[], printed_abilities_removed=False, last_words_removed=False, turn_end_destroy_timings=set(), turn_end_banish_timings=set(), granted_turn_end_abilities=[], granted_last_words=[], random_choice_history={}, effect_destroy_immunity=False)",
+            "target_player": 1
+          }
+        },
+        {
+          "type": "combo_changed",
+          "player_index": 0,
+          "source_id": 69,
+          "target_id": null,
+          "amount": 1,
+          "metadata": {
+            "combo_before": 1,
+            "combo_after": 2,
+            "source_card_id": 10203110,
+            "source_entity_id": 69,
+            "cause": "play"
+          }
+        },
+        {
+          "type": "cooperation_changed",
+          "player_index": 0,
+          "source_id": 82,
+          "target_id": null,
+          "amount": 1,
+          "metadata": {
+            "cooperation_before": 15,
+            "cooperation_after": 16,
+            "source_card_id": 10203110,
+            "source_entity_id": 82,
+            "summon_cause": "play"
+          }
+        },
+        {
+          "type": "card_played",
+          "player_index": 0,
+          "source_id": 82,
+          "target_id": null,
+          "amount": 0,
+          "metadata": {
+            "source": "Unit(definition=CardDefinition(card_id=10203110, card_set_id=10002, class_id=0, class_name='中立', name='联结的天使·蕾娜', cost=7, card_type='随从', attack=5, life=5, keywords=frozenset({'进化时'}), support_level='unsupported', is_collectible=True, fanfare_effects=(), ability_keywords=frozenset({<AbilityKeyword.ON_EVOLVE: '进化时'>}), tribe_id=0, tribe_name=''), entity_id=82, origin=<CardOrigin.DECK: 'deck'>, source_origin=None, fused_material_ids=[], attack=8, health=8, max_health=8, base_attack=8, base_health=8, can_attack=True, attacks_remaining=1, evolved=True, super_evolved=True, super_evolved_turn=25, rush_only=True, barrier_charges=0, ambush_active=False, summoned_this_turn=True, permanent_keywords=set(), temporary_keywords=[], removed_keywords=set(), temporary_keyword_removals=[], stat_modifiers=[], attack_capacity_modifiers=[], attack_restrictions=[], targeting_restrictions=[], printed_abilities_removed=False, last_words_removed=False, turn_end_destroy_timings=set(), turn_end_banish_timings=set(), granted_turn_end_abilities=[], granted_last_words=[], random_choice_history={}, effect_destroy_immunity=False)",
+            "mode_id": "normal",
+            "card_id": 10203110,
+            "entity_id": 82,
+            "base_cost": 7,
+            "source_cost": 7,
+            "cost_changed": false
+          }
+        },
+        {
+          "type": "follower_summoned",
+          "player_index": 0,
+          "source_id": 82,
+          "target_id": null,
+          "amount": 0,
+          "metadata": {
+            "source": "Unit(definition=CardDefinition(card_id=10203110, card_set_id=10002, class_id=0, class_name='中立', name='联结的天使·蕾娜', cost=7, card_type='随从', attack=5, life=5, keywords=frozenset({'进化时'}), support_level='unsupported', is_collectible=True, fanfare_effects=(), ability_keywords=frozenset({<AbilityKeyword.ON_EVOLVE: '进化时'>}), tribe_id=0, tribe_name=''), entity_id=82, origin=<CardOrigin.DECK: 'deck'>, source_origin=None, fused_material_ids=[], attack=8, health=8, max_health=8, base_attack=8, base_health=8, can_attack=True, attacks_remaining=1, evolved=True, super_evolved=True, super_evolved_turn=25, rush_only=True, barrier_charges=0, ambush_active=False, summoned_this_turn=True, permanent_keywords=set(), temporary_keywords=[], removed_keywords=set(), temporary_keyword_removals=[], stat_modifiers=[], attack_capacity_modifiers=[], attack_restrictions=[], targeting_restrictions=[], printed_abilities_removed=False, last_words_removed=False, turn_end_destroy_timings=set(), turn_end_banish_timings=set(), granted_turn_end_abilities=[], granted_last_words=[], random_choice_history={}, effect_destroy_immunity=False)",
+            "card_id": 10203110,
+            "origin": "deck",
+            "derived": false,
+            "token": false,
+            "via": "play",
+            "mode_id": "normal"
+          }
+        },
+        {
+          "type": "follower_evolved",
+          "player_index": 0,
+          "source_id": 82,
+          "target_id": null,
+          "amount": 0,
+          "metadata": {
+            "source": "Unit(definition=CardDefinition(card_id=10203110, card_set_id=10002, class_id=0, class_name='中立', name='联结的天使·蕾娜', cost=7, card_type='随从', attack=5, life=5, keywords=frozenset({'进化时'}), support_level='unsupported', is_collectible=True, fanfare_effects=(), ability_keywords=frozenset({<AbilityKeyword.ON_EVOLVE: '进化时'>}), tribe_id=0, tribe_name=''), entity_id=82, origin=<CardOrigin.DECK: 'deck'>, source_origin=None, fused_material_ids=[], attack=8, health=8, max_health=8, base_attack=8, base_health=8, can_attack=True, attacks_remaining=1, evolved=True, super_evolved=True, super_evolved_turn=25, rush_only=True, barrier_charges=0, ambush_active=False, summoned_this_turn=True, permanent_keywords=set(), temporary_keywords=[], removed_keywords=set(), temporary_keyword_removals=[], stat_modifiers=[], attack_capacity_modifiers=[], attack_restrictions=[], targeting_restrictions=[], printed_abilities_removed=False, last_words_removed=False, turn_end_destroy_timings=set(), turn_end_banish_timings=set(), granted_turn_end_abilities=[], granted_last_words=[], random_choice_history={}, effect_destroy_immunity=False)",
+            "cause": "sep",
+            "trigger_abilities": true,
+            "evolutions_this_match": 7,
+            "super_evolution": true,
+            "counts_as_evolution": true
+          }
+        },
+        {
+          "type": "follower_super_evolved",
+          "player_index": 0,
+          "source_id": 82,
+          "target_id": null,
+          "amount": 0,
+          "metadata": {
+            "source": "Unit(definition=CardDefinition(card_id=10203110, card_set_id=10002, class_id=0, class_name='中立', name='联结的天使·蕾娜', cost=7, card_type='随从', attack=5, life=5, keywords=frozenset({'进化时'}), support_level='unsupported', is_collectible=True, fanfare_effects=(), ability_keywords=frozenset({<AbilityKeyword.ON_EVOLVE: '进化时'>}), tribe_id=0, tribe_name=''), entity_id=82, origin=<CardOrigin.DECK: 'deck'>, source_origin=None, fused_material_ids=[], attack=8, health=8, max_health=8, base_attack=8, base_health=8, can_attack=True, attacks_remaining=1, evolved=True, super_evolved=True, super_evolved_turn=25, rush_only=True, barrier_charges=0, ambush_active=False, summoned_this_turn=True, permanent_keywords=set(), temporary_keywords=[], removed_keywords=set(), temporary_keyword_removals=[], stat_modifiers=[], attack_capacity_modifiers=[], attack_restrictions=[], targeting_restrictions=[], printed_abilities_removed=False, last_words_removed=False, turn_end_destroy_timings=set(), turn_end_banish_timings=set(), granted_turn_end_abilities=[], granted_last_words=[], random_choice_history={}, effect_destroy_immunity=False)",
+            "cause": "sep",
+            "trigger_abilities": true,
+            "evolutions_this_match": 7,
+            "super_evolution": true,
+            "counts_as_evolution": false
+          }
+        },
+        {
+          "type": "follower_evolved",
+          "player_index": 0,
+          "source_id": 75,
+          "target_id": null,
+          "amount": 0,
+          "metadata": {
+            "source": "Unit(definition=CardDefinition(card_id=10051130, card_set_id=10000, class_id=5, class_name='梦魇', name='恶毒的小木乃伊', cost=2, card_type='随从', attack=2, life=2, keywords=frozenset({'入场曲', '疾驰', '唤灵'}), support_level='unsupported', is_collectible=True, fanfare_effects=(), ability_keywords=frozenset({<AbilityKeyword.FANFARE: '入场曲'>, <AbilityKeyword.NECROMANCY: '死灵术'>, <AbilityKeyword.STORM: '疾驰'>}), tribe_id=0, tribe_name=''), entity_id=75, origin=<CardOrigin.REANIMATED: 'reanimated'>, source_origin=<CardOrigin.DECK: 'deck'>, fused_material_ids=[], attack=4, health=4, max_health=4, base_attack=4, base_health=4, can_attack=False, attacks_remaining=0, evolved=True, super_evolved=False, super_evolved_turn=None, rush_only=False, barrier_charges=0, ambush_active=False, summoned_this_turn=False, permanent_keywords=set(), temporary_keywords=[], removed_keywords=set(), temporary_keyword_removals=[], stat_modifiers=[], attack_capacity_modifiers=[], attack_restrictions=[], targeting_restrictions=[], printed_abilities_removed=False, last_words_removed=False, turn_end_destroy_timings=set(), turn_end_banish_timings=set(), granted_turn_end_abilities=[], granted_last_words=[], random_choice_history={}, effect_destroy_immunity=False)",
+            "cause": "effect",
+            "trigger_abilities": false,
+            "evolutions_this_match": 8,
+            "super_evolution": false,
+            "counts_as_evolution": true
+          }
+        },
+        {
+          "type": "combo_changed",
+          "player_index": 0,
+          "source_id": 80,
+          "target_id": null,
+          "amount": 1,
+          "metadata": {
+            "combo_before": 2,
+            "combo_after": 3,
+            "source_card_id": 10151310,
+            "source_entity_id": 80,
+            "cause": "play"
+          }
+        },
+        {
+          "type": "graveyard_entered",
+          "player_index": 0,
+          "source_id": 46,
+          "target_id": null,
+          "amount": 1,
+          "metadata": {
+            "card_id": 10203120,
+            "entity_id": 46,
+            "cause": "effect_destroy",
+            "derived": false,
+            "origin": "deck",
+            "token": false,
+            "shadows_before": 16,
+            "shadows_after": 17
+          }
+        },
+        {
+          "type": "shadows_changed",
+          "player_index": 0,
+          "source_id": null,
+          "target_id": null,
+          "amount": 1,
+          "metadata": {
+            "change": "gain",
+            "shadows_before": 16,
+            "shadows_after": 17
+          }
+        },
+        {
+          "type": "death_batch_start",
+          "player_index": 0,
+          "source_id": null,
+          "target_id": null,
+          "amount": 0,
+          "metadata": {
+            "batch_id": 25,
+            "count": 1,
+            "batch_record_count": 1,
+            "active_player": 0,
+            "follower_count": 1,
+            "amulet_count": 0,
+            "owner_counts": [
+              {
+                "owner": 0,
+                "record_count": 1,
+                "follower_count": 1,
+                "amulet_count": 0
+              },
+              {
+                "owner": 1,
+                "record_count": 0,
+                "follower_count": 0,
+                "amulet_count": 0
+              }
+            ],
+            "ordered_records": [
+              {
+                "batch_order_index": 0,
+                "owner": 0,
+                "entity_id": 46,
+                "card_id": 10203120,
+                "card_type": "随从",
+                "board_position": 0,
+                "cause": "effect_destroy",
+                "allows_last_words": true,
+                "keywords": [
+                  "爆能强化",
+                  "谢幕曲"
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "type": "follower_destroyed",
+          "player_index": 0,
+          "source_id": 46,
+          "target_id": null,
+          "amount": 0,
+          "metadata": {
+            "card_id": 10203120,
+            "cause": "effect_destroy",
+            "batch_id": 25,
+            "batch_order_index": 0,
+            "batch_record_count": 1,
+            "batch_follower_count": 1,
+            "batch_amulet_count": 0,
+            "batch_owner_counts": [
+              {
+                "owner": 0,
+                "record_count": 1,
+                "follower_count": 1,
+                "amulet_count": 0
+              },
+              {
+                "owner": 1,
+                "record_count": 0,
+                "follower_count": 0,
+                "amulet_count": 0
+              }
+            ],
+            "active_player": 0,
+            "owner": 0,
+            "card_type": "随从",
+            "board_position": 0,
+            "keywords": [
+              "爆能强化",
+              "谢幕曲"
+            ],
+            "attack": 4,
+            "health": 0,
+            "evolved": true,
+            "super_evolved": false,
+            "definition": "CardDefinition(card_id=10203120, card_set_id=10002, class_id=0, class_name='中立', name='雷火双神·福尼加尔&亚文哈尔', cost=2, card_type='随从', attack=2, life=2, keywords=frozenset({'爆能强化', '谢幕曲'}), support_level='unsupported', is_collectible=True, fanfare_effects=(), ability_keywords=frozenset({<AbilityKeyword.ENHANCE: '爆能强化'>, <AbilityKeyword.LAST_WORDS: '谢幕曲'>}), tribe_id=0, tribe_name='')"
+          }
+        },
+        {
+          "type": "entity_left_play",
+          "player_index": 0,
+          "source_id": 46,
+          "target_id": null,
+          "amount": 0,
+          "metadata": {
+            "card_id": 10203120,
+            "cause": "effect_destroy",
+            "batch_id": 25,
+            "batch_order_index": 0,
+            "batch_record_count": 1,
+            "batch_follower_count": 1,
+            "batch_amulet_count": 0,
+            "batch_owner_counts": [
+              {
+                "owner": 0,
+                "record_count": 1,
+                "follower_count": 1,
+                "amulet_count": 0
+              },
+              {
+                "owner": 1,
+                "record_count": 0,
+                "follower_count": 0,
+                "amulet_count": 0
+              }
+            ],
+            "active_player": 0,
+            "owner": 0,
+            "card_type": "随从",
+            "board_position": 0,
+            "keywords": [
+              "爆能强化",
+              "谢幕曲"
+            ],
+            "attack": 4,
+            "health": 0,
+            "evolved": true,
+            "super_evolved": false,
+            "definition": "CardDefinition(card_id=10203120, card_set_id=10002, class_id=0, class_name='中立', name='雷火双神·福尼加尔&亚文哈尔', cost=2, card_type='随从', attack=2, life=2, keywords=frozenset({'爆能强化', '谢幕曲'}), support_level='unsupported', is_collectible=True, fanfare_effects=(), ability_keywords=frozenset({<AbilityKeyword.ENHANCE: '爆能强化'>, <AbilityKeyword.LAST_WORDS: '谢幕曲'>}), tribe_id=0, tribe_name='')"
+          }
+        },
+        {
+          "type": "card_played",
+          "player_index": 0,
+          "source_id": 80,
+          "target_id": null,
+          "amount": 0,
+          "metadata": {
+            "card_id": 10151310,
+            "card": "CardDefinition(card_id=10151310, card_set_id=10001, class_id=5, class_name='梦魇', name='死神挥刀', cost=1, card_type='法术', attack=None, life=None, keywords=frozenset(), support_level='unsupported', is_collectible=True, fanfare_effects=(), ability_keywords=frozenset(), tribe_id=0, tribe_name='')",
+            "base_cost": 1,
+            "source_cost": 1,
+            "cost_changed": false
+          }
+        },
+        {
+          "type": "last_words_start",
+          "player_index": 0,
+          "source_id": 46,
+          "target_id": null,
+          "amount": 0,
+          "metadata": {
+            "card_id": 10203120,
+            "cause": "effect_destroy",
+            "batch_id": 25,
+            "batch_order_index": 0,
+            "batch_record_count": 1,
+            "batch_follower_count": 1,
+            "batch_amulet_count": 0,
+            "batch_owner_counts": [
+              {
+                "owner": 0,
+                "record_count": 1,
+                "follower_count": 1,
+                "amulet_count": 0
+              },
+              {
+                "owner": 1,
+                "record_count": 0,
+                "follower_count": 0,
+                "amulet_count": 0
+              }
+            ],
+            "active_player": 0,
+            "owner": 0,
+            "card_type": "随从",
+            "board_position": 0,
+            "keywords": [
+              "爆能强化",
+              "谢幕曲"
+            ],
+            "attack": 4,
+            "health": 0,
+            "evolved": true,
+            "super_evolved": false
+          }
+        },
+        {
+          "type": "damage_applied",
+          "player_index": 0,
+          "source_id": null,
+          "target_id": 77,
+          "amount": 1,
+          "metadata": {
+            "damage_type": "effect"
+          }
+        }
+      ],
+      "pending_choice": "ChoiceRequest(player_index=0, prompt='为 死神挥刀 选择目标', options=(ChoiceOption(option_id='entity:77', label='双刀哥布林', entity_id=77, leader_player_index=None),), continuation_id='10151310:1', choice_kind=<ChoiceKind.BOARD: 'board'>, request_id=13, target_count=1, allow_duplicate_targets=False, selected_options=())",
+      "effect_stack": "[EffectFrame(controller=0, source_card_id=10151310, source_name='死神挥刀', source_entity_id=None, source_card=CardDefinition(card_id=10151310, card_set_id=10001, class_id=5, class_name='梦魇', name='死神挥刀', cost=1, card_type='法术', attack=None, life=None, keywords=frozenset(), support_level='unsupported', is_collectible=True, fanfare_effects=(), ability_keywords=frozenset(), tribe_id=0, tribe_name=''), operations=(EffectOperation(kind=<EffectKind.DESTROY: 'destroy'>, target=<TargetKind.OWN_UNIT: 'own_unit'>, amount=0, secondary_amount=0, card_id=None, card_ids=(), shuffle=True, empty_deck_outcome=None, emblem_id=None, keyword=None, keywords=(), restriction=None, conditions=(), amount_expr=None, secondary_expr=None, mode=None, duration=<ModifierDuration.PERMANENT: 'permanent'>, set_attack=False, set_health=False, target_key=None, bind_successful_targets=False, condition_target_key=None, earth_rite_operations=(), necromancy_operations=(), faith_id=None, faith_ability_id=None, faith_trigger=None, faith_stacking='unique', faith_operations=(), graveyard_cost_max=None, graveyard_cost_min=None, graveyard_follower_only=False, graveyard_card_type=None, deck_filter=None, deck_filter_cost_expr=None, board_filter=None, candidate_extreme=None, then_operations=(), else_operations=(), choose_one_options=(), choose_count=1, optional_prompt=None, optional_operations=(), repeat_operations=(), granted_operations=(), random_choice_options=(), random_distribution_operations=(), emblem_remove_mode='first', requires_target=False, requires_full_target_count=False, target_count=1, target_count_expr=None, allow_duplicate_targets=False, exclude_source=False, exclude_attack_target=False, hand_filter=None, history_filter=None, distinct_card_names=False, highest_base_cost_only=False, include_leader=False, turn_end_destroy_timing=None, turn_end_banish_timing=None, leader_damage_mode=<LeaderDamageMode.ADDITIVE: 'additive'>, random_choice_history_key=None, turn_end_ability_timing=None), EffectOperation(kind=<EffectKind.DESTROY: 'destroy'>, target=<TargetKind.ENEMY_UNIT: 'enemy_unit'>, amount=0, secondary_amount=0, card_id=None, card_ids=(), shuffle=True, empty_deck_outcome=None, emblem_id=None, keyword=None, keywords=(), restriction=None, conditions=(), amount_expr=None, secondary_expr=None, mode=None, duration=<ModifierDuration.PERMANENT: 'permanent'>, set_attack=False, set_health=False, target_key=None, bind_successful_targets=False, condition_target_key=None, earth_rite_operations=(), necromancy_operations=(), faith_id=None, faith_ability_id=None, faith_trigger=None, faith_stacking='unique', faith_operations=(), graveyard_cost_max=None, graveyard_cost_min=None, graveyard_follower_only=False, graveyard_card_type=None, deck_filter=None, deck_filter_cost_expr=None, board_filter=None, candidate_extreme=None, then_operations=(), else_operations=(), choose_one_options=(), choose_count=1, optional_prompt=None, optional_operations=(), repeat_operations=(), granted_operations=(), random_choice_options=(), random_distribution_operations=(), emblem_remove_mode='first', requires_target=False, requires_full_target_count=False, target_count=1, target_count_expr=None, allow_duplicate_targets=False, exclude_source=False, exclude_attack_target=False, hand_filter=None, history_filter=None, distinct_card_names=False, highest_base_cost_only=False, include_leader=False, turn_end_destroy_timing=None, turn_end_banish_timing=None, leader_damage_mode=<LeaderDamageMode.ADDITIVE: 'additive'>, random_choice_history_key=None, turn_end_ability_timing=None)), source_snapshot=None, source_spellboost_count=0, source_cost=1, distributed_value=0, fusion_materials=(), label='法术', next_index=1, pending_target_id=None, pending_target_ids=[], move_source_to_graveyard=True, _all_target_ids=[], _all_target_index=0, defer_stabilize=False, auto_resolve_choices=False, _hand_source_entity_id=80, _hand_source_origin=<CardOrigin.DECK: 'deck'>, _hand_source_origin_parent=None, _target_bindings={}, _target_binding_operations={}, _target_binding_snapshots={}, _decision_meta={}, emblem_batch_id=None, emblem_activation_owner=None, emblem_activation_entity_id=None, emblem_activation_trigger_index=None, listener_batch_id=None, listener_activation_owner=None, listener_activation_zone=None, listener_activation_entity_id=None, listener_activation_card_id=None, listener_activation_definition_index=None, listener_activation_count=0, event_source_entity_id=None, event_source_base_cost=None, attack_target_entity_id=None, emblem_expiration_batch_id=None, expiring_emblem_owner=None, expiring_emblem_entity_id=None)]",
+      "fingerprint_sha256": "4f1606169cff8197e63acc36a25d4f63eb037b6e1dcc813972c708ed5673a4e3"
+    }
+  },
+  "reproduced": true
+}

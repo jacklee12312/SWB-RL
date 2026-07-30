@@ -520,8 +520,123 @@ class GameEngine:
         )
         if card is None:
             return False
+        emblem_definitions = tuple(
+            definition
+            for definition in self.rulebook._emblem_defs.values()
+            if definition.source_card_id == card.card_id
+        )
+        listeners = self.rulebook.listeners_for(card.card_id)
+        modes = self.rulebook.modes_for(card.card_id)
+        operation_groups = (
+            tuple(
+                self.rulebook.operations_for(card.card_id, trigger)
+                for trigger in Trigger
+            )
+            + tuple(mode.operations for mode in modes)
+            + tuple(
+                definition.operations
+                for definition in self.rulebook.union_bursts_for(card.card_id)
+            )
+            + tuple(definition.operations for definition in listeners)
+            + tuple(
+                operations
+                for definition in emblem_definitions
+                for operations in (
+                    definition.on_gain,
+                    definition.on_expire,
+                    definition.last_words,
+                    *(rule.operations for rule in definition.triggers),
+                )
+            )
+        )
+        container_condition_groups = (
+            tuple(mode.conditions for mode in modes)
+            + tuple(definition.conditions for definition in listeners)
+            + tuple(
+                rule.conditions
+                for definition in emblem_definitions
+                for rule in definition.triggers
+            )
+        )
+
+        def operation_children(
+            operation: EffectOperation,
+        ) -> tuple[EffectOperation, ...]:
+            return (
+                operation.earth_rite_operations
+                + operation.necromancy_operations
+                + operation.faith_operations
+                + operation.then_operations
+                + operation.else_operations
+                + operation.optional_operations
+                + operation.repeat_operations
+                + operation.granted_operations
+                + tuple(
+                    child
+                    for option in operation.random_choice_options
+                    for child in option.operations
+                )
+                + tuple(
+                    child
+                    for bucket in operation.random_distribution_operations
+                    for child in bucket
+                )
+                + tuple(
+                    child
+                    for option in operation.choose_one_options
+                    for child in option.operations
+                )
+            )
+
+        def operation_kind_present(
+            operations: tuple[EffectOperation, ...],
+            kinds: frozenset[EffectKind],
+        ) -> bool:
+            return any(
+                operation.kind in kinds
+                or operation_kind_present(
+                    operation_children(operation),
+                    kinds,
+                )
+                for operation in operations
+            )
+
+        def filter_references_keyword(
+            operations: tuple[EffectOperation, ...],
+            keyword: AbilityKeyword,
+        ) -> bool:
+            for operation in operations:
+                filters = (
+                    operation.hand_filter,
+                    operation.history_filter,
+                    operation.board_filter,
+                )
+                if any(
+                    definition is not None
+                    and definition.keyword == keyword.value
+                    for definition in filters
+                ):
+                    return True
+                if filter_references_keyword(
+                    operation_children(operation),
+                    keyword,
+                ):
+                    return True
+            return False
+
         if ability is AbilityKeyword.FUSION:
-            return self.rulebook.fusion_for(card.card_id) is not None
+            return (
+                self.rulebook.fusion_for(card.card_id) is not None
+                or any(
+                    definition.event is EventType.CARD_FUSED
+                    for definition in listeners
+                )
+                or any(
+                    rule.trigger == EventType.CARD_FUSED.value
+                    for definition in emblem_definitions
+                    for rule in definition.triggers
+                )
+            )
         if ability is AbilityKeyword.INVOCATION:
             return (
                 card.card_type == "随从"
@@ -535,8 +650,11 @@ class GameEngine:
                 definition.event is EventType.AMULET_ACTIVATED
                 for definition in self.rulebook.listeners_for(card.card_id)
             )
-        if ability is AbilityKeyword.FAITH:
-            return self.rulebook.faith_for(card.card_id) is not None
+        if (
+            ability is AbilityKeyword.FAITH
+            and self.rulebook.faith_for(card.card_id) is not None
+        ):
+            return True
         if ability is AbilityKeyword.UNION_BURST:
             return bool(self.rulebook.union_bursts_for(card.card_id))
         if ability in {
@@ -549,16 +667,35 @@ class GameEngine:
                 AbilityKeyword.ACCELERATE: "accelerate",
                 AbilityKeyword.CRYSTALLIZE: "crystallize",
             }[ability]
-            return any(
+            if any(
                 mode.mode_type == expected_mode_type
-                for mode in self.rulebook.modes_for(card.card_id)
+                for mode in modes
+            ):
+                return True
+            if (
+                ability is AbilityKeyword.ENHANCE
+                and any(
+                    EmblemPassive.SUPPRESS_FOLLOWER_ENHANCE
+                    in definition.passives
+                    for definition in emblem_definitions
+                )
+            ):
+                return True
+            faith = self.rulebook.faith_for(card.card_id)
+            return bool(
+                ability is AbilityKeyword.ENHANCE
+                and faith is not None
+                and any(
+                    rule.trigger is FaithTrigger.CARD_ENHANCED
+                    for rule in faith.triggers
+                )
             )
         if ability is AbilityKeyword.COUNTDOWN:
             return (
                 self.rulebook.countdown_for(card.card_id) is not None
                 or any(
                     mode.is_crystallize and mode.countdown is not None
-                    for mode in self.rulebook.modes_for(card.card_id)
+                    for mode in modes
                 )
                 or any(
                     definition.source_card_id == card.card_id
@@ -604,25 +741,107 @@ class GameEngine:
                 return False
 
             return any(
-                contains_choose(
-                    self.rulebook.operations_for(card.card_id, trigger)
+                contains_choose(operations)
+                for operations in operation_groups
+            ) or bool(
+                (faith := self.rulebook.faith_for(card.card_id))
+                is not None
+                and any(
+                    rule.trigger is FaithTrigger.MODE_SELECTED
+                    for rule in faith.triggers
                 )
-                for trigger in Trigger
-            ) or any(
-                contains_choose(mode.operations)
-                for mode in self.rulebook.modes_for(card.card_id)
             )
         if ability is AbilityKeyword.FANFARE:
             return bool(
                 self.rulebook.operations_for(card.card_id, Trigger.FANFARE)
                 or self.rulebook.union_bursts_for(card.card_id)
             )
-        if ability is AbilityKeyword.EMBLEM:
-            return any(
-                definition.source_card_id == card.card_id
-                for definition in self.rulebook._emblem_defs.values()
+        if ability is AbilityKeyword.LAST_WORDS:
+            return bool(
+                self.rulebook.operations_for(
+                    card.card_id,
+                    Trigger.LAST_WORDS,
+                )
+                or any(
+                    (
+                        definition.last_words
+                        or definition.on_expire
+                    )
+                    for definition in emblem_definitions
+                )
+                or any(
+                    filter_references_keyword(
+                        operations,
+                        AbilityKeyword.LAST_WORDS,
+                    )
+                    for operations in operation_groups
+                )
+                or any(
+                    operation_kind_present(
+                        operations,
+                        frozenset({EffectKind.GRANT_LAST_WORDS}),
+                    )
+                    for operations in operation_groups
+                )
             )
-        if ability in (AbilityKeyword.OVERFLOW, AbilityKeyword.COMBO):
+        if ability is AbilityKeyword.EMBLEM:
+            return bool(emblem_definitions)
+        if ability is AbilityKeyword.FAITH:
+            if self.rulebook.faith_for(card.card_id) is not None:
+                return True
+
+            def contains_faith(
+                operations: tuple[EffectOperation, ...],
+            ) -> bool:
+                for operation in operations:
+                    if (
+                        operation.faith_id is not None
+                        or operation.kind
+                        in {
+                            EffectKind.CONSUME_FAITH,
+                            EffectKind.GRANT_FAITH_ABILITY,
+                            EffectKind.GRANT_FAITH_MODE_SELECTION_BONUS,
+                        }
+                    ):
+                        return True
+                    nested = (
+                        operation.earth_rite_operations
+                        + operation.necromancy_operations
+                        + operation.faith_operations
+                        + operation.then_operations
+                        + operation.else_operations
+                        + operation.optional_operations
+                        + operation.repeat_operations
+                        + tuple(
+                            child
+                            for option in operation.random_choice_options
+                            for child in option.operations
+                        )
+                        + tuple(
+                            child
+                            for bucket in (
+                                operation.random_distribution_operations
+                            )
+                            for child in bucket
+                        )
+                    )
+                    if contains_faith(nested) or any(
+                        contains_faith(option.operations)
+                        for option in operation.choose_one_options
+                    ):
+                        return True
+                return False
+
+            return any(
+                contains_faith(operations)
+                for operations in operation_groups
+            )
+        if ability in {
+            AbilityKeyword.OVERFLOW,
+            AbilityKeyword.COMBO,
+            AbilityKeyword.COOPERATION,
+            AbilityKeyword.SPELLBOOST,
+        }:
             if ability is AbilityKeyword.OVERFLOW:
                 condition_types = (
                     ConditionType.CONTROLLER_OVERFLOW,
@@ -633,7 +852,7 @@ class GameEngine:
                     ExprType.OPPONENT_OVERFLOW,
                 )
                 effect_kinds: tuple[EffectKind, ...] = ()
-            else:
+            elif ability is AbilityKeyword.COMBO:
                 condition_types = (
                     ConditionType.CONTROLLER_COMBO_AT_LEAST,
                     ConditionType.OPPONENT_COMBO_AT_LEAST,
@@ -643,6 +862,36 @@ class GameEngine:
                     ExprType.OPPONENT_COMBO,
                 )
                 effect_kinds = (EffectKind.ADD_COMBO,)
+            elif ability is AbilityKeyword.COOPERATION:
+                condition_types = (
+                    ConditionType.CONTROLLER_COOPERATION_AT_LEAST,
+                    ConditionType.OPPONENT_COOPERATION_AT_LEAST,
+                )
+                expression_types = (
+                    ExprType.CONTROLLER_COOPERATION,
+                    ExprType.OPPONENT_COOPERATION,
+                )
+                effect_kinds = ()
+            else:
+                condition_types = (
+                    ConditionType.SOURCE_SPELLBOOST_COUNT_AT_LEAST,
+                )
+                expression_types = (
+                    ExprType.SOURCE_SPELLBOOST_COUNT,
+                )
+                effect_kinds = (EffectKind.SPELLBOOST_HAND,)
+
+            if (
+                ability is AbilityKeyword.SPELLBOOST
+                and (
+                    self.rulebook.spellboost_cost_reduction(card.card_id) > 0
+                    or any(
+                        definition.event is EventType.SPELLBOOSTED
+                        for definition in listeners
+                    )
+                )
+            ):
+                return True
 
             def condition_contains(conditions: tuple[Condition, ...]) -> bool:
                 for condition in conditions:
@@ -674,6 +923,10 @@ class GameEngine:
                         return True
                     if expression_contains(operation.secondary_expr):
                         return True
+                    if expression_contains(operation.deck_filter_cost_expr):
+                        return True
+                    if expression_contains(operation.target_count_expr):
+                        return True
                     nested = (
                         operation.earth_rite_operations
                         + operation.necromancy_operations
@@ -703,10 +956,11 @@ class GameEngine:
                 return False
 
             return any(
-                operation_contains(
-                    self.rulebook.operations_for(card.card_id, trigger)
-                )
-                for trigger in Trigger
+                condition_contains(conditions)
+                for conditions in container_condition_groups
+            ) or any(
+                operation_contains(operations)
+                for operations in operation_groups
             )
 
         expected_kind = {
@@ -749,9 +1003,18 @@ class GameEngine:
                     return True
             return False
 
-        return any(
-            contains_kind(self.rulebook.operations_for(card.card_id, trigger))
-            for trigger in Trigger
+        return (
+            (
+                ability is AbilityKeyword.EARTH_RITE
+                and any(
+                    definition.event is EventType.EARTH_RITE_ACTIVATED
+                    for definition in listeners
+                )
+            )
+            or any(
+                contains_kind(operations)
+                for operations in operation_groups
+            )
         )
 
     @property
@@ -5495,8 +5758,17 @@ class GameEngine:
                 "leader_area",
             )
 
-    def _continue_effects(self) -> None:
+    def _continue_effects(
+        self,
+        *,
+        stop_at_depth: int | None = None,
+    ) -> None:
         while self.state.effect_stack and self.state.pending_choice is None:
+            if (
+                stop_at_depth is not None
+                and len(self.state.effect_stack) <= stop_at_depth
+            ):
+                break
             if self.terminated:
                 for active_frame in self.state.effect_stack:
                     active_frame.next_index = len(active_frame.operations)
@@ -7004,11 +7276,12 @@ class GameEngine:
         unit.evolved = True
         unit.super_evolved = super_evolve
         unit.super_evolved_turn = self.turn if super_evolve else None
+        previous_max_health = unit.max_health
         unit.base_attack += stat_bonus
         unit.base_health += stat_bonus
         unit._recompute_attack()
-        unit.health += stat_bonus
         unit._recompute_max()
+        unit.health += unit.max_health - previous_max_health
         if unit.attacks_remaining > 0:
             unit.can_attack = True
             unit.rush_only = not could_attack_leader
@@ -15192,8 +15465,9 @@ class GameEngine:
         while lw_records:
             record = lw_records[0]
             self._suspended_lw_records = lw_records[1:]
+            parent_effect_depth = len(self.state.effect_stack)
             self._execute_last_words(record, batch)
-            self._continue_effects()
+            self._continue_effects(stop_at_depth=parent_effect_depth)
             if self.state.pending_choice is not None:
                 self._suspended_record = record
                 self._suspended_batch = batch

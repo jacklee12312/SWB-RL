@@ -179,6 +179,55 @@ mismatches. The machine-readable 1,000-game result is saved at
 This broad regression smoke is not the eight-deck matchup matrix or the
 coverage-guided scenarios still required by checklist 1.12.
 
+Checklist 1.12 now closes that gap. Nine minimal public-interface fixtures
+cover cost, target, board/hand capacity, resources, ordinary/super evolution,
+turn start/end, and simultaneous death; every necessary direct state setup is
+followed by invariant validation. The
+[forced-scenario report](data/reports/card_bug_audit/forced_scenario_audit.md)
+maps 2,793 applicable mechanism assignments across the 147-card training
+closure and the complete 735 collectible plus 91 generated-card catalog with
+no unexplained clause or missing test file.
+
+The rebuilt eight-deck
+[matrix](data/reports/card_bug_audit/training_matrix_1000.json) passes 1,024
+games (960 random-legal, 64 frozen-checkpoint policy) and all 1,024
+deterministic replays. The stratified
+[full-pool gate](data/reports/card_bug_audit/full_pool_sampling_10000.json)
+passes 10,000 games (9,804 random-legal, 196 policy), places all 735 exact
+collectible cards in sampled decks, encounters 824 cards, and completes
+908,943 action-mask checks. Both reports have zero placeholders, mask
+mismatches, illegal actions, exceptions, or truncations. The separate
+[long-game/Myuu report](data/reports/card_bug_audit/long_truncation_myuu_distribution.md)
+retains reproducible manifests for 95 long games and 240 Myuu matchups; neither
+accepted source gate has a truncation.
+
+Coverage-guided sampling found and fixed `SWB-CARD-0005`/`0006`, where
+structured Last Words and other keyword sources were incorrectly reported as
+unsupported, and P0 `SWB-CARD-0007`, where a lethal Last Words child effect
+could expose the parent effect's next choice before state-based deaths were
+processed. The latter fix bounds nested effect continuation by stack depth,
+so new deaths stabilize before the parent frame resumes; it adds no card-ID
+branch. The required 1,000-game shared-engine gate then found P0
+`SWB-CARD-0008`: after a permanent negative-health modifier and a set-health
+effect had clamped a follower to 1/1, super evolution added three current
+health while the effective maximum increased by only one, producing an
+invalid 4/2 follower. The fix increases current health by the actual
+max-health delta, preserving damage without a card-ID branch. Its exact
+107-action pre-fix replay and the focused three-real-card regression are
+retained with the first failed 10,000-game dataset and both `0007` action
+reproductions.
+
+After that fix, the same frozen configuration was rerun: the 1,024-game
+eight-deck matrix and 10,000-game full-pool gate passed again, as did
+[100-game](data/reports/card_bug_audit/stage_1_12_random_self_play_100.json)
+and
+[1,000-game](data/reports/card_bug_audit/stage_1_12_random_self_play_1000.json)
+invariant self-play. The 1,000-game run had zero draws, truncations, illegal
+actions, or mask mismatches. Random self-play now writes the failing game
+index, per-game seed, decks, full action sequence, mask, board state, and
+fingerprint to its requested JSON output before re-raising an exception. The
+bug ledger has no open P0/P1 entry.
+
 ## Reproducible RL Platform
 
 The P1/P2 platform-hardening slice is implemented around the deterministic

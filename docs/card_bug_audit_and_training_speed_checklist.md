@@ -672,18 +672,66 @@ Invocation/瞬念召唤及其他替代出牌方式。
 
 ## 1.12 强制场景生成和随机对局
 
-- [ ] 为费用、目标、场面容量和资源阈值生成最小 GameState fixture。
-- [ ] 为普通进化、超进化、回合开始/结束和同时死亡生成机制 fixture。
-- [ ] 场景生成器只能通过公开 state/command/effect 接口准备局面，避免引入
+- [x] 为费用、目标、场面容量和资源阈值生成最小 GameState fixture。
+- [x] 为普通进化、超进化、回合开始/结束和同时死亡生成机制 fixture。
+- [x] 场景生成器只能通过公开 state/command/effect 接口准备局面，避免引入
   无法在真实对局出现的状态；必须直接改状态时要随后执行 invariants。
-- [ ] 先对八套卡组闭包运行全部适用强制场景。
-- [ ] 在八套卡组对阵矩阵上运行至少 1,000 局确定性 smoke。
-- [ ] 同时使用 random legal 和当前 policy 采样，避免只覆盖一种动作分布。
-- [ ] 根据 runtime coverage 对未触发 clause 继续生成定向局面，直到没有
+- [x] 先对八套卡组闭包运行全部适用强制场景。
+- [x] 在八套卡组对阵矩阵上运行至少 1,000 局确定性 smoke。
+- [x] 同时使用 random legal 和当前 policy 采样，避免只覆盖一种动作分布。
+- [x] 根据 runtime coverage 对未触发 clause 继续生成定向局面，直到没有
   未解释的空白。
-- [ ] 将工具扩展到 735 张可收集卡和 91 张衍生卡。
-- [ ] 对完整卡池运行按机制分层的强制场景和至少 10,000 局采样。
-- [ ] 为长局、截断和 Myuu 对阵单独保存分布及复现。
+- [x] 将工具扩展到 735 张可收集卡和 91 张衍生卡。
+- [x] 对完整卡池运行按机制分层的强制场景和至少 10,000 局采样。
+- [x] 为长局、截断和 Myuu 对阵单独保存分布及复现。
+
+完成证据（2026-07-30，规则基线
+`bb5635b58709e0c3e6cf5486f6708530f47be3f2`）：
+
+- `swb/engine/forced_scenarios.py` 提供费用、目标、容量、资源、普通/超进化、
+  回合开始/结束和同时死亡共 9 个通用最小 fixture；17 次必要直接状态准备
+  每次后均运行 invariants，共记录 35 次不变量检查。
+- `data/reports/card_bug_audit/forced_scenario_audit.json`：
+  9/9 fixture 通过；八套训练卡组 147 张闭包和完整 735+91 卡池共生成
+  2,793 个机制分层场景分配，0 个未解释 runtime clause、0 个缺失测试文件。
+  直接测试证据与运行时已触发证据保持分栏，未把“有测试”冒充“随机局已触发”。
+- `data/reports/card_bug_audit/training_matrix_1000.json`：
+  1,024/1,024 局终局，960 局 random legal、64 局冻结 checkpoint policy，
+  128 个有序卡组/策略分层；1,024 次相同 seed 重放全部一致；95,230 次
+  mask 检查，placeholder、mask 分歧、非法动作、异常和截断均为 0。
+- `data/reports/card_bug_audit/full_pool_sampling_10000.json`：
+  10,000/10,000 局终局，9,804 局 random legal、196 局冻结 checkpoint
+  policy，98 个职业/策略分层；735/735 可收集卡进入卡组、实际遇见 824 张卡，
+  98 次分层重放全部一致；908,943 次 mask 检查，placeholder、mask 分歧、
+  非法动作、异常和截断均为 0，acceptance `pass`。
+- `data/reports/card_bug_audit/full_pool_sampling_10000_failed_20260730.json`
+  保留首次长跑失败数据；`SWB-CARD-0005`/`0006` 记录结构化规则已实现却误报
+  placeholder 的 P1 诊断缺陷，`SWB-CARD-0007` 记录谢幕曲致死后父效果过早
+  请求选择、留下 0 生命单位的 P0 解析缺陷。最终 1,000 局共享引擎门禁又在
+  game 433、seed 120445 发现 `SWB-CARD-0008`：负生命修正和生命上限钳制后
+  超进化把当前生命结算为非法的 4/2。三张真实卡的 107 步动作复现保存于
+  `data/reports/card_bug_audit/reproductions/SWB-CARD-0008-random-self-play.json`，
+  最小回归与 post-fix 2/2 精确回放结论保存于 `SWB-CARD-0008.json`。全部
+  缺陷均先保存复现和失败测试，再以通用机制修复；Bug 台账 P0/P1 未关闭数
+  均为 0。
+- `data/reports/card_bug_audit/long_truncation_myuu_distribution.json`：
+  汇总 11,024 局，保存 95 个长局、0 个截断和 240 个 Myuu 对局的完整复现
+  manifest；Myuu 截断 0，回合 p99/max 为 37/46，agent steps p99/max 为
+  175/360。人类可读摘要见同名 `.md`。
+- 最终规则下的共享引擎门禁保存在
+  `data/reports/card_bug_audit/stage_1_12_random_self_play_100.json` 和
+  `stage_1_12_random_self_play_1000.json`：固定 seed 120012 的 100/1,000
+  局均无平局、截断、非法动作和 mask 分歧，官方开局验收均为 `pass`；
+  1,000 局胜场 `[508, 492]`，Extra PP 使用 1,894 次。自博弈脚本现在会在
+  异常时保存失败局号、局 seed、双方卡组、完整动作序列、mask、场面和状态
+  指纹，避免长跑失败只留下 traceback。
+- `E:\anaconda\python.exe -m unittest discover -s tests -v`：最终规则下
+  2,803 项通过，1 项条件跳过，耗时 434.822 秒，API test 通过；完整控制台
+  记录保存在本地
+  `data/reports/card_bug_audit/stage_1_12_unittest.log`。
+- `E:\anaconda\python.exe -m compileall -q swb scripts tests`：通过。
+- `E:\anaconda\python.exe -m scripts.rl_mixed_match --output
+  data/rl_mixed_match.log --validate-invariants`：完成，玩家 2 获胜，日志已保存。
 
 ## 1.13 最小复现与自动回归闭环
 
