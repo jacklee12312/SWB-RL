@@ -1,0 +1,76 @@
+{
+  "schema_version": 1,
+  "bug_id": "SWB-CARD-0003",
+  "captured_at": "2026-07-30",
+  "discovery_commit": "fbd263a6c8a8a8a6bd0c1ad250b4ab5b7d5570d6",
+  "seed": 1,
+  "card": {
+    "card_id": null,
+    "name": "通用必杀机制"
+  },
+  "setup": {
+    "current_player": 0,
+    "attacker": {
+      "attack": 0,
+      "health": 5,
+      "keywords": [
+        "必杀"
+      ],
+      "can_attack": true
+    },
+    "defender": {
+      "attack": 1,
+      "health": 3,
+      "keywords": []
+    },
+    "alternate_defender": {
+      "attack": 1,
+      "health": 3,
+      "keywords": [
+        "屏障"
+      ]
+    }
+  },
+  "pre_fix_actual": {
+    "zero_attack_defender_health_after_combat": 3,
+    "zero_attack_bane_triggered": false,
+    "barrier_defender_health_after_combat": 3,
+    "barrier_charges_after_combat": 0,
+    "barrier_bane_triggered": false
+  },
+  "expected": "必杀随从通过攻击或被攻击与敌方随从交战时，即使攻击力为 0，或战斗伤害被对手的屏障能力变为 0，必杀仍应发动并尝试以效果破坏该随从。",
+  "actual": "引擎仅在 actual damage > 0 时检查必杀；0 攻击力与屏障把实际伤害变为 0 后都跳过必杀，目标错误存活。",
+  "impact": "共享战斗结算错误影响必杀、屏障、效果破坏免疫和超进化保护的交互；八套训练卡组闭包中有四套包含必杀来源，合法动作不变但状态、事件、胜负和训练轨迹可能改变。",
+  "affected_decks": [
+    "international_qr_dragon_20260728",
+    "international_qr_forest_20260728",
+    "international_qr_sword_20260728",
+    "official_qr_evolve_haven_20260727"
+  ],
+  "official_evidence": [
+    {
+      "tier": 1,
+      "publisher": "Cygames",
+      "product": "Shadowverse: Worlds Beyond",
+      "url": "https://shadowverse-wb.com/ja/help?tab=tab0",
+      "accessed": "2026-07-30",
+      "section": "必殺",
+      "conclusion": "官方词条明确：攻击力为 0，或因对手能力使造成的伤害变为 0 时，必杀仍会发动。"
+    },
+    {
+      "tier": 1,
+      "publisher": "Cygames",
+      "product": "Shadowverse: Worlds Beyond",
+      "url": "https://shadowverse-wb.com/ja/deck/cardslist/card/?card_id=10021130",
+      "accessed": "2026-07-30",
+      "section": "必殺 / バリア",
+      "conclusion": "官方卡牌页同时保留必杀与屏障词条：屏障将伤害变为 0 并消耗一次，但这属于使伤害为 0 的对手能力，不能取消必杀。"
+    }
+  ],
+  "pre_fix_regressions": [
+    "tests/test_keywords.py::BaneTests::test_zero_damage_no_bane",
+    "tests/test_keywords.py::BaneTests::test_bane_barrier_blocked"
+  ],
+  "reproduction_command": "E:\\anaconda\\python.exe -m unittest tests.test_keywords.BaneTests.test_zero_damage_no_bane tests.test_keywords.BaneTests.test_bane_barrier_blocked -v",
+  "status_at_capture": "open"
+}

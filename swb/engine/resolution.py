@@ -4590,7 +4590,13 @@ class GameEngine:
         attacker: Unit | None = None,
         target_player_index: int | None = None,
     ) -> DamageResult:
-        if amount <= 0:
+        zero_combat_contact = (
+            amount == 0
+            and isinstance(target, Unit)
+            and damage_type is DamageType.COMBAT
+            and isinstance(attacker, Unit)
+        )
+        if amount <= 0 and not zero_combat_contact:
             return DamageResult(requested_amount=amount)
 
         if target is not None and isinstance(target, Unit):
@@ -4629,6 +4635,55 @@ class GameEngine:
             )
         )
 
+    def _attempt_effect_destroy_unit(
+        self,
+        target: Unit,
+        *,
+        controller: int,
+        source_entity_id: int | None,
+        source_card_id: int | None,
+        ability: str | None = None,
+    ) -> bool:
+        if self._effect_destroy_immunity_active(target):
+            printed_immunity = (
+                not target.printed_abilities_removed
+                and self.rulebook.cannot_be_destroyed_by_effects(
+                    target.definition.card_id
+                )
+            )
+            metadata: dict[str, object] = {
+                "source_card_id": source_card_id,
+                "protected_card_id": target.definition.card_id,
+                "printed_ability": printed_immunity,
+                "granted_ability": (
+                    not target.printed_abilities_removed
+                    and target.effect_destroy_immunity
+                ),
+            }
+            if ability is not None:
+                metadata["ability"] = ability
+            self._emit(GameEvent(
+                EventType.EFFECT_DESTROY_PREVENTED,
+                controller,
+                source_id=source_entity_id,
+                target_id=target.entity_id,
+                metadata=metadata,
+            ))
+            self._log(
+                controller,
+                f"{target.definition.name} 的能力阻止了效果破坏",
+            )
+            return False
+        if self._super_evolution_prevents_effect_destroy(target):
+            self._log(
+                controller,
+                f"{target.definition.name} 的超进化保护阻止了效果破坏",
+            )
+            return False
+        self._death_causes[target.entity_id] = DeathCause.EFFECT_DESTROY
+        target.health = 0
+        return True
+
     def _printed_incoming_damage_replacement(
         self,
         target: Unit,
@@ -4660,7 +4715,10 @@ class GameEngine:
         prevented = 0
         barrier_consumed = False
 
-        if self._super_evolution_prevents_damage(target, damage_type):
+        if (
+            amount > 0
+            and self._super_evolution_prevents_damage(target, damage_type)
+        ):
             self._emit(GameEvent(
                 EventType.DAMAGE_PREVENTED, controller,
                 source_id=source.entity_id if hasattr(source, 'entity_id') else None,
@@ -4675,6 +4733,25 @@ class GameEngine:
                 controller,
                 f"{target.definition.name} 的超进化保护阻止了 {amount} 点伤害",
             )
+            if (
+                damage_type is DamageType.COMBAT
+                and isinstance(attacker, Unit)
+                and attacker.has_keyword("必杀")
+            ):
+                self._emit(GameEvent(
+                    EventType.BANE_TRIGGERED,
+                    controller,
+                    source_id=attacker.entity_id,
+                    target_id=target.entity_id,
+                    metadata={"card_id": attacker.definition.card_id},
+                ))
+                self._attempt_effect_destroy_unit(
+                    target,
+                    controller=controller,
+                    source_entity_id=attacker.entity_id,
+                    source_card_id=attacker.definition.card_id,
+                    ability="必杀",
+                )
             return DamageResult(
                 requested_amount=amount,
                 prevented_amount=amount,
@@ -4755,19 +4832,33 @@ class GameEngine:
             if lethal:
                 self._death_causes.setdefault(target.entity_id, DeathCause.ZERO_HEALTH)
 
-        if actual > 0 and attacker is not None and isinstance(attacker, Unit):
-            if attacker.has_keyword("必杀"):
-                target.health = 0
+        if (
+            damage_type is DamageType.COMBAT
+            and isinstance(attacker, Unit)
+            and attacker.has_keyword("必杀")
+        ):
+            self._emit(GameEvent(
+                EventType.BANE_TRIGGERED, controller,
+                source_id=attacker.entity_id,
+                target_id=target.entity_id,
+                metadata={"card_id": attacker.definition.card_id},
+            ))
+            if self._attempt_effect_destroy_unit(
+                target,
+                controller=controller,
+                source_entity_id=attacker.entity_id,
+                source_card_id=attacker.definition.card_id,
+                ability="必杀",
+            ):
                 health_after = 0
                 lethal = True
-                self._death_causes[target.entity_id] = DeathCause.EFFECT_DESTROY
-                self._log(controller, f"{attacker.definition.name} 的必杀破坏了 {target.definition.name}")
-                self._emit(GameEvent(
-                    EventType.BANE_TRIGGERED, controller,
-                    source_id=attacker.entity_id,
-                    target_id=target.entity_id,
-                    metadata={"card_id": attacker.definition.card_id},
-                ))
+                self._log(
+                    controller,
+                    f"{attacker.definition.name} 的必杀破坏了 "
+                    f"{target.definition.name}",
+                )
+
+        if actual > 0 and attacker is not None and isinstance(attacker, Unit):
             if attacker.has_keyword("吸血"):
                 owner_idx = self._entity_owner(attacker.entity_id)
                 heal_amount = min(actual, health_before)
@@ -8698,41 +8789,13 @@ class GameEngine:
                 else None
             )
             if isinstance(target, Unit):
-                if self._effect_destroy_immunity_active(target):
-                    printed_immunity = (
-                        not target.printed_abilities_removed
-                        and self.rulebook.cannot_be_destroyed_by_effects(
-                            target.definition.card_id
-                        )
-                    )
-                    self._emit(GameEvent(
-                        EventType.EFFECT_DESTROY_PREVENTED,
-                        frame.controller,
-                        source_id=frame.source_entity_id,
-                        target_id=target.entity_id,
-                        metadata={
-                            "source_card_id": frame.source_card_id,
-                            "protected_card_id": target.definition.card_id,
-                            "printed_ability": printed_immunity,
-                            "granted_ability": (
-                                not target.printed_abilities_removed
-                                and target.effect_destroy_immunity
-                            ),
-                        },
-                    ))
-                    self._log(
-                        frame.controller,
-                        f"{target.definition.name} 的能力阻止了效果破坏",
-                    )
+                if not self._attempt_effect_destroy_unit(
+                    target,
+                    controller=frame.controller,
+                    source_entity_id=frame.source_entity_id,
+                    source_card_id=frame.source_card_id,
+                ):
                     return
-                if self._super_evolution_prevents_effect_destroy(target):
-                    self._log(
-                        frame.controller,
-                        f"{target.definition.name} 的超进化保护阻止了效果破坏",
-                    )
-                    return
-                self._death_causes[target.entity_id] = DeathCause.EFFECT_DESTROY
-                target.health = 0
             elif isinstance(target, Amulet):
                 if self._is_earth_sigil_amulet(target):
                     self._emit(

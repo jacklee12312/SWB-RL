@@ -51,24 +51,88 @@ class BaneTests(unittest.TestCase):
         eng.apply(Attack(0, b.entity_id, None))
         self.assertEqual(eng.players[1].health, 17)
 
-    def test_zero_damage_no_bane(self):
+    def test_zero_attack_bane_still_destroys(self):
         eng = mkengine()
         b = mkunit(eng, 900, keywords=frozenset({"必杀"}), attack=0, life=5)
         v = mkunit(eng, 901, attack=1, life=3)
         b.can_attack = True
         eng.players[0].board = [b]; eng.players[1].board = [v]
-        eng.apply(Attack(0, b.entity_id, v.entity_id))
-        self.assertEqual(v.health, 3)
+        transition = eng.apply(Attack(0, b.entity_id, v.entity_id))
+        self.assertNotIn(v, eng.players[1].board)
+        self.assertTrue(any(
+            event.type is EventType.BANE_TRIGGERED
+            and event.source_id == b.entity_id
+            and event.target_id == v.entity_id
+            for event in transition.events
+        ))
 
-    def test_bane_barrier_blocked(self):
+    def test_bane_still_destroys_after_barrier_prevents_damage(self):
         eng = mkengine()
         b = mkunit(eng, 900, keywords=frozenset({"必杀"}), attack=3, life=5)
         v = mkunit(eng, 901, keywords=frozenset({"屏障"}), attack=1, life=3)
         b.can_attack = True
         eng.players[0].board = [b]; eng.players[1].board = [v]
-        eng.apply(Attack(0, b.entity_id, v.entity_id))
-        self.assertEqual(v.health, 3)
+        transition = eng.apply(Attack(0, b.entity_id, v.entity_id))
+        self.assertNotIn(v, eng.players[1].board)
         self.assertEqual(v.barrier_charges, 0)
+        self.assertTrue(any(
+            event.type is EventType.BANE_TRIGGERED
+            and event.source_id == b.entity_id
+            and event.target_id == v.entity_id
+            for event in transition.events
+        ))
+
+    def test_bane_respects_effect_destroy_immunity(self):
+        eng = mkengine()
+        b = mkunit(eng, 900, keywords=frozenset({"必杀"}), attack=1, life=5)
+        v = mkunit(eng, 901, attack=1, life=5)
+        v.effect_destroy_immunity = True
+        b.can_attack = True
+        eng.players[0].board = [b]; eng.players[1].board = [v]
+
+        transition = eng.apply(Attack(0, b.entity_id, v.entity_id))
+
+        self.assertIn(v, eng.players[1].board)
+        self.assertEqual(v.health, 4)
+        self.assertTrue(any(
+            event.type is EventType.BANE_TRIGGERED
+            and event.target_id == v.entity_id
+            for event in transition.events
+        ))
+        self.assertTrue(any(
+            event.type is EventType.EFFECT_DESTROY_PREVENTED
+            and event.target_id == v.entity_id
+            for event in transition.events
+        ))
+
+    def test_bane_counter_respects_super_evolution_protection(self):
+        eng = mkengine()
+        attacker = mkunit(eng, 900, attack=3, life=5)
+        defender = mkunit(
+            eng,
+            901,
+            keywords=frozenset({"必杀"}),
+            attack=1,
+            life=5,
+        )
+        attacker.can_attack = True
+        attacker.super_evolved = True
+        attacker.super_evolved_turn = eng.turn
+        eng.players[0].board = [attacker]
+        eng.players[1].board = [defender]
+
+        transition = eng.apply(
+            Attack(0, attacker.entity_id, defender.entity_id)
+        )
+
+        self.assertIn(attacker, eng.players[0].board)
+        self.assertEqual(attacker.health, 5)
+        self.assertTrue(any(
+            event.type is EventType.BANE_TRIGGERED
+            and event.source_id == defender.entity_id
+            and event.target_id == attacker.entity_id
+            for event in transition.events
+        ))
 
     def test_mutual_death_bane_applies(self):
         eng = mkengine()
