@@ -160,6 +160,7 @@ class EnvironmentTests(unittest.TestCase):
                 "action_mask_seconds",
                 "command_decode_seconds",
                 "resolution_seconds",
+                "observation_seconds",
                 "post_step_seconds",
                 "step_total_seconds",
             },
@@ -169,7 +170,8 @@ class EnvironmentTests(unittest.TestCase):
             timing["step_total_seconds"],
             timing["action_mask_seconds"]
             + timing["command_decode_seconds"]
-            + timing["resolution_seconds"],
+            + timing["resolution_seconds"]
+            + timing["observation_seconds"],
         )
 
     def test_observation_exposes_public_combo_counts(self) -> None:

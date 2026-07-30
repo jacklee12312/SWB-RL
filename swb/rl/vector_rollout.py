@@ -394,6 +394,8 @@ def _run_central_policy_episode(
     flattener = ObservationFlattener.from_observation(first_observation)
     setup_seconds = time.perf_counter() - setup_started
     observation_seconds = 0.0
+    decision_observation_construction_seconds = 0.0
+    step_observation_construction_seconds = 0.0
     inference_round_trip_seconds = 0.0
     engine_step_seconds = 0.0
     action_mask_seconds = 0.0
@@ -403,9 +405,13 @@ def _run_central_policy_episode(
     while not env.terminated and not env.truncated:
         observation_started = time.perf_counter()
         player_id = env.decision_player
+        construction_started = time.perf_counter()
         observation = env.observation(
             perspective=player_id,
             action_mask=info["action_mask"],
+        )
+        decision_observation_construction_seconds += (
+            time.perf_counter() - construction_started
         )
         vector_np = flattener.encode(observation)
         card_indices_np = flattener.encode_cards(observation)
@@ -448,18 +454,26 @@ def _run_central_policy_episode(
         action_mask_seconds += step_timing["action_mask_seconds"]
         command_decode_seconds += step_timing["command_decode_seconds"]
         resolution_seconds += step_timing["resolution_seconds"]
+        step_observation_construction_seconds += step_timing[
+            "observation_seconds"
+        ]
 
         info = result.info
         step_index += 1
 
     bootstrap_started = time.perf_counter()
+    bootstrap_observation_construction_seconds = 0.0
     boundary = "terminated" if env.terminated else "truncated"
     bootstrap_inputs: dict[int, tuple[np.ndarray, np.ndarray]] = {}
     if env.truncated:
         for player_id in (0, 1):
+            construction_started = time.perf_counter()
             observation = env.observation(
                 perspective=player_id,
                 action_mask=[False] * env.ACTION_SIZE,
+            )
+            bootstrap_observation_construction_seconds += (
+                time.perf_counter() - construction_started
             )
             bootstrap_inputs[player_id] = (
                 flattener.encode(observation),
@@ -480,6 +494,20 @@ def _run_central_policy_episode(
             "worker_episode_total_seconds": episode_total_seconds,
             "worker_setup_seconds": setup_seconds,
             "worker_observation_seconds": observation_seconds,
+            "worker_observation_construction_seconds": (
+                decision_observation_construction_seconds
+                + step_observation_construction_seconds
+                + bootstrap_observation_construction_seconds
+            ),
+            "worker_decision_observation_construction_seconds": (
+                decision_observation_construction_seconds
+            ),
+            "worker_step_observation_construction_seconds": (
+                step_observation_construction_seconds
+            ),
+            "worker_bootstrap_observation_construction_seconds": (
+                bootstrap_observation_construction_seconds
+            ),
             "worker_inference_round_trip_seconds": (
                 inference_round_trip_seconds
             ),

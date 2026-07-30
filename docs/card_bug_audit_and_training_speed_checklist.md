@@ -1067,7 +1067,7 @@ Worker 侧：
 
 - [x] 单独统计引擎 command/resolution 时间。
 - [x] 单独统计 legal command/action mask 时间。
-- [ ] 单独统计 Observation v4.1 构造时间。
+- [x] 单独统计 Observation v4.1 构造时间。
 - [ ] 单独统计 IPC 请求序列化、发送和等待时间。
 - [ ] 单独统计新对局 reset、换牌和卡组构造时间。
 - [ ] 统计 worker 空闲比例、每局步数、长局和截断。
@@ -1138,6 +1138,30 @@ Learner 侧：
   `E:\anaconda\python.exe -m unittest discover -s tests -v`：2,848 项通过，
   1 项条件跳过，耗时 438.597 秒，API test 通过；完整输出保存于
   `data/reports/training_speed/stage_2_2_action_mask_unittest.log`。
+- `E:\anaconda\python.exe -m compileall -q swb scripts tests`：通过。
+- `E:\anaconda\python.exe -m scripts.random_self_play --games 100`：100 局
+  全部完成，`wins=[56, 44]`、draw/truncation/mask mismatch 均为 0；
+  `E:\anaconda\python.exe -m scripts.rl_mixed_match --output
+  data/rl_mixed_match.log`：通过，player 2 获胜，最终生命 0:18。
+
+2.2 worker Observation v4.1 构造切片证据（2026-07-31）：
+
+- 候选分类为 `A-PROFILE-001`。worker 分别统计决策前、`env.step()` 返回值
+  及截断 bootstrap 的 Observation 构造时间，并汇总为
+  `worker_observation_construction_seconds`；三项分量必须精确等于汇总值。
+- 原有 `worker_observation_seconds` 继续表示决策 Observation 构造加
+  flatten/card-index/mask NumPy 打包总量，从而保持既有 profiling schema
+  兼容，并允许后续独立拆分打包成本。
+- 冻结 v4.1 checkpoint 的 2,048-step 实测实际完成 2,282 steps：
+  Observation 构造合计 3.955569 秒，其中决策前 0.154314 秒、step 返回值
+  3.799565 秒、bootstrap 0.001690 秒；checkpoint 哈希保持不变。结果表明
+  首次 step-return 构造是后续 A 类重复转换优化的明确候选，但本切片未改变
+  执行路径。机器可读结果保存于
+  `data/reports/training_speed/stage_2_2_observation_v4_1_smoke.json`。
+- 两项聚焦等价/汇总回归通过；最终
+  `E:\anaconda\python.exe -m unittest discover -s tests -v`：2,848 项通过，
+  1 项条件跳过，耗时 438.899 秒，API test 通过；完整输出保存于
+  `data/reports/training_speed/stage_2_2_observation_v4_1_unittest.log`。
 - `E:\anaconda\python.exe -m compileall -q swb scripts tests`：通过。
 - `E:\anaconda\python.exe -m scripts.random_self_play --games 100`：100 局
   全部完成，`wins=[56, 44]`、draw/truncation/mask mismatch 均为 0；

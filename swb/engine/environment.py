@@ -540,8 +540,16 @@ class ShadowverseEnv:
                 timing["action_mask_seconds"] += (
                     time.perf_counter() - action_mask_started
                 )
+            observation_started = (
+                time.perf_counter() if timing is not None else 0.0
+            )
+            next_observation = self.observation(action_mask=next_mask)
+            if timing is not None:
+                timing["observation_seconds"] = (
+                    time.perf_counter() - observation_started
+                )
             result = StepResult(
-                observation=self.observation(action_mask=next_mask),
+                observation=next_observation,
                 reward=0.0,
                 terminated=False,
                 truncated=self.truncated,
@@ -591,8 +599,16 @@ class ShadowverseEnv:
             timing["action_mask_seconds"] += (
                 time.perf_counter() - action_mask_started
             )
+        observation_started = (
+            time.perf_counter() if timing is not None else 0.0
+        )
+        next_observation = self.observation(action_mask=next_mask)
+        if timing is not None:
+            timing["observation_seconds"] = (
+                time.perf_counter() - observation_started
+            )
         step_result = StepResult(
-            observation=self.observation(action_mask=next_mask),
+            observation=next_observation,
             reward=reward,
             terminated=self._core.terminated,
             truncated=self.truncated,

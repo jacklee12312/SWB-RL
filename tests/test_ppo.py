@@ -458,6 +458,28 @@ class PPOTrainerTests(unittest.TestCase):
                 0.0,
             )
             self.assertGreater(
+                trainer.last_collect_timing[
+                    "worker_observation_construction_seconds"
+                ],
+                0.0,
+            )
+            self.assertAlmostEqual(
+                trainer.last_collect_timing[
+                    "worker_observation_construction_seconds"
+                ],
+                (
+                    trainer.last_collect_timing[
+                        "worker_decision_observation_construction_seconds"
+                    ]
+                    + trainer.last_collect_timing[
+                        "worker_step_observation_construction_seconds"
+                    ]
+                    + trainer.last_collect_timing[
+                        "worker_bootstrap_observation_construction_seconds"
+                    ]
+                ),
+            )
+            self.assertGreater(
                 trainer.last_collect_timing["worker_command_decode_seconds"],
                 0.0,
             )
