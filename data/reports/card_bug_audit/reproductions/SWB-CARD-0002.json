@@ -1,0 +1,57 @@
+{
+  "schema_version": 1,
+  "bug_id": "SWB-CARD-0002",
+  "captured_at": "2026-07-29",
+  "discovery_commit": "845b3c99257b28e77e52db42d98e2e9de9f61f98",
+  "seed": 10424110,
+  "card": {
+    "card_id": 10424110,
+    "name": "真红与群青·塞达&贝阿朵丽丝",
+    "printed_cost": 4,
+    "mode_id": "enhance_6",
+    "mode_cost": 6,
+    "training_deck": "international_qr_sword_20260728",
+    "copies": 2
+  },
+  "setup": {
+    "current_player": 0,
+    "remaining_pp": 10,
+    "current_body_cost": 4,
+    "hand_index": 0,
+    "board": "empty",
+    "pending_choice": null
+  },
+  "pre_fix_actual": {
+    "normal_command_legal": true,
+    "enhance_command_legal": true,
+    "normal_action_id": 1,
+    "enhance_action_id": 79,
+    "normal_action_mask": true,
+    "enhance_action_mask": true
+  },
+  "expected": "剩余 PP 达到增强 6 时，打出此卡必须消耗 6 PP 并发动增强；normal command/action 不得同时暴露。",
+  "actual": "10 PP 时 normal 与 enhance_6 同时合法，且两个 RL 动作位同时为 true，策略可选择绕过增强。",
+  "impact": "动作空间包含客户端规则不存在的普通出牌分支，费用、效果、轨迹、log probability 和 PPO 目标均会改变。",
+  "official_evidence": [
+    {
+      "tier": 1,
+      "publisher": "Cygames",
+      "product": "Shadowverse: Worlds Beyond",
+      "url": "https://shadowverse-wb.com/ja/help?tab=tab0",
+      "accessed": "2026-07-29",
+      "section": "エンハンス",
+      "conclusion": "打出带增强的卡时，若剩余 PP 达到指定值，则不是消耗本体费用，而是消耗增强值并发动能力；多个增强时使用不高于剩余 PP 的最大值，且其以下增强全部发动。"
+    },
+    {
+      "tier": 1,
+      "publisher": "Cygames",
+      "product": "Shadowverse: Worlds Beyond",
+      "url": "https://shadowverse-wb.com/ja/deck/cardslist/card/?card_id=10424110",
+      "accessed": "2026-07-29",
+      "section": "card identity",
+      "conclusion": "当前官方卡牌页用于确认卡牌身份；结构化数据库中的增强 6 条款另由 source-alignment 报告逐字校验。"
+    }
+  ],
+  "reproduction_command": "E:\\anaconda\\python.exe -c <see audit worklog: construct a real-card ShadowverseEnv at seed 10424110 and compare PlayCard normal/enhance_6>",
+  "status_at_capture": "open"
+}

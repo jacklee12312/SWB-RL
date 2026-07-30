@@ -1,0 +1,52 @@
+{
+  "schema_version": 1,
+  "bug_id": "SWB-CARD-0001",
+  "captured_at": "2026-07-29",
+  "discovery_commit": "845b3c99257b28e77e52db42d98e2e9de9f61f98",
+  "minimal_seed": 10661110,
+  "card": {
+    "card_id": 10661110,
+    "name": "崇奉的懦者",
+    "printed_cost": 5,
+    "mode_id": "crystallize_2",
+    "mode_cost": 2
+  },
+  "setup": {
+    "current_cost": 5,
+    "remaining_pp": 5,
+    "board_slots_used": 0,
+    "pending_choice": false
+  },
+  "command_and_mask_result_before_fix": {
+    "normal_command_legal": true,
+    "crystallize_command_legal": true,
+    "normal_action_id": 1,
+    "crystallize_action_id": 79,
+    "normal_action_mask": true,
+    "crystallize_action_mask": true
+  },
+  "expected": "本体当前费用可支付时，只允许 normal；结晶动作必须同时从 command 和 action mask 消失。",
+  "actual": "normal 与 crystallize_2 同时合法，且两个 RL 动作位同时为 true。",
+  "impact": "替代模式合法性和策略动作空间错误；正式训练会采样客户端中不存在的动作。",
+  "affected_training_decks": [
+    "official_qr_evolve_haven_20260727"
+  ],
+  "evidence": [
+    {
+      "tier": 1,
+      "kind": "official_rules",
+      "url": "https://shadowverse.com/cards/cardpack/verdantconflict/?lang=en",
+      "retrieved_at": "2026-07-29",
+      "conclusion": "Cygames defines Crystallize as playable for its Crystallize cost when there are not enough play points for the card's original cost.",
+      "summary": "官方结晶机制说明要求本体费用不可支付。"
+    },
+    {
+      "tier": 1,
+      "kind": "official_current_card_page",
+      "url": "https://shadowverse-wb.com/ja/deck/cardslist/card/?card_id=10661110",
+      "retrieved_at": "2026-07-29",
+      "conclusion": "The official current card page identifies the audited card; its glossary is dynamically rendered and was not used as semantic evidence.",
+      "summary": "当前官网卡牌页用于卡牌身份，不用于推断动态词条。"
+    }
+  ]
+}
