@@ -16,8 +16,10 @@ from scripts.card_audit_sampling import (
     build_full_pool_specs,
 )
 from swb.db.repository import CardRepository
+from swb.engine.card_rules import RuleBook
 from swb.engine.environment import MATCH_SETUP_OFFICIAL, ShadowverseEnv
 from swb.engine.resolution import GameEngine
+from swb.rl.catalog import TrainableCardCatalog
 from swb.rl.checkpoint import load_checkpoint
 from swb.rl.runtime import WorkerAssetsSnapshot
 from swb.rl.versioning import stable_json_sha256
@@ -28,8 +30,15 @@ def _entity_row(entity: Any) -> dict[str, object]:
         "entity_id": entity.entity_id,
         "card_id": entity.definition.card_id,
         "name": entity.definition.name,
+        "attack": getattr(entity, "attack", None),
         "health": getattr(entity, "health", None),
         "max_health": getattr(entity, "max_health", None),
+        "base_attack": getattr(entity, "base_attack", None),
+        "base_health": getattr(entity, "base_health", None),
+        "stat_modifiers": [
+            asdict(modifier)
+            for modifier in getattr(entity, "stat_modifiers", ())
+        ],
         "evolved": getattr(entity, "evolved", False),
         "super_evolved": getattr(entity, "super_evolved", False),
     }
@@ -94,6 +103,7 @@ def reproduce_failure(
     master_seed: int,
     max_game_turns: int,
     max_agent_steps: int,
+    capture_after_action_count: int | None = None,
 ) -> dict[str, object]:
     specs = build_full_pool_specs(master_seed=master_seed)
     if game_id < 0 or game_id >= len(specs):
@@ -116,12 +126,13 @@ def reproduce_failure(
     command_trace: list[dict[str, object]] = []
     current_command: dict[str, object] = {}
     failure_state: dict[str, object] | None = None
+    captured_state_after_action: dict[str, object] | None = None
     active_env: ShadowverseEnv | None = None
     original_step = ShadowverseEnv.step
     original_assert_invariants = GameEngine.assert_invariants
 
     def capture_step(env: ShadowverseEnv, action: int):
-        nonlocal active_env
+        nonlocal active_env, captured_state_after_action
         active_env = env
         command = env._decode_action(action)
         current_command.clear()
@@ -135,7 +146,14 @@ def reproduce_failure(
         })
         actions.append(action)
         command_trace.append(dict(current_command))
-        return original_step(env, action)
+        result = original_step(env, action)
+        if len(actions) == capture_after_action_count:
+            captured_state_after_action = {
+                "action_count": len(actions),
+                "command": dict(current_command),
+                "state": _state_row(env),
+            }
+        return result
 
     def capture_failing_invariants(engine) -> None:
         nonlocal failure_state
@@ -184,6 +202,7 @@ def reproduce_failure(
             "master_seed": master_seed,
             "max_game_turns": max_game_turns,
             "max_agent_steps": max_agent_steps,
+            "capture_after_action_count": capture_after_action_count,
             "match_setup": MATCH_SETUP_OFFICIAL,
             "mulligan_policy": MULLIGAN_POLICY_CURVE,
             "validate_invariants": True,
@@ -203,7 +222,136 @@ def reproduce_failure(
         "action_trace_sha256": hashlib.sha256(action_bytes).hexdigest(),
         "command_trace": command_trace,
         "failure_state_before_rollback": failure_state,
+        "captured_state_after_action": captured_state_after_action,
         "reproduced": exception is not None and failure_state is not None,
+    }
+
+
+def replay_saved_failure(
+    *,
+    source_report: Path,
+    database: Path,
+    capture_after_action_count: int | None = None,
+) -> dict[str, object]:
+    """Replay the exact deck order, seed, and action prefix from a failure."""
+
+    source_bytes = source_report.read_bytes()
+    source = json.loads(source_bytes.decode("utf-8"))
+    failure = source.get("failure")
+    if not isinstance(failure, dict):
+        raise ValueError("source report has no failure object")
+    required = ("deck_a", "deck_b", "class_a", "class_b", "game_seed", "actions")
+    missing_fields = [field for field in required if field not in failure]
+    if missing_fields:
+        raise ValueError(
+            "source failure is missing fields: " + ", ".join(missing_fields)
+        )
+
+    repository = CardRepository(database)
+    catalog = TrainableCardCatalog.from_repository(repository)
+
+    def resolve_deck(field: str) -> list[object]:
+        deck = []
+        for card_id in failure[field]:
+            card = catalog.resolve(int(card_id))
+            if card is None:
+                raise ValueError(f"{field} references unknown card {card_id}")
+            deck.append(card)
+        return deck
+
+    deck_a = resolve_deck("deck_a")
+    deck_b = resolve_deck("deck_b")
+    env = ShadowverseEnv(
+        deck_a,
+        deck_b,
+        class_a=int(failure["class_a"]),
+        class_b=int(failure["class_b"]),
+        seed=int(failure["game_seed"]),
+        rulebook=RuleBook.from_directory(ShadowverseEnv.DEFAULT_RULE_DIRECTORY),
+        card_resolver=catalog.resolve,
+        validate_invariants=True,
+        match_setup=str(source.get("match_setup", MATCH_SETUP_OFFICIAL)),
+    )
+    env.reset()
+    command_trace: list[dict[str, object]] = []
+    illegal_action_indices: list[int] = []
+    exception: dict[str, object] | None = None
+    failure_state: dict[str, object] | None = None
+    captured_state_after_action: dict[str, object] | None = None
+    actions_replayed: list[int] = []
+
+    for action_index, raw_action in enumerate(failure["actions"]):
+        action = int(raw_action)
+        mask = env.action_mask()
+        if action < 0 or action >= len(mask) or not mask[action]:
+            illegal_action_indices.append(action_index)
+        command = env._decode_action(action)
+        command_row = {
+            "action_index": action_index,
+            "turn": env.turn,
+            "decision_player": env.decision_player,
+            "action": action,
+            "command_type": type(command).__name__,
+            "command": repr(command),
+        }
+        command_trace.append(command_row)
+        actions_replayed.append(action)
+        try:
+            env.step(action)
+        except Exception as exc:
+            exception = {
+                "type": type(exc).__name__,
+                "message": str(exc),
+            }
+            failure_state = {
+                "command": command_row,
+                "state": _state_row(env),
+            }
+            break
+        if len(actions_replayed) == capture_after_action_count:
+            captured_state_after_action = {
+                "action_count": len(actions_replayed),
+                "command": command_row,
+                "state": _state_row(env),
+            }
+
+    action_bytes = b"".join(
+        action.to_bytes(2, "big") for action in actions_replayed
+    )
+    return {
+        "schema_version": 1,
+        "report_kind": "swb_card_audit_saved_failure_replay",
+        "source": {
+            "path": source_report.as_posix(),
+            "sha256": hashlib.sha256(source_bytes).hexdigest(),
+            "game_index": failure.get("game_index"),
+            "game_seed": failure["game_seed"],
+            "source_action_index": failure.get("action_index"),
+            "source_exception_type": failure.get("exception_type"),
+            "source_exception": failure.get("exception"),
+        },
+        "configuration": {
+            "database": database.as_posix(),
+            "match_setup": source.get("match_setup", MATCH_SETUP_OFFICIAL),
+            "validate_invariants": True,
+            "capture_after_action_count": capture_after_action_count,
+        },
+        "decks": {
+            "class_a": failure["class_a"],
+            "class_b": failure["class_b"],
+            "player_1": failure["deck_a"],
+            "player_2": failure["deck_b"],
+        },
+        "exception": exception,
+        "action_count": len(actions_replayed),
+        "actions": actions_replayed,
+        "action_trace_sha256": hashlib.sha256(action_bytes).hexdigest(),
+        "command_trace": command_trace,
+        "illegal_action_indices": illegal_action_indices,
+        "failure_state_before_rollback": failure_state,
+        "captured_state_after_action": captured_state_after_action,
+        "final_state": _state_row(env),
+        "reproduced": exception is not None,
     }
 
 
@@ -211,7 +359,13 @@ def main() -> None:
     parser = argparse.ArgumentParser(
         description="Reproduce one deterministic checklist 1.12 sampling failure"
     )
-    parser.add_argument("--game-id", type=int, required=True)
+    source = parser.add_mutually_exclusive_group(required=True)
+    source.add_argument("--game-id", type=int)
+    source.add_argument(
+        "--source-report",
+        type=Path,
+        help="Replay the exact saved deck order, seed, and action prefix.",
+    )
     parser.add_argument(
         "--database",
         type=Path,
@@ -225,27 +379,59 @@ def main() -> None:
     parser.add_argument("--master-seed", type=int, default=120012)
     parser.add_argument("--max-game-turns", type=int, default=200)
     parser.add_argument("--max-agent-steps", type=int, default=2000)
+    parser.add_argument(
+        "--capture-after-action-count",
+        type=int,
+        help="Save the complete state immediately after this many actions.",
+    )
+    parser.add_argument(
+        "--expect",
+        choices=("failure", "success", "either"),
+        default="failure",
+        help="Expected replay outcome (default: failure).",
+    )
     parser.add_argument("--output", type=Path, required=True)
     args = parser.parse_args()
-    report = reproduce_failure(
-        game_id=args.game_id,
-        database=args.database,
-        checkpoint=args.checkpoint,
-        master_seed=args.master_seed,
-        max_game_turns=args.max_game_turns,
-        max_agent_steps=args.max_agent_steps,
+    if args.source_report is not None:
+        report = replay_saved_failure(
+            source_report=args.source_report,
+            database=args.database,
+            capture_after_action_count=args.capture_after_action_count,
+        )
+        source_label = args.source_report.as_posix()
+    else:
+        report = reproduce_failure(
+            game_id=args.game_id,
+            database=args.database,
+            checkpoint=args.checkpoint,
+            master_seed=args.master_seed,
+            max_game_turns=args.max_game_turns,
+            max_agent_steps=args.max_agent_steps,
+            capture_after_action_count=args.capture_after_action_count,
+        )
+        source_label = f"game_id={args.game_id}"
+    expectation_met = (
+        args.expect == "either"
+        or (args.expect == "failure" and report["reproduced"])
+        or (args.expect == "success" and report["exception"] is None)
     )
+    report["expected_outcome"] = args.expect
+    report["expectation_met"] = expectation_met
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(
         json.dumps(report, ensure_ascii=False, indent=2, default=str) + "\n",
         encoding="utf-8",
     )
     print(
-        f"game_id={args.game_id} reproduced={report['reproduced']} "
-        f"actions={report['action_count']} output={args.output.as_posix()}"
+        f"source={source_label} reproduced={report['reproduced']} "
+        f"actions={report['action_count']} expectation_met={expectation_met} "
+        f"output={args.output.as_posix()}"
     )
-    if not report["reproduced"]:
-        raise SystemExit("sampling failure did not reproduce")
+    if not expectation_met:
+        raise SystemExit(
+            f"expected {args.expect} outcome, got "
+            f"{'failure' if report['exception'] else 'success'}"
+        )
 
 
 if __name__ == "__main__":

@@ -331,8 +331,9 @@ class RealListenerSpellboostFollowupTests(unittest.TestCase):
             controller=0,
             label="测试属性设定",
         )
-        # Existing additive modifiers remain layered over the newly set base.
-        self.assertEqual((source.attack, source.max_health), (9, 9))
+        # A specific-value assignment is not an additive buff and replaces
+        # older changes in the dimensions it assigns.
+        self.assertEqual((source.attack, source.max_health), (8, 8))
         self.assertEqual(engine.players[0].health, 17)
 
     def test_lilara_heals_for_each_successful_soldier_entry(self):

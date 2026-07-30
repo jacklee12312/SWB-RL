@@ -195,7 +195,7 @@ deterministic replays. The stratified
 [full-pool gate](data/reports/card_bug_audit/full_pool_sampling_10000.json)
 passes 10,000 games (9,804 random-legal, 196 policy), places all 735 exact
 collectible cards in sampled decks, encounters 824 cards, and completes
-908,943 action-mask checks. Both reports have zero placeholders, mask
+909,158 action-mask checks. Both reports have zero placeholders, mask
 mismatches, illegal actions, exceptions, or truncations. The separate
 [long-game/Myuu report](data/reports/card_bug_audit/long_truncation_myuu_distribution.md)
 retains reproducible manifests for 95 long games and 240 Myuu matchups; neither
@@ -208,20 +208,32 @@ could expose the parent effect's next choice before state-based deaths were
 processed. The latter fix bounds nested effect continuation by stack depth,
 so new deaths stabilize before the parent frame resumes; it adds no card-ID
 branch. The required 1,000-game shared-engine gate then found P0
-`SWB-CARD-0008`: after a permanent negative-health modifier and a set-health
-effect had clamped a follower to 1/1, super evolution added three current
-health while the effective maximum increased by only one, producing an
-invalid 4/2 follower. The fix increases current health by the actual
-max-health delta, preserving damage without a card-ID branch. Its exact
-107-action pre-fix replay and the focused three-real-card regression are
-retained with the first failed 10,000-game dataset and both `0007` action
-reproductions.
+`SWB-CARD-0008`: after Gilnelise's `+2/-2`, Snow Awake set Medusa's health to
+1, but `SET_STATS` retained the older hidden `-2` health modifier. Super
+evolution therefore produced an invalid 8/4 follower with maximum health 2.
+An initial invariant-only correction produced 8/2 and was reopened because it
+contradicted the direct
+[official Snow Awake Q&A](https://shadowverse-wb.com/ja/deck/cardslist/card/?card_id=10132320),
+which says a follower set to 1 health evolves to 3 health and super-evolves to
+4 health. The final generic `Unit.set_stats()` implementation supersedes
+earlier modifiers only in assigned dimensions, while preserving unassigned
+dimensions and allowing later modifiers to layer normally; it contains no
+card-ID branch. The exact saved 107-action prefix now replays to 8/4 with
+maximum health 4 and no illegal action.
+
+The official-source-first ruling ledger is saved at
+[`data/audits/card_ruling_reviews.json`](data/audits/card_ruling_reviews.json).
+It records queries, access dates, official URLs, conclusions, and evidence
+scope. The lower-frequency question of how an older temporary modifier expires
+after a later specific-value assignment has no direct official Q&A yet; its
+provisional behavior remains explicitly `ruling_uncertain` pending a client
+reproduction rather than being presented as officially confirmed.
 
 After that fix, the same frozen configuration was rerun: the 1,024-game
 eight-deck matrix and 10,000-game full-pool gate passed again, as did
-[100-game](data/reports/card_bug_audit/stage_1_12_random_self_play_100.json)
+[100-game](data/reports/card_bug_audit/stage_1_12_0008_official_random_self_play_100.json)
 and
-[1,000-game](data/reports/card_bug_audit/stage_1_12_random_self_play_1000.json)
+[1,000-game](data/reports/card_bug_audit/stage_1_12_0008_official_random_self_play_1000.json)
 invariant self-play. The 1,000-game run had zero draws, truncations, illegal
 actions, or mask mismatches. Random self-play now writes the failing game
 index, per-game seed, decks, full action sequence, mask, board state, and

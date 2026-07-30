@@ -14,7 +14,7 @@
       "path": "data/reports/card_bug_audit/training_deck_card_closure.json",
       "sha256": "737cb2c26f282ae6e67730be44e78a278e5a67683c044dc1730c9b640fb74e75"
     },
-    "resolution_source_sha256": "8e14e8bceb199d210724bba3b6f8dd3eb925f163617a9fc563384c301efe51d4",
+    "resolution_source_sha256": "c711b5a15c19da9d45108a1705ab56b1b8a4a7f5ef8e6390bd492ff9b5149a2c",
     "environment_source_sha256": "ca9fee0ac7ff20210ac5cb163423906877fdc0c66bf8445863e96a05796ed84a"
   },
   "policy": {

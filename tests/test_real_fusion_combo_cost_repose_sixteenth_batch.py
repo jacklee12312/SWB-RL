@@ -43,7 +43,7 @@ from swb.engine.environment import ShadowverseEnv
 from swb.engine.events import EventType
 from swb.engine.origin import CardOrigin
 from swb.engine.resolution import IllegalCommand
-from swb.engine.state import CostModifier, DeckCard
+from swb.engine.state import CostModifier, DeckCard, StatModifier
 from tests.test_real_low_coverage_token_amulet_batch import (
     _card,
     _destroy_units,
@@ -645,6 +645,13 @@ class FusionComboCostReposeSixteenthBehaviorTests(unittest.TestCase):
             )
             for index, (attack, life) in enumerate(((1, 3), (7, 8)))
         ]
+        enemies[0].add_stat_modifier(
+            StatModifier(996701, 3, 0, "permanent", None)
+        )
+        enemies[1].add_stat_modifier(
+            StatModifier(996702, -2, 0, "permanent", None)
+        )
+        self.assertEqual([unit.attack for unit in enemies], [4, 5])
         _enable_super_evolution(engine)
         engine.apply(SuperEvolve(0, source.entity_id))
         self.assertEqual(

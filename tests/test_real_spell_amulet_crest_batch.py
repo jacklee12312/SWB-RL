@@ -16,7 +16,7 @@ from swb.engine.effects import EffectKind
 from swb.engine.environment import ShadowverseEnv
 from swb.engine.origin import CardOrigin
 from swb.engine.resolution import GameConfig, GameEngine
-from swb.engine.state import Amulet, CostModifier, HandCard, Unit
+from swb.engine.state import Amulet, CostModifier, HandCard, StatModifier, Unit
 from tests.play_mode_test_support import prepare_mana_for_play_mode
 
 
@@ -311,7 +311,15 @@ class RealSpellAmuletCrestBehaviorTests(unittest.TestCase):
     def test_pascales_dance_draws_then_pays_ten_and_doubles_current_stats(self):
         engine = self.fresh(seed=31)
         unit = _put_unit(engine, 0, _card(23300, attack=3, life=5))
-        unit.health = 4
+        unit.add_stat_modifier(
+            StatModifier(
+                modifier_id=23301,
+                attack_delta=1,
+                health_delta=2,
+                duration="permanent",
+            )
+        )
+        unit.health = 6
         _put_earth_sigils(engine, 9)
         deck_before = len(engine.players[0].deck)
         _play(engine, self.repository, 10233310)
@@ -319,7 +327,8 @@ class RealSpellAmuletCrestBehaviorTests(unittest.TestCase):
         engine.apply(EndTurn(0))
         self.assertEqual(len(engine.players[0].deck), deck_before - 1)
         self.assertEqual(engine.players[0].earth_sigils, 0)
-        self.assertEqual((unit.attack, unit.health, unit.max_health), (6, 8, 8))
+        self.assertEqual((unit.attack, unit.health, unit.max_health), (8, 12, 12))
+        self.assertEqual(unit.stat_modifiers, [])
 
         below = self.fresh(seed=37)
         unit = _put_unit(below, 0, _card(23301, attack=2, life=3))

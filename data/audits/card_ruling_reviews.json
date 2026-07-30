@@ -1,0 +1,130 @@
+{
+  "schema_version": 1,
+  "report_kind": "swb_card_ruling_reviews",
+  "last_updated": "2026-07-30",
+  "search_policy": {
+    "required_order": [
+      {
+        "order": 1,
+        "kind": "official_card_qa",
+        "description": "先搜索对应卡牌的 Cygames 官方卡牌页及 Q&A。"
+      },
+      {
+        "order": 2,
+        "kind": "official_help_and_rules",
+        "description": "再搜索官方帮助、用语集和规则说明。"
+      },
+      {
+        "order": 3,
+        "kind": "official_notices_and_errata",
+        "description": "再检查官方公告、勘误、已知问题和维护说明。"
+      },
+      {
+        "order": 4,
+        "kind": "official_other_languages",
+        "description": "再检查同一卡牌的官方其他语言页面及 Q&A。"
+      },
+      {
+        "order": 5,
+        "kind": "reproducible_client_evidence",
+        "description": "最后检查或生成记录版本、局面和操作序列的客户端复现。"
+      }
+    ],
+    "no_official_match_policy": {
+      "allow_provisional_implementation": true,
+      "required_status": "ruling_uncertain",
+      "must_record": [
+        "search_queries",
+        "official_pages_checked",
+        "provisional_interpretation",
+        "alternatives",
+        "reason",
+        "impact",
+        "follow_up"
+      ],
+      "may_claim_official_confirmation": false,
+      "may_close_from_tests_or_invariants_alone": false
+    }
+  },
+  "entries": [
+    {
+      "ruling_id": "SWB-RULING-0008-A",
+      "bug_id": "SWB-CARD-0008",
+      "status": "confirmed",
+      "question": "随从先受到 +2/-2，再被《雪人觉醒》把生命设为 1，随后超进化时生命如何变化？",
+      "search_queries": [
+        "site:shadowverse-wb.com/ja \"体力を1にする\" \"超進化\"",
+        "site:shadowverse-wb.com/ja \"体力を1に\" \"+3/+3\"",
+        "site:shadowverse-wb.com/ja \"干絶の顕現・ギルネリーゼ\"",
+        "site:shadowverse-wb.com/ja \"スノーアウェイク\""
+      ],
+      "official_pages_checked": [
+        {
+          "authority": "official_card_qa",
+          "url": "https://shadowverse-wb.com/ja/deck/cardslist/card/?card_id=10132320",
+          "accessed_on": "2026-07-30",
+          "result": "官方 Q&A 明确：被《雪人觉醒》变为 4/1 的随从，普通进化为 6/3，超进化为 7/4。"
+        },
+        {
+          "authority": "official_help_glossary",
+          "url": "https://shadowverse-wb.com/ja/help/?tab=tab0",
+          "accessed_on": "2026-07-30",
+          "result": "普通进化为 +2/+2，超进化为 +3/+3；生命增减同时改变当前生命和生命上限。"
+        },
+        {
+          "authority": "official_card_text",
+          "url": "https://shadowverse-wb.com/ja/deck/cardslist/card/?card_id=10304120",
+          "accessed_on": "2026-07-30",
+          "result": "吉尔内莉莎的 +2/-2 先于《雪人觉醒》的生命设定发生。"
+        }
+      ],
+      "conclusion": "真实三卡链从美杜莎 3/7 开始，经 +2/-2 为 5/5，经《雪人觉醒》为 5/1，超进化后为攻击 8、当前生命 4、生命上限 4。",
+      "evidence_scope": "《雪人觉醒》后的进化数值有直接官方 Q&A；完整三卡结果由该 Q&A、官方 +3/+3 词条及三张卡的结算顺序逐步组合。"
+    },
+    {
+      "ruling_id": "SWB-RULING-SET-STATS-TEMP-001",
+      "bug_id": null,
+      "status": "ruling_uncertain",
+      "question": "先获得有期限的攻击/生命增减、随后被设为特定数值时，较早临时修正在到期时是否还会反向改变已经设定的维度？",
+      "search_queries": [
+        "site:shadowverse-wb.com/ja/deck/cardslist/card/ \"体力1にな\" \"ターン終了\"",
+        "site:shadowverse-wb.com/ja/deck/cardslist/card/ \"攻撃力4になる\" \"+\" \"Q＆A\"",
+        "site:shadowverse-wb.com/ja/deck/cardslist/card/ \"攻撃力や体力を特定の値にする\""
+      ],
+      "official_pages_checked": [
+        {
+          "authority": "official_card_qa",
+          "url": "https://shadowverse-wb.com/ja/deck/cardslist/card/?card_id=10132320",
+          "accessed_on": "2026-07-30",
+          "result": "确认生命设为 1 后的普通/超进化增量，但没有回答更早临时修正到期。"
+        },
+        {
+          "authority": "official_card_text",
+          "url": "https://shadowverse-wb.com/ja/deck/cardslist/card/?card_id=10364110",
+          "accessed_on": "2026-07-30",
+          "result": "确认妃花把敌方随从攻击力设为 4，但没有回答更早临时修正到期。"
+        },
+        {
+          "authority": "official_card_qa",
+          "url": "https://shadowverse-wb.com/ja/deck/cardslist/card/?card_id=10361120",
+          "accessed_on": "2026-07-30",
+          "result": "确认设为特定数值不属于攻击力/生命增加，但没有回答更早临时修正到期。"
+        },
+        {
+          "authority": "official_help_glossary",
+          "url": "https://shadowverse-wb.com/ja/help/?tab=tab0",
+          "accessed_on": "2026-07-30",
+          "result": "没有检出该临时修正到期组合的专门说明。"
+        }
+      ],
+      "provisional_interpretation": "设为特定数值覆盖该时点以前同一维度的增减；更早临时修正到期时不再次改变已设定维度。设定之后新增的修正仍正常生效和到期。",
+      "alternatives": [
+        "保留较早临时修正，使其到期时从设定后的数值反向变化。",
+        "只覆盖永久修正，临时修正仍保留到期影响。"
+      ],
+      "reason": "“变为特定数值”与官方确认的后续进化增量最一致，也避免内部隐藏旧修正在未来重新套用；当前未找到直接覆盖临时到期的官方 Q&A。",
+      "impact": "影响低频的 SET_STATS 与先前有期限增减组合；核心 SWB-CARD-0008 永久 -2、生命设为 1、超进化链已有直接官方证据，不依赖此待确认边界。",
+      "follow_up": "优先使用客户端构造临时增减→设定数值→回合结束到期的可重复复现，或等待官方 Q&A；在获得证据前保持 ruling_uncertain。"
+    }
+  ]
+}

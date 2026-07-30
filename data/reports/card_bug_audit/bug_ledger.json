@@ -362,19 +362,22 @@
         "card_id": null,
         "name": "进化生命增量与负生命修正的通用结算"
       },
-      "mechanic": "Evolution health gain after max-health clamping and negative modifiers",
+      "mechanic": "SET_STATS assignment after prior stat modifiers, followed by evolution",
       "discovery_commit": "bb5635b58709e0c3e6cf5486f6708530f47be3f2",
       "minimal_seed": 120445,
       "reproduction_file": "data/reports/card_bug_audit/reproductions/SWB-CARD-0008.json",
-      "expected": "进化或超进化应保持随从已损失生命不变；存在负生命修正和生命上限下限钳制时，当前生命只增加实际生命上限增量。",
-      "actual": "超进化固定增加 3 点当前生命，但实际生命上限只从 1 增至 2，使真实卡牌组合中的 10154120 变为非法的 4/2 并触发不变量异常。",
+      "expected": "Cygames《雪人觉醒》官方 Q&A 明确：生命被设为 1 后普通进化增加到 3、超进化增加到 4。真实三卡链应从 5/1 超进化为攻击 8、当前生命 4、生命上限 4。",
+      "actual": "SET_STATS 将生命 1 写入 base_health，却保留更早的永久 health_delta=-2；原实现超进化得到非法 8/4（上限 2）并触发不变量异常，第一次修复虽不再异常却得到与官方 Q&A 冲突的 8/2（上限 2）。",
       "impact": "合法超进化 command/action 会抛出 IllegalCommand 并终止随机自博弈或训练采样，属于正式训练阻断问题。",
       "affected_decks": [],
-      "fix_commit": "working-tree:94af11b3355a39e54e8d482816c26117a1125778",
+      "fix_commit": "working-tree:af133ea272ccc77eb964577c364360dab3ef5526",
       "regression_tests": [
-        "tests/test_real_generated_burst_spell_batch.py::RealGeneratedBurstSpellTests::test_super_evolution_preserves_damage_after_negative_health_modifier"
+        "tests/test_card_audit_reproduction.py::CardAuditReproductionTests::test_swb_card_0008_exact_saved_prefix_reaches_official_stats",
+        "tests/test_real_generated_burst_spell_batch.py::RealGeneratedBurstSpellTests::test_ordinary_evolution_after_set_health_uses_official_visible_plus_two",
+        "tests/test_real_generated_burst_spell_batch.py::RealGeneratedBurstSpellTests::test_super_evolution_after_set_health_uses_official_visible_plus_three",
+        "tests/test_unit_state.py::SetStatsTests::test_set_stats_overrides_older_modifiers_in_set_dimensions"
       ],
-      "notes": "1.12 的 1,000 局广泛共享引擎门禁于 game 433、seed 120445 发现；修复前双方卡组、107 步动作、场面和状态指纹均已保存。修复按实际生命上限差更新当前生命，无 card ID 特判；同一动作序列 post-fix 回放得到 2/2 并通过不变量。"
+      "notes": "1.12 的 1,000 局门禁于 game 433、seed 120445 发现。2026-07-30 复核 Cygames 官方 Q&A 后重开：旧 2/2 结论只能证明不变量不再失败，不能证明规则正确。通用 Unit.set_stats 现覆盖设定前同维度修正，不含 card ID 特判；真正读取原失败报告的 107 步精确回放得到 8/4（上限 4），0 个非法动作。更早临时修正在设定后到期的边界未找到直接官方 Q&A，作为 SWB-RULING-SET-STATS-TEMP-001 保持 ruling_uncertain 并等待客户端复现。"
     }
   ]
 }

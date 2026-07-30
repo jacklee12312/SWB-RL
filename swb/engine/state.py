@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from collections import deque
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from enum import Enum
 from typing import TYPE_CHECKING, Any
 
@@ -918,6 +918,48 @@ class Unit(BoardEntity):
             self.attack += m.attack_delta
         if self.attack < 0:
             self.attack = 0
+
+    def set_stats(
+        self,
+        *,
+        attack: int | None = None,
+        health: int | None = None,
+    ) -> None:
+        """Assign final visible stats while preserving untouched dimensions.
+
+        A specific-value assignment supersedes changes that happened earlier
+        in each assigned dimension.  Modifiers added after this call continue
+        to layer normally, and an older mixed modifier keeps only the
+        dimensions that were not assigned.
+        """
+
+        if attack is None and health is None:
+            return
+
+        remaining_modifiers: list[StatModifier] = []
+        for modifier in self.stat_modifiers:
+            adjusted = replace(
+                modifier,
+                attack_delta=(
+                    0 if attack is not None else modifier.attack_delta
+                ),
+                health_delta=(
+                    0 if health is not None else modifier.health_delta
+                ),
+            )
+            if adjusted.attack_delta != 0 or adjusted.health_delta != 0:
+                remaining_modifiers.append(adjusted)
+        self.stat_modifiers = remaining_modifiers
+
+        if attack is not None:
+            self.base_attack = max(0, attack)
+        if health is not None:
+            self.base_health = max(1, health)
+
+        self._recompute_attack()
+        self._recompute_max()
+        if health is not None:
+            self.health = self.max_health
 
     def add_stat_modifier(self, modifier: StatModifier) -> None:
         self.stat_modifiers.append(modifier)

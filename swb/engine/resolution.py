@@ -11824,6 +11824,7 @@ class GameEngine:
         if not isinstance(target, Unit):
             raise IllegalCommand("SET_STATS target must be a follower")
 
+        attack_val: int | None = None
         if effect.set_attack:
             attack_val = (
                 effect.amount
@@ -11835,9 +11836,8 @@ class GameEngine:
             )
             if attack_val < 0:
                 attack_val = 0
-            target.base_attack = attack_val
-            target._recompute_attack()
 
+        health_val: int | None = None
         if effect.set_health:
             health_val = (
                 effect.secondary_amount
@@ -11849,9 +11849,8 @@ class GameEngine:
             )
             if health_val < 1:
                 health_val = 1
-            target.base_health = health_val
-            target._recompute_max()
-            target.health = target.max_health
+
+        target.set_stats(attack=attack_val, health=health_val)
 
     def _execute_attack_restriction(
         self, effect: EffectOperation, frame: EffectFrame, target_id: int | None, *, add: bool

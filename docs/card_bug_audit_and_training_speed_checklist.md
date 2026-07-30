@@ -1,6 +1,6 @@
 # 卡牌 Bug 排查与训练速度优化 Checklist
 
-最后更新：2026-07-29
+最后更新：2026-07-31
 
 ## 目标与执行顺序
 
@@ -20,7 +20,7 @@
 - 当前八套固定卡组覆盖七个职业，合计约 111 张不同的可收集卡。
 - 当前覆盖报告将 735 张可收集卡列为 `covered_exact`，但该状态不等于
   所有运行时边界和机制组合均已验证。
-- 当前完整测试为 2664 项通过、1 项跳过。
+- 当前完整测试为 2812 项通过、1 项跳过。
 - 最近一次 v4.1 三 seed 实验约为 99.84 agent steps/s；该数据来自既有
   实验，不作为优化后的公平基线。
 
@@ -31,6 +31,12 @@
 - “随机对局没有报错”不能代替能力分支覆盖。
 - “卡牌有一项测试”不能代替逐条卡牌文字和边界条件审计。
 - 不确定规则必须保持显式待确认，不能根据现有引擎行为反推官方规则。
+- 具体交互裁定必须先依次搜索 Cygames 官方卡牌页/Q&A、官方帮助与规则、
+  官方公告/勘误、官方其他语言页面，再检查可重复客户端证据；查询词、日期、
+  URL、适用范围和结论保存到 `data/audits/card_ruling_reviews.json`。
+- 未找到直接或足够类似的官方裁定时只能采用标记为 `ruling_uncertain` 的
+  暂定解释，并记录其他解释、选择理由、影响与客户端复现/官方答复 follow-up；
+  测试和不变量通过本身不能关闭裁定问题。
 - 性能对比必须使用相同提交、卡库、规则、Observation、网络、checkpoint、
   seed、对阵表和训练步数。
 
@@ -685,8 +691,9 @@ Invocation/瞬念召唤及其他替代出牌方式。
 - [x] 对完整卡池运行按机制分层的强制场景和至少 10,000 局采样。
 - [x] 为长局、截断和 Myuu 对阵单独保存分布及复现。
 
-完成证据（2026-07-30，规则基线
-`bb5635b58709e0c3e6cf5486f6708530f47be3f2`）：
+完成证据（2026-07-31；发现基线
+`bb5635b58709e0c3e6cf5486f6708530f47be3f2`，SWB-CARD-0008 官方裁定
+修正工作树 `af133ea272ccc77eb964577c364360dab3ef5526`）：
 
 - `swb/engine/forced_scenarios.py` 提供费用、目标、容量、资源、普通/超进化、
   回合开始/结束和同时死亡共 9 个通用最小 fixture；17 次必要直接状态准备
@@ -702,33 +709,42 @@ Invocation/瞬念召唤及其他替代出牌方式。
 - `data/reports/card_bug_audit/full_pool_sampling_10000.json`：
   10,000/10,000 局终局，9,804 局 random legal、196 局冻结 checkpoint
   policy，98 个职业/策略分层；735/735 可收集卡进入卡组、实际遇见 824 张卡，
-  98 次分层重放全部一致；908,943 次 mask 检查，placeholder、mask 分歧、
+  98 次分层重放全部一致；909,158 次 mask 检查，placeholder、mask 分歧、
   非法动作、异常和截断均为 0，acceptance `pass`。
 - `data/reports/card_bug_audit/full_pool_sampling_10000_failed_20260730.json`
   保留首次长跑失败数据；`SWB-CARD-0005`/`0006` 记录结构化规则已实现却误报
   placeholder 的 P1 诊断缺陷，`SWB-CARD-0007` 记录谢幕曲致死后父效果过早
   请求选择、留下 0 生命单位的 P0 解析缺陷。最终 1,000 局共享引擎门禁又在
-  game 433、seed 120445 发现 `SWB-CARD-0008`：负生命修正和生命上限钳制后
-  超进化把当前生命结算为非法的 4/2。三张真实卡的 107 步动作复现保存于
+  game 433、seed 120445 发现 `SWB-CARD-0008`：更早的 `+2/-2` 修正错误残留
+  在后续“生命设为 1”的内部基值下，超进化结算为攻击 8、当前生命 4、生命
+  上限 2，并触发不变量异常。三张真实卡的 107 步动作复现保存于
   `data/reports/card_bug_audit/reproductions/SWB-CARD-0008-random-self-play.json`，
-  最小回归与 post-fix 2/2 精确回放结论保存于 `SWB-CARD-0008.json`。全部
-  缺陷均先保存复现和失败测试，再以通用机制修复；Bug 台账 P0/P1 未关闭数
-  均为 0。
+  最小回归与真实 post-fix 8/4（生命上限 4）精确回放结论保存于
+  `SWB-CARD-0008.json`，机器可读回放为 `SWB-CARD-0008-postfix-official.json`。
+  旧 2/2 结论仅证明不变量不再失败，因与 Cygames《雪人觉醒》官方 Q&A
+  冲突而被重开并纠正。最终 `Unit.set_stats()` 以通用维度覆盖语义修复，
+  不含 card ID 特判；Bug 台账 P0/P1 未关闭数均为 0。
+- `data/audits/card_ruling_reviews.json` 固化官方来源优先流程并保存本次查询。
+  `SWB-RULING-0008-A` 有《雪人觉醒》直接官方 Q&A；更早临时修正到期是否
+  反向影响后续设定值未找到直接官方资料，保留为
+  `SWB-RULING-SET-STATS-TEMP-001` / `ruling_uncertain`，采用“设定覆盖此前
+  同维度修正”的暂定解释并等待客户端复现。
 - `data/reports/card_bug_audit/long_truncation_myuu_distribution.json`：
   汇总 11,024 局，保存 95 个长局、0 个截断和 240 个 Myuu 对局的完整复现
   manifest；Myuu 截断 0，回合 p99/max 为 37/46，agent steps p99/max 为
   175/360。人类可读摘要见同名 `.md`。
 - 最终规则下的共享引擎门禁保存在
-  `data/reports/card_bug_audit/stage_1_12_random_self_play_100.json` 和
-  `stage_1_12_random_self_play_1000.json`：固定 seed 120012 的 100/1,000
+  `data/reports/card_bug_audit/stage_1_12_0008_official_random_self_play_100.json`
+  和 `stage_1_12_0008_official_random_self_play_1000.json`：固定 seed
+  120012 的 100/1,000
   局均无平局、截断、非法动作和 mask 分歧，官方开局验收均为 `pass`；
-  1,000 局胜场 `[508, 492]`，Extra PP 使用 1,894 次。自博弈脚本现在会在
+  1,000 局胜场 `[521, 479]`，Extra PP 使用 1,895 次。自博弈脚本现在会在
   异常时保存失败局号、局 seed、双方卡组、完整动作序列、mask、场面和状态
   指纹，避免长跑失败只留下 traceback。
 - `E:\anaconda\python.exe -m unittest discover -s tests -v`：最终规则下
-  2,803 项通过，1 项条件跳过，耗时 434.822 秒，API test 通过；完整控制台
+  2,812 项通过，1 项条件跳过，耗时 435.269 秒，API test 通过；完整控制台
   记录保存在本地
-  `data/reports/card_bug_audit/stage_1_12_unittest.log`。
+  `data/reports/card_bug_audit/stage_1_12_0008_official_unittest.log`。
 - `E:\anaconda\python.exe -m compileall -q swb scripts tests`：通过。
 - `E:\anaconda\python.exe -m scripts.rl_mixed_match --output
   data/rl_mixed_match.log --validate-invariants`：完成，玩家 2 获胜，日志已保存。

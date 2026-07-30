@@ -906,7 +906,7 @@
       },
       {
         "path": "swb/engine/resolution.py",
-        "line": 11988,
+        "line": 11987,
         "function": "_execute_reanimate",
         "owner": "self.random",
         "method": "choice",
@@ -915,7 +915,7 @@
       },
       {
         "path": "swb/engine/resolution.py",
-        "line": 13441,
+        "line": 13440,
         "function": "_execute_choose_one",
         "owner": "self.random",
         "method": "sample",
@@ -924,7 +924,7 @@
       },
       {
         "path": "swb/engine/resolution.py",
-        "line": 13796,
+        "line": 13795,
         "function": "_execute_summon_from_deck",
         "owner": "self.random",
         "method": "choice",
@@ -933,7 +933,7 @@
       },
       {
         "path": "swb/engine/resolution.py",
-        "line": 14246,
+        "line": 14245,
         "function": "_execute_random_distribute",
         "owner": "self.random",
         "method": "randrange",
@@ -942,7 +942,7 @@
       },
       {
         "path": "swb/engine/resolution.py",
-        "line": 14350,
+        "line": 14349,
         "function": "_execute_random_choice",
         "owner": "self.random",
         "method": "sample",
@@ -951,7 +951,7 @@
       },
       {
         "path": "swb/engine/resolution.py",
-        "line": 14656,
+        "line": 14655,
         "function": "_execute_add_card_to_deck",
         "owner": "self.random",
         "method": "randint",
@@ -960,7 +960,7 @@
       },
       {
         "path": "swb/engine/resolution.py",
-        "line": 14760,
+        "line": 14759,
         "function": "_execute_return_to_deck",
         "owner": "self.random",
         "method": "randint",
@@ -969,7 +969,7 @@
       },
       {
         "path": "swb/engine/resolution.py",
-        "line": 14789,
+        "line": 14788,
         "function": "_execute_return_to_deck",
         "owner": "self.random",
         "method": "randint",

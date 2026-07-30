@@ -137,7 +137,7 @@ class RealGeneratedBurstSpellTests(unittest.TestCase):
             (before[0] + 4, before[1]),
         )
 
-    def test_super_evolution_preserves_damage_after_negative_health_modifier(self):
+    def test_super_evolution_after_set_health_uses_official_visible_plus_three(self):
         engine = self.fresh(seed=12)
         medusa = _put_unit(engine, 0, self.repository.get(10154120))
         _play(engine, self.repository, 10304120)
@@ -164,7 +164,41 @@ class RealGeneratedBurstSpellTests(unittest.TestCase):
         )
         engine.apply(SuperEvolve(0, medusa.entity_id))
 
-        self.assertEqual((medusa.health, medusa.max_health), (2, 2))
+        self.assertEqual(
+            (medusa.attack, medusa.health, medusa.max_health),
+            (8, 4, 4),
+        )
+
+    def test_ordinary_evolution_after_set_health_uses_official_visible_plus_two(self):
+        engine = self.fresh(seed=120)
+        medusa = _put_unit(engine, 0, self.repository.get(10154120))
+        _play(engine, self.repository, 10304120)
+        _choose(engine, medusa.entity_id)
+
+        snowman_rampage = HandCard(
+            definition=self.repository.get(10132320),
+            entity_id=engine.state.allocate_entity_id(),
+            origin=CardOrigin.DECK,
+        )
+        opponent = engine.players[1]
+        opponent.hand = [snowman_rampage]
+        opponent.hand_entity_ids = [snowman_rampage.entity_id]
+        engine.state.active_player = 1
+        engine.apply(PlayCard(1, 0))
+        _choose(engine, medusa.entity_id)
+        self.assertEqual(
+            (medusa.attack, medusa.health, medusa.max_health),
+            (5, 1, 1),
+        )
+
+        engine.state.active_player = 0
+        _enable_evolution(engine)
+        engine.apply(Evolve(0, medusa.entity_id))
+
+        self.assertEqual(
+            (medusa.attack, medusa.health, medusa.max_health),
+            (7, 3, 3),
+        )
 
     def test_bunny_barons_cooperation_threshold_capacity_and_two_shots(self):
         engine = self.fresh(seed=13)

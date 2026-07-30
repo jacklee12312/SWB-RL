@@ -54,4 +54,4 @@ These ledger flags do not authorize training by themselves; the eight-deck and f
 | SWB-CARD-0005 | P1 | fixed | 结构化谢幕曲运行时覆盖诊断 | Structured Last Words runtime coverage attribution | `data/reports/card_bug_audit/reproductions/SWB-CARD-0005.json` |
 | SWB-CARD-0006 | P1 | fixed | 结构化关键词来源通用诊断 | Structured ability provenance across rules, modes, listeners, emblems, passives and filters | `data/reports/card_bug_audit/reproductions/SWB-CARD-0006.json` |
 | SWB-CARD-0007 | P0 | fixed | 谢幕曲致死与父效果后续选择的通用解析顺序 | State-based death processing between nested Last Words and parent effect choices | `data/reports/card_bug_audit/reproductions/SWB-CARD-0007.json` |
-| SWB-CARD-0008 | P0 | fixed | 进化生命增量与负生命修正的通用结算 | Evolution health gain after max-health clamping and negative modifiers | `data/reports/card_bug_audit/reproductions/SWB-CARD-0008.json` |
+| SWB-CARD-0008 | P0 | fixed | 进化生命增量与负生命修正的通用结算 | SET_STATS assignment after prior stat modifiers, followed by evolution | `data/reports/card_bug_audit/reproductions/SWB-CARD-0008.json` |

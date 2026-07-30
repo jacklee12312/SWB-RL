@@ -23,7 +23,27 @@
       "evolution_target": 10154120
     }
   },
-  "expected": "10304120 给予 10154120 +2/-2 后，10132320 将其生命与生命上限设为 1；之后超进化应保持已损失生命不变，并按实际生命上限增量把状态结算为 2/2。",
+  "expected": "10304120 给予 10154120 +2/-2 后，10132320 将其生命与生命上限设为 1；Cygames 对 10132320 的官方 Q&A 明确“变为 1”后普通进化增加 2、超进化增加 3，因此真实三卡链应结算为攻击 8、当前生命 4、生命上限 4。",
+  "official_evidence": [
+    {
+      "authority": "official_card_qa",
+      "url": "https://shadowverse-wb.com/ja/deck/cardslist/card/?card_id=10132320",
+      "accessed_on": "2026-07-30",
+      "conclusion": "《雪人觉醒》使激震的巨像变为 4/1 后，普通进化为 6/3，超进化为 7/4；这直接确认设定生命后进化从可见生命值增加 2 或 3。"
+    },
+    {
+      "authority": "official_help_glossary",
+      "url": "https://shadowverse-wb.com/ja/help/?tab=tab0",
+      "accessed_on": "2026-07-30",
+      "conclusion": "官方词条规定普通进化为 +2/+2、超进化为 +3/+3，且生命加减同时改变当前生命和生命上限。"
+    },
+    {
+      "authority": "official_card_text",
+      "url": "https://shadowverse-wb.com/ja/deck/cardslist/card/?card_id=10304120",
+      "accessed_on": "2026-07-30",
+      "conclusion": "吉尔内莉莎先给予美杜莎 +2/-2；随后发生的《雪人觉醒》将生命设为 1。"
+    }
+  ],
   "pre_fix_actual": {
     "before_super_evolution": {
       "attack": 5,
@@ -45,13 +65,13 @@
       "base_health": 4
     },
     "failure": "Invariant failed: player 1 board[1] health exceeds max_health",
-    "root_cause": "_apply_evolution_state 无条件把当前生命增加固定进化数值，但负生命修正与生命下限钳制会使实际生命上限增量小于固定数值。",
+    "root_cause": "SET_STATS 把最终可见的“生命变为 1”错误写成 base_health=1，同时保留并在以后重新套用先前的 health_delta=-2；超进化再增加 base_health 时，错误的隐藏减益把生命上限算成 2，而当前生命按官方 +3 变成 4。",
     "deterministic_reproduction": true
   },
-  "fix": {
+  "intermediate_incorrect_fix": {
     "mechanism": "进化前保存生命上限，重算进化后的生命上限，再把当前生命增加实际生命上限差，从而保持已损失生命不变。",
     "card_id_special_cases": 0,
-    "focused_regression": "tests/test_real_generated_burst_spell_batch.py::RealGeneratedBurstSpellTests::test_super_evolution_preserves_damage_after_negative_health_modifier",
+    "focused_regression": "tests/test_real_generated_burst_spell_batch.py::RealGeneratedBurstSpellTests::test_super_evolution_after_set_health_uses_official_visible_plus_three",
     "post_fix_exact_replay": {
       "actions_replayed": 107,
       "health": 2,
@@ -59,10 +79,51 @@
       "evolved": true,
       "super_evolved": true,
       "invariants_passed": true
+    },
+    "audit_conclusion": "该修复只消除了 health > max_health 不变量错误，但 2/2 结果没有官方依据并与《雪人觉醒》官方 Q&A 冲突，不能作为正确修复。"
+  },
+  "required_fix": {
+    "mechanism": "SET_STATS 必须把指定维度设为最终可见值，不得让更早的同维度增减在后续进化时再次套用；设定之后发生的进化和新修正继续从该可见值增减。",
+    "card_id_special_cases": 0,
+    "focused_regression": "tests/test_real_generated_burst_spell_batch.py::RealGeneratedBurstSpellTests::test_super_evolution_after_set_health_uses_official_visible_plus_three",
+    "expected_exact_replay": {
+      "actions_replayed": 107,
+      "attack": 8,
+      "health": 4,
+      "max_health": 4,
+      "evolved": true,
+      "super_evolved": true
+    },
+    "post_fix_exact_replay": {
+      "report": "data/reports/card_bug_audit/reproductions/SWB-CARD-0008-postfix-official.json",
+      "report_sha256": "0835b98f5a1b6d3aac3846ffc000c80b5f3c9bc0eaed873aa9bc831d91e0445b",
+      "source_sha256": "55c7eb81c15d437ace535e8670c12a1541c9726d4f7f095b486d53677d1a777b",
+      "actions_replayed": 107,
+      "illegal_action_indices": [],
+      "command": "SuperEvolve(player_index=0, unit_id=69)",
+      "card_id": 10154120,
+      "attack": 8,
+      "health": 4,
+      "max_health": 4,
+      "base_attack": 6,
+      "base_health": 4,
+      "remaining_stat_modifiers": [
+        {
+          "attack_delta": 2,
+          "health_delta": 0,
+          "duration": "permanent"
+        }
+      ],
+      "evolved": true,
+      "super_evolved": true,
+      "invariants_passed": true,
+      "action_trace_sha256": "a72bea53073d38bd5ed67c327eb4ba8a7fe230b057a1277f6b9ccbb2943c04a1"
     }
   },
   "impact": "修复前合法超进化动作会在命令完成后的不变量检查中抛出 IllegalCommand，终止自博弈或训练采样，并留下当前生命大于生命上限的非法状态。",
   "affected_decks": [],
   "reproduction_command": "E:\\anaconda\\python.exe -m scripts.random_self_play --games 1000 --seed 120012 --output data/reports/card_bug_audit/reproductions/SWB-CARD-0008-random-self-play.json --assert-official-acceptance --validate-invariants",
-  "status_at_capture": "open"
+  "post_fix_replay_command": "E:\\anaconda\\python.exe -m scripts.reproduce_card_audit_failure --source-report data/reports/card_bug_audit/reproductions/SWB-CARD-0008-random-self-play.json --capture-after-action-count 107 --expect success --output data/reports/card_bug_audit/reproductions/SWB-CARD-0008-postfix-official.json",
+  "status_at_capture": "open",
+  "current_status": "fixed_after_official_qa_review"
 }

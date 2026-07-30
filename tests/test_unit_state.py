@@ -571,7 +571,7 @@ class SetStatsTests(unittest.TestCase):
         self.assertEqual(d.health, 3)
         self.assertEqual(d.max_health, 3)
 
-    def test_set_stats_preserves_modifiers(self):
+    def test_set_stats_overrides_older_modifiers_in_set_dimensions(self):
         rulebook = RuleBook((
             CardRule(card_id=1, trigger=Trigger.PLAY, operations=(
                 EffectOperation(kind=EffectKind.SET_STATS, target=TargetKind.RANDOM_ENEMY_UNIT, amount=3, secondary_amount=5, set_attack=True, set_health=True),
@@ -587,9 +587,132 @@ class SetStatsTests(unittest.TestCase):
         eng.players[0].mana = 10
         eng.players[0].hand[0] = card(1, card_type="法术", attack=None, life=None)
         eng.apply(PlayCard(0, 0))
-        self.assertEqual(d.attack, 4)
-        self.assertEqual(d.health, 7)
-        self.assertEqual(d.max_health, 7)
+        self.assertEqual(d.attack, 3)
+        self.assertEqual(d.health, 5)
+        self.assertEqual(d.max_health, 5)
+        self.assertEqual(d.stat_modifiers, [])
+
+    def test_set_health_overrides_older_health_delta_but_preserves_attack_delta(self):
+        rulebook = RuleBook((
+            CardRule(card_id=1, trigger=Trigger.PLAY, operations=(
+                EffectOperation(
+                    kind=EffectKind.SET_STATS,
+                    target=TargetKind.RANDOM_ENEMY_UNIT,
+                    secondary_amount=1,
+                    set_health=True,
+                ),
+            ),),
+        ))
+        eng = mkengine(rulebook=rulebook)
+        d = mkunit(eng, 1, attack=1, life=3)
+        eng.players[1].board = [d]
+        d.add_stat_modifier(StatModifier(1, 1, 2, "permanent", None))
+        eng.players[0].mana = 10
+        eng.players[0].hand[0] = card(
+            1, card_type="法术", attack=None, life=None
+        )
+
+        eng.apply(PlayCard(0, 0))
+
+        self.assertEqual((d.attack, d.health, d.max_health), (2, 1, 1))
+        self.assertEqual(
+            [
+                (modifier.attack_delta, modifier.health_delta)
+                for modifier in d.stat_modifiers
+            ],
+            [(1, 0)],
+        )
+        d.add_stat_modifier(StatModifier(2, 2, 3, "permanent", None))
+        self.assertEqual((d.attack, d.health, d.max_health), (4, 4, 4))
+
+    def test_set_attack_overrides_older_attack_delta_but_preserves_health_delta(self):
+        rulebook = RuleBook((
+            CardRule(card_id=1, trigger=Trigger.PLAY, operations=(
+                EffectOperation(
+                    kind=EffectKind.SET_STATS,
+                    target=TargetKind.RANDOM_ENEMY_UNIT,
+                    amount=4,
+                    set_attack=True,
+                ),
+            ),),
+        ))
+        eng = mkengine(rulebook=rulebook)
+        d = mkunit(eng, 1, attack=1, life=3)
+        eng.players[1].board = [d]
+        d.add_stat_modifier(StatModifier(1, 1, 2, "permanent", None))
+        eng.players[0].mana = 10
+        eng.players[0].hand[0] = card(
+            1, card_type="法术", attack=None, life=None
+        )
+
+        eng.apply(PlayCard(0, 0))
+
+        self.assertEqual((d.attack, d.health, d.max_health), (4, 5, 5))
+        self.assertEqual(
+            [
+                (modifier.attack_delta, modifier.health_delta)
+                for modifier in d.stat_modifiers
+            ],
+            [(0, 2)],
+        )
+
+    def test_older_temporary_modifier_expiry_does_not_reapply_set_health(self):
+        rulebook = RuleBook((
+            CardRule(card_id=1, trigger=Trigger.PLAY, operations=(
+                EffectOperation(
+                    kind=EffectKind.SET_STATS,
+                    target=TargetKind.RANDOM_ENEMY_UNIT,
+                    secondary_amount=1,
+                    set_health=True,
+                ),
+            ),),
+        ))
+        eng = mkengine(rulebook=rulebook)
+        d = mkunit(eng, 1, attack=1, life=3)
+        eng.players[1].board = [d]
+        d.add_stat_modifier(
+            StatModifier(1, 1, 2, "until_end_of_turn", 1)
+        )
+        eng.players[0].mana = 10
+        eng.players[0].hand[0] = card(
+            1, card_type="法术", attack=None, life=None
+        )
+
+        eng.apply(PlayCard(0, 0))
+        self.assertEqual((d.attack, d.health, d.max_health), (2, 1, 1))
+        d.expire_stat_modifiers("until_end_of_turn", 1)
+
+        self.assertEqual((d.attack, d.health, d.max_health), (1, 1, 1))
+
+    def test_modifier_added_after_set_stats_expires_back_to_set_values(self):
+        rulebook = RuleBook((
+            CardRule(card_id=1, trigger=Trigger.PLAY, operations=(
+                EffectOperation(
+                    kind=EffectKind.SET_STATS,
+                    target=TargetKind.RANDOM_ENEMY_UNIT,
+                    amount=3,
+                    secondary_amount=5,
+                    set_attack=True,
+                    set_health=True,
+                ),
+            ),),
+        ))
+        eng = mkengine(rulebook=rulebook)
+        d = mkunit(eng, 1, attack=1, life=3)
+        eng.players[1].board = [d]
+        eng.players[0].mana = 10
+        eng.players[0].hand[0] = card(
+            1, card_type="法术", attack=None, life=None
+        )
+
+        eng.apply(PlayCard(0, 0))
+        d.add_stat_modifier(
+            StatModifier(1, 1, 2, "until_end_of_turn", 1)
+        )
+        self.assertEqual((d.attack, d.health, d.max_health), (4, 7, 7))
+        d.expire_stat_modifiers("until_end_of_turn", 1)
+
+        self.assertEqual((d.attack, d.health, d.max_health), (3, 5, 5))
 
     def test_set_stats_clamps_health_minimum(self):
         rulebook = RuleBook((
