@@ -1,0 +1,1036 @@
+{
+  "schema_version": 1,
+  "report_kind": "swb_rl_interface_privacy_audit",
+  "inputs": {
+    "swb/engine/environment.py": "61ecdf3f2d73b9ff717dc782ecda8093f298cd703538907e84d93055ea284e98",
+    "swb/engine/observation_v3.py": "641cebaa552bbcbbcad14a6992ec09ba31174143d067fac8c09b1d054b7a96ab",
+    "swb/engine/observation_v4_1.py": "e85160513f99caa69d107b5a8f62559c31759844c2ab771f3535e30a1e782cbf",
+    "swb/rl/versioning.py": "07161575dbb2b32e3c1bea5f3d9e2446a0f6b1736d9ba99b749b0bcb1ea81c60",
+    "swb/simulator/history.py": "6db67455f6d8a85cfe6e7bd9798a0908568cdaafbf02f1c15cd56d4611907870",
+    "swb/simulator/service.py": "8094c7fb4f54aaad21cd2b966212b79f1bda39f1d6bdf14b9b3a3e737a85b6d7",
+    "data/audits/rl_interface_privacy_evidence.json": "a73f35128c38bc8138f8f51e2983c0b6f4a668132c16d37bdaa18f427955a736",
+    "data/reports/card_bug_audit/play_mode_boundary_audit.json": "0321998d306428817babe7100a28d883a47164c003e399327f0dd24f93a9107d",
+    "data/reports/card_bug_audit/bug_ledger.json": "b0cfda7b7076ad833cd8d697c406e93b602afeb455020618bde1c992de4e34bf"
+  },
+  "summary": {
+    "action_layout_version": "action-112-v2",
+    "action_size": 112,
+    "command_type_count": 9,
+    "checklist_contract_count": 10,
+    "observation_schema_count": 2,
+    "v3_6_field_count": 18,
+    "v4_1_field_count": 61,
+    "database_card_count": 826,
+    "full_pool_play_mode_card_count": 54,
+    "full_pool_cost_boundary_case_count": 1546,
+    "command_action_mask_mismatch_count": 0,
+    "illegal_atomicity_failure_count": 0,
+    "observation_migration_required": false,
+    "failure_count": 0,
+    "passed": true
+  },
+  "action_layout": {
+    "version": "action-112-v2",
+    "size": 112,
+    "ranges": [
+      {
+        "name": "end_turn",
+        "start": 0,
+        "stop": 1
+      },
+      {
+        "name": "play_normal",
+        "start": 1,
+        "stop": 10
+      },
+      {
+        "name": "attack",
+        "start": 10,
+        "stop": 40
+      },
+      {
+        "name": "evolve_or_activate",
+        "start": 40,
+        "stop": 45
+      },
+      {
+        "name": "choice",
+        "start": 45,
+        "stop": 61
+      },
+      {
+        "name": "graveyard_navigation",
+        "start": 61,
+        "stop": 63
+      },
+      {
+        "name": "graveyard_slots",
+        "start": 63,
+        "stop": 79
+      },
+      {
+        "name": "fusion_or_special_mode",
+        "start": 79,
+        "stop": 106
+      },
+      {
+        "name": "super_evolve",
+        "start": 106,
+        "stop": 111
+      },
+      {
+        "name": "use_extra_pp",
+        "start": 111,
+        "stop": 112
+      }
+    ],
+    "max_hand": 9,
+    "max_board": 5,
+    "max_choice_options": 16,
+    "graveyard_page_size": 16
+  },
+  "action_layout_analysis": {
+    "covered_action_count": 112,
+    "gaps": [],
+    "overlaps": [],
+    "out_of_range": [],
+    "passed": true
+  },
+  "command_matrix": [
+    {
+      "command_type": "activate_amulet",
+      "tests": [
+        "tests/test_activate.py::ActivateEnvironmentTests::test_rl_mask_exposes_play_then_activation_for_activation_only_amulet"
+      ],
+      "missing_tests": [],
+      "passed": true
+    },
+    {
+      "command_type": "attack",
+      "tests": [
+        "tests/test_rl_interface_privacy_audit.py::RLInterfacePrivacyAuditTests::test_base_command_round_trips_are_unique",
+        "tests/test_environment.py::EnvironmentTests::test_play_and_attack_leader"
+      ],
+      "missing_tests": [],
+      "passed": true
+    },
+    {
+      "command_type": "begin_fusion",
+      "tests": [
+        "tests/test_fusion.py::FusionEnvironmentTests::test_rl_reuses_special_and_choice_actions_for_fusion"
+      ],
+      "missing_tests": [],
+      "passed": true
+    },
+    {
+      "command_type": "choose",
+      "tests": [
+        "tests/test_rl_interface_privacy_audit.py::RLInterfacePrivacyAuditTests::test_graveyard_pagination_is_complete_unique_and_bounded",
+        "tests/test_environment.py::EnvironmentTests::test_rl_choice_actions_resume_targeted_spell"
+      ],
+      "missing_tests": [],
+      "passed": true
+    },
+    {
+      "command_type": "end_turn",
+      "tests": [
+        "tests/test_rl_interface_privacy_audit.py::RLInterfacePrivacyAuditTests::test_base_command_round_trips_are_unique"
+      ],
+      "missing_tests": [],
+      "passed": true
+    },
+    {
+      "command_type": "evolve",
+      "tests": [
+        "tests/test_rl_interface_privacy_audit.py::RLInterfacePrivacyAuditTests::test_base_command_round_trips_are_unique"
+      ],
+      "missing_tests": [],
+      "passed": true
+    },
+    {
+      "command_type": "play_card",
+      "tests": [
+        "tests/test_rl_interface_privacy_audit.py::RLInterfacePrivacyAuditTests::test_base_command_round_trips_are_unique",
+        "tests/test_play_modes_audit.py::RLEncodingTests::test_normal_play_round_trip"
+      ],
+      "missing_tests": [],
+      "passed": true
+    },
+    {
+      "command_type": "super_evolve",
+      "tests": [
+        "tests/test_rl_interface_privacy_audit.py::RLInterfacePrivacyAuditTests::test_base_command_round_trips_are_unique",
+        "tests/test_environment.py::EnvironmentTests::test_super_evolution_uses_appended_action_slots"
+      ],
+      "missing_tests": [],
+      "passed": true
+    },
+    {
+      "command_type": "use_extra_pp",
+      "tests": [
+        "tests/test_official_match_setup.py::OfficialCapacityAndRLTests::test_rl_reuses_choice_slots_for_mulligan_and_appends_extra_pp_action"
+      ],
+      "missing_tests": [],
+      "passed": true
+    }
+  ],
+  "checklist_contracts": [
+    {
+      "contract_id": "command_has_one_expected_action",
+      "tests": [
+        "tests/test_rl_interface_privacy_audit.py::RLInterfacePrivacyAuditTests::test_base_command_round_trips_are_unique",
+        "tests/test_play_mode_boundary_audit.py::PlayModeBoundaryAuditTests::test_commands_masks_execution_and_illegal_atomicity_all_pass"
+      ],
+      "missing_tests": [],
+      "passed": true
+    },
+    {
+      "contract_id": "true_mask_executes_expected_command",
+      "tests": [
+        "tests/test_rl_interface_privacy_audit.py::RLInterfacePrivacyAuditTests::test_every_true_action_executes_expected_command"
+      ],
+      "missing_tests": [],
+      "passed": true
+    },
+    {
+      "contract_id": "false_mask_is_atomic",
+      "tests": [
+        "tests/test_rl_interface_privacy_audit.py::RLInterfacePrivacyAuditTests::test_illegal_mask_samples_are_atomic_across_layout_ranges",
+        "tests/test_environment.py::EnvironmentTests::test_illegal_rl_action_does_not_mutate_core_state"
+      ],
+      "missing_tests": [],
+      "passed": true
+    },
+    {
+      "contract_id": "pagination_complete_unique_bounded",
+      "tests": [
+        "tests/test_rl_interface_privacy_audit.py::RLInterfacePrivacyAuditTests::test_graveyard_pagination_is_complete_unique_and_bounded",
+        "tests/test_environment_limits.py::EnvironmentLimitTests::test_page_navigation_counts_toward_agent_step_limit"
+      ],
+      "missing_tests": [],
+      "passed": true
+    },
+    {
+      "contract_id": "opponent_hand_identity_hidden",
+      "tests": [
+        "tests/test_rl_interface_privacy_audit.py::RLInterfacePrivacyAuditTests::test_v3_6_and_v4_1_hide_hand_and_deck_identity"
+      ],
+      "missing_tests": [],
+      "passed": true
+    },
+    {
+      "contract_id": "opponent_deck_identity_and_order_hidden",
+      "tests": [
+        "tests/test_rl_interface_privacy_audit.py::RLInterfacePrivacyAuditTests::test_v3_6_and_v4_1_hide_hand_and_deck_identity"
+      ],
+      "missing_tests": [],
+      "passed": true
+    },
+    {
+      "contract_id": "public_history_tracks_actions_targets_and_zones",
+      "tests": [
+        "tests/test_rl_interface_privacy_audit.py::RLInterfacePrivacyAuditTests::test_public_history_tracks_play_attack_target_and_zone_change"
+      ],
+      "missing_tests": [],
+      "passed": true
+    },
+    {
+      "contract_id": "persistent_private_online_redacted",
+      "tests": [
+        "tests/test_match_simulator.py::MatchSimulatorTests::test_online_history_redacts_private_persistent_state",
+        "tests/test_match_simulator.py::MatchSimulatorTests::test_history_persists_private_state_and_complete_policy_decisions"
+      ],
+      "missing_tests": [],
+      "passed": true
+    },
+    {
+      "contract_id": "v3_6_and_v4_1_shape_dtype_version",
+      "tests": [
+        "tests/test_rl_interface_privacy_audit.py::RLInterfacePrivacyAuditTests::test_formal_observation_manifests_match_live_spaces",
+        "tests/test_observation_v4_1.py::ObservationV41Tests::test_schema_is_fixed_compact_and_space_checked"
+      ],
+      "missing_tests": [],
+      "passed": true
+    },
+    {
+      "contract_id": "observation_migration_decision_explicit",
+      "tests": [
+        "tests/test_rl_interface_privacy_audit.py::RLInterfacePrivacyAuditTests::test_migration_decisions_are_explicit_and_non_schema_changes"
+      ],
+      "missing_tests": [],
+      "passed": true
+    }
+  ],
+  "observation_schemas": [
+    {
+      "environment_version": "v3",
+      "formal_version": "observation-v3.6",
+      "manifest_sha256": "380bba38c548b392ab4e993e574bc9357d36bf38c6c4415332f68d133c1afcef",
+      "field_count": 18,
+      "space_contains_observation": true,
+      "fields": [
+        {
+          "name": "action_mask",
+          "shape": [
+            112
+          ],
+          "dtype": "int8",
+          "space_type": "MultiBinary"
+        },
+        {
+          "name": "choice_categorical",
+          "shape": [
+            36
+          ],
+          "dtype": "int32",
+          "space_type": "Box"
+        },
+        {
+          "name": "continuous",
+          "shape": [
+            304
+          ],
+          "dtype": "float32",
+          "space_type": "Box"
+        },
+        {
+          "name": "history_amounts",
+          "shape": [
+            16
+          ],
+          "dtype": "float32",
+          "space_type": "Box"
+        },
+        {
+          "name": "history_categorical",
+          "shape": [
+            32
+          ],
+          "dtype": "int32",
+          "space_type": "Box"
+        },
+        {
+          "name": "leader_categorical",
+          "shape": [
+            22
+          ],
+          "dtype": "int32",
+          "space_type": "Box"
+        },
+        {
+          "name": "leader_continuous",
+          "shape": [
+            194
+          ],
+          "dtype": "float32",
+          "space_type": "Box"
+        },
+        {
+          "name": "opponent_initial_deck",
+          "shape": [
+            140
+          ],
+          "dtype": "int32",
+          "space_type": "Box"
+        },
+        {
+          "name": "own_hand_cards",
+          "shape": [
+            9
+          ],
+          "dtype": "int32",
+          "space_type": "Box"
+        },
+        {
+          "name": "own_hand_origins",
+          "shape": [
+            9
+          ],
+          "dtype": "int32",
+          "space_type": "Box"
+        },
+        {
+          "name": "own_hand_runtime",
+          "shape": [
+            126
+          ],
+          "dtype": "float32",
+          "space_type": "Box"
+        },
+        {
+          "name": "own_initial_deck",
+          "shape": [
+            140
+          ],
+          "dtype": "int32",
+          "space_type": "Box"
+        },
+        {
+          "name": "public_banished",
+          "shape": [
+            2,
+            140
+          ],
+          "dtype": "int32",
+          "space_type": "Box"
+        },
+        {
+          "name": "public_board_cards",
+          "shape": [
+            10
+          ],
+          "dtype": "int32",
+          "space_type": "Box"
+        },
+        {
+          "name": "public_board_keywords",
+          "shape": [
+            90
+          ],
+          "dtype": "float32",
+          "space_type": "Box"
+        },
+        {
+          "name": "public_board_origins",
+          "shape": [
+            10
+          ],
+          "dtype": "int32",
+          "space_type": "Box"
+        },
+        {
+          "name": "public_board_runtime",
+          "shape": [
+            230
+          ],
+          "dtype": "float32",
+          "space_type": "Box"
+        },
+        {
+          "name": "public_graveyards",
+          "shape": [
+            2,
+            140
+          ],
+          "dtype": "int32",
+          "space_type": "Box"
+        }
+      ],
+      "privacy": {
+        "opponent_hand_identity": "hidden",
+        "opponent_deck_order": "hidden",
+        "opponent_initial_deck": "hidden",
+        "raw_entity_ids": "excluded",
+        "non_decision_action_mask": "all-zero"
+      }
+    },
+    {
+      "environment_version": "v4.1",
+      "formal_version": "observation-v4.1",
+      "manifest_sha256": "bba4f4b923de6de1e5144b2725efe97907379d88b157a4b232bac3bf203b54b6",
+      "field_count": 61,
+      "space_contains_observation": true,
+      "fields": [
+        {
+          "name": "action_mask",
+          "shape": [
+            112
+          ],
+          "dtype": "int8",
+          "space_type": "MultiBinary"
+        },
+        {
+          "name": "board_effect_summary",
+          "shape": [
+            40
+          ],
+          "dtype": "float32",
+          "space_type": "Box"
+        },
+        {
+          "name": "board_effect_tokens",
+          "shape": [
+            450
+          ],
+          "dtype": "int32",
+          "space_type": "Box"
+        },
+        {
+          "name": "board_modifier_duration",
+          "shape": [
+            560
+          ],
+          "dtype": "int32",
+          "space_type": "Box"
+        },
+        {
+          "name": "board_modifier_expiry",
+          "shape": [
+            560
+          ],
+          "dtype": "int32",
+          "space_type": "Box"
+        },
+        {
+          "name": "board_modifier_kind",
+          "shape": [
+            560
+          ],
+          "dtype": "int32",
+          "space_type": "Box"
+        },
+        {
+          "name": "board_modifier_subtype",
+          "shape": [
+            560
+          ],
+          "dtype": "int32",
+          "space_type": "Box"
+        },
+        {
+          "name": "board_modifier_summary",
+          "shape": [
+            140
+          ],
+          "dtype": "float32",
+          "space_type": "Box"
+        },
+        {
+          "name": "board_modifier_values",
+          "shape": [
+            2240
+          ],
+          "dtype": "float32",
+          "space_type": "Box"
+        },
+        {
+          "name": "choice_kind",
+          "shape": [
+            1
+          ],
+          "dtype": "int32",
+          "space_type": "Box"
+        },
+        {
+          "name": "choice_option_cards",
+          "shape": [
+            16
+          ],
+          "dtype": "int32",
+          "space_type": "Box"
+        },
+        {
+          "name": "choice_option_references",
+          "shape": [
+            16
+          ],
+          "dtype": "int32",
+          "space_type": "Box"
+        },
+        {
+          "name": "choice_option_relations",
+          "shape": [
+            16
+          ],
+          "dtype": "int32",
+          "space_type": "Box"
+        },
+        {
+          "name": "choice_option_selected",
+          "shape": [
+            16
+          ],
+          "dtype": "float32",
+          "space_type": "Box"
+        },
+        {
+          "name": "choice_option_semantics",
+          "shape": [
+            80
+          ],
+          "dtype": "int32",
+          "space_type": "Box"
+        },
+        {
+          "name": "choice_state",
+          "shape": [
+            5
+          ],
+          "dtype": "float32",
+          "space_type": "Box"
+        },
+        {
+          "name": "graveyard_option_semantics",
+          "shape": [
+            80
+          ],
+          "dtype": "int32",
+          "space_type": "Box"
+        },
+        {
+          "name": "graveyard_option_state",
+          "shape": [
+            80
+          ],
+          "dtype": "float32",
+          "space_type": "Box"
+        },
+        {
+          "name": "graveyard_page_cards",
+          "shape": [
+            16
+          ],
+          "dtype": "int32",
+          "space_type": "Box"
+        },
+        {
+          "name": "hand_effect_summary",
+          "shape": [
+            18
+          ],
+          "dtype": "float32",
+          "space_type": "Box"
+        },
+        {
+          "name": "hand_effect_tokens",
+          "shape": [
+            180
+          ],
+          "dtype": "int32",
+          "space_type": "Box"
+        },
+        {
+          "name": "hand_modifier_duration",
+          "shape": [
+            504
+          ],
+          "dtype": "int32",
+          "space_type": "Box"
+        },
+        {
+          "name": "hand_modifier_expiry",
+          "shape": [
+            504
+          ],
+          "dtype": "int32",
+          "space_type": "Box"
+        },
+        {
+          "name": "hand_modifier_kind",
+          "shape": [
+            504
+          ],
+          "dtype": "int32",
+          "space_type": "Box"
+        },
+        {
+          "name": "hand_modifier_subtype",
+          "shape": [
+            504
+          ],
+          "dtype": "int32",
+          "space_type": "Box"
+        },
+        {
+          "name": "hand_modifier_summary",
+          "shape": [
+            126
+          ],
+          "dtype": "float32",
+          "space_type": "Box"
+        },
+        {
+          "name": "hand_modifier_values",
+          "shape": [
+            2016
+          ],
+          "dtype": "float32",
+          "space_type": "Box"
+        },
+        {
+          "name": "history_actors",
+          "shape": [
+            32
+          ],
+          "dtype": "int32",
+          "space_type": "Box"
+        },
+        {
+          "name": "history_amounts",
+          "shape": [
+            32
+          ],
+          "dtype": "float32",
+          "space_type": "Box"
+        },
+        {
+          "name": "history_event_types",
+          "shape": [
+            32
+          ],
+          "dtype": "int32",
+          "space_type": "Box"
+        },
+        {
+          "name": "history_semantics",
+          "shape": [
+            160
+          ],
+          "dtype": "int32",
+          "space_type": "Box"
+        },
+        {
+          "name": "history_source_cards",
+          "shape": [
+            32
+          ],
+          "dtype": "int32",
+          "space_type": "Box"
+        },
+        {
+          "name": "history_source_references",
+          "shape": [
+            32
+          ],
+          "dtype": "int32",
+          "space_type": "Box"
+        },
+        {
+          "name": "history_target_cards",
+          "shape": [
+            32
+          ],
+          "dtype": "int32",
+          "space_type": "Box"
+        },
+        {
+          "name": "history_target_references",
+          "shape": [
+            32
+          ],
+          "dtype": "int32",
+          "space_type": "Box"
+        },
+        {
+          "name": "leader_area_cards",
+          "shape": [
+            20
+          ],
+          "dtype": "int32",
+          "space_type": "Box"
+        },
+        {
+          "name": "leader_area_state",
+          "shape": [
+            480
+          ],
+          "dtype": "float32",
+          "space_type": "Box"
+        },
+        {
+          "name": "leader_effect_summary",
+          "shape": [
+            40
+          ],
+          "dtype": "float32",
+          "space_type": "Box"
+        },
+        {
+          "name": "leader_effect_tokens",
+          "shape": [
+            900
+          ],
+          "dtype": "int32",
+          "space_type": "Box"
+        },
+        {
+          "name": "leader_modifier_source_cards",
+          "shape": [
+            16
+          ],
+          "dtype": "int32",
+          "space_type": "Box"
+        },
+        {
+          "name": "leader_modifier_state",
+          "shape": [
+            112
+          ],
+          "dtype": "float32",
+          "space_type": "Box"
+        },
+        {
+          "name": "listener_state",
+          "shape": [
+            663
+          ],
+          "dtype": "float32",
+          "space_type": "Box"
+        },
+        {
+          "name": "match_state",
+          "shape": [
+            14
+          ],
+          "dtype": "float32",
+          "space_type": "Box"
+        },
+        {
+          "name": "own_deck_cards",
+          "shape": [
+            40
+          ],
+          "dtype": "int32",
+          "space_type": "Box"
+        },
+        {
+          "name": "own_deck_state",
+          "shape": [
+            160
+          ],
+          "dtype": "float32",
+          "space_type": "Box"
+        },
+        {
+          "name": "own_hand_base",
+          "shape": [
+            387
+          ],
+          "dtype": "float32",
+          "space_type": "Box"
+        },
+        {
+          "name": "own_hand_cards",
+          "shape": [
+            9
+          ],
+          "dtype": "int32",
+          "space_type": "Box"
+        },
+        {
+          "name": "own_hand_fusion_cards",
+          "shape": [
+            81
+          ],
+          "dtype": "int32",
+          "space_type": "Box"
+        },
+        {
+          "name": "own_hand_keywords",
+          "shape": [
+            81
+          ],
+          "dtype": "float32",
+          "space_type": "Box"
+        },
+        {
+          "name": "player_class",
+          "shape": [
+            2
+          ],
+          "dtype": "int32",
+          "space_type": "Box"
+        },
+        {
+          "name": "player_state",
+          "shape": [
+            56
+          ],
+          "dtype": "float32",
+          "space_type": "Box"
+        },
+        {
+          "name": "public_board_base",
+          "shape": [
+            490
+          ],
+          "dtype": "float32",
+          "space_type": "Box"
+        },
+        {
+          "name": "public_board_cards",
+          "shape": [
+            10
+          ],
+          "dtype": "int32",
+          "space_type": "Box"
+        },
+        {
+          "name": "public_board_fusion_cards",
+          "shape": [
+            90
+          ],
+          "dtype": "int32",
+          "space_type": "Box"
+        },
+        {
+          "name": "public_board_keywords",
+          "shape": [
+            90
+          ],
+          "dtype": "float32",
+          "space_type": "Box"
+        },
+        {
+          "name": "record_cards",
+          "shape": [
+            96
+          ],
+          "dtype": "int32",
+          "space_type": "Box"
+        },
+        {
+          "name": "record_semantics",
+          "shape": [
+            480
+          ],
+          "dtype": "int32",
+          "space_type": "Box"
+        },
+        {
+          "name": "record_state",
+          "shape": [
+            864
+          ],
+          "dtype": "float32",
+          "space_type": "Box"
+        },
+        {
+          "name": "zone_cards",
+          "shape": [
+            832
+          ],
+          "dtype": "int32",
+          "space_type": "Box"
+        },
+        {
+          "name": "zone_counts",
+          "shape": [
+            832
+          ],
+          "dtype": "float32",
+          "space_type": "Box"
+        },
+        {
+          "name": "zone_overflow",
+          "shape": [
+            26
+          ],
+          "dtype": "float32",
+          "space_type": "Box"
+        }
+      ],
+      "privacy": {
+        "opponent_hand_identity": "hidden",
+        "opponent_deck_order": "hidden",
+        "opponent_initial_deck": "hidden",
+        "raw_entity_ids": "excluded",
+        "non_decision_action_mask": "all-zero"
+      }
+    }
+  ],
+  "privacy_bug": {
+    "bug_id": "SWB-CARD-0004",
+    "severity": "P0",
+    "status": "fixed",
+    "card": {
+      "card_id": null,
+      "name": "在线复盘隐私边界"
+    },
+    "mechanic": "Ongoing match history API privacy boundary",
+    "discovery_commit": "d83751eb504e1592f986c0444aff2d586a20c267",
+    "minimal_seed": 23,
+    "reproduction_file": "data/reports/card_bug_audit/reproductions/SWB-CARD-0004.json",
+    "expected": "进行中对局的在线 state 和 history API 均隐藏 AI 手牌身份及私密日志；本地持久化记录继续保存完整私密复盘状态。",
+    "actual": "state() 已脱敏，但 match_history() 将磁盘中的完整 ongoing 记录原样提供给 /api/history/<id>，在线 UI 可读取 AI 手牌和私密日志。",
+    "impact": "通过在线复盘接口泄漏隐藏信息，改变人类决策可见信息并违反 UI/Observation 隐私边界。",
+    "affected_decks": [
+      "international_qr_dragon_20260728",
+      "international_qr_forest_20260728",
+      "international_qr_portal_20260728",
+      "international_qr_rune_20260728",
+      "international_qr_sword_20260728",
+      "official_qr_evolve_haven_20260727",
+      "official_qr_midrange_shadow_20260727",
+      "official_qr_ramp_dragon_20260727"
+    ],
+    "fix_commit": "82bd251",
+    "regression_tests": [
+      "tests/test_match_simulator.py::MatchSimulatorTests::test_history_persists_private_state_and_complete_policy_decisions",
+      "tests/test_match_simulator.py::MatchSimulatorTests::test_online_history_redacts_private_persistent_state"
+    ],
+    "notes": "2026-07-30 于 1.10 隐藏信息扫描发现并保存修复前最小复现。由 82bd251 修复：磁盘 JSON 保留完整复盘，在线 history API 按记录中的 human_player 脱敏双方快照、日志、事件、动画、AI 隐藏选择和完整策略分布；模拟器与 Observation 隐私聚焦测试通过。"
+  },
+  "migration_decisions": [
+    {
+      "change": "60d1c2f",
+      "scope": "必杀战斗结算语义",
+      "observation_fields_changed": false,
+      "action_layout_changed": false,
+      "migration_required": false,
+      "reason": "修复只改变既有战斗结果和既有事件内容，没有增加、删除或重解释策略输入字段；规则库哈希继续区分旧 checkpoint。"
+    },
+    {
+      "change": "82bd251",
+      "scope": "在线复盘 API 脱敏",
+      "observation_fields_changed": false,
+      "action_layout_changed": false,
+      "migration_required": false,
+      "reason": "修复位于 simulator 在线序列化边界，不进入 GameEngine、ShadowverseEnv 或 PPO Observation。"
+    }
+  ],
+  "evidence_sources": [
+    {
+      "evidence_id": "SWB-RL-INTERFACE-001",
+      "authority": "repository_contract",
+      "path": "AGENTS.md",
+      "conclusion": "action_mask 必须与可执行 command 一致；非法 RL 动作不得改变状态；对手隐藏手牌和未知牌库顺序不得进入策略 Observation。",
+      "exists": true
+    },
+    {
+      "evidence_id": "SWB-RL-INTERFACE-002",
+      "authority": "checklist_contract",
+      "path": "docs/card_bug_audit_and_training_speed_checklist.md",
+      "section": "1.10 RL 接口、Observation 和隐藏信息扫描",
+      "conclusion": "固定十项 command/action、掩码、分页、隐藏信息、公开历史、在线 UI、schema 和版本迁移验收条件。",
+      "exists": true
+    },
+    {
+      "evidence_id": "SWB-RL-INTERFACE-003",
+      "authority": "user_facing_contract",
+      "path": "README.md",
+      "conclusion": "在线对局只显示人类手牌；完整双方状态保存在本地持久化复盘记录中。",
+      "exists": true
+    },
+    {
+      "evidence_id": "SWB-RL-INTERFACE-004",
+      "authority": "version_contract",
+      "path": "swb/rl/versioning.py",
+      "conclusion": "正式策略输入版本为 observation-v3.6 和 observation-v4.1，动作布局为 action-112-v2；schema manifest 固化字段 shape、dtype 和隐私声明。",
+      "exists": true
+    }
+  ],
+  "full_pool_play_mode_summary": {
+    "database_card_count": 826,
+    "training_closure_card_count": 147,
+    "play_mode_card_count": 54,
+    "training_closure_play_mode_card_count": 17,
+    "full_pool_play_mode_card_count": 54,
+    "play_mode_count": 55,
+    "mode_type_counts": {
+      "accelerate": 4,
+      "crystallize": 3,
+      "enhance": 48
+    },
+    "modifier_scenario_count": 5,
+    "cost_boundary_case_count": 1546,
+    "full_board_case_count": 55,
+    "command_action_mask_mismatch_count": 0,
+    "illegal_atomicity_failure_count": 0,
+    "execution_failure_count": 0,
+    "failure_count": 0,
+    "scope_complete": true,
+    "passed": true
+  },
+  "failures": []
+}

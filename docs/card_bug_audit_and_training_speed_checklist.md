@@ -555,16 +555,66 @@ Invocation/瞬念召唤及其他替代出牌方式。
 
 ## 1.10 RL 接口、Observation 和隐藏信息扫描
 
-- [ ] 对每个可执行命令验证至少有一个且只有预期的动作编码。
-- [ ] 对动作掩码中每个真位执行命令，确认合法且不会路由到错误目标/模式。
-- [ ] 对动作掩码中代表非法场景的位置抽样执行，确认状态原子不变。
-- [ ] 验证选项翻页不会遗漏候选、重复候选或形成无限 episode。
-- [ ] 改变对手隐藏手牌身份，确认策略 Observation 不变。
-- [ ] 改变对手未知牌库内容和顺序，确认策略 Observation 不变。
-- [ ] 验证公开打牌、攻击、目标和区域变化会正确进入 Observation 历史。
-- [ ] 验证完整私密状态只保存在持久化复盘日志，不通过在线 UI 或策略输入泄漏。
-- [ ] 验证 v3.6 和 v4.1 在相同引擎状态下各自满足正式 shape、dtype 和版本契约。
-- [ ] 规则修复导致状态字段变化时，明确判断是否需要 Observation 版本迁移。
+- [x] 对每个可执行命令验证至少有一个且只有预期的动作编码。
+- [x] 对动作掩码中每个真位执行命令，确认合法且不会路由到错误目标/模式。
+- [x] 对动作掩码中代表非法场景的位置抽样执行，确认状态原子不变。
+- [x] 验证选项翻页不会遗漏候选、重复候选或形成无限 episode。
+- [x] 改变对手隐藏手牌身份，确认策略 Observation 不变。
+- [x] 改变对手未知牌库内容和顺序，确认策略 Observation 不变。
+- [x] 验证公开打牌、攻击、目标和区域变化会正确进入 Observation 历史。
+- [x] 验证完整私密状态只保存在持久化复盘日志，不通过在线 UI 或策略输入泄漏。
+- [x] 验证 v3.6 和 v4.1 在相同引擎状态下各自满足正式 shape、dtype 和版本契约。
+- [x] 规则修复导致状态字段变化时，明确判断是否需要 Observation 版本迁移。
+
+2026-07-30 完成证据：
+
+- `scripts/report_rl_interface_privacy_audit.py` 固化 `action-112-v2` 的
+  112 个连续且无重叠动作槽、全部 9 种 `CommandType`、十项 1.10
+  checklist 契约，以及 `observation-v3.6`/`observation-v4.1` 的正式
+  schema manifest。机器可读报告
+  `data/reports/card_bug_audit/rl_interface_privacy_audit.json` 和 Markdown
+  报告 `.md` 当前结论为 PASS，失败 0。
+- 新增十项横向回归：在普通行动、墓场选择、融合选择和调度阶段逐一验证
+  合法 command 的唯一编码，并执行所有 mask 真位；按动作布局每段抽样
+  mask 假位，比较完整引擎 fingerprint、RNG、分页、pending choice、
+  state/transition version 和 agent step，确认非法动作原子不变。既有
+  完整卡池出牌模式报告的 1,546 个费用/模式边界案例同时纳入门禁，
+  command/mask mismatch 和非法原子性失败均为 0。
+- 墓场 41 个候选的三页 fixture 逐页验证所有候选恰好出现一次、前后翻页
+  有界、翻页不改变规则核心且计入 episode step；沿用墓场分页专门测试
+  验证同 continuation 的新请求会回到第一页。
+- v3.6 与 v4.1 都通过隐藏手牌身份、未知牌库内容和牌序的双环境逐字段
+  相等测试。公开历史测试验证打牌、选择目标、区域离场、攻击及攻击目标
+  分别进入正式 Observation；两个 live Gym space 均接受其 Observation。
+  v3.6 为 18 个字段，manifest SHA-256 为
+  `380bba38c548b392ab4e993e574bc9357d36bf38c6c4415332f68d133c1afcef`；
+  v4.1 为 61 个字段，manifest SHA-256 为
+  `bba4f4b923de6de1e5144b2725efe97907379d88b157a4b232bac3bf203b54b6`。
+- 扫描发现并按“先复现、再失败测试、后修复”处理 P0
+  `SWB-CARD-0004`：在线 `/api/history/<match_id>` 原样返回本地持久化
+  JSON，泄漏 AI 手牌、私密日志/事件及完整策略分布。修复前证据保存于
+  `data/reports/card_bug_audit/reproductions/SWB-CARD-0004.json`；
+  `82bd251` 使在线 history 使用记录自身的 `human_player` 脱敏快照、
+  日志、事件、动画、隐藏选择和完整策略分布，同时本地 schema-v2
+  JSON 继续保留完整离线复盘。永久回归已登记，Bug 台账开放 P0/P1
+  恢复为 0。
+- `data/audits/rl_interface_privacy_evidence.json` 明确记录迁移判断：
+  `60d1c2f` 只修正既有必杀结算语义，`82bd251` 只修正 simulator
+  在线序列化边界；两者均未增删或重解释策略输入字段，也未改变动作布局，
+  因而不迁移 Observation 版本。旧 checkpoint 仍由规则库哈希与新规则
+  运行分离。
+- `E:\anaconda\python.exe -m unittest tests.test_rl_interface_privacy_audit
+  -v`：10 项通过；动作、Observation、缓存、分页、版本、在线复盘、
+  出牌模式、融合、启动和官方开局相邻回归集 182 项通过，耗时
+  38.441 秒。
+- `E:\anaconda\python.exe -m unittest discover -s tests -v`：
+  2775 项通过，1 项条件跳过；耗时 436.361 秒，API test 通过。
+- `E:\anaconda\python.exe -m compileall -q swb scripts tests`：通过。
+- `E:\anaconda\python.exe -m scripts.random_self_play --games 100`：
+  100 局完成，胜场 `[50, 50]`、平局 0、截断 0、动作掩码不一致 0，
+  acceptance `pass`。
+- `E:\anaconda\python.exe -m scripts.rl_mixed_match --output
+  data/rl_mixed_match.log`：完成，玩家 2 获胜，日志已保存。
 
 ## 1.11 建立运行时能力覆盖
 

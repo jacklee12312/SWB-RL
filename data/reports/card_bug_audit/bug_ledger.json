@@ -154,17 +154,17 @@
       "P3": 0
     },
     "by_status": {
-      "open": 1,
+      "open": 0,
       "ruling_uncertain": 0,
-      "fixed": 3,
+      "fixed": 4,
       "closed_not_bug": 0
     },
     "open_training_blockers": {
-      "P0": 1,
+      "P0": 0,
       "P1": 0
     },
-    "ledger_p0_clear": false,
-    "ledger_p0_p1_clear": false
+    "ledger_p0_clear": true,
+    "ledger_p0_p1_clear": true
   },
   "entries": [
     {
@@ -251,7 +251,7 @@
     {
       "bug_id": "SWB-CARD-0004",
       "severity": "P0",
-      "status": "open",
+      "status": "fixed",
       "card": {
         "card_id": null,
         "name": "在线复盘隐私边界"
@@ -273,9 +273,12 @@
         "official_qr_midrange_shadow_20260727",
         "official_qr_ramp_dragon_20260727"
       ],
-      "fix_commit": null,
-      "regression_tests": [],
-      "notes": "2026-07-30 于 1.10 隐藏信息扫描发现并保存修复前最小复现。P0 未关闭前正式训练保持阻塞。"
+      "fix_commit": "82bd251",
+      "regression_tests": [
+        "tests/test_match_simulator.py::MatchSimulatorTests::test_history_persists_private_state_and_complete_policy_decisions",
+        "tests/test_match_simulator.py::MatchSimulatorTests::test_online_history_redacts_private_persistent_state"
+      ],
+      "notes": "2026-07-30 于 1.10 隐藏信息扫描发现并保存修复前最小复现。由 82bd251 修复：磁盘 JSON 保留完整复盘，在线 history API 按记录中的 human_player 脱敏双方快照、日志、事件、动画、AI 隐藏选择和完整策略分布；模拟器与 Observation 隐私聚焦测试通过。"
     }
   ]
 }

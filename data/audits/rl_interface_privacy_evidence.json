@@ -1,0 +1,49 @@
+{
+  "schema_version": 1,
+  "audit_scope": "checklist-1.10",
+  "sources": [
+    {
+      "evidence_id": "SWB-RL-INTERFACE-001",
+      "authority": "repository_contract",
+      "path": "AGENTS.md",
+      "conclusion": "action_mask 必须与可执行 command 一致；非法 RL 动作不得改变状态；对手隐藏手牌和未知牌库顺序不得进入策略 Observation。"
+    },
+    {
+      "evidence_id": "SWB-RL-INTERFACE-002",
+      "authority": "checklist_contract",
+      "path": "docs/card_bug_audit_and_training_speed_checklist.md",
+      "section": "1.10 RL 接口、Observation 和隐藏信息扫描",
+      "conclusion": "固定十项 command/action、掩码、分页、隐藏信息、公开历史、在线 UI、schema 和版本迁移验收条件。"
+    },
+    {
+      "evidence_id": "SWB-RL-INTERFACE-003",
+      "authority": "user_facing_contract",
+      "path": "README.md",
+      "conclusion": "在线对局只显示人类手牌；完整双方状态保存在本地持久化复盘记录中。"
+    },
+    {
+      "evidence_id": "SWB-RL-INTERFACE-004",
+      "authority": "version_contract",
+      "path": "swb/rl/versioning.py",
+      "conclusion": "正式策略输入版本为 observation-v3.6 和 observation-v4.1，动作布局为 action-112-v2；schema manifest 固化字段 shape、dtype 和隐私声明。"
+    }
+  ],
+  "migration_decisions": [
+    {
+      "change": "60d1c2f",
+      "scope": "必杀战斗结算语义",
+      "observation_fields_changed": false,
+      "action_layout_changed": false,
+      "migration_required": false,
+      "reason": "修复只改变既有战斗结果和既有事件内容，没有增加、删除或重解释策略输入字段；规则库哈希继续区分旧 checkpoint。"
+    },
+    {
+      "change": "82bd251",
+      "scope": "在线复盘 API 脱敏",
+      "observation_fields_changed": false,
+      "action_layout_changed": false,
+      "migration_required": false,
+      "reason": "修复位于 simulator 在线序列化边界，不进入 GameEngine、ShadowverseEnv 或 PPO Observation。"
+    }
+  ]
+}

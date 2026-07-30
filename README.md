@@ -131,6 +131,20 @@ incorrectly skipped after zero combat damage or Barrier prevention. Commit
 reuse the generic effect-destruction protection path. The checked-in ledger
 has no open P0/P1 entry.
 
+The checklist 1.10
+[RL interface/privacy audit](data/reports/card_bug_audit/rl_interface_privacy_audit.md)
+locks all nine command types to the continuous, non-overlapping 112-action
+layout and directly exercises true-mask routing, sampled false-mask atomicity,
+bounded graveyard pagination, public action/target/zone history, and the formal
+v3.6/v4.1 shape, dtype, version, and privacy contracts. It also found the P0
+`SWB-CARD-0004`: the online history endpoint exposed the unredacted local
+schema-v2 replay, including the AI hand and complete policy distribution.
+Commit `82bd251` keeps the complete private record on disk for offline review
+while redacting the online history response. The report includes the explicit
+decision that neither this transport fix nor the Bane semantics fix changes
+Observation fields or the action layout, so no Observation migration is
+required. The checked-in ledger again has no open P0/P1 entry.
+
 ## Reproducible RL Platform
 
 The P1/P2 platform-hardening slice is implemented around the deterministic
