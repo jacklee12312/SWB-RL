@@ -498,16 +498,60 @@ Invocation/瞬念召唤及其他替代出牌方式。
 
 ## 1.9 战斗、伤害、终局和随机性扫描
 
-- [ ] 测试随从攻击随从、攻击主战者、守护强制目标和无视守护。
-- [ ] 测试攻击前、交战前、交战中、战斗伤害后和攻击后触发的顺序。
-- [ ] 测试超进化随从保护、击败随从后对主战者的额外伤害和保护失效时点。
-- [ ] 测试效果伤害、战斗伤害、反伤、治疗、伤害替代和伤害上限。
-- [ ] 测试必杀、效果破坏、消失、变身和生命降到零的离场差异。
-- [ ] 测试单方致死、双方致死、牌库败北和特殊胜利。
-- [ ] 验证 game over 后队列停止，不能再产生可见状态变化。
-- [ ] 所有随机操作使用引擎 RNG，并在事件中保留足够的选择证据。
-- [ ] 相同 seed、卡组和命令序列必须产生相同 fingerprint、事件和胜负。
-- [ ] 无候选、跳过或非法分支不得意外消耗 RNG。
+- [x] 测试随从攻击随从、攻击主战者、守护强制目标和无视守护。
+- [x] 测试攻击前、交战前、交战中、战斗伤害后和攻击后触发的顺序。
+- [x] 测试超进化随从保护、击败随从后对主战者的额外伤害和保护失效时点。
+- [x] 测试效果伤害、战斗伤害、反伤、治疗、伤害替代和伤害上限。
+- [x] 测试必杀、效果破坏、消失、变身和生命降到零的离场差异。
+- [x] 测试单方致死、双方致死、牌库败北和特殊胜利。
+- [x] 验证 game over 后队列停止，不能再产生可见状态变化。
+- [x] 所有随机操作使用引擎 RNG，并在事件中保留足够的选择证据。
+- [x] 相同 seed、卡组和命令序列必须产生相同 fingerprint、事件和胜负。
+- [x] 无候选、跳过或非法分支不得意外消耗 RNG。
+
+2026-07-30 完成证据：
+
+- `scripts/report_combat_endgame_random_audit.py` 动态读取当前 826 张数据库
+  卡（735 张可收集卡、91 张衍生卡）、`RuleBook`、规则覆盖报告和八套
+  训练卡组递归闭包；识别 643 张战斗/伤害/终局/随机性正式来源卡，其中
+  122 张位于训练闭包。七类来源矩阵和十项 checklist 行为契约均有存在的
+  永久测试证据，报告零库存、契约或官方证据失败。
+- 机器可读报告
+  `data/reports/card_bug_audit/combat_endgame_random_audit.json` 和 Markdown
+  报告 `.md` 覆盖攻击目标与守护、攻击/交战/伤害顺序、超进化保护及穿透
+  伤害、伤害/治疗/替代/上限、五类离场、普通与特殊终局、game over 队列
+  停止，以及确定性随机选择。AST 扫描覆盖 `swb/engine/*.py` 的 30 个
+  随机调用点，违规 0：调用点只使用引擎自有 `self.random`，或由引擎向
+  目标解析器显式传入的 `rng`。
+- `data/audits/combat_endgame_random_evidence.json` 保存 Cygames 官方帮助
+  词条、对战说明、卡塔莉娜卡牌文字、巴尔特 Q&A 和胜利卡词条，分别
+  固化攻击/守护/必杀/屏障/离场/终局、超进化保护及额外伤害、单次伤害
+  上限、双方致死停止顺序，以及特殊空牌库胜利的来源结论。
+- 扫描发现并按“先复现、再失败测试、后修复”处理 P0
+  `SWB-CARD-0003`：旧引擎把必杀错误绑定到 `actual damage > 0`，导致
+  0 攻必杀和被屏障把伤害变为 0 的必杀不发动。修复前证据保存于
+  `data/reports/card_bug_audit/reproductions/SWB-CARD-0003.json`；
+  `60d1c2f` 改为按战斗接触触发必杀，并复用通用效果破坏路径，使效果
+  破坏免疫和超进化保护继续有效。四项永久回归测试已登记在 Bug 台账，
+  台账当前开放 P0/P1 均为 0。
+- `E:\anaconda\python.exe -m unittest tests.test_keywords
+  tests.test_combat_endgame_random_audit tests.test_card_bug_audit_ledger
+  tests.test_play_mode_boundary_audit -v`：50 项通过；同时验证本次引擎源
+  哈希变化后的玩法/模式边界报告已确定性重生成。
+- `E:\anaconda\python.exe -m scripts.random_self_play --games 100`：
+  100 局完成，胜场 `[50, 50]`、平局 0、截断 0、动作掩码不一致 0，
+  acceptance `pass`。
+- `E:\anaconda\python.exe -m scripts.random_self_play --games 1000
+  --mulligan-policy curve --validate-invariants --assert-official-acceptance
+  --output
+  data/reports/card_bug_audit/combat_endgame_random_self_play_1000.json`：
+  1,000 局完成，胜场 `[468, 532]`、平局 0、截断 0、动作掩码不一致
+  0，acceptance `pass`；机器可读结果已保存。
+- `E:\anaconda\python.exe -m scripts.rl_mixed_match --output
+  data/rl_mixed_match.log`：完成，玩家 2 获胜，日志已保存。
+- `E:\anaconda\python.exe -m unittest discover -s tests -v`：
+  2764 项通过，1 项条件跳过；耗时 422.004 秒，API test 通过。
+- `E:\anaconda\python.exe -m compileall -q swb scripts tests`：通过。
 
 ## 1.10 RL 接口、Observation 和隐藏信息扫描
 

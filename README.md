@@ -116,6 +116,21 @@ Faith/crest area, empty-deck outcomes, resource timing, successful-draw
 listeners, and exact public graveyard/banished histograms. The checked-in
 report has zero inventory, evidence, matrix, or behavioral-contract failures.
 
+The checklist 1.9
+[combat/endgame/RNG audit](data/reports/card_bug_audit/combat_endgame_random_audit.md)
+inventories 643 combat-, damage-, endgame-, or randomness-related cards across
+the full 826-card database, including 122 in the recursive eight-deck training
+closure. Ten executable contracts cover attack targeting and timing, super
+evolution, damage/healing/replacement/caps, distinct leave-play causes,
+terminal outcomes, queue termination, deterministic replay, event-visible
+random choices, and RNG-neutral illegal or skipped branches. Its AST inventory
+finds all 30 engine RNG callsites use the engine-owned RNG or an explicitly
+passed targeting RNG. This scan found the P0 `SWB-CARD-0003`: Bane was
+incorrectly skipped after zero combat damage or Barrier prevention. Commit
+`60d1c2f` aligns the shared mechanic with the official glossary and makes Bane
+reuse the generic effect-destruction protection path. The checked-in ledger
+has no open P0/P1 entry.
+
 ## Reproducible RL Platform
 
 The P1/P2 platform-hardening slice is implemented around the deterministic

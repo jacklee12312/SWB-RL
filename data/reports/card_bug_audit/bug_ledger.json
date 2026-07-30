@@ -146,9 +146,9 @@
     }
   ],
   "summary": {
-    "total": 2,
+    "total": 3,
     "by_severity": {
-      "P0": 2,
+      "P0": 3,
       "P1": 0,
       "P2": 0,
       "P3": 0
@@ -156,7 +156,7 @@
     "by_status": {
       "open": 0,
       "ruling_uncertain": 0,
-      "fixed": 2,
+      "fixed": 3,
       "closed_not_bug": 0
     },
     "open_training_blockers": {
@@ -217,6 +217,36 @@
         "tests/test_play_modes_audit.py::PlayModeAuditTests::test_10424110_enhance_replaces_normal_command_and_action"
       ],
       "notes": "2026-07-29 已保存修复前真实卡复现；当前官方 Worlds Beyond 帮助页明确说明达到增强值时以增强值替代本体费用并发动能力。2026-07-30 由 f895051 修复并通过全卡池费用边界扫描、完整测试和 1,000 局随机自博弈。"
+    },
+    {
+      "bug_id": "SWB-CARD-0003",
+      "severity": "P0",
+      "status": "fixed",
+      "card": {
+        "card_id": null,
+        "name": "通用必杀机制"
+      },
+      "mechanic": "Bane activation after zero combat damage and Barrier prevention",
+      "discovery_commit": "fbd263a6c8a8a8a6bd0c1ad250b4ab5b7d5570d6",
+      "minimal_seed": 1,
+      "reproduction_file": "data/reports/card_bug_audit/reproductions/SWB-CARD-0003.json",
+      "expected": "必杀随从与敌方随从交战时，即使攻击力为 0 或战斗伤害被对手能力变为 0，仍发动必杀并尝试效果破坏。",
+      "actual": "引擎把必杀错误绑定到 actual damage > 0；0 攻击力和屏障防止伤害都会使目标存活。",
+      "impact": "错误改变必杀与屏障、效果破坏免疫和超进化保护的战斗结果、事件、胜负及训练轨迹。",
+      "affected_decks": [
+        "international_qr_dragon_20260728",
+        "international_qr_forest_20260728",
+        "international_qr_sword_20260728",
+        "official_qr_evolve_haven_20260727"
+      ],
+      "fix_commit": "60d1c2f",
+      "regression_tests": [
+        "tests/test_keywords.py::BaneTests::test_bane_counter_respects_super_evolution_protection",
+        "tests/test_keywords.py::BaneTests::test_bane_respects_effect_destroy_immunity",
+        "tests/test_keywords.py::BaneTests::test_bane_still_destroys_after_barrier_prevents_damage",
+        "tests/test_keywords.py::BaneTests::test_zero_attack_bane_still_destroys"
+      ],
+      "notes": "2026-07-30 于 1.9 战斗扫描发现并保存修复前最小复现；官方 Cygames 必杀词条明确覆盖 0 攻击力及被对手能力把伤害变为 0 的情况。由 60d1c2f 修复，必杀现在按战斗接触触发并复用通用效果破坏保护路径；聚焦回归、100/1,000 局随机自博弈和 RL 混合对局均通过。"
     }
   ]
 }

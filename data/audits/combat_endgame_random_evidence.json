@@ -1,0 +1,45 @@
+{
+  "schema_version": 1,
+  "report_kind": "swb_combat_endgame_random_official_evidence",
+  "accessed_on": "2026-07-30",
+  "sources": [
+    {
+      "evidence_id": "SWB-COMBAT-OFFICIAL-001",
+      "authority": "official_help_glossary",
+      "url": "https://shadowverse-wb.com/ja/help/?tab=tab0",
+      "conclusion": "The official glossary defines attacks and counterattacks, Ward, attack and clash timing before combat damage, Bane including zero-damage cases, Drain, Barrier, damage and healing, destruction, banish, transform, Last Words, leader lethal, and empty-deck defeat.",
+      "summary": "官方帮助词条规定攻击与反击、守护、攻击时/交战时先于战斗伤害、0 伤害仍发动必杀、虹吸、屏障、伤害与回复、破坏/消失/变身/谢幕曲，以及主战者致死和空牌库败北。"
+    },
+    {
+      "evidence_id": "SWB-COMBAT-OFFICIAL-002",
+      "authority": "official_system_guide",
+      "url": "https://shadowverse-wb.com/ja/system/cardbattle/battle/",
+      "conclusion": "The official battle guide states that a super-evolved follower prevents damage and effect destruction during its controller's turn and deals one damage to the opposing leader after its attack destroys the opposing follower, including attack-time ability destruction.",
+      "summary": "官网对战说明明确超进化随从在己方回合将所受伤害变为 0、不会被能力破坏，并在攻击中破坏敌方随从后对敌方主战者造成 1 点伤害，包括攻击中由能力造成的破坏。"
+    },
+    {
+      "evidence_id": "SWB-COMBAT-OFFICIAL-003",
+      "authority": "official_card_text",
+      "url": "https://shadowverse-wb.com/ja/deck/cardslist/card/?card_id=10464120",
+      "card_id": 10464120,
+      "conclusion": "The official card text for Katalina provides the production damage-cap case: incoming damage of four or more becomes three.",
+      "summary": "卡塔莉娜官方卡牌文字提供当前卡池的伤害上限实例：所受 4 点以上伤害改为 3 点。"
+    },
+    {
+      "evidence_id": "SWB-COMBAT-OFFICIAL-004",
+      "authority": "official_qa",
+      "url": "https://shadowverse-wb.com/en/deck/cardslist/card/?card_id=10153140",
+      "card_id": 10153140,
+      "conclusion": "The official Balt Q&A says the opponent wins when both leaders are at one defense and Balt's all-leader crest resolves, demonstrating immediate lethal determination before the second damage.",
+      "summary": "巴尔特官方 Q&A 明确双方主战者均为 1 时由纹章持有者的对手获胜，证明第一段致死立即确定胜负并停止后续伤害。"
+    },
+    {
+      "evidence_id": "SWB-COMBAT-OFFICIAL-005",
+      "authority": "official_help_glossary",
+      "url": "https://shadowverse-wb.com/ja/deck/cardslist/card/?card_id=10664120",
+      "card_id": 10664120,
+      "conclusion": "The official Victory Card glossary states that drawing from an empty deck becomes victory instead of defeat after the Reaper card at the bottom of the deck has transformed into a Victory Card.",
+      "summary": "官方“胜利卡”词条明确：牌组底部的死神卡变为胜利卡后，空牌库抽牌由败北改为胜利。"
+    }
+  ]
+}
