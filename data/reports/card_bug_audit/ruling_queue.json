@@ -1,0 +1,61 @@
+{
+  "schema_version": 1,
+  "report_kind": "swb_card_ruling_queue",
+  "generated_from": {
+    "database": "data/cards.sqlite3",
+    "database_sha256": "df069e713a97493c885266b72f303874035beea571147ba14b77c57c9e631376",
+    "rules_directory": "data/rules",
+    "rules_snapshot_sha256": "449230d69db016ff99fa27de963f89adc9ac9ac5b54e913991ffe3314e4f2017",
+    "baseline": "data/reports/card_bug_audit/baseline.json",
+    "baseline_sha256": "cd3d94cbf6035531a8ae0e96d95cda9fcfa54b93c771cd1bd95ff143ab6badb5",
+    "closure": "data/reports/card_bug_audit/training_deck_card_closure.json",
+    "closure_sha256": "737cb2c26f282ae6e67730be44e78a278e5a67683c044dc1730c9b640fb74e75",
+    "matrix": "data/reports/card_bug_audit/card_clause_matrix.json",
+    "matrix_sha256": "1054076d516e5756f5af9505b6ba276eec54856724e8bd7e1cd4b1e99487c486",
+    "last_verified_commit": "845b3c99257b28e77e52db42d98e2e9de9f61f98"
+  },
+  "evidence_hierarchy": [
+    {
+      "tier": 1,
+      "kind": "official_qa_or_rules",
+      "description": "官方 Q&A、综合规则或官方规则说明。"
+    },
+    {
+      "tier": 2,
+      "kind": "reproducible_client_result",
+      "description": "记录版本、初始状态和操作序列的客户端可重复复现。"
+    },
+    {
+      "tier": 3,
+      "kind": "multiple_reliable_recordings_or_tests",
+      "description": "多个互相独立且可核查的录像或测试。"
+    },
+    {
+      "tier": 4,
+      "kind": "single_guide_source",
+      "description": "单个攻略或非官方资料来源。"
+    },
+    {
+      "tier": 5,
+      "kind": "text_only_inference",
+      "description": "仅依据卡牌文字的推断；不能关闭裁定项。"
+    }
+  ],
+  "external_evidence_contract": {
+    "required_for_closed_entries": [
+      "source_url",
+      "retrieved_at",
+      "conclusion",
+      "summary"
+    ],
+    "summary_rule": "Store only the minimum summary needed to support the ruling.",
+    "text_only_inference_can_close_entry": false
+  },
+  "summary": {
+    "entry_count": 0,
+    "open_count": 0,
+    "source_alignment_blocks_training": false,
+    "scope_note": "Zero entries means no unresolved source-to-structure signal was found in this 147-card closure. It does not substitute for later official/client or runtime audit dimensions."
+  },
+  "entries": []
+}
