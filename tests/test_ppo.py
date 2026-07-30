@@ -454,6 +454,10 @@ class PPOTrainerTests(unittest.TestCase):
                 0.0,
             )
             self.assertGreater(
+                trainer.last_collect_timing["worker_action_mask_seconds"],
+                0.0,
+            )
+            self.assertGreater(
                 trainer.last_collect_timing["worker_command_decode_seconds"],
                 0.0,
             )
@@ -463,7 +467,8 @@ class PPOTrainerTests(unittest.TestCase):
             )
             self.assertLessEqual(
                 (
-                    trainer.last_collect_timing[
+                    trainer.last_collect_timing["worker_action_mask_seconds"]
+                    + trainer.last_collect_timing[
                         "worker_command_decode_seconds"
                     ]
                     + trainer.last_collect_timing[

@@ -157,7 +157,7 @@ class EnvironmentTests(unittest.TestCase):
         self.assertEqual(
             set(timing),
             {
-                "action_validation_seconds",
+                "action_mask_seconds",
                 "command_decode_seconds",
                 "resolution_seconds",
                 "post_step_seconds",
@@ -167,7 +167,8 @@ class EnvironmentTests(unittest.TestCase):
         self.assertTrue(all(value >= 0.0 for value in timing.values()))
         self.assertGreaterEqual(
             timing["step_total_seconds"],
-            timing["command_decode_seconds"]
+            timing["action_mask_seconds"]
+            + timing["command_decode_seconds"]
             + timing["resolution_seconds"],
         )
 

@@ -1066,7 +1066,7 @@ Invocation/瞬念召唤及其他替代出牌方式。
 Worker 侧：
 
 - [x] 单独统计引擎 command/resolution 时间。
-- [ ] 单独统计 legal command/action mask 时间。
+- [x] 单独统计 legal command/action mask 时间。
 - [ ] 单独统计 Observation v4.1 构造时间。
 - [ ] 单独统计 IPC 请求序列化、发送和等待时间。
 - [ ] 单独统计新对局 reset、换牌和卡组构造时间。
@@ -1121,6 +1121,28 @@ Learner 侧：
   data/rl_mixed_match.log`：通过，player 2 获胜，最终生命 0:18；
   控制台输出保存于
   `data/reports/training_speed/stage_2_2_command_timing_rl_mixed.log`。
+
+2.2 worker legal command/action mask 切片证据（2026-07-31）：
+
+- 候选分类为 `A-PROFILE-001`。`ShadowverseEnv.step()` 的可选 timing sink
+  精确累加执行前合法性校验及状态变化后下一决策两次 `action_mask()`；
+  缓存未命中时该调用包含 `_cached_legal_commands()` 的实际生成成本。
+- worker 将每局结果汇总为 `worker_action_mask_seconds`；该字段和 command
+  decode、resolution 的总和不得超过既有 `worker_engine_step_seconds`。
+- 冻结 v4.1 checkpoint 的 2,048-step 实测实际完成 2,282 steps：
+  action mask/legal command 0.137650 秒、command decode 0.013936 秒、
+  resolution 1.296719 秒，三者均包含在 engine-step 5.413001 秒内；
+  checkpoint 哈希保持不变。机器可读结果保存于
+  `data/reports/training_speed/stage_2_2_action_mask_smoke.json`。
+- 两项聚焦等价/汇总回归通过；最终
+  `E:\anaconda\python.exe -m unittest discover -s tests -v`：2,848 项通过，
+  1 项条件跳过，耗时 438.597 秒，API test 通过；完整输出保存于
+  `data/reports/training_speed/stage_2_2_action_mask_unittest.log`。
+- `E:\anaconda\python.exe -m compileall -q swb scripts tests`：通过。
+- `E:\anaconda\python.exe -m scripts.random_self_play --games 100`：100 局
+  全部完成，`wins=[56, 44]`、draw/truncation/mask mismatch 均为 0；
+  `E:\anaconda\python.exe -m scripts.rl_mixed_match --output
+  data/rl_mixed_match.log`：通过，player 2 获胜，最终生命 0:18。
 
 总体验收：
 

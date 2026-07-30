@@ -491,16 +491,20 @@ class ShadowverseEnv:
             raise ValueError("Cannot step a finished environment; call reset()")
         page_before = self._graveyard_page
         choice_key_before = self._last_choice_request_key
-        validation_started = (
-            time.perf_counter() if timing is not None else 0.0
-        )
         if action < 0 or action >= self.ACTION_SIZE:
             self._core._record_runtime_diagnostic(
                 "illegal_action",
                 detail=str(action),
             )
             raise ValueError(f"Illegal action: {action}")
+        action_mask_started = (
+            time.perf_counter() if timing is not None else 0.0
+        )
         mask = self.action_mask()
+        if timing is not None:
+            timing["action_mask_seconds"] = (
+                time.perf_counter() - action_mask_started
+            )
         if not mask[action]:
             self._graveyard_page = page_before
             self._last_choice_request_key = choice_key_before
@@ -509,10 +513,6 @@ class ShadowverseEnv:
                 detail=str(action),
             )
             raise ValueError(f"Illegal action: {action}")
-        if timing is not None:
-            timing["action_validation_seconds"] = (
-                time.perf_counter() - validation_started
-            )
         acting_player = self.decision_player
         command_started = time.perf_counter() if timing is not None else 0.0
         try:
@@ -532,7 +532,14 @@ class ShadowverseEnv:
                 advance_transition=True,
                 reason="graveyard page transition",
             )
+            action_mask_started = (
+                time.perf_counter() if timing is not None else 0.0
+            )
             next_mask = self.action_mask()
+            if timing is not None:
+                timing["action_mask_seconds"] += (
+                    time.perf_counter() - action_mask_started
+                )
             result = StepResult(
                 observation=self.observation(action_mask=next_mask),
                 reward=0.0,
@@ -576,7 +583,14 @@ class ShadowverseEnv:
         )
         self._sync_choice_page(invalidate=False)
         self._invalidate_caches(advance_transition=True, reason="legal step")
+        action_mask_started = (
+            time.perf_counter() if timing is not None else 0.0
+        )
         next_mask = self.action_mask()
+        if timing is not None:
+            timing["action_mask_seconds"] += (
+                time.perf_counter() - action_mask_started
+            )
         step_result = StepResult(
             observation=self.observation(action_mask=next_mask),
             reward=reward,

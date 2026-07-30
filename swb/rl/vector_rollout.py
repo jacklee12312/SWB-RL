@@ -396,6 +396,7 @@ def _run_central_policy_episode(
     observation_seconds = 0.0
     inference_round_trip_seconds = 0.0
     engine_step_seconds = 0.0
+    action_mask_seconds = 0.0
     command_decode_seconds = 0.0
     resolution_seconds = 0.0
     step_index = 0
@@ -444,6 +445,7 @@ def _run_central_policy_episode(
         step_timing: dict[str, float] = {}
         result = env.step(action, timing=step_timing)
         engine_step_seconds += time.perf_counter() - engine_step_started
+        action_mask_seconds += step_timing["action_mask_seconds"]
         command_decode_seconds += step_timing["command_decode_seconds"]
         resolution_seconds += step_timing["resolution_seconds"]
 
@@ -482,6 +484,7 @@ def _run_central_policy_episode(
                 inference_round_trip_seconds
             ),
             "worker_engine_step_seconds": engine_step_seconds,
+            "worker_action_mask_seconds": action_mask_seconds,
             "worker_command_decode_seconds": command_decode_seconds,
             "worker_resolution_seconds": resolution_seconds,
             "worker_bootstrap_seconds": bootstrap_seconds,
