@@ -1,0 +1,52 @@
+{
+  "schema_version": 1,
+  "report_kind": "swb_card_bug_synthetic_fixture",
+  "bug_id": "SWB-CARD-0008",
+  "purpose": "Minimal fallback after the state-dependent natural action trace cannot be shortened while remaining a legal match.",
+  "fixture": {
+    "target": {
+      "card_id": 10154120,
+      "printed_attack": 3,
+      "printed_health": 7
+    },
+    "operations": [
+      {
+        "kind": "add_stat_modifier",
+        "attack_delta": 2,
+        "health_delta": -2,
+        "duration": "permanent"
+      },
+      {
+        "kind": "set_stats",
+        "attack": null,
+        "health": 1
+      },
+      {
+        "kind": "add_stat_modifier",
+        "attack_delta": 3,
+        "health_delta": 3,
+        "duration": "permanent",
+        "represents": "super_evolution"
+      }
+    ],
+    "expected": {
+      "attack": 8,
+      "health": 4,
+      "max_health": 4,
+      "remaining_prior_modifier": {
+        "attack_delta": 2,
+        "health_delta": 0
+      }
+    }
+  },
+  "would_fail_before_fix": {
+    "engine_commit": "bb5635b58709e0c3e6cf5486f6708530f47be3f2",
+    "result": {
+      "attack": 8,
+      "health": 4,
+      "max_health": 2
+    },
+    "exception": "Invariant failed: player 1 board[1] health exceeds max_health"
+  },
+  "permanent_regression": "tests/test_card_bug_repro_package.py::CardBugReproPackageTests::test_synthetic_fixture_executes"
+}

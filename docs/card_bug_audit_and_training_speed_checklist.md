@@ -751,17 +751,57 @@ Invocation/瞬念召唤及其他替代出牌方式。
 
 ## 1.13 最小复现与自动回归闭环
 
-- [ ] 定义可序列化复现包：数据库/规则哈希、卡组、seed、出错前 snapshot、
+- [x] 定义可序列化复现包：数据库/规则哈希、卡组、seed、出错前 snapshot、
   命令、合法动作、掩码、事件、预期和实际。
-- [ ] 复现包不得依赖当时 UI 或进程内对象。
-- [ ] 增加命令序列缩减工具，优先删除与失败无关的早期回合和动作。
-- [ ] 若无法缩减为合法自然对局，则输出最小 synthetic fixture。
-- [ ] 每个已确认 Bug 先增加会失败的测试，再修改规则或引擎。
-- [ ] 修复后运行同机制所有真实卡牌测试，防止只修某个 card ID。
-- [ ] 卡牌行为优先写入 `data/rules/` 和通用 primitive，不在
+- [x] 复现包不得依赖当时 UI 或进程内对象。
+- [x] 增加命令序列缩减工具，优先删除与失败无关的早期回合和动作。
+- [x] 若无法缩减为合法自然对局，则输出最小 synthetic fixture。本次条件
+  未触发：真实轨迹已从 107 步合法缩至 86 步；仍额外保存 synthetic
+  primitive fixture 作为更小的永久回归。
+- [x] 每个已确认 Bug 先增加会失败的测试，再修改规则或引擎。
+- [x] 修复后运行同机制所有真实卡牌测试，防止只修某个 card ID。
+- [x] 卡牌行为优先写入 `data/rules/` 和通用 primitive，不在
   `resolution.py` 增加大段卡牌 ID 分支。
-- [ ] 报告修复影响的旧 checkpoint；保留旧模型用于历史比较，但不得与
+- [x] 报告修复影响的旧 checkpoint；保留旧模型用于历史比较，但不得与
   新规则模型混作公平强度结论。
+
+1.13 证据（2026-07-31）：
+
+- `scripts.card_bug_repro_package` 对 `SWB-CARD-0008` 的原始 107 步轨迹
+  执行 755 次候选回放，得到 86 步合法自然对局；最终 command 仍为
+  `SuperEvolve(player_index=0, unit_id=69)`，前态 5/1/1，后态 8/4/4。
+  可移植包保存在
+  `data/reports/card_bug_audit/repros/SWB-CARD-0008.json`，仅含 JSON
+  原生值，并记录数据库/规则哈希、精确卡组/seed、完整前态、112 位
+  action mask、合法 command、转移事件、官方预期与修复前实际。
+- 附加 synthetic fixture 保存在
+  `data/reports/card_bug_audit/repros/SWB-CARD-0008-synthetic.json`；
+  自然缩减已经成功，因此它不是替代真实对局的回退证据。
+- Bug ledger 的 8/8 个 confirmed/fixed 项均有修复前实际、发现版本、
+  reproduction 文件和永久回归引用。SET_STATS 同机制的《雪人觉醒》
+  普通/超进化、姬华、圣骑士团员和帕斯卡尔 5 项真实卡测试均通过；
+  修复只进入 `Unit.set_stats` 与通用 SET_STATS 结算，新增 card-ID
+  分支为 0。
+- 只读扫描本地 52 个 checkpoint，52/52 可读且均早于 `b6f1d95`。
+  文件全部保留，但只能用于历史复现，不得与修复后模型混作公平强度
+  结论。由于本次是 Python 引擎语义修改，旧模型即使 rulebook hash
+  相同也不代表轨迹兼容。机器可读清单见
+  `data/reports/card_bug_audit/repros/checkpoint_impact.json`。
+- `E:\anaconda\python.exe -m unittest
+  tests.test_card_bug_repro_package tests.test_card_bug_checkpoint_impact
+  tests.test_card_audit_reproduction -v`：12 项通过。
+- 5 项 SET_STATS 同机制真实卡定向回归：5 项通过。
+- `E:\anaconda\python.exe -m unittest discover -s tests -v`：2,823 项
+  通过，1 项条件跳过，耗时 434.462 秒，API test 通过；完整控制台
+  记录保存在本地
+  `data/reports/card_bug_audit/stage_1_13_unittest.log`。
+- `E:\anaconda\python.exe -m compileall -q swb scripts tests`：通过。
+- 1.13 未修改引擎、规则、command、mask、Observation 或对局语义；
+  使用上一 checkpoint `b6f1d95` 已通过的 100/1,000 局、八套 1,024
+  局和全池 10,000 局门禁作为冻结规则证据，本工具/报告 slice 不重复
+  执行对局 smoke。
+- 综合机器可读结论：
+  `data/reports/card_bug_audit/stage_1_13_repro_closure.json`。
 
 产物：
 

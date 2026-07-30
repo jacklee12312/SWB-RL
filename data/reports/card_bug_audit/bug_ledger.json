@@ -370,14 +370,16 @@
       "actual": "SET_STATS 将生命 1 写入 base_health，却保留更早的永久 health_delta=-2；原实现超进化得到非法 8/4（上限 2）并触发不变量异常，第一次修复虽不再异常却得到与官方 Q&A 冲突的 8/2（上限 2）。",
       "impact": "合法超进化 command/action 会抛出 IllegalCommand 并终止随机自博弈或训练采样，属于正式训练阻断问题。",
       "affected_decks": [],
-      "fix_commit": "working-tree:af133ea272ccc77eb964577c364360dab3ef5526",
+      "fix_commit": "b6f1d95cd2336cc86772e717e5bd09440a8f38a7",
       "regression_tests": [
         "tests/test_card_audit_reproduction.py::CardAuditReproductionTests::test_swb_card_0008_exact_saved_prefix_reaches_official_stats",
+        "tests/test_card_bug_repro_package.py::CardBugReproPackageTests::test_portable_package_replays",
+        "tests/test_card_bug_repro_package.py::CardBugReproPackageTests::test_synthetic_fixture_executes",
         "tests/test_real_generated_burst_spell_batch.py::RealGeneratedBurstSpellTests::test_ordinary_evolution_after_set_health_uses_official_visible_plus_two",
         "tests/test_real_generated_burst_spell_batch.py::RealGeneratedBurstSpellTests::test_super_evolution_after_set_health_uses_official_visible_plus_three",
         "tests/test_unit_state.py::SetStatsTests::test_set_stats_overrides_older_modifiers_in_set_dimensions"
       ],
-      "notes": "1.12 的 1,000 局门禁于 game 433、seed 120445 发现。2026-07-30 复核 Cygames 官方 Q&A 后重开：旧 2/2 结论只能证明不变量不再失败，不能证明规则正确。通用 Unit.set_stats 现覆盖设定前同维度修正，不含 card ID 特判；真正读取原失败报告的 107 步精确回放得到 8/4（上限 4），0 个非法动作。更早临时修正在设定后到期的边界未找到直接官方 Q&A，作为 SWB-RULING-SET-STATS-TEMP-001 保持 ruling_uncertain 并等待客户端复现。"
+      "notes": "1.12 的 1,000 局门禁于 game 433、seed 120445 发现。2026-07-30 复核 Cygames 官方 Q&A 后重开：旧 2/2 结论只能证明不变量不再失败，不能证明规则正确。b6f1d95 的通用 Unit.set_stats 覆盖设定前同维度修正，不含 card ID 特判；原失败报告的 107 步精确回放得到 8/4（上限 4），0 个非法动作。1.13 的 delta-debug 又将其缩至 86 个合法动作，并生成包含数据库/规则哈希、前态、command、mask、事件及预期/实际的可移植 JSON 包。更早临时修正在设定后到期的边界未找到直接官方 Q&A，作为 SWB-RULING-SET-STATS-TEMP-001 保持 ruling_uncertain 并等待客户端复现。"
     }
   ]
 }

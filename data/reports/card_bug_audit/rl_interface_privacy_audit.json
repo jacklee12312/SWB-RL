@@ -10,7 +10,7 @@
     "swb/simulator/service.py": "8094c7fb4f54aaad21cd2b966212b79f1bda39f1d6bdf14b9b3a3e737a85b6d7",
     "data/audits/rl_interface_privacy_evidence.json": "a73f35128c38bc8138f8f51e2983c0b6f4a668132c16d37bdaa18f427955a736",
     "data/reports/card_bug_audit/play_mode_boundary_audit.json": "e988e4e05f6ce7159059643512b7b9fa5f2560193e81d857b05a5dcbef046249",
-    "data/reports/card_bug_audit/bug_ledger.json": "47beeed351a8122053de8469c239fba5ba47befeb8bf931cbd2c62f77188a654"
+    "data/reports/card_bug_audit/bug_ledger.json": "28915bbaca5aa54d7592da62c237182b791c807a21827c1d80a4077118504e5f"
   },
   "summary": {
     "action_layout_version": "action-112-v2",

@@ -240,6 +240,30 @@ index, per-game seed, decks, full action sequence, mask, board state, and
 fingerprint to its requested JSON output before re-raising an exception. The
 bug ledger has no open P0/P1 entry.
 
+Checklist 1.13 turns that incident into a portable regression workflow. The
+[`SWB-CARD-0008` package](data/reports/card_bug_audit/repros/SWB-CARD-0008.json)
+contains the database and rule hashes, exact decks and seed, a JSON-native
+pre-command state, decoded command, full 112-action mask and legal commands,
+transition events, and official expected versus historical actual results. A
+prefix-first delta debugger made 755 candidate replays and reduced the original
+107-action match to an 86-action legal natural reproduction; the same final
+command still super-evolves Medusa from 5/1/1 to 8/4/4. A separate
+[synthetic fixture](data/reports/card_bug_audit/repros/SWB-CARD-0008-synthetic.json)
+keeps the primitive boundary directly testable without replacing the real-match
+evidence.
+
+The accompanying
+[checkpoint impact report](data/reports/card_bug_audit/repros/checkpoint_impact.json)
+read 52 local `.pt` manifests without modifying the files. All 52 predate
+`b6f1d95` and remain preserved for historical reconstruction only; they must
+not be mixed with post-fix models for fair strength conclusions. This engine
+change did not alter `data/rules`, so a matching rulebook hash alone is not
+enough to establish behavioral compatibility. The consolidated 1.13 result is
+saved in
+[`stage_1_13_repro_closure.json`](data/reports/card_bug_audit/stage_1_13_repro_closure.json).
+Its final gate passed 2,823 tests with one conditional skip, compileall, and the
+deterministic 1,546-case RL interface/privacy report.
+
 ## Reproducible RL Platform
 
 The P1/P2 platform-hardening slice is implemented around the deterministic

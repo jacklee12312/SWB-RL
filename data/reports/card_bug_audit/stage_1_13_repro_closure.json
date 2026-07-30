@@ -1,0 +1,130 @@
+{
+  "schema_version": 1,
+  "report_kind": "swb_card_bug_reproduction_closure",
+  "checklist_stage": "1.13",
+  "status": "passed",
+  "scope": {
+    "confirmed_bug_count": 8,
+    "fixed_bug_count": 8,
+    "open_p0": 0,
+    "open_p1": 0,
+    "ledger": "data/reports/card_bug_audit/bug_ledger.json"
+  },
+  "portable_reproduction": {
+    "bug_id": "SWB-CARD-0008",
+    "package": "data/reports/card_bug_audit/repros/SWB-CARD-0008.json",
+    "package_sha256": "9717f1b81ac5f1b459e278518aac0816fbccac85ff4bd554facb72f152ac10eb",
+    "database_and_rule_hashes_present": true,
+    "exact_decks_and_seed_present": true,
+    "pre_command_snapshot_present": true,
+    "structured_command_present": true,
+    "legal_actions_and_mask_present": true,
+    "transition_events_present": true,
+    "official_expected_and_pre_fix_actual_present": true,
+    "only_json_native_values": true,
+    "requires_ui": false,
+    "requires_original_process": false
+  },
+  "minimization": {
+    "algorithm": "prefix-first contiguous-chunk delta debugging",
+    "original_action_count": 107,
+    "minimized_action_count": 86,
+    "candidate_replays": 755,
+    "legal_natural_reduction_found": true,
+    "final_command": "SuperEvolve(player_index=0, unit_id=69)",
+    "target_before": {
+      "card_id": 10154120,
+      "attack": 5,
+      "health": 1,
+      "max_health": 1
+    },
+    "target_after": {
+      "card_id": 10154120,
+      "attack": 8,
+      "health": 4,
+      "max_health": 4
+    },
+    "synthetic_fallback_required": false,
+    "additional_synthetic_fixture": {
+      "path": "data/reports/card_bug_audit/repros/SWB-CARD-0008-synthetic.json",
+      "sha256": "ee60245cabc686917202cc7fd5ab5b9e79f2df86088fa03655135f3acf671250",
+      "purpose": "extra minimal primitive regression despite natural reduction succeeding"
+    }
+  },
+  "bug_workflow_audit": {
+    "saved_pre_fix_reproduction_count": 8,
+    "permanent_regression_count": 8,
+    "all_fixed_entries_have_discovery_commit": true,
+    "all_fixed_entries_have_pre_fix_actual": true,
+    "all_fixed_entries_have_regression_tests": true,
+    "process_conclusion": "All eight confirmed bugs retain a pre-fix reproduction/actual result and permanent regression references in the ledger."
+  },
+  "same_mechanic_regression": {
+    "mechanic": "SET_STATS specific-value assignment",
+    "real_card_tests_run": 5,
+    "passed": 5,
+    "failed": 0,
+    "cards_or_rule_families": [
+      "Snow Awake ordinary evolution",
+      "Snow Awake super evolution",
+      "Himeka exact attack assignment",
+      "Holy Knight set-stats versus positive buff counting",
+      "Pascale current-stat doubling"
+    ]
+  },
+  "implementation_boundary": {
+    "generic_primitive": "swb.engine.state.Unit.set_stats",
+    "resolution_entrypoint": "GameEngine._execute_set_stats",
+    "data_rules_remain_structured": true,
+    "card_id_branches_added": 0,
+    "verification": "git diff b6f1d95^ b6f1d95 over state.py/resolution.py contains no card_id comparison or audited card ID"
+  },
+  "checkpoint_impact": {
+    "report": "data/reports/card_bug_audit/repros/checkpoint_impact.json",
+    "report_sha256": "5190264c86e6f31b0985c1abbc84583c79f4b47fbc59b3ec1ce488127c7370b2",
+    "checkpoints_inspected": 52,
+    "readable": 52,
+    "pre_fix_historical_only": 52,
+    "files_modified_or_deleted": 0,
+    "fair_strength_comparison_with_post_fix_models": false,
+    "important_caveat": "The engine-code fix does not change the data/rules hash, so matching rulebook hashes alone do not make old and new trajectories comparable."
+  },
+  "focused_verification": [
+    {
+      "command": "E:\\anaconda\\python.exe -m scripts.card_bug_repro_package --validate-only",
+      "result": "passed; 86 legal actions, deterministic pre-command snapshot, target 8/4/4"
+    },
+    {
+      "command": "E:\\anaconda\\python.exe -m unittest tests.test_card_bug_repro_package tests.test_card_bug_checkpoint_impact tests.test_card_audit_reproduction -v",
+      "result": "12 tests passed"
+    },
+    {
+      "command": "E:\\anaconda\\python.exe -m unittest <five recorded same-mechanic real-card tests> -v",
+      "result": "5 tests passed"
+    }
+  ],
+  "final_verification": [
+    {
+      "command": "E:\\anaconda\\python.exe -m unittest discover -s tests -v",
+      "result": "2823 tests passed, 1 conditionally skipped, 434.462 seconds; API test passed",
+      "log": "data/reports/card_bug_audit/stage_1_13_unittest.log",
+      "log_tracking": "local ignored evidence"
+    },
+    {
+      "command": "E:\\anaconda\\python.exe -m compileall -q swb scripts tests",
+      "result": "passed"
+    },
+    {
+      "command": "E:\\anaconda\\python.exe -m scripts.report_rl_interface_privacy_audit",
+      "result": "112 actions, 9 commands, 10 contracts, 1546 cases, 0 failures, passed"
+    }
+  ],
+  "known_limitations": [
+    {
+      "id": "SWB-RULING-SET-STATS-TEMP-001",
+      "status": "ruling_uncertain",
+      "scope": "expiry of an older temporary modifier after a later specific-value assignment",
+      "disposition": "not claimed as official; awaits direct official Q&A or client reproduction"
+    }
+  ]
+}
