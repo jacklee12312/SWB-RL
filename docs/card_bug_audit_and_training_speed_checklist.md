@@ -810,15 +810,56 @@ Invocation/瞬念召唤及其他替代出牌方式。
 
 ## 1.14 八套训练卡组门禁
 
-- [ ] 111 张左右的可收集卡并集及全部衍生闭包均有完整审计行。
-- [ ] 所有适用替代模式和费用边界通过。
-- [ ] 所有适用关键词来源和进入方式通过。
-- [ ] 所有目标、时机、容量和职业资源条款至少有直接或生成测试。
-- [ ] Runtime coverage 没有未解释的未触发 clause。
-- [ ] 零 P0、零 P1 未关闭 Bug。
-- [ ] 零 unsupported/placeholder、非法状态变更和 mask mismatch。
-- [ ] 1,000 局八套卡组 smoke 无引擎异常，并能按 seed 完整复现。
-- [ ] 完整单元测试、compileall 和规定 smoke 命令全部通过。
+- [x] 111 张左右的可收集卡并集及全部衍生闭包均有完整审计行。
+- [x] 所有适用替代模式和费用边界通过。
+- [x] 所有适用关键词来源和进入方式通过。
+- [x] 所有目标、时机、容量和职业资源条款至少有直接或生成测试。
+- [x] Runtime coverage 没有未解释的未触发 clause。
+- [x] 零 P0、零 P1 未关闭 Bug。
+- [x] 零 unsupported/placeholder、非法状态变更和 mask mismatch。
+- [x] 1,000 局八套卡组 smoke 无引擎异常，并能按 seed 完整复现。
+- [x] 完整单元测试、compileall 和规定 smoke 命令全部通过。
+
+1.14 证据（2026-07-31）：
+
+- 八套固定卡组直接可收集卡并集为 111 张；递归引用新增 36 张，最终
+  闭包 147 张，其中 116 张可收集、31 张衍生。1.14 汇总门禁将
+  1.5 的结构化矩阵与后续实际执行证据合并，147/147 最终审计行均有
+  source alignment、适用 forced scenario、直接测试及 runtime
+  解释，0 行失败。
+- 替代模式门禁覆盖训练闭包中的 17 张模式卡、55 个模式、1,546 个
+  费用边界和 55 个满场边界，command/mask mismatch、非法操作
+  原子性失败和执行失败均为 0。
+- 关键词门禁覆盖训练闭包 59 个关键词来源、9 个运行时关键词、12 种
+  进入方式；inventory、contract 和 matrix failure 均为 0。
+- 目标、时机、容量与职业资源共获得 2,793 个 forced-scenario
+  assignment；9/9 最小 public-interface fixture 通过，17 次必要
+  直接状态设置后执行了 35 次 invariant check。八套卡组的所有适用
+  scenario 均通过。
+- 训练闭包共有 458 个 structured runtime clause：15 个在 smoke
+  中实际触发并通过；原始 440 个 `not_triggered` 和 3 个
+  `triggered_not_executed` 保持原标签，另由重新执行的直接测试逐条
+  解释，未解释 clause 为 0，未把“未触发”误报成“runtime passed”。
+- Bug ledger 为 6 个 P0、2 个 P1，8/8 fixed，未关闭 P0/P1 均为 0。
+  八套矩阵累计 95,230 次 mask check，unsupported/placeholder、
+  illegal action、mask mismatch、exception 和 truncation 均为 0。
+- 八套矩阵实际完成 1,024 局（960 random-legal、64 frozen-policy），
+  128/128 sampling strata，1,024/1,024 按 seed 完整重放，0 replay
+  failure，全部正常终局。
+- `E:\anaconda\python.exe -m unittest tests.test_training_deck_gate -v`：
+  6 项通过。
+- `E:\anaconda\python.exe -m unittest discover -s tests -v`：2,829 项通过，
+  1 项条件跳过，耗时 436.925 秒；随后 API test 通过。完整输出保存于
+  `data/reports/card_bug_audit/stage_1_14_unittest.log`。
+- `E:\anaconda\python.exe -m compileall -q swb scripts tests`：通过。
+- 规则冻结提交 `b6f1d95` 后的规定 smoke 证据沿用 1.12 的实际重跑：
+  `stage_1_12_0008_official_random_self_play_100.json` 和
+  `stage_1_12_0008_official_random_self_play_1000.json` 均通过，
+  `data/rl_mixed_match.log --validate-invariants` 完成且玩家 2 获胜；
+  1.14 未修改引擎、规则、动作、目标、战斗、回合或 Observation。
+- 机器可读报告：
+  `data/reports/card_bug_audit/training_deck_gate.json`；可读摘要：
+  `data/reports/card_bug_audit/training_deck_gate.md`。
 
 通过本门禁后，允许进行短期性能实验和小规模训练，但完整卡池门禁仍需继续。
 

@@ -264,6 +264,20 @@ saved in
 Its final gate passed 2,823 tests with one conditional skip, compileall, and the
 deterministic 1,546-case RL interface/privacy report.
 
+Checklist 1.14 is now consolidated in the
+[eight-deck gate](data/reports/card_bug_audit/training_deck_gate.md). The eight
+fixed decks contain 111 distinct collectible cards and expand through 36
+recursive references to a 147-card closure (116 collectible, 31 generated).
+All 147 final audit rows pass source alignment, applicable forced scenarios,
+direct-test attribution, and runtime-clause explanation. The gate also passes
+all nine checklist decisions: 1,546 cost boundaries, 55 full-board mode cases,
+all keyword entry paths, 2,793 forced-scenario assignments, zero open P0/P1
+bugs, and a 1,024-game matrix with 95,230 mask checks and 1,024 deterministic
+replays. Raw runtime coverage remains honest: 440 untriggered and three
+triggered-but-unexecuted clauses keep those labels and are closed for this gate
+only by separately re-executed direct tests. This permits short experiments;
+the 735+91 full-pool gate remains separate and unfinished.
+
 ## Reproducible RL Platform
 
 The P1/P2 platform-hardening slice is implemented around the deterministic
