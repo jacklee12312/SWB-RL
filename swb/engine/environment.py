@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import copy
+import time
 from collections import Counter
 from dataclasses import dataclass
 from pathlib import Path
@@ -479,11 +480,20 @@ class ShadowverseEnv:
         mask = self.action_mask()
         return self.observation(action_mask=mask), self.info(action_mask=mask)
 
-    def step(self, action: int) -> StepResult:
+    def step(
+        self,
+        action: int,
+        *,
+        timing: dict[str, float] | None = None,
+    ) -> StepResult:
+        step_started = time.perf_counter() if timing is not None else 0.0
         if self.terminated or self.truncated:
             raise ValueError("Cannot step a finished environment; call reset()")
         page_before = self._graveyard_page
         choice_key_before = self._last_choice_request_key
+        validation_started = (
+            time.perf_counter() if timing is not None else 0.0
+        )
         if action < 0 or action >= self.ACTION_SIZE:
             self._core._record_runtime_diagnostic(
                 "illegal_action",
@@ -499,10 +509,23 @@ class ShadowverseEnv:
                 detail=str(action),
             )
             raise ValueError(f"Illegal action: {action}")
+        if timing is not None:
+            timing["action_validation_seconds"] = (
+                time.perf_counter() - validation_started
+            )
         acting_player = self.decision_player
+        command_started = time.perf_counter() if timing is not None else 0.0
         try:
             command = self._decode_action(action)
         except _PageTurn:
+            if timing is not None:
+                timing["command_decode_seconds"] = (
+                    time.perf_counter() - command_started
+                )
+                timing["resolution_seconds"] = 0.0
+            post_started = (
+                time.perf_counter() if timing is not None else 0.0
+            )
             self._agent_steps += 1
             self._update_truncation()
             self._invalidate_caches(
@@ -510,13 +533,21 @@ class ShadowverseEnv:
                 reason="graveyard page transition",
             )
             next_mask = self.action_mask()
-            return StepResult(
+            result = StepResult(
                 observation=self.observation(action_mask=next_mask),
                 reward=0.0,
                 terminated=False,
                 truncated=self.truncated,
                 info=self.info(action_mask=next_mask),
             )
+            if timing is not None:
+                timing["post_step_seconds"] = (
+                    time.perf_counter() - post_started
+                )
+                timing["step_total_seconds"] = (
+                    time.perf_counter() - step_started
+                )
+            return result
         except ValueError:
             self._graveyard_page = page_before
             self._last_choice_request_key = choice_key_before
@@ -525,7 +556,19 @@ class ShadowverseEnv:
                 detail=str(action),
             )
             raise
+        if timing is not None:
+            timing["command_decode_seconds"] = (
+                time.perf_counter() - command_started
+            )
+        resolution_started = (
+            time.perf_counter() if timing is not None else 0.0
+        )
         result = self._core.apply(command)
+        if timing is not None:
+            timing["resolution_seconds"] = (
+                time.perf_counter() - resolution_started
+            )
+        post_started = time.perf_counter() if timing is not None else 0.0
         self._agent_steps += 1
         self._update_truncation()
         reward = 0.0 if result.winner is None else (
@@ -534,13 +577,21 @@ class ShadowverseEnv:
         self._sync_choice_page(invalidate=False)
         self._invalidate_caches(advance_transition=True, reason="legal step")
         next_mask = self.action_mask()
-        return StepResult(
+        step_result = StepResult(
             observation=self.observation(action_mask=next_mask),
             reward=reward,
             terminated=self._core.terminated,
             truncated=self.truncated,
             info=self.info(action_mask=next_mask),
         )
+        if timing is not None:
+            timing["post_step_seconds"] = (
+                time.perf_counter() - post_started
+            )
+            timing["step_total_seconds"] = (
+                time.perf_counter() - step_started
+            )
+        return step_result
 
     def _update_truncation(self) -> None:
         if self._core.terminated:

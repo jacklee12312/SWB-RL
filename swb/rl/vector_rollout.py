@@ -396,6 +396,8 @@ def _run_central_policy_episode(
     observation_seconds = 0.0
     inference_round_trip_seconds = 0.0
     engine_step_seconds = 0.0
+    command_decode_seconds = 0.0
+    resolution_seconds = 0.0
     step_index = 0
     while not env.terminated and not env.truncated:
         observation_started = time.perf_counter()
@@ -439,8 +441,11 @@ def _run_central_policy_episode(
         )
 
         engine_step_started = time.perf_counter()
-        result = env.step(action)
+        step_timing: dict[str, float] = {}
+        result = env.step(action, timing=step_timing)
         engine_step_seconds += time.perf_counter() - engine_step_started
+        command_decode_seconds += step_timing["command_decode_seconds"]
+        resolution_seconds += step_timing["resolution_seconds"]
 
         info = result.info
         step_index += 1
@@ -477,6 +482,8 @@ def _run_central_policy_episode(
                 inference_round_trip_seconds
             ),
             "worker_engine_step_seconds": engine_step_seconds,
+            "worker_command_decode_seconds": command_decode_seconds,
+            "worker_resolution_seconds": resolution_seconds,
             "worker_bootstrap_seconds": bootstrap_seconds,
             "worker_agent_steps": float(step_index),
             "worker_torch_threads": float(config.worker_torch_threads),

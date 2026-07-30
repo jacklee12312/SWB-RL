@@ -453,6 +453,25 @@ class PPOTrainerTests(unittest.TestCase):
                 trainer.last_collect_timing["worker_engine_step_seconds"],
                 0.0,
             )
+            self.assertGreater(
+                trainer.last_collect_timing["worker_command_decode_seconds"],
+                0.0,
+            )
+            self.assertGreater(
+                trainer.last_collect_timing["worker_resolution_seconds"],
+                0.0,
+            )
+            self.assertLessEqual(
+                (
+                    trainer.last_collect_timing[
+                        "worker_command_decode_seconds"
+                    ]
+                    + trainer.last_collect_timing[
+                        "worker_resolution_seconds"
+                    ]
+                ),
+                trainer.last_collect_timing["worker_engine_step_seconds"],
+            )
             self.assertEqual(
                 trainer.last_collect_timing["central_inference_requests"],
                 float(len(records)),

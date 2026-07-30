@@ -1065,7 +1065,7 @@ Invocation/瞬念召唤及其他替代出牌方式。
 
 Worker 侧：
 
-- [ ] 单独统计引擎 command/resolution 时间。
+- [x] 单独统计引擎 command/resolution 时间。
 - [ ] 单独统计 legal command/action mask 时间。
 - [ ] 单独统计 Observation v4.1 构造时间。
 - [ ] 单独统计 IPC 请求序列化、发送和等待时间。
@@ -1090,6 +1090,37 @@ Learner 侧：
 - [ ] 统计前向、loss、反向、梯度裁剪、optimizer step。
 - [ ] 统计每 epoch/minibatch 的有效 token 数和 padding 比例。
 - [ ] 统计 CUDA synchronize 对测量结果的影响，避免异步计时失真。
+
+2.2 worker command/resolution 切片证据（2026-07-31）：
+
+- 候选分类为 `A-PROFILE-001`。`ShadowverseEnv.step()` 新增默认关闭的可选
+  timing sink；未传入时不调用性能时钟，现有正式执行路径与 API 保持兼容。
+- 中央策略 worker 在原有 `worker_engine_step_seconds` 总量之外，分别汇总
+  `worker_command_decode_seconds` 与 `worker_resolution_seconds`；page-only
+  动作明确记录 resolution 为 0，不伪造引擎执行时间。
+- 等价回归从同一环境 snapshot 分别执行普通/计时 step，验证
+  `StepResult` 与最终 snapshot 完全相同；PPO 多 worker 回归验证两个新字段
+  均为正且其和不超过原 engine-step 总量。
+- 冻结 v4.1 checkpoint 的 2,048-step 实测实际完成 2,282 steps：
+  worker engine-step 合计 5.381254 秒，其中 command decode 0.014082 秒、
+  resolution 1.295004 秒；checkpoint 哈希保持不变。机器可读结果保存于
+  `data/reports/training_speed/stage_2_2_command_resolution_smoke.json`。
+- `E:\anaconda\python.exe -m unittest
+  tests.test_environment.EnvironmentTests.test_optional_step_timing_preserves_result_and_state
+  tests.test_ppo.PPOTrainerTests.test_entity_action_policy_collects_and_updates_fixed_deck
+  -v`：2 项通过。
+- `E:\anaconda\python.exe -m unittest discover -s tests -v`：2,848 项通过，
+  1 项条件跳过，耗时 438.608 秒，API test 通过；完整输出保存于
+  `data/reports/training_speed/stage_2_2_command_timing_unittest_final.log`。
+- `E:\anaconda\python.exe -m compileall -q swb scripts tests`：通过。
+- `E:\anaconda\python.exe -m scripts.random_self_play --games 100`：100 局
+  全部完成，`wins=[56, 44]`、draw/truncation/mask mismatch 均为 0；
+  输出保存于
+  `data/reports/training_speed/stage_2_2_command_timing_self_play_100.log`。
+- `E:\anaconda\python.exe -m scripts.rl_mixed_match --output
+  data/rl_mixed_match.log`：通过，player 2 获胜，最终生命 0:18；
+  控制台输出保存于
+  `data/reports/training_speed/stage_2_2_command_timing_rl_mixed.log`。
 
 总体验收：
 

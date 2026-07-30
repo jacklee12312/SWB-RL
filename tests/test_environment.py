@@ -138,6 +138,39 @@ class EnvironmentTests(unittest.TestCase):
         self.assertEqual(self.env.observation()[-16:-12], [0.0, 0.0, 0.0, 0.0])
         self.assertEqual(self.env.observation()[-12:-10], [0.0, 0.0])
 
+    def test_optional_step_timing_preserves_result_and_state(self) -> None:
+        action = next(
+            index
+            for index, legal in enumerate(self.env.action_mask())
+            if legal
+        )
+        before = self.env.snapshot()
+        ordinary_result = self.env.step(action)
+        ordinary_after = env_snapshot(self.env)
+
+        self.env.restore(before)
+        timing: dict[str, float] = {}
+        timed_result = self.env.step(action, timing=timing)
+
+        self.assertEqual(timed_result, ordinary_result)
+        self.assertEqual(env_snapshot(self.env), ordinary_after)
+        self.assertEqual(
+            set(timing),
+            {
+                "action_validation_seconds",
+                "command_decode_seconds",
+                "resolution_seconds",
+                "post_step_seconds",
+                "step_total_seconds",
+            },
+        )
+        self.assertTrue(all(value >= 0.0 for value in timing.values()))
+        self.assertGreaterEqual(
+            timing["step_total_seconds"],
+            timing["command_decode_seconds"]
+            + timing["resolution_seconds"],
+        )
+
     def test_observation_exposes_public_combo_counts(self) -> None:
         self.env.players[0].cards_played_this_turn = 3
         self.env.players[1].cards_played_this_turn = 1
