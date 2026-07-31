@@ -1534,26 +1534,61 @@ Profiler 分析和后续优化均以 v4.1 为主。
 
 ## 2.5 先消除重复 Observation 构造，再决定是否扩展
 
-- [ ] A-OBS-001：先保存最小调用轨迹和等价测试，证明中央 Worker 在
+- [x] A-OBS-001：先保存最小调用轨迹和等价测试，证明中央 Worker 在
   `env.step()` 已返回下一 Observation 后又调用 `env.observation()`。
-- [ ] A-OBS-001：复用 `env.step()` 返回的下一 Observation，终止、截断、
+- [x] A-OBS-001：复用 `env.step()` 返回的下一 Observation，终止、截断、
   reset 和 perspective 切换边界保持原行为；同一决策状态的 Observation
   和 action mask 只构造一次。
-- [ ] A-OBS-001：固定 seed 对比 Observation 全字段/字节、card index、
+- [x] A-OBS-001：固定 seed 对比 Observation 全字段/字节、card index、
   action mask、动作、log probability、value、hidden state、trajectory 和
   PPO generation 边界。
-- [ ] 分别测量 cold/cached Observation、完整环境 step 和三次端到端 PPO；
+- [x] 分别测量 cold/cached Observation、完整环境 step 和三次端到端 PPO；
   只优化 microbenchmark 不算完成。
-- [ ] 完成 2.5 决策门：若 Observation 构造仍占端到端 pipeline wall time
+- [x] 完成 2.5 决策门：若 Observation 构造仍占端到端 pipeline wall time
   至少 5%，或 A-OBS-001 收益明确超过运行波动且剖析显示还有同源成本，
   才继续本节其余候选；否则保存结果并将其余候选以有证据的不适用/延期关闭。
-- [ ] A 类：按 vocabulary 预计算卡牌静态字段，只查询运行时变化字段。
-- [ ] A 类：将固定 93-token 布局直接写入连续数组，减少字典和临时列表。
-- [ ] A 类：预分配非卡数值、卡牌索引和 token feature 缓冲区。
-- [ ] A 类：避免在 worker 与中央推理之间传输 policy 未使用的调试字段。
-- [ ] A 类：检查 dtype，避免 int64/float64 的不必要带宽和隐式转换。
-- [ ] 保留隐藏信息、perspective、顺序不变性和 mask 一致性测试，优化不能
+- [x] A 类：按 vocabulary 预计算卡牌静态字段，只查询运行时变化字段。
+- [x] A 类：将固定 93-token 布局直接写入连续数组，减少字典和临时列表。
+- [x] A 类：预分配非卡数值、卡牌索引和 token feature 缓冲区。
+- [x] A 类：避免在 worker 与中央推理之间传输 policy 未使用的调试字段。
+- [x] A 类：检查 dtype，避免 int64/float64 的不必要带宽和隐式转换。
+- [x] 保留隐藏信息、perspective、顺序不变性和 mask 一致性测试，优化不能
   改变 Observation v4.1 语义。
+
+2.5 决策门证据（2026-07-31）：
+
+- `A-OBS-001` 的最小调用轨迹确认中央 worker 在 `env.reset()`/`env.step()`
+  已返回当前决策需要的 Observation 后，又以相同 state version、
+  perspective 和 action mask 调用 `env.observation()`；缓存命中仍会产生
+  一次深拷贝。`swb/rl/vector_rollout.py` 现在直接保留 reset 返回值，并在
+  每次 step 后把 `StepResult.observation` 传给下一决策。终止/截断 bootstrap
+  路径未改；decision 侧重复构造计时由冻结前 6,316 steps 的
+  `0.447265` 秒变为三次正式运行均精确 `0`。
+- 固定 seed 中央 rollout 契约测试逐字段比较 observation、card indices、
+  action mask、动作、log probability、value、hidden state、完整 trajectory
+  和 PPO generation；另有 entity-action 路径与持久多进程训练回归。
+  Observation v4.1 的隐藏信息、perspective、顺序和 mask 语义均未改变。
+- 环境 microbenchmark（seed `20260801`）为 cached Observation
+  `8,096.052/s`、cold Observation `545.532/s`、缓存加速 `14.841x`，
+  完整环境 step `259.434/s`，通过既有阈值。结果保存于
+  `data/reports/training_speed/stage_2_5_environment_benchmark.json`。
+- 采用 2.4 的 `6 workers / 2 threads / 1.0 ms` 配置、相同冻结 checkpoint
+  运行三次，每次排除两个 warm-up update 并统计至少三个 steady update：
+  `63.463 / 64.402 / 64.303` agent steps/s，中位数 `64.303`。相对 2.4
+  同配置中位数 `64.473` 为 `-0.264%`，未超过其三次相对波动范围
+  `1.976%`；三次均为零异常退出、关闭可选 profiling、checkpoint 哈希
+  不变。
+- 冻结前 Observation worker 计时总和为 `11.591003` 秒；按 4 个同时运行
+  的 worker 对 `143.178` 秒 pipeline wall 归一后占 `2.024%`，低于
+  `5%` 门槛。未除并发度的串行 worker 计时和为 `8.095%`，只作诊断，
+  不当作可串行消除的 pipeline wall；其中每步必需的 `env.step()`
+  Observation 构造也不是重复工作。
+- 因占比门槛和端到端波动门槛均未通过，本节其余五项候选按预先声明的
+  决策门关闭为 `closed_below_materiality_and_variability_gate`，并非声称
+  已实现：静态卡牌字段预计算、固定 token 连续写入、Observation 缓冲区
+  预分配、删除 policy 未使用的 IPC 调试字段，以及 dtype 收窄/转换清理。
+  原始三次报告、门槛、候选处置和所有来源 SHA-256 保存于
+  `data/reports/training_speed/stage_2_5_a_obs_001.json`。
 
 ## 2.6 优先优化 v4.1 token/launch/sync 热路径
 

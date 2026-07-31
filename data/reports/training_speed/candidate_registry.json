@@ -48,16 +48,18 @@
     {
       "id": "A-OBS-001",
       "class": "A",
-      "description": "Cache one v4.1 observation and action mask per unchanged state version and precompute static card fields.",
+      "description": "Reuse the observation already returned by reset/step instead of requesting the same state-version observation again.",
       "semantics": "The v4.1 manifest, hidden-information boundary, token order, values and dtypes are unchanged.",
-      "disposition": "pending_profile"
+      "disposition": "implemented_no_measurable_throughput_gain",
+      "evidence": "data/reports/training_speed/stage_2_5_a_obs_001.json"
     },
     {
       "id": "A-OBS-002",
       "class": "A",
       "description": "Write the fixed 93-token v4.1 layout into reusable contiguous arrays without temporary dictionaries or lists.",
       "semantics": "Byte-for-byte observation and card-index outputs are required for audited states.",
-      "disposition": "pending_profile"
+      "disposition": "closed_below_materiality_and_variability_gate",
+      "evidence": "data/reports/training_speed/stage_2_5_a_obs_001.json"
     },
     {
       "id": "A-FORWARD-001",

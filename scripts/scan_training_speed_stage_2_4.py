@@ -352,6 +352,30 @@ def compact_profile(
                 for row in typed_rows
             ),
         },
+        "observation": {
+            "decision_construction_seconds": sum(
+                _field(
+                    row,
+                    "worker_decision_observation_construction_seconds",
+                )
+                for row in typed_rows
+            ),
+            "step_construction_seconds": sum(
+                _field(row, "worker_step_observation_construction_seconds")
+                for row in typed_rows
+            ),
+            "bootstrap_construction_seconds": sum(
+                _field(
+                    row,
+                    "worker_bootstrap_observation_construction_seconds",
+                )
+                for row in typed_rows
+            ),
+            "total_construction_seconds": sum(
+                _field(row, "worker_observation_construction_seconds")
+                for row in typed_rows
+            ),
+        },
         "system": _system_summary(system_samples),
         "abnormal_exit_count": 0,
     }

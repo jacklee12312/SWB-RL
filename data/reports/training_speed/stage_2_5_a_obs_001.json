@@ -1,0 +1,115 @@
+{
+  "schema_version": 1,
+  "report_kind": "swb_training_speed_stage_2_5_a_obs_001",
+  "checklist_section": "2.5",
+  "candidate": "A-OBS-001",
+  "configuration": {
+    "id": "a_obs_001",
+    "dimension": "implementation_candidate",
+    "rollout_workers": 6,
+    "worker_torch_threads": 2,
+    "central_inference_batch_wait_ms": 1.0
+  },
+  "minimal_reproduction": {
+    "before_decision_observation_construction_seconds": 0.44726519961841404,
+    "before_decision_milliseconds_per_agent_step": 0.07081462945193383,
+    "before_step_observation_construction_seconds": 11.143737399484962,
+    "before_bootstrap_observation_construction_seconds": 0.0,
+    "before_total_observation_construction_seconds": 11.591002599103376,
+    "after_decision_observation_construction_seconds": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "after_total_observation_construction_seconds": [
+      11.201374998549,
+      11.250110092805699,
+      11.182417810661718
+    ],
+    "call_trace": [
+      "env.reset returns first observation",
+      "policy consumes cached current observation",
+      "env.step returns next observation",
+      "next policy decision consumes StepResult.observation"
+    ]
+  },
+  "environment_microbenchmark": {
+    "observation_cached_per_second": 8096.05154802623,
+    "observation_cold_per_second": 545.5323681417852,
+    "observation_cache_speedup": 14.840643783618804,
+    "full_environment_steps_per_second": 259.4335419121683,
+    "passed": true
+  },
+  "end_to_end": {
+    "runs_agent_steps_per_second": [
+      63.46296797383438,
+      64.40217094431641,
+      64.3026182476435
+    ],
+    "median_agent_steps_per_second": 64.3026182476435,
+    "stage_2_4_comparison_median_agent_steps_per_second": 64.47287526299372,
+    "relative_gain": -0.002640754187799582,
+    "comparison_three_run_relative_range": 0.01976075741073205
+  },
+  "decision_gate": {
+    "observation_concurrency_normalized_pipeline_wall_fraction": 0.020238530260383258,
+    "observation_serial_worker_time_sum_over_pipeline_wall": 0.08095412104153303,
+    "rollout_worker_count_for_normalization": 4,
+    "materiality_threshold": 0.05,
+    "gain_exceeds_run_variability": false,
+    "remaining_same_source_cost_profiled": true,
+    "continue_remaining_stage_2_5_candidates": false,
+    "remaining_candidate_disposition": "closed_below_materiality_and_variability_gate",
+    "remaining_candidates": [
+      "precompute_static_card_fields",
+      "write_fixed_tokens_into_contiguous_arrays",
+      "preallocate_observation_buffers",
+      "remove_policy_unused_debug_fields_from_ipc",
+      "remove_unnecessary_wide_dtypes_and_implicit_conversions"
+    ]
+  },
+  "equivalence": {
+    "decision_duplicate_removed": true,
+    "fixed_seed_full_trajectory_contract_test": "tests.test_ppo.PPOTrainerTests.test_seeded_central_policy_rollout_is_reproducible",
+    "observation_mask_hidden_logprob_value_generation_covered": true,
+    "checkpoint_unchanged": true
+  },
+  "integrity": {
+    "all_runs_meet_step_gate": true,
+    "all_runs_have_three_steady_updates": true,
+    "all_optional_profiling_disabled": true,
+    "no_abnormal_exits": true,
+    "checkpoint_sha256": [
+      "4d6a8dd7d32f4e530766aab8d2ec4691de4925bc73e188021da1f45dbe54e0bd"
+    ]
+  },
+  "sources": {
+    "before": {
+      "path": "data/reports/training_speed/stage_2_2_profiling_disabled_smoke.json",
+      "sha256": "637df238aebf27b8c50e8d0df1b81a983785dbfc1332c01b2ad75d97f19faa8d"
+    },
+    "stage_2_4": {
+      "path": "data/reports/training_speed/stage_2_4_b_interactions.json",
+      "sha256": "f9d638a726e4f8ad10264806e7addbdb46de548ae4b0c8311bf83eed73ac64b7"
+    },
+    "environment": {
+      "path": "data/reports/training_speed/stage_2_5_environment_benchmark.json",
+      "sha256": "8b809f20df90be63d25df3da48820d8776d8a92d66002f038c5caa05637f7015"
+    },
+    "runs": [
+      {
+        "path": "data/reports/training_speed/stage_2_5_a_obs_001_runs/a_obs_001_run_1.json",
+        "sha256": "916b8951f180b89ab32b3f3db6fd87d11c2376e3f8e8f95a88ceb395b4a36e42"
+      },
+      {
+        "path": "data/reports/training_speed/stage_2_5_a_obs_001_runs/a_obs_001_run_2.json",
+        "sha256": "02b8cf2d797f8fc081d1d1c32e217f09eb671ce72b01334e897d39ede018979f"
+      },
+      {
+        "path": "data/reports/training_speed/stage_2_5_a_obs_001_runs/a_obs_001_run_3.json",
+        "sha256": "339c05a7ac0aaa931102bc91bc020f51b1e3930b88c6b5b582b1ef854279993c"
+      }
+    ]
+  },
+  "passed": true
+}

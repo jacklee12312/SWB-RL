@@ -1014,8 +1014,17 @@ class PPOTrainerTests(unittest.TestCase):
                     sequence_length=4,
                     minibatch_sequences=2,
                     update_epochs=1,
-                    hidden_size=16,
+                    hidden_size=64,
+                    card_embedding_dim=16,
+                    policy_architecture=ENTITY_ACTION_POLICY_ARCHITECTURE,
+                    model_dim=32,
+                    transformer_layers=1,
+                    attention_heads=4,
+                    feedforward_dim=64,
                     max_agent_steps_per_episode=8,
+                    observation_version="v4.1",
+                    training_class_ids=(6,),
+                    training_deck=OFFICIAL_QR_EVOLVE_HAVEN,
                     profile_ipc_timing=profile_ipc_timing,
                     profile_central_timing=profile_central_timing,
                 ),
@@ -1031,29 +1040,33 @@ class PPOTrainerTests(unittest.TestCase):
                             record.old_log_prob,
                             record.value,
                             record.reward,
+                            record.observation.copy(),
+                            record.card_indices.copy(),
+                            record.action_mask.copy(),
                             record.hidden_before.copy(),
                         )
                         for record in records
                     ],
                     dict(bootstrap),
                     dict(boundaries),
+                    trainer._policy_vector_rollout._generation,
                 ))
                 timings.append(dict(trainer.last_collect_timing))
             finally:
                 trainer.close()
-        self.assertEqual(
-            [
-                item[:-1]
-                for item in summaries[0][0]
-            ],
-            [
-                item[:-1]
-                for item in summaries[1][0]
-            ],
-        )
-        for first, second in zip(summaries[0][0], summaries[1][0]):
-            np.testing.assert_array_equal(first[-1], second[-1])
-        self.assertEqual(summaries[0][1:], summaries[1][1:])
+        for candidate in summaries[1:]:
+            self.assertEqual(len(summaries[0][0]), len(candidate[0]))
+            for first, second in zip(summaries[0][0], candidate[0]):
+                self.assertEqual(first[:6], second[:6])
+                for first_array, second_array in zip(
+                    first[6:],
+                    second[6:],
+                ):
+                    np.testing.assert_array_equal(
+                        first_array,
+                        second_array,
+                    )
+            self.assertEqual(summaries[0][1:], candidate[1:])
         self.assertEqual(
             timings[0]["worker_ipc_profiled_requests"],
             0.0,
@@ -1066,6 +1079,18 @@ class PPOTrainerTests(unittest.TestCase):
             timings[2]["central_profiled_batches"],
             timings[2]["central_inference_batches"],
         )
+        for timing in timings:
+            self.assertEqual(
+                timing["worker_decision_observation_construction_seconds"],
+                0.0,
+            )
+            self.assertAlmostEqual(
+                timing["worker_observation_construction_seconds"],
+                timing["worker_step_observation_construction_seconds"]
+                + timing[
+                    "worker_bootstrap_observation_construction_seconds"
+                ],
+            )
 
     def test_central_profile_preserves_entity_action_rollout(self) -> None:
         summaries = []

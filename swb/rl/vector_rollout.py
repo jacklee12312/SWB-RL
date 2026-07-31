@@ -546,13 +546,9 @@ def _run_central_policy_episode(
         time.perf_counter() - environment_construction_started
     )
     reset_started = time.perf_counter()
-    _, info = env.reset(seed=seeds.engine_seed)
+    observation, info = env.reset(seed=seeds.engine_seed)
     reset_seconds = time.perf_counter() - reset_started
-    first_observation = env.observation(
-        perspective=env.decision_player,
-        action_mask=info["action_mask"],
-    )
-    flattener = ObservationFlattener.from_observation(first_observation)
+    flattener = ObservationFlattener.from_observation(observation)
     setup_seconds = time.perf_counter() - setup_started
     observation_seconds = 0.0
     decision_observation_construction_seconds = 0.0
@@ -574,14 +570,6 @@ def _run_central_policy_episode(
     while not env.terminated and not env.truncated:
         observation_started = time.perf_counter()
         player_id = env.decision_player
-        construction_started = time.perf_counter()
-        observation = env.observation(
-            perspective=player_id,
-            action_mask=info["action_mask"],
-        )
-        decision_observation_construction_seconds += (
-            time.perf_counter() - construction_started
-        )
         vector_np = flattener.encode(observation)
         card_indices_np = flattener.encode_cards(observation)
         mask_np = np.asarray(info["action_mask"], dtype=np.bool_)
@@ -660,6 +648,7 @@ def _run_central_policy_episode(
         ]
 
         info = result.info
+        observation = result.observation
         step_index += 1
 
     bootstrap_started = time.perf_counter()
