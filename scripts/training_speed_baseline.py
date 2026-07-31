@@ -315,6 +315,8 @@ class SystemMonitor:
                 "ram_available_bytes": memory.available,
                 "pagefile_used_bytes": swap.used,
                 "pagefile_percent": swap.percent,
+                "pagefile_sin_bytes": swap.sin,
+                "pagefile_sout_bytes": swap.sout,
                 "gpu": _nvidia_sample(),
             })
             self._stop.wait(self.interval_seconds)

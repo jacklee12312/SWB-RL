@@ -9,6 +9,7 @@ from scripts.training_speed_baseline import (
     summarize_baselines,
     version_differences,
 )
+from scripts.profile_ppo_training import _system_monitor_summary
 
 
 class TrainingSpeedBaselineTests(unittest.TestCase):
@@ -95,6 +96,38 @@ class TrainingSpeedBaselineTests(unittest.TestCase):
                     baseline["system_before"]["logical_cpu_count"],
                 )
                 self.assertIn("power_watts", first["gpu"])
+
+    def test_profile_system_summary_reports_paging_and_memory(self) -> None:
+        samples = [
+            {
+                "elapsed_seconds": 0.0,
+                "cpu_total_percent": 10.0,
+                "cpu_per_core_percent": [5.0, 15.0],
+                "ram_used_bytes": 100,
+                "pagefile_used_bytes": 200,
+                "pagefile_sin_bytes": 7,
+                "pagefile_sout_bytes": 11,
+                "gpu": {"memory_used_mib": 300.0},
+            },
+            {
+                "elapsed_seconds": 1.0,
+                "cpu_total_percent": 20.0,
+                "cpu_per_core_percent": [25.0, 30.0],
+                "ram_used_bytes": 150,
+                "pagefile_used_bytes": 220,
+                "pagefile_sin_bytes": 7,
+                "pagefile_sout_bytes": 11,
+                "gpu": {"memory_used_mib": 350.0},
+            },
+        ]
+        summary = _system_monitor_summary(samples)
+        self.assertTrue(summary["passed"])
+        self.assertTrue(summary["no_page_in_or_page_out"])
+        self.assertEqual(summary["pagefile_used_change_bytes"], 20)
+        self.assertEqual(summary["ram_used_peak_bytes"], 150)
+        self.assertEqual(summary["gpu_memory_peak_mib"], 350.0)
+        self.assertEqual(summary["cpu_total_median_percent"], 15.0)
+        self.assertEqual(summary["cpu_single_core_peak_percent"], 30.0)
 
 
 if __name__ == "__main__":

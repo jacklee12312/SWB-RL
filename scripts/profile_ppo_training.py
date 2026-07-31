@@ -6,12 +6,15 @@ import hashlib
 import json
 import os
 import platform
+import statistics
 import time
 from dataclasses import replace
 from pathlib import Path
+from typing import Mapping, Sequence
 
 import torch
 
+from scripts.training_speed_baseline import SystemMonitor, _system_manifest
 from swb.db.repository import CardRepository
 from swb.rl.checkpoint import load_checkpoint
 from swb.rl.profiling import training_timing_report
@@ -24,6 +27,70 @@ def _sha256(path: Path) -> str:
         for block in iter(lambda: source.read(1024 * 1024), b""):
             digest.update(block)
     return digest.hexdigest()
+
+
+def _system_monitor_summary(
+    samples: Sequence[Mapping[str, object]],
+) -> dict[str, object]:
+    if not samples:
+        return {
+            "sample_count": 0,
+            "passed": False,
+        }
+    pagefile_used = [
+        int(sample["pagefile_used_bytes"]) for sample in samples
+    ]
+    pagefile_sin = [
+        int(sample["pagefile_sin_bytes"]) for sample in samples
+    ]
+    pagefile_sout = [
+        int(sample["pagefile_sout_bytes"]) for sample in samples
+    ]
+    ram_used = [int(sample["ram_used_bytes"]) for sample in samples]
+    cpu_total = [
+        float(sample["cpu_total_percent"]) for sample in samples
+    ]
+    gpu_samples = [
+        sample["gpu"]
+        for sample in samples
+        if isinstance(sample.get("gpu"), Mapping)
+    ]
+    gpu_memory = [
+        float(sample["memory_used_mib"])
+        for sample in gpu_samples
+        if sample.get("memory_used_mib") is not None
+    ]
+    return {
+        "sample_count": len(samples),
+        "elapsed_seconds": float(samples[-1]["elapsed_seconds"]),
+        "cpu_total_median_percent": statistics.median(cpu_total),
+        "cpu_single_core_peak_percent": max(
+            float(value)
+            for sample in samples
+            for value in sample["cpu_per_core_percent"]
+        ),
+        "ram_used_first_bytes": ram_used[0],
+        "ram_used_last_bytes": ram_used[-1],
+        "ram_used_peak_bytes": max(ram_used),
+        "pagefile_used_first_bytes": pagefile_used[0],
+        "pagefile_used_last_bytes": pagefile_used[-1],
+        "pagefile_used_peak_bytes": max(pagefile_used),
+        "pagefile_used_change_bytes": (
+            pagefile_used[-1] - pagefile_used[0]
+        ),
+        "pagefile_sin_change_bytes": pagefile_sin[-1] - pagefile_sin[0],
+        "pagefile_sout_change_bytes": (
+            pagefile_sout[-1] - pagefile_sout[0]
+        ),
+        "gpu_memory_peak_mib": (
+            max(gpu_memory) if gpu_memory else None
+        ),
+        "no_page_in_or_page_out": (
+            pagefile_sin[-1] == pagefile_sin[0]
+            and pagefile_sout[-1] == pagefile_sout[0]
+        ),
+        "passed": True,
+    }
 
 
 def main() -> None:
@@ -68,6 +135,19 @@ def main() -> None:
         ),
     )
     parser.add_argument(
+        "--monitor-system",
+        action="store_true",
+        help=(
+            "sample CPU, RAM, pagefile I/O, and NVIDIA GPU state while "
+            "the profile runs"
+        ),
+    )
+    parser.add_argument(
+        "--monitor-interval-seconds",
+        type=float,
+        default=0.5,
+    )
+    parser.add_argument(
         "--output",
         type=Path,
         default=Path("data/reports/ppo_training_profile.json"),
@@ -77,6 +157,8 @@ def main() -> None:
         parser.error("--additional-agent-steps must be positive")
     if args.exclude_warmup_updates < 0:
         parser.error("--exclude-warmup-updates must be non-negative")
+    if args.monitor_interval_seconds <= 0:
+        parser.error("--monitor-interval-seconds must be positive")
     if args.rollout_workers is not None and args.rollout_workers <= 0:
         parser.error("--rollout-workers must be positive")
     if (
@@ -124,34 +206,54 @@ def main() -> None:
     iterations: list[dict[str, object]] = []
     collect_samples: list[dict[str, float]] = []
     update_samples: list[dict[str, float]] = []
+    system_monitor = (
+        SystemMonitor(args.monitor_interval_seconds)
+        if args.monitor_system
+        else None
+    )
+    system_before = _system_manifest() if args.monitor_system else None
+    if system_monitor is not None:
+        system_monitor.start()
     started = time.perf_counter()
-    while trainer.agent_steps < target_agent_steps:
-        iteration_started = time.perf_counter()
-        before_steps = trainer.agent_steps
-        before_episodes = trainer.completed_episodes
-        records, bootstrap, _ = trainer.collect_rollout()
-        metrics = trainer.update(records, bootstrap)
-        collect_timing = dict(trainer.last_collect_timing)
-        update_timing = dict(trainer.last_update_timing)
-        collect_samples.append(collect_timing)
-        update_samples.append(update_timing)
-        iteration = {
-            "index": len(iterations),
-            "agent_steps": trainer.agent_steps - before_steps,
-            "episodes": trainer.completed_episodes - before_episodes,
-            "elapsed_seconds": time.perf_counter() - iteration_started,
-            "collect": collect_timing,
-            "update": update_timing,
-            "metrics": metrics,
-        }
-        iterations.append(iteration)
-        print(json.dumps({
-            "profile_update": len(iterations),
-            "completed_agent_steps": trainer.agent_steps - starting_agent_steps,
-            "target_additional_agent_steps": args.additional_agent_steps,
-            "rollout_seconds": collect_timing["collect_total_seconds"],
-            "update_seconds": update_timing["update_total_seconds"],
-        }, sort_keys=True), flush=True)
+    try:
+        while trainer.agent_steps < target_agent_steps:
+            iteration_started = time.perf_counter()
+            before_steps = trainer.agent_steps
+            before_episodes = trainer.completed_episodes
+            records, bootstrap, _ = trainer.collect_rollout()
+            metrics = trainer.update(records, bootstrap)
+            collect_timing = dict(trainer.last_collect_timing)
+            update_timing = dict(trainer.last_update_timing)
+            collect_samples.append(collect_timing)
+            update_samples.append(update_timing)
+            iteration = {
+                "index": len(iterations),
+                "agent_steps": trainer.agent_steps - before_steps,
+                "episodes": trainer.completed_episodes - before_episodes,
+                "elapsed_seconds": time.perf_counter() - iteration_started,
+                "collect": collect_timing,
+                "update": update_timing,
+                "metrics": metrics,
+            }
+            iterations.append(iteration)
+            print(json.dumps({
+                "profile_update": len(iterations),
+                "completed_agent_steps": (
+                    trainer.agent_steps - starting_agent_steps
+                ),
+                "target_additional_agent_steps": (
+                    args.additional_agent_steps
+                ),
+                "rollout_seconds": (
+                    collect_timing["collect_total_seconds"]
+                ),
+                "update_seconds": (
+                    update_timing["update_total_seconds"]
+                ),
+            }, sort_keys=True), flush=True)
+    finally:
+        if system_monitor is not None:
+            system_monitor.stop()
     elapsed = time.perf_counter() - started
     warmup = min(args.exclude_warmup_updates, len(iterations))
     steady_collect = collect_samples[warmup:]
@@ -263,6 +365,24 @@ def main() -> None:
                 torch.cuda.get_device_name(trainer.device)
                 if trainer.device.type == "cuda"
                 else None
+            ),
+        },
+        "system_monitor": {
+            "enabled": args.monitor_system,
+            "interval_seconds": args.monitor_interval_seconds,
+            "system_before": system_before,
+            "system_after": (
+                _system_manifest() if args.monitor_system else None
+            ),
+            "summary": (
+                _system_monitor_summary(system_monitor.samples)
+                if system_monitor is not None
+                else None
+            ),
+            "samples": (
+                system_monitor.samples
+                if system_monitor is not None
+                else []
             ),
         },
         "start": {
