@@ -1589,6 +1589,14 @@ Profiler 分析和后续优化均以 v4.1 为主。
   预分配、删除 policy 未使用的 IPC 调试字段，以及 dtype 收窄/转换清理。
   原始三次报告、门槛、候选处置和所有来源 SHA-256 保存于
   `data/reports/training_speed/stage_2_5_a_obs_001.json`。
+- 阶段验收：
+  `E:\anaconda\python.exe -m unittest discover -s tests -v` 通过
+  `2,878` tests（`1` skip），耗时 `452.451` 秒，API test 通过；
+  `E:\anaconda\python.exe -m compileall -q swb scripts tests` 通过；
+  `E:\anaconda\python.exe -m scripts.random_self_play --games 100` 通过，
+  `wins=[56, 44]`、draw/truncation/mask mismatch 均为 `0`；
+  `E:\anaconda\python.exe -m scripts.rl_mixed_match --output
+  data/rl_mixed_match.log` 通过，player 2 获胜、最终生命 `0:18`。
 
 ## 2.6 优先优化 v4.1 token/launch/sync 热路径
 
