@@ -557,5 +557,51 @@ class TrainingSpeedStage26ACudaGraph001Tests(unittest.TestCase):
                 self.assertEqual(self._sha256(path), entry["sha256"])
 
 
+class TrainingSpeedStage26BCompile001Tests(unittest.TestCase):
+    ROOT = Path(__file__).resolve().parents[1]
+    REPORT = (
+        ROOT
+        / "data/reports/training_speed/"
+        "stage_2_6_b_compile_001_gate.json"
+    )
+
+    @staticmethod
+    def _sha256(path: Path) -> str:
+        digest = hashlib.sha256()
+        with path.open("rb") as source:
+            for block in iter(lambda: source.read(1024 * 1024), b""):
+                digest.update(block)
+        return digest.hexdigest()
+
+    def test_saved_compile_gate_distinguishes_failures(self) -> None:
+        report = json.loads(self.REPORT.read_text(encoding="utf-8"))
+        self.assertTrue(report["passed"])
+        self.assertFalse(report["decision"]["implement"])
+        self.assertFalse(report["decision"]["run_end_to_end"])
+        self.assertFalse(report["decision"]["run_learning_seeds"])
+        probes = report["probes"]
+        self.assertTrue(
+            probes["system_locale_inductor"]["signals"][
+                "unicode_decode_error"
+            ]
+        )
+        self.assertTrue(
+            probes["utf8_inductor"]["signals"]["triton_missing"]
+        )
+        self.assertTrue(
+            probes["utf8_inductor"]["signals"]["graph_break"]
+        )
+        control = probes["utf8_eager_control"]["payload"]
+        self.assertTrue(all(control["exact_outputs"]))
+        self.assertTrue(control["state_dict_keys_unchanged"])
+        self.assertTrue(control["checkpoint_unchanged"])
+        self.assertFalse(
+            report["environment"]["triton_module_available"]
+        )
+        for source in report["sources"].values():
+            path = self.ROOT / source["path"]
+            self.assertEqual(self._sha256(path), source["sha256"])
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -141,9 +141,10 @@
     {
       "id": "B-COMPILE-001",
       "class": "B",
-      "description": "Evaluate torch.compile, fused optimizer and foreach gradient clipping independently.",
+      "description": "Evaluate torch.compile first-call cost, steady-state gain, graph breaks, checkpoint compatibility and Windows stability.",
       "semantics": "Kernel fusion or operation ordering may introduce numeric drift and Windows stability risk.",
-      "disposition": "deferred_until_a_exhausted"
+      "disposition": "blocked_current_environment_missing_triton",
+      "evidence": "data/reports/training_speed/stage_2_6_b_compile_001_gate.json"
     },
     {
       "id": "C-ASYNC-001",

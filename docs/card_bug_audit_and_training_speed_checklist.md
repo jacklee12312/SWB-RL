@@ -1627,7 +1627,7 @@ A 类候选按以下顺序实施：
 
 B 类候选：
 
-- [ ] 优先评估 `torch.compile` 的首次编译成本、稳态收益、graph break、
+- [x] 优先评估 `torch.compile` 的首次编译成本、稳态收益、graph break、
   checkpoint 兼容性和 Windows 稳定性；646 次 launch 使其值得较早测量，
   但在稳定性和数值证据完成前仍属于 B 类。
 - [ ] 分别测试 TF32、FP16 autocast 和 BF16 autocast。
@@ -1769,6 +1769,24 @@ B 类候选：
   不实现 Graph、不运行无候选的端到端。只有默认 forward 无 host sync 且
   profiler 证明存在物料性稳定 capture bucket 时重开。机器证据保存于
   `data/reports/training_speed/stage_2_6_a_cuda_graph_001_prerequisite_gate.json`。
+
+2.6 B-COMPILE-001 当前环境阻塞（2026-07-31）：
+
+- 默认系统 locale 的 inductor 子进程在 `4.69` 秒后用 GBK 读取 PyTorch
+  自带 UTF-8 kernel template，抛出 `UnicodeDecodeError`。只在子进程设置
+  `PYTHONUTF8=1` 后可越过此层。
+- UTF-8 inductor 在 card-index 非法输入 `bool(Tensor)` 门禁处记录明确
+  graph break，随后于 `6.50` 秒因当前环境没有 working Triton 抛出
+  `TritonMissing`；`importlib` 同样确认 `triton` module 不存在。因此没有
+  首次成功编译或可测稳态，不能声称 compile 收益。
+- `backend=eager` 控制路径成功：首次调用 `3.19` 秒、steady 约
+  `21.8` ms，logits/value/hidden 逐 bit 相同，`state_dict` keys 和冻结
+  checkpoint 不变；它不生成优化代码，不能作为候选。
+- 本项按 `blocked_current_environment_missing_triton` 关闭当前环境测量，
+  不擅自修改全局 Anaconda 安装，也不运行端到端/三 seed 学习。只有项目
+  正式声明 Windows Triton/inductor toolchain，并在不削弱非法输入拒绝的
+  条件下解决 graph break 后重开。机器证据保存于
+  `data/reports/training_speed/stage_2_6_b_compile_001_gate.json`。
 
 ## 2.7 在继承网络收益后优化 learner 更新
 
