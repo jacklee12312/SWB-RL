@@ -1616,7 +1616,7 @@ A 类候选按以下顺序实施：
   646 次 launch 和 11 个同步事件作为诊断参照。
 - [x] 在 token 热路径完成后再评估原生 scaled-dot-product attention；
   当前 hooked Transformer 约 4.17 ms，不把 attention 当作唯一主因。
-- [ ] 仅在 profiler 证明超过噪声后评估推理侧静态卡牌编码缓存；缓存必须按
+- [x] 仅在 profiler 证明超过噪声后评估推理侧静态卡牌编码缓存；缓存必须按
   policy generation 失效，且当前 card lookup/projection 各约 0.09 ms、
   同一 forward 无重复 card embedding 的证据必须写入决策。
 - [ ] 只有 host sync 已处理且 batch bucket 稳定后才评估 CUDA Graph；
@@ -1740,6 +1740,22 @@ B 类候选：
   `data/reports/training_speed/stage_2_6_a_forward_001_reference.json`、
   `data/reports/training_speed/stage_2_6_a_forward_001_sdpa_gate.json` 和
   `data/reports/training_speed/stage_2_6_a_forward_001_sdpa_trace.json.gz`。
+
+2.6 A-STATIC-ENC-001 物料性门禁关闭（2026-07-31）：
+
+- v4.1 同一 forward 中 `card_embedding` 和 `card_projection` 各只调用
+  `1` 次，没有重复卡牌编码可消除。batch-4 组件中两者中位数分别为
+  `0.087` ms 和 `0.077` ms。
+- 即假设零成本删除两项全部工作，理论上限也仅 `0.164` ms，占
+  `22.013` ms 的 `0.746%`，低于 `1.461%` 的相邻运行波动；实际缓存还有
+  lookup 与失效成本，所以上限已足以关闭。
+- embedding 和 projection 都是可训练参数；若未来因网络/卡牌布局改变而
+  重开，只允许推理侧缓存，必须每个 PPO policy generation 失效，禁止把
+  脱离 autograd 的缓存带入 learner。
+- 本项按
+  `closed_below_materiality_and_no_repeated_forward_encoding` 关闭，不实现、
+  不运行无代码候选的三次端到端。机器证据保存于
+  `data/reports/training_speed/stage_2_6_a_static_enc_001_gate.json`。
 
 ## 2.7 在继承网络收益后优化 learner 更新
 

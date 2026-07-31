@@ -106,7 +106,8 @@
       "class": "A",
       "description": "Cache genuinely static inference-only card encodings.",
       "semantics": "No training graph or gradient-bearing value may be cached; policy outputs must remain equivalent.",
-      "disposition": "pending_inference_breakdown"
+      "disposition": "closed_below_materiality_and_no_repeated_forward_encoding",
+      "evidence": "data/reports/training_speed/stage_2_6_a_static_enc_001_gate.json"
     },
     {
       "id": "A-LEARNER-001",

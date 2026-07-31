@@ -1,0 +1,52 @@
+{
+  "schema_version": 1,
+  "report_kind": "swb_training_speed_stage_2_6_a_static_enc_001_gate",
+  "checklist_section": "2.6",
+  "candidate": "A-STATIC-ENC-001",
+  "classification": "A",
+  "methodology": {
+    "profile_batch_size": 4,
+    "upper_bound_assumption": "eliminate the complete measured card embedding lookup and projection without cache lookup or invalidation cost",
+    "cache_scope_if_revisited": "inference only, invalidated on every policy generation"
+  },
+  "same_forward_source_calls": {
+    "card_embedding": 1,
+    "card_projection": 1
+  },
+  "upper_bound": {
+    "card_embedding_lookup_milliseconds": 0.08742400258779526,
+    "card_projection_milliseconds": 0.07680000364780426,
+    "combined_milliseconds_per_forward": 0.16422400623559952,
+    "batch_4_forward_device_milliseconds": 22.013250732421874,
+    "combined_fraction_of_forward": 0.007460234212193147,
+    "comparison_three_run_relative_range": 0.014605983334379203,
+    "below_variability_gate": true
+  },
+  "training_constraints": {
+    "embedding_trainable": true,
+    "projection_trainable": true,
+    "cache_must_not_enter_learner_graph": true,
+    "invalidation_boundary": "every PPO policy generation"
+  },
+  "decision": {
+    "implement": false,
+    "run_end_to_end": false,
+    "disposition": "closed_below_materiality_and_no_repeated_forward_encoding",
+    "reason": "the same forward has no repeated card encoding, and zero-cost elimination of the full measured work remains below adjacent three-run variability"
+  },
+  "sources": {
+    "profile": {
+      "path": "data/reports/training_speed/v4_1_inference_breakdown.json",
+      "sha256": "49a77458533861eaca7e378cd5a9d618668ef1707efd174b85a4ee588d18457a"
+    },
+    "comparison": {
+      "path": "data/reports/training_speed/stage_2_5_a_obs_001.json",
+      "sha256": "222f40a0d0ec5e9f0c5b5394dbf8f9ff526cb44467c1058d03d746a373e4242a"
+    },
+    "policy": {
+      "path": "swb/rl/policy.py",
+      "sha256": "c4bcf3ed884d329aaf3d05ee79ab5d515e41c89ac2e83d9efa538bd1a360b2af"
+    }
+  },
+  "passed": true
+}

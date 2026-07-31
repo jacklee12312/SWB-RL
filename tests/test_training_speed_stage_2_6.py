@@ -477,5 +477,45 @@ class TrainingSpeedStage26AForward001Tests(unittest.TestCase):
             self.assertEqual(self._sha256(path), source["sha256"])
 
 
+class TrainingSpeedStage26AStaticEnc001Tests(unittest.TestCase):
+    ROOT = Path(__file__).resolve().parents[1]
+    REPORT = (
+        ROOT
+        / "data/reports/training_speed/"
+        "stage_2_6_a_static_enc_001_gate.json"
+    )
+
+    @staticmethod
+    def _sha256(path: Path) -> str:
+        digest = hashlib.sha256()
+        with path.open("rb") as source:
+            for block in iter(lambda: source.read(1024 * 1024), b""):
+                digest.update(block)
+        return digest.hexdigest()
+
+    def test_saved_static_encoding_gate_is_reproducible(self) -> None:
+        report = json.loads(self.REPORT.read_text(encoding="utf-8"))
+        self.assertTrue(report["passed"])
+        self.assertFalse(report["decision"]["implement"])
+        self.assertFalse(report["decision"]["run_end_to_end"])
+        self.assertEqual(
+            report["same_forward_source_calls"],
+            {"card_embedding": 1, "card_projection": 1},
+        )
+        self.assertLess(
+            report["upper_bound"]["combined_fraction_of_forward"],
+            report["upper_bound"][
+                "comparison_three_run_relative_range"
+            ],
+        )
+        self.assertEqual(
+            report["training_constraints"]["invalidation_boundary"],
+            "every PPO policy generation",
+        )
+        for source in report["sources"].values():
+            path = self.ROOT / source["path"]
+            self.assertEqual(self._sha256(path), source["sha256"])
+
+
 if __name__ == "__main__":
     unittest.main()
