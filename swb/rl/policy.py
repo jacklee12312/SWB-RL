@@ -737,6 +737,13 @@ class EntityActionRecurrentActorCritic(MaskedPolicyNetwork):
         self,
         values: torch.Tensor,
     ) -> torch.Tensor:
+        context, _ = self._v41_semantic_context_and_mask(values)
+        return context
+
+    def _v41_semantic_context_and_mask(
+        self,
+        values: torch.Tensor,
+    ) -> tuple[torch.Tensor, torch.Tensor]:
         rows = torch.round(values).to(dtype=torch.long)
         if rows.shape[-1] != v4_1.SEMANTIC_TOKEN_SIZE:
             raise ValueError("v4.1 semantic rows must have five values")
@@ -751,7 +758,12 @@ class EntityActionRecurrentActorCritic(MaskedPolicyNetwork):
             positioned_bytes
         ).mean(dim=-2)
         context = self.v41_semantic_kind_embedding(kind) + byte_context
-        return context * (kind != 0).unsqueeze(-1).to(dtype=values.dtype)
+        context_active = kind != 0
+        return (
+            context
+            * context_active.unsqueeze(-1).to(dtype=values.dtype),
+            rows[..., 0] != 0,
+        )
 
     @staticmethod
     def _v41_masked_mean(
@@ -1024,10 +1036,10 @@ class EntityActionRecurrentActorCritic(MaskedPolicyNetwork):
             effects_per_entity,
             v4_1.SEMANTIC_TOKEN_SIZE,
         )
-        tokens = self._v41_semantic_context(values)
+        tokens, active = self._v41_semantic_context_and_mask(values)
         return self._v41_masked_mean(
             tokens,
-            torch.round(values[..., 0]).to(dtype=torch.long) != 0,
+            active,
             dim=2,
         )
 
@@ -1049,23 +1061,22 @@ class EntityActionRecurrentActorCritic(MaskedPolicyNetwork):
         sources = self._card_field(
             card_tokens, "leader_modifier_source_cards"
         ).reshape(batch, 2, modifiers_per_player, self.model_dim)
-        mode = torch.round(state[..., 1]).to(dtype=torch.long).clamp(
+        categorical = torch.round(
+            state[..., 1:6]
+        ).to(dtype=torch.long)
+        mode = categorical[..., 0].clamp(
             min=0,
             max=self.v41_leader_modifier_mode_embedding.num_embeddings - 1,
         )
-        duration = torch.round(state[..., 2]).to(dtype=torch.long).clamp(
+        duration = categorical[..., 1].clamp(
             min=0,
             max=self.v41_modifier_duration_embedding.num_embeddings - 1,
         )
-        expiry = torch.round(state[..., 3]).to(dtype=torch.long).clamp(
+        expiry = categorical[..., 2].clamp(
             min=0, max=2
         )
-        source_relation = torch.round(state[..., 4]).to(
-            dtype=torch.long
-        ).clamp(min=0, max=2)
-        source_reference = torch.round(state[..., 5]).to(
-            dtype=torch.long
-        ).clamp(
+        source_relation = categorical[..., 3].clamp(min=0, max=2)
+        source_reference = categorical[..., 4].clamp(
             min=0,
             max=self.v41_leader_source_reference_embedding.num_embeddings - 1,
         )
@@ -1081,10 +1092,11 @@ class EntityActionRecurrentActorCritic(MaskedPolicyNetwork):
             )
         )
         tokens = self.v41_leader_modifier_row_encoder(tokens)
+        active = state[..., 0] > 0
         return self._v41_masked_mean(
-            tokens, state[..., 0] > 0, dim=2
+            tokens, active, dim=2
         ) + self.v41_leader_modifier_count_projection(
-            (state[..., 0] > 0).sum(dim=2, keepdim=True)
+            active.sum(dim=2, keepdim=True)
             / modifiers_per_player
         )
 
@@ -1255,12 +1267,11 @@ class EntityActionRecurrentActorCritic(MaskedPolicyNetwork):
             v4_1.LEADER_AREA_SLOTS,
             v4_1.LEADER_AREA_STATE_SIZE,
         )
-        leader_types = torch.round(
-            leader_state[..., 1]
+        leader_categorical = torch.round(
+            leader_state[..., 1:3]
         ).to(dtype=torch.long).clamp(min=0, max=2)
-        leader_relations = torch.round(
-            leader_state[..., 2]
-        ).to(dtype=torch.long).clamp(min=0, max=2)
+        leader_types = leader_categorical[..., 0]
+        leader_relations = leader_categorical[..., 1]
         projected_leader_state = leader_state.clone()
         projected_leader_state[..., 1:3] = 0
         leader_effects = self._v41_effect_context(
@@ -1427,15 +1438,12 @@ class EntityActionRecurrentActorCritic(MaskedPolicyNetwork):
             v4_1.HISTORY_RECORDS_PER_GROUP,
             v4_1.RECORD_STATE_SIZE,
         )
-        record_kind = torch.round(
-            record_state[..., 1]
-        ).to(dtype=torch.long).clamp(min=0, max=3)
-        record_relation = torch.round(
-            record_state[..., 2]
-        ).to(dtype=torch.long).clamp(min=0, max=2)
-        record_origins = torch.round(
-            record_state[..., 3:5]
-        ).to(dtype=torch.long).clamp(
+        record_categorical = torch.round(
+            record_state[..., 1:5]
+        ).to(dtype=torch.long)
+        record_kind = record_categorical[..., 0].clamp(min=0, max=3)
+        record_relation = record_categorical[..., 1].clamp(min=0, max=2)
+        record_origins = record_categorical[..., 2:4].clamp(
             min=0,
             max=self.v41_origin_embedding.num_embeddings - 1,
         )
@@ -1548,8 +1556,18 @@ class EntityActionRecurrentActorCritic(MaskedPolicyNetwork):
         fallback_ordinals = self._option_ordinal.unsqueeze(0).expand(
             batch, -1
         ).clone()
+        choice_references_raw = torch.round(
+            self._field(observation, "choice_option_references")
+        ).to(dtype=torch.long)
+        choice_relations_direct = torch.round(
+            self._field(observation, "choice_option_relations")
+        ).to(dtype=torch.long).clamp(min=0, max=2)
         choice_slots, choice_relations, choice_fallback = (
-            self._choice_targets(observation)
+            self._choice_targets(
+                observation,
+                references=choice_references_raw,
+                relations=choice_relations_direct,
+            )
         )
         choice_slice = slice(
             ShadowverseEnv.CHOICE_OFFSET,
@@ -1575,14 +1593,9 @@ class EntityActionRecurrentActorCritic(MaskedPolicyNetwork):
                 v4_1.SEMANTIC_TOKEN_SIZE,
             )
         )
-        choice_references = torch.round(
-            self._field(observation, "choice_option_references")
-        ).to(dtype=torch.long).clamp(
+        choice_references = choice_references_raw.clamp(
             min=0, max=v4_1.CHOICE_REFERENCE_COUNT - 1
         )
-        choice_relations_direct = torch.round(
-            self._field(observation, "choice_option_relations")
-        ).to(dtype=torch.long).clamp(min=0, max=2)
         choice_action_features = (
             self._card_field(card_tokens, "choice_option_cards")
             + self.v41_reference_embedding(choice_references)
@@ -1668,14 +1681,23 @@ class EntityActionRecurrentActorCritic(MaskedPolicyNetwork):
     def _choice_targets(
         self,
         observation: torch.Tensor,
+        *,
+        references: torch.Tensor | None = None,
+        relations: torch.Tensor | None = None,
     ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
         if self.v4_1_observation:
-            references = torch.round(
-                self._field(observation, "choice_option_references")
-            ).to(dtype=torch.long)
-            relations = torch.round(
-                self._field(observation, "choice_option_relations")
-            ).to(dtype=torch.long).clamp(min=0, max=2)
+            if references is None:
+                references = torch.round(
+                    self._field(
+                        observation, "choice_option_references"
+                    )
+                ).to(dtype=torch.long)
+            if relations is None:
+                relations = torch.round(
+                    self._field(
+                        observation, "choice_option_relations"
+                    )
+                ).to(dtype=torch.long).clamp(min=0, max=2)
         elif self.v4_observation:
             choice = self._field(
                 observation, "choice_option_state"

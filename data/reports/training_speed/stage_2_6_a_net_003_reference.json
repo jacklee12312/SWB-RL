@@ -1,0 +1,44 @@
+{
+  "schema_version": 1,
+  "report_kind": "swb_training_speed_stage_2_6_candidate_reference",
+  "candidate": "A-NET-003",
+  "implementation": "unmerged_categorical_conversions",
+  "fixture_seed": 20260801,
+  "batch_size": 4,
+  "outputs": {
+    "logits": {
+      "dtype": "torch.float32",
+      "shape": [
+        4,
+        112
+      ],
+      "sha256": "f419669b1359350177c84bedc7d4955b290143de36bd97c4e02ee94770641a80"
+    },
+    "value": {
+      "dtype": "torch.float32",
+      "shape": [
+        4
+      ],
+      "sha256": "31c34c0e727d27435527b53e678deb1b8c66adc88bd87a6c58c3cca458956b2a"
+    },
+    "hidden": {
+      "dtype": "torch.float32",
+      "shape": [
+        4,
+        512
+      ],
+      "sha256": "c164b259f3344e8ea906a397ad77330b14ebd050dc5d7f6e479855d9a802a739"
+    }
+  },
+  "checkpoint": {
+    "path": "data\\checkpoints\\training_speed\\frozen_v4_1_seed_20260801_500k.pt",
+    "sha256": "4d6a8dd7d32f4e530766aab8d2ec4691de4925bc73e188021da1f45dbe54e0bd",
+    "size": 68377329,
+    "mtime_ns": 1785438586793295200,
+    "observation_schema": "observation-v4.1",
+    "configuration_observation_version": "v4.1",
+    "policy_architecture": "entity_action_v1"
+  },
+  "checkpoint_unchanged": true,
+  "passed": true
+}

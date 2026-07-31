@@ -78,6 +78,14 @@
       "evidence": "data/reports/training_speed/stage_2_6_a_net_002.json"
     },
     {
+      "id": "A-NET-003",
+      "class": "A",
+      "description": "Share rounded categorical slices, choice values and semantic-kind masks without changing any per-field clamp range.",
+      "semantics": "Merged and original conversions must agree for arbitrary finite floats, and policy logits, value and hidden state must remain bit-for-bit identical.",
+      "disposition": "rejected_gain_within_run_variability",
+      "evidence": "data/reports/training_speed/stage_2_6_a_net_003.json"
+    },
+    {
       "id": "A-FORWARD-001",
       "class": "A",
       "description": "Remove redundant permute/contiguous operations and use an equivalent native scaled-dot-product-attention backend.",

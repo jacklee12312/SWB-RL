@@ -1607,7 +1607,7 @@ A 类候选按以下顺序实施：
   forward host sync 的等价门禁。
 - [x] A-NET-002：将 `torch.arange(4)`、固定位置和其他不变量注册为静态
   buffer，避免每次 forward 重新创建。
-- [ ] A-NET-003：在逐字段语义等价的前提下，合并重复的
+- [x] A-NET-003：在逐字段语义等价的前提下，合并重复的
   `round → long → clamp` 和 semantic-context 小算子。
 - [ ] 调整固定输入的连续内存布局，并合并可等价合并的小 projection/
   elementwise 操作，减少 `permute/contiguous` 和 CUDA kernel launch。
@@ -1682,6 +1682,28 @@ B 类候选：
   `data/reports/training_speed/stage_2_6_a_net_002_trace.json.gz`、
   `data/reports/training_speed/stage_2_6_a_net_002_runs/` 和
   `data/reports/training_speed/stage_2_6_a_net_002.json`。
+
+2.6 A-NET-003 负结果（2026-07-31）：
+
+- 实验只共享同一连续 slice 的 `round → long`、choice reference/relation
+  和 semantic kind mask；各字段原有 clamp 上下界、负值和半整数舍入语义
+  均保持不变。固定输入 logits、value、hidden state 的 SHA-256 逐项相同，
+  另以任意正/负/半整数输入验证合并前后分类 tensor 完全一致。
+- 三次 batch-4 forward 的 `aten::round` 从 `120` 次降至 `84` 次（每次
+  forward 少 `12` 次），`aten::clamp` 从 `168` 降至 `162`，profiler
+  kernel 从 `1,938` 降至 `1,869`。batch `1/4/8/16/32/64` 纯前向相对
+  阶段 2.3 均改善，范围 `1.21%` 到 `3.00%`，batch 4 从 `22.013` ms
+  降至 `21.515` ms（`2.26%`）。
+- 相同冻结 checkpoint、`6 workers / 2 threads / 1.0 ms` 的三次端到端为
+  `65.142 / 64.708 / 65.751` steps/s，中位数 `65.142`。相对紧邻 2.5
+  中位数为 `+1.306%`，仍低于 `1.461%` 波动门槛，故判定为
+  `rejected_gain_within_run_variability`，不保留为默认实现。
+- reference、micro、profiler trace、三次原始报告与汇总分别保存于
+  `data/reports/training_speed/stage_2_6_a_net_003_reference.json`、
+  `data/reports/training_speed/stage_2_6_a_net_003_micro.json`、
+  `data/reports/training_speed/stage_2_6_a_net_003_trace.json.gz`、
+  `data/reports/training_speed/stage_2_6_a_net_003_runs/` 和
+  `data/reports/training_speed/stage_2_6_a_net_003.json`。
 
 ## 2.7 在继承网络收益后优化 learner 更新
 

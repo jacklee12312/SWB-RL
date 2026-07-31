@@ -21,6 +21,10 @@ from scripts.verify_training_speed_stage_2_6_a_net_002 import (
     STATIC_BUFFERS,
     build_report as build_a_net_002_report,
 )
+from scripts.verify_training_speed_stage_2_6_a_net_003 import (
+    CONFIGURATION as A_NET_003_CONFIGURATION,
+    build_report as build_a_net_003_report,
+)
 
 
 class TrainingSpeedStage26ANet001Tests(unittest.TestCase):
@@ -240,6 +244,119 @@ class TrainingSpeedStage26ANet002Tests(unittest.TestCase):
             "compressed_trace_path"
         ]
         self.assertGreater(trace["kernel_event_count"], 0)
+        self.assertEqual(
+            self._sha256(trace_path),
+            report["profiler"]["compressed_trace_sha256"],
+        )
+
+    def test_saved_end_to_end_report_is_complete(self) -> None:
+        report = json.loads(self.REPORT.read_text(encoding="utf-8"))
+        self.assertTrue(report["passed"])
+        self.assertFalse(report["decision"]["adopt"])
+        self.assertEqual(
+            len(report["end_to_end"]["runs_agent_steps_per_second"]),
+            FORMAL_RUNS,
+        )
+        self.assertLessEqual(
+            report["end_to_end"]["relative_gain"],
+            report["end_to_end"][
+                "comparison_three_run_relative_range"
+            ],
+        )
+        self.assertTrue(report["equivalence"]["micro_exact_outputs"])
+        self.assertTrue(report["integrity"]["no_abnormal_exits"])
+        for source in report["sources"].values():
+            entries = source if isinstance(source, list) else [source]
+            for entry in entries:
+                path = self.ROOT / entry["path"]
+                self.assertEqual(self._sha256(path), entry["sha256"])
+
+
+class TrainingSpeedStage26ANet003Tests(unittest.TestCase):
+    ROOT = Path(__file__).resolve().parents[1]
+    MICRO = (
+        ROOT
+        / "data/reports/training_speed/stage_2_6_a_net_003_micro.json"
+    )
+    REPORT = (
+        ROOT
+        / "data/reports/training_speed/stage_2_6_a_net_003.json"
+    )
+
+    @staticmethod
+    def _sha256(path: Path) -> str:
+        digest = hashlib.sha256()
+        with path.open("rb") as source:
+            for block in iter(lambda: source.read(1024 * 1024), b""):
+                digest.update(block)
+        return digest.hexdigest()
+
+    @staticmethod
+    def _runs(speed: float) -> list[dict[str, object]]:
+        return [
+            {
+                "configuration": deepcopy(A_NET_003_CONFIGURATION),
+                "run_index": run_index,
+                "checkpoint_sha256": "fixed",
+                "checkpoint_unchanged": True,
+                "profiling_switches_disabled": True,
+                "measurement": {
+                    "agent_steps": MEASURED_AGENT_STEPS,
+                    "steady_update_count": 3,
+                    "agent_steps_per_second": speed,
+                    "abnormal_exit_count": 0,
+                },
+            }
+            for run_index in range(1, FORMAL_RUNS + 1)
+        ]
+
+    @staticmethod
+    def _micro() -> dict[str, object]:
+        return {
+            "passed": True,
+            "exact_output_equivalence": {"all": True},
+            "profiler": {
+                "batch_size": 4,
+                "trace": {
+                    "kernel_event_count": 1_869,
+                    "kernel_launch_event_count": 1_869,
+                    "synchronization_event_count": 11,
+                },
+            },
+        }
+
+    def test_summary_rejects_gain_within_comparison_variability(
+        self,
+    ) -> None:
+        report = build_a_net_003_report(
+            self._runs(65.1),
+            self._micro(),
+            {
+                "end_to_end": {
+                    "runs_agent_steps_per_second": [
+                        63.5,
+                        64.4,
+                        64.3,
+                    ],
+                },
+            },
+            sources={"micro": {"path": "micro", "sha256": "hash"}},
+        )
+        self.assertTrue(report["passed"])
+        self.assertFalse(report["decision"]["adopt"])
+
+    def test_saved_micro_is_exact_and_reduces_round_calls(self) -> None:
+        report = json.loads(self.MICRO.read_text(encoding="utf-8"))
+        self.assertTrue(report["passed"])
+        self.assertTrue(report["exact_output_equivalence"]["all"])
+        self.assertEqual(report["operator_calls"]["aten::round"], 84)
+        self.assertLess(
+            report["profiler"]["trace"]["kernel_event_count"],
+            1_938,
+        )
+        trace_path = self.ROOT / report["profiler"][
+            "compressed_trace_path"
+        ]
         self.assertEqual(
             self._sha256(trace_path),
             report["profiler"]["compressed_trace_sha256"],
