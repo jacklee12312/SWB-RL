@@ -1,0 +1,222 @@
+{
+  "schema_version": 1,
+  "report_kind": "swb_training_speed_stage_2_6_acceptance",
+  "checklist_section": "2.6",
+  "comparison_commit": "88279db",
+  "candidate_dispositions": {
+    "A-NET-001": "rejected_gain_within_run_variability",
+    "A-NET-002": "rejected_gain_within_run_variability",
+    "A-NET-003": "rejected_gain_within_run_variability",
+    "A-NET-004": "closed_no_actionable_layout_and_below_variability_upper_bound",
+    "A-FORWARD-001": "rejected_native_sdpa_numeric_and_micro_regression",
+    "A-STATIC-ENC-001": "closed_below_materiality_and_no_repeated_forward_encoding",
+    "A-CUDA-GRAPH-001": "deferred_prerequisites_unsatisfied",
+    "B-COMPILE-001": "blocked_current_environment_missing_triton",
+    "B-PRECISION-001": "rejected_micro_or_numeric_gate"
+  },
+  "candidate_evidence": {
+    "A-NET-001": {
+      "path": "data/reports/training_speed/stage_2_6_a_net_001.json",
+      "sha256": "da64601aa32d514d2957ac2dc5b257d47c46e43f1a50e9f46e8c91ab8e5e8be6",
+      "exists": true
+    },
+    "A-NET-002": {
+      "path": "data/reports/training_speed/stage_2_6_a_net_002.json",
+      "sha256": "bdc646a51e33f0d21a1fcfd632d1fe307ba65491b94ff88f5dce186f75600010",
+      "exists": true
+    },
+    "A-NET-003": {
+      "path": "data/reports/training_speed/stage_2_6_a_net_003.json",
+      "sha256": "4145faf1004ee561485015b78cabfa5fa16ff3868f534d7ffde939ef760917ef",
+      "exists": true
+    },
+    "A-NET-004": {
+      "path": "data/reports/training_speed/stage_2_6_a_net_004_layout_projection_gate.json",
+      "sha256": "da84d82ffce2c8436e131b5e168cb3e39bfc682c7827c82f8caf868abaad313a",
+      "exists": true
+    },
+    "A-FORWARD-001": {
+      "path": "data/reports/training_speed/stage_2_6_a_forward_001_sdpa_gate.json",
+      "sha256": "fe81855d1e2b969c02c7a694a39a62a7cb32a98fbc224f9edee308f101f7af5f",
+      "exists": true
+    },
+    "A-STATIC-ENC-001": {
+      "path": "data/reports/training_speed/stage_2_6_a_static_enc_001_gate.json",
+      "sha256": "22a825931b24c8b2e862737e2e4fd6e8b86501c0c37a5d7db64939b7287d2506",
+      "exists": true
+    },
+    "A-CUDA-GRAPH-001": {
+      "path": "data/reports/training_speed/stage_2_6_a_cuda_graph_001_prerequisite_gate.json",
+      "sha256": "cb2b52a58096cc7713ba556c22ba99e467441a6e5cdad76b1d064dd54ff96564",
+      "exists": true
+    },
+    "B-COMPILE-001": {
+      "path": "data/reports/training_speed/stage_2_6_b_compile_001_gate.json",
+      "sha256": "3c1d72ec7f40cff743c95f69fa2bfff0485a2bdf840ba5241ff05da2eb9390bd",
+      "exists": true
+    },
+    "B-PRECISION-001": {
+      "path": "data/reports/training_speed/stage_2_6_b_precision_001_gate.json",
+      "sha256": "5fbe6fd48ff89af99427f211c082701cefa8a1cc53dc380eee686e19ac6ff0c1",
+      "exists": true
+    }
+  },
+  "implemented_a_measurement_contracts": {
+    "A-NET-001": {
+      "forward_batches": [
+        "1",
+        "2",
+        "4",
+        "8",
+        "16",
+        "32",
+        "64"
+      ],
+      "component_batches": [
+        "1",
+        "2",
+        "4",
+        "8",
+        "16",
+        "32",
+        "64"
+      ],
+      "profiler_trace": "data\\reports\\training_speed\\stage_2_6_a_net_001_trace.json.gz",
+      "end_to_end_runs": 3,
+      "exact_outputs": true,
+      "complete": true
+    },
+    "A-NET-002": {
+      "forward_batches": [
+        "1",
+        "2",
+        "4",
+        "8",
+        "16",
+        "32",
+        "64"
+      ],
+      "component_batches": [
+        "1",
+        "2",
+        "4",
+        "8",
+        "16",
+        "32",
+        "64"
+      ],
+      "profiler_trace": "data\\reports\\training_speed\\stage_2_6_a_net_002_trace.json.gz",
+      "end_to_end_runs": 3,
+      "exact_outputs": true,
+      "complete": true
+    },
+    "A-NET-003": {
+      "forward_batches": [
+        "1",
+        "2",
+        "4",
+        "8",
+        "16",
+        "32",
+        "64"
+      ],
+      "component_batches": [
+        "1",
+        "2",
+        "4",
+        "8",
+        "16",
+        "32",
+        "64"
+      ],
+      "profiler_trace": "data\\reports\\training_speed\\stage_2_6_a_net_003_trace.json.gz",
+      "end_to_end_runs": 3,
+      "exact_outputs": true,
+      "complete": true
+    }
+  },
+  "equivalence": {
+    "implemented_a_exact_outputs": true,
+    "final_rl_sources_unchanged_from_stage_2_5": true,
+    "source_contracts": {
+      "swb/rl/policy.py": {
+        "comparison_sha256": "c4bcf3ed884d329aaf3d05ee79ab5d515e41c89ac2e83d9efa538bd1a360b2af",
+        "current_sha256": "c4bcf3ed884d329aaf3d05ee79ab5d515e41c89ac2e83d9efa538bd1a360b2af",
+        "unchanged": true
+      },
+      "swb/rl/ppo.py": {
+        "comparison_sha256": "74ea4ef5b62a04a57abe41e0e6137557ec7c4ee9b6cd3de452b9b44729a1b484",
+        "current_sha256": "74ea4ef5b62a04a57abe41e0e6137557ec7c4ee9b6cd3de452b9b44729a1b484",
+        "unchanged": true
+      },
+      "swb/rl/runtime.py": {
+        "comparison_sha256": "ac1898e51e7fc015c44646ba435649d71975ce39a31c940824fc0b5771c25ee7",
+        "current_sha256": "ac1898e51e7fc015c44646ba435649d71975ce39a31c940824fc0b5771c25ee7",
+        "unchanged": true
+      }
+    },
+    "focused_tests_run_successfully": [
+      "tests.test_ppo.PPOTrainerTests.test_seeded_central_policy_rollout_is_reproducible",
+      "tests.test_checkpoint.CheckpointTests.test_save_resume_matches_uninterrupted_next_update"
+    ]
+  },
+  "b_class": {
+    "default_enabled": false,
+    "end_to_end_or_learning_gate_triggered": false
+  },
+  "checklist": {
+    "path": "docs/card_bug_audit_and_training_speed_checklist.md",
+    "unchecked_items": []
+  },
+  "checkpoint": {
+    "path": "data/checkpoints/training_speed/frozen_v4_1_seed_20260801_500k.pt",
+    "sha256": "4d6a8dd7d32f4e530766aab8d2ec4691de4925bc73e188021da1f45dbe54e0bd",
+    "unchanged_from_frozen_contract": true
+  },
+  "mandatory_verification": {
+    "unittest": {
+      "command": "E:\\anaconda\\python.exe -m unittest discover -s tests -v",
+      "tests_run": 2896,
+      "skipped": 1,
+      "seconds": 453.663,
+      "passed": true
+    },
+    "compileall": {
+      "command": "E:\\anaconda\\python.exe -m compileall -q swb scripts tests",
+      "passed": true
+    },
+    "random_self_play": {
+      "command": "E:\\anaconda\\python.exe -m scripts.random_self_play --games 100",
+      "games": 100,
+      "wins": [
+        56,
+        44
+      ],
+      "draws": 0,
+      "truncations": 0,
+      "mask_mismatches": 0,
+      "passed": true
+    },
+    "rl_mixed_match": {
+      "command": "E:\\anaconda\\python.exe -m scripts.rl_mixed_match --output data/rl_mixed_match.log",
+      "winner": 2,
+      "final_health": [
+        0,
+        18
+      ],
+      "output": "data/rl_mixed_match.log",
+      "passed": true
+    }
+  },
+  "sources": {
+    "registry": {
+      "path": "data/reports/training_speed/candidate_registry.json",
+      "sha256": "d85bb4bfa33472ead9a766dd0d20fbccfcf5869cc27b447963379408ef5d0090"
+    },
+    "stage_2_5_comparison": {
+      "path": "data/reports/training_speed/stage_2_5_a_obs_001.json",
+      "sha256": "222f40a0d0ec5e9f0c5b5394dbf8f9ff526cb44467c1058d03d746a373e4242a"
+    }
+  },
+  "passed": true
+}

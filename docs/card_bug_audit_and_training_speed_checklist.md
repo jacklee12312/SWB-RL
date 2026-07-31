@@ -1611,7 +1611,7 @@ A 类候选按以下顺序实施：
   `round → long → clamp` 和 semantic-context 小算子。
 - [x] 调整固定输入的连续内存布局，并合并可等价合并的小 projection/
   elementwise 操作，减少 `permute/contiguous` 和 CUDA kernel launch。
-- [ ] 每个候选分别记录 batch 1/2/4/8/16/32/64 纯前向、组件时间、kernel
+- [x] 每个候选分别记录 batch 1/2/4/8/16/32/64 纯前向、组件时间、kernel
   数、kernel gap、同步事件及三次端到端结果；以 batch 4 当前每 forward
   646 次 launch 和 11 个同步事件作为诊断参照。
 - [x] 在 token 热路径完成后再评估原生 scaled-dot-product attention；
@@ -1621,7 +1621,7 @@ A 类候选按以下顺序实施：
   同一 forward 无重复 card embedding 的证据必须写入决策。
 - [x] 只有 host sync 已处理且 batch bucket 稳定后才评估 CUDA Graph；
   动态尾 batch 保留普通路径。
-- [ ] 每项 A 类改动验证相同输入的 logits/value/hidden state 精确或在既定
+- [x] 每项 A 类改动验证相同输入的 logits/value/hidden state 精确或在既定
   浮点容差内一致，并通过固定 seed 轨迹、log probability、PPO generation
   和 checkpoint resume 等价测试。
 
@@ -1808,6 +1808,34 @@ B 类候选：
   `rejected_micro_or_numeric_gate` 关闭，不进入端到端、长局或三 seed
   小规模学习，也没有任何 B 类候选成为默认值。机器可读证据保存于
   `data/reports/training_speed/stage_2_6_b_precision_001_gate.json`。
+
+2.6 汇总验收（2026-07-31）：
+
+- A-NET-001/002/003 三个实际实现候选均记录 batch
+  `1/2/4/8/16/32/64` 的纯前向与组件时间、batch-4 完整 profiler trace
+  （含 kernel、gap、同步事件）及三次端到端；三者固定输入输出逐 bit
+  相同，并都因收益未越过相邻运行波动而回退。
+- A-NET-004、A-STATIC-ENC-001 是实现前上限已低于波动的无代码关闭项；
+  A-FORWARD-001 在所有 batch micro 与数值门禁退化后关闭；
+  A-CUDA-GRAPH-001 因 host sync 与稳定 batch bucket 两项前置条件均未
+  满足而延期。对这些没有可采用实现的候选不伪造三次端到端结果，各自报告
+  已明确记录 `run_end_to_end=false` 的原因。
+- 最终 `swb/rl/policy.py`、`swb/rl/ppo.py` 与 `swb/rl/runtime.py` 相对
+  阶段 2.5 checkpoint `88279db` 逐文件 SHA-256 相同。定向回归
+  `test_seeded_central_policy_rollout_is_reproducible` 覆盖相同 action、
+  old log probability、value、observation/card/mask/hidden 与 PPO
+  generation；`test_save_resume_matches_uninterrupted_next_update` 覆盖
+  checkpoint 恢复后的下一 rollout/update 等价，两项均通过。
+- 全部候选处置、证据 SHA-256、实现候选测量覆盖、最终源码等价与冻结
+  checkpoint 完整性汇总于
+  `data/reports/training_speed/stage_2_6_acceptance.json`。
+- 编号阶段验收实际运行
+  `E:\anaconda\python.exe -m unittest discover -s tests -v`：
+  `2896` 项通过、`1` 项跳过、耗时 `453.663s`；`compileall -q swb
+  scripts tests` 通过。`random_self_play --games 100` 通过（胜场
+  `56:44`、draw/truncation/mask mismatch 均为 `0`）；`rl_mixed_match`
+  通过，player 2 获胜、最终生命 `0:18`，日志写入
+  `data/rl_mixed_match.log`。
 
 ## 2.7 在继承网络收益后优化 learner 更新
 

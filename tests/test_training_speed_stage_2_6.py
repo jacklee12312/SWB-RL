@@ -25,6 +25,10 @@ from scripts.verify_training_speed_stage_2_6_a_net_003 import (
     CONFIGURATION as A_NET_003_CONFIGURATION,
     build_report as build_a_net_003_report,
 )
+from scripts.verify_training_speed_stage_2_6_acceptance import (
+    STAGE_CANDIDATES,
+    build_report as build_acceptance_report,
+)
 
 
 class TrainingSpeedStage26ANet001Tests(unittest.TestCase):
@@ -661,6 +665,59 @@ class TrainingSpeedStage26BPrecision001Tests(unittest.TestCase):
         for source in report["sources"].values():
             path = self.ROOT / source["path"]
             self.assertEqual(self._sha256(path), source["sha256"])
+
+
+class TrainingSpeedStage26AcceptanceTests(unittest.TestCase):
+    ROOT = Path(__file__).resolve().parents[1]
+    REPORT = (
+        ROOT
+        / "data/reports/training_speed/stage_2_6_acceptance.json"
+    )
+
+    @staticmethod
+    def _sha256(path: Path) -> str:
+        digest = hashlib.sha256()
+        with path.open("rb") as source:
+            for block in iter(lambda: source.read(1024 * 1024), b""):
+                digest.update(block)
+        return digest.hexdigest()
+
+    def test_saved_acceptance_report_is_current_and_passed(self) -> None:
+        saved = json.loads(self.REPORT.read_text(encoding="utf-8"))
+        self.assertEqual(saved, build_acceptance_report())
+        self.assertTrue(saved["passed"])
+        self.assertEqual(saved["checklist"]["unchecked_items"], [])
+        self.assertFalse(saved["b_class"]["default_enabled"])
+        self.assertFalse(
+            saved["b_class"]["end_to_end_or_learning_gate_triggered"]
+        )
+
+    def test_all_candidates_have_evidence_and_a_contracts_pass(self) -> None:
+        report = json.loads(self.REPORT.read_text(encoding="utf-8"))
+        self.assertEqual(
+            set(report["candidate_evidence"]),
+            set(STAGE_CANDIDATES),
+        )
+        for candidate in report["candidate_evidence"].values():
+            self.assertTrue(candidate["exists"])
+            path = self.ROOT / candidate["path"]
+            self.assertEqual(self._sha256(path), candidate["sha256"])
+        self.assertTrue(
+            report["equivalence"]["implemented_a_exact_outputs"]
+        )
+        self.assertTrue(
+            report["equivalence"][
+                "final_rl_sources_unchanged_from_stage_2_5"
+            ]
+        )
+        self.assertTrue(
+            all(
+                contract["complete"]
+                for contract in report[
+                    "implemented_a_measurement_contracts"
+                ].values()
+            )
+        )
 
 
 if __name__ == "__main__":
