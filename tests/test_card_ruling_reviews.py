@@ -98,6 +98,22 @@ class CardRulingReviewTests(unittest.TestCase):
         )
         self.assertIn("攻击 8、当前生命 4、生命上限 4", entry["conclusion"])
 
+    def test_uncertain_set_stats_ruling_links_client_protocol(self) -> None:
+        entry = next(
+            row
+            for row in self.payload["entries"]
+            if row["ruling_id"] == "SWB-RULING-SET-STATS-TEMP-001"
+        )
+        self.assertEqual(entry["status"], "ruling_uncertain")
+        protocol_path = Path(entry["client_reproduction_protocol"])
+        self.assertTrue(protocol_path.is_file(), protocol_path)
+        protocol = protocol_path.read_text(encoding="utf-8")
+        self.assertIn(entry["ruling_id"], protocol)
+        self.assertIn("| `4/4` |", protocol)
+        self.assertIn("| `7/4` |", protocol)
+        self.assertIn("客户端版本", protocol)
+        self.assertIn("只直接验证攻击力维度", protocol)
+
 
 if __name__ == "__main__":
     unittest.main()

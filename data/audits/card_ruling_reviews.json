@@ -137,6 +137,7 @@
       "reason": "“变为特定数值”与官方确认的后续进化增量最一致，也避免内部隐藏旧修正在未来重新套用；当前未找到直接覆盖临时到期的官方 Q&A。",
       "impact": "影响低频的 SET_STATS 与先前有期限增减组合；核心 SWB-CARD-0008 永久 -2、生命设为 1、超进化链已有直接官方证据，不依赖此待确认边界。",
       "follow_up": "优先使用客户端构造临时增减→设定数值→回合结束到期的可重复复现，或等待官方 Q&A；在获得证据前保持 ruling_uncertain。",
+      "client_reproduction_protocol": "docs/client_reproductions/SWB-RULING-SET-STATS-TEMP-001.md",
       "catalog_disposition": {
         "status": "excluded_pending_ruling",
         "policy": "data/audits/training_catalog_exclusions.json",
