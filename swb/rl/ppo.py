@@ -3,6 +3,7 @@ from __future__ import annotations
 import math
 import random
 import time
+from contextlib import nullcontext
 from dataclasses import asdict, dataclass
 from typing import Any, Mapping
 
@@ -424,10 +425,38 @@ class PPOTrainer:
             self.model.parameters(),
             lr=self.config.learning_rate,
         )
+        self._learner_amp_dtype: torch.dtype | None = None
+        self._learner_grad_scaler: torch.amp.GradScaler | None = None
         self.hidden_by_player = {
             player: self.model.initial_state(1, device=self.device)
             for player in (0, 1)
         }
+
+    def configure_experimental_learner_amp(
+        self,
+        dtype: torch.dtype | None,
+    ) -> None:
+        if dtype is None:
+            self._learner_amp_dtype = None
+            self._learner_grad_scaler = None
+            return
+        if self.device.type != "cuda":
+            raise ValueError("learner AMP requires a CUDA device")
+        if dtype not in (torch.float16, torch.bfloat16):
+            raise ValueError("learner AMP requires float16 or bfloat16")
+        self._learner_amp_dtype = dtype
+        self._learner_grad_scaler = torch.amp.GradScaler(
+            "cuda",
+            init_scale=16.0,
+        )
+
+    def _learner_autocast(self):
+        if self._learner_amp_dtype is None:
+            return nullcontext()
+        return torch.autocast(
+            device_type=self.device.type,
+            dtype=self._learner_amp_dtype,
+        )
 
     def _load_historical_opponent(self, entry: OpponentEntry) -> None:
         from swb.rl.checkpoint import _load_payload
@@ -1540,13 +1569,14 @@ class PPOTrainer:
                     valid_card_indices = (
                         batch.card_indices.flatten(0, 1)[flat_valid]
                     )
-                    (
-                        valid_recurrent_inputs,
-                        valid_action_features,
-                    ) = self.model._encode_step_v4_1(
-                        valid_observations,
-                        valid_card_indices,
-                    )
+                    with self._learner_autocast():
+                        (
+                            valid_recurrent_inputs,
+                            valid_action_features,
+                        ) = self.model._encode_step_v4_1(
+                            valid_observations,
+                            valid_card_indices,
+                        )
                     batch_size = batch.valid.shape[0]
                     recurrent_inputs = (
                         valid_recurrent_inputs.new_zeros(
@@ -1589,19 +1619,28 @@ class PPOTrainer:
                             batch.valid[:, timestep],
                             as_tuple=False,
                         ).flatten()
-                        active_logits, active_values, active_hidden = (
-                            self.model._forward_encoded_step_v4_1(
-                                recurrent_inputs[
-                                    active_rows, timestep
-                                ],
-                                action_features[
-                                    active_rows, timestep
-                                ],
-                                hidden.index_select(0, active_rows),
+                        with self._learner_autocast():
+                            (
+                                active_logits,
+                                active_values,
+                                active_hidden,
+                            ) = (
+                                self.model._forward_encoded_step_v4_1(
+                                    recurrent_inputs[
+                                        active_rows, timestep
+                                    ],
+                                    action_features[
+                                        active_rows, timestep
+                                    ],
+                                    hidden.index_select(
+                                        0, active_rows
+                                    ),
+                                )
                             )
-                        )
                         hidden = hidden.index_copy(
-                            0, active_rows, active_hidden
+                            0,
+                            active_rows,
+                            active_hidden.to(dtype=hidden.dtype),
                         )
                         logits_rows.append(
                             active_logits.new_zeros(
@@ -1659,31 +1698,50 @@ class PPOTrainer:
                 loss_host_started = time.perf_counter()
                 loss_component_started = component_start()
                 flat_valid = batch.valid
-                masked_logits = self.model.masked_logits(
-                    logits[flat_valid], batch.action_masks[flat_valid]
-                )
-                actions = batch.actions[flat_valid]
-                log_probs_all = torch.log_softmax(masked_logits, dim=-1)
-                log_probs = log_probs_all.gather(-1, actions.unsqueeze(-1)).squeeze(-1)
-                probabilities = torch.softmax(masked_logits, dim=-1)
-                entropy = -(probabilities * log_probs_all).sum(dim=-1).mean()
-                ratios = torch.exp(log_probs - batch.old_log_probs[flat_valid])
-                advantage_values = batch.advantages[flat_valid]
-                unclipped = ratios * advantage_values
-                clipped = torch.clamp(
-                    ratios,
-                    1.0 - self.config.clip_ratio,
-                    1.0 + self.config.clip_ratio,
-                ) * advantage_values
-                policy_loss = -torch.minimum(unclipped, clipped).mean()
-                value_loss = torch.nn.functional.mse_loss(
-                    values[flat_valid], batch.returns[flat_valid]
-                )
-                loss = (
-                    policy_loss
-                    + self.config.value_coefficient * value_loss
-                    - self.config.entropy_coefficient * entropy
-                )
+                with self._learner_autocast():
+                    masked_logits = self.model.masked_logits(
+                        logits[flat_valid],
+                        batch.action_masks[flat_valid],
+                    )
+                    actions = batch.actions[flat_valid]
+                    log_probs_all = torch.log_softmax(
+                        masked_logits,
+                        dim=-1,
+                    )
+                    log_probs = log_probs_all.gather(
+                        -1,
+                        actions.unsqueeze(-1),
+                    ).squeeze(-1)
+                    probabilities = torch.softmax(
+                        masked_logits,
+                        dim=-1,
+                    )
+                    entropy = -(
+                        probabilities * log_probs_all
+                    ).sum(dim=-1).mean()
+                    ratios = torch.exp(
+                        log_probs - batch.old_log_probs[flat_valid]
+                    )
+                    advantage_values = batch.advantages[flat_valid]
+                    unclipped = ratios * advantage_values
+                    clipped = torch.clamp(
+                        ratios,
+                        1.0 - self.config.clip_ratio,
+                        1.0 + self.config.clip_ratio,
+                    ) * advantage_values
+                    policy_loss = -torch.minimum(
+                        unclipped,
+                        clipped,
+                    ).mean()
+                    value_loss = torch.nn.functional.mse_loss(
+                        values[flat_valid],
+                        batch.returns[flat_valid],
+                    )
+                    loss = (
+                        policy_loss
+                        + self.config.value_coefficient * value_loss
+                        - self.config.entropy_coefficient * entropy
+                    )
                 component_end(
                     loss_component_started,
                     "learner_loss_seconds",
@@ -1716,7 +1774,10 @@ class PPOTrainer:
                     )
                 backward_host_started = time.perf_counter()
                 backward_component_started = component_start()
-                loss.backward()
+                if self._learner_grad_scaler is None:
+                    loss.backward()
+                else:
+                    self._learner_grad_scaler.scale(loss).backward()
                 component_end(
                     backward_component_started,
                     "learner_backward_seconds",
@@ -1727,6 +1788,8 @@ class PPOTrainer:
                     ] += time.perf_counter() - backward_host_started
                 clip_host_started = time.perf_counter()
                 clip_component_started = component_start()
+                if self._learner_grad_scaler is not None:
+                    self._learner_grad_scaler.unscale_(self.optimizer)
                 grad_norm = torch.nn.utils.clip_grad_norm_(
                     self.model.parameters(), self.config.max_grad_norm
                 )
@@ -1752,7 +1815,11 @@ class PPOTrainer:
                 optimizer_started = time.perf_counter()
                 optimizer_host_started = time.perf_counter()
                 optimizer_component_started = component_start()
-                self.optimizer.step()
+                if self._learner_grad_scaler is None:
+                    self.optimizer.step()
+                else:
+                    self._learner_grad_scaler.step(self.optimizer)
+                    self._learner_grad_scaler.update()
                 component_end(
                     optimizer_component_started,
                     "learner_optimizer_seconds",
