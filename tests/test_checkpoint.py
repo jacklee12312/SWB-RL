@@ -115,6 +115,105 @@ class CheckpointTests(unittest.TestCase):
         for key, expected in direct_parameters.items():
             torch.testing.assert_close(expected, resumed.model.state_dict()[key])
 
+    def test_batched_v41_learner_resume_next_update_drift_is_bounded(
+        self,
+    ) -> None:
+        trainer = PPOTrainer(
+            self.snapshot,
+            master_seed=2477,
+            config=PPOConfig(
+                rollout_steps=8,
+                rollout_workers=2,
+                sequence_length=4,
+                minibatch_sequences=2,
+                update_epochs=1,
+                hidden_size=64,
+                card_embedding_dim=16,
+                policy_architecture=(
+                    ENTITY_ACTION_POLICY_ARCHITECTURE
+                ),
+                observation_version="v4.1",
+                model_dim=32,
+                transformer_layers=1,
+                attention_heads=4,
+                feedforward_dim=64,
+                max_agent_steps_per_episode=8,
+                training_class_ids=(6,),
+                training_deck=OFFICIAL_QR_EVOLVE_HAVEN,
+            ),
+        )
+        resumed = None
+        try:
+            records, bootstrap, _ = trainer.collect_rollout()
+            trainer.update(records, bootstrap)
+            with tempfile.TemporaryDirectory() as directory:
+                path = Path(directory) / "batched-v41.pt"
+                save_checkpoint_atomic(path, trainer)
+                direct_records, direct_bootstrap, _ = (
+                    trainer.collect_rollout()
+                )
+                direct_metrics = trainer.update(
+                    direct_records, direct_bootstrap
+                )
+                direct_parameters = {
+                    key: value.detach().clone()
+                    for key, value in (
+                        trainer.model.state_dict().items()
+                    )
+                }
+                resumed = load_checkpoint(path, self.snapshot)
+                resumed_records, resumed_bootstrap, _ = (
+                    resumed.collect_rollout()
+                )
+                resumed_metrics = resumed.update(
+                    resumed_records, resumed_bootstrap
+                )
+            self.assertEqual(
+                [record.action for record in direct_records],
+                [record.action for record in resumed_records],
+            )
+            for direct_record, resumed_record in zip(
+                direct_records,
+                resumed_records,
+                strict=True,
+            ):
+                self.assertAlmostEqual(
+                    direct_record.old_log_prob,
+                    resumed_record.old_log_prob,
+                    delta=1e-7,
+                )
+                self.assertAlmostEqual(
+                    direct_record.value,
+                    resumed_record.value,
+                    delta=1e-7,
+                )
+            for player_id, expected in direct_bootstrap.items():
+                self.assertAlmostEqual(
+                    expected,
+                    resumed_bootstrap[player_id],
+                    delta=1e-7,
+                )
+            self.assertEqual(direct_metrics.keys(), resumed_metrics.keys())
+            for name, expected in direct_metrics.items():
+                self.assertAlmostEqual(
+                    expected,
+                    resumed_metrics[name],
+                    delta=1e-6,
+                )
+            max_parameter_drift = max(
+                (
+                    expected
+                    - resumed.model.state_dict()[key]
+                ).abs().max().item()
+                for key, expected in direct_parameters.items()
+            )
+            self.assertTrue(torch.isfinite(torch.tensor(max_parameter_drift)))
+            self.assertLess(max_parameter_drift, 1e-3)
+        finally:
+            trainer.close()
+            if resumed is not None:
+                resumed.close()
+
     def test_fixed_training_deck_is_manifested_and_resumed(self) -> None:
         trainer = PPOTrainer(
             self.snapshot,
