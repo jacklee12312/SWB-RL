@@ -1,0 +1,577 @@
+{
+  "schema_version": 1,
+  "report_kind": "swb_training_speed_final_comparison",
+  "checklist_section": "2.10",
+  "experiment_contract": {
+    "rules_commit": "fae33c2",
+    "checkpoint_sha256": "4d6a8dd7d32f4e530766aab8d2ec4691de4925bc73e188021da1f45dbe54e0bd",
+    "observation_version": "v4.1",
+    "policy_architecture": "entity_action_v1",
+    "training_deck": "official_qr_evolve_haven_20260727",
+    "opponent_decks": [
+      "international_qr_forest_20260728",
+      "international_qr_sword_20260728",
+      "international_qr_runecraft_20260728",
+      "international_qr_dragon_20260728",
+      "international_qr_nightmare_20260728",
+      "international_qr_portal_myuu_20260728",
+      "international_qr_portal_lishenna_20260728"
+    ],
+    "rollout_steps": 2048,
+    "sequence_length": 32,
+    "minibatch_sequences": 8,
+    "update_epochs": 2,
+    "hardware_controlled_by_run_manifests": true,
+    "candidate_dimension_is_the_only_allowed_difference": true
+  },
+  "baseline": {
+    "label": "frozen_final_rules_v4_1_baseline",
+    "rules_commit": "fae33c2",
+    "run_count": 3,
+    "runs_agent_steps_per_second": [
+      44.705437741344035,
+      44.57805049861664,
+      44.739038966525655
+    ],
+    "median_agent_steps_per_second": 44.705437741344035,
+    "collect_p95_seconds": 32.23424459993839,
+    "update_p95_seconds": 22.900918800150976,
+    "system": {
+      "sample_count": 3470,
+      "cpu_total_median_percent": 9.395833333333334,
+      "ram_used_peak_bytes": 23707131904,
+      "pagefile_used_peak_bytes": 27701579776,
+      "gpu_utilization_median_percent": 36.0,
+      "gpu_memory_peak_mib": 9644.0,
+      "gpu_power_p95_watts": 61.79
+    }
+  },
+  "a_class_stack": {
+    "adopted_candidates": [
+      "A-BATCH-WAIT-001",
+      "A-WORKERS-001"
+    ],
+    "controlled_difference": "rollout workers 4->6 and central inference batch wait 0.5->1.0 ms; all frozen experiment dimensions otherwise unchanged",
+    "run_count": 3,
+    "runs_agent_steps_per_second": [
+      63.61914281547487,
+      64.89317566311928,
+      64.47287526299372
+    ],
+    "median_agent_steps_per_second": 64.47287526299372,
+    "relative_gain_vs_baseline": 0.442170763118791,
+    "target_relative_gain": 0.25,
+    "target_met": true,
+    "collect_p95_seconds_median": 13.45020420011133,
+    "update_p95_seconds_median": 22.72651210008189,
+    "system": {
+      "cpu_total_median_percent": 9.591666666666667,
+      "cpu_single_core_peak_percent": 76.3,
+      "ram_used_peak_bytes": 24506875904.0,
+      "pagefile_used_peak_bytes": 29969367040.0,
+      "gpu_utilization_median_percent": 33.0,
+      "gpu_utilization_p95_percent": 43.0,
+      "gpu_idle_sample_fraction_at_or_below_5_percent": 0.0,
+      "gpu_memory_peak_mib": 9621.0
+    }
+  },
+  "final_adopted_stack": {
+    "adopted_candidates": [
+      "A-BATCH-WAIT-001",
+      "A-WORKERS-001",
+      "B-BATCHED-LEARNER-001"
+    ],
+    "runs_agent_steps_per_second": [
+      136.69229004513915,
+      132.6622270750627,
+      130.8878646945151
+    ],
+    "median_agent_steps_per_second": 132.6622270750627,
+    "relative_gain_vs_frozen_baseline": 1.9674740652941947,
+    "relative_gain_vs_a_observation_baseline": 1.0630921522378973,
+    "collect_p95_seconds_median": 14.630826900014654,
+    "update_p95_seconds_median": 3.5391569000203162,
+    "runtime": {
+      "batch_mean_median": 3.1035120147874307,
+      "batch_p95_median": 6.0,
+      "episode_p95_steps_median": 106.0,
+      "episode_maximum_steps": 138.0,
+      "cpu_total_median_percent": 10.272916666666667,
+      "gpu_utilization_median_percent": 35.0,
+      "gpu_memory_peak_mib": 12692.0,
+      "ram_used_peak_bytes": 25774514176,
+      "pagefile_used_peak_bytes": 33685135360
+    }
+  },
+  "measured_bottleneck": {
+    "profiled_pipeline_seconds": {
+      "measured_seconds": 52.13294749963097,
+      "rollout_seconds": 41.570129699772224,
+      "update_seconds": 10.562817799858749,
+      "agent_steps_per_second_is_profiled_diagnostic_only": 112.60488080450538
+    },
+    "rollout_fraction": 0.7973869058538553,
+    "update_fraction": 0.2026130941461447,
+    "rollout_forward_seconds": {
+      "grouped_prepare_and_h2d_seconds": 1.127643900224939,
+      "grouped_prepare_and_h2d_fraction_of_pipeline_wall": 0.02163015816884171,
+      "grouped_prepare_and_h2d_fraction_of_rollout_wall": 0.027126302187869232,
+      "diagnostic_components": {
+        "cpu_assembly_seconds": 0.2964371028356254,
+        "host_to_device_seconds": 0.6472535023931414,
+        "profiled_batches": 2226.0,
+        "host_to_device_milliseconds_per_batch": 0.2907697674722109
+      },
+      "theoretically_overlap_capable_with_an_independent_batch": true,
+      "meets_materiality_threshold": false,
+      "advance_to_implementation": false
+    },
+    "pipeline_holes": {
+      "worker_message_wait_seconds": 2.2065329055767506,
+      "batch_formation_wait_seconds": 5.893870102707297,
+      "total_seconds": 8.100403008284047,
+      "fraction_of_pipeline_wall": 0.15537972427784535,
+      "meets_size_threshold": true,
+      "independently_schedulable_cuda_work_available": false,
+      "advance_to_overlap_implementation": false,
+      "causality": [
+        "Worker-message wait begins only when the central request queue has no ready message.",
+        "A worker cannot emit its next observation until it receives the current action and advances the environment.",
+        "The multiprocessing queue already buffers other workers' requests while the central process runs CUDA; consuming it in another thread does not create an independent inference batch.",
+        "The configured 1 ms batch-formation wait is an intentional batching tradeoff; launching the partial batch removes the wait rather than overlapping it with another ready CUDA batch."
+      ]
+    },
+    "conclusion": "After the batched learner, same-generation rollout dominates wall time. Central forward work is the main measured rollout component; the remaining queue holes lack independent same-generation CUDA work."
+  },
+  "stability_100k": {
+    "profile_source_commit": "6253dd4",
+    "command": "E:\\anaconda\\python.exe -m scripts.profile_ppo_training --checkpoint data/checkpoints/training_speed/frozen_v4_1_seed_20260801_500k.pt --additional-agent-steps 102400 --exclude-warmup-updates 2 --device cuda --rollout-workers 6 --rollout-worker-threads 2 --central-inference-batch-wait-ms 1.0 --monitor-system --monitor-interval-seconds 0.5 --output data/reports/training_speed/stage_2_10_stability_100k.json",
+    "result": {
+      "requested_additional_agent_steps": 102400,
+      "completed_additional_agent_steps": 102511,
+      "completed_additional_episodes": 1326,
+      "updates": 45,
+      "elapsed_seconds": 786.7378720999695,
+      "agent_steps_per_second": 130.2987991748465
+    },
+    "checkpoint_unchanged": true,
+    "runtime_rollout_configuration": {
+      "rollout_workers": 6,
+      "worker_torch_threads": 2,
+      "central_inference_batch_wait_seconds": 0.001,
+      "profile_ipc_timing": false,
+      "profile_central_timing": false,
+      "profile_learner_timing": false
+    },
+    "system_monitor_summary": {
+      "sample_count": 1421,
+      "elapsed_seconds": 786.4253106999677,
+      "cpu_total_median_percent": 10.529166666666667,
+      "cpu_single_core_peak_percent": 96.4,
+      "ram_used_first_bytes": 21660336128,
+      "ram_used_last_bytes": 25437061120,
+      "ram_used_peak_bytes": 25543933952,
+      "pagefile_used_first_bytes": 13034553344,
+      "pagefile_used_last_bytes": 33310076928,
+      "pagefile_used_peak_bytes": 33514766336,
+      "pagefile_used_change_bytes": 20275523584,
+      "pagefile_sin_change_bytes": 0,
+      "pagefile_sout_change_bytes": 0,
+      "gpu_memory_peak_mib": 13779.0,
+      "no_page_in_or_page_out": true,
+      "passed": true
+    },
+    "gpu_memory_total_mib": 16376.0,
+    "truncations": {
+      "completed_episodes": 1326,
+      "terminated_episodes": 1312,
+      "truncated_episodes": 14,
+      "truncation_rate": 0.010558069381598794,
+      "first_half_truncation_rate": 0.00778816199376947,
+      "second_half_truncation_rate": 0.013157894736842105,
+      "absolute_rate_gate_maximum": 0.02,
+      "half_to_half_increase_gate_maximum": 0.01,
+      "no_abnormal_increase": true,
+      "interpretation": "A truncation is the configured 256-step environment cap, not a crashed worker or an interrupted PPO update."
+    },
+    "finite_update_metrics": true
+  },
+  "contract_preservation": {
+    "observation_version": "v4.1",
+    "policy_architecture": "entity_action_v1",
+    "stage_2_7_final_commit": "a75af5c",
+    "changed_training_paths_since_stage_2_7_final": [],
+    "checkpoint_sha256": "4d6a8dd7d32f4e530766aab8d2ec4691de4925bc73e188021da1f45dbe54e0bd",
+    "checkpoint_unchanged_during_stability_run": true,
+    "three_seed_learning_gate_passed": true,
+    "ppo_generation_and_exact_output_gates_passed": true,
+    "batched_learner_numeric_runtime_gate_passed": true,
+    "preserved": true
+  },
+  "candidate_outcomes": {
+    "candidate_count": 24,
+    "groups": {
+      "adopted": [
+        "A-BATCH-WAIT-001",
+        "A-WORKERS-001",
+        "B-BATCHED-LEARNER-001"
+      ],
+      "measured_no_clear_gain_or_rejected": [
+        "A-FORWARD-001",
+        "A-NET-001",
+        "A-NET-002",
+        "A-NET-003",
+        "A-OBS-001",
+        "A-PADDED-COMPUTE-001",
+        "B-LEARNER-AMP-001",
+        "B-PRECISION-001"
+      ],
+      "closed_before_implementation": [
+        "A-IPC-001",
+        "A-LEARNER-001",
+        "A-NET-004",
+        "A-OBS-002",
+        "A-OPTIMIZER-001",
+        "A-OVERLAP-001",
+        "A-PROFILE-001",
+        "A-STATIC-ENC-001"
+      ],
+      "deferred_or_blocked": [
+        "A-CUDA-GRAPH-001",
+        "B-COMPILE-001",
+        "C-ASYNC-001",
+        "C-HYPERPARAM-001",
+        "C-MODEL-001"
+      ]
+    },
+    "rows": {
+      "A-PROFILE-001": {
+        "class": "A",
+        "disposition": "baseline_prerequisite",
+        "final_group": "closed_before_implementation",
+        "evidence": {
+          "path": "data/reports/training_speed/baseline_summary.json",
+          "sha256": "c324af884a5b44976618b90ab00aad706adfe3613a8fdf53d08e1f2f3e779b61"
+        }
+      },
+      "A-BATCH-WAIT-001": {
+        "class": "A",
+        "disposition": "adopted_1_0_ms",
+        "final_group": "adopted",
+        "evidence": {
+          "path": "data/reports/training_speed/stage_2_4_b_interactions.json",
+          "sha256": "f9d638a726e4f8ad10264806e7addbdb46de548ae4b0c8311bf83eed73ac64b7"
+        }
+      },
+      "A-WORKERS-001": {
+        "class": "A",
+        "disposition": "adopted_6_workers_2_threads",
+        "final_group": "adopted",
+        "evidence": {
+          "path": "data/reports/training_speed/stage_2_4_b_interactions.json",
+          "sha256": "f9d638a726e4f8ad10264806e7addbdb46de548ae4b0c8311bf83eed73ac64b7"
+        }
+      },
+      "A-IPC-001": {
+        "class": "A",
+        "disposition": "closed_below_materiality_or_already_minimal",
+        "final_group": "closed_before_implementation",
+        "evidence": {
+          "path": "data/reports/training_speed/stage_2_4_acceptance.json",
+          "sha256": "3a5eaa5161664f8846e3432426fb86188e406aad31bff81cab99d11f6c0a3bb0"
+        }
+      },
+      "A-OBS-001": {
+        "class": "A",
+        "disposition": "implemented_no_measurable_throughput_gain",
+        "final_group": "measured_no_clear_gain_or_rejected",
+        "evidence": {
+          "path": "data/reports/training_speed/stage_2_5_a_obs_001.json",
+          "sha256": "222f40a0d0ec5e9f0c5b5394dbf8f9ff526cb44467c1058d03d746a373e4242a"
+        }
+      },
+      "A-OBS-002": {
+        "class": "A",
+        "disposition": "closed_below_materiality_and_variability_gate",
+        "final_group": "closed_before_implementation",
+        "evidence": {
+          "path": "data/reports/training_speed/stage_2_5_a_obs_001.json",
+          "sha256": "222f40a0d0ec5e9f0c5b5394dbf8f9ff526cb44467c1058d03d746a373e4242a"
+        }
+      },
+      "A-NET-001": {
+        "class": "A",
+        "disposition": "rejected_gain_within_run_variability",
+        "final_group": "measured_no_clear_gain_or_rejected",
+        "evidence": {
+          "path": "data/reports/training_speed/stage_2_6_a_net_001.json",
+          "sha256": "da64601aa32d514d2957ac2dc5b257d47c46e43f1a50e9f46e8c91ab8e5e8be6"
+        }
+      },
+      "A-NET-002": {
+        "class": "A",
+        "disposition": "rejected_gain_within_run_variability",
+        "final_group": "measured_no_clear_gain_or_rejected",
+        "evidence": {
+          "path": "data/reports/training_speed/stage_2_6_a_net_002.json",
+          "sha256": "bdc646a51e33f0d21a1fcfd632d1fe307ba65491b94ff88f5dce186f75600010"
+        }
+      },
+      "A-NET-003": {
+        "class": "A",
+        "disposition": "rejected_gain_within_run_variability",
+        "final_group": "measured_no_clear_gain_or_rejected",
+        "evidence": {
+          "path": "data/reports/training_speed/stage_2_6_a_net_003.json",
+          "sha256": "4145faf1004ee561485015b78cabfa5fa16ff3868f534d7ffde939ef760917ef"
+        }
+      },
+      "A-NET-004": {
+        "class": "A",
+        "disposition": "closed_no_actionable_layout_and_below_variability_upper_bound",
+        "final_group": "closed_before_implementation",
+        "evidence": {
+          "path": "data/reports/training_speed/stage_2_6_a_net_004_layout_projection_gate.json",
+          "sha256": "da84d82ffce2c8436e131b5e168cb3e39bfc682c7827c82f8caf868abaad313a"
+        }
+      },
+      "A-FORWARD-001": {
+        "class": "A",
+        "disposition": "rejected_native_sdpa_numeric_and_micro_regression",
+        "final_group": "measured_no_clear_gain_or_rejected",
+        "evidence": {
+          "path": "data/reports/training_speed/stage_2_6_a_forward_001_sdpa_gate.json",
+          "sha256": "fe81855d1e2b969c02c7a694a39a62a7cb32a98fbc224f9edee308f101f7af5f"
+        }
+      },
+      "A-STATIC-ENC-001": {
+        "class": "A",
+        "disposition": "closed_below_materiality_and_no_repeated_forward_encoding",
+        "final_group": "closed_before_implementation",
+        "evidence": {
+          "path": "data/reports/training_speed/stage_2_6_a_static_enc_001_gate.json",
+          "sha256": "22a825931b24c8b2e862737e2e4fd6e8b86501c0c37a5d7db64939b7287d2506"
+        }
+      },
+      "A-CUDA-GRAPH-001": {
+        "class": "A",
+        "disposition": "deferred_prerequisites_unsatisfied",
+        "final_group": "deferred_or_blocked",
+        "evidence": {
+          "path": "data/reports/training_speed/stage_2_6_a_cuda_graph_001_prerequisite_gate.json",
+          "sha256": "cb2b52a58096cc7713ba556c22ba99e467441a6e5cdad76b1d064dd54ff96564"
+        }
+      },
+      "A-LEARNER-001": {
+        "class": "A",
+        "disposition": "closed_buffer_only_below_materiality_upper_bound",
+        "final_group": "closed_before_implementation",
+        "evidence": {
+          "path": "data/reports/training_speed/stage_2_7_learner_baseline_summary.json",
+          "sha256": "bd5fa71444eda555b0b4f2af288548baf5d3fab6b26304eb638cba9be0e7d7c8"
+        }
+      },
+      "A-PADDED-COMPUTE-001": {
+        "class": "A",
+        "disposition": "reclassified_as_b_due_strict_parameter_drift",
+        "final_group": "measured_no_clear_gain_or_rejected",
+        "evidence": {
+          "path": "data/reports/training_speed/stage_2_7_a_padded_compute_001_gate.json",
+          "sha256": "bd7ddd06f62d4a7a004101327a8e400216058a05268d45fd62c8c0e3668aef34"
+        }
+      },
+      "A-OPTIMIZER-001": {
+        "class": "A",
+        "disposition": "closed_group_below_materiality_upper_bound",
+        "final_group": "closed_before_implementation",
+        "evidence": {
+          "path": "data/reports/training_speed/stage_2_7_learner_baseline_summary.json",
+          "sha256": "bd5fa71444eda555b0b4f2af288548baf5d3fab6b26304eb638cba9be0e7d7c8"
+        }
+      },
+      "A-OVERLAP-001": {
+        "class": "A",
+        "disposition": "closed_below_materiality_or_not_overlapable",
+        "final_group": "closed_before_implementation",
+        "evidence": {
+          "path": "data/reports/training_speed/stage_2_8_overlap_gate.json",
+          "sha256": "dd4ad7eabf4a08720b8b14ca858f9fb917e5fae185768ab6b4f22525a1b4d546"
+        }
+      },
+      "B-LEARNER-AMP-001": {
+        "class": "B",
+        "disposition": "rejected_gain_below_current_run_variability",
+        "final_group": "measured_no_clear_gain_or_rejected",
+        "evidence": {
+          "path": "data/reports/training_speed/stage_2_7_b_learner_amp_001_gate.json",
+          "sha256": "cc4749634ff94571df3443b34946111a30532dd375c2f0f071182f86f9ad392f"
+        }
+      },
+      "B-BATCHED-LEARNER-001": {
+        "class": "B",
+        "disposition": "adopted_after_three_seed_learning_and_end_to_end_gates",
+        "final_group": "adopted",
+        "evidence": {
+          "path": "data/reports/training_speed/stage_2_7_b_batched_learner_001_end_to_end.json",
+          "sha256": "29f0d9352a6ba11f84ca0d8c4479d711829f52163e078058856209bbfae60fa4"
+        }
+      },
+      "B-PRECISION-001": {
+        "class": "B",
+        "disposition": "rejected_micro_or_numeric_gate",
+        "final_group": "measured_no_clear_gain_or_rejected",
+        "evidence": {
+          "path": "data/reports/training_speed/stage_2_6_b_precision_001_gate.json",
+          "sha256": "5fbe6fd48ff89af99427f211c082701cefa8a1cc53dc380eee686e19ac6ff0c1"
+        }
+      },
+      "B-COMPILE-001": {
+        "class": "B",
+        "disposition": "blocked_current_environment_missing_triton",
+        "final_group": "deferred_or_blocked",
+        "evidence": {
+          "path": "data/reports/training_speed/stage_2_6_b_compile_001_gate.json",
+          "sha256": "3c1d72ec7f40cff743c95f69fa2bfff0485a2bdf840ba5241ff05da2eb9390bd"
+        }
+      },
+      "C-ASYNC-001": {
+        "class": "C",
+        "disposition": "deferred_separate_algorithm_experiment",
+        "final_group": "deferred_or_blocked",
+        "evidence": {
+          "path": "data/reports/training_speed/stage_2_8_overlap_gate.json",
+          "sha256": "dd4ad7eabf4a08720b8b14ca858f9fb917e5fae185768ab6b4f22525a1b4d546"
+        }
+      },
+      "C-HYPERPARAM-001": {
+        "class": "C",
+        "disposition": "separate_algorithm_experiment",
+        "final_group": "deferred_or_blocked",
+        "evidence": {
+          "path": "data/reports/training_speed/stage_2_9_deferred_c_candidates.json",
+          "sha256": "4010adeb05bc66c82c9620d68f4726f0a32ee31d6e020d257dbcd55db202bfe5"
+        }
+      },
+      "C-MODEL-001": {
+        "class": "C",
+        "disposition": "separate_algorithm_experiment",
+        "final_group": "deferred_or_blocked",
+        "evidence": {
+          "path": "data/reports/training_speed/stage_2_9_deferred_c_candidates.json",
+          "sha256": "4010adeb05bc66c82c9620d68f4726f0a32ee31d6e020d257dbcd55db202bfe5"
+        }
+      }
+    }
+  },
+  "reproducibility": {
+    "formal_long_training_command": "E:\\anaconda\\python.exe -m scripts.profile_ppo_training --checkpoint data/checkpoints/training_speed/frozen_v4_1_seed_20260801_500k.pt --additional-agent-steps 102400 --exclude-warmup-updates 2 --device cuda --rollout-workers 6 --rollout-worker-threads 2 --central-inference-batch-wait-ms 1.0 --monitor-system --monitor-interval-seconds 0.5 --output data/reports/training_speed/stage_2_10_stability_100k.json",
+    "formal_runtime_configuration": {
+      "rollout_workers": 6,
+      "worker_torch_threads": 2,
+      "central_inference_batch_wait_seconds": 0.001,
+      "profile_ipc_timing": false,
+      "profile_central_timing": false,
+      "profile_learner_timing": false
+    },
+    "checkpoint_path": "data/checkpoints/training_speed/frozen_v4_1_seed_20260801_500k.pt",
+    "checkpoint_sha256": "4d6a8dd7d32f4e530766aab8d2ec4691de4925bc73e188021da1f45dbe54e0bd",
+    "hardware": {
+      "platform": "Windows-11-10.0.26200-SP0",
+      "logical_cpu_count": 24,
+      "torch_version": "2.13.0+cu130",
+      "cuda_version": "13.0",
+      "torch_intraop_threads": 16,
+      "torch_interop_threads": 16,
+      "gpu": "NVIDIA GeForce RTX 4080"
+    }
+  },
+  "mandatory_verification": {
+    "unittest": {
+      "command": "E:\\anaconda\\python.exe -m unittest discover -s tests -v",
+      "log": "data/reports/training_speed/stage_2_10_complete_unittest.log",
+      "tests_run": 2925,
+      "seconds": 464.16,
+      "skipped": 1,
+      "api_test_passed": true,
+      "passed": true
+    },
+    "compileall": {
+      "command": "E:\\anaconda\\python.exe -m compileall -q swb scripts tests",
+      "passed": true
+    },
+    "stage_2_9_prescribed_smokes": {
+      "learning_evaluation_illegal_actions": 0,
+      "learning_evaluation_mask_mismatches": 0,
+      "self_play": {
+        "games": 100,
+        "wins": [
+          56,
+          44
+        ],
+        "draws": 0,
+        "truncations": 0,
+        "illegal_actions": 0,
+        "action_mask_mismatches": 0,
+        "passed": true
+      },
+      "mixed_match": {
+        "terminal_result": 2,
+        "passed": true
+      },
+      "worker_lifecycle_test": "tests.test_vector_rollout.VectorRolloutTests.test_close_is_graceful_and_leaves_no_live_worker"
+    }
+  },
+  "checklist": {
+    "path": "docs/card_bug_audit_and_training_speed_checklist.md",
+    "unchecked_items": []
+  },
+  "sources": {
+    "baseline": {
+      "path": "data/reports/training_speed/baseline_summary.json",
+      "sha256": "c324af884a5b44976618b90ab00aad706adfe3613a8fdf53d08e1f2f3e779b61"
+    },
+    "stage_2_4": {
+      "path": "data/reports/training_speed/stage_2_4_b_interactions.json",
+      "sha256": "f9d638a726e4f8ad10264806e7addbdb46de548ae4b0c8311bf83eed73ac64b7"
+    },
+    "stage_2_7": {
+      "path": "data/reports/training_speed/stage_2_7_b_batched_learner_001_end_to_end.json",
+      "sha256": "29f0d9352a6ba11f84ca0d8c4479d711829f52163e078058856209bbfae60fa4"
+    },
+    "stage_2_7_learning": {
+      "path": "data/reports/training_speed/stage_2_7_b_batched_learner_001_learning.json",
+      "sha256": "6a45428081add6f8f7fa1ec512c246e18477172b73475cf3e18c8cccefd1a4d2"
+    },
+    "stage_2_8": {
+      "path": "data/reports/training_speed/stage_2_8_overlap_gate.json",
+      "sha256": "dd4ad7eabf4a08720b8b14ca858f9fb917e5fae185768ab6b4f22525a1b4d546"
+    },
+    "stage_2_9": {
+      "path": "data/reports/training_speed/stage_2_9_acceptance.json",
+      "sha256": "622ad2bf8dea37cb3b8f9146c63f34935235efea947f3c2b4578e07c2c9346d4"
+    },
+    "stability_100k": {
+      "path": "data/reports/training_speed/stage_2_10_stability_100k.json",
+      "sha256": "5b80970ad404998c40ae145f01745b8eb4e792073106f0e60808503108d9ca76"
+    }
+  },
+  "gates": {
+    "stage_2_10_checklist_closed": true,
+    "trusted_v4_1_baseline_has_three_runs": true,
+    "wall_time_bottleneck_measured_not_inferred_from_utilization": true,
+    "at_least_one_a_end_to_end_optimization_adopted": true,
+    "a_stack_gain_at_least_25_percent": true,
+    "final_stack_has_three_trusted_runs": true,
+    "stability_completed_at_least_100k_agent_steps": true,
+    "stability_no_oom": true,
+    "stability_no_page_in_or_page_out": true,
+    "stability_no_deadlock_or_zero_progress_update": true,
+    "stability_no_abnormal_truncation_increase": true,
+    "system_monitor_covers_long_run": true,
+    "v4_1_ppo_and_checkpoint_contract_preserved": true,
+    "all_24_candidates_have_final_dispositions": true,
+    "prior_unified_acceptance_passed": true,
+    "full_unittest_and_compileall_passed": true
+  },
+  "passed": true
+}

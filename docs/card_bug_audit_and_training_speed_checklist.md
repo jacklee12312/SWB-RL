@@ -2068,20 +2068,56 @@ B 类候选：
 
 ## 2.10 第一轮速度目标
 
-- [ ] 在最终规则基线上得到可信的 v4.1 三次基线。
-- [ ] 找到能解释主要 wall time 的瓶颈，不再只依赖 CPU/GPU 利用率曲线。
-- [ ] 至少完成一项 A 类端到端优化。
-- [ ] A 类组合相对新基线 median agent steps/s 提升至少 25%，或在未达到时
+- [x] 在最终规则基线上得到可信的 v4.1 三次基线。
+- [x] 找到能解释主要 wall time 的瓶颈，不再只依赖 CPU/GPU 利用率曲线。
+- [x] 至少完成一项 A 类端到端优化。
+- [x] A 类组合相对新基线 median agent steps/s 提升至少 25%，或在未达到时
   给出测量证据说明硬瓶颈和下一路线。
-- [ ] 100,000+ agent steps 稳定运行，无 OOM、分页、死锁和异常截断增加。
-- [ ] v4.1 学习输入、网络输出契约、PPO generation 边界和 checkpoint
+- [x] 100,000+ agent steps 稳定运行，无 OOM、分页、死锁和异常截断增加。
+- [x] v4.1 学习输入、网络输出契约、PPO generation 边界和 checkpoint
   兼容性保持不变。
-- [ ] 生成优化前后综合报告，包括采用、拒绝和待研究方案。
+- [x] 生成优化前后综合报告，包括采用、拒绝和待研究方案。
 
 产物：
 
 - `docs/training_speed_optimization_report.md`
 - `data/reports/training_speed/final_comparison.json`
+
+第一轮速度目标验收说明：
+
+- 冻结 v4.1 基线的三次吞吐为 `44.7054 / 44.5781 / 44.7390
+  agent steps/s`，median `44.7054`。采用 A-BATCH-WAIT-001 与
+  A-WORKERS-001 后，三次 median 为 `64.4729`，相对冻结基线提升
+  `44.2171%`，超过 `25%` 目标。加上 B-BATCHED-LEARNER-001 的最终
+  采用栈三次为 `136.6923 / 132.6622 / 130.8879`，median `132.6622`，
+  相对冻结基线提升 `196.7474%`。
+- 最终源码的同步分段剖析覆盖 `52.1329s` pipeline：rollout
+  `41.5701s`（`79.7387%`），update `10.5628s`（`20.2613%`）；
+  rollout central forward 为 `31.1179s`，占完整 pipeline
+  `59.6896%`。Queue holes 为 `15.5380%`，但没有可独立调度的同
+  generation CUDA work；CPU prepare/H2D 的 pipeline 上界仅
+  `2.1630%`，结论来自分段 wall time 与因果边界而非利用率猜测。
+- 最终采用配置在无诊断插桩下完成 `102,511 agent steps`、`1,326` 局、
+  `45` 个连续 updates，耗时 `786.738s`，吞吐 `130.299 steps/s`。
+  `1,421` 个系统样本覆盖 `99.960%` wall time；GPU 显存峰值
+  `13,779 / 16,376 MiB`。Windows pagefile committed usage 有增长，
+  但实际 paging I/O 的 `sin/sout` 增量均为 `0`。没有 OOM、死锁、
+  timeout 或零进度 update。
+- `14 / 1,326` 局触及显式 `256-step` 环境上限，总截断率 `1.0558%`；
+  后半程较前半程增加 `0.5370` 个百分点，低于预定 `1` 个百分点趋势门，
+  不属于 worker 或 PPO 异常截断。长跑前后冻结 checkpoint SHA-256
+  均为
+  `4d6a8dd7d32f4e530766aab8d2ec4691de4925bc73e188021da1f45dbe54e0bd`。
+- v4.1 输入、`entity_action_v1` 输出、hidden state、action mask、
+  log probability、value、PPO generation 与 checkpoint resume 门均
+  保持；最终 learner 提交后 `swb/rl` 和 `swb/engine` 无后续差异。
+- 全部 `24` 个候选的采用、无明确收益、关闭、拒绝、延期或阻塞状态汇总在
+  `data/reports/training_speed/final_comparison.json`。完整分析、复现命令
+  与下一路线为 `docs/training_speed_optimization_report.md`。
+- 阶段末 `E:\anaconda\python.exe -m unittest discover -s tests -v`
+  通过 `2,925` tests（`1` skip），耗时 `464.160s`，API test 通过；
+  `E:\anaconda\python.exe -m compileall -q swb scripts tests` 通过。
+  最终机器对比的 `16` 个 gate 全部为 `true`。
 
 阶段 2 完成定义：
 
