@@ -1,0 +1,176 @@
+{
+  "schema_version": 1,
+  "report_kind": "swb_training_speed_stage_2_4_b_interactions",
+  "checklist_section": "2.4B",
+  "methodology": {
+    "formal_runs_per_configuration": 3,
+    "warmup_updates_excluded": 2,
+    "minimum_measured_agent_steps_per_run": 6144,
+    "only_cross_dimension_stable_winners_combined": true,
+    "full_cartesian_product": false,
+    "baseline_median_agent_steps_per_second": 44.705437741344035
+  },
+  "configurations": {
+    "workers_5_wait_1_0_ms": {
+      "configuration": {
+        "id": "workers_5_wait_1_0_ms",
+        "dimension": "stable_winner_interaction",
+        "rollout_workers": 5,
+        "worker_torch_threads": 2,
+        "central_inference_batch_wait_ms": 1.0,
+        "constituents": [
+          "workers_5",
+          "wait_1_0_ms"
+        ]
+      },
+      "run_count": 3,
+      "agent_steps_per_second": {
+        "runs": [
+          63.833737773009105,
+          63.7020521703433,
+          64.37628913816265
+        ],
+        "median": 63.833737773009105,
+        "minimum": 63.7020521703433,
+        "maximum": 64.37628913816265,
+        "range": 0.6742369678193469,
+        "relative_gain_vs_frozen_baseline": 0.4278741244485126,
+        "relative_gain_vs_strongest_constituent": 0.0751598953854135,
+        "stable_five_percent_winner_vs_baseline": true
+      },
+      "constituent_median_steps_per_second": {
+        "workers_5": 48.86318588560305,
+        "wait_1_0_ms": 59.37139028993131
+      },
+      "collect_p95_seconds_median": 15.845388799905777,
+      "update_p95_seconds_median": 22.772199800005183,
+      "batching": {
+        "mean_batch_size": 2.7916666666666665,
+        "p50_batch_size": 3.0,
+        "p95_batch_size": 5.0,
+        "empty_slot_fraction": 0.44166666666666665,
+        "configured_wait_total_seconds": 6.177459806436673,
+        "worker_message_wait_total_seconds": 2.9233585034962744
+      },
+      "episode_length": {
+        "mean": 75.18888888888888,
+        "p50": 72.0,
+        "p95": 107.0,
+        "maximum": 133.0
+      },
+      "system": {
+        "cpu_total_median_percent": 9.208333333333334,
+        "cpu_single_core_peak_percent": 75.3,
+        "ram_used_peak_bytes": 23975890944.0,
+        "pagefile_used_peak_bytes": 28716417024.0,
+        "gpu_utilization_median_percent": 34.0,
+        "gpu_utilization_p95_percent": 44.0,
+        "gpu_idle_sample_fraction_at_or_below_5_percent": 0.0,
+        "gpu_memory_peak_mib": 9619.0
+      }
+    },
+    "workers_6_wait_1_0_ms": {
+      "configuration": {
+        "id": "workers_6_wait_1_0_ms",
+        "dimension": "stable_winner_interaction",
+        "rollout_workers": 6,
+        "worker_torch_threads": 2,
+        "central_inference_batch_wait_ms": 1.0,
+        "constituents": [
+          "workers_6",
+          "wait_1_0_ms"
+        ]
+      },
+      "run_count": 3,
+      "agent_steps_per_second": {
+        "runs": [
+          63.61914281547487,
+          64.89317566311928,
+          64.47287526299372
+        ],
+        "median": 64.47287526299372,
+        "minimum": 63.61914281547487,
+        "maximum": 64.89317566311928,
+        "range": 1.2740328476444063,
+        "relative_gain_vs_frozen_baseline": 0.44217076311879094,
+        "relative_gain_vs_strongest_constituent": 0.08592497073337971,
+        "stable_five_percent_winner_vs_baseline": true
+      },
+      "constituent_median_steps_per_second": {
+        "workers_6": 51.771178627266764,
+        "wait_1_0_ms": 59.37139028993131
+      },
+      "collect_p95_seconds_median": 13.45020420011133,
+      "update_p95_seconds_median": 22.72651210008189,
+      "batching": {
+        "mean_batch_size": 3.104946833102173,
+        "p50_batch_size": 3.0,
+        "p95_batch_size": 6.0,
+        "empty_slot_fraction": 0.48250886114963787,
+        "configured_wait_total_seconds": 5.564213196747005,
+        "worker_message_wait_total_seconds": 2.224666597787291
+      },
+      "episode_length": {
+        "mean": 74.62222222222222,
+        "p50": 71.0,
+        "p95": 106.0,
+        "maximum": 138.0
+      },
+      "system": {
+        "cpu_total_median_percent": 9.591666666666667,
+        "cpu_single_core_peak_percent": 76.3,
+        "ram_used_peak_bytes": 24506875904.0,
+        "pagefile_used_peak_bytes": 29969367040.0,
+        "gpu_utilization_median_percent": 33.0,
+        "gpu_utilization_p95_percent": 43.0,
+        "gpu_idle_sample_fraction_at_or_below_5_percent": 0.0,
+        "gpu_memory_peak_mib": 9621.0
+      }
+    }
+  },
+  "ranking": [
+    "workers_6_wait_1_0_ms",
+    "workers_5_wait_1_0_ms"
+  ],
+  "decision": {
+    "adopted_runtime_configuration": {
+      "id": "workers_6_wait_1_0_ms",
+      "dimension": "stable_winner_interaction",
+      "rollout_workers": 6,
+      "worker_torch_threads": 2,
+      "central_inference_batch_wait_ms": 1.0,
+      "constituents": [
+        "workers_6",
+        "wait_1_0_ms"
+      ]
+    },
+    "median_agent_steps_per_second": 64.47287526299372,
+    "relative_gain_vs_frozen_baseline": 0.44217076311879094,
+    "relative_gain_vs_strongest_constituent": 0.08592497073337971,
+    "passed": true
+  },
+  "integrity": {
+    "checkpoint_sha256": [
+      "4d6a8dd7d32f4e530766aab8d2ec4691de4925bc73e188021da1f45dbe54e0bd"
+    ],
+    "all_runs_monitored": true,
+    "no_abnormal_exits": true,
+    "source_paths": [
+      "data/reports/training_speed/stage_2_4_b_interaction_runs/workers_5_wait_1_0_ms_run_1.json",
+      "data/reports/training_speed/stage_2_4_b_interaction_runs/workers_5_wait_1_0_ms_run_2.json",
+      "data/reports/training_speed/stage_2_4_b_interaction_runs/workers_5_wait_1_0_ms_run_3.json",
+      "data/reports/training_speed/stage_2_4_b_interaction_runs/workers_6_wait_1_0_ms_run_1.json",
+      "data/reports/training_speed/stage_2_4_b_interaction_runs/workers_6_wait_1_0_ms_run_2.json",
+      "data/reports/training_speed/stage_2_4_b_interaction_runs/workers_6_wait_1_0_ms_run_3.json"
+    ],
+    "source_sha256": [
+      "8c539740d67f9c7c5c412488b6b2d8fff0ed3200a4bde0a2c505ce37718949ce",
+      "0fd9269f82ca649a2301677a921e395b47a7b995e1f9079c0538da958a93c921",
+      "1d1d7dfec32ddfcdd743bd8958f09356169b391b4a5cd575de894e2bb14dce3e",
+      "7bb9b91b83deeab11264ef2048317f1e3b629c71ae1f73fdf343665d31d80f7e",
+      "a795be232b12197f48102464920cfe3e2a689fadaf8a65067095c40f80ad5847",
+      "a63c9c3cda751a50120a8aea802c45b57fc52b722ab7407105c76c3a6f72fb5d"
+    ]
+  },
+  "passed": true
+}

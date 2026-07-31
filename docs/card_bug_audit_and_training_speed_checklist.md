@@ -1436,7 +1436,7 @@ Profiler 分析和后续优化均以 v4.1 为主。
 - [x] 单变量扫描稳定 worker 数：2/3/4/5/6；避免直接重试已发生分页压力的
   8 worker 配置。
 - [x] 单变量扫描每 worker PyTorch 线程数：1/2/4。
-- [ ] 第一轮保持其他参数为基线；只对单变量胜出且稳定的值补做交互组合，
+- [x] 第一轮保持其他参数为基线；只对单变量胜出且稳定的值补做交互组合，
   避免没有归因能力的全笛卡尔积。
 - [x] 每组记录 batch 大小 mean/P50/P95、空槽率、worker 等待、GPU 空闲、
   median steps/s、P95 stage time、回合长度、CPU/GPU/RAM 和异常退出。
@@ -1485,6 +1485,24 @@ Profiler 分析和后续优化均以 v4.1 为主。
   non-blocking H2D；当前 batch 1 的约 0.105 ms H2D 不能单独构成立项理由。
 - [ ] 每项候选独立实现、独立提交并至少做三次同配置端到端对比，不能合并
   多项后再倒推收益。
+
+2.4B 稳定 winner 交互证据（2026-07-31）：
+
+- 只把 worker 维度的稳定 winner `5/6` 分别与 wait 维度 winner `1.0ms`
+  组合；线程维度没有稳定 winner，未做无归因能力的全笛卡尔积。两个组合
+  各运行三次，继续使用冻结 checkpoint、2 warm-up update 与至少
+  6,144 steady steps。
+- `workers=5, wait=1.0ms` 三次为
+  `63.8337/63.7021/64.3763 steps/s`，median `63.8337`；
+  `workers=6, wait=1.0ms` 三次为
+  `63.6191/64.8932/64.4729`，median `64.4729`。后者相对冻结基线
+  `+44.22%`，相对最强单变量 `wait=1.0ms` 再提升 `+8.59%`，因此采用
+  `6 workers / 2 threads / 1.0ms wait` 作为后续性能候选的运行时配置。
+- 采用组合的 mean/P95 batch 为 `3.10/6`，median CPU 总利用率约
+  `9.59%`；三次均无异常退出、监控缺失、checkpoint 变化或 pagefile
+  压力异常。机器可读报告为
+  `data/reports/training_speed/stage_2_4_b_interactions.json`，逐 run 证据
+  位于 `data/reports/training_speed/stage_2_4_b_interaction_runs/`。
 
 ## 2.5 先消除重复 Observation 构造，再决定是否扩展
 

@@ -26,14 +26,16 @@
       "class": "A",
       "description": "Scan central inference batch wait at 0, 0.1, 0.25, 0.5 and 1.0 ms.",
       "semantics": "Episode RNG and recurrent state remain isolated; weights stay fixed for the complete rollout generation.",
-      "disposition": "evaluate_after_baseline"
+      "disposition": "adopted_1_0_ms",
+      "evidence": "data/reports/training_speed/stage_2_4_b_interactions.json"
     },
     {
       "id": "A-WORKERS-001",
       "class": "A",
       "description": "Scan 2/3/4/5/6 rollout workers and 1/2/4 PyTorch threads per worker.",
       "semantics": "Only execution parallelism changes; matchup schedule, per-episode seeds and PPO generation boundaries stay fixed.",
-      "disposition": "evaluate_after_baseline"
+      "disposition": "adopted_6_workers_2_threads",
+      "evidence": "data/reports/training_speed/stage_2_4_b_interactions.json"
     },
     {
       "id": "A-IPC-001",

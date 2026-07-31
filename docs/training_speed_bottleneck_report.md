@@ -257,6 +257,21 @@ worker CPU 线程不足。1.0 ms、6 workers 和 5 workers 都通过至少 5% �
 `data/reports/training_speed/stage_2_4_runs/`；扫描器：
 `scripts/scan_training_speed_stage_2_4.py`。
 
+### 稳定 winner 交互
+
+只组合跨维度稳定 winner，没有做全笛卡尔积：
+
+| 组合 | 三次 steps/s | Median | 相对冻结基线 | 相对最强构成项 |
+|---|---|---:|---:|---:|
+| 5 workers + 1.0 ms | 63.8337 / 63.7021 / 64.3763 | 63.8337 | +42.79% | +7.52% |
+| 6 workers + 1.0 ms | 63.6191 / 64.8932 / 64.4729 | 64.4729 | +44.22% | +8.59% |
+
+采用后续候选运行时配置为 6 workers、每 worker 2 threads、1.0 ms wait。
+它的 mean/P95 batch 为 3.10/6；三次均有完整系统监控且无异常退出。
+机器可读汇总为
+`data/reports/training_speed/stage_2_4_b_interactions.json`，逐 run 证据位于
+`data/reports/training_speed/stage_2_4_b_interaction_runs/`。
+
 ## 产物与限制
 
 - 机器可读报告：
