@@ -148,9 +148,14 @@ def run_microbenchmark(
     trace_output: Path,
     device: torch.device,
     candidate_contract: (
-        Callable[[torch.nn.Module], tuple[Mapping[str, object], bool]]
+        Callable[
+            [torch.nn.Module, Mapping[str, torch.Tensor]],
+            tuple[Mapping[str, object], bool],
+        ]
         | None
     ) = None,
+    configure_model: Callable[[torch.nn.Module], None] | None = None,
+    require_exact_outputs: bool = True,
 ) -> dict[str, object]:
     checkpoint_path = _repo_path(checkpoint)
     checkpoint_before = _checkpoint_contract(checkpoint_path)
@@ -163,6 +168,8 @@ def run_microbenchmark(
     try:
         model = trainer.model
         model.eval()
+        if configure_model is not None:
+            configure_model(model)
         fixture = _fixed_fixture(
             model,
             maximum_batch_size=max(BATCH_SIZES),
@@ -211,7 +218,7 @@ def run_microbenchmark(
             trace_path=_repo_path(trace_output),
         )
         contract, contract_passed = (
-            candidate_contract(model)
+            candidate_contract(model, inputs)
             if candidate_contract is not None
             else ({}, True)
         )
@@ -288,7 +295,10 @@ def run_microbenchmark(
             },
         },
         "passed": (
-            all(equivalence.values())
+            (
+                all(equivalence.values())
+                or not require_exact_outputs
+            )
             and contract_passed
             and checkpoint_before == checkpoint_after
         ),

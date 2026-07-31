@@ -431,5 +431,51 @@ class TrainingSpeedStage26ANet004Tests(unittest.TestCase):
             self.assertEqual(self._sha256(path), source["sha256"])
 
 
+class TrainingSpeedStage26AForward001Tests(unittest.TestCase):
+    ROOT = Path(__file__).resolve().parents[1]
+    REPORT = (
+        ROOT
+        / "data/reports/training_speed/"
+        "stage_2_6_a_forward_001_sdpa_gate.json"
+    )
+
+    @staticmethod
+    def _sha256(path: Path) -> str:
+        digest = hashlib.sha256()
+        with path.open("rb") as source:
+            for block in iter(lambda: source.read(1024 * 1024), b""):
+                digest.update(block)
+        return digest.hexdigest()
+
+    def test_saved_sdpa_gate_proves_backend_and_rejection(self) -> None:
+        report = json.loads(self.REPORT.read_text(encoding="utf-8"))
+        self.assertTrue(report["passed"])
+        self.assertFalse(report["candidate_viability_passed"])
+        self.assertTrue(report["backend"]["sdpa_selected"])
+        calls = report["backend"]["operator_calls"]
+        self.assertEqual(calls["native_multi_head_attention"], 0)
+        self.assertGreater(calls["scaled_dot_product_attention"], 0)
+        self.assertTrue(
+            report["decision"]["all_profiled_batches_regress"]
+        )
+        self.assertFalse(report["decision"]["run_end_to_end"])
+        self.assertTrue(report["candidate_contract"]["argmax_equal"])
+        self.assertFalse(
+            report["candidate_contract"]["tensors"]["logits"][
+                "allclose_rtol_1e_5_atol_1e_6"
+            ]
+        )
+        trace_path = self.ROOT / report["profiler"][
+            "compressed_trace_path"
+        ]
+        self.assertEqual(
+            self._sha256(trace_path),
+            report["profiler"]["compressed_trace_sha256"],
+        )
+        for source in report["sources"].values():
+            path = self.ROOT / source["path"]
+            self.assertEqual(self._sha256(path), source["sha256"])
+
+
 if __name__ == "__main__":
     unittest.main()

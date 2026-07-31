@@ -1614,7 +1614,7 @@ A 类候选按以下顺序实施：
 - [ ] 每个候选分别记录 batch 1/2/4/8/16/32/64 纯前向、组件时间、kernel
   数、kernel gap、同步事件及三次端到端结果；以 batch 4 当前每 forward
   646 次 launch 和 11 个同步事件作为诊断参照。
-- [ ] 在 token 热路径完成后再评估原生 scaled-dot-product attention；
+- [x] 在 token 热路径完成后再评估原生 scaled-dot-product attention；
   当前 hooked Transformer 约 4.17 ms，不把 attention 当作唯一主因。
 - [ ] 仅在 profiler 证明超过噪声后评估推理侧静态卡牌编码缓存；缓存必须按
   policy generation 失效，且当前 card lookup/projection 各约 0.09 ms、
@@ -1720,6 +1720,26 @@ B 类候选：
   无依据的内存重排，也不运行没有代码候选的三次端到端。机器可读计算和输入
   SHA-256 保存于
   `data/reports/training_speed/stage_2_6_a_net_004_layout_projection_gate.json`。
+
+2.6 A-FORWARD-001 SDPA 负结果（2026-07-31）：
+
+- 阶段 2.3 trace 证明当前 eval/no-grad 路径使用
+  `aten::_native_multi_head_attention`；正式替代实验关闭 MHA fastpath 后，
+  完整 trace 记录每三次 forward 各 `12` 次
+  `aten::scaled_dot_product_attention` 和 efficient-attention、native MHA
+  为 `0`，故 backend 切换证据明确。
+- SDPA 在 batch `1/4/8/16/32/64` 全部退化 `5.11%` 到 `8.12%`；
+  batch 4 从 `22.013` ms 增至 `23.206` ms，kernel 从 `1,938` 增至
+  `1,962`。因此不进入三次端到端。
+- SDPA 相对 native MHA 的 max-abs 为 logits `8.61e-4`、value
+  `9.95e-6`、hidden `8.11e-5`，均未通过预设
+  `rtol=1e-5, atol=1e-6`；softmax 概率最大差 `3.61e-5`，本固定输入
+  argmax 未翻转。候选按
+  `rejected_native_sdpa_numeric_and_micro_regression` 双重拒绝。
+- 改动前 reference、机器可读门禁和完整 trace 保存于
+  `data/reports/training_speed/stage_2_6_a_forward_001_reference.json`、
+  `data/reports/training_speed/stage_2_6_a_forward_001_sdpa_gate.json` 和
+  `data/reports/training_speed/stage_2_6_a_forward_001_sdpa_trace.json.gz`。
 
 ## 2.7 在继承网络收益后优化 learner 更新
 

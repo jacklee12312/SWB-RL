@@ -96,9 +96,10 @@
     {
       "id": "A-FORWARD-001",
       "class": "A",
-      "description": "Remove redundant permute/contiguous operations and use an equivalent native scaled-dot-product-attention backend.",
+      "description": "Evaluate an equivalent native scaled-dot-product-attention backend after the token and layout gates.",
       "semantics": "Logits, value and recurrent hidden state must meet the registered exact/tolerance contract on every tested batch bucket.",
-      "disposition": "pending_inference_breakdown"
+      "disposition": "rejected_native_sdpa_numeric_and_micro_regression",
+      "evidence": "data/reports/training_speed/stage_2_6_a_forward_001_sdpa_gate.json"
     },
     {
       "id": "A-STATIC-ENC-001",
