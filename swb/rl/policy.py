@@ -659,31 +659,6 @@ class EntityActionRecurrentActorCritic(MaskedPolicyNetwork):
         )
         self.v41_choice_state_projection = nn.Linear(5, dim, bias=False)
         self.v41_graveyard_state_projection = nn.Linear(5, dim, bias=False)
-        static_positions = {
-            "_v41_semantic_byte_positions": torch.arange(
-                4, dtype=torch.long
-            ),
-            "_v41_player_relations": torch.tensor(
-                (1, 2), dtype=torch.long
-            ),
-            "_v41_leader_positions": torch.arange(
-                v4_1.LEADER_AREA_SLOTS, dtype=torch.long
-            ),
-            "_v41_zone_positions": torch.arange(
-                v4_1.ZONE_GROUPS, dtype=torch.long
-            ),
-            "_v41_history_positions": torch.arange(
-                v4_1.HISTORY_LENGTH, dtype=torch.long
-            ),
-            "_v41_record_positions": torch.arange(
-                v4_1.HISTORY_RECORDS_PER_GROUP, dtype=torch.long
-            ),
-            "_v41_record_groups": torch.arange(
-                v4_1.RECORD_GROUPS, dtype=torch.long
-            ),
-        }
-        for name, positions in static_positions.items():
-            self.register_buffer(name, positions, persistent=False)
 
     @staticmethod
     def _build_action_layout() -> tuple[torch.Tensor, ...]:
@@ -770,9 +745,8 @@ class EntityActionRecurrentActorCritic(MaskedPolicyNetwork):
             max=self.v41_semantic_kind_embedding.num_embeddings - 1,
         )
         byte_values = rows[..., 1:].clamp(min=0, max=255)
-        positioned_bytes = (
-            byte_values + 256 * self._v41_semantic_byte_positions
-        )
+        positions = torch.arange(4, device=values.device)
+        positioned_bytes = byte_values + 256 * positions
         byte_context = self.v41_semantic_byte_embedding(
             positioned_bytes
         ).mean(dim=-2)
@@ -1149,12 +1123,13 @@ class EntityActionRecurrentActorCritic(MaskedPolicyNetwork):
             min=0,
             max=self.v41_player_class_embedding.num_embeddings - 1,
         )
+        player_relations = torch.tensor(
+            (1, 2), dtype=torch.long, device=observation.device
+        )
         player_tokens = (
             self.v41_player_projection(player_state)
             + self.v41_player_class_embedding(player_class)
-            + self.leader_relation_embedding(
-                self._v41_player_relations
-            ).unsqueeze(0)
+            + self.leader_relation_embedding(player_relations).unsqueeze(0)
         )
         player_tokens = player_tokens + self._v41_leader_modifier_context(
             observation, card_tokens
@@ -1294,13 +1269,16 @@ class EntityActionRecurrentActorCritic(MaskedPolicyNetwork):
             entity_count=v4_1.LEADER_AREA_SLOTS,
             effects_per_entity=v4_1.LEADER_EFFECTS_PER_SLOT,
         )
+        leader_positions = torch.arange(
+            v4_1.LEADER_AREA_SLOTS, device=observation.device
+        )
         leader_tokens = (
             leader_tokens
             + self.v41_leader_state_projection(projected_leader_state)
             + self.v41_leader_area_type_embedding(leader_types)
             + self.leader_relation_embedding(leader_relations)
             + self.v41_leader_slot_embedding(
-                self._v41_leader_positions
+                leader_positions
             ).unsqueeze(0)
             + leader_effects
             + self.v41_leader_effect_summary_projection(
@@ -1335,24 +1313,23 @@ class EntityActionRecurrentActorCritic(MaskedPolicyNetwork):
         ).reshape(
             batch, v4_1.ZONE_GROUPS, v4_1.MAX_ZONE_CARD_KINDS, 1
         )
+        zone_positions = torch.arange(
+            v4_1.ZONE_GROUPS, device=observation.device
+        )
         zone_count_context = self.v41_zone_card_count_projection(
             zone_counts
         )
         zone_rows = (
             zone_card_tokens * (1.0 + torch.tanh(zone_count_context))
             + zone_count_context
-            + self.v41_zone_embedding(
-                self._v41_zone_positions
-            )[None, :, None, :]
+            + self.v41_zone_embedding(zone_positions)[None, :, None, :]
         )
         zone_tokens = self._v41_masked_mean(
             zone_rows, zone_card_indices != 0, dim=2
         )
         zone_tokens = (
             zone_tokens
-            + self.v41_zone_embedding(
-                self._v41_zone_positions
-            ).unsqueeze(0)
+            + self.v41_zone_embedding(zone_positions).unsqueeze(0)
             + self.v41_zone_overflow_projection(
                 self._field(observation, "zone_overflow").reshape(
                     batch, v4_1.ZONE_GROUPS, 2
@@ -1401,6 +1378,9 @@ class EntityActionRecurrentActorCritic(MaskedPolicyNetwork):
         ).to(dtype=torch.long).clamp(
             min=0, max=v4_1.CHOICE_REFERENCE_COUNT - 1
         )
+        history_positions = torch.arange(
+            v4_1.HISTORY_LENGTH, device=observation.device
+        )
         history_semantics = self._v41_semantic_context(
             self._field(observation, "history_semantics").reshape(
                 batch,
@@ -1428,7 +1408,7 @@ class EntityActionRecurrentActorCritic(MaskedPolicyNetwork):
             )
             + history_semantics
             + self.v41_history_position_embedding(
-                self._v41_history_positions
+                history_positions
             ).unsqueeze(0)
         )
 
@@ -1469,6 +1449,10 @@ class EntityActionRecurrentActorCritic(MaskedPolicyNetwork):
                 v4_1.SEMANTIC_TOKEN_SIZE,
             )
         )
+        record_positions = torch.arange(
+            v4_1.HISTORY_RECORDS_PER_GROUP,
+            device=observation.device,
+        )
         record_context = (
             self.v41_record_state_projection(projected_record_state)
             + self.v41_record_kind_embedding(record_kind)
@@ -1477,7 +1461,7 @@ class EntityActionRecurrentActorCritic(MaskedPolicyNetwork):
             + self.v41_source_origin_embedding(record_origins[..., 1])
             + record_semantics
             + self.v41_record_position_embedding(
-                self._v41_record_positions
+                record_positions
             )[None, None, :, :]
         )
         record_rows = (
@@ -1493,8 +1477,11 @@ class EntityActionRecurrentActorCritic(MaskedPolicyNetwork):
         record_tokens = self._v41_masked_mean(
             record_rows, record_card_indices != 0, dim=2
         )
+        record_groups = torch.arange(
+            v4_1.RECORD_GROUPS, device=observation.device
+        )
         record_tokens = record_tokens + self.v41_record_group_embedding(
-            self._v41_record_groups
+            record_groups
         ).unsqueeze(0) + self.v41_scalar_projection(
             (record_card_indices != 0).sum(
                 dim=2, keepdim=True
