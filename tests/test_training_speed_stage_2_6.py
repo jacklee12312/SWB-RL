@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import subprocess
 import unittest
 from copy import deepcopy
 from pathlib import Path
@@ -29,6 +30,20 @@ from scripts.verify_training_speed_stage_2_6_acceptance import (
     STAGE_CANDIDATES,
     build_report as build_acceptance_report,
 )
+
+
+def _stage_2_6_source_sha256(
+    root: Path,
+    source: dict[str, object],
+) -> str:
+    if source["path"].startswith("swb/rl/"):
+        value = subprocess.check_output(
+            ["git", "show", f"73b72a4:{source['path']}"],
+            cwd=root,
+        )
+    else:
+        value = (root / source["path"]).read_bytes()
+    return hashlib.sha256(value).hexdigest()
 
 
 class TrainingSpeedStage26ANet001Tests(unittest.TestCase):
@@ -431,8 +446,10 @@ class TrainingSpeedStage26ANet004Tests(unittest.TestCase):
             ],
         )
         for source in report["sources"].values():
-            path = self.ROOT / source["path"]
-            self.assertEqual(self._sha256(path), source["sha256"])
+            self.assertEqual(
+                _stage_2_6_source_sha256(self.ROOT, source),
+                source["sha256"],
+            )
 
 
 class TrainingSpeedStage26AForward001Tests(unittest.TestCase):
@@ -517,8 +534,10 @@ class TrainingSpeedStage26AStaticEnc001Tests(unittest.TestCase):
             "every PPO policy generation",
         )
         for source in report["sources"].values():
-            path = self.ROOT / source["path"]
-            self.assertEqual(self._sha256(path), source["sha256"])
+            self.assertEqual(
+                _stage_2_6_source_sha256(self.ROOT, source),
+                source["sha256"],
+            )
 
 
 class TrainingSpeedStage26ACudaGraph001Tests(unittest.TestCase):

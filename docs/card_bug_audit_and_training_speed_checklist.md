@@ -1849,12 +1849,12 @@ B 类候选：
   NumPy/H2D 准备本身是主瓶颈。
 - [x] 统计每个 minibatch 的有效 token、padding token 和实际计算比例，
   区分“padding 准备耗时很小”和“padding 后无效 GPU 计算可能较大”。
-- [ ] A 类：复用 rollout tensor 缓冲区，将可提前完成的 padding/mask
+- [x] A 类：复用 rollout tensor 缓冲区，将可提前完成的 padding/mask
   计算移出 minibatch 内循环；分别验证分配减少和端到端收益。
-- [ ] A 类：检查梯度清零方式、fused optimizer 和 foreach gradient
+- [x] A 类：检查梯度清零方式、fused optimizer 和 foreach gradient
   clipping，逐项保存反向数值和端到端结果。
-- [ ] B 类：测试 AMP + GradScaler 的数值稳定性和真实端到端收益。
-- [ ] C 类：任何改变 minibatch、epoch、sequence length、rollout 长度、
+- [x] B 类：测试 AMP + GradScaler 的数值稳定性和真实端到端收益。
+- [x] C 类：任何改变 minibatch、epoch、sequence length、rollout 长度、
   采样顺序或梯度累积语义的方案，都单独保存超参数与三 seed 学习有效性
   实验，不伪装成纯实现优化。
 
@@ -1900,6 +1900,60 @@ B 类候选：
   B-BATCHED-LEARNER-001，必须通过 B 类长局、checkpoint resume 与三 seed
   小规模学习门禁。机器证据保存于
   `data/reports/training_speed/stage_2_7_a_padded_compute_001_gate.json`。
+
+2.7 B-BATCHED-LEARNER-001 采用证据（2026-07-31）：
+
+- 三 seed 各自从相同初始模型配对运行原 learner 与 batched learner，
+  每侧至少 `4,096` agent steps，并用固定的 Haven 卡组对 random-legal
+  对手完成 4 局评估。六次训练均为有限数值、零训练截断、零异常退出；
+  24 局评估均正常终局，非法动作、mask mismatch 和截断均为 0，双方每个
+  seed 的评估胜率均为 `1.0`。
+- 六个 update 样本的原 learner/batched learner 中位数为
+  `20.8389 / 4.8396s`，更新耗时下降 `76.776%`。checkpoint resume
+  回归保持动作完全一致，连续量为浮点尾差，下一 update 的最大参数漂移
+  锁定在 `<1e-3`，符合 B 类有界数值漂移而非 A 类逐 bit 等价口径。
+- 采用 2.4 的 `6 workers / 2 threads / 1.0ms` 配置完成三次正式端到端
+  测量，每次排除两个 warm-up update 并保留至少三个 steady update：
+  `136.6923 / 132.6622 / 130.8879 steps/s`，中位数 `132.6622`。
+  相对 2.5 同配置中位数 `64.3026` 提升 `106.309%`，远高于其
+  `1.461%` 三次波动；相对冻结 v4.1 100k 基线 `44.7054` 提升
+  `196.747%`。三次均有系统监控、零异常退出、零截断且 checkpoint
+  SHA-256 不变，因此 B-BATCHED-LEARNER-001 默认采用。
+- 三次正式运行的 collect/update P95 中位数为
+  `14.6308 / 3.5392s`；batch mean/P95 中位数为 `3.104 / 6`，
+  episode P95/最大为 `106 / 138` steps，GPU 显存峰值 `12,692 MiB`。
+  原始运行与汇总位于
+  `data/reports/training_speed/stage_2_7_b_batched_learner_001_runs/`
+  和 `stage_2_7_b_batched_learner_001_end_to_end.json`。
+
+2.7 B-LEARNER-AMP-001 关闭证据（2026-07-31）：
+
+- 在已采用 batched learner 上，以同一 `2,434`-record rollout、
+  相同 minibatch permutation seed 配对运行 float32、fp16+GradScaler
+  与 bf16+GradScaler 各三次。两个 AMP 变体均为有限 metrics/参数，
+  scaler 初始/结束 scale 均为 `16`。
+- float32/fp16/bf16 update 中位数为
+  `3.2030 / 3.1549 / 3.1430s`，AMP 仅减少 `1.502% / 1.871%`，
+  均低于当前 batched learner 正式三次的 `4.375%` 相对范围。
+  一次更新后 fp16/bf16 的最大参数漂移约 `4.81e-3`；虽为有限值，
+  仍没有速度门槛支持承担该数值变化。因此不进入三 seed 学习或端到端，
+  默认关闭并撤回实验源码。机器证据为
+  `data/reports/training_speed/stage_2_7_b_learner_amp_001_gate.json`。
+- Buffer-only 的理论上限 `0.255%` 与 zero-grad/clip/optimizer 组合
+  上限 `0.196%` 已在实现前低于 `1.461%` 波动门，分别以
+  `closed_buffer_only_below_materiality_upper_bound` 和
+  `closed_group_below_materiality_upper_bound` 关闭；没有伪造端到端
+  实现收益。未改变 minibatch、epoch、sequence length、rollout 长度、
+  采样顺序或梯度累积语义，故本阶段没有适用的 C 类算法实验。
+- 阶段验收：`E:\anaconda\python.exe -m unittest discover -s tests -v`
+  最终通过 `2,906` tests（`1` skip），耗时 `462.259s`，API test
+  通过；完整输出保存在
+  `data/reports/training_speed/stage_2_7_complete_unittest.log`。
+  `E:\anaconda\python.exe -m compileall -q swb scripts tests` 通过。
+  2.6 历史证据回归改为绑定其验收提交 `73b72a4` 的 Git blob，避免后续
+  合法阶段改动污染历史哈希结论；2.7 综合机器报告为
+  `data/reports/training_speed/stage_2_7_acceptance.json`，
+  全部门禁 `passed=true`。
 
 ## 2.8 有条件地评估流水线重叠和策略滞后
 

@@ -153,15 +153,17 @@
       "class": "B",
       "description": "Evaluate learner-only FP16 and BF16 autocast with the appropriate gradient scaling contract.",
       "semantics": "Rollout data flow and PPO batches stay fixed, but learner numeric outputs, gradients and optimizer trajectory may drift.",
-      "disposition": "pending_numeric_and_micro"
+      "disposition": "rejected_gain_below_current_run_variability",
+      "evidence": "data/reports/training_speed/stage_2_7_b_learner_amp_001_gate.json"
     },
     {
       "id": "B-BATCHED-LEARNER-001",
       "class": "B",
       "description": "Batch valid v4.1 structured-token encoding across each learner minibatch before recurrent stepping.",
       "semantics": "Rollout, minibatch membership, valid-token order, recurrent boundaries and PPO losses stay fixed, but larger encoder batches introduce bounded floating-point drift.",
-      "disposition": "pending_stability_and_learning",
-      "evidence": "data/reports/training_speed/stage_2_7_a_padded_compute_001_gate.json"
+      "disposition": "adopted_after_three_seed_learning_and_end_to_end_gates",
+      "evidence": "data/reports/training_speed/stage_2_7_b_batched_learner_001_end_to_end.json",
+      "learning_evidence": "data/reports/training_speed/stage_2_7_b_batched_learner_001_learning.json"
     },
     {
       "id": "B-PRECISION-001",

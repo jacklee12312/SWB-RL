@@ -18,6 +18,7 @@ OUTPUT = Path(
     "data/reports/training_speed/stage_2_6_acceptance.json"
 )
 COMPARISON_COMMIT = "88279db"
+ACCEPTANCE_COMMIT = "73b72a4"
 EXPECTED_BATCHES = {"1", "2", "4", "8", "16", "32", "64"}
 STAGE_CANDIDATES = (
     "A-NET-001",
@@ -96,7 +97,9 @@ def _candidate_map(
 
 
 def build_report() -> dict[str, object]:
-    registry = _json(REGISTRY)
+    registry = json.loads(
+        _git_blob(ACCEPTANCE_COMMIT, REGISTRY).decode("utf-8")
+    )
     candidates = _candidate_map(registry)
     evidence = {}
     dispositions = {}
@@ -166,7 +169,9 @@ def build_report() -> dict[str, object]:
         before_sha256 = _sha256_bytes(
             _git_blob(COMPARISON_COMMIT, path)
         )
-        current_sha256 = _sha256_bytes(_git_blob("HEAD", path))
+        current_sha256 = _sha256_bytes(
+            _git_blob(ACCEPTANCE_COMMIT, path)
+        )
         unchanged = before_sha256 == current_sha256
         source_unchanged = source_unchanged and unchanged
         source_contracts[path.as_posix()] = {
@@ -278,7 +283,9 @@ def build_report() -> dict[str, object]:
         "sources": {
             "registry": {
                 "path": REGISTRY.as_posix(),
-                "sha256": _sha256(REGISTRY),
+                "sha256": _sha256_bytes(
+                    _git_blob(ACCEPTANCE_COMMIT, REGISTRY)
+                ),
             },
             "stage_2_5_comparison": {
                 "path": (

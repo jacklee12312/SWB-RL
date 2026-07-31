@@ -342,5 +342,40 @@ class TrainingSpeedStage27BLearnerAmp001Tests(unittest.TestCase):
             self.assertEqual(digest, source["sha256"])
 
 
+class TrainingSpeedStage27AcceptanceTests(unittest.TestCase):
+    ROOT = Path(__file__).resolve().parents[1]
+    REPORT = (
+        ROOT
+        / "data/reports/training_speed/"
+        "stage_2_7_acceptance.json"
+    )
+
+    def test_saved_stage_acceptance_passes_every_gate(self) -> None:
+        report = json.loads(self.REPORT.read_text(encoding="utf-8"))
+        self.assertTrue(report["passed"])
+        self.assertTrue(all(report["gates"].values()))
+        self.assertEqual(
+            report["checklist"]["unchecked_items"],
+            [],
+        )
+        self.assertTrue(
+            all(
+                contract["unchanged"]
+                for contract in report["source_contracts"].values()
+            )
+        )
+        self.assertEqual(
+            report["mandatory_verification"]["unittest"][
+                "tests_run"
+            ],
+            2906,
+        )
+        for source in report["sources"].values():
+            digest = hashlib.sha256(
+                (self.ROOT / source["path"]).read_bytes()
+            ).hexdigest()
+            self.assertEqual(digest, source["sha256"])
+
+
 if __name__ == "__main__":
     unittest.main()

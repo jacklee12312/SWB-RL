@@ -1,0 +1,78 @@
+{
+  "schema_version": 1,
+  "report_kind": "swb_training_speed_stage_2_7_acceptance",
+  "checklist_section": "2.7",
+  "candidate_dispositions": {
+    "A-LEARNER-001": "closed_buffer_only_below_materiality_upper_bound",
+    "A-PADDED-COMPUTE-001": "reclassified_as_b_due_strict_parameter_drift",
+    "A-OPTIMIZER-001": "closed_group_below_materiality_upper_bound",
+    "B-BATCHED-LEARNER-001": "adopted_after_three_seed_learning_and_end_to_end_gates",
+    "B-LEARNER-AMP-001": "rejected_gain_below_current_run_variability"
+  },
+  "checklist": {
+    "path": "docs/card_bug_audit_and_training_speed_checklist.md",
+    "unchecked_items": []
+  },
+  "adopted_source_commit": "cbb5ca8",
+  "source_contracts": {
+    "swb/rl/policy.py": {
+      "adopted_commit_sha256": "f53575c87fbcd355b8bb9276b922163adc48fbf482c44561c4cbb63ba977d6d9",
+      "current_sha256": "f53575c87fbcd355b8bb9276b922163adc48fbf482c44561c4cbb63ba977d6d9",
+      "unchanged": true
+    },
+    "swb/rl/ppo.py": {
+      "adopted_commit_sha256": "a3d3e8b2acec244aa6e37d11d3fa5a0ed406dc8d7770c55ddb4a56535d7a1597",
+      "current_sha256": "a3d3e8b2acec244aa6e37d11d3fa5a0ed406dc8d7770c55ddb4a56535d7a1597",
+      "unchanged": true
+    }
+  },
+  "checkpoint": {
+    "path": "data/checkpoints/training_speed/frozen_v4_1_seed_20260801_500k.pt",
+    "sha256": "4d6a8dd7d32f4e530766aab8d2ec4691de4925bc73e188021da1f45dbe54e0bd",
+    "unchanged_from_frozen_contract": true
+  },
+  "mandatory_verification": {
+    "unittest": {
+      "command": "E:\\anaconda\\python.exe -m unittest discover -s tests -v",
+      "log": "data/reports/training_speed/stage_2_7_complete_unittest.log",
+      "tests_run": 2906,
+      "seconds": 462.259,
+      "skipped": 1,
+      "passed": true
+    },
+    "compileall": {
+      "command": "E:\\anaconda\\python.exe -m compileall -q swb scripts tests",
+      "passed": true
+    }
+  },
+  "gates": {
+    "all_checklist_items_closed": true,
+    "candidate_dispositions_match": true,
+    "batched_learning_passed": true,
+    "batched_end_to_end_adopted": true,
+    "amp_closed_before_learning": true,
+    "adopted_sources_current": true,
+    "checkpoint_unchanged": true,
+    "unittest_passed": true,
+    "compileall_passed": true
+  },
+  "sources": {
+    "registry": {
+      "path": "data/reports/training_speed/candidate_registry.json",
+      "sha256": "094a7d1be05de128bd989561f5605960f62ccc630f7d9da581d16750d2183906"
+    },
+    "learning": {
+      "path": "data/reports/training_speed/stage_2_7_b_batched_learner_001_learning.json",
+      "sha256": "6a45428081add6f8f7fa1ec512c246e18477172b73475cf3e18c8cccefd1a4d2"
+    },
+    "end_to_end": {
+      "path": "data/reports/training_speed/stage_2_7_b_batched_learner_001_end_to_end.json",
+      "sha256": "29f0d9352a6ba11f84ca0d8c4479d711829f52163e078058856209bbfae60fa4"
+    },
+    "amp": {
+      "path": "data/reports/training_speed/stage_2_7_b_learner_amp_001_gate.json",
+      "sha256": "cc4749634ff94571df3443b34946111a30532dd375c2f0f071182f86f9ad392f"
+    }
+  },
+  "passed": true
+}
