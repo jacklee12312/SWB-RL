@@ -134,6 +134,13 @@ class TrainingSpeedStage27APaddedCompute001Tests(unittest.TestCase):
 
 
 class TrainingSpeedStage27BBatchedLearner001Tests(unittest.TestCase):
+    ROOT = Path(__file__).resolve().parents[1]
+    REPORT = (
+        ROOT
+        / "data/reports/training_speed/"
+        "stage_2_7_b_batched_learner_001_end_to_end.json"
+    )
+
     @staticmethod
     def _run(run_index: int, speed: float) -> dict[str, object]:
         return {
@@ -239,6 +246,52 @@ class TrainingSpeedStage27BBatchedLearner001Tests(unittest.TestCase):
                 {},
                 sources={},
             )
+
+    def test_saved_end_to_end_report_is_current_and_adopted(
+        self,
+    ) -> None:
+        saved = json.loads(self.REPORT.read_text(encoding="utf-8"))
+        sources = saved["sources"]
+
+        def load_source(source: dict[str, object]) -> dict[str, object]:
+            return json.loads(
+                (self.ROOT / source["path"]).read_text(
+                    encoding="utf-8"
+                )
+            )
+
+        rebuilt = build_batched_end_to_end_report(
+            [load_source(source) for source in sources["runs"]],
+            load_source(sources["learning"]),
+            load_source(sources["comparison"]),
+            load_source(sources["frozen_baseline"]),
+            sources=sources,
+        )
+        self.assertEqual(saved, rebuilt)
+        self.assertTrue(saved["passed"])
+        self.assertTrue(saved["decision"]["adopt"])
+        self.assertTrue(saved["integrity"]["no_truncations"])
+        self.assertGreater(
+            saved["end_to_end"]["relative_gain"],
+            saved["end_to_end"][
+                "comparison_three_run_relative_range"
+            ],
+        )
+        for name, source in sources.items():
+            rows = source if name == "runs" else [source]
+            for row in rows:
+                self.assertEqual(
+                    self._sha256(self.ROOT / row["path"]),
+                    row["sha256"],
+                )
+
+    @staticmethod
+    def _sha256(path: Path) -> str:
+        digest = hashlib.sha256()
+        with path.open("rb") as source:
+            for block in iter(lambda: source.read(1024 * 1024), b""):
+                digest.update(block)
+        return digest.hexdigest()
 
 
 if __name__ == "__main__":

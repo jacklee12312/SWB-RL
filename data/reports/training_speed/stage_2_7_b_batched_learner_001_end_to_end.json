@@ -1,0 +1,98 @@
+{
+  "schema_version": 1,
+  "report_kind": "swb_training_speed_stage_2_7_b_batched_learner_001_end_to_end",
+  "checklist_section": "2.7",
+  "candidate": "B-BATCHED-LEARNER-001",
+  "classification": "B",
+  "configuration": {
+    "id": "b_batched_learner_001",
+    "dimension": "learner",
+    "rollout_workers": 6,
+    "worker_torch_threads": 2,
+    "central_inference_batch_wait_ms": 1.0
+  },
+  "end_to_end": {
+    "runs_agent_steps_per_second": [
+      136.69229004513915,
+      132.6622270750627,
+      130.8878646945151
+    ],
+    "median_agent_steps_per_second": 132.6622270750627,
+    "comparison_runs_agent_steps_per_second": [
+      63.46296797383438,
+      64.40217094431641,
+      64.3026182476435
+    ],
+    "comparison_median_agent_steps_per_second": 64.3026182476435,
+    "relative_gain": 1.0630921522378973,
+    "comparison_three_run_relative_range": 0.014605983334379203,
+    "frozen_v4_1_runs_agent_steps_per_second": [
+      44.705437741344035,
+      44.57805049861664,
+      44.739038966525655
+    ],
+    "frozen_v4_1_median_agent_steps_per_second": 44.705437741344035,
+    "frozen_v4_1_relative_gain": 1.9674740652941944,
+    "collect_p95_seconds_median": 14.630826900014654,
+    "update_p95_seconds_median": 3.5391569000203162
+  },
+  "runtime": {
+    "batch_mean_median": 3.1035120147874307,
+    "batch_p95_median": 6.0,
+    "episode_p95_steps_median": 106.0,
+    "episode_maximum_steps": 138.0,
+    "cpu_total_median_percent": 10.272916666666667,
+    "gpu_utilization_median_percent": 35.0,
+    "gpu_memory_peak_mib": 12692.0,
+    "ram_used_peak_bytes": 25774514176,
+    "pagefile_used_peak_bytes": 33685135360
+  },
+  "decision": {
+    "adopt": true,
+    "default_enabled": true,
+    "learning_gate_passed": true,
+    "gain_exceeds_comparison_run_variability": true,
+    "reason": "three_seed_learning_and_end_to_end_gates_passed"
+  },
+  "integrity": {
+    "all_runs_meet_step_gate": true,
+    "all_runs_have_three_steady_updates": true,
+    "all_optional_profiling_disabled": true,
+    "no_abnormal_exits": true,
+    "no_truncations": true,
+    "all_runs_monitored": true,
+    "checkpoint_unchanged": true,
+    "checkpoint_sha256": [
+      "4d6a8dd7d32f4e530766aab8d2ec4691de4925bc73e188021da1f45dbe54e0bd"
+    ]
+  },
+  "sources": {
+    "learning": {
+      "path": "data/reports/training_speed/stage_2_7_b_batched_learner_001_learning.json",
+      "sha256": "6a45428081add6f8f7fa1ec512c246e18477172b73475cf3e18c8cccefd1a4d2"
+    },
+    "comparison": {
+      "path": "data/reports/training_speed/stage_2_5_a_obs_001.json",
+      "sha256": "222f40a0d0ec5e9f0c5b5394dbf8f9ff526cb44467c1058d03d746a373e4242a"
+    },
+    "frozen_baseline": {
+      "path": "data/reports/training_speed/baseline_summary.json",
+      "sha256": "c324af884a5b44976618b90ab00aad706adfe3613a8fdf53d08e1f2f3e779b61"
+    },
+    "runs": [
+      {
+        "path": "data/reports/training_speed/stage_2_7_b_batched_learner_001_runs/b_batched_learner_001_run_1.json",
+        "sha256": "d074d6b97751f8c3218cf1f298913f4a4b1a2d31fe972a53ac5a6944057324ce"
+      },
+      {
+        "path": "data/reports/training_speed/stage_2_7_b_batched_learner_001_runs/b_batched_learner_001_run_2.json",
+        "sha256": "098eab5f6f3b47320e64b301ff9754bf2899c94ffd1a82512b9a74e70383035a"
+      },
+      {
+        "path": "data/reports/training_speed/stage_2_7_b_batched_learner_001_runs/b_batched_learner_001_run_3.json",
+        "sha256": "335265a6113c24cbee4abbd5f2982e7f856de00dc88079b0985a73007c41b1eb"
+      }
+    ]
+  },
+  "passed": true
+}
