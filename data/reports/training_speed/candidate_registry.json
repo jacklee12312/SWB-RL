@@ -70,6 +70,14 @@
       "evidence": "data/reports/training_speed/stage_2_6_a_net_001.json"
     },
     {
+      "id": "A-NET-002",
+      "class": "A",
+      "description": "Register fixed v4.1 semantic-byte, player, leader, zone, history and record positions as non-persistent model buffers.",
+      "semantics": "The buffers must move with the model, remain absent from checkpoint state dictionaries, and preserve logits, value and hidden state bit-for-bit.",
+      "disposition": "rejected_gain_within_run_variability",
+      "evidence": "data/reports/training_speed/stage_2_6_a_net_002.json"
+    },
+    {
       "id": "A-FORWARD-001",
       "class": "A",
       "description": "Remove redundant permute/contiguous operations and use an equivalent native scaled-dot-product-attention backend.",

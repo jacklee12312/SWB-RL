@@ -1605,7 +1605,7 @@ A 类候选按以下顺序实施：
 - [x] A-NET-001：在不削弱非法输入拒绝和原子性的前提下，将 device tensor
   的 Python `bool` 校验移出每次 forward 的 GPU 热路径，或合并为无需逐
   forward host sync 的等价门禁。
-- [ ] A-NET-002：将 `torch.arange(4)`、固定位置和其他不变量注册为静态
+- [x] A-NET-002：将 `torch.arange(4)`、固定位置和其他不变量注册为静态
   buffer，避免每次 forward 重新创建。
 - [ ] A-NET-003：在逐字段语义等价的前提下，合并重复的
   `round → long → clamp` 和 semantic-context 小算子。
@@ -1660,6 +1660,28 @@ B 类候选：
   `data/reports/training_speed/stage_2_6_a_net_001_trace.json.gz`、
   `data/reports/training_speed/stage_2_6_a_net_001_runs/` 和
   `data/reports/training_speed/stage_2_6_a_net_001.json`。
+
+2.6 A-NET-002 负结果（2026-07-31）：
+
+- 实验将 semantic byte、player relation、leader slot、zone、history 和
+  record 的 7 组固定位置注册为 `persistent=False` buffer；它们随模型迁移到
+  `cuda:0`，但不进入 checkpoint state dict，旧冻结 checkpoint 可严格加载。
+- 改动前 reference 与改动后固定输入的 logits、value、hidden state
+  SHA-256 逐项相同。batch `1/4/8/16/32/64` 的纯前向相对阶段 2.3
+  分别改善约 `2.4% / 2.6% / 1.2% / 1.9% / 0.9% / 2.7%`；batch 4
+  从 `22.013` ms 降至 `21.433` ms。三次 batch-4 forward 的 profiler
+  kernel 从 `1,938` 降至 `1,902`，同步事件为 `8`，说明固定 tensor
+  分配确实从热路径消失。
+- 相同冻结 checkpoint、`6 workers / 2 threads / 1.0 ms` 的三次端到端为
+  `64.237 / 64.477 / 65.177` steps/s，中位数 `64.477`。相对紧邻 2.5
+  中位数仅 `+0.271%`，低于既定 `1.461%` 波动门槛，故判定为
+  `rejected_gain_within_run_variability`，不保留为默认实现。
+- 改动前 reference、micro、profiler trace、三次原始报告与汇总分别保存于
+  `data/reports/training_speed/stage_2_6_a_net_002_reference.json`、
+  `data/reports/training_speed/stage_2_6_a_net_002_micro.json`、
+  `data/reports/training_speed/stage_2_6_a_net_002_trace.json.gz`、
+  `data/reports/training_speed/stage_2_6_a_net_002_runs/` 和
+  `data/reports/training_speed/stage_2_6_a_net_002.json`。
 
 ## 2.7 在继承网络收益后优化 learner 更新
 
