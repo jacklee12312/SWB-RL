@@ -36,16 +36,11 @@ class MaskedPolicyNetwork(nn.Module):
         return torch.zeros(batch_size, self.hidden_size, device=device)
 
     @staticmethod
-    def masked_logits(
-        logits: torch.Tensor,
-        action_mask: torch.Tensor,
-        *,
-        validate_legal_rows: bool = True,
-    ) -> torch.Tensor:
+    def masked_logits(logits: torch.Tensor, action_mask: torch.Tensor) -> torch.Tensor:
         mask = action_mask.to(dtype=torch.bool)
         if mask.ndim != logits.ndim or mask.shape != logits.shape:
             raise ValueError("action mask shape must match policy logits")
-        if validate_legal_rows and not bool(mask.any(dim=-1).all()):
+        if not bool(mask.any(dim=-1).all()):
             raise ValueError("every live policy row must contain a legal action")
         return logits.masked_fill(~mask, torch.finfo(logits.dtype).min)
 
@@ -102,8 +97,6 @@ class RecurrentMaskedActorCritic(MaskedPolicyNetwork):
         observation: torch.Tensor,
         hidden: torch.Tensor,
         card_indices: torch.Tensor | None = None,
-        *,
-        validate_card_indices: bool = True,
     ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
         model_input = observation
         if self.card_embedding is not None:
@@ -116,11 +109,8 @@ class RecurrentMaskedActorCritic(MaskedPolicyNetwork):
                     f"expected {self.card_slot_count} card slots, "
                     f"got {card_indices.shape[-1]}"
                 )
-            if validate_card_indices and (
-                bool((card_indices < 0).any())
-                or bool(
-                    (card_indices > self.card_vocabulary_size).any()
-                )
+            if bool((card_indices < 0).any()) or bool(
+                (card_indices > self.card_vocabulary_size).any()
             ):
                 raise ValueError("card index is outside the policy vocabulary")
             embedded = self.card_embedding(card_indices.to(dtype=torch.long))
@@ -1753,8 +1743,6 @@ class EntityActionRecurrentActorCritic(MaskedPolicyNetwork):
         observation: torch.Tensor,
         hidden: torch.Tensor,
         card_indices: torch.Tensor | None = None,
-        *,
-        validate_card_indices: bool = True,
     ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
         if observation.ndim != 2 or observation.shape[-1] != self.input_size:
             raise ValueError("entity-action observations must be [batch, input_size]")
@@ -1762,11 +1750,8 @@ class EntityActionRecurrentActorCritic(MaskedPolicyNetwork):
             raise ValueError("card indices are required by this policy")
         if card_indices.shape != (observation.shape[0], self.card_slot_count):
             raise ValueError("card index batch shape must match entity slots")
-        if validate_card_indices and (
-            bool((card_indices < 0).any())
-            or bool(
-                (card_indices > self.card_vocabulary_size).any()
-            )
+        if bool((card_indices < 0).any()) or bool(
+            (card_indices > self.card_vocabulary_size).any()
         ):
             raise ValueError("card index is outside the policy vocabulary")
         if self.v4_1_observation:

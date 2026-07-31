@@ -1269,20 +1269,6 @@ class PPOTrainer:
                 batch_advantages[row, column] = advantages[int(index)]
                 batch_returns[row, column] = returns[int(index)]
                 valid[row, column] = True
-        valid_tokens = int(valid.sum())
-        if (
-            card_indices.size
-            and (
-                int(card_indices.min()) < 0
-                or int(card_indices.max())
-                > self.model.card_vocabulary_size
-            )
-        ):
-            raise ValueError("card index is outside the policy vocabulary")
-        if valid_tokens and not bool(masks[valid].any(axis=-1).all()):
-            raise ValueError(
-                "every live policy row must contain a legal action"
-            )
         if not profile_timing:
             def tensor(value, dtype=None):
                 return torch.as_tensor(
@@ -1318,6 +1304,7 @@ class PPOTrainer:
             valid,
             initial_hidden,
         )
+        valid_tokens = int(valid.sum())
         token_slots = int(valid.size)
         profile: dict[str, Any] = {
             "padding_and_numpy_seconds": padding_seconds,
@@ -1526,7 +1513,6 @@ class PPOTrainer:
                         batch.observations[:, timestep],
                         hidden,
                         batch.card_indices[:, timestep],
-                        validate_card_indices=False,
                     )
                     logits_rows.append(logits)
                     value_rows.append(values)
@@ -1544,9 +1530,7 @@ class PPOTrainer:
                 loss_component_started = component_start()
                 flat_valid = batch.valid
                 masked_logits = self.model.masked_logits(
-                    logits[flat_valid],
-                    batch.action_masks[flat_valid],
-                    validate_legal_rows=False,
+                    logits[flat_valid], batch.action_masks[flat_valid]
                 )
                 actions = batch.actions[flat_valid]
                 log_probs_all = torch.log_softmax(masked_logits, dim=-1)
