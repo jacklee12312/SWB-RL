@@ -979,8 +979,10 @@ Invocation/瞬念召唤及其他替代出牌方式。
 
 2.0 已验证证据（2026-07-31）：
 
-- `data/reports/training_speed/candidate_registry.json` 在实施前登记 15 项候选：
-  10 项 A 类、2 项 B 类、3 项 C 类，并为每项记录语义边界和当前处置。
+- `data/reports/training_speed/candidate_registry.json` 初始登记 15 项候选；
+  2.7 基线再按已测瓶颈拆出 padding compute、optimizer 组和 learner AMP，
+  当前共 18 项：12 项 A 类、3 项 B 类、3 项 C 类，并为每项记录语义边界
+  和当前处置。
 - 注册表固定执行顺序为 A → B → C；B 类要求数值、长局和三 seed
   小规模学习证据，C 类只允许作为独立算法实验并要求至少三 seed
   固定对阵强度比较。
@@ -1839,12 +1841,12 @@ B 类候选：
 
 ## 2.7 在继承网络收益后优化 learner 更新
 
-- [ ] 采用 2.6 候选后重新建立 learner 分段基线，区分共享模型
+- [x] 采用 2.6 候选后重新建立 learner 分段基线，区分共享模型
   forward/backward 收益与 learner 专属收益，禁止重复计数。
-- [ ] 复核 backward、gradient clipping、forward/loss、padding 准备和实际
+- [x] 复核 backward、gradient clipping、forward/loss、padding 准备和实际
   padded compute 占比；当前约 97.1% 的 forward+backward 是入口，不证明
   NumPy/H2D 准备本身是主瓶颈。
-- [ ] 统计每个 minibatch 的有效 token、padding token 和实际计算比例，
+- [x] 统计每个 minibatch 的有效 token、padding token 和实际计算比例，
   区分“padding 准备耗时很小”和“padding 后无效 GPU 计算可能较大”。
 - [ ] A 类：复用 rollout tensor 缓冲区，将可提前完成的 padding/mask
   计算移出 minibatch 内循环；分别验证分配减少和端到端收益。
@@ -1854,6 +1856,29 @@ B 类候选：
 - [ ] C 类：任何改变 minibatch、epoch、sequence length、rollout 长度、
   采样顺序或梯度累积语义的方案，都单独保存超参数与三 seed 学习有效性
   实验，不伪装成纯实现优化。
+
+2.7 learner 分段基线与物料性门禁（2026-07-31）：
+
+- 冻结 checkpoint、`6 workers / 2 threads / 1.0 ms` 下完成 `4` 个
+  update，排除首个 warm-up 后保留 `3` 个稳态样本；checkpoint SHA-256
+  保持 `4d6a8dd...e54e0bd`。稳态 pipeline 共 `106.658s`，learner update
+  占 `63.764%`，profile accounted fraction 为 `99.902%`。
+- learner forward 和 backward 分别占 update wall `49.728%` 与
+  `47.659%`，合计 `97.388%`；loss、gradient clip、optimizer 的占比与
+  共同模型 forward/backward 分开记录，后续候选不重复计数阶段 2.6 的
+  网络工作。
+- padding slot 中位占比 `32.653%`，有效 slot 为 `67.347%`；minibatch
+  有效 token 从 `3` 到 P95 `220`。这些 padding slot 当前都进入固定
+  recurrent forward，因而是需单独评估的实际无效 compute，不等同于准备
+  耗时。
+- NumPy padding、CPU tensor 构造与 H2D 即使全部变为零，对整条 pipeline
+  的不可能上限也仅 `0.255%`；zero-grad、gradient clip 与 optimizer
+  全部变为零的组合上限仅 `0.196%`，均低于 `1.461%` 波动门槛。因此
+  A-LEARNER-001 的 buffer-only 路线与 A-OPTIMIZER-001 在实现前按物料性
+  关闭；padding compute 与 learner-only AMP 进入独立 micro/数值门禁。
+- 原始分段与汇总证据保存于
+  `data/reports/training_speed/stage_2_7_learner_baseline.json` 和
+  `data/reports/training_speed/stage_2_7_learner_baseline_summary.json`。
 
 ## 2.8 有条件地评估流水线重叠和策略滞后
 

@@ -122,7 +122,23 @@
       "class": "A",
       "description": "Reuse rollout tensors and move invariant padding and mask construction outside the minibatch loop.",
       "semantics": "Minibatch permutation, valid tokens, losses, gradients, optimizer steps and checkpoint state remain equivalent.",
-      "disposition": "pending_profile"
+      "disposition": "closed_buffer_only_below_materiality_upper_bound",
+      "evidence": "data/reports/training_speed/stage_2_7_learner_baseline_summary.json"
+    },
+    {
+      "id": "A-PADDED-COMPUTE-001",
+      "class": "A",
+      "description": "Skip padded sequence rows during learner forward and backward without changing valid-token ordering or minibatch membership.",
+      "semantics": "Every valid token, recurrent boundary, loss, gradient, optimizer step and PPO generation stays fixed; only invalid padded rows may be omitted.",
+      "disposition": "pending_micro"
+    },
+    {
+      "id": "A-OPTIMIZER-001",
+      "class": "A",
+      "description": "Evaluate zero-grad, foreach gradient clipping and fused optimizer implementations independently.",
+      "semantics": "Parameter groups, gradients, clipping threshold, Adam state and optimizer step count remain equivalent.",
+      "disposition": "closed_group_below_materiality_upper_bound",
+      "evidence": "data/reports/training_speed/stage_2_7_learner_baseline_summary.json"
     },
     {
       "id": "A-OVERLAP-001",
@@ -130,6 +146,13 @@
       "description": "Overlap CPU preparation, host-to-device copies and CUDA work inside the same synchronous rollout or learner generation.",
       "semantics": "Workers never observe updating weights and no policy generation lag is introduced.",
       "disposition": "pending_profile"
+    },
+    {
+      "id": "B-LEARNER-AMP-001",
+      "class": "B",
+      "description": "Evaluate learner-only FP16 and BF16 autocast with the appropriate gradient scaling contract.",
+      "semantics": "Rollout data flow and PPO batches stay fixed, but learner numeric outputs, gradients and optimizer trajectory may drift.",
+      "disposition": "pending_numeric_and_micro"
     },
     {
       "id": "B-PRECISION-001",

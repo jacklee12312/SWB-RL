@@ -1,0 +1,78 @@
+{
+  "schema_version": 1,
+  "report_kind": "swb_training_speed_stage_2_7_learner_baseline_summary",
+  "checklist_section": "2.7",
+  "configuration": {
+    "rollout_workers": 6,
+    "worker_torch_threads": 2,
+    "central_inference_batch_wait_seconds": 0.001,
+    "profile_learner_timing": true,
+    "steady_state_samples": 3,
+    "warmup_updates_excluded": 1
+  },
+  "pipeline": {
+    "measured_seconds": 106.65824270015582,
+    "rollout_seconds": 38.648977500153705,
+    "update_seconds": 68.00926520000212,
+    "learner_update_fraction": 0.6376372184491538,
+    "profiled_accounted_fraction": 0.9990186882588827
+  },
+  "learner": {
+    "update_median_seconds": 22.702490099938586,
+    "update_p95_seconds": 22.749319900060073,
+    "forward_total_seconds": 33.81993701171875,
+    "forward_fraction": 0.4972842584353888,
+    "backward_total_seconds": 32.412626220703125,
+    "backward_fraction": 0.47659133098091633,
+    "forward_plus_backward_fraction": 0.9738755894163053,
+    "padding_slot_fraction_median": 0.32653061224489793,
+    "effective_slot_fraction_median": 0.673469387755102,
+    "minibatch_effective_tokens_minimum": 3.0,
+    "minibatch_effective_tokens_p95": 220.0
+  },
+  "materiality_gates": {
+    "comparison_three_run_relative_range": 0.014605983334379203,
+    "buffer_only": {
+      "components": {
+        "padding_and_numpy_seconds": 0.14095990057103336,
+        "cpu_tensor_construction_seconds": 0.0019764993339776993,
+        "host_to_device_seconds": 0.12940201658010483
+      },
+      "impossible_zero_cost_pipeline_upper_bound": 0.0025533743064821567,
+      "advance_to_implementation": false
+    },
+    "optimizer_group": {
+      "components": {
+        "zero_grad_seconds": 0.021094100084155798,
+        "gradient_clip_seconds": 0.06526665610074997,
+        "optimizer_seconds": 0.12252150416374208
+      },
+      "impossible_zero_cost_pipeline_upper_bound": 0.001958425856835748,
+      "advance_to_implementation": false
+    },
+    "padded_compute": {
+      "actual_padding_slot_fraction_median": 0.32653061224489793,
+      "advance_to_microbenchmark": true
+    },
+    "learner_amp": {
+      "forward_plus_backward_fraction": 0.9738755894163053,
+      "advance_to_numeric_and_microbenchmark": true
+    }
+  },
+  "checkpoint": {
+    "path": "data/checkpoints/training_speed/frozen_v4_1_seed_20260801_500k.pt",
+    "sha256": "4d6a8dd7d32f4e530766aab8d2ec4691de4925bc73e188021da1f45dbe54e0bd",
+    "unchanged": true
+  },
+  "sources": {
+    "profile": {
+      "path": "data/reports/training_speed/stage_2_7_learner_baseline.json",
+      "sha256": "0136eb57800235ccae9b2a11e850c991818ca9d40854c1c643021d0d000b8190"
+    },
+    "comparison": {
+      "path": "data/reports/training_speed/stage_2_5_a_obs_001.json",
+      "sha256": "222f40a0d0ec5e9f0c5b5394dbf8f9ff526cb44467c1058d03d746a373e4242a"
+    }
+  },
+  "passed": true
+}
