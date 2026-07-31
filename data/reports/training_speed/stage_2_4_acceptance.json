@@ -1,0 +1,101 @@
+{
+  "schema_version": 1,
+  "report_kind": "swb_training_speed_stage_2_4_acceptance",
+  "checklist_section": "2.4",
+  "adopted_runtime_configuration": {
+    "id": "workers_6_wait_1_0_ms",
+    "dimension": "stable_winner_interaction",
+    "rollout_workers": 6,
+    "worker_torch_threads": 2,
+    "central_inference_batch_wait_ms": 1.0,
+    "constituents": [
+      "workers_6",
+      "wait_1_0_ms"
+    ]
+  },
+  "throughput": {
+    "frozen_baseline_median_agent_steps_per_second": 44.705437741344035,
+    "adopted_median_agent_steps_per_second": 64.47287526299372,
+    "relative_gain": 0.44217076311879094,
+    "three_run_evidence": [
+      63.61914281547487,
+      64.89317566311928,
+      64.47287526299372
+    ]
+  },
+  "candidate_gates": {
+    "A-IPC-001-message-count": {
+      "disposition": "closed_already_minimal_without_semantic_change",
+      "applicable": false,
+      "current_request_messages_per_decision": 1,
+      "current_response_messages_per_decision": 1,
+      "request_contains_fixed_fields_in_one_tuple": [
+        "worker_id",
+        "generation",
+        "episode_id",
+        "step_index",
+        "player_id",
+        "observation",
+        "card_indices",
+        "action_mask"
+      ],
+      "request_queue_put_milliseconds_per_request": 0.010403726020571592,
+      "response_wait_milliseconds_per_request": 42.50897142652905,
+      "request_put_fraction_of_put_plus_wait": 0.0002446820063381798,
+      "reason": "Each action depends on the preceding action's resolved state. The current path already sends one aggregate request and one response per decision; fewer messages require prefetching or multiple environments and change decision/topology semantics."
+    },
+    "A-IPC-001-reusable-batch-buffers": {
+      "disposition": "closed_below_materiality_gate",
+      "applicable": false,
+      "reference_batch_size": 4,
+      "numpy_stack_milliseconds": 0.03233199939131737,
+      "cpu_tensor_construction_milliseconds": 0.010734000243246555,
+      "device_forward_milliseconds": 22.013250732421874,
+      "packing_fraction_of_device_forward": 0.001956367106250911,
+      "materiality_threshold": 0.05,
+      "reason": "Even perfect removal of NumPy stacking and CPU tensor construction has a measured ceiling below the five-percent candidate gate at the adopted batch bucket."
+    },
+    "A-IPC-001-pinned-nonblocking-h2d": {
+      "disposition": "closed_below_materiality_gate",
+      "applicable": false,
+      "reference_batch_size": 4,
+      "host_to_device_milliseconds": 0.1221836757659912,
+      "device_forward_milliseconds": 22.013250732421874,
+      "h2d_fraction_of_device_forward": 0.005550460368219714,
+      "packing_plus_h2d_fraction_of_device_forward": 0.007506827474470625,
+      "materiality_threshold": 0.05,
+      "reason": "Measured H2D and the combined ideal packing+H2D ceiling are below five percent; pinned/non-blocking transfer would add lifetime and synchronization complexity without a material end-to-end opportunity."
+    }
+  },
+  "candidate_policy": {
+    "materiality_threshold": 0.05,
+    "independent_gate_per_candidate": true,
+    "implemented_low_ceiling_candidates": [],
+    "closed_with_evidence": [
+      "A-IPC-001-message-count",
+      "A-IPC-001-reusable-batch-buffers",
+      "A-IPC-001-pinned-nonblocking-h2d"
+    ]
+  },
+  "sources": {
+    "central_profile": {
+      "path": "data/reports/training_speed/stage_2_2_central_inference_smoke.json",
+      "sha256": "d37eb057b78b2a848618bd9ea1241fe65978a4606c5f1c057b486e75999631f5"
+    },
+    "inference_breakdown": {
+      "path": "data/reports/training_speed/v4_1_inference_breakdown.json",
+      "sha256": "49a77458533861eaca7e378cd5a9d618668ef1707efd174b85a4ee588d18457a"
+    },
+    "interactions": {
+      "path": "data/reports/training_speed/stage_2_4_b_interactions.json",
+      "sha256": "f9d638a726e4f8ad10264806e7addbdb46de548ae4b0c8311bf83eed73ac64b7"
+    }
+  },
+  "requirements": {
+    "interaction_gate_passed": true,
+    "candidate_gates_resolved": true,
+    "adopted_gain_at_least_five_percent": true,
+    "no_semantics_changing_ipc_prefetch": true
+  },
+  "passed": true
+}

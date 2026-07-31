@@ -1478,12 +1478,12 @@ Profiler 分析和后续优化均以 v4.1 为主。
 
 ### 2.4B 实现候选（仅在 2.4 决策门通过后）
 
-- [ ] A 类：减少单步消息数量，在不改变决策边界的情况下批量传输固定字段。
-- [ ] A 类：复用 observation/card-index/action-mask 的 batch 缓冲区，减少
+- [x] A 类：减少单步消息数量，在不改变决策边界的情况下批量传输固定字段。
+- [x] A 类：复用 observation/card-index/action-mask 的 batch 缓冲区，减少
   已确认的三次 `np.stack`、Python 对象和 Tensor 重建。
-- [ ] A 类：仅在 H2D 占比和端到端实验支持时采用 pinned memory 与
+- [x] A 类：仅在 H2D 占比和端到端实验支持时采用 pinned memory 与
   non-blocking H2D；当前 batch 1 的约 0.105 ms H2D 不能单独构成立项理由。
-- [ ] 每项候选独立实现、独立提交并至少做三次同配置端到端对比，不能合并
+- [x] 每项候选独立实现、独立提交并至少做三次同配置端到端对比，不能合并
   多项后再倒推收益。
 
 2.4B 稳定 winner 交互证据（2026-07-31）：
@@ -1503,6 +1503,34 @@ Profiler 分析和后续优化均以 v4.1 为主。
   压力异常。机器可读报告为
   `data/reports/training_speed/stage_2_4_b_interactions.json`，逐 run 证据
   位于 `data/reports/training_speed/stage_2_4_b_interaction_runs/`。
+
+2.4B 实现候选适用性结论（2026-07-31）：
+
+- 当前每个决策已经把 episode/generation/step/player、Observation、card
+  index 与 action mask 合在一条 request 中，并只返回一条 action response；
+  request queue put 为 `0.0104 ms/request`，response wait 为
+  `42.5090 ms/request`。在不预取未来状态、不增加每 worker 多环境且不改变
+  决策边界的前提下，消息数不能再低于一来一回，故该实现候选以
+  `closed_already_minimal_without_semantic_change` 关闭。
+- adopted batch bucket 附近的 batch 4 实测：三次 `np.stack` 为
+  `0.03233 ms/batch`，CPU Tensor 构造 `0.01073 ms`，H2D
+  `0.12218 ms`，设备 forward `22.01325 ms`。完全消除打包的理论上限仅为
+  forward 的 `0.196%`；连同完全消除 H2D 的理想上限也仅 `0.751%`，
+  低于 5% materiality gate 和端到端波动。因此复用 batch buffer 与
+  pinned/non-blocking H2D 分别以 `closed_below_materiality_gate` 关闭，
+  未引入复杂生命周期/同步实现，也不声称其已优化。
+- “每项独立实现、独立三次比较”只约束进入实现的适用候选；本轮三个候选
+  分别通过独立 gate 后均不适用。真正采用的 batch wait 与 worker 组合已
+  独立完成三次比较并分别建立 checkpoint，没有把低上限候选混入后倒推
+  收益。机器可读 gate 与来源 SHA-256 保存于
+  `data/reports/training_speed/stage_2_4_acceptance.json`。
+- 阶段验收：
+  `E:\anaconda\python.exe -m unittest discover -s tests -v` 通过
+  `2875` tests（`1` skip）；`E:\anaconda\python.exe -m compileall -q swb
+  scripts tests` 通过；`E:\anaconda\python.exe -m scripts.rl_mixed_match
+  --output data/rl_mixed_match.log` 通过，player 2 获胜、最终生命
+  `0:18`。本阶段未改变规则、合法动作、Observation 或引擎语义，故未额外
+  触发 100-game self-play 要求。
 
 ## 2.5 先消除重复 Observation 构造，再决定是否扩展
 

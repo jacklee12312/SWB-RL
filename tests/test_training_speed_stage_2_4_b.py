@@ -10,6 +10,10 @@ from scripts.scan_training_speed_stage_2_4 import (
     FORMAL_RUNS,
     MEASURED_AGENT_STEPS,
 )
+from scripts.report_training_speed_stage_2_4 import (
+    MATERIALITY_THRESHOLD,
+    build_acceptance_report,
+)
 from scripts.verify_training_speed_stage_2_4_b import (
     interaction_configurations,
     summarize_interactions,
@@ -169,6 +173,100 @@ class TrainingSpeedStage24BTests(unittest.TestCase):
             self.assertGreaterEqual(
                 run["measurement"]["agent_steps"],
                 MEASURED_AGENT_STEPS,
+            )
+
+    def test_acceptance_closes_only_below_materiality_candidates(self) -> None:
+        central = {
+            "steady_state": {
+                "collect": {
+                    "fields": {
+                        "central_inference_requests": {"total": 100.0},
+                        "worker_request_queue_put_seconds": {"total": 0.01},
+                        "worker_response_queue_wait_seconds": {"total": 10.0},
+                    },
+                },
+            },
+        }
+        inference = {
+            "v4_1_input_packing": {
+                "4": {
+                    "cpu_numpy_stack_milliseconds": {"median": 0.03},
+                    "cpu_tensor_construction_milliseconds": {
+                        "median": 0.01,
+                    },
+                    "host_to_device_milliseconds": {"median": 0.12},
+                },
+            },
+            "fixed_input_forward": {
+                "v4.1": {
+                    "4": {
+                        "device_milliseconds_per_call": {"median": 22.0},
+                    },
+                },
+            },
+        }
+        interactions = {
+            "passed": True,
+            "decision": {
+                "adopted_runtime_configuration": {
+                    "rollout_workers": 6,
+                    "worker_torch_threads": 2,
+                    "central_inference_batch_wait_ms": 1.0,
+                },
+                "median_agent_steps_per_second": 64.0,
+                "relative_gain_vs_frozen_baseline": 0.4,
+            },
+            "methodology": {
+                "baseline_median_agent_steps_per_second": 44.7,
+            },
+            "configurations": {
+                "workers_6_wait_1_0_ms": {
+                    "agent_steps_per_second": {
+                        "runs": [63.0, 64.0, 65.0],
+                    },
+                },
+            },
+        }
+        report = build_acceptance_report(
+            central,
+            inference,
+            interactions,
+            sources={},
+        )
+        self.assertTrue(report["passed"])
+        self.assertEqual(
+            report["candidate_policy"]["implemented_low_ceiling_candidates"],
+            [],
+        )
+        for gate in report["candidate_gates"].values():
+            self.assertFalse(gate["applicable"])
+        self.assertLess(
+            report["candidate_gates"][
+                "A-IPC-001-reusable-batch-buffers"
+            ]["packing_fraction_of_device_forward"],
+            MATERIALITY_THRESHOLD,
+        )
+
+    def test_saved_stage_acceptance_resolves_every_candidate(self) -> None:
+        path = (
+            self.ROOT
+            / "data/reports/training_speed/stage_2_4_acceptance.json"
+        )
+        report = json.loads(path.read_text(encoding="utf-8"))
+        self.assertTrue(report["passed"])
+        self.assertGreaterEqual(report["throughput"]["relative_gain"], 0.05)
+        self.assertEqual(
+            len(report["throughput"]["three_run_evidence"]),
+            FORMAL_RUNS,
+        )
+        self.assertEqual(
+            set(report["candidate_policy"]["closed_with_evidence"]),
+            set(report["candidate_gates"]),
+        )
+        for source in report["sources"].values():
+            self.assertEqual(
+                self._sha256(self.ROOT / source["path"]),
+                source["sha256"],
             )
 
 

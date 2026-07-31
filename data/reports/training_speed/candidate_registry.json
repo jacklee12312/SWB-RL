@@ -42,7 +42,8 @@
       "class": "A",
       "description": "Reduce inference IPC messages and reuse or preallocate request/result buffers.",
       "semantics": "Every request retains episode, player, step and generation identity; payload values and ordering contracts are unchanged.",
-      "disposition": "pending_profile"
+      "disposition": "closed_below_materiality_or_already_minimal",
+      "evidence": "data/reports/training_speed/stage_2_4_acceptance.json"
     },
     {
       "id": "A-OBS-001",

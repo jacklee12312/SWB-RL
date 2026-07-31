@@ -272,6 +272,30 @@ worker CPU 线程不足。1.0 ms、6 workers 和 5 workers 都通过至少 5% �
 `data/reports/training_speed/stage_2_4_b_interactions.json`，逐 run 证据位于
 `data/reports/training_speed/stage_2_4_b_interaction_runs/`。
 
+### 2.4B 低上限候选关闭
+
+当前一个决策已经只有一条聚合 request 和一条 action response；request
+queue put 为 0.0104 ms/request，而 response wait 为 42.5090 ms/request。
+再减消息必须预取尚未由上一动作产生的状态，或让每 worker 同时持有多个
+环境，都会改变当前决策/拓扑边界，因此不作为 A 类实现。
+
+采用 batch 桶附近的实测上限如下：
+
+| 候选段 | Batch 4 median ms | 相对 22.0133 ms device forward |
+|---|---:|---:|
+| 三次 NumPy stack + CPU Tensor 构造 | 0.0431 | 0.196% |
+| H2D | 0.1222 | 0.555% |
+| 打包 + H2D 理想全部消除 | 0.1652 | 0.751% |
+
+三个值均远低于 5% materiality gate。batch buffer 复用与 pinned/non-blocking
+H2D 因此分别以“低于门槛”关闭，避免为小于测量波动的理论收益加入缓冲区
+生命周期、锁页内存和异步同步复杂度。机器可读 acceptance 与来源哈希为
+`data/reports/training_speed/stage_2_4_acceptance.json`。
+
+阶段 2.4 最终采用 6 workers、2 threads/worker、1.0 ms wait，三次短跑
+median 64.4729 steps/s，相对冻结 100k 基线提升 44.22%。完整测试
+2,875 项通过（1 skip），compile check 通过，确定性 mixed match 通过。
+
 ## 产物与限制
 
 - 机器可读报告：
