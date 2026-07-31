@@ -19,7 +19,8 @@
       "class": "A",
       "description": "Complete mutually exclusive worker, central inference and learner timing plus optional system monitoring.",
       "semantics": "Instrumentation only; timing disabled must preserve the existing execution path and throughput within run variance.",
-      "disposition": "baseline_prerequisite"
+      "disposition": "baseline_prerequisite",
+      "evidence": "data/reports/training_speed/baseline_summary.json"
     },
     {
       "id": "A-BATCH-WAIT-001",

@@ -65,6 +65,17 @@ class TrainingSpeedCandidateRegistryTests(unittest.TestCase):
             },
         )
 
+    def test_profile_prerequisite_has_frozen_baseline_evidence(self) -> None:
+        candidate = self.candidates["A-PROFILE-001"]
+        self.assertEqual(
+            candidate["disposition"],
+            "baseline_prerequisite",
+        )
+        self.assertEqual(
+            candidate["evidence"],
+            "data/reports/training_speed/baseline_summary.json",
+        )
+
 
 if __name__ == "__main__":
     unittest.main()
