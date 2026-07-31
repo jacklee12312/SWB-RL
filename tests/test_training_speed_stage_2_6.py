@@ -517,5 +517,45 @@ class TrainingSpeedStage26AStaticEnc001Tests(unittest.TestCase):
             self.assertEqual(self._sha256(path), source["sha256"])
 
 
+class TrainingSpeedStage26ACudaGraph001Tests(unittest.TestCase):
+    ROOT = Path(__file__).resolve().parents[1]
+    REPORT = (
+        ROOT
+        / "data/reports/training_speed/"
+        "stage_2_6_a_cuda_graph_001_prerequisite_gate.json"
+    )
+
+    @staticmethod
+    def _sha256(path: Path) -> str:
+        digest = hashlib.sha256()
+        with path.open("rb") as source:
+            for block in iter(lambda: source.read(1024 * 1024), b""):
+                digest.update(block)
+        return digest.hexdigest()
+
+    def test_saved_cuda_graph_prerequisite_gate_is_complete(self) -> None:
+        report = json.loads(self.REPORT.read_text(encoding="utf-8"))
+        self.assertTrue(report["passed"])
+        self.assertFalse(report["decision"]["implement"])
+        self.assertFalse(report["decision"]["run_end_to_end"])
+        self.assertFalse(report["prerequisites"]["host_sync_handled"])
+        self.assertFalse(report["prerequisites"]["batch_bucket_stable"])
+        self.assertEqual(
+            report["batch_buckets"]["observed_batch_sizes"],
+            [1, 2, 3, 4, 5, 6],
+        )
+        self.assertTrue(
+            report["batch_buckets"][
+                "dynamic_tail_requires_eager_path"
+            ]
+        )
+        self.assertFalse(report["host_sync"]["a_net_001_adopted"])
+        for source in report["sources"].values():
+            entries = source if isinstance(source, list) else [source]
+            for entry in entries:
+                path = self.ROOT / entry["path"]
+                self.assertEqual(self._sha256(path), entry["sha256"])
+
+
 if __name__ == "__main__":
     unittest.main()

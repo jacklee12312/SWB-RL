@@ -1,0 +1,103 @@
+{
+  "schema_version": 1,
+  "report_kind": "swb_training_speed_stage_2_6_a_cuda_graph_001_prerequisite_gate",
+  "checklist_section": "2.6",
+  "candidate": "A-CUDA-GRAPH-001",
+  "classification": "A",
+  "host_sync": {
+    "current_sync_events_over_three_forwards": 11,
+    "a_net_001_sync_events_over_three_forwards": 5,
+    "a_net_001_adopted": false,
+    "handled_in_current_default": false
+  },
+  "batch_buckets": {
+    "observed_batch_sizes": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6
+    ],
+    "mean_batch_sizes": [
+      3.066666666666667,
+      3.07227813357731,
+      3.0906580763920846
+    ],
+    "p95_batch_sizes": [
+      5.0,
+      5.0,
+      6.0
+    ],
+    "empty_slot_fractions": [
+      0.4888888888888889,
+      0.48795364440378164,
+      0.4848903206013192
+    ],
+    "histograms": [
+      {
+        "1": 280,
+        "2": 534,
+        "3": 577,
+        "4": 463,
+        "5": 231,
+        "6": 105
+      },
+      {
+        "1": 298,
+        "2": 445,
+        "3": 666,
+        "4": 461,
+        "5": 210,
+        "6": 106
+      },
+      {
+        "1": 292,
+        "2": 544,
+        "3": 539,
+        "4": 402,
+        "5": 265,
+        "6": 131
+      }
+    ],
+    "one_stable_bucket": false,
+    "dynamic_tail_requires_eager_path": true
+  },
+  "prerequisites": {
+    "host_sync_handled": false,
+    "batch_bucket_stable": false,
+    "all_met": false
+  },
+  "decision": {
+    "implement": false,
+    "run_end_to_end": false,
+    "disposition": "deferred_prerequisites_unsatisfied",
+    "reason": "the sync-removal candidate was rejected and reverted, while live central inference spans six batch shapes; the checklist forbids CUDA Graph work before both prerequisites are satisfied",
+    "reopen_when": "a default sync-free forward exists and profiling proves a materially dominant stable capture bucket"
+  },
+  "sources": {
+    "profile": {
+      "path": "data/reports/training_speed/v4_1_inference_breakdown.json",
+      "sha256": "49a77458533861eaca7e378cd5a9d618668ef1707efd174b85a4ee588d18457a"
+    },
+    "sync_candidate": {
+      "path": "data/reports/training_speed/stage_2_6_a_net_001.json",
+      "sha256": "da64601aa32d514d2957ac2dc5b257d47c46e43f1a50e9f46e8c91ab8e5e8be6"
+    },
+    "runs": [
+      {
+        "path": "data/reports/training_speed/stage_2_5_a_obs_001_runs/a_obs_001_run_1.json",
+        "sha256": "916b8951f180b89ab32b3f3db6fd87d11c2376e3f8e8f95a88ceb395b4a36e42"
+      },
+      {
+        "path": "data/reports/training_speed/stage_2_5_a_obs_001_runs/a_obs_001_run_2.json",
+        "sha256": "02b8cf2d797f8fc081d1d1c32e217f09eb671ce72b01334e897d39ede018979f"
+      },
+      {
+        "path": "data/reports/training_speed/stage_2_5_a_obs_001_runs/a_obs_001_run_3.json",
+        "sha256": "339c05a7ac0aaa931102bc91bc020f51b1e3930b88c6b5b582b1ef854279993c"
+      }
+    ]
+  },
+  "passed": true
+}

@@ -110,6 +110,14 @@
       "evidence": "data/reports/training_speed/stage_2_6_a_static_enc_001_gate.json"
     },
     {
+      "id": "A-CUDA-GRAPH-001",
+      "class": "A",
+      "description": "Capture stable inference batch buckets only after host synchronization is removed, with dynamic tails kept on the eager path.",
+      "semantics": "Capture must preserve request order, RNG use, hidden-state ownership, policy generation and exact outputs.",
+      "disposition": "deferred_prerequisites_unsatisfied",
+      "evidence": "data/reports/training_speed/stage_2_6_a_cuda_graph_001_prerequisite_gate.json"
+    },
+    {
       "id": "A-LEARNER-001",
       "class": "A",
       "description": "Reuse rollout tensors and move invariant padding and mask construction outside the minibatch loop.",

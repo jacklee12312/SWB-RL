@@ -1619,7 +1619,7 @@ A 类候选按以下顺序实施：
 - [x] 仅在 profiler 证明超过噪声后评估推理侧静态卡牌编码缓存；缓存必须按
   policy generation 失效，且当前 card lookup/projection 各约 0.09 ms、
   同一 forward 无重复 card embedding 的证据必须写入决策。
-- [ ] 只有 host sync 已处理且 batch bucket 稳定后才评估 CUDA Graph；
+- [x] 只有 host sync 已处理且 batch bucket 稳定后才评估 CUDA Graph；
   动态尾 batch 保留普通路径。
 - [ ] 每项 A 类改动验证相同输入的 logits/value/hidden state 精确或在既定
   浮点容差内一致，并通过固定 seed 轨迹、log probability、PPO generation
@@ -1756,6 +1756,19 @@ B 类候选：
   `closed_below_materiality_and_no_repeated_forward_encoding` 关闭，不实现、
   不运行无代码候选的三次端到端。机器证据保存于
   `data/reports/training_speed/stage_2_6_a_static_enc_001_gate.json`。
+
+2.6 A-CUDA-GRAPH-001 前置门禁延期（2026-07-31）：
+
+- 当前默认 native forward 的三次 profiler forward 仍有 `11` 个同步事件。
+  A-NET-001 曾降至 `5`，但其端到端收益未越过波动门槛，已显式回退，因此
+  不能把实验路径当作“host sync 已处理”。
+- 三次默认端到端的 central inference batch 均实际覆盖 `1–6`，mean
+  batch 为 `3.067 / 3.072 / 3.091`，P95 为 `5 / 5 / 6`，空槽比例约
+  `48.5%–48.9%`；没有单一 capture bucket，尾 batch 必须保留 eager path。
+- 两项前置条件未同时满足，故按 `deferred_prerequisites_unsatisfied` 延期，
+  不实现 Graph、不运行无候选的端到端。只有默认 forward 无 host sync 且
+  profiler 证明存在物料性稳定 capture bucket 时重开。机器证据保存于
+  `data/reports/training_speed/stage_2_6_a_cuda_graph_001_prerequisite_gate.json`。
 
 ## 2.7 在继承网络收益后优化 learner 更新
 
