@@ -1,0 +1,318 @@
+{
+  "schema_version": 1,
+  "report_kind": "swb_training_speed_stage_2_7_b_learner_amp_001_gate",
+  "checklist_section": "2.7",
+  "candidate": "B-LEARNER-AMP-001",
+  "classification": "B",
+  "methodology": {
+    "same_collected_rollout": true,
+    "same_minibatch_permutation_seed_per_pair": true,
+    "repeats": 3,
+    "records": 2434,
+    "rollout_workers": 6,
+    "worker_torch_threads": 2,
+    "central_inference_batch_wait_seconds": 0.001,
+    "batched_v41_learner": true,
+    "amp_variants": [
+      "float16",
+      "bfloat16"
+    ],
+    "grad_scaler_initial_scale": 16.0
+  },
+  "baseline": {
+    "runs": [
+      {
+        "repeat": 0,
+        "seconds": 3.581171500030905,
+        "metrics": {
+          "policy_loss": -0.02690876182168722,
+          "value_loss": 0.07000103728690495,
+          "entropy": 0.37730398774147034,
+          "grad_norm": 0.43422367547949153,
+          "agent_steps": 0.0,
+          "completed_episodes": 0.0,
+          "updates": 1.0
+        },
+        "finite_metrics": true,
+        "finite_model": true,
+        "exception": null,
+        "stable": true,
+        "grad_scaler": {
+          "enabled": false,
+          "scale_before": null,
+          "scale_after": null
+        }
+      },
+      {
+        "repeat": 1,
+        "seconds": 3.2029645000584424,
+        "metrics": {
+          "policy_loss": -0.03002556785941124,
+          "value_loss": 0.07143515530818452,
+          "entropy": 0.374717781941096,
+          "grad_norm": 0.4471787841369708,
+          "agent_steps": 0.0,
+          "completed_episodes": 0.0,
+          "updates": 1.0
+        },
+        "finite_metrics": true,
+        "finite_model": true,
+        "exception": null,
+        "stable": true,
+        "grad_scaler": {
+          "enabled": false,
+          "scale_before": null,
+          "scale_after": null
+        }
+      },
+      {
+        "repeat": 2,
+        "seconds": 3.155028199777007,
+        "metrics": {
+          "policy_loss": 0.01679818673680226,
+          "value_loss": 0.07470809462635468,
+          "entropy": 0.37512242048978806,
+          "grad_norm": 0.436995933453242,
+          "agent_steps": 0.0,
+          "completed_episodes": 0.0,
+          "updates": 1.0
+        },
+        "finite_metrics": true,
+        "finite_model": true,
+        "exception": null,
+        "stable": true,
+        "grad_scaler": {
+          "enabled": false,
+          "scale_before": null,
+          "scale_after": null
+        }
+      }
+    ],
+    "seconds": [
+      3.581171500030905,
+      3.2029645000584424,
+      3.155028199777007
+    ],
+    "median_seconds": 3.2029645000584424
+  },
+  "variants": {
+    "float16": {
+      "runs": [
+        {
+          "repeat": 0,
+          "seconds": 3.262101399945095,
+          "metrics": {
+            "policy_loss": -0.026892421611895163,
+            "value_loss": 0.06999293415962408,
+            "entropy": 0.3773345872759819,
+            "grad_norm": 0.434109129011631,
+            "agent_steps": 0.0,
+            "completed_episodes": 0.0,
+            "updates": 1.0
+          },
+          "finite_metrics": true,
+          "finite_model": true,
+          "exception": null,
+          "stable": true,
+          "grad_scaler": {
+            "enabled": true,
+            "scale_before": 16.0,
+            "scale_after": 16.0
+          }
+        },
+        {
+          "repeat": 1,
+          "seconds": 3.1089011000003666,
+          "metrics": {
+            "policy_loss": -0.0300365233172973,
+            "value_loss": 0.07143623428419232,
+            "entropy": 0.37473004808028537,
+            "grad_norm": 0.4471872790406148,
+            "agent_steps": 0.0,
+            "completed_episodes": 0.0,
+            "updates": 1.0
+          },
+          "finite_metrics": true,
+          "finite_model": true,
+          "exception": null,
+          "stable": true,
+          "grad_scaler": {
+            "enabled": true,
+            "scale_before": 16.0,
+            "scale_after": 16.0
+          }
+        },
+        {
+          "repeat": 2,
+          "seconds": 3.1548613000195473,
+          "metrics": {
+            "policy_loss": 0.01679399112860362,
+            "value_loss": 0.07469808477132271,
+            "entropy": 0.375170074403286,
+            "grad_norm": 0.43697738895813626,
+            "agent_steps": 0.0,
+            "completed_episodes": 0.0,
+            "updates": 1.0
+          },
+          "finite_metrics": true,
+          "finite_model": true,
+          "exception": null,
+          "stable": true,
+          "grad_scaler": {
+            "enabled": true,
+            "scale_before": 16.0,
+            "scale_after": 16.0
+          }
+        }
+      ],
+      "median_seconds": 3.1548613000195473,
+      "relative_reduction": 0.015018336930683216,
+      "stable": true,
+      "speed_exceeds_current_three_run_variability": false,
+      "model_after_one_update_drift": {
+        "tensor_count": 130,
+        "finite": true,
+        "maximum_absolute_error": 0.004812228959053755,
+        "mean_of_tensor_mean_absolute_errors": 2.4733685567240444e-05,
+        "worst_tensor": "entity_encoder.layers.1.self_attn.in_proj_bias"
+      },
+      "optimizer_after_one_update_drift": {
+        "tensor_count": 384,
+        "finite": true,
+        "maximum_absolute_error": 8.53254459798336e-06,
+        "mean_of_tensor_mean_absolute_errors": 4.1033209639386954e-08,
+        "worst_tensor": "124:exp_avg"
+      },
+      "advance_to_three_seed_learning": false
+    },
+    "bfloat16": {
+      "runs": [
+        {
+          "repeat": 0,
+          "seconds": 3.3078358001075685,
+          "metrics": {
+            "policy_loss": -0.02694218574712674,
+            "value_loss": 0.06996904996534188,
+            "entropy": 0.37719903389612836,
+            "grad_norm": 0.4334942201773326,
+            "agent_steps": 0.0,
+            "completed_episodes": 0.0,
+            "updates": 1.0
+          },
+          "finite_metrics": true,
+          "finite_model": true,
+          "exception": null,
+          "stable": true,
+          "grad_scaler": {
+            "enabled": true,
+            "scale_before": 16.0,
+            "scale_after": 16.0
+          }
+        },
+        {
+          "repeat": 1,
+          "seconds": 3.1327243999112397,
+          "metrics": {
+            "policy_loss": -0.029978884384036064,
+            "value_loss": 0.07141439286836733,
+            "entropy": 0.37478169550498325,
+            "grad_norm": 0.446898693839709,
+            "agent_steps": 0.0,
+            "completed_episodes": 0.0,
+            "updates": 1.0
+          },
+          "finite_metrics": true,
+          "finite_model": true,
+          "exception": null,
+          "stable": true,
+          "grad_scaler": {
+            "enabled": true,
+            "scale_before": 16.0,
+            "scale_after": 16.0
+          }
+        },
+        {
+          "repeat": 2,
+          "seconds": 3.143035100074485,
+          "metrics": {
+            "policy_loss": 0.01675826155891021,
+            "value_loss": 0.07468612216568242,
+            "entropy": 0.37470829486846924,
+            "grad_norm": 0.43667584906021756,
+            "agent_steps": 0.0,
+            "completed_episodes": 0.0,
+            "updates": 1.0
+          },
+          "finite_metrics": true,
+          "finite_model": true,
+          "exception": null,
+          "stable": true,
+          "grad_scaler": {
+            "enabled": true,
+            "scale_before": 16.0,
+            "scale_after": 16.0
+          }
+        }
+      ],
+      "median_seconds": 3.143035100074485,
+      "relative_reduction": 0.018710603874274572,
+      "stable": true,
+      "speed_exceeds_current_three_run_variability": false,
+      "model_after_one_update_drift": {
+        "tensor_count": 130,
+        "finite": true,
+        "maximum_absolute_error": 0.0048085288144648075,
+        "mean_of_tensor_mean_absolute_errors": 4.1196361131476614e-05,
+        "worst_tensor": "entity_encoder.layers.0.self_attn.in_proj_bias"
+      },
+      "optimizer_after_one_update_drift": {
+        "tensor_count": 384,
+        "finite": true,
+        "maximum_absolute_error": 0.000154576962813735,
+        "mean_of_tensor_mean_absolute_errors": 4.5466458969531695e-07,
+        "worst_tensor": "124:exp_avg"
+      },
+      "advance_to_three_seed_learning": false
+    }
+  },
+  "decision": {
+    "advancing_variants": [],
+    "selected_variant": null,
+    "advance_to_three_seed_learning": false,
+    "run_end_to_end": false,
+    "default_enabled": false,
+    "reason": "numeric_stability_or_speed_gate_failed"
+  },
+  "speed_gate": {
+    "current_batched_learner_runs_agent_steps_per_second": [
+      136.69229004513915,
+      132.6622270750627,
+      130.8878646945151
+    ],
+    "current_three_run_relative_range": 0.043753414054626176
+  },
+  "checkpoint": {
+    "before": {
+      "sha256": "4d6a8dd7d32f4e530766aab8d2ec4691de4925bc73e188021da1f45dbe54e0bd",
+      "size": 68377329,
+      "mtime_ns": 1785438586793295200
+    },
+    "after": {
+      "sha256": "4d6a8dd7d32f4e530766aab8d2ec4691de4925bc73e188021da1f45dbe54e0bd",
+      "size": 68377329,
+      "mtime_ns": 1785438586793295200
+    },
+    "unchanged": true
+  },
+  "sources": {
+    "comparison": {
+      "path": "data/reports/training_speed/stage_2_7_b_batched_learner_001_end_to_end.json",
+      "sha256": "29f0d9352a6ba11f84ca0d8c4479d711829f52163e078058856209bbfae60fa4"
+    },
+    "checkpoint": {
+      "path": "data/checkpoints/training_speed/frozen_v4_1_seed_20260801_500k.pt",
+      "sha256": "4d6a8dd7d32f4e530766aab8d2ec4691de4925bc73e188021da1f45dbe54e0bd"
+    }
+  },
+  "passed": true
+}
