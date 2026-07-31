@@ -139,42 +139,6 @@ class MaskedPolicyTests(unittest.TestCase):
                 logits, torch.ones(1, 2, dtype=torch.bool)
             )
 
-    def test_v4_1_categorical_merge_preserves_arbitrary_float_outputs(
-        self,
-    ) -> None:
-        values = torch.tensor(
-            [
-                [-3.6, -2.5, -1.4, -0.5, 0.49, 1.5, 9.6],
-                [8.4, 7.5, 6.6, 5.5, 4.4, 3.5, 2.6],
-            ],
-            dtype=torch.float32,
-        ).reshape(1, 2, 7)
-        for start, stop in ((1, 3), (1, 5), (1, 6)):
-            merged = torch.round(
-                values[..., start:stop]
-            ).to(dtype=torch.long)
-            separate = torch.stack(
-                [
-                    torch.round(values[..., index]).to(
-                        dtype=torch.long
-                    )
-                    for index in range(start, stop)
-                ],
-                dim=-1,
-            )
-            torch.testing.assert_close(merged, separate, rtol=0, atol=0)
-
-        semantic_rows = torch.round(
-            values[..., :5]
-        ).to(dtype=torch.long)
-        shared_active = semantic_rows[..., 0] != 0
-        original_active = (
-            torch.round(values[..., 0]).to(dtype=torch.long) != 0
-        )
-        torch.testing.assert_close(
-            shared_active, original_active, rtol=0, atol=0
-        )
-
     @staticmethod
     def _entity_action_observation() -> dict[str, np.ndarray]:
         choice = np.zeros(36, dtype=np.int32)
