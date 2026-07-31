@@ -8,6 +8,10 @@ from pathlib import Path
 from scripts.summarize_training_speed_stage_2_7_baseline import (
     build_report,
 )
+from scripts.verify_training_speed_stage_2_7_b_batched_learner_001 import (
+    CONFIGURATION as BATCHED_CONFIGURATION,
+    build_report as build_batched_end_to_end_report,
+)
 
 
 class TrainingSpeedStage27BaselineTests(unittest.TestCase):
@@ -127,6 +131,114 @@ class TrainingSpeedStage27APaddedCompute001Tests(unittest.TestCase):
         for source in report["sources"].values():
             path = self.ROOT / source["path"]
             self.assertEqual(self._sha256(path), source["sha256"])
+
+
+class TrainingSpeedStage27BBatchedLearner001Tests(unittest.TestCase):
+    @staticmethod
+    def _run(run_index: int, speed: float) -> dict[str, object]:
+        return {
+            "run_index": run_index,
+            "configuration": BATCHED_CONFIGURATION,
+            "profiling_switches_disabled": True,
+            "checkpoint_unchanged": True,
+            "checkpoint_sha256": "checkpoint",
+            "measurement": {
+                "agent_steps": 6_144,
+                "steady_update_count": 3,
+                "agent_steps_per_second": speed,
+                "collect_p95_seconds": 12.0,
+                "update_p95_seconds": 5.0,
+                "abnormal_exit_count": 0,
+                "batching": {
+                    "mean_batch_size": 3.0,
+                    "p95_batch_size": 6.0,
+                },
+                "episode_length": {
+                    "p95": 120.0,
+                    "maximum": 160.0,
+                    "truncated_episode_count": 0,
+                },
+                "system": {
+                    "sample_count": 10,
+                    "gpu_sample_count": 10,
+                    "cpu_total_median_percent": 10.0,
+                    "gpu_utilization_median_percent": 50.0,
+                    "gpu_memory_peak_mib": 9_000.0,
+                    "ram_used_peak_bytes": 20_000_000_000,
+                    "pagefile_used_peak_bytes": 21_000_000_000,
+                },
+            },
+        }
+
+    def test_clear_three_run_gain_adopts_after_learning_gate(
+        self,
+    ) -> None:
+        report = build_batched_end_to_end_report(
+            [
+                self._run(1, 90.0),
+                self._run(2, 92.0),
+                self._run(3, 91.0),
+            ],
+            {
+                "passed": True,
+                "decision": {"advance_to_end_to_end": True},
+                "summary": {
+                    "learning_non_degradation_passed": True
+                },
+            },
+            {
+                "end_to_end": {
+                    "runs_agent_steps_per_second": [
+                        60.0,
+                        61.0,
+                        60.5,
+                    ]
+                }
+            },
+            {
+                "observations": {
+                    "v4.1": {
+                        "agent_steps_per_second": {
+                            "runs": [44.5, 44.7, 44.8],
+                            "median": 44.7,
+                        }
+                    }
+                }
+            },
+            sources={},
+        )
+        self.assertTrue(report["passed"])
+        self.assertTrue(report["decision"]["adopt"])
+        self.assertTrue(report["decision"]["default_enabled"])
+        self.assertGreater(
+            report["end_to_end"]["frozen_v4_1_relative_gain"],
+            0.25,
+        )
+
+    def test_configuration_drift_is_rejected(self) -> None:
+        runs = [
+            self._run(1, 90.0),
+            self._run(2, 91.0),
+            self._run(3, 92.0),
+        ]
+        runs[0] = {
+            **runs[0],
+            "configuration": {
+                **BATCHED_CONFIGURATION,
+                "rollout_workers": 5,
+            },
+        }
+        with self.assertRaisesRegex(
+            ValueError,
+            "configuration drifted",
+        ):
+            build_batched_end_to_end_report(
+                runs,
+                {},
+                {},
+                {},
+                sources={},
+            )
 
 
 if __name__ == "__main__":
