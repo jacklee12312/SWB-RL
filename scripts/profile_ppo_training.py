@@ -59,6 +59,14 @@ def main() -> None:
         ),
     )
     parser.add_argument(
+        "--profile-learner-timing",
+        action="store_true",
+        help=(
+            "record learner padding, H2D, CUDA component events, effective "
+            "tokens, and explicit/implicit synchronization timing"
+        ),
+    )
+    parser.add_argument(
         "--output",
         type=Path,
         default=Path("data/reports/ppo_training_profile.json"),
@@ -100,6 +108,8 @@ def main() -> None:
         runtime_overrides["profile_ipc_timing"] = True
     if args.profile_central_timing:
         runtime_overrides["profile_central_timing"] = True
+    if args.profile_learner_timing:
+        runtime_overrides["profile_learner_timing"] = True
     if runtime_overrides:
         trainer.config = replace(trainer.config, **runtime_overrides)
     atexit.register(trainer.close)
@@ -170,6 +180,9 @@ def main() -> None:
             "profile_central_timing": (
                 trainer.config.profile_central_timing
             ),
+            "profile_learner_timing": (
+                trainer.config.profile_learner_timing
+            ),
         },
         "ipc_timing_methodology": {
             "enabled": trainer.config.profile_ipc_timing,
@@ -213,6 +226,25 @@ def main() -> None:
                 "wait is central blocking for worker messages plus configured "
                 "batch-formation wait. The ratio is diagnostic, not system "
                 "GPU utilization."
+            ),
+        },
+        "learner_timing_methodology": {
+            "enabled": trainer.config.profile_learner_timing,
+            "trajectory_and_padding": (
+                "advantages/returns, recurrent chunks, NumPy padding, CPU "
+                "tensor construction, effective tokens, and padding slots "
+                "are measured separately"
+            ),
+            "cuda_components": (
+                "CUDA events split H2D, model forward, PPO loss, backward, "
+                "gradient clipping, and optimizer work without adding a "
+                "synchronize between those components"
+            ),
+            "synchronization": (
+                "existing explicit torch.cuda.synchronize calls and implicit "
+                "host waits from finite checks, parameter validation, and "
+                "metric extraction are reported separately; event time is "
+                "not added to synchronization wait"
             ),
         },
         "hardware": {

@@ -4,7 +4,7 @@ import math
 import random
 import time
 from dataclasses import asdict, dataclass
-from typing import Mapping
+from typing import Any, Mapping
 
 import numpy as np
 import torch
@@ -68,6 +68,7 @@ class PPOConfig:
     central_inference_batch_wait_seconds: float = 0.0005
     profile_ipc_timing: bool = False
     profile_central_timing: bool = False
+    profile_learner_timing: bool = False
     training_class_ids: tuple[int, ...] = (1,)
     training_deck: str | None = None
     opponent_decks: tuple[str, ...] = ()
@@ -1125,9 +1126,43 @@ class PPOTrainer:
                 / max(worker_observed_seconds, 1e-12)
             ),
         })
+        collect_total_seconds = time.perf_counter() - collect_started
+        collect_stage_fields = (
+            "central_rollout_startup_seconds",
+            "central_collection_setup_seconds",
+            "episode_dispatch_seconds",
+            "central_worker_message_wait_seconds",
+            "central_batch_wait_seconds",
+            "central_batch_prepare_to_device_seconds",
+            "central_forward_seconds",
+            "central_device_to_host_and_sample_seconds",
+            "central_record_packaging_seconds",
+            "central_response_dispatch_seconds",
+            "central_bootstrap_seconds",
+            "central_episode_completion_seconds",
+            "central_model_restore_seconds",
+            "central_collection_finalize_seconds",
+            "trajectory_conversion_seconds",
+        )
+        aggregate_timing[
+            "trajectory_conversion_seconds"
+        ] = conversion_seconds
+        collect_accounted_seconds = sum(
+            aggregate_timing.get(field, 0.0)
+            for field in collect_stage_fields
+        )
         aggregate_timing.update({
             "trajectory_conversion_seconds": conversion_seconds,
-            "collect_total_seconds": time.perf_counter() - collect_started,
+            "collect_total_seconds": collect_total_seconds,
+            "collect_accounted_seconds": collect_accounted_seconds,
+            "collect_accounted_fraction": (
+                collect_accounted_seconds
+                / max(collect_total_seconds, 1e-12)
+            ),
+            "collect_unattributed_seconds": max(
+                0.0,
+                collect_total_seconds - collect_accounted_seconds,
+            ),
             "collect_calls": float(collect_calls),
             "records": float(len(records)),
             "episodes": float(len(boundaries)),
@@ -1198,7 +1233,12 @@ class PPOTrainer:
         records: list[_Record],
         advantages: np.ndarray,
         returns: np.ndarray,
-    ) -> _SequenceBatch:
+        *,
+        profile_timing: bool = False,
+    ) -> tuple[_SequenceBatch, dict[str, Any]]:
+        padding_started = (
+            time.perf_counter() if profile_timing else 0.0
+        )
         batch = len(chunks)
         length = self.config.sequence_length
         observations = np.zeros(
@@ -1229,25 +1269,110 @@ class PPOTrainer:
                 batch_advantages[row, column] = advantages[int(index)]
                 batch_returns[row, column] = returns[int(index)]
                 valid[row, column] = True
+        if not profile_timing:
+            def tensor(value, dtype=None):
+                return torch.as_tensor(
+                    value,
+                    dtype=dtype,
+                    device=self.device,
+                )
 
-        def tensor(value, dtype=None):
-            return torch.as_tensor(value, dtype=dtype, device=self.device)
+            return (
+                _SequenceBatch(
+                    observations=tensor(observations),
+                    card_indices=tensor(card_indices, torch.long),
+                    action_masks=tensor(masks, torch.bool),
+                    actions=tensor(actions, torch.long),
+                    old_log_probs=tensor(old_log_probs),
+                    advantages=tensor(batch_advantages),
+                    returns=tensor(batch_returns),
+                    valid=tensor(valid, torch.bool),
+                    initial_hidden=tensor(initial_hidden),
+                ),
+                {},
+            )
 
-        return _SequenceBatch(
-            observations=tensor(observations),
-            card_indices=tensor(card_indices, torch.long),
-            action_masks=tensor(masks, torch.bool),
-            actions=tensor(actions, torch.long),
-            old_log_probs=tensor(old_log_probs),
-            advantages=tensor(batch_advantages),
-            returns=tensor(batch_returns),
-            valid=tensor(valid, torch.bool),
-            initial_hidden=tensor(initial_hidden),
+        padding_seconds = time.perf_counter() - padding_started
+        arrays = (
+            observations,
+            card_indices,
+            masks,
+            actions,
+            old_log_probs,
+            batch_advantages,
+            batch_returns,
+            valid,
+            initial_hidden,
+        )
+        valid_tokens = int(valid.sum())
+        token_slots = int(valid.size)
+        profile: dict[str, Any] = {
+            "padding_and_numpy_seconds": padding_seconds,
+            "effective_tokens": float(valid_tokens),
+            "token_slots": float(token_slots),
+            "padding_tokens": float(token_slots - valid_tokens),
+            "input_bytes": float(sum(value.nbytes for value in arrays)),
+        }
+        tensor_started = time.perf_counter()
+        cpu_tensors = (
+            torch.from_numpy(observations),
+            torch.from_numpy(card_indices).to(dtype=torch.long),
+            torch.from_numpy(masks).to(dtype=torch.bool),
+            torch.from_numpy(actions).to(dtype=torch.long),
+            torch.from_numpy(old_log_probs),
+            torch.from_numpy(batch_advantages),
+            torch.from_numpy(batch_returns),
+            torch.from_numpy(valid).to(dtype=torch.bool),
+            torch.from_numpy(initial_hidden),
+        )
+        profile["cpu_tensor_construction_seconds"] = (
+            time.perf_counter() - tensor_started
+        )
+        h2d_start = None
+        h2d_end = None
+        if self.device.type == "cuda":
+            h2d_start = torch.cuda.Event(enable_timing=True)
+            h2d_end = torch.cuda.Event(enable_timing=True)
+            h2d_start.record()
+        h2d_started = time.perf_counter()
+        device_tensors = tuple(
+            value.to(device=self.device)
+            for value in cpu_tensors
+        )
+        if h2d_end is not None:
+            h2d_end.record()
+        profile["host_to_device_launch_seconds"] = (
+            time.perf_counter() - h2d_started
+        )
+        profile["h2d_start_event"] = h2d_start
+        profile["h2d_end_event"] = h2d_end
+        return (
+            _SequenceBatch(
+                observations=device_tensors[0],
+                card_indices=device_tensors[1],
+                action_masks=device_tensors[2],
+                actions=device_tensors[3],
+                old_log_probs=device_tensors[4],
+                advantages=device_tensors[5],
+                returns=device_tensors[6],
+                valid=device_tensors[7],
+                initial_hidden=device_tensors[8],
+            ),
+            profile,
         )
 
     def update(self, records: list[_Record], bootstrap) -> dict[str, float]:
+        profile_learner = self.config.profile_learner_timing
+        initial_synchronize_seconds = 0.0
         if self.device.type == "cuda":
+            initial_synchronize_started = (
+                time.perf_counter() if profile_learner else 0.0
+            )
             torch.cuda.synchronize(self.device)
+            if profile_learner:
+                initial_synchronize_seconds = (
+                    time.perf_counter() - initial_synchronize_started
+                )
         update_started = time.perf_counter()
         advantages_started = time.perf_counter()
         advantages, returns = self._advantages(records, bootstrap)
@@ -1264,6 +1389,51 @@ class PPOTrainer:
         optimizer_seconds = 0.0
         parameter_validation_seconds = 0.0
         metric_extraction_seconds = 0.0
+        learner_timing = {
+            "learner_padding_and_numpy_seconds": 0.0,
+            "learner_cpu_tensor_construction_seconds": 0.0,
+            "learner_host_to_device_launch_seconds": 0.0,
+            "learner_host_to_device_seconds": 0.0,
+            "learner_forward_host_launch_seconds": 0.0,
+            "learner_forward_seconds": 0.0,
+            "learner_loss_host_launch_seconds": 0.0,
+            "learner_loss_seconds": 0.0,
+            "learner_zero_grad_seconds": 0.0,
+            "learner_backward_host_launch_seconds": 0.0,
+            "learner_backward_seconds": 0.0,
+            "learner_gradient_clip_host_launch_seconds": 0.0,
+            "learner_gradient_clip_seconds": 0.0,
+            "learner_optimizer_host_launch_seconds": 0.0,
+            "learner_optimizer_seconds": 0.0,
+            "learner_loss_validation_seconds": 0.0,
+            "learner_grad_norm_validation_seconds": 0.0,
+            "learner_optimizer_synchronize_seconds": 0.0,
+            "learner_input_bytes": 0.0,
+            "learner_effective_tokens": 0.0,
+            "learner_token_slots": 0.0,
+            "learner_padding_tokens": 0.0,
+        }
+        minibatch_effective_tokens: list[float] = []
+
+        def component_start():
+            if profile_learner and self.device.type == "cuda":
+                event = torch.cuda.Event(enable_timing=True)
+                event.record()
+                return event
+            return time.perf_counter() if profile_learner else None
+
+        def component_end(started, field: str) -> None:
+            if not profile_learner:
+                return
+            if self.device.type == "cuda":
+                event = torch.cuda.Event(enable_timing=True)
+                event.record()
+                learner_events.append((field, started, event))
+            else:
+                learner_timing[field] += (
+                    time.perf_counter() - float(started)
+                )
+
         for _ in range(self.config.update_epochs):
             permutation_started = time.perf_counter()
             permutation = torch.randperm(
@@ -1278,11 +1448,63 @@ class PPOTrainer:
                     chunks[index]
                     for index in permutation[start : start + self.config.minibatch_sequences]
                 ]
-                batch = self._collate(selected, records, advantages, returns)
+                batch, batch_profile = self._collate(
+                    selected,
+                    records,
+                    advantages,
+                    returns,
+                    profile_timing=profile_learner,
+                )
                 batch_prepare_seconds += (
                     time.perf_counter() - batch_prepare_started
                 )
+                if profile_learner:
+                    learner_timing[
+                        "learner_padding_and_numpy_seconds"
+                    ] += float(batch_profile["padding_and_numpy_seconds"])
+                    learner_timing[
+                        "learner_cpu_tensor_construction_seconds"
+                    ] += float(
+                        batch_profile["cpu_tensor_construction_seconds"]
+                    )
+                    learner_timing[
+                        "learner_host_to_device_launch_seconds"
+                    ] += float(
+                        batch_profile["host_to_device_launch_seconds"]
+                    )
+                    learner_timing["learner_input_bytes"] += float(
+                        batch_profile["input_bytes"]
+                    )
+                    learner_timing["learner_effective_tokens"] += float(
+                        batch_profile["effective_tokens"]
+                    )
+                    learner_timing["learner_token_slots"] += float(
+                        batch_profile["token_slots"]
+                    )
+                    learner_timing["learner_padding_tokens"] += float(
+                        batch_profile["padding_tokens"]
+                    )
+                    minibatch_effective_tokens.append(
+                        float(batch_profile["effective_tokens"])
+                    )
+                    learner_events: list[tuple[str, Any, Any]] = []
+                    if self.device.type == "cuda":
+                        learner_events.append((
+                            "learner_host_to_device_seconds",
+                            batch_profile["h2d_start_event"],
+                            batch_profile["h2d_end_event"],
+                        ))
+                    else:
+                        learner_timing[
+                            "learner_host_to_device_seconds"
+                        ] += float(
+                            batch_profile[
+                                "host_to_device_launch_seconds"
+                            ]
+                        )
                 forward_loss_started = time.perf_counter()
+                forward_host_started = time.perf_counter()
+                forward_component_started = component_start()
                 hidden = batch.initial_hidden
                 logits_rows = []
                 value_rows = []
@@ -1296,6 +1518,16 @@ class PPOTrainer:
                     value_rows.append(values)
                 logits = torch.stack(logits_rows, dim=1)
                 values = torch.stack(value_rows, dim=1)
+                component_end(
+                    forward_component_started,
+                    "learner_forward_seconds",
+                )
+                if profile_learner:
+                    learner_timing[
+                        "learner_forward_host_launch_seconds"
+                    ] += time.perf_counter() - forward_host_started
+                loss_host_started = time.perf_counter()
+                loss_component_started = component_start()
                 flat_valid = batch.valid
                 masked_logits = self.model.masked_logits(
                     logits[flat_valid], batch.action_masks[flat_valid]
@@ -1322,25 +1554,98 @@ class PPOTrainer:
                     + self.config.value_coefficient * value_loss
                     - self.config.entropy_coefficient * entropy
                 )
-                if not bool(torch.isfinite(loss)):
+                component_end(
+                    loss_component_started,
+                    "learner_loss_seconds",
+                )
+                if profile_learner:
+                    learner_timing[
+                        "learner_loss_host_launch_seconds"
+                    ] += time.perf_counter() - loss_host_started
+                loss_validation_started = (
+                    time.perf_counter() if profile_learner else 0.0
+                )
+                loss_is_finite = bool(torch.isfinite(loss))
+                if profile_learner:
+                    learner_timing[
+                        "learner_loss_validation_seconds"
+                    ] += time.perf_counter() - loss_validation_started
+                if not loss_is_finite:
                     raise FloatingPointError("non-finite PPO loss")
                 forward_loss_seconds += (
                     time.perf_counter() - forward_loss_started
                 )
                 backward_started = time.perf_counter()
+                zero_grad_started = (
+                    time.perf_counter() if profile_learner else 0.0
+                )
                 self.optimizer.zero_grad(set_to_none=True)
+                if profile_learner:
+                    learner_timing["learner_zero_grad_seconds"] += (
+                        time.perf_counter() - zero_grad_started
+                    )
+                backward_host_started = time.perf_counter()
+                backward_component_started = component_start()
                 loss.backward()
+                component_end(
+                    backward_component_started,
+                    "learner_backward_seconds",
+                )
+                if profile_learner:
+                    learner_timing[
+                        "learner_backward_host_launch_seconds"
+                    ] += time.perf_counter() - backward_host_started
+                clip_host_started = time.perf_counter()
+                clip_component_started = component_start()
                 grad_norm = torch.nn.utils.clip_grad_norm_(
                     self.model.parameters(), self.config.max_grad_norm
                 )
-                if not bool(torch.isfinite(grad_norm)):
+                component_end(
+                    clip_component_started,
+                    "learner_gradient_clip_seconds",
+                )
+                if profile_learner:
+                    learner_timing[
+                        "learner_gradient_clip_host_launch_seconds"
+                    ] += time.perf_counter() - clip_host_started
+                grad_validation_started = (
+                    time.perf_counter() if profile_learner else 0.0
+                )
+                grad_norm_is_finite = bool(torch.isfinite(grad_norm))
+                if profile_learner:
+                    learner_timing[
+                        "learner_grad_norm_validation_seconds"
+                    ] += time.perf_counter() - grad_validation_started
+                if not grad_norm_is_finite:
                     raise FloatingPointError("non-finite PPO gradient norm")
                 backward_seconds += time.perf_counter() - backward_started
                 optimizer_started = time.perf_counter()
+                optimizer_host_started = time.perf_counter()
+                optimizer_component_started = component_start()
                 self.optimizer.step()
+                component_end(
+                    optimizer_component_started,
+                    "learner_optimizer_seconds",
+                )
+                if profile_learner:
+                    learner_timing[
+                        "learner_optimizer_host_launch_seconds"
+                    ] += time.perf_counter() - optimizer_host_started
                 if self.device.type == "cuda":
+                    optimizer_sync_started = (
+                        time.perf_counter() if profile_learner else 0.0
+                    )
                     torch.cuda.synchronize(self.device)
+                    if profile_learner:
+                        learner_timing[
+                            "learner_optimizer_synchronize_seconds"
+                        ] += time.perf_counter() - optimizer_sync_started
                 optimizer_seconds += time.perf_counter() - optimizer_started
+                if profile_learner and self.device.type == "cuda":
+                    for field, first_event, last_event in learner_events:
+                        learner_timing[field] += (
+                            first_event.elapsed_time(last_event) / 1000.0
+                        )
                 validation_started = time.perf_counter()
                 if not all(
                     bool(torch.isfinite(parameter).all())
@@ -1397,6 +1702,121 @@ class PPOTrainer:
             "chunks": float(len(chunks)),
             "records": float(len(records)),
         }
+        if profile_learner:
+            ordered_tokens = sorted(minibatch_effective_tokens)
+
+            def token_percentile(percentile: float) -> float:
+                if not ordered_tokens:
+                    return 0.0
+                index = max(
+                    0,
+                    min(
+                        len(ordered_tokens) - 1,
+                        math.ceil(percentile * len(ordered_tokens)) - 1,
+                    ),
+                )
+                return float(ordered_tokens[index])
+
+            token_slots = learner_timing["learner_token_slots"]
+            cuda_component_seconds = sum(
+                learner_timing[field]
+                for field in (
+                    "learner_host_to_device_seconds",
+                    "learner_forward_seconds",
+                    "learner_loss_seconds",
+                    "learner_backward_seconds",
+                    "learner_gradient_clip_seconds",
+                    "learner_optimizer_seconds",
+                )
+            )
+            sync_inducing_validation_seconds = sum((
+                learner_timing["learner_loss_validation_seconds"],
+                learner_timing[
+                    "learner_grad_norm_validation_seconds"
+                ],
+                parameter_validation_seconds,
+                metric_extraction_seconds,
+            ))
+            learner_timing.update({
+                "learner_initial_cuda_synchronize_seconds": (
+                    initial_synchronize_seconds
+                ),
+                "learner_cuda_component_seconds": cuda_component_seconds,
+                "learner_sync_inducing_validation_seconds": (
+                    sync_inducing_validation_seconds
+                ),
+                "learner_total_host_synchronization_seconds": (
+                    initial_synchronize_seconds
+                    + learner_timing[
+                        "learner_optimizer_synchronize_seconds"
+                    ]
+                    + sync_inducing_validation_seconds
+                ),
+                "learner_padding_fraction": (
+                    learner_timing["learner_padding_tokens"]
+                    / max(token_slots, 1.0)
+                ),
+                "learner_effective_token_fraction": (
+                    learner_timing["learner_effective_tokens"]
+                    / max(token_slots, 1.0)
+                ),
+                "learner_minibatch_effective_tokens_mean": (
+                    sum(ordered_tokens) / max(len(ordered_tokens), 1)
+                ),
+                "learner_minibatch_effective_tokens_p50": (
+                    token_percentile(0.50)
+                ),
+                "learner_minibatch_effective_tokens_p95": (
+                    token_percentile(0.95)
+                ),
+                "learner_minibatch_effective_tokens_min": (
+                    float(ordered_tokens[0]) if ordered_tokens else 0.0
+                ),
+                "learner_minibatch_effective_tokens_max": (
+                    float(ordered_tokens[-1]) if ordered_tokens else 0.0
+                ),
+                "learner_epoch_effective_tokens_mean": (
+                    learner_timing["learner_effective_tokens"]
+                    / max(self.config.update_epochs, 1)
+                ),
+                "learner_profiled_minibatches": float(updates),
+            })
+            self.last_update_timing.update(learner_timing)
+            update_stage_fields = (
+                "advantages_seconds",
+                "sequence_batching_seconds",
+                "permutation_seconds",
+                "learner_padding_and_numpy_seconds",
+                "learner_cpu_tensor_construction_seconds",
+                "learner_host_to_device_seconds",
+                "learner_forward_seconds",
+                "learner_loss_seconds",
+                "learner_loss_validation_seconds",
+                "learner_zero_grad_seconds",
+                "learner_backward_seconds",
+                "learner_gradient_clip_seconds",
+                "learner_grad_norm_validation_seconds",
+                "learner_optimizer_seconds",
+                "parameter_validation_seconds",
+                "metric_extraction_seconds",
+            )
+            profiled_accounted_seconds = sum(
+                self.last_update_timing.get(field, 0.0)
+                for field in update_stage_fields
+            )
+            self.last_update_timing.update({
+                "learner_profiled_accounted_seconds": (
+                    profiled_accounted_seconds
+                ),
+                "learner_profiled_accounted_fraction": (
+                    profiled_accounted_seconds
+                    / max(update_total_seconds, 1e-12)
+                ),
+                "learner_profiled_unattributed_seconds": max(
+                    0.0,
+                    update_total_seconds - profiled_accounted_seconds,
+                ),
+            })
         return metrics
 
     def train(self, total_agent_steps: int) -> list[dict[str, float]]:

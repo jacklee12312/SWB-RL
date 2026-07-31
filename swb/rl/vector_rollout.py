@@ -1367,7 +1367,12 @@ class PolicyVectorRollout:
                 "episode per worker"
             )
         collect_started = time.perf_counter()
+        rollout_startup_started = time.perf_counter()
         self.start()
+        rollout_startup_seconds = (
+            time.perf_counter() - rollout_startup_started
+        )
+        collection_setup_started = time.perf_counter()
         self._generation += 1
         generation = self._generation
         import torch
@@ -1396,6 +1401,9 @@ class PolicyVectorRollout:
 
         was_training = model.training
         model.eval()
+        collection_setup_seconds = (
+            time.perf_counter() - collection_setup_started
+        )
         episode_dispatch_started = time.perf_counter()
         for episode_id in episode_ids:
             worker_id = episode_id % self.config.worker_count
@@ -1412,6 +1420,8 @@ class PolicyVectorRollout:
         batch_wait_seconds = 0.0
         worker_message_wait_seconds = 0.0
         queue_to_batch_wait_seconds = 0.0
+        episode_completion_seconds = 0.0
+        model_restore_seconds = 0.0
         try:
             while len(completed) < len(episode_ids):
                 if pending_messages:
@@ -1519,6 +1529,7 @@ class PolicyVectorRollout:
                     raise RolloutWorkerError(
                         f"unexpected policy worker message {message[0]!r}"
                     )
+                episode_completion_started = time.perf_counter()
                 (
                     _,
                     episode_id,
@@ -1584,14 +1595,30 @@ class PolicyVectorRollout:
                     matchup=matchup,
                     timing=worker_timing,
                 )
+                episode_completion_seconds += max(
+                    0.0,
+                    time.perf_counter()
+                    - episode_completion_started
+                    - bootstrap_seconds,
+                )
         except Exception:
             self.close()
             raise
         finally:
+            model_restore_started = time.perf_counter()
             model.train(was_training)
+            model_restore_seconds = (
+                time.perf_counter() - model_restore_started
+            )
         episode_wait_seconds = time.perf_counter() - episode_wait_started
+        collection_finalize_started = time.perf_counter()
         ordered = tuple(completed[episode_id] for episode_id in episode_ids)
+        collection_finalize_seconds = (
+            time.perf_counter() - collection_finalize_started
+        )
         timing = {
+            "central_rollout_startup_seconds": rollout_startup_seconds,
+            "central_collection_setup_seconds": collection_setup_seconds,
             "episode_dispatch_seconds": episode_dispatch_seconds,
             "episode_wait_seconds": episode_wait_seconds,
             "central_batch_wait_seconds": batch_wait_seconds,
@@ -1600,6 +1627,13 @@ class PolicyVectorRollout:
             ),
             "central_queue_to_batch_wait_seconds": (
                 queue_to_batch_wait_seconds
+            ),
+            "central_episode_completion_seconds": (
+                episode_completion_seconds
+            ),
+            "central_model_restore_seconds": model_restore_seconds,
+            "central_collection_finalize_seconds": (
+                collection_finalize_seconds
             ),
             "collect_call_total_seconds": (
                 time.perf_counter() - collect_started

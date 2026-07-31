@@ -1085,11 +1085,11 @@ Worker 侧：
 
 Learner 侧：
 
-- [ ] 统计 trajectory 整理、padding 和张量构造。
-- [ ] 统计 host-to-device 传输。
-- [ ] 统计前向、loss、反向、梯度裁剪、optimizer step。
-- [ ] 统计每 epoch/minibatch 的有效 token 数和 padding 比例。
-- [ ] 统计 CUDA synchronize 对测量结果的影响，避免异步计时失真。
+- [x] 统计 trajectory 整理、padding 和张量构造。
+- [x] 统计 host-to-device 传输。
+- [x] 统计前向、loss、反向、梯度裁剪、optimizer step。
+- [x] 统计每 epoch/minibatch 的有效 token 数和 padding 比例。
+- [x] 统计 CUDA synchronize 对测量结果的影响，避免异步计时失真。
 
 2.2 worker command/resolution 切片证据（2026-07-31）：
 
@@ -1279,12 +1279,63 @@ Learner 侧：
   本切片只增加默认关闭的 PPO profiling，不修改规则、动作、Observation
   含义或奖励，因此未触发额外 self-play/`rl_mixed_match`。
 
+2.2 Learner 与总体验收证据（2026-07-31）：
+
+- 候选分类为 `A-PROFILE-001`。新增默认关闭的
+  `--profile-learner-timing`；开启时用 CUDA event 统计异步 GPU 阶段，
+  只在现有 update 边界统一同步，不在组件之间额外同步。固定 checkpoint、
+  rollout 和随机状态回归证明开关关闭/开启时动作、log probability、value、
+  hidden state、bootstrap、PPO generation 边界、指标和更新后参数完全一致。
+- 冻结 v4.1 checkpoint 的 6,144-step 请求实际完成 6,497 steps、3 个
+  update，单次 update 为 19.742304 / 19.710845 / 19.544825 秒；
+  checkpoint 前后 SHA-256 均为
+  `4d6a8dd7d32f4e530766aab8d2ec4691de4925bc73e188021da1f45dbe54e0bd`。
+- 3 个 update 的有效 token/容量槽分别为 1,952/2,624、
+  2,054/3,072、1,906/2,688，padding 比例为 25.610% / 33.138% /
+  29.092%；同时保存 minibatch 有效 token 的 P50/P95/min/max 和每 epoch
+  均值，不用 batch 数或平均序列长度反推。
+- Learner 三次合计：padding/NumPy 0.148415 秒、CPU tensor 构造
+  0.001799 秒、H2D 0.118101 秒、前向 CUDA 29.369683 秒、loss
+  0.338888 秒、反向 CUDA 27.900011 秒、梯度裁剪 0.097853 秒、
+  optimizer 0.168695 秒。前向与反向是本次诊断的主成本；这些诊断数据
+  不单独构成后续优化收益结论。
+- CUDA event 与 host launch 分开保存；已知会同步的 loss/grad/参数校验和
+  显式 optimizer 同步共计约 0.77 秒，单次 update 为 0.25--0.26 秒，
+  避免把异步 launch 时间误当成 GPU 执行时间。机器可读原始 iteration、
+  token、同步点和方法保存于
+  `data/reports/training_speed/stage_2_2_learner_timing_smoke.json`。
+- 补齐中央 rollout 启动、collection setup/finalize、episode completion
+  和 model restore 后，互斥阶段对 wall time 的解释率为：完整 pipeline
+  99.883%、collect 99.855%、update 99.926%，均超过 90%。每个规范化阶段
+  均保存总耗时、每 agent-step 毫秒、wall time 占比、median 和 P95。
+- 关闭全部 profiling 的独立 10,000-step 守卫运行排除前 2 个预热 update，
+  正式统计 3 个 update 的吞吐为 43.364 / 44.460 / 44.439 steps/s，
+  median 44.439；相对 2.1 同配置基线 median 44.705 低 0.595%，处于预设
+  2% 容差内。该短实验只证明默认关闭路径没有明显 profiling 开销，不作为
+  性能优化前后结论。原始数据保存于
+  `data/reports/training_speed/stage_2_2_profiling_disabled_smoke.json`。
+- 汇总、空样本、互斥阶段求和、字段完整性、三稳态样本和 2% 守卫均有
+  自动测试；`E:\anaconda\python.exe -m unittest tests.test_rl_profiling
+  tests.test_training_speed_stage_2_2
+  tests.test_ppo.PPOTrainerTests.test_learner_profile_preserves_update_results
+  -v`：11 项通过。
+- 独立验收器和来源 SHA-256 结果保存于
+  `data/reports/training_speed/stage_2_2_acceptance.json`，总结果
+  `passed=true`。最终 `E:\anaconda\python.exe -m unittest discover -s
+  tests -v`：2,861 项通过、1 项条件跳过，耗时 452.726 秒，API test
+  通过；完整输出保存于
+  `data/reports/training_speed/stage_2_2_complete_unittest.log`。
+- `E:\anaconda\python.exe -m compileall -q swb scripts tests`：通过。
+  本切片只增加默认关闭的 PPO profiling、统计和报告，不修改引擎、规则、
+  动作、目标、战斗、回合、Observation 含义或奖励，因此未触发额外
+  self-play/`rl_mixed_match`。
+
 总体验收：
 
-- [ ] 各互斥阶段耗时之和能够解释至少 90% 的 wall time。
-- [ ] 报告同时给出总耗时、每步毫秒、占比、median 和 P95。
-- [ ] 计时开关关闭时不明显降低正式训练吞吐。
-- [ ] 为汇总计算、空样本和阶段求和增加测试。
+- [x] 各互斥阶段耗时之和能够解释至少 90% 的 wall time。
+- [x] 报告同时给出总耗时、每步毫秒、占比、median 和 P95。
+- [x] 计时开关关闭时不明显降低正式训练吞吐。
+- [x] 为汇总计算、空样本和阶段求和增加测试。
 
 ## 2.3 定位 v4.1 相对 v3.6 的额外成本
 

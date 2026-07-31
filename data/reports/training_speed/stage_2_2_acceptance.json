@@ -1,0 +1,320 @@
+{
+  "schema_version": 1,
+  "checklist_section": "2.2",
+  "sources": {
+    "baseline": {
+      "path": "data/reports/training_speed/baseline_summary.json",
+      "sha256": "c324af884a5b44976618b90ab00aad706adfe3613a8fdf53d08e1f2f3e779b61"
+    },
+    "learner": {
+      "path": "data/reports/training_speed/stage_2_2_learner_timing_smoke.json",
+      "sha256": "a69e70a583766d4eed9ed8c2b0c69a25692c1d6c2a0aa78ffddb2ea1938fc772"
+    },
+    "profiling_disabled": {
+      "path": "data/reports/training_speed/stage_2_2_profiling_disabled_smoke.json",
+      "sha256": "637df238aebf27b8c50e8d0df1b81a983785dbfc1332c01b2ad75d97f19faa8d"
+    }
+  },
+  "learner_profile": {
+    "updates": 3,
+    "completed_agent_steps": 6497,
+    "stage_breakdown": {
+      "collect": {
+        "sample_count": 3,
+        "wall_seconds": 93.02287789992988,
+        "agent_steps": 6497.0,
+        "accounted_seconds": 92.88812350481749,
+        "accounted_fraction": 0.998551384367431,
+        "unattributed_seconds": 0.1347543951123953,
+        "unattributed_fraction": 0.0014486156325689947,
+        "passed_90_percent": true,
+        "stages": {
+          "central_rollout_startup_seconds": {
+            "total_seconds": 6.1645549004897475,
+            "milliseconds_per_agent_step": 0.948830983606241,
+            "fraction_of_stage_wall": 0.06626923440404969,
+            "median_seconds": 3.8000289350748062e-06,
+            "p95_seconds": 6.164547800319269
+          },
+          "central_collection_setup_seconds": {
+            "total_seconds": 0.01172510045580566,
+            "milliseconds_per_agent_step": 0.0018046945445291149,
+            "fraction_of_stage_wall": 0.000126045341968661,
+            "median_seconds": 0.003854400245472789,
+            "p95_seconds": 0.004017800325527787
+          },
+          "episode_dispatch_seconds": {
+            "total_seconds": 0.0023607006296515465,
+            "milliseconds_per_agent_step": 0.0003633524133679462,
+            "fraction_of_stage_wall": 2.5377634867318226e-05,
+            "median_seconds": 0.00017550028860569,
+            "p95_seconds": 0.002024000510573387
+          },
+          "central_worker_message_wait_seconds": {
+            "total_seconds": 2.6083323997445405,
+            "milliseconds_per_agent_step": 0.40146720020694787,
+            "fraction_of_stage_wall": 0.028039687210607216,
+            "median_seconds": 0.8408808007370681,
+            "p95_seconds": 1.0811355002224445
+          },
+          "central_batch_wait_seconds": {
+            "total_seconds": 0.4542313953861594,
+            "milliseconds_per_agent_step": 0.06991402114609195,
+            "fraction_of_stage_wall": 0.004883007337988431,
+            "median_seconds": 0.15185920149087906,
+            "p95_seconds": 0.1582014956511557
+          },
+          "central_batch_prepare_to_device_seconds": {
+            "total_seconds": 1.7122035997454077,
+            "milliseconds_per_agent_step": 0.2635375711475154,
+            "fraction_of_stage_wall": 0.01840626347410284,
+            "median_seconds": 0.5673745991662145,
+            "p95_seconds": 0.594678002409637
+          },
+          "central_forward_seconds": {
+            "total_seconds": 80.38347588968463,
+            "milliseconds_per_agent_step": 12.372398936383659,
+            "fraction_of_stage_wall": 0.8641258763909434,
+            "median_seconds": 26.418733896920457,
+            "p95_seconds": 28.177408394869417
+          },
+          "central_device_to_host_and_sample_seconds": {
+            "total_seconds": 1.0554864106234163,
+            "milliseconds_per_agent_step": 0.16245750509826323,
+            "fraction_of_stage_wall": 0.011346525010319122,
+            "median_seconds": 0.3485040084924549,
+            "p95_seconds": 0.365799602586776
+          },
+          "central_record_packaging_seconds": {
+            "total_seconds": 0.2974800083320588,
+            "milliseconds_per_agent_step": 0.04578728772234243,
+            "fraction_of_stage_wall": 0.0031979230813744047,
+            "median_seconds": 0.09787720371969044,
+            "p95_seconds": 0.10384820192120969
+          },
+          "central_response_dispatch_seconds": {
+            "total_seconds": 0.17509870184585452,
+            "milliseconds_per_agent_step": 0.02695070060733485,
+            "fraction_of_stage_wall": 0.0018823186919052148,
+            "median_seconds": 0.05787559598684311,
+            "p95_seconds": 0.061144900508224964
+          },
+          "central_bootstrap_seconds": {
+            "total_seconds": 0.010776899987831712,
+            "milliseconds_per_agent_step": 0.001658750190523582,
+            "fraction_of_stage_wall": 0.00011585214552730835,
+            "median_seconds": 0.0,
+            "p95_seconds": 0.010776899987831712
+          },
+          "central_episode_completion_seconds": {
+            "total_seconds": 0.0019910987466573715,
+            "milliseconds_per_agent_step": 0.00030646432917613844,
+            "fraction_of_stage_wall": 2.1404398483557048e-05,
+            "median_seconds": 0.0006548003293573856,
+            "p95_seconds": 0.0006886995397508144
+          },
+          "central_model_restore_seconds": {
+            "total_seconds": 0.005363999400287867,
+            "milliseconds_per_agent_step": 0.0008256117285343799,
+            "fraction_of_stage_wall": 5.766322781432577e-05,
+            "median_seconds": 0.0018143004272133112,
+            "p95_seconds": 0.001901999581605196
+          },
+          "central_collection_finalize_seconds": {
+            "total_seconds": 3.639981150627136e-05,
+            "milliseconds_per_agent_step": 5.602556796409322e-06,
+            "fraction_of_stage_wall": 3.9129956337653576e-07,
+            "median_seconds": 1.1600088328123093e-05,
+            "p95_seconds": 1.3299752026796341e-05
+          },
+          "trajectory_conversion_seconds": {
+            "total_seconds": 0.005005999933928251,
+            "milliseconds_per_agent_step": 0.0007705094557377638,
+            "fraction_of_stage_wall": 5.38147179160969e-05,
+            "median_seconds": 0.0016307998448610306,
+            "p95_seconds": 0.001792300259694457
+          }
+        }
+      },
+      "update": {
+        "sample_count": 3,
+        "wall_seconds": 58.99797390005551,
+        "agent_steps": 6497.0,
+        "accounted_seconds": 58.954491616908456,
+        "accounted_fraction": 0.9992629868405191,
+        "unattributed_seconds": 0.04348228314705693,
+        "unattributed_fraction": 0.0007370131594809906,
+        "passed_90_percent": true,
+        "stages": {
+          "advantages_seconds": {
+            "total_seconds": 0.002969800028949976,
+            "milliseconds_per_agent_step": 0.00045710328289210036,
+            "fraction_of_stage_wall": 5.033732232874495e-05,
+            "median_seconds": 0.0010732999071478844,
+            "p95_seconds": 0.0011851000599563122
+          },
+          "sequence_batching_seconds": {
+            "total_seconds": 0.0009548002853989601,
+            "milliseconds_per_agent_step": 0.00014696017937493614,
+            "fraction_of_stage_wall": 1.6183611440901732e-05,
+            "median_seconds": 0.0003347001038491726,
+            "p95_seconds": 0.000364100094884634
+          },
+          "permutation_seconds": {
+            "total_seconds": 0.023928999435156584,
+            "milliseconds_per_agent_step": 0.0036830844135995974,
+            "fraction_of_stage_wall": 0.00040559018985453785,
+            "median_seconds": 0.0011752999853342772,
+            "p95_seconds": 0.02231979975476861
+          },
+          "learner_padding_and_numpy_seconds": {
+            "total_seconds": 0.14841499947942793,
+            "milliseconds_per_agent_step": 0.022843620052243795,
+            "fraction_of_stage_wall": 0.0025155948529833883,
+            "median_seconds": 0.04682620009407401,
+            "p95_seconds": 0.05831559933722019
+          },
+          "learner_cpu_tensor_construction_seconds": {
+            "total_seconds": 0.0017992008943110704,
+            "milliseconds_per_agent_step": 0.0002769279504865431,
+            "fraction_of_stage_wall": 3.049597766457159e-05,
+            "median_seconds": 0.0005802004598081112,
+            "p95_seconds": 0.0006518000736832619
+          },
+          "learner_host_to_device_seconds": {
+            "total_seconds": 0.11810121589899063,
+            "milliseconds_per_agent_step": 0.018177807587962235,
+            "fraction_of_stage_wall": 0.00200178426633867,
+            "median_seconds": 0.03921049588918686,
+            "p95_seconds": 0.0419331841468811
+          },
+          "learner_forward_seconds": {
+            "total_seconds": 29.369683288574215,
+            "milliseconds_per_agent_step": 4.520499197871974,
+            "fraction_of_stage_wall": 0.4978083372545541,
+            "median_seconds": 9.793433166503906,
+            "p95_seconds": 9.8136728515625
+          },
+          "learner_loss_seconds": {
+            "total_seconds": 0.33888803315162663,
+            "milliseconds_per_agent_step": 0.052160694651627926,
+            "fraction_of_stage_wall": 0.0057440622236572736,
+            "median_seconds": 0.09983804821968079,
+            "p95_seconds": 0.14054073810577394
+          },
+          "learner_loss_validation_seconds": {
+            "total_seconds": 0.01132689998485148,
+            "milliseconds_per_agent_step": 0.0017434046459675974,
+            "fraction_of_stage_wall": 0.00019198794867158686,
+            "median_seconds": 0.00292639946565032,
+            "p95_seconds": 0.005564600229263306
+          },
+          "learner_zero_grad_seconds": {
+            "total_seconds": 0.019160399213433266,
+            "milliseconds_per_agent_step": 0.002949114855076692,
+            "fraction_of_stage_wall": 0.0003247636816459427,
+            "median_seconds": 0.005803899839520454,
+            "p95_seconds": 0.00782859930768609
+          },
+          "learner_backward_seconds": {
+            "total_seconds": 27.900011352539064,
+            "milliseconds_per_agent_step": 4.294291419507321,
+            "fraction_of_stage_wall": 0.4728977879783226,
+            "median_seconds": 9.277328735351563,
+            "p95_seconds": 9.395687011718751
+          },
+          "learner_gradient_clip_seconds": {
+            "total_seconds": 0.09785302376747132,
+            "milliseconds_per_agent_step": 0.01506126270085752,
+            "fraction_of_stage_wall": 0.0016585827834229956,
+            "median_seconds": 0.019449472069740296,
+            "p95_seconds": 0.059546111702919007
+          },
+          "learner_grad_norm_validation_seconds": {
+            "total_seconds": 0.007036298979073763,
+            "milliseconds_per_agent_step": 0.0010830073848043349,
+            "fraction_of_stage_wall": 0.00011926340031597496,
+            "median_seconds": 0.002104899613186717,
+            "p95_seconds": 0.0030208993703126907
+          },
+          "learner_optimizer_seconds": {
+            "total_seconds": 0.16869510459899903,
+            "milliseconds_per_agent_step": 0.02596507689687533,
+            "fraction_of_stage_wall": 0.0028593372525770803,
+            "median_seconds": 0.03429075217247009,
+            "p95_seconds": 0.10112112069129944
+          },
+          "parameter_validation_seconds": {
+            "total_seconds": 0.7425374002195895,
+            "milliseconds_per_agent_step": 0.11428927200547784,
+            "fraction_of_stage_wall": 0.012585811870039333,
+            "median_seconds": 0.24674659967422485,
+            "p95_seconds": 0.25050790049135685
+          },
+          "metric_extraction_seconds": {
+            "total_seconds": 0.0031307998578995466,
+            "milliseconds_per_agent_step": 0.00048188392456511415,
+            "fraction_of_stage_wall": 5.3066226701330854e-05,
+            "median_seconds": 0.0010125006083399057,
+            "p95_seconds": 0.0011235997080802917
+          }
+        }
+      },
+      "pipeline": {
+        "wall_seconds": 152.0208517999854,
+        "accounted_seconds": 151.84261512172594,
+        "accounted_fraction": 0.9988275511145408,
+        "unattributed_seconds": 0.17823667825945222,
+        "passed_90_percent": true
+      }
+    }
+  },
+  "requirements": {
+    "mutually_exclusive_stages_explain_at_least_90_percent": {
+      "passed": true,
+      "pipeline_accounted_fraction": 0.9988275511145408,
+      "collect_accounted_fraction": 0.998551384367431,
+      "update_accounted_fraction": 0.9992629868405191
+    },
+    "totals_per_step_fraction_median_p95_present": {
+      "passed": true,
+      "required_fields": [
+        "fraction_of_stage_wall",
+        "median_seconds",
+        "milliseconds_per_agent_step",
+        "p95_seconds",
+        "total_seconds"
+      ]
+    },
+    "profiling_disabled_has_no_obvious_throughput_regression": {
+      "passed": true,
+      "steady_sample_count": 3,
+      "steady_steps_per_second": [
+        43.36430329335577,
+        44.460098648372046,
+        44.43934795619635
+      ],
+      "median_steps_per_second": 44.43934795619635,
+      "p95_steps_per_second": 44.460098648372046,
+      "baseline_median_steps_per_second": 44.705437741344035,
+      "relative_delta": -0.005952067546843461,
+      "maximum_allowed_relative_regression": 0.02,
+      "comparison_scope": "short steady-state profiling-overhead guard only; not an optimization throughput conclusion"
+    },
+    "summary_empty_and_stage_sum_tests_defined": {
+      "passed": true,
+      "tests": [
+        "tests.test_rl_profiling",
+        "tests.test_training_speed_stage_2_2"
+      ],
+      "actual_execution_recorded_in_checklist": true
+    },
+    "source_integrity": {
+      "passed": true,
+      "checkpoint_sha256": [
+        "4d6a8dd7d32f4e530766aab8d2ec4691de4925bc73e188021da1f45dbe54e0bd"
+      ]
+    }
+  },
+  "passed": true
+}

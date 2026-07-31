@@ -396,6 +396,7 @@ class PPOTrainerTests(unittest.TestCase):
                 max_agent_steps_per_episode=8,
                 profile_ipc_timing=True,
                 profile_central_timing=True,
+                profile_learner_timing=True,
                 training_class_ids=(6,),
                 training_deck=OFFICIAL_QR_EVOLVE_HAVEN,
             ),
@@ -765,6 +766,41 @@ class PPOTrainerTests(unittest.TestCase):
                 0.0,
             )
             self.assertEqual(
+                trainer.last_update_timing[
+                    "learner_profiled_minibatches"
+                ],
+                trainer.last_update_timing["minibatches"],
+            )
+            for field in (
+                "learner_padding_and_numpy_seconds",
+                "learner_cpu_tensor_construction_seconds",
+                "learner_host_to_device_seconds",
+                "learner_forward_seconds",
+                "learner_loss_seconds",
+                "learner_backward_seconds",
+                "learner_gradient_clip_seconds",
+                "learner_optimizer_seconds",
+            ):
+                with self.subTest(field=field):
+                    self.assertGreater(
+                        trainer.last_update_timing[field],
+                        0.0,
+                    )
+            self.assertEqual(
+                trainer.last_update_timing["learner_effective_tokens"]
+                + trainer.last_update_timing["learner_padding_tokens"],
+                trainer.last_update_timing["learner_token_slots"],
+            )
+            self.assertAlmostEqual(
+                trainer.last_update_timing[
+                    "learner_effective_token_fraction"
+                ]
+                + trainer.last_update_timing[
+                    "learner_padding_fraction"
+                ],
+                1.0,
+            )
+            self.assertEqual(
                 trainer.last_update_timing["records"],
                 float(len(records)),
             )
@@ -897,6 +933,69 @@ class PPOTrainerTests(unittest.TestCase):
             np.testing.assert_array_equal(
                 summaries[0][2][key], summaries[1][2][key]
             )
+
+    def test_learner_profile_preserves_update_results(self) -> None:
+        summaries = []
+        timings = []
+        for profile_learner_timing in (False, True):
+            trainer = PPOTrainer(
+                self.snapshot,
+                master_seed=786,
+                config=PPOConfig(
+                    rollout_steps=8,
+                    rollout_workers=2,
+                    sequence_length=4,
+                    minibatch_sequences=2,
+                    update_epochs=1,
+                    hidden_size=16,
+                    max_agent_steps_per_episode=8,
+                    profile_learner_timing=profile_learner_timing,
+                ),
+            )
+            try:
+                records, bootstrap, boundaries = trainer.collect_rollout()
+                metrics = trainer.update(records, bootstrap)
+                summaries.append((
+                    [
+                        (
+                            record.episode_id,
+                            record.player_id,
+                            record.action,
+                            record.old_log_prob,
+                            record.value,
+                            record.reward,
+                            record.hidden_before.copy(),
+                        )
+                        for record in records
+                    ],
+                    dict(bootstrap),
+                    dict(boundaries),
+                    metrics,
+                    {
+                        key: value.detach().cpu().numpy().copy()
+                        for key, value in trainer.model.state_dict().items()
+                    },
+                ))
+                timings.append(dict(trainer.last_update_timing))
+            finally:
+                trainer.close()
+        self.assertEqual(
+            [item[:-1] for item in summaries[0][0]],
+            [item[:-1] for item in summaries[1][0]],
+        )
+        for first, second in zip(summaries[0][0], summaries[1][0]):
+            np.testing.assert_array_equal(first[-1], second[-1])
+        self.assertEqual(summaries[0][1:4], summaries[1][1:4])
+        for key in summaries[0][4]:
+            np.testing.assert_array_equal(
+                summaries[0][4][key],
+                summaries[1][4][key],
+            )
+        self.assertNotIn("learner_profiled_minibatches", timings[0])
+        self.assertEqual(
+            timings[1]["learner_profiled_minibatches"],
+            timings[1]["minibatches"],
+        )
 
     def test_seeded_central_policy_rollout_is_reproducible(self) -> None:
         summaries = []
