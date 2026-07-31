@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import subprocess
 import unittest
 from pathlib import Path
 
@@ -344,6 +345,7 @@ class TrainingSpeedStage27BLearnerAmp001Tests(unittest.TestCase):
 
 class TrainingSpeedStage27AcceptanceTests(unittest.TestCase):
     ROOT = Path(__file__).resolve().parents[1]
+    ACCEPTANCE_COMMIT = "a75af5c"
     REPORT = (
         ROOT
         / "data/reports/training_speed/"
@@ -370,10 +372,21 @@ class TrainingSpeedStage27AcceptanceTests(unittest.TestCase):
             ],
             2906,
         )
-        for source in report["sources"].values():
-            digest = hashlib.sha256(
-                (self.ROOT / source["path"]).read_bytes()
-            ).hexdigest()
+        for name, source in report["sources"].items():
+            if name == "registry":
+                content = subprocess.check_output(
+                    [
+                        "git",
+                        "show",
+                        f"{self.ACCEPTANCE_COMMIT}:{source['path']}",
+                    ],
+                    cwd=self.ROOT,
+                )
+            else:
+                content = (
+                    self.ROOT / source["path"]
+                ).read_bytes()
+            digest = hashlib.sha256(content).hexdigest()
             self.assertEqual(digest, source["sha256"])
 
 

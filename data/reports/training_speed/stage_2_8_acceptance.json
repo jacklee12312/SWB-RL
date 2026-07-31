@@ -1,0 +1,75 @@
+{
+  "schema_version": 1,
+  "report_kind": "swb_training_speed_stage_2_8_acceptance",
+  "checklist_section": "2.8",
+  "candidate_dispositions": {
+    "A-OVERLAP-001": "closed_below_materiality_or_not_overlapable",
+    "C-ASYNC-001": "deferred_separate_algorithm_experiment"
+  },
+  "checklist": {
+    "path": "docs/card_bug_audit_and_training_speed_checklist.md",
+    "unchecked_items": []
+  },
+  "profiled_source_commit": "a75af5c8b84d050e5ee51544110f6422d1a0d501",
+  "source_contracts": {
+    "swb/rl/policy.py": {
+      "profiled_commit_sha256": "f53575c87fbcd355b8bb9276b922163adc48fbf482c44561c4cbb63ba977d6d9",
+      "current_sha256": "f53575c87fbcd355b8bb9276b922163adc48fbf482c44561c4cbb63ba977d6d9",
+      "unchanged": true
+    },
+    "swb/rl/ppo.py": {
+      "profiled_commit_sha256": "a3d3e8b2acec244aa6e37d11d3fa5a0ed406dc8d7770c55ddb4a56535d7a1597",
+      "current_sha256": "a3d3e8b2acec244aa6e37d11d3fa5a0ed406dc8d7770c55ddb4a56535d7a1597",
+      "unchanged": true
+    },
+    "swb/rl/vector_rollout.py": {
+      "profiled_commit_sha256": "05a6b40b86b7f961d5296cde53a228ea3048b4fb770a3019d932d4da570fad0d",
+      "current_sha256": "05a6b40b86b7f961d5296cde53a228ea3048b4fb770a3019d932d4da570fad0d",
+      "unchanged": true
+    }
+  },
+  "checkpoint": {
+    "path": "data/checkpoints/training_speed/frozen_v4_1_seed_20260801_500k.pt",
+    "sha256": "4d6a8dd7d32f4e530766aab8d2ec4691de4925bc73e188021da1f45dbe54e0bd",
+    "unchanged_from_frozen_contract": true
+  },
+  "mandatory_verification": {
+    "unittest": {
+      "command": "E:\\anaconda\\python.exe -m unittest discover -s tests -v",
+      "log": "data/reports/training_speed/stage_2_8_complete_unittest.log",
+      "tests_run": 2911,
+      "seconds": 462.871,
+      "skipped": 1,
+      "passed": true
+    },
+    "compileall": {
+      "command": "E:\\anaconda\\python.exe -m compileall -q swb scripts tests",
+      "passed": true
+    }
+  },
+  "gates": {
+    "all_checklist_items_closed": true,
+    "candidate_dispositions_match": true,
+    "overlap_gate_passed": true,
+    "rollout_overlap_below_materiality": true,
+    "learner_overlap_below_materiality": true,
+    "pipeline_hole_rejected_by_causality": true,
+    "synchronous_default_retained": true,
+    "async_deferred_with_contract": true,
+    "profiled_training_sources_current": true,
+    "checkpoint_unchanged": true,
+    "unittest_passed": true,
+    "compileall_passed": true
+  },
+  "sources": {
+    "registry": {
+      "path": "data/reports/training_speed/candidate_registry.json",
+      "sha256": "8e98ea440c02ec21159851444be006cfcaddcdd876d4c9e54b6bad430ad32e92"
+    },
+    "overlap_gate": {
+      "path": "data/reports/training_speed/stage_2_8_overlap_gate.json",
+      "sha256": "dd4ad7eabf4a08720b8b14ca858f9fb917e5fae185768ab6b4f22525a1b4d546"
+    }
+  },
+  "passed": true
+}

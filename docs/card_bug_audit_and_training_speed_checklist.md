@@ -1957,20 +1957,63 @@ B 类候选：
 
 ## 2.8 有条件地评估流水线重叠和策略滞后
 
-- [ ] 在 2.4–2.7 已采用候选上重新剖析；只有可调度的 CPU 准备、H2D 或
+- [x] 在 2.4–2.7 已采用候选上重新剖析；只有可调度的 CPU 准备、H2D 或
   pipeline 空洞占 wall time 至少 5%，且理论上能与 CUDA 工作重叠，才进入
   实现；否则保存“无明确收益/延期”证据并关闭本节同步候选。
-- [ ] A 类：评估同一 rollout 内 CPU 准备、H2D 和 CUDA 前向的安全重叠；
+- [x] A 类：评估同一 rollout 内 CPU 准备、H2D 和 CUDA 前向的安全重叠；
   当前 batch 1 H2D 约 0.105 ms，不能只凭利用率曲线实施异步拷贝。
-- [ ] A 类：评估 learner update 中下一 minibatch 准备与当前 CUDA 计算的
+- [x] A 类：评估 learner update 中下一 minibatch 准备与当前 CUDA 计算的
   重叠。
-- [ ] 同步重叠不得改变 worker 权重版本、请求顺序、RNG 消耗、hidden state
+- [x] 同步重叠不得改变 worker 权重版本、请求顺序、RNG 消耗、hidden state
   所属 episode 或 PPO generation 边界。
-- [ ] 若考虑 actor/learner 异步，明确记录 policy generation、最大 lag 和
+- [x] 若考虑 actor/learner 异步，明确记录 policy generation、最大 lag 和
   每条 trajectory 的行为策略 log probability。
-- [ ] 异步方案列为 C 类；必须重新证明 PPO ratio、clip 和 on-policy 边界
+- [x] 异步方案列为 C 类；必须重新证明 PPO ratio、clip 和 on-policy 边界
   合理，并与同步方案做至少三 seed 学习曲线和固定评估，不能只比较 steps/s。
-- [ ] 在同步 A/B 类收益耗尽前，不优先实现异步或分布式 learner。
+- [x] 在同步 A/B 类收益耗尽前，不优先实现异步或分布式 learner。
+
+阶段结论（2026-08-01）：
+
+- 在 2.4–2.7 最终采用源码提交
+  `a75af5c8b84d050e5ee51544110f6422d1a0d501` 上，从只读冻结
+  v4.1 checkpoint 额外采集 `9,261` agent steps；排除首个 warm-up
+  update 后保留三组稳态样本。IPC、central 和 learner 组件剖析均开启，
+  checkpoint 前后 SHA-256 均为
+  `4d6a8dd7d32f4e530766aab8d2ec4691de4925bc73e188021da1f45dbe54e0bd`。
+  该次带探针吞吐仅用于归因，不作为采用性能数据。
+- Rollout 中完整的 central batch CPU 准备及 H2D 阶段累计
+  `1.1276s / 52.1329s`，即整条稳态 pipeline 的 `2.163%`（rollout
+  wall 的 `2.713%`），低于 `5%` 实现门。三组样本共 `2,226` 个 batch，
+  H2D 均值约 `0.291 ms/batch`；它补充而不推翻旧 batch 1 定位数据，
+  两者都不足以单凭利用率曲线实施异步拷贝。
+- Learner 下一 minibatch 的 padding/NumPy、CPU tensor 构造和 H2D
+  合计 `0.2878s`，只占 pipeline wall 的 `0.552%`（update wall 的
+  `2.725%`），同样在实现前关闭。
+- Central 等首个 worker 请求及 `1 ms` batch 形成窗口合计
+  `8.1004s`，虽占 pipeline wall 的 `15.538%`，但此时没有独立就绪的
+  CUDA batch：worker 必须先收到当前 action 才能推进环境并产生下一
+  observation，multiprocessing queue 也已在 central CUDA 期间缓存其他
+  worker 请求。另开消费线程不能创造可重叠推理；提前发出 partial batch
+  是改变 batching 取舍而非隐藏等待。因此没有越过“至少 5% 且理论可重叠”
+  的联合门槛，A-OVERLAP-001 以
+  `closed_below_materiality_or_not_overlapable` 关闭，未增加异步开关或
+  伪造实现收益，同步实现继续为唯一默认路径。
+- C-ASYNC-001 会改变 PPO on-policy 边界，延期为独立算法实验。若重开，
+  必须显式保存 trajectory policy generation、最大 update lag 和每条
+  record 的行为策略 log probability，并重新论证 ratio/clip 边界，完成
+  至少三 seed 学习曲线与固定对阵；本阶段不以 steps/s 代替学习有效性。
+  可复算原始剖析及联合门禁分别为
+  `data/reports/training_speed/stage_2_8_overlap_profile.json` 和
+  `data/reports/training_speed/stage_2_8_overlap_gate.json`。
+- 阶段验收：首次完整回归准确捕获到 2.7 registry 证据哈希错误绑定未来
+  工作树的问题；修复为读取 2.7 验收提交 `a75af5c` 的 Git blob 后，
+  `E:\anaconda\python.exe -m unittest discover -s tests -v` 最终通过
+  `2,911` tests（`1` skip），耗时 `462.871s`，API test 通过；完整输出
+  保存在 `data/reports/training_speed/stage_2_8_complete_unittest.log`。
+  `E:\anaconda\python.exe -m compileall -q swb scripts tests` 通过。
+  综合机器验收
+  `data/reports/training_speed/stage_2_8_acceptance.json` 的全部 gate
+  均为 `true`。
 
 ## 2.9 每项性能候选的统一验收
 
