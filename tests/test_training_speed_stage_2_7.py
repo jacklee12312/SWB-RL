@@ -88,5 +88,46 @@ class TrainingSpeedStage27BaselineTests(unittest.TestCase):
         )
 
 
+class TrainingSpeedStage27APaddedCompute001Tests(unittest.TestCase):
+    ROOT = Path(__file__).resolve().parents[1]
+    REPORT = (
+        ROOT
+        / "data/reports/training_speed/"
+        "stage_2_7_a_padded_compute_001_gate.json"
+    )
+
+    @staticmethod
+    def _sha256(path: Path) -> str:
+        digest = hashlib.sha256()
+        with path.open("rb") as source:
+            for block in iter(lambda: source.read(1024 * 1024), b""):
+                digest.update(block)
+        return digest.hexdigest()
+
+    def test_saved_gate_reclassifies_fast_but_drifting_candidate(
+        self,
+    ) -> None:
+        report = json.loads(self.REPORT.read_text(encoding="utf-8"))
+        self.assertTrue(report["passed"])
+        self.assertTrue(report["timing"]["speed_gate_passed"])
+        self.assertGreater(
+            report["timing"]["relative_reduction"], 0.50
+        )
+        self.assertFalse(
+            report["numeric"]["model_after_one_update"]["allclose"]
+        )
+        self.assertTrue(
+            report["numeric"]["optimizer_after_one_update"][
+                "allclose"
+            ]
+        )
+        self.assertFalse(report["decision"]["adopt_as_a"])
+        self.assertTrue(report["decision"]["reclassify_as_b"])
+        self.assertFalse(report["decision"]["run_end_to_end_as_a"])
+        for source in report["sources"].values():
+            path = self.ROOT / source["path"]
+            self.assertEqual(self._sha256(path), source["sha256"])
+
+
 if __name__ == "__main__":
     unittest.main()

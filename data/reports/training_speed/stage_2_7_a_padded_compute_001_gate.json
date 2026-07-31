@@ -1,0 +1,95 @@
+{
+  "schema_version": 1,
+  "report_kind": "swb_training_speed_stage_2_7_a_padded_compute_001_gate",
+  "checklist_section": "2.7",
+  "candidate": "A-PADDED-COMPUTE-001",
+  "classification": "A",
+  "methodology": {
+    "same_collected_rollout": true,
+    "same_minibatch_permutation_seed_per_pair": true,
+    "repeats": 3,
+    "records": 2434,
+    "rollout_workers": 6,
+    "worker_torch_threads": 2,
+    "central_inference_batch_wait_seconds": 0.001
+  },
+  "timing": {
+    "baseline_seconds": [
+      20.061914399964735,
+      21.381517400033772,
+      21.434870400000364
+    ],
+    "candidate_seconds": [
+      5.932708199834451,
+      6.95089179999195,
+      6.162163600092754
+    ],
+    "baseline_median_seconds": 21.381517400033772,
+    "candidate_median_seconds": 6.162163600092754,
+    "relative_reduction": 0.7117995189582279,
+    "comparison_three_run_relative_range": 0.014605983334379203,
+    "speed_gate_passed": true
+  },
+  "numeric": {
+    "model_after_one_update": {
+      "tensor_count": 130,
+      "finite": true,
+      "allclose": false,
+      "rtol": 1e-05,
+      "atol": 1e-06,
+      "maximum_absolute_error": 4.757288843393326e-05,
+      "mean_of_tensor_mean_absolute_errors": 3.7138054126525555e-07,
+      "worst_tensor": "policy_head.3.bias"
+    },
+    "optimizer_after_one_update": {
+      "tensor_count": 384,
+      "finite": true,
+      "allclose": true,
+      "rtol": 1e-05,
+      "atol": 1e-06,
+      "maximum_absolute_error": 4.016328603029251e-09,
+      "mean_of_tensor_mean_absolute_errors": 1.7524887037688547e-11,
+      "worst_tensor": "124:exp_avg"
+    },
+    "metric_absolute_errors": {
+      "policy_loss": 3.414849440545875e-09,
+      "value_loss": 6.208817071584605e-10,
+      "entropy": 1.738468807799265e-08,
+      "grad_norm": 3.476937610047415e-08,
+      "agent_steps": 0.0,
+      "completed_episodes": 0.0,
+      "updates": 0.0
+    },
+    "strict_a_gate_passed": false
+  },
+  "decision": {
+    "adopt_as_a": false,
+    "reclassify_as_b": true,
+    "run_end_to_end_as_a": false,
+    "reason": "strict_a_numeric_gate_failed"
+  },
+  "checkpoint": {
+    "before": {
+      "sha256": "4d6a8dd7d32f4e530766aab8d2ec4691de4925bc73e188021da1f45dbe54e0bd",
+      "size": 68377329,
+      "mtime_ns": 1785438586793295200
+    },
+    "after": {
+      "sha256": "4d6a8dd7d32f4e530766aab8d2ec4691de4925bc73e188021da1f45dbe54e0bd",
+      "size": 68377329,
+      "mtime_ns": 1785438586793295200
+    },
+    "unchanged": true
+  },
+  "sources": {
+    "baseline": {
+      "path": "data/reports/training_speed/stage_2_7_learner_baseline_summary.json",
+      "sha256": "bd5fa71444eda555b0b4f2af288548baf5d3fab6b26304eb638cba9be0e7d7c8"
+    },
+    "checkpoint": {
+      "path": "data/checkpoints/training_speed/frozen_v4_1_seed_20260801_500k.pt",
+      "sha256": "4d6a8dd7d32f4e530766aab8d2ec4691de4925bc73e188021da1f45dbe54e0bd"
+    }
+  },
+  "passed": true
+}

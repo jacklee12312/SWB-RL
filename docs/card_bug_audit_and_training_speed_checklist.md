@@ -981,8 +981,9 @@ Invocation/瞬念召唤及其他替代出牌方式。
 
 - `data/reports/training_speed/candidate_registry.json` 初始登记 15 项候选；
   2.7 基线再按已测瓶颈拆出 padding compute、optimizer 组和 learner AMP，
-  当前共 18 项：12 项 A 类、3 项 B 类、3 项 C 类，并为每项记录语义边界
-  和当前处置。
+  padding compute 的 A 类门禁又因数值漂移拆出 B 类学习验证，当前共
+  19 项：12 项 A 类、4 项 B 类、3 项 C 类，并为每项记录语义边界和当前
+  处置。
 - 注册表固定执行顺序为 A → B → C；B 类要求数值、长局和三 seed
   小规模学习证据，C 类只允许作为独立算法实验并要求至少三 seed
   固定对阵强度比较。
@@ -1879,6 +1880,26 @@ B 类候选：
 - 原始分段与汇总证据保存于
   `data/reports/training_speed/stage_2_7_learner_baseline.json` 和
   `data/reports/training_speed/stage_2_7_learner_baseline_summary.json`。
+
+2.7 A-PADDED-COMPUTE-001 重分类结果（2026-07-31）：
+
+- 实验保持同一 rollout、minibatch membership、permutation seed、有效
+  token 顺序和 recurrent 边界；v4.1 structured-token/Transformer 编码只
+  对有效 token 每 minibatch 批量执行一次，再按原 timestep 推进 GRU 与
+  policy/value heads。公开 `forward_step()` 校验不变，collate 在 H2D 前
+  继续拒绝越界 card index。
+- 同一 `2434`-record rollout 的旧/新 update 各三次为
+  `20.062 / 21.382 / 21.435s` 与 `5.933 / 6.951 / 6.162s`；中位数从
+  `21.382s` 降至 `6.162s`，减少 `71.180%`，远超 `1.461%` 门槛。
+- 冻结大模型一次相同 update 后，metrics 最大绝对差 `3.48e-8`，所有
+  model/optimizer tensor 与 metrics 均有限，optimizer state 通过
+  `rtol=1e-5, atol=1e-6`；但 model parameter 的最差项
+  `policy_head.3.bias` 最大绝对漂移 `4.76e-5`，未通过 A 类严格容差。
+- 因此不按 A 类采用，也不直接进入 A 类端到端；A-PADDED-COMPUTE-001
+  处置为 `reclassified_as_b_due_strict_parameter_drift`，同一实现登记为
+  B-BATCHED-LEARNER-001，必须通过 B 类长局、checkpoint resume 与三 seed
+  小规模学习门禁。机器证据保存于
+  `data/reports/training_speed/stage_2_7_a_padded_compute_001_gate.json`。
 
 ## 2.8 有条件地评估流水线重叠和策略滞后
 

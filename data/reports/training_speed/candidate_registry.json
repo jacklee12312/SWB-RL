@@ -130,7 +130,8 @@
       "class": "A",
       "description": "Skip padded sequence rows during learner forward and backward without changing valid-token ordering or minibatch membership.",
       "semantics": "Every valid token, recurrent boundary, loss, gradient, optimizer step and PPO generation stays fixed; only invalid padded rows may be omitted.",
-      "disposition": "pending_micro"
+      "disposition": "reclassified_as_b_due_strict_parameter_drift",
+      "evidence": "data/reports/training_speed/stage_2_7_a_padded_compute_001_gate.json"
     },
     {
       "id": "A-OPTIMIZER-001",
@@ -153,6 +154,14 @@
       "description": "Evaluate learner-only FP16 and BF16 autocast with the appropriate gradient scaling contract.",
       "semantics": "Rollout data flow and PPO batches stay fixed, but learner numeric outputs, gradients and optimizer trajectory may drift.",
       "disposition": "pending_numeric_and_micro"
+    },
+    {
+      "id": "B-BATCHED-LEARNER-001",
+      "class": "B",
+      "description": "Batch valid v4.1 structured-token encoding across each learner minibatch before recurrent stepping.",
+      "semantics": "Rollout, minibatch membership, valid-token order, recurrent boundaries and PPO losses stay fixed, but larger encoder batches introduce bounded floating-point drift.",
+      "disposition": "pending_stability_and_learning",
+      "evidence": "data/reports/training_speed/stage_2_7_a_padded_compute_001_gate.json"
     },
     {
       "id": "B-PRECISION-001",
