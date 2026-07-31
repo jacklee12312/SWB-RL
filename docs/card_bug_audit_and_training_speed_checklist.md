@@ -1609,7 +1609,7 @@ A 类候选按以下顺序实施：
   buffer，避免每次 forward 重新创建。
 - [x] A-NET-003：在逐字段语义等价的前提下，合并重复的
   `round → long → clamp` 和 semantic-context 小算子。
-- [ ] 调整固定输入的连续内存布局，并合并可等价合并的小 projection/
+- [x] 调整固定输入的连续内存布局，并合并可等价合并的小 projection/
   elementwise 操作，减少 `permute/contiguous` 和 CUDA kernel launch。
 - [ ] 每个候选分别记录 batch 1/2/4/8/16/32/64 纯前向、组件时间、kernel
   数、kernel gap、同步事件及三次端到端结果；以 batch 4 当前每 forward
@@ -1704,6 +1704,22 @@ B 类候选：
   `data/reports/training_speed/stage_2_6_a_net_003_trace.json.gz`、
   `data/reports/training_speed/stage_2_6_a_net_003_runs/` 和
   `data/reports/training_speed/stage_2_6_a_net_003.json`。
+
+2.6 A-NET-004 物料性门禁关闭（2026-07-31）：
+
+- `swb/rl/policy.py` 没有显式 `.permute()` 或 `.contiguous()` 调用，两者也
+  未进入阶段 2.3 batch-4 profiler 的前 50 operator，因此不存在可直接修正
+  的固定输入布局转换点。
+- 三次 forward 的全部 `aten::cat` device time 为 `83.935` μs，全部
+  `aten::mm` 为 `836.091` μs。即作不可能实现的宽松假设——删除所有 cat
+  和所有 mm，包括模型必须保留的核心 projection——每 forward 上限也只有
+  `0.307` ms，占 `22.013` ms 的 `1.393%`，低于相邻三次运行
+  `1.461%` 的波动门槛。
+- 因此该项在实现前按
+  `closed_no_actionable_layout_and_below_variability_upper_bound` 关闭，不制造
+  无依据的内存重排，也不运行没有代码候选的三次端到端。机器可读计算和输入
+  SHA-256 保存于
+  `data/reports/training_speed/stage_2_6_a_net_004_layout_projection_gate.json`。
 
 ## 2.7 在继承网络收益后优化 learner 更新
 

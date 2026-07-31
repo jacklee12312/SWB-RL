@@ -1,0 +1,67 @@
+{
+  "schema_version": 1,
+  "report_kind": "swb_training_speed_stage_2_6_a_net_004_layout_projection_gate",
+  "checklist_section": "2.6",
+  "candidate": "A-NET-004",
+  "classification": "A",
+  "methodology": {
+    "profile_batch_size": 4,
+    "profile_iterations": 3,
+    "profile_operator_limit": 50,
+    "upper_bound_assumption": "delete every aten::cat and every aten::mm, including core projections that the candidate cannot remove"
+  },
+  "source_layout_scan": {
+    "permute": 0,
+    "contiguous": 0
+  },
+  "operators": {
+    "aten::permute": {
+      "present_in_top_50": false,
+      "calls_over_profile": 0,
+      "device_total_microseconds": null
+    },
+    "aten::contiguous": {
+      "present_in_top_50": false,
+      "calls_over_profile": 0,
+      "device_total_microseconds": null
+    },
+    "aten::cat": {
+      "present_in_top_50": true,
+      "calls_over_profile": 27,
+      "device_total_microseconds": 83.93500000001131
+    },
+    "aten::mm": {
+      "present_in_top_50": true,
+      "calls_over_profile": 93,
+      "device_total_microseconds": 836.0909999999781
+    }
+  },
+  "upper_bound": {
+    "batch_4_forward_device_milliseconds": 22.013250732421874,
+    "all_cat_and_mm_device_milliseconds_per_forward": 0.30667533333332975,
+    "all_cat_and_mm_fraction_of_forward": 0.01393139691457054,
+    "comparison_three_run_relative_range": 0.014605983334379203,
+    "below_variability_gate": true
+  },
+  "decision": {
+    "implement": false,
+    "run_end_to_end": false,
+    "disposition": "closed_no_actionable_layout_and_below_variability_upper_bound",
+    "reason": "there is no explicit permute/contiguous site, and an intentionally impossible all-cat/all-mm removal remains below adjacent three-run variability"
+  },
+  "sources": {
+    "profile": {
+      "path": "data/reports/training_speed/v4_1_inference_breakdown.json",
+      "sha256": "49a77458533861eaca7e378cd5a9d618668ef1707efd174b85a4ee588d18457a"
+    },
+    "comparison": {
+      "path": "data/reports/training_speed/stage_2_5_a_obs_001.json",
+      "sha256": "222f40a0d0ec5e9f0c5b5394dbf8f9ff526cb44467c1058d03d746a373e4242a"
+    },
+    "policy": {
+      "path": "swb/rl/policy.py",
+      "sha256": "c4bcf3ed884d329aaf3d05ee79ab5d515e41c89ac2e83d9efa538bd1a360b2af"
+    }
+  },
+  "passed": true
+}

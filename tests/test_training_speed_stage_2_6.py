@@ -385,5 +385,51 @@ class TrainingSpeedStage26ANet003Tests(unittest.TestCase):
                 self.assertEqual(self._sha256(path), entry["sha256"])
 
 
+class TrainingSpeedStage26ANet004Tests(unittest.TestCase):
+    ROOT = Path(__file__).resolve().parents[1]
+    REPORT = (
+        ROOT
+        / "data/reports/training_speed/"
+        "stage_2_6_a_net_004_layout_projection_gate.json"
+    )
+
+    @staticmethod
+    def _sha256(path: Path) -> str:
+        digest = hashlib.sha256()
+        with path.open("rb") as source:
+            for block in iter(lambda: source.read(1024 * 1024), b""):
+                digest.update(block)
+        return digest.hexdigest()
+
+    def test_saved_layout_projection_gate_is_reproducible(self) -> None:
+        report = json.loads(self.REPORT.read_text(encoding="utf-8"))
+        self.assertTrue(report["passed"])
+        self.assertFalse(report["decision"]["implement"])
+        self.assertFalse(report["decision"]["run_end_to_end"])
+        self.assertEqual(
+            report["source_layout_scan"],
+            {"permute": 0, "contiguous": 0},
+        )
+        self.assertFalse(
+            report["operators"]["aten::permute"]["present_in_top_50"]
+        )
+        self.assertFalse(
+            report["operators"]["aten::contiguous"][
+                "present_in_top_50"
+            ]
+        )
+        self.assertLess(
+            report["upper_bound"][
+                "all_cat_and_mm_fraction_of_forward"
+            ],
+            report["upper_bound"][
+                "comparison_three_run_relative_range"
+            ],
+        )
+        for source in report["sources"].values():
+            path = self.ROOT / source["path"]
+            self.assertEqual(self._sha256(path), source["sha256"])
+
+
 if __name__ == "__main__":
     unittest.main()

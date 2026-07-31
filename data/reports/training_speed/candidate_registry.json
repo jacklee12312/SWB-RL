@@ -86,6 +86,14 @@
       "evidence": "data/reports/training_speed/stage_2_6_a_net_003.json"
     },
     {
+      "id": "A-NET-004",
+      "class": "A",
+      "description": "Remove actionable fixed-input permute/contiguous work and merge equivalent small projections only when their measured ceiling is material.",
+      "semantics": "Any implemented layout or projection merge must preserve the observation schema and policy outputs.",
+      "disposition": "closed_no_actionable_layout_and_below_variability_upper_bound",
+      "evidence": "data/reports/training_speed/stage_2_6_a_net_004_layout_projection_gate.json"
+    },
+    {
       "id": "A-FORWARD-001",
       "class": "A",
       "description": "Remove redundant permute/contiguous operations and use an equivalent native scaled-dot-product-attention backend.",
