@@ -67,6 +67,7 @@ class PPOConfig:
     rollout_worker_torch_threads: int = 2
     central_inference_batch_wait_seconds: float = 0.0005
     profile_ipc_timing: bool = False
+    profile_central_timing: bool = False
     training_class_ids: tuple[int, ...] = (1,)
     training_deck: str | None = None
     opponent_decks: tuple[str, ...] = ()
@@ -827,6 +828,9 @@ class PPOTrainer:
                         self.config.central_inference_batch_wait_seconds
                     ),
                     profile_ipc_timing=self.config.profile_ipc_timing,
+                    profile_central_timing=(
+                        self.config.profile_central_timing
+                    ),
                     observation_version=self.config.observation_version,
                 ),
             )
@@ -934,6 +938,88 @@ class PPOTrainer:
                 aggregate_timing.get("central_inference_requests", 0.0)
                 / inference_batches
             )
+            batch_size_histogram = {
+                int(key.removeprefix("central_batch_size_").removesuffix(
+                    "_count"
+                )): float(value)
+                for key, value in aggregate_timing.items()
+                if (
+                    key.startswith("central_batch_size_")
+                    and key.endswith("_count")
+                    and key[
+                        len("central_batch_size_") : -len("_count")
+                    ].isdigit()
+                )
+            }
+            if batch_size_histogram:
+                def batch_percentile(percentile: float) -> float:
+                    target = max(
+                        1,
+                        math.ceil(percentile * inference_batches),
+                    )
+                    cumulative = 0.0
+                    for size, count in sorted(
+                        batch_size_histogram.items()
+                    ):
+                        cumulative += count
+                        if cumulative >= target:
+                            return float(size)
+                    return float(max(batch_size_histogram))
+
+                capacity_slots = aggregate_timing.get(
+                    "central_batch_capacity_slots", 0.0
+                )
+                empty_slots = aggregate_timing.get(
+                    "central_batch_empty_slots", 0.0
+                )
+                aggregate_timing.update({
+                    "central_batch_size_p50": batch_percentile(0.50),
+                    "central_batch_size_p95": batch_percentile(0.95),
+                    "central_batch_size_min": float(
+                        min(batch_size_histogram)
+                    ),
+                    "central_batch_size_max": float(
+                        max(batch_size_histogram)
+                    ),
+                    "central_batch_empty_slot_fraction": (
+                        empty_slots / max(capacity_slots, 1e-12)
+                    ),
+                })
+        if self.config.profile_central_timing:
+            central_requests = aggregate_timing.get(
+                "central_inference_requests", 0.0
+            )
+            gpu_busy_seconds = aggregate_timing.get(
+                "central_gpu_busy_seconds", 0.0
+            )
+            gpu_waiting_for_worker_seconds = aggregate_timing.get(
+                "central_gpu_waiting_for_worker_seconds", 0.0
+            )
+            busy_plus_wait = (
+                gpu_busy_seconds + gpu_waiting_for_worker_seconds
+            )
+            aggregate_timing.update({
+                "central_queue_to_batch_wait_ms_per_request": (
+                    aggregate_timing.get(
+                        "central_queue_to_batch_wait_seconds", 0.0
+                    )
+                    * 1000.0
+                    / max(central_requests, 1.0)
+                ),
+                "central_cpu_input_bytes_per_request": (
+                    aggregate_timing.get(
+                        "central_cpu_input_bytes", 0.0
+                    )
+                    / max(central_requests, 1.0)
+                ),
+                "central_gpu_busy_fraction_of_busy_plus_worker_wait": (
+                    gpu_busy_seconds / max(busy_plus_wait, 1e-12)
+                ),
+                "central_gpu_worker_wait_fraction_of_busy_plus_worker_wait": (
+                    gpu_waiting_for_worker_seconds
+                    / max(busy_plus_wait, 1e-12)
+                ),
+            })
         profiled_requests = aggregate_timing.get(
             "worker_ipc_profiled_requests",
             0.0,

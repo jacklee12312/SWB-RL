@@ -1074,14 +1074,14 @@ Worker 侧：
 
 中央推理侧：
 
-- [ ] 统计请求进入队列到组 batch 的等待时间。
-- [ ] 记录每个推理 batch 的实际大小分布、P50/P95 和空槽。
-- [ ] 统计 CPU 输入拼装和重复拷贝。
-- [ ] 统计 host-to-device 传输。
-- [ ] 统计 Transformer/GRU/action head 前向时间。
-- [ ] 统计 masked distribution、采样和值函数处理。
-- [ ] 统计 device-to-host 和结果分发。
-- [ ] 统计 GPU 忙碌与等待 worker 的比例。
+- [x] 统计请求进入队列到组 batch 的等待时间。
+- [x] 记录每个推理 batch 的实际大小分布、P50/P95 和空槽。
+- [x] 统计 CPU 输入拼装和重复拷贝。
+- [x] 统计 host-to-device 传输。
+- [x] 统计 Transformer/GRU/action head 前向时间。
+- [x] 统计 masked distribution、采样和值函数处理。
+- [x] 统计 device-to-host 和结果分发。
+- [x] 统计 GPU 忙碌与等待 worker 的比例。
 
 Learner 侧：
 
@@ -1229,6 +1229,55 @@ Learner 侧：
 - `E:\anaconda\python.exe -m compileall -q swb scripts tests`：通过。
   本切片只增加 PPO profiling 字段，不改变引擎、规则、动作、目标、战斗、
   回合或 Observation，因此未触发额外 self-play/`rl_mixed_match`。
+
+2.2 中央推理切片证据（2026-07-31）：
+
+- 候选分类为 `A-PROFILE-001`。新增默认关闭的
+  `--profile-central-timing`；关闭时不启用逐组件 CUDA event 和同步，
+  开启时将 request 在中央出队的时间戳附加到本地 metadata，不改变
+  worker 传输的策略输入。固定 seed 回归覆盖关闭、IPC-only、
+  central-only，并另以 v4.1 entity-action 模型验证动作、log probability、
+  value、hidden state、bootstrap 和 PPO generation 边界完全一致。
+- 请求进入中央调度器到 batch 关闭累计等待 0.236416 秒，即
+  0.103600 ms/请求；等待下一条 worker 消息 1.049764 秒，配置的合批窗口
+  累计等待 0.151195 秒。该口径从中央实际 dequeue 开始，不重复计算
+  worker→Queue 的 IPC 发送时间。
+- 2,282 个请求组成 1,382 个推理 batch，batch 1/2/3/4 的数量分别为
+  844/178/358/2，平均 1.651、P50 1、P95 3；5,528 个容量槽中
+  3,246 个为空，空槽比例 58.719%。该分布来自诊断运行的全部 batch，
+  不是用平均值反推。
+- CPU 对 observation/card-index/mask 执行三次 `np.stack`：累计
+  0.076359 秒、复制 167,635,720 bytes（73,460 bytes/请求）；
+  CPU tensor view/dtype 构造 0.026750 秒，hidden-state 拼装
+  0.089399 秒。CPU 拼装和结构化复制本身不是当前主耗时。
+- H2D wall/CUDA-event 时间分别为 0.470165/0.450637 秒。模型完整前向
+  CUDA 时间 28.395150 秒，其中进入 Transformer 前的 v4.1
+  token/embedding/projection 构造 19.420124 秒（68.4%），Transformer
+  3.009437 秒、Transformer→GRU 0.058437 秒、GRU 0.208032 秒、
+  action/value 阶段 5.699119 秒；其中 policy/value head 模块自身分别
+  0.322723/0.244109 秒。
+- masked logits + softmax/log-softmax 的 wall/CUDA 时间为
+  0.505175/0.436018 秒；D2H wall/CUDA 为 0.268035/0.207218 秒，
+  CPU multinomial 采样 0.185320 秒。record packaging 与 response
+  Queue 分发合计 0.165865 秒。
+- CUDA-event 忙碌阶段累计 29.489024 秒；中央阻塞等待 worker 加合批
+  等待为 1.200959 秒，在两者之和中的诊断比例为 96.087%/3.913%。
+  该比例不等同于系统 GPU utilization，也不把 CPU packaging 或 Python
+  调度伪装成 GPU busy；结果说明本次运行的首要中央成本是模型输入编码，
+  同时 58.7% batch 空槽仍是后续合批优化机会。
+- 冻结 v4.1 checkpoint 的 2,048-step 请求实际完成 2,282 steps；
+  前后 SHA-256 均为
+  `4d6a8dd7d32f4e530766aab8d2ec4691de4925bc73e188021da1f45dbe54e0bd`。
+  诊断运行吞吐 39.519 steps/s，包含逐组件同步开销，不能作为优化前后
+  吞吐结论。机器可读方法、原始 iteration、batch 直方图及全部分段保存于
+  `data/reports/training_speed/stage_2_2_central_inference_smoke.json`。
+- v4.1 等价、开关组合和保存报告不变量共 5 项聚焦测试通过；最终
+  `E:\anaconda\python.exe -m unittest discover -s tests -v`：2,853 项
+  通过、1 项条件跳过，耗时 448.799 秒，API test 通过；完整输出保存于
+  `data/reports/training_speed/stage_2_2_central_inference_unittest.log`。
+- `E:\anaconda\python.exe -m compileall -q swb scripts tests`：通过。
+  本切片只增加默认关闭的 PPO profiling，不修改规则、动作、Observation
+  含义或奖励，因此未触发额外 self-play/`rl_mixed_match`。
 
 总体验收：
 

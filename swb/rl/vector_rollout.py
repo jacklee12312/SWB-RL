@@ -56,6 +56,7 @@ class RolloutConfig:
     worker_torch_threads: int = 2
     central_inference_batch_wait_seconds: float = 0.0005
     profile_ipc_timing: bool = False
+    profile_central_timing: bool = False
     observation_version: str = "v4"
 
     def __post_init__(self) -> None:
@@ -168,6 +169,102 @@ def _decode_profiled_policy_request(
             "payload_bytes": float(payload_bytes),
         },
     )
+
+
+def _profile_model_forward_step(
+    model,
+    observations,
+    hidden,
+    card_indices,
+) -> tuple[tuple[Any, Any, Any], dict[str, float]]:
+    """Measure model components without changing the executed forward graph."""
+    import torch
+
+    transformer = getattr(model, "entity_encoder", None)
+    encoder = transformer or getattr(model, "encoder", None)
+    modules = {
+        "encoder": encoder,
+        "gru": getattr(model, "recurrent", None),
+        "policy_head": getattr(model, "policy_head", None),
+        "value_head": getattr(model, "value_head", None),
+    }
+    if modules["encoder"] is None or modules["gru"] is None:
+        raise ValueError(
+            "central component profiling requires an encoder and recurrent "
+            "module"
+        )
+    use_cuda_events = observations.device.type == "cuda"
+    markers: dict[str, Any] = {}
+    handles = []
+
+    def mark(name: str) -> None:
+        if use_cuda_events:
+            event = torch.cuda.Event(enable_timing=True)
+            event.record()
+            markers[name] = event
+        else:
+            markers[name] = time.perf_counter()
+
+    def pre_hook(name: str):
+        def hook(_module, _inputs) -> None:
+            mark(f"{name}_start")
+
+        return hook
+
+    def post_hook(name: str):
+        def hook(_module, _inputs, _output) -> None:
+            mark(f"{name}_end")
+
+        return hook
+
+    for name, module in modules.items():
+        if module is None:
+            continue
+        handles.append(module.register_forward_pre_hook(pre_hook(name)))
+        handles.append(module.register_forward_hook(post_hook(name)))
+    try:
+        mark("model_start")
+        outputs = model.forward_step(observations, hidden, card_indices)
+        mark("model_end")
+    finally:
+        for handle in handles:
+            handle.remove()
+    if use_cuda_events:
+        torch.cuda.synchronize(observations.device)
+
+    def elapsed(start: str, end: str) -> float:
+        if start not in markers or end not in markers:
+            return 0.0
+        if use_cuda_events:
+            return markers[start].elapsed_time(markers[end]) / 1000.0
+        return float(markers[end] - markers[start])
+
+    encoder_seconds = elapsed("encoder_start", "encoder_end")
+    return outputs, {
+        "central_model_input_encoding_seconds": elapsed(
+            "model_start", "encoder_start"
+        ),
+        "central_encoder_seconds": encoder_seconds,
+        "central_transformer_seconds": (
+            encoder_seconds if transformer is not None else 0.0
+        ),
+        "central_transformer_to_gru_seconds": elapsed(
+            "encoder_end", "gru_start"
+        ),
+        "central_gru_seconds": elapsed("gru_start", "gru_end"),
+        "central_action_value_stage_seconds": elapsed(
+            "gru_end", "model_end"
+        ),
+        "central_policy_head_seconds": elapsed(
+            "policy_head_start", "policy_head_end"
+        ),
+        "central_value_head_seconds": elapsed(
+            "value_head_start", "value_head_end"
+        ),
+        "central_model_forward_seconds": elapsed(
+            "model_start", "model_end"
+        ),
+    }
 
 
 @dataclass
@@ -896,6 +993,25 @@ class PolicyVectorRollout:
                 message,
                 received_at=received_at,
             )
+        if (
+            self.config.profile_central_timing
+            and isinstance(message, tuple)
+            and message
+            and message[0] == "policy_inference"
+        ):
+            if len(message) == 9:
+                metadata: dict[str, float] = {}
+            elif len(message) == 10 and isinstance(message[9], Mapping):
+                metadata = {
+                    str(key): float(value)
+                    for key, value in message[9].items()
+                }
+            else:
+                raise RolloutWorkerError(
+                    "central profiling received an invalid policy request"
+                )
+            metadata["central_received_at"] = received_at
+            message = (*message[:9], metadata)
         if message[0] == "error":
             _, worker_id, episode_id, error_type, error, stack = message
             self.close()
@@ -912,50 +1028,182 @@ class PolicyVectorRollout:
         episode_records: dict[int, list[PolicyStep]],
         hidden_by_player: dict[tuple[int, int], Any],
         generators: dict[int, Any],
+        *,
+        profile_central_timing: bool,
+        max_batch_size: int,
     ) -> dict[str, float]:
         import torch
 
         prepare_started = time.perf_counter()
         device = next(model.parameters()).device
-        observations = torch.as_tensor(
-            np.stack([request[6] for request in requests]),
-            device=device,
-        )
-        card_indices = torch.as_tensor(
-            np.stack([request[7] for request in requests]),
-            dtype=torch.long,
-            device=device,
-        )
-        action_masks = torch.as_tensor(
-            np.stack([request[8] for request in requests]),
-            dtype=torch.bool,
-            device=device,
-        )
+        component_timing: dict[str, float] = {}
+        if profile_central_timing:
+            cpu_input_started = time.perf_counter()
+            observations_np = np.stack([
+                request[6] for request in requests
+            ])
+            card_indices_np = np.stack([
+                request[7] for request in requests
+            ])
+            action_masks_np = np.stack([
+                request[8] for request in requests
+            ])
+            component_timing["central_cpu_input_assembly_seconds"] = (
+                time.perf_counter() - cpu_input_started
+            )
+            component_timing["central_cpu_input_bytes"] = float(
+                observations_np.nbytes
+                + card_indices_np.nbytes
+                + action_masks_np.nbytes
+            )
+            component_timing[
+                "central_cpu_repeated_stack_copy_bytes"
+            ] = component_timing["central_cpu_input_bytes"]
+            component_timing[
+                "central_cpu_stack_copy_operations"
+            ] = 3.0
+
+            tensor_started = time.perf_counter()
+            observations_cpu = torch.from_numpy(observations_np)
+            card_indices_cpu = torch.from_numpy(card_indices_np).to(
+                dtype=torch.long
+            )
+            action_masks_cpu = torch.from_numpy(action_masks_np).to(
+                dtype=torch.bool
+            )
+            component_timing[
+                "central_cpu_tensor_construction_seconds"
+            ] = time.perf_counter() - tensor_started
+
+            if device.type == "cuda":
+                torch.cuda.synchronize(device)
+                h2d_start = torch.cuda.Event(enable_timing=True)
+                h2d_end = torch.cuda.Event(enable_timing=True)
+                h2d_start.record()
+            h2d_started = time.perf_counter()
+            observations = observations_cpu.to(device=device)
+            card_indices = card_indices_cpu.to(device=device)
+            action_masks = action_masks_cpu.to(device=device)
+            if device.type == "cuda":
+                h2d_end.record()
+                torch.cuda.synchronize(device)
+                component_timing["central_h2d_gpu_seconds"] = (
+                    h2d_start.elapsed_time(h2d_end) / 1000.0
+                )
+            else:
+                component_timing["central_h2d_gpu_seconds"] = 0.0
+            component_timing["central_host_to_device_seconds"] = (
+                time.perf_counter() - h2d_started
+            )
+        else:
+            observations = torch.as_tensor(
+                np.stack([request[6] for request in requests]),
+                device=device,
+            )
+            card_indices = torch.as_tensor(
+                np.stack([request[7] for request in requests]),
+                dtype=torch.long,
+                device=device,
+            )
+            action_masks = torch.as_tensor(
+                np.stack([request[8] for request in requests]),
+                dtype=torch.bool,
+                device=device,
+            )
+        hidden_started = time.perf_counter()
         hidden = torch.cat([
             hidden_by_player[(int(request[3]), int(request[5]))]
             for request in requests
         ])
+        if profile_central_timing and device.type == "cuda":
+            torch.cuda.synchronize(device)
+        if profile_central_timing:
+            component_timing[
+                "central_hidden_state_assembly_seconds"
+            ] = time.perf_counter() - hidden_started
         prepare_seconds = time.perf_counter() - prepare_started
 
         forward_started = time.perf_counter()
         with torch.no_grad():
-            logits, values, next_hidden = model.forward_step(
-                observations,
-                hidden,
-                card_indices,
-            )
+            if profile_central_timing:
+                (
+                    (logits, values, next_hidden),
+                    model_timing,
+                ) = _profile_model_forward_step(
+                    model,
+                    observations,
+                    hidden,
+                    card_indices,
+                )
+                component_timing.update(model_timing)
+                if device.type == "cuda":
+                    distribution_start = torch.cuda.Event(
+                        enable_timing=True
+                    )
+                    distribution_end = torch.cuda.Event(
+                        enable_timing=True
+                    )
+                    distribution_start.record()
+                distribution_started = time.perf_counter()
+            else:
+                logits, values, next_hidden = model.forward_step(
+                    observations,
+                    hidden,
+                    card_indices,
+                )
             masked_logits = model.masked_logits(logits, action_masks)
             probabilities = torch.softmax(masked_logits, dim=-1)
             log_probs = torch.log_softmax(masked_logits, dim=-1)
+            if profile_central_timing:
+                if device.type == "cuda":
+                    distribution_end.record()
+                    torch.cuda.synchronize(device)
+                    component_timing[
+                        "central_masked_distribution_gpu_seconds"
+                    ] = (
+                        distribution_start.elapsed_time(distribution_end)
+                        / 1000.0
+                    )
+                else:
+                    component_timing[
+                        "central_masked_distribution_gpu_seconds"
+                    ] = 0.0
+                component_timing[
+                    "central_masked_distribution_seconds"
+                ] = time.perf_counter() - distribution_started
         if device.type == "cuda":
+            synchronize_started = time.perf_counter()
             torch.cuda.synchronize(device)
+            if profile_central_timing:
+                component_timing[
+                    "central_post_forward_synchronize_seconds"
+                ] = time.perf_counter() - synchronize_started
         forward_seconds = time.perf_counter() - forward_started
 
         sample_started = time.perf_counter()
+        if profile_central_timing and device.type == "cuda":
+            d2h_start = torch.cuda.Event(enable_timing=True)
+            d2h_end = torch.cuda.Event(enable_timing=True)
+            d2h_start.record()
+        d2h_started = time.perf_counter()
         probabilities_cpu = probabilities.detach().cpu()
         log_probs_cpu = log_probs.detach().cpu()
         values_cpu = values.detach().cpu()
-        hidden_cpu = hidden.detach().cpu().numpy()
+        hidden_cpu_tensor = hidden.detach().cpu()
+        if profile_central_timing and device.type == "cuda":
+            d2h_end.record()
+            torch.cuda.synchronize(device)
+            component_timing["central_d2h_gpu_seconds"] = (
+                d2h_start.elapsed_time(d2h_end) / 1000.0
+            )
+        elif profile_central_timing:
+            component_timing["central_d2h_gpu_seconds"] = 0.0
+        if profile_central_timing:
+            component_timing["central_device_to_host_seconds"] = (
+                time.perf_counter() - d2h_started
+            )
+        hidden_cpu = hidden_cpu_tensor.numpy()
+        sampling_started = time.perf_counter()
         actions: list[int] = []
         for row, request in enumerate(requests):
             episode_id = int(request[3])
@@ -965,6 +1213,10 @@ class PolicyVectorRollout:
                 generator=generators[episode_id],
             )
             actions.append(int(action_tensor.item()))
+        if profile_central_timing:
+            component_timing["central_sampling_seconds"] = (
+                time.perf_counter() - sampling_started
+            )
         sample_seconds = time.perf_counter() - sample_started
 
         dispatch_started = time.perf_counter()
@@ -1017,11 +1269,36 @@ class PolicyVectorRollout:
             "central_inference_requests": float(len(requests)),
             "central_inference_batches": 1.0,
             "central_max_batch_size": float(len(requests)),
+            f"central_batch_size_{len(requests)}_count": 1.0,
+            "central_batch_capacity_slots": float(max_batch_size),
+            "central_batch_empty_slots": float(
+                max_batch_size - len(requests)
+            ),
         }
+        timing.update(component_timing)
+        if profile_central_timing:
+            timing["central_gpu_busy_seconds"] = (
+                component_timing.get("central_h2d_gpu_seconds", 0.0)
+                + component_timing.get(
+                    "central_model_forward_seconds", 0.0
+                )
+                + component_timing.get(
+                    "central_masked_distribution_gpu_seconds", 0.0
+                )
+                + component_timing.get("central_d2h_gpu_seconds", 0.0)
+            )
+            timing["central_profiled_batches"] = 1.0
+            timing["central_profiled_cuda_batches"] = float(
+                device.type == "cuda"
+            )
         ipc_timings = [
             request[9]
             for request in requests
-            if len(request) == 10 and isinstance(request[9], Mapping)
+            if (
+                len(request) == 10
+                and isinstance(request[9], Mapping)
+                and "send_seconds" in request[9]
+            )
         ]
         if ipc_timings:
             timing["worker_ipc_request_send_seconds"] = sum(
@@ -1133,13 +1410,18 @@ class PolicyVectorRollout:
         pending_messages: deque[tuple] = deque()
         central_timing: dict[str, float] = {}
         batch_wait_seconds = 0.0
+        worker_message_wait_seconds = 0.0
+        queue_to_batch_wait_seconds = 0.0
         try:
             while len(completed) < len(episode_ids):
-                message = (
-                    pending_messages.popleft()
-                    if pending_messages
-                    else self._next_message()
-                )
+                if pending_messages:
+                    message = pending_messages.popleft()
+                else:
+                    message_wait_started = time.perf_counter()
+                    message = self._next_message()
+                    worker_message_wait_seconds += (
+                        time.perf_counter() - message_wait_started
+                    )
                 assert message is not None
                 if message[0] == "policy_inference":
                     requests = [message]
@@ -1163,12 +1445,34 @@ class PolicyVectorRollout:
                         else:
                             pending_messages.append(candidate)
                     batch_wait_seconds += time.perf_counter() - wait_started
+                    batch_formed_at = time.perf_counter()
+                    if self.config.profile_central_timing:
+                        for request in requests:
+                            if (
+                                len(request) != 10
+                                or not isinstance(request[9], Mapping)
+                                or "central_received_at" not in request[9]
+                            ):
+                                raise RolloutWorkerError(
+                                    "central request lacks queue timing"
+                                )
+                            queue_to_batch_wait_seconds += max(
+                                0.0,
+                                batch_formed_at
+                                - float(
+                                    request[9]["central_received_at"]
+                                ),
+                            )
                     batch_timing = self._serve_inference_batch(
                         model,
                         requests,
                         episode_records,
                         hidden_by_player,
                         generators,
+                        profile_central_timing=(
+                            self.config.profile_central_timing
+                        ),
+                        max_batch_size=self.config.worker_count,
                     )
                     dispatch_started = time.perf_counter()
                     for request in requests:
@@ -1181,6 +1485,7 @@ class PolicyVectorRollout:
                             if (
                                 len(request) == 10
                                 and isinstance(request[9], Mapping)
+                                and "received_at" in request[9]
                             )
                             else None
                         )
@@ -1290,6 +1595,12 @@ class PolicyVectorRollout:
             "episode_dispatch_seconds": episode_dispatch_seconds,
             "episode_wait_seconds": episode_wait_seconds,
             "central_batch_wait_seconds": batch_wait_seconds,
+            "central_worker_message_wait_seconds": (
+                worker_message_wait_seconds
+            ),
+            "central_queue_to_batch_wait_seconds": (
+                queue_to_batch_wait_seconds
+            ),
             "collect_call_total_seconds": (
                 time.perf_counter() - collect_started
             ),
@@ -1298,6 +1609,36 @@ class PolicyVectorRollout:
             "episodes": float(len(ordered)),
         }
         timing.update(central_timing)
+        if self.config.profile_central_timing:
+            gpu_busy_seconds = timing.get(
+                "central_gpu_busy_seconds", 0.0
+            )
+            gpu_waiting_for_worker_seconds = (
+                worker_message_wait_seconds + batch_wait_seconds
+            )
+            busy_plus_wait = (
+                gpu_busy_seconds + gpu_waiting_for_worker_seconds
+            )
+            timing.update({
+                "central_gpu_waiting_for_worker_seconds": (
+                    gpu_waiting_for_worker_seconds
+                ),
+                "central_gpu_busy_fraction_of_busy_plus_worker_wait": (
+                    gpu_busy_seconds / max(busy_plus_wait, 1e-12)
+                ),
+                "central_gpu_worker_wait_fraction_of_busy_plus_worker_wait": (
+                    gpu_waiting_for_worker_seconds
+                    / max(busy_plus_wait, 1e-12)
+                ),
+                "central_result_distribution_seconds": (
+                    timing.get(
+                        "central_record_packaging_seconds", 0.0
+                    )
+                    + timing.get(
+                        "central_response_dispatch_seconds", 0.0
+                    )
+                ),
+            })
         for episode in ordered:
             for key, value in episode.timing.items():
                 if key in {

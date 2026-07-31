@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import argparse
 import atexit
+import hashlib
 import json
 import os
 import platform
@@ -15,6 +16,14 @@ from swb.db.repository import CardRepository
 from swb.rl.checkpoint import load_checkpoint
 from swb.rl.profiling import training_timing_report
 from swb.rl.runtime import WorkerAssetsSnapshot
+
+
+def _sha256(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as source:
+        for block in iter(lambda: source.read(1024 * 1024), b""):
+            digest.update(block)
+    return digest.hexdigest()
 
 
 def main() -> None:
@@ -39,6 +48,14 @@ def main() -> None:
         help=(
             "send policy requests through the instrumented serialized "
             "envelope and report request serialization/send/wait timing"
+        ),
+    )
+    parser.add_argument(
+        "--profile-central-timing",
+        action="store_true",
+        help=(
+            "synchronize and split central queue, batching, transfer, model, "
+            "distribution, sampling, and result-dispatch timing"
         ),
     )
     parser.add_argument(
@@ -68,6 +85,7 @@ def main() -> None:
 
     snapshot = WorkerAssetsSnapshot.build(CardRepository(args.database))
     checkpoint_stat = args.checkpoint.stat()
+    checkpoint_sha256 = _sha256(args.checkpoint)
     trainer = load_checkpoint(args.checkpoint, snapshot, device=args.device)
     runtime_overrides = {}
     if args.rollout_worker_threads is not None:
@@ -80,6 +98,8 @@ def main() -> None:
         )
     if args.profile_ipc_timing:
         runtime_overrides["profile_ipc_timing"] = True
+    if args.profile_central_timing:
+        runtime_overrides["profile_central_timing"] = True
     if runtime_overrides:
         trainer.config = replace(trainer.config, **runtime_overrides)
     atexit.register(trainer.close)
@@ -122,6 +142,7 @@ def main() -> None:
     steady_collect = collect_samples[warmup:]
     steady_update = update_samples[warmup:]
     checkpoint_after = args.checkpoint.stat()
+    checkpoint_sha256_after = _sha256(args.checkpoint)
     report = {
         "schema_version": 1,
         "purpose": (
@@ -132,7 +153,10 @@ def main() -> None:
         "checkpoint_unchanged": (
             checkpoint_stat.st_size == checkpoint_after.st_size
             and checkpoint_stat.st_mtime_ns == checkpoint_after.st_mtime_ns
+            and checkpoint_sha256 == checkpoint_sha256_after
         ),
+        "checkpoint_sha256_before": checkpoint_sha256,
+        "checkpoint_sha256_after": checkpoint_sha256_after,
         "device": str(trainer.device),
         "runtime_rollout_configuration": {
             "rollout_workers": trainer.config.rollout_workers,
@@ -143,6 +167,9 @@ def main() -> None:
                 trainer.config.central_inference_batch_wait_seconds
             ),
             "profile_ipc_timing": trainer.config.profile_ipc_timing,
+            "profile_central_timing": (
+                trainer.config.profile_central_timing
+            ),
         },
         "ipc_timing_methodology": {
             "enabled": trainer.config.profile_ipc_timing,
@@ -164,6 +191,28 @@ def main() -> None:
             ),
             "normal_training_path": (
                 "unchanged unless --profile-ipc-timing is enabled"
+            ),
+        },
+        "central_timing_methodology": {
+            "enabled": trainer.config.profile_central_timing,
+            "queue_to_batch": (
+                "per-request elapsed from central queue dequeue to the "
+                "timestamp at which its inference batch is closed"
+            ),
+            "cpu_input": (
+                "separate NumPy stack allocation, CPU tensor views/dtype "
+                "conversion, copied bytes, and hidden-state concatenation"
+            ),
+            "cuda_components": (
+                "CUDA events split H2D, Transformer, GRU, policy/value heads, "
+                "masked distribution, and D2H; diagnostic synchronization is "
+                "enabled only by --profile-central-timing"
+            ),
+            "gpu_busy_vs_worker_wait": (
+                "GPU busy is the sum of profiled CUDA-event stages; worker "
+                "wait is central blocking for worker messages plus configured "
+                "batch-formation wait. The ratio is diagnostic, not system "
+                "GPU utilization."
             ),
         },
         "hardware": {

@@ -395,6 +395,7 @@ class PPOTrainerTests(unittest.TestCase):
                 feedforward_dim=64,
                 max_agent_steps_per_episode=8,
                 profile_ipc_timing=True,
+                profile_central_timing=True,
                 training_class_ids=(6,),
                 training_deck=OFFICIAL_QR_EVOLVE_HAVEN,
             ),
@@ -631,6 +632,115 @@ class PPOTrainerTests(unittest.TestCase):
                 trainer.last_collect_timing["central_forward_seconds"],
                 0.0,
             )
+            self.assertGreater(
+                trainer.last_collect_timing[
+                    "central_cpu_input_assembly_seconds"
+                ],
+                0.0,
+            )
+            self.assertGreater(
+                trainer.last_collect_timing[
+                    "central_cpu_input_bytes_per_request"
+                ],
+                0.0,
+            )
+            self.assertGreaterEqual(
+                trainer.last_collect_timing[
+                    "central_queue_to_batch_wait_seconds"
+                ],
+                0.0,
+            )
+            self.assertGreater(
+                trainer.last_collect_timing[
+                    "central_model_forward_seconds"
+                ],
+                0.0,
+            )
+            self.assertGreater(
+                trainer.last_collect_timing[
+                    "central_transformer_seconds"
+                ],
+                0.0,
+            )
+            self.assertGreater(
+                trainer.last_collect_timing["central_gru_seconds"],
+                0.0,
+            )
+            self.assertGreater(
+                trainer.last_collect_timing[
+                    "central_action_value_stage_seconds"
+                ],
+                0.0,
+            )
+            self.assertGreater(
+                trainer.last_collect_timing[
+                    "central_policy_head_seconds"
+                ],
+                0.0,
+            )
+            self.assertGreater(
+                trainer.last_collect_timing[
+                    "central_value_head_seconds"
+                ],
+                0.0,
+            )
+            self.assertGreater(
+                trainer.last_collect_timing[
+                    "central_masked_distribution_seconds"
+                ],
+                0.0,
+            )
+            self.assertGreater(
+                trainer.last_collect_timing[
+                    "central_device_to_host_seconds"
+                ],
+                0.0,
+            )
+            self.assertGreater(
+                trainer.last_collect_timing["central_sampling_seconds"],
+                0.0,
+            )
+            self.assertGreater(
+                trainer.last_collect_timing[
+                    "central_result_distribution_seconds"
+                ],
+                0.0,
+            )
+            self.assertEqual(
+                trainer.last_collect_timing["central_profiled_batches"],
+                trainer.last_collect_timing[
+                    "central_inference_batches"
+                ],
+            )
+            self.assertAlmostEqual(
+                trainer.last_collect_timing[
+                    "central_gpu_busy_fraction_of_busy_plus_worker_wait"
+                ]
+                + trainer.last_collect_timing[
+                    "central_gpu_worker_wait_fraction_of_busy_plus_worker_wait"
+                ],
+                1.0,
+            )
+            self.assertLessEqual(
+                trainer.last_collect_timing["central_batch_size_p50"],
+                trainer.last_collect_timing["central_batch_size_p95"],
+            )
+            self.assertLessEqual(
+                trainer.last_collect_timing["central_batch_size_p95"],
+                trainer.last_collect_timing["central_batch_size_max"],
+            )
+            self.assertGreaterEqual(
+                trainer.last_collect_timing[
+                    "central_batch_empty_slot_fraction"
+                ],
+                0.0,
+            )
+            self.assertLessEqual(
+                trainer.last_collect_timing[
+                    "central_batch_empty_slot_fraction"
+                ],
+                1.0,
+            )
             self.assertEqual(
                 trainer.last_collect_timing["policy_transmitted_bytes"],
                 0.0,
@@ -791,7 +901,11 @@ class PPOTrainerTests(unittest.TestCase):
     def test_seeded_central_policy_rollout_is_reproducible(self) -> None:
         summaries = []
         timings = []
-        for profile_ipc_timing in (False, True):
+        for profile_ipc_timing, profile_central_timing in (
+            (False, False),
+            (True, False),
+            (False, True),
+        ):
             trainer = PPOTrainer(
                 self.snapshot,
                 master_seed=784,
@@ -804,6 +918,7 @@ class PPOTrainerTests(unittest.TestCase):
                     hidden_size=16,
                     max_agent_steps_per_episode=8,
                     profile_ipc_timing=profile_ipc_timing,
+                    profile_central_timing=profile_central_timing,
                 ),
             )
             try:
@@ -847,6 +962,71 @@ class PPOTrainerTests(unittest.TestCase):
         self.assertEqual(
             timings[1]["worker_ipc_profiled_requests"],
             timings[1]["records"],
+        )
+        self.assertEqual(
+            timings[2]["central_profiled_batches"],
+            timings[2]["central_inference_batches"],
+        )
+
+    def test_central_profile_preserves_entity_action_rollout(self) -> None:
+        summaries = []
+        timings = []
+        for profile_central_timing in (False, True):
+            trainer = PPOTrainer(
+                self.snapshot,
+                master_seed=785,
+                config=PPOConfig(
+                    rollout_steps=8,
+                    rollout_workers=2,
+                    sequence_length=4,
+                    minibatch_sequences=2,
+                    update_epochs=1,
+                    hidden_size=64,
+                    card_embedding_dim=16,
+                    policy_architecture=ENTITY_ACTION_POLICY_ARCHITECTURE,
+                    observation_version="v4.1",
+                    model_dim=32,
+                    transformer_layers=1,
+                    attention_heads=4,
+                    feedforward_dim=64,
+                    max_agent_steps_per_episode=8,
+                    profile_central_timing=profile_central_timing,
+                    training_class_ids=(6,),
+                    training_deck=OFFICIAL_QR_EVOLVE_HAVEN,
+                ),
+            )
+            try:
+                records, bootstrap, boundaries = trainer.collect_rollout()
+                summaries.append((
+                    [
+                        (
+                            record.episode_id,
+                            record.player_id,
+                            record.action,
+                            record.old_log_prob,
+                            record.value,
+                            record.reward,
+                            record.hidden_before.copy(),
+                        )
+                        for record in records
+                    ],
+                    dict(bootstrap),
+                    dict(boundaries),
+                ))
+                timings.append(dict(trainer.last_collect_timing))
+            finally:
+                trainer.close()
+        self.assertEqual(
+            [item[:-1] for item in summaries[0][0]],
+            [item[:-1] for item in summaries[1][0]],
+        )
+        for first, second in zip(summaries[0][0], summaries[1][0]):
+            np.testing.assert_array_equal(first[-1], second[-1])
+        self.assertEqual(summaries[0][1:], summaries[1][1:])
+        self.assertNotIn("central_profiled_batches", timings[0])
+        self.assertEqual(
+            timings[1]["central_profiled_batches"],
+            timings[1]["central_inference_batches"],
         )
 
     def test_multiprocess_policy_rollout_is_persistent_and_trainable(self) -> None:
