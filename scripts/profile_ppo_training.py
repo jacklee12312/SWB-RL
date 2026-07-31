@@ -34,6 +34,14 @@ def main() -> None:
         type=float,
     )
     parser.add_argument(
+        "--profile-ipc-timing",
+        action="store_true",
+        help=(
+            "send policy requests through the instrumented serialized "
+            "envelope and report request serialization/send/wait timing"
+        ),
+    )
+    parser.add_argument(
         "--output",
         type=Path,
         default=Path("data/reports/ppo_training_profile.json"),
@@ -70,6 +78,8 @@ def main() -> None:
         runtime_overrides["central_inference_batch_wait_seconds"] = (
             args.central_inference_batch_wait_ms / 1000.0
         )
+    if args.profile_ipc_timing:
+        runtime_overrides["profile_ipc_timing"] = True
     if runtime_overrides:
         trainer.config = replace(trainer.config, **runtime_overrides)
     atexit.register(trainer.close)
@@ -131,6 +141,29 @@ def main() -> None:
             ),
             "central_inference_batch_wait_seconds": (
                 trainer.config.central_inference_batch_wait_seconds
+            ),
+            "profile_ipc_timing": trainer.config.profile_ipc_timing,
+        },
+        "ipc_timing_methodology": {
+            "enabled": trainer.config.profile_ipc_timing,
+            "request_serialization": (
+                "ForkingPickler serialization of the exact policy request "
+                "tuple before queue submission"
+            ),
+            "request_send": (
+                "elapsed from serialized-envelope queue submission timestamp "
+                "until the central process dequeues the envelope"
+            ),
+            "response_wait": (
+                "elapsed from central request dequeue until the worker "
+                "receives the matching policy action"
+            ),
+            "aggregation": (
+                "seconds are summed across concurrent workers; per-request "
+                "means and accounted fraction are the comparable diagnostics"
+            ),
+            "normal_training_path": (
+                "unchanged unless --profile-ipc-timing is enabled"
             ),
         },
         "hardware": {

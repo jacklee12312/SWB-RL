@@ -394,6 +394,7 @@ class PPOTrainerTests(unittest.TestCase):
                 attention_heads=4,
                 feedforward_dim=64,
                 max_agent_steps_per_episode=8,
+                profile_ipc_timing=True,
                 training_class_ids=(6,),
                 training_deck=OFFICIAL_QR_EVOLVE_HAVEN,
             ),
@@ -446,6 +447,64 @@ class PPOTrainerTests(unittest.TestCase):
             self.assertGreater(
                 trainer.last_collect_timing[
                     "worker_inference_round_trip_seconds"
+                ],
+                0.0,
+            )
+            self.assertGreater(
+                trainer.last_collect_timing[
+                    "worker_ipc_request_serialization_seconds"
+                ],
+                0.0,
+            )
+            self.assertGreater(
+                trainer.last_collect_timing[
+                    "worker_ipc_request_send_seconds"
+                ],
+                0.0,
+            )
+            self.assertGreater(
+                trainer.last_collect_timing[
+                    "worker_ipc_response_wait_seconds"
+                ],
+                0.0,
+            )
+            self.assertGreater(
+                trainer.last_collect_timing[
+                    "worker_ipc_request_payload_bytes"
+                ],
+                0.0,
+            )
+            self.assertEqual(
+                trainer.last_collect_timing[
+                    "worker_ipc_profiled_requests"
+                ],
+                float(len(records)),
+            )
+            self.assertLessEqual(
+                (
+                    trainer.last_collect_timing[
+                        "worker_ipc_request_serialization_seconds"
+                    ]
+                    + trainer.last_collect_timing[
+                        "worker_ipc_request_send_seconds"
+                    ]
+                    + trainer.last_collect_timing[
+                        "worker_ipc_response_wait_seconds"
+                    ]
+                ),
+                trainer.last_collect_timing[
+                    "worker_inference_round_trip_seconds"
+                ],
+            )
+            self.assertGreater(
+                trainer.last_collect_timing[
+                    "worker_ipc_accounted_fraction_of_round_trip"
+                ],
+                0.99,
+            )
+            self.assertGreater(
+                trainer.last_collect_timing[
+                    "worker_ipc_request_payload_bytes_per_request"
                 ],
                 0.0,
             )
@@ -666,7 +725,8 @@ class PPOTrainerTests(unittest.TestCase):
 
     def test_seeded_central_policy_rollout_is_reproducible(self) -> None:
         summaries = []
-        for _ in range(2):
+        timings = []
+        for profile_ipc_timing in (False, True):
             trainer = PPOTrainer(
                 self.snapshot,
                 master_seed=784,
@@ -678,6 +738,7 @@ class PPOTrainerTests(unittest.TestCase):
                     update_epochs=1,
                     hidden_size=16,
                     max_agent_steps_per_episode=8,
+                    profile_ipc_timing=profile_ipc_timing,
                 ),
             )
             try:
@@ -698,6 +759,7 @@ class PPOTrainerTests(unittest.TestCase):
                     dict(bootstrap),
                     dict(boundaries),
                 ))
+                timings.append(dict(trainer.last_collect_timing))
             finally:
                 trainer.close()
         self.assertEqual(
@@ -713,6 +775,14 @@ class PPOTrainerTests(unittest.TestCase):
         for first, second in zip(summaries[0][0], summaries[1][0]):
             np.testing.assert_array_equal(first[-1], second[-1])
         self.assertEqual(summaries[0][1:], summaries[1][1:])
+        self.assertEqual(
+            timings[0]["worker_ipc_profiled_requests"],
+            0.0,
+        )
+        self.assertEqual(
+            timings[1]["worker_ipc_profiled_requests"],
+            timings[1]["records"],
+        )
 
     def test_multiprocess_policy_rollout_is_persistent_and_trainable(self) -> None:
         trainer = PPOTrainer(

@@ -3,12 +3,14 @@ from __future__ import annotations
 import hashlib
 import math
 import multiprocessing as mp
+import pickle
 import queue
 import random
 import time
 import traceback
 from collections import deque
 from dataclasses import dataclass, field
+from multiprocessing.reduction import ForkingPickler
 from typing import Any, Mapping
 
 import numpy as np
@@ -53,6 +55,7 @@ class RolloutConfig:
     match_setup: str = MATCH_SETUP_OFFICIAL
     worker_torch_threads: int = 2
     central_inference_batch_wait_seconds: float = 0.0005
+    profile_ipc_timing: bool = False
     observation_version: str = "v4"
 
     def __post_init__(self) -> None:
@@ -116,6 +119,55 @@ class RolloutConfig:
 
 class RolloutWorkerError(RuntimeError):
     pass
+
+
+_PROFILED_POLICY_REQUEST = "profiled_policy_inference"
+
+
+def _profile_policy_request(message: tuple) -> tuple:
+    serialization_started = time.perf_counter()
+    payload = bytes(ForkingPickler.dumps(message))
+    serialization_seconds = time.perf_counter() - serialization_started
+    sent_at = time.perf_counter()
+    return (
+        _PROFILED_POLICY_REQUEST,
+        sent_at,
+        serialization_seconds,
+        len(payload),
+        payload,
+    )
+
+
+def _decode_profiled_policy_request(
+    envelope: tuple,
+    *,
+    received_at: float,
+) -> tuple:
+    if len(envelope) != 5:
+        raise RolloutWorkerError("invalid profiled policy request envelope")
+    _, sent_at, serialization_seconds, payload_bytes, payload = envelope
+    if not isinstance(payload, bytes):
+        raise RolloutWorkerError(
+            "profiled policy request payload must be bytes"
+        )
+    message = pickle.loads(payload)
+    if (
+        not isinstance(message, tuple)
+        or not message
+        or message[0] != "policy_inference"
+    ):
+        raise RolloutWorkerError(
+            "profiled policy request decoded an unexpected message"
+        )
+    return (
+        *message,
+        {
+            "received_at": float(received_at),
+            "serialization_seconds": float(serialization_seconds),
+            "send_seconds": max(0.0, float(received_at) - float(sent_at)),
+            "payload_bytes": float(payload_bytes),
+        },
+    )
 
 
 @dataclass
@@ -397,6 +449,10 @@ def _run_central_policy_episode(
     decision_observation_construction_seconds = 0.0
     step_observation_construction_seconds = 0.0
     inference_round_trip_seconds = 0.0
+    ipc_request_serialization_seconds = 0.0
+    ipc_response_wait_seconds = 0.0
+    ipc_request_payload_bytes = 0.0
+    ipc_profiled_requests = 0
     engine_step_seconds = 0.0
     action_mask_seconds = 0.0
     command_decode_seconds = 0.0
@@ -419,7 +475,7 @@ def _run_central_policy_episode(
         observation_seconds += time.perf_counter() - observation_started
 
         inference_started = time.perf_counter()
-        output_queue.put((
+        request = (
             "policy_inference",
             worker_id,
             generation,
@@ -429,8 +485,17 @@ def _run_central_policy_episode(
             vector_np,
             card_indices_np,
             mask_np,
-        ))
+        )
+        if config.profile_ipc_timing:
+            envelope = _profile_policy_request(request)
+            ipc_request_serialization_seconds += float(envelope[2])
+            ipc_request_payload_bytes += float(envelope[3])
+            ipc_profiled_requests += 1
+            output_queue.put(envelope)
+        else:
+            output_queue.put(request)
         response = input_queue.get()
+        response_received_at = time.perf_counter()
         if response is None:
             raise RuntimeError("central policy inference was interrupted")
         if (
@@ -441,6 +506,15 @@ def _run_central_policy_episode(
         ):
             raise RuntimeError(
                 f"unexpected central policy response {response[0]!r}"
+            )
+        if config.profile_ipc_timing:
+            if len(response) != 6 or response[5] is None:
+                raise RuntimeError(
+                    "profiled policy response lacks request receipt timing"
+                )
+            ipc_response_wait_seconds += max(
+                0.0,
+                response_received_at - float(response[5]),
             )
         action = int(response[4])
         inference_round_trip_seconds += (
@@ -511,6 +585,16 @@ def _run_central_policy_episode(
             "worker_inference_round_trip_seconds": (
                 inference_round_trip_seconds
             ),
+            "worker_ipc_request_serialization_seconds": (
+                ipc_request_serialization_seconds
+            ),
+            "worker_ipc_response_wait_seconds": (
+                ipc_response_wait_seconds
+            ),
+            "worker_ipc_request_payload_bytes": (
+                ipc_request_payload_bytes
+            ),
+            "worker_ipc_profiled_requests": float(ipc_profiled_requests),
             "worker_engine_step_seconds": engine_step_seconds,
             "worker_action_mask_seconds": action_mask_seconds,
             "worker_command_decode_seconds": command_decode_seconds,
@@ -732,6 +816,7 @@ class PolicyVectorRollout:
                     else timeout_seconds
                 )
             )
+            received_at = time.perf_counter()
         except queue.Empty as exc:
             if allow_timeout:
                 return None
@@ -739,6 +824,15 @@ class PolicyVectorRollout:
             raise RolloutWorkerError(
                 "timed out waiting for policy rollout worker results"
             ) from exc
+        if (
+            isinstance(message, tuple)
+            and message
+            and message[0] == _PROFILED_POLICY_REQUEST
+        ):
+            message = _decode_profiled_policy_request(
+                message,
+                received_at=received_at,
+            )
         if message[0] == "error":
             _, worker_id, episode_id, error_type, error, stack = message
             self.close()
@@ -822,7 +916,7 @@ class PolicyVectorRollout:
                 observation,
                 cards,
                 action_mask,
-            ) = request
+            ) = request[:9]
             episode_id = int(episode_id)
             player_id = int(player_id)
             step_index = int(step_index)
@@ -852,7 +946,7 @@ class PolicyVectorRollout:
                 next_hidden[row : row + 1].detach()
             )
         dispatch_seconds = time.perf_counter() - dispatch_started
-        return {
+        timing = {
             "central_batch_prepare_to_device_seconds": prepare_seconds,
             "central_forward_seconds": forward_seconds,
             "central_device_to_host_and_sample_seconds": sample_seconds,
@@ -861,6 +955,17 @@ class PolicyVectorRollout:
             "central_inference_batches": 1.0,
             "central_max_batch_size": float(len(requests)),
         }
+        ipc_timings = [
+            request[9]
+            for request in requests
+            if len(request) == 10 and isinstance(request[9], Mapping)
+        ]
+        if ipc_timings:
+            timing["worker_ipc_request_send_seconds"] = sum(
+                float(metadata["send_seconds"])
+                for metadata in ipc_timings
+            )
+        return timing
 
     @staticmethod
     def _bootstrap_values(
@@ -1008,13 +1113,24 @@ class PolicyVectorRollout:
                         episode_id = int(request[3])
                         step_index = int(request[4])
                         action = episode_records[episode_id][-1].action
-                        self._input_queues[worker_id].put((
+                        request_received_at = (
+                            float(request[9]["received_at"])
+                            if (
+                                len(request) == 10
+                                and isinstance(request[9], Mapping)
+                            )
+                            else None
+                        )
+                        response = (
                             "policy_action",
                             generation,
                             episode_id,
                             step_index,
                             action,
-                        ))
+                        )
+                        if request_received_at is not None:
+                            response = (*response, request_received_at)
+                        self._input_queues[worker_id].put(response)
                     batch_timing["central_response_dispatch_seconds"] = (
                         time.perf_counter() - dispatch_started
                     )

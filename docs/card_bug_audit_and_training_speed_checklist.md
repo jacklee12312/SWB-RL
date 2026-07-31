@@ -1068,7 +1068,7 @@ Worker 侧：
 - [x] 单独统计引擎 command/resolution 时间。
 - [x] 单独统计 legal command/action mask 时间。
 - [x] 单独统计 Observation v4.1 构造时间。
-- [ ] 单独统计 IPC 请求序列化、发送和等待时间。
+- [x] 单独统计 IPC 请求序列化、发送和等待时间。
 - [ ] 单独统计新对局 reset、换牌和卡组构造时间。
 - [ ] 统计 worker 空闲比例、每局步数、长局和截断。
 
@@ -1167,6 +1167,40 @@ Learner 侧：
   全部完成，`wins=[56, 44]`、draw/truncation/mask mismatch 均为 0；
   `E:\anaconda\python.exe -m scripts.rl_mixed_match --output
   data/rl_mixed_match.log`：通过，player 2 获胜，最终生命 0:18。
+
+2.2 worker IPC 请求切片证据（2026-07-31）：
+
+- 候选分类为 `A-PROFILE-001`。新增默认关闭的 `profile_ipc_timing`；
+  只有 `scripts.profile_ppo_training --profile-ipc-timing` 会把原始策略请求
+  使用 `ForkingPickler` 显式序列化成诊断 envelope，正常训练的 Queue
+  消息路径不变。
+- 序列化时间定义为精确策略请求 tuple 的 `ForkingPickler` 用时；发送时间
+  定义为诊断 envelope 提交队列到中央进程取出该 envelope；等待时间定义为
+  中央进程取出请求到 worker 收到对应动作。避免把仅写入本地 feeder buffer
+  的 `Queue.put()` 返回时间误报为完成发送。
+- 固定 seed 回归分别在诊断开关关闭和开启时运行，动作轨迹、log probability、
+  value、hidden state、bootstrap 和 PPO generation 边界完全一致；另一个
+  真实 v4.1 收集/更新回归验证三段计时均为正、请求数与 records 相等且计时
+  和不超过既有 round-trip。
+- 冻结 v4.1 checkpoint 的 2,048-step 实测实际完成 2,282 steps 和
+  2,282 个请求：序列化 0.156790 秒（0.068707 ms/请求）、发送
+  41.995354 秒（18.402872 ms/请求）、等待 51.167325 秒
+  （22.422140 ms/请求），worker 推理往返为 93.330320 秒
+  （40.898475 ms/请求）；三段解释 99.9884% 的 worker 推理往返。
+  平均序列化请求为 73,787 bytes。
+- 上述秒数是四个并行 worker 的逐请求累计，不能直接与 collect wall time
+  相加比较；诊断运行的 40.240 steps/s 含显式 envelope 成本，不作为优化
+  前后吞吐结论。机器可读方法、原始 iteration 和派生指标保存于
+  `data/reports/training_speed/stage_2_2_ipc_timing_smoke.json`。
+- 测速 checkpoint 的 SHA-256 仍为
+  `4d6a8dd7d32f4e530766aab8d2ec4691de4925bc73e188021da1f45dbe54e0bd`，
+  与冻结基线一致，大小和 mtime 也未改变。
+- 两项聚焦等价/汇总回归通过；最终
+  `E:\anaconda\python.exe -m unittest discover -s tests -v`：运行
+  2,849 项，1 项条件跳过、其余通过，耗时 438.102 秒，API test 通过；
+  完整输出保存于
+  `data/reports/training_speed/stage_2_2_ipc_timing_unittest.log`。
+- `E:\anaconda\python.exe -m compileall -q swb scripts tests`：通过。
 
 总体验收：
 

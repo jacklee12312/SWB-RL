@@ -66,6 +66,7 @@ class PPOConfig:
     rollout_result_timeout_seconds: float = 120.0
     rollout_worker_torch_threads: int = 2
     central_inference_batch_wait_seconds: float = 0.0005
+    profile_ipc_timing: bool = False
     training_class_ids: tuple[int, ...] = (1,)
     training_deck: str | None = None
     opponent_decks: tuple[str, ...] = ()
@@ -825,6 +826,7 @@ class PPOTrainer:
                     central_inference_batch_wait_seconds=(
                         self.config.central_inference_batch_wait_seconds
                     ),
+                    profile_ipc_timing=self.config.profile_ipc_timing,
                     observation_version=self.config.observation_version,
                 ),
             )
@@ -931,6 +933,45 @@ class PPOTrainer:
                 aggregate_timing.get("central_inference_requests", 0.0)
                 / inference_batches
             )
+        profiled_requests = aggregate_timing.get(
+            "worker_ipc_profiled_requests",
+            0.0,
+        )
+        if profiled_requests:
+            serialization_seconds = aggregate_timing[
+                "worker_ipc_request_serialization_seconds"
+            ]
+            send_seconds = aggregate_timing[
+                "worker_ipc_request_send_seconds"
+            ]
+            wait_seconds = aggregate_timing[
+                "worker_ipc_response_wait_seconds"
+            ]
+            round_trip_seconds = aggregate_timing[
+                "worker_inference_round_trip_seconds"
+            ]
+            accounted_seconds = (
+                serialization_seconds + send_seconds + wait_seconds
+            )
+            aggregate_timing.update({
+                "worker_ipc_accounted_seconds": accounted_seconds,
+                "worker_ipc_accounted_fraction_of_round_trip": (
+                    accounted_seconds / max(round_trip_seconds, 1e-12)
+                ),
+                "worker_ipc_request_serialization_ms_per_request": (
+                    serialization_seconds * 1000.0 / profiled_requests
+                ),
+                "worker_ipc_request_send_ms_per_request": (
+                    send_seconds * 1000.0 / profiled_requests
+                ),
+                "worker_ipc_response_wait_ms_per_request": (
+                    wait_seconds * 1000.0 / profiled_requests
+                ),
+                "worker_ipc_request_payload_bytes_per_request": (
+                    aggregate_timing["worker_ipc_request_payload_bytes"]
+                    / profiled_requests
+                ),
+            })
         aggregate_timing.update({
             "trajectory_conversion_seconds": conversion_seconds,
             "collect_total_seconds": time.perf_counter() - collect_started,
