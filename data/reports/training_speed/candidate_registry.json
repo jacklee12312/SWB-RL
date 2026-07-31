@@ -136,7 +136,8 @@
       "class": "B",
       "description": "Evaluate TF32, FP16 autocast and BF16 autocast independently.",
       "semantics": "Data flow stays fixed, but numeric outputs and optimizer behavior may change.",
-      "disposition": "deferred_until_a_exhausted"
+      "disposition": "rejected_micro_or_numeric_gate",
+      "evidence": "data/reports/training_speed/stage_2_6_b_precision_001_gate.json"
     },
     {
       "id": "B-COMPILE-001",

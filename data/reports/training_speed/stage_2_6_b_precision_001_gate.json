@@ -1,0 +1,977 @@
+{
+  "schema_version": 1,
+  "report_kind": "swb_training_speed_stage_2_6_b_precision_001_gate",
+  "checklist_section": "2.6",
+  "candidate": "B-PRECISION-001",
+  "classification": "B",
+  "hardware": {
+    "platform": "Windows-11-10.0.26200-SP0",
+    "torch": "2.13.0+cu130",
+    "cuda": "13.0",
+    "gpu": "NVIDIA GeForce RTX 4080"
+  },
+  "methodology": {
+    "fixture_seed": 20260801,
+    "batch_sizes": [
+      1,
+      2,
+      4,
+      8,
+      16,
+      32,
+      64
+    ],
+    "warmup_iterations": 8,
+    "measured_iterations": 20,
+    "timing_repeats": 3,
+    "recurrent_drift_steps": 128
+  },
+  "baseline": {
+    "mode": "fp32_tf32_disabled",
+    "timing": {
+      "1": {
+        "host_milliseconds_per_call": {
+          "samples": [
+            21.49403999792412,
+            21.10086000757292,
+            21.22058500535786
+          ],
+          "sample_count": 3,
+          "median": 21.22058500535786,
+          "p95": 21.49403999792412,
+          "minimum": 21.10086000757292,
+          "maximum": 21.49403999792412
+        },
+        "device_milliseconds_per_call": {
+          "samples": [
+            21.480021667480468,
+            21.09868927001953,
+            21.21850128173828
+          ],
+          "sample_count": 3,
+          "median": 21.21850128173828,
+          "p95": 21.480021667480468,
+          "minimum": 21.09868927001953,
+          "maximum": 21.480021667480468
+        }
+      },
+      "2": {
+        "host_milliseconds_per_call": {
+          "samples": [
+            22.589495009742677,
+            22.155384998768568,
+            21.948840003460646
+          ],
+          "sample_count": 3,
+          "median": 22.155384998768568,
+          "p95": 22.589495009742677,
+          "minimum": 21.948840003460646,
+          "maximum": 22.589495009742677
+        },
+        "device_milliseconds_per_call": {
+          "samples": [
+            22.5875244140625,
+            22.153306579589845,
+            21.946823120117188
+          ],
+          "sample_count": 3,
+          "median": 22.153306579589845,
+          "p95": 22.5875244140625,
+          "minimum": 21.946823120117188,
+          "maximum": 22.5875244140625
+        }
+      },
+      "4": {
+        "host_milliseconds_per_call": {
+          "samples": [
+            22.259945003315806,
+            21.738054999150336,
+            21.873550000600517
+          ],
+          "sample_count": 3,
+          "median": 21.873550000600517,
+          "p95": 22.259945003315806,
+          "minimum": 21.738054999150336,
+          "maximum": 22.259945003315806
+        },
+        "device_milliseconds_per_call": {
+          "samples": [
+            22.257408142089844,
+            21.73670349121094,
+            21.861631774902342
+          ],
+          "sample_count": 3,
+          "median": 21.861631774902342,
+          "p95": 22.257408142089844,
+          "minimum": 21.73670349121094,
+          "maximum": 22.257408142089844
+        }
+      },
+      "8": {
+        "host_milliseconds_per_call": {
+          "samples": [
+            21.923330007120967,
+            22.199330001603812,
+            21.900290006306022
+          ],
+          "sample_count": 3,
+          "median": 21.923330007120967,
+          "p95": 22.199330001603812,
+          "minimum": 21.900290006306022,
+          "maximum": 22.199330001603812
+        },
+        "device_milliseconds_per_call": {
+          "samples": [
+            21.920811462402344,
+            22.197914123535156,
+            21.868135070800783
+          ],
+          "sample_count": 3,
+          "median": 21.920811462402344,
+          "p95": 22.197914123535156,
+          "minimum": 21.868135070800783,
+          "maximum": 22.197914123535156
+        }
+      },
+      "16": {
+        "host_milliseconds_per_call": {
+          "samples": [
+            22.077570005785674,
+            21.940875006839633,
+            21.838405006565154
+          ],
+          "sample_count": 3,
+          "median": 21.940875006839633,
+          "p95": 22.077570005785674,
+          "minimum": 21.838405006565154,
+          "maximum": 22.077570005785674
+        },
+        "device_milliseconds_per_call": {
+          "samples": [
+            22.074726867675782,
+            21.937913513183595,
+            21.805772399902345
+          ],
+          "sample_count": 3,
+          "median": 21.937913513183595,
+          "p95": 22.074726867675782,
+          "minimum": 21.805772399902345,
+          "maximum": 22.074726867675782
+        }
+      },
+      "32": {
+        "host_milliseconds_per_call": {
+          "samples": [
+            22.175350005272776,
+            21.89202500740066,
+            22.130609990563244
+          ],
+          "sample_count": 3,
+          "median": 22.130609990563244,
+          "p95": 22.175350005272776,
+          "minimum": 21.89202500740066,
+          "maximum": 22.175350005272776
+        },
+        "device_milliseconds_per_call": {
+          "samples": [
+            22.173316955566406,
+            21.889877319335938,
+            22.128590393066407
+          ],
+          "sample_count": 3,
+          "median": 22.128590393066407,
+          "p95": 22.173316955566406,
+          "minimum": 21.889877319335938,
+          "maximum": 22.173316955566406
+        }
+      },
+      "64": {
+        "host_milliseconds_per_call": {
+          "samples": [
+            21.45196000346914,
+            21.556659997440875,
+            27.70487000234425
+          ],
+          "sample_count": 3,
+          "median": 21.556659997440875,
+          "p95": 27.70487000234425,
+          "minimum": 21.45196000346914,
+          "maximum": 27.70487000234425
+        },
+        "device_milliseconds_per_call": {
+          "samples": [
+            21.449125671386717,
+            21.554689025878908,
+            27.702877807617188
+          ],
+          "sample_count": 3,
+          "median": 21.554689025878908,
+          "p95": 27.702877807617188,
+          "minimum": 21.449125671386717,
+          "maximum": 27.702877807617188
+        }
+      }
+    }
+  },
+  "modes": {
+    "tf32": {
+      "supported": true,
+      "timing": {
+        "1": {
+          "host_milliseconds_per_call": {
+            "samples": [
+              21.61219499539584,
+              21.37038999935612,
+              21.245704998727888
+            ],
+            "sample_count": 3,
+            "median": 21.37038999935612,
+            "p95": 21.61219499539584,
+            "minimum": 21.245704998727888,
+            "maximum": 21.61219499539584
+          },
+          "device_milliseconds_per_call": {
+            "samples": [
+              21.609463500976563,
+              21.368370056152344,
+              21.243716430664062
+            ],
+            "sample_count": 3,
+            "median": 21.368370056152344,
+            "p95": 21.609463500976563,
+            "minimum": 21.243716430664062,
+            "maximum": 21.609463500976563
+          }
+        },
+        "2": {
+          "host_milliseconds_per_call": {
+            "samples": [
+              21.874004998244345,
+              21.90538999857381,
+              22.011644998565316
+            ],
+            "sample_count": 3,
+            "median": 21.90538999857381,
+            "p95": 22.011644998565316,
+            "minimum": 21.874004998244345,
+            "maximum": 22.011644998565316
+          },
+          "device_milliseconds_per_call": {
+            "samples": [
+              21.871470642089843,
+              21.903411865234375,
+              22.00959930419922
+            ],
+            "sample_count": 3,
+            "median": 21.903411865234375,
+            "p95": 22.00959930419922,
+            "minimum": 21.871470642089843,
+            "maximum": 22.00959930419922
+          }
+        },
+        "4": {
+          "host_milliseconds_per_call": {
+            "samples": [
+              22.127715009264648,
+              21.942754997871816,
+              22.094274999108166
+            ],
+            "sample_count": 3,
+            "median": 22.094274999108166,
+            "p95": 22.127715009264648,
+            "minimum": 21.942754997871816,
+            "maximum": 22.127715009264648
+          },
+          "device_milliseconds_per_call": {
+            "samples": [
+              22.125152587890625,
+              21.940789794921876,
+              22.091366577148438
+            ],
+            "sample_count": 3,
+            "median": 22.091366577148438,
+            "p95": 22.125152587890625,
+            "minimum": 21.940789794921876,
+            "maximum": 22.125152587890625
+          }
+        },
+        "8": {
+          "host_milliseconds_per_call": {
+            "samples": [
+              21.933724998962134,
+              22.27887000190094,
+              21.6892349999398
+            ],
+            "sample_count": 3,
+            "median": 21.933724998962134,
+            "p95": 22.27887000190094,
+            "minimum": 21.6892349999398,
+            "maximum": 22.27887000190094
+          },
+          "device_milliseconds_per_call": {
+            "samples": [
+              21.93121337890625,
+              22.27686462402344,
+              21.687245178222657
+            ],
+            "sample_count": 3,
+            "median": 21.93121337890625,
+            "p95": 22.27686462402344,
+            "minimum": 21.687245178222657,
+            "maximum": 22.27686462402344
+          }
+        },
+        "16": {
+          "host_milliseconds_per_call": {
+            "samples": [
+              21.773124998435378,
+              21.553764992859215,
+              22.137365001253784
+            ],
+            "sample_count": 3,
+            "median": 21.773124998435378,
+            "p95": 22.137365001253784,
+            "minimum": 21.553764992859215,
+            "maximum": 22.137365001253784
+          },
+          "device_milliseconds_per_call": {
+            "samples": [
+              21.770597839355467,
+              21.551731872558594,
+              22.135353088378906
+            ],
+            "sample_count": 3,
+            "median": 21.770597839355467,
+            "p95": 22.135353088378906,
+            "minimum": 21.551731872558594,
+            "maximum": 22.135353088378906
+          }
+        },
+        "32": {
+          "host_milliseconds_per_call": {
+            "samples": [
+              21.939764998387545,
+              21.78625500528142,
+              21.828715002629906
+            ],
+            "sample_count": 3,
+            "median": 21.828715002629906,
+            "p95": 21.939764998387545,
+            "minimum": 21.78625500528142,
+            "maximum": 21.939764998387545
+          },
+          "device_milliseconds_per_call": {
+            "samples": [
+              21.929237365722656,
+              21.784217834472656,
+              21.826760864257814
+            ],
+            "sample_count": 3,
+            "median": 21.826760864257814,
+            "p95": 21.929237365722656,
+            "minimum": 21.784217834472656,
+            "maximum": 21.929237365722656
+          }
+        },
+        "64": {
+          "host_milliseconds_per_call": {
+            "samples": [
+              21.676819992717355,
+              21.48795999819413,
+              21.789164992514998
+            ],
+            "sample_count": 3,
+            "median": 21.676819992717355,
+            "p95": 21.789164992514998,
+            "minimum": 21.48795999819413,
+            "maximum": 21.789164992514998
+          },
+          "device_milliseconds_per_call": {
+            "samples": [
+              21.673974609375,
+              21.485874938964844,
+              21.787124633789062
+            ],
+            "sample_count": 3,
+            "median": 21.673974609375,
+            "p95": 21.787124633789062,
+            "minimum": 21.485874938964844,
+            "maximum": 21.787124633789062
+          }
+        }
+      },
+      "numeric": {
+        "tensors": {
+          "logits": {
+            "dtype": "torch.float32",
+            "finite": true,
+            "max_absolute_error": 0.001795053482055664,
+            "mean_absolute_error": 0.0002851405297406018
+          },
+          "value": {
+            "dtype": "torch.float32",
+            "finite": true,
+            "max_absolute_error": 8.74549150466919e-05,
+            "mean_absolute_error": 2.3930100724101067e-05
+          },
+          "hidden": {
+            "dtype": "torch.float32",
+            "finite": true,
+            "max_absolute_error": 0.00040534883737564087,
+            "mean_absolute_error": 4.35348047176376e-05
+          }
+        },
+        "probabilities": {
+          "finite": true,
+          "max_absolute_error": 0.0003788173198699951,
+          "mean_absolute_error": 2.264643626403995e-06,
+          "argmax_flips": 0,
+          "argmax_flip_rate": 0.0,
+          "selected_log_probability_max_absolute_error": 0.0010018348693847656
+        },
+        "recurrent_drift": {
+          "steps": 128,
+          "finite": true,
+          "max_hidden_absolute_error": 0.00045533478260040283,
+          "max_probability_absolute_error": 0.0004094839096069336,
+          "argmax_flips": 0,
+          "argmax_flip_rate": 0.0
+        },
+        "thresholds": {
+          "probability_max_absolute_error": 0.001,
+          "argmax_flip_rate": 0.01,
+          "recurrent_hidden_max_absolute_error": 0.01
+        },
+        "passed": true
+      },
+      "comparison": {
+        "baseline_batch_4_device_milliseconds": 21.861631774902342,
+        "candidate_batch_4_device_milliseconds": 22.091366577148438,
+        "relative_reduction": -0.010508584382517902,
+        "comparison_three_run_relative_range": 0.014605983334379203,
+        "speed_gate_passed": false
+      },
+      "decision": {
+        "advance_to_end_to_end": false,
+        "advance_to_learning_seeds": false,
+        "reason": "micro_or_numeric_gate_failed"
+      }
+    },
+    "fp16_autocast": {
+      "supported": true,
+      "timing": {
+        "1": {
+          "host_milliseconds_per_call": {
+            "samples": [
+              23.365650000050664,
+              23.726199998054653,
+              23.326080001424998
+            ],
+            "sample_count": 3,
+            "median": 23.365650000050664,
+            "p95": 23.726199998054653,
+            "minimum": 23.326080001424998,
+            "maximum": 23.726199998054653
+          },
+          "device_milliseconds_per_call": {
+            "samples": [
+              23.362918090820312,
+              23.724427795410158,
+              23.324006652832033
+            ],
+            "sample_count": 3,
+            "median": 23.362918090820312,
+            "p95": 23.724427795410158,
+            "minimum": 23.324006652832033,
+            "maximum": 23.724427795410158
+          }
+        },
+        "2": {
+          "host_milliseconds_per_call": {
+            "samples": [
+              24.65700500179082,
+              24.294640007428825,
+              24.53024499118328
+            ],
+            "sample_count": 3,
+            "median": 24.53024499118328,
+            "p95": 24.65700500179082,
+            "minimum": 24.294640007428825,
+            "maximum": 24.65700500179082
+          },
+          "device_milliseconds_per_call": {
+            "samples": [
+              24.65453338623047,
+              24.292591857910157,
+              24.528587341308594
+            ],
+            "sample_count": 3,
+            "median": 24.528587341308594,
+            "p95": 24.65453338623047,
+            "minimum": 24.292591857910157,
+            "maximum": 24.65453338623047
+          }
+        },
+        "4": {
+          "host_milliseconds_per_call": {
+            "samples": [
+              24.335580004844815,
+              24.544924998190254,
+              24.464580009225756
+            ],
+            "sample_count": 3,
+            "median": 24.464580009225756,
+            "p95": 24.544924998190254,
+            "minimum": 24.335580004844815,
+            "maximum": 24.544924998190254
+          },
+          "device_milliseconds_per_call": {
+            "samples": [
+              24.333106994628906,
+              24.543331909179688,
+              24.46222839355469
+            ],
+            "sample_count": 3,
+            "median": 24.46222839355469,
+            "p95": 24.543331909179688,
+            "minimum": 24.333106994628906,
+            "maximum": 24.543331909179688
+          }
+        },
+        "8": {
+          "host_milliseconds_per_call": {
+            "samples": [
+              24.626599997282028,
+              20.99606499541551,
+              24.749570002313703
+            ],
+            "sample_count": 3,
+            "median": 24.626599997282028,
+            "p95": 24.749570002313703,
+            "minimum": 20.99606499541551,
+            "maximum": 24.749570002313703
+          },
+          "device_milliseconds_per_call": {
+            "samples": [
+              24.624024963378908,
+              20.99456024169922,
+              24.714505004882813
+            ],
+            "sample_count": 3,
+            "median": 24.624024963378908,
+            "p95": 24.714505004882813,
+            "minimum": 20.99456024169922,
+            "maximum": 24.714505004882813
+          }
+        },
+        "16": {
+          "host_milliseconds_per_call": {
+            "samples": [
+              24.06195499934256,
+              24.62954999646172,
+              24.093904998153448
+            ],
+            "sample_count": 3,
+            "median": 24.093904998153448,
+            "p95": 24.62954999646172,
+            "minimum": 24.06195499934256,
+            "maximum": 24.62954999646172
+          },
+          "device_milliseconds_per_call": {
+            "samples": [
+              24.059288024902344,
+              24.62750701904297,
+              24.091944885253906
+            ],
+            "sample_count": 3,
+            "median": 24.091944885253906,
+            "p95": 24.62750701904297,
+            "minimum": 24.059288024902344,
+            "maximum": 24.62750701904297
+          }
+        },
+        "32": {
+          "host_milliseconds_per_call": {
+            "samples": [
+              24.06807499937713,
+              24.28301500622183,
+              24.338859994895756
+            ],
+            "sample_count": 3,
+            "median": 24.28301500622183,
+            "p95": 24.338859994895756,
+            "minimum": 24.06807499937713,
+            "maximum": 24.338859994895756
+          },
+          "device_milliseconds_per_call": {
+            "samples": [
+              24.065484619140626,
+              24.280720520019532,
+              24.336885070800783
+            ],
+            "sample_count": 3,
+            "median": 24.280720520019532,
+            "p95": 24.336885070800783,
+            "minimum": 24.065484619140626,
+            "maximum": 24.336885070800783
+          }
+        },
+        "64": {
+          "host_milliseconds_per_call": {
+            "samples": [
+              24.38149000518024,
+              23.950284998863935,
+              24.19934499775991
+            ],
+            "sample_count": 3,
+            "median": 24.19934499775991,
+            "p95": 24.38149000518024,
+            "minimum": 23.950284998863935,
+            "maximum": 24.38149000518024
+          },
+          "device_milliseconds_per_call": {
+            "samples": [
+              24.378880310058594,
+              23.948193359375,
+              24.197283935546874
+            ],
+            "sample_count": 3,
+            "median": 24.197283935546874,
+            "p95": 24.378880310058594,
+            "minimum": 23.948193359375,
+            "maximum": 24.378880310058594
+          }
+        }
+      },
+      "numeric": {
+        "tensors": {
+          "logits": {
+            "dtype": "torch.float16",
+            "finite": true,
+            "max_absolute_error": 0.004462242126464844,
+            "mean_absolute_error": 0.0006298517691902816
+          },
+          "value": {
+            "dtype": "torch.float16",
+            "finite": true,
+            "max_absolute_error": 0.00014708936214447021,
+            "mean_absolute_error": 5.5808923207223415e-05
+          },
+          "hidden": {
+            "dtype": "torch.float16",
+            "finite": true,
+            "max_absolute_error": 0.0004793107509613037,
+            "mean_absolute_error": 6.388980546034873e-05
+          }
+        },
+        "probabilities": {
+          "finite": true,
+          "max_absolute_error": 0.0010477006435394287,
+          "mean_absolute_error": 7.052761247905437e-06,
+          "argmax_flips": 0,
+          "argmax_flip_rate": 0.0,
+          "selected_log_probability_max_absolute_error": 0.0024178624153137207
+        },
+        "recurrent_drift": {
+          "steps": 128,
+          "finite": true,
+          "max_hidden_absolute_error": 0.004291057586669922,
+          "max_probability_absolute_error": 0.0014029741287231445,
+          "argmax_flips": 0,
+          "argmax_flip_rate": 0.0
+        },
+        "thresholds": {
+          "probability_max_absolute_error": 0.001,
+          "argmax_flip_rate": 0.01,
+          "recurrent_hidden_max_absolute_error": 0.01
+        },
+        "passed": false
+      },
+      "comparison": {
+        "baseline_batch_4_device_milliseconds": 21.861631774902342,
+        "candidate_batch_4_device_milliseconds": 24.46222839355469,
+        "relative_reduction": -0.1189571137886373,
+        "comparison_three_run_relative_range": 0.014605983334379203,
+        "speed_gate_passed": false
+      },
+      "decision": {
+        "advance_to_end_to_end": false,
+        "advance_to_learning_seeds": false,
+        "reason": "micro_or_numeric_gate_failed"
+      }
+    },
+    "bf16_autocast": {
+      "supported": true,
+      "timing": {
+        "1": {
+          "host_milliseconds_per_call": {
+            "samples": [
+              23.451694997493178,
+              23.280290002003312,
+              23.445425007957965
+            ],
+            "sample_count": 3,
+            "median": 23.445425007957965,
+            "p95": 23.451694997493178,
+            "minimum": 23.280290002003312,
+            "maximum": 23.451694997493178
+          },
+          "device_milliseconds_per_call": {
+            "samples": [
+              23.449189758300783,
+              23.25928955078125,
+              23.443397521972656
+            ],
+            "sample_count": 3,
+            "median": 23.443397521972656,
+            "p95": 23.449189758300783,
+            "minimum": 23.25928955078125,
+            "maximum": 23.449189758300783
+          }
+        },
+        "2": {
+          "host_milliseconds_per_call": {
+            "samples": [
+              24.09548000432551,
+              24.249550001695752,
+              24.545195000246167
+            ],
+            "sample_count": 3,
+            "median": 24.249550001695752,
+            "p95": 24.545195000246167,
+            "minimum": 24.09548000432551,
+            "maximum": 24.545195000246167
+          },
+          "device_milliseconds_per_call": {
+            "samples": [
+              24.092723083496093,
+              24.247515869140624,
+              24.54369354248047
+            ],
+            "sample_count": 3,
+            "median": 24.247515869140624,
+            "p95": 24.54369354248047,
+            "minimum": 24.092723083496093,
+            "maximum": 24.54369354248047
+          }
+        },
+        "4": {
+          "host_milliseconds_per_call": {
+            "samples": [
+              25.039199995808303,
+              25.19470500992611,
+              24.369390006177127
+            ],
+            "sample_count": 3,
+            "median": 25.039199995808303,
+            "p95": 25.19470500992611,
+            "minimum": 24.369390006177127,
+            "maximum": 25.19470500992611
+          },
+          "device_milliseconds_per_call": {
+            "samples": [
+              25.036595153808594,
+              25.193251037597655,
+              24.367308044433592
+            ],
+            "sample_count": 3,
+            "median": 25.036595153808594,
+            "p95": 25.193251037597655,
+            "minimum": 24.367308044433592,
+            "maximum": 25.193251037597655
+          }
+        },
+        "8": {
+          "host_milliseconds_per_call": {
+            "samples": [
+              24.427515000570565,
+              24.122279998846352,
+              24.379685008898377
+            ],
+            "sample_count": 3,
+            "median": 24.379685008898377,
+            "p95": 24.427515000570565,
+            "minimum": 24.122279998846352,
+            "maximum": 24.427515000570565
+          },
+          "device_milliseconds_per_call": {
+            "samples": [
+              24.42557373046875,
+              24.120166015625,
+              24.377604675292968
+            ],
+            "sample_count": 3,
+            "median": 24.377604675292968,
+            "p95": 24.42557373046875,
+            "minimum": 24.120166015625,
+            "maximum": 24.42557373046875
+          }
+        },
+        "16": {
+          "host_milliseconds_per_call": {
+            "samples": [
+              24.357765004970133,
+              24.408584996126592,
+              24.52332500834018
+            ],
+            "sample_count": 3,
+            "median": 24.408584996126592,
+            "p95": 24.52332500834018,
+            "minimum": 24.357765004970133,
+            "maximum": 24.52332500834018
+          },
+          "device_milliseconds_per_call": {
+            "samples": [
+              24.341145324707032,
+              24.406614685058592,
+              24.521932983398436
+            ],
+            "sample_count": 3,
+            "median": 24.406614685058592,
+            "p95": 24.521932983398436,
+            "minimum": 24.341145324707032,
+            "maximum": 24.521932983398436
+          }
+        },
+        "32": {
+          "host_milliseconds_per_call": {
+            "samples": [
+              24.28171499632299,
+              24.50058499816805,
+              24.452259996905923
+            ],
+            "sample_count": 3,
+            "median": 24.452259996905923,
+            "p95": 24.50058499816805,
+            "minimum": 24.28171499632299,
+            "maximum": 24.50058499816805
+          },
+          "device_milliseconds_per_call": {
+            "samples": [
+              24.235775756835938,
+              24.49853515625,
+              24.450764465332032
+            ],
+            "sample_count": 3,
+            "median": 24.450764465332032,
+            "p95": 24.49853515625,
+            "minimum": 24.235775756835938,
+            "maximum": 24.49853515625
+          }
+        },
+        "64": {
+          "host_milliseconds_per_call": {
+            "samples": [
+              24.070999992545694,
+              24.260720005258918,
+              23.86025000596419
+            ],
+            "sample_count": 3,
+            "median": 24.070999992545694,
+            "p95": 24.260720005258918,
+            "minimum": 23.86025000596419,
+            "maximum": 24.260720005258918
+          },
+          "device_milliseconds_per_call": {
+            "samples": [
+              24.068247985839843,
+              24.25865478515625,
+              23.858175659179686
+            ],
+            "sample_count": 3,
+            "median": 24.068247985839843,
+            "p95": 24.25865478515625,
+            "minimum": 23.858175659179686,
+            "maximum": 24.25865478515625
+          }
+        }
+      },
+      "numeric": {
+        "tensors": {
+          "logits": {
+            "dtype": "torch.bfloat16",
+            "finite": true,
+            "max_absolute_error": 0.04071044921875,
+            "mean_absolute_error": 0.005259528290480375
+          },
+          "value": {
+            "dtype": "torch.bfloat16",
+            "finite": true,
+            "max_absolute_error": 0.0013508796691894531,
+            "mean_absolute_error": 0.0004474351881071925
+          },
+          "hidden": {
+            "dtype": "torch.bfloat16",
+            "finite": true,
+            "max_absolute_error": 0.0042570531368255615,
+            "mean_absolute_error": 0.0005043376004323363
+          }
+        },
+        "probabilities": {
+          "finite": true,
+          "max_absolute_error": 0.010568737983703613,
+          "mean_absolute_error": 5.4880281822988763e-05,
+          "argmax_flips": 0,
+          "argmax_flip_rate": 0.0,
+          "selected_log_probability_max_absolute_error": 0.018714427947998047
+        },
+        "recurrent_drift": {
+          "steps": 128,
+          "finite": true,
+          "max_hidden_absolute_error": 0.05497610569000244,
+          "max_probability_absolute_error": 0.013739228248596191,
+          "argmax_flips": 117,
+          "argmax_flip_rate": 0.228515625
+        },
+        "thresholds": {
+          "probability_max_absolute_error": 0.001,
+          "argmax_flip_rate": 0.01,
+          "recurrent_hidden_max_absolute_error": 0.01
+        },
+        "passed": false
+      },
+      "comparison": {
+        "baseline_batch_4_device_milliseconds": 21.861631774902342,
+        "candidate_batch_4_device_milliseconds": 25.036595153808594,
+        "relative_reduction": -0.14522993578874488,
+        "comparison_three_run_relative_range": 0.014605983334379203,
+        "speed_gate_passed": false
+      },
+      "decision": {
+        "advance_to_end_to_end": false,
+        "advance_to_learning_seeds": false,
+        "reason": "micro_or_numeric_gate_failed"
+      }
+    }
+  },
+  "decision": {
+    "advancing_modes": [],
+    "run_end_to_end": false,
+    "run_three_seed_learning": false,
+    "disposition": "rejected_micro_or_numeric_gate"
+  },
+  "checkpoint": {
+    "path": "data\\checkpoints\\training_speed\\frozen_v4_1_seed_20260801_500k.pt",
+    "sha256": "4d6a8dd7d32f4e530766aab8d2ec4691de4925bc73e188021da1f45dbe54e0bd",
+    "size": 68377329,
+    "mtime_ns": 1785438586793295200,
+    "observation_schema": "observation-v4.1",
+    "configuration_observation_version": "v4.1",
+    "policy_architecture": "entity_action_v1"
+  },
+  "sources": {
+    "script": {
+      "path": "scripts/assess_training_speed_stage_2_6_b_precision_001.py",
+      "sha256": "baadbb933488074781dfde6e50c2cca784cd72afa528167da9e4f707ab469f2b"
+    },
+    "comparison": {
+      "path": "data/reports/training_speed/stage_2_5_a_obs_001.json",
+      "sha256": "222f40a0d0ec5e9f0c5b5394dbf8f9ff526cb44467c1058d03d746a373e4242a"
+    },
+    "checkpoint": {
+      "path": "data/checkpoints/training_speed/frozen_v4_1_seed_20260801_500k.pt",
+      "sha256": "4d6a8dd7d32f4e530766aab8d2ec4691de4925bc73e188021da1f45dbe54e0bd"
+    }
+  },
+  "passed": true
+}

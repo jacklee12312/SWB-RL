@@ -1630,12 +1630,12 @@ B 类候选：
 - [x] 优先评估 `torch.compile` 的首次编译成本、稳态收益、graph break、
   checkpoint 兼容性和 Windows 稳定性；646 次 launch 使其值得较早测量，
   但在稳定性和数值证据完成前仍属于 B 类。
-- [ ] 分别测试 TF32、FP16 autocast 和 BF16 autocast。
-- [ ] 检查 masked logits、softmax、log probability 和 value 是否出现
+- [x] 分别测试 TF32、FP16 autocast 和 BF16 autocast。
+- [x] 检查 masked logits、softmax、log probability 和 value 是否出现
   NaN/Inf。
-- [ ] 检查不同精度/编译路径下动作概率误差、argmax 翻转率和 recurrent
+- [x] 检查不同精度/编译路径下动作概率误差、argmax 翻转率和 recurrent
   state 漂移。
-- [ ] B 类只有在数值稳定、长局和三 seed 小规模学习实验不退化后才能成为
+- [x] B 类只有在数值稳定、长局和三 seed 小规模学习实验不退化后才能成为
   默认值。
 
 2.6 A-NET-001 负结果（2026-07-31）：
@@ -1787,6 +1787,27 @@ B 类候选：
   正式声明 Windows Triton/inductor toolchain，并在不削弱非法输入拒绝的
   条件下解决 graph break 后重开。机器证据保存于
   `data/reports/training_speed/stage_2_6_b_compile_001_gate.json`。
+
+2.6 B-PRECISION-001 负结果（2026-07-31）：
+
+- 在同一冻结 checkpoint 和固定输入上分别测量 TF32、FP16 autocast 与
+  BF16 autocast；batch `1/2/4/8/16/32/64` 均保存三重复 host/device
+  forward。数值门禁覆盖 logits/value/hidden、masked logits、softmax、
+  log probability、argmax，以及 batch 4 的 128-step recurrent state。
+  所有候选输出、概率和 recurrent state 都保持有限，未出现 NaN/Inf。
+- TF32 通过数值门禁：概率最大绝对误差 `3.79e-4`，固定 batch 与 128-step
+  recurrent argmax 均无翻转，recurrent hidden 最大漂移 `4.55e-4`。但
+  batch-4 device forward 从 `21.862` ms 增至 `22.091` ms（退化
+  `1.05%`），未越过相邻三次端到端的 `1.461%` 正向收益门槛。
+- FP16 与 BF16 的 batch-4 device forward 分别增至 `24.462` ms 和
+  `25.037` ms，即退化 `11.90%` 与 `14.52%`。FP16 概率最大误差
+  `1.05e-3`，越过 `1e-3` 门槛；BF16 概率最大误差 `1.06e-2`、
+  recurrent hidden 最大漂移 `5.50e-2`，且 512 个 recurrent 决策中
+  翻转 `117` 次。
+- 三条路径均未同时通过数值与 micro 门禁，故按
+  `rejected_micro_or_numeric_gate` 关闭，不进入端到端、长局或三 seed
+  小规模学习，也没有任何 B 类候选成为默认值。机器可读证据保存于
+  `data/reports/training_speed/stage_2_6_b_precision_001_gate.json`。
 
 ## 2.7 在继承网络收益后优化 learner 更新
 

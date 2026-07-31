@@ -603,5 +603,65 @@ class TrainingSpeedStage26BCompile001Tests(unittest.TestCase):
             self.assertEqual(self._sha256(path), source["sha256"])
 
 
+class TrainingSpeedStage26BPrecision001Tests(unittest.TestCase):
+    ROOT = Path(__file__).resolve().parents[1]
+    REPORT = (
+        ROOT
+        / "data/reports/training_speed/"
+        "stage_2_6_b_precision_001_gate.json"
+    )
+
+    @staticmethod
+    def _sha256(path: Path) -> str:
+        digest = hashlib.sha256()
+        with path.open("rb") as source:
+            for block in iter(lambda: source.read(1024 * 1024), b""):
+                digest.update(block)
+        return digest.hexdigest()
+
+    def test_saved_precision_gate_rejects_all_modes(self) -> None:
+        report = json.loads(self.REPORT.read_text(encoding="utf-8"))
+        self.assertTrue(report["passed"])
+        self.assertEqual(report["decision"]["advancing_modes"], [])
+        self.assertFalse(report["decision"]["run_end_to_end"])
+        self.assertFalse(report["decision"]["run_three_seed_learning"])
+        self.assertEqual(
+            set(report["modes"]),
+            {"tf32", "fp16_autocast", "bf16_autocast"},
+        )
+        tf32 = report["modes"]["tf32"]
+        self.assertTrue(tf32["numeric"]["passed"])
+        self.assertFalse(tf32["comparison"]["speed_gate_passed"])
+        for mode in ("fp16_autocast", "bf16_autocast"):
+            candidate = report["modes"][mode]
+            self.assertTrue(candidate["supported"])
+            self.assertFalse(candidate["numeric"]["passed"])
+            self.assertFalse(candidate["comparison"]["speed_gate_passed"])
+            self.assertLess(
+                candidate["comparison"]["relative_reduction"],
+                0.0,
+            )
+
+    def test_saved_precision_gate_covers_numeric_contract(self) -> None:
+        report = json.loads(self.REPORT.read_text(encoding="utf-8"))
+        for candidate in report["modes"].values():
+            numeric = candidate["numeric"]
+            self.assertTrue(
+                all(
+                    tensor["finite"]
+                    for tensor in numeric["tensors"].values()
+                )
+            )
+            self.assertTrue(numeric["probabilities"]["finite"])
+            self.assertTrue(numeric["recurrent_drift"]["finite"])
+            self.assertEqual(
+                numeric["recurrent_drift"]["steps"],
+                report["methodology"]["recurrent_drift_steps"],
+            )
+        for source in report["sources"].values():
+            path = self.ROOT / source["path"]
+            self.assertEqual(self._sha256(path), source["sha256"])
+
+
 if __name__ == "__main__":
     unittest.main()
