@@ -316,6 +316,19 @@ After two excluded warm-up updates, each of three v4.1 runs measured more than
 Every run preserves the checkpoint SHA-256, size, and mtime and includes
 two-second CPU/core, GPU/memory/power, RAM, and pagefile samples.
 
+Checklist 2.2/2.3 now adds default-off stage profiling and a fixed-input
+v4.1 bottleneck diagnosis. In the RTX 4080 diagnostic, v4.1 pure-forward
+latency stayed near 21--22 ms from batch 1 through 64, while the v3.6
+reference stayed near 5.7--5.9 ms. The v4.1 structured-token path accounted
+for about two thirds of hooked forward time, and PyTorch Profiler recorded
+646 CUDA kernel launches per batch-4 forward. The next optimization targets
+are the shared v4.1 token/launch/synchronization hot path and under-filled
+central inference batches; v3.6 remains a reference rather than an
+optimization target. See
+[`v4_1_inference_breakdown.json`](data/reports/training_speed/v4_1_inference_breakdown.json)
+and
+[`training_speed_bottleneck_report.md`](docs/training_speed_bottleneck_report.md).
+
 ## Reproducible RL Platform
 
 The P1/P2 platform-hardening slice is implemented around the deterministic

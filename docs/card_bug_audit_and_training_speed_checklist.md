@@ -1337,22 +1337,87 @@ Learner 侧：
 - [x] 计时开关关闭时不明显降低正式训练吞吐。
 - [x] 为汇总计算、空样本和阶段求和增加测试。
 
-## 2.3 定位 v4.1 相对 v3.6 的额外成本
+## 2.3 确定 v4.1 的可操作瓶颈（v3.6 仅作轻量参照）
 
-- [ ] 用固定合成输入分别测量 batch 1/4/8/16/32/64 的纯前向吞吐。
-- [ ] 分离非卡数值投影、卡牌 embedding、93 个语义 token 构造、
+本节服务于 v4.1 优化路线选择，不为 v3.6 重做完整的 Worker、IPC、中央调度、
+Learner 或对局生命周期剖析，也不优化 v3.6。v3.6 只在相同固定合成输入下
+提供纯前向参照，用于区分 v4.1 特有成本与两代模型共有成本；所有候选排序、
+Profiler 分析和后续优化均以 v4.1 为主。
+
+- [x] 用固定合成输入完整测量 v4.1 batch 1/4/8/16/32/64 的纯前向
+  吞吐，并用相同 batch 和测量口径生成 v3.6 轻量纯前向参照。
+- [x] 分离非卡数值投影、卡牌 embedding、93 个语义 token 构造、
   Transformer、GRU 和 action head。
-- [ ] 测量 token 打包在 CPU 和 GPU 上的时间及拷贝量。
-- [ ] 测量不同长度 episode 的 GRU recurrent state 管理成本。
-- [ ] 测量合法动作候选数量对 action-conditioned scoring 的影响。
-- [ ] 使用 PyTorch Profiler 确定主要 CUDA kernel、launch gap 和同步点。
-- [ ] 检查是否存在重复 Observation 转换、重复 embedding 或重复 mask 拷贝。
-- [ ] 形成按预计收益排序的瓶颈清单，不凭 GPU/CPU 方波猜测原因。
+- [x] 测量 token 打包在 CPU 和 GPU 上的时间及拷贝量。
+- [x] 测量不同长度 episode 的 GRU recurrent state 管理成本。
+- [x] 测量合法动作候选数量对 action-conditioned scoring 的影响。
+- [x] 使用 PyTorch Profiler 确定主要 CUDA kernel、launch gap 和同步点。
+- [x] 检查是否存在重复 Observation 转换、重复 embedding 或重复 mask 拷贝。
+- [x] 形成按预计收益排序的瓶颈清单，不凭 GPU/CPU 方波猜测原因。
 
 产物：
 
 - `data/reports/training_speed/v4_1_inference_breakdown.json`
 - `docs/training_speed_bottleneck_report.md`
+
+2.3 精简版诊断证据（2026-07-31）：
+
+- 候选分类为 `A-PROFILE-002`。v4.1 是唯一优化目标；v3.6 只运行相同
+  fixture seed、batch、预热、迭代和 CUDA-event 口径的纯前向参照，没有
+  重做 Worker、IPC、中央调度、Learner 或生命周期剖析。
+- 实际运行 `E:\anaconda\python.exe -m
+  scripts.profile_v4_1_inference_breakdown`。固定合成输入按 checkpoint
+  shape/dtype 生成一次并按 batch 前缀切片；每个 batch 预热 8 次，正式段
+  每个 repeat 运行 20 个 forward，独立重复 3 次。
+- v4.1 batch 1/4/8/16/32/64 的纯前向 median 为
+  21.270/22.013/21.865/21.825/22.060/21.613 ms；v3.6 为
+  5.861/5.794/5.733/5.823/5.852/5.829 ms。v4.1 延迟为 v3.6 的
+  3.63--3.81 倍，但几乎不随 batch 增长；batch 4 样本吞吐为 batch 1
+  的 3.86 倍，与 2.2 的 58.719% 中央空槽共同支持后续合批扫描。
+- 组件 hooks 会使 batch 4 完整 forward 从无 hooks 的 22.013 ms 增至
+  31.062 ms，因此只解释结构、不替代纯前向绝对值。hooked median 中
+  93-token 构造 20.550 ms（66.16%）、Transformer 4.165 ms、GRU
+  0.143 ms、action/value 6.214 ms；policy/value head 容器自身仅
+  0.199/0.294 ms。card embedding lookup/projection 各约 0.09 ms；
+  token tensor op、其他 embedding、重复静态构造与 launch gap 是更大的
+  可操作范围。
+- 每请求输入 73,460 bytes。batch 1 的 NumPy stack/CPU tensor/H2D
+  median 为 0.020/0.009/0.105 ms；batch 64 为
+  1.054/0.013/0.429 ms。小 batch 输入复制不是首要成本，扩大合批后必须
+  同时验证预分配和缓冲区复用。
+- 固定 batch 4、总计 512 recurrent steps 时，episode 长度
+  1/16/64/256 的 GRU device median 为
+  0.1324/0.1077/0.1032/0.1036 ms/step；除极短 episode reset 外无明显
+  长度放大。合法动作 1/8/32/64/112 的 masked distribution 为
+  0.2100/0.1919/0.2195/0.2183/0.2129 ms，处于波动范围；模型始终先密集
+  计算 112 个 logits，合法候选数不改变 action scoring。
+- PyTorch Profiler 在 batch 4 的 3 个 forward 捕获 1,938 个 kernel 和
+  1,938 次 launch，即每 forward 646 个；kernel gap median/P95 为
+  44.13/130.33 µs，并记录 11 个同步事件。trace 表明成本分散在许多小
+  GEMM、copy、add、gather、round、clamp、reduce 和 elementwise kernel，
+  不存在一个足以单独解释 wall time 的大 kernel。
+- 静态与运行时证据确认：中央 Worker 没有复用 `env.step()` 已构造的下一
+  Observation；每 batch 重建三份 `np.stack` 并重新 H2D；语义 context
+  重建 `torch.arange(4)`；device tensor 的 Python `bool` 校验形成 host
+  sync 候选。同一 forward 内 card embedding/projection 只执行一次并复用，
+  未发现重复 card embedding。
+- 按可独立获得收益和依赖关系排序：v4.1 token/launch/sync 共同根因（2.6）、
+  中央合批与缓冲区（2.4）、不与共同根因重复计数的 Learner 专属工作（2.7）、
+  下一 Observation 重复构造（2.5）。完整口径、三重复原始样本、checkpoint
+  SHA-256、operator、kernel、gap、同步和审计位置保存于
+  `data/reports/training_speed/v4_1_inference_breakdown.json`；压缩 trace
+  保存于 `data/reports/training_speed/v4_1_profiler_trace.json.gz`，
+  结论和限制保存于 `docs/training_speed_bottleneck_report.md`。
+- `E:\anaconda\python.exe -m unittest
+  tests.test_training_speed_stage_2_3 -v`：5 项通过。
+- `E:\anaconda\python.exe -m unittest discover -s tests -v`：共运行
+  2,866 项，1 项条件跳过、其余通过，耗时 454.194 秒，API test 通过；
+  完整输出保存于
+  `data/reports/training_speed/stage_2_3_complete_unittest.log`。
+- `E:\anaconda\python.exe -m compileall -q swb scripts tests`：通过。
+  本阶段只新增只读诊断脚本、报告和测试，不修改模型、PPO、引擎、规则、
+  动作、目标、战斗、回合或 Observation 语义，因此未触发额外
+  self-play/`rl_mixed_match`。
 
 ## 2.4 优化中央 GPU 推理合批
 
