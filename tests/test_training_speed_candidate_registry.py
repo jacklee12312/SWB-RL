@@ -42,6 +42,14 @@ class TrainingSpeedCandidateRegistryTests(unittest.TestCase):
         self.assertEqual(self.candidates["B-PRECISION-001"]["class"], "B")
         self.assertEqual(self.candidates["B-COMPILE-001"]["class"], "B")
         self.assertEqual(self.candidates["C-ASYNC-001"]["class"], "C")
+        self.assertEqual(
+            self.candidates["C-ASYNC-001"]["disposition"],
+            "deferred_separate_algorithm_experiment",
+        )
+        self.assertEqual(
+            self.candidates["C-ASYNC-001"]["evidence"],
+            "data/reports/training_speed/stage_2_8_overlap_gate.json",
+        )
         self.assertEqual(self.candidates["C-HYPERPARAM-001"]["class"], "C")
         self.assertEqual(self.candidates["C-MODEL-001"]["class"], "C")
 

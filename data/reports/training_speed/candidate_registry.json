@@ -187,7 +187,8 @@
       "class": "C",
       "description": "Asynchronous actor/learner execution with policy lag.",
       "semantics": "Changes the behavior-policy generation and PPO on-policy boundary.",
-      "disposition": "separate_algorithm_experiment"
+      "disposition": "deferred_separate_algorithm_experiment",
+      "evidence": "data/reports/training_speed/stage_2_8_overlap_gate.json"
     },
     {
       "id": "C-HYPERPARAM-001",
