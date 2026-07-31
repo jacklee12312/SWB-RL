@@ -1419,88 +1419,161 @@ Profiler 分析和后续优化均以 v4.1 为主。
   动作、目标、战斗、回合或 Observation 语义，因此未触发额外
   self-play/`rl_mixed_match`。
 
-## 2.4 优化中央 GPU 推理合批
+阶段 2.3 的“根因优先级”和后续 checklist 的“实际执行顺序”分开记录：
+2.6 的 token/launch/sync 是当前最重的共同根因，但仍按 2.4 → 2.5 → 2.6
+推进。2.4 先完成配置扫描并过决策门；2.5 先完成一个已确认重复工作的最小
+切片并过决策门；只有门槛内有真实收益或仍有足够占比，才扩展同节的后续
+实现。未过门的候选要保存结果并以“有证据的不适用/延期”关闭，不为勾选而
+实现。纯前向或组件 microbenchmark 只用于定位，不能代替端到端验收。
 
-- [ ] 扫描 batch wait：0、0.1、0.25、0.5、1.0 ms。
-- [ ] 扫描稳定 worker 数；先测 2/3/4/5/6，避免直接重试已发生分页压力的
+## 2.4 扫描中央 GPU 推理合批并设置实施决策门
+
+### 2.4A 配置扫描（必须先完成）
+
+- [ ] 固定 checkpoint、Observation、网络、卡组、seed、训练参数和硬件，
+  保存未调参基线；所有进入比较的配置至少端到端重复三次。
+- [ ] 单变量扫描 batch wait：0、0.1、0.25、0.5、1.0 ms。
+- [ ] 单变量扫描稳定 worker 数：2/3/4/5/6；避免直接重试已发生分页压力的
   8 worker 配置。
-- [ ] 扫描每 worker PyTorch 线程数 1/2/4。
-- [ ] 每组记录 batch 大小分布、worker 等待、GPU 空闲、吞吐和回合长度。
+- [ ] 单变量扫描每 worker PyTorch 线程数：1/2/4。
+- [ ] 第一轮保持其他参数为基线；只对单变量胜出且稳定的值补做交互组合，
+  避免没有归因能力的全笛卡尔积。
+- [ ] 每组记录 batch 大小 mean/P50/P95、空槽率、worker 等待、GPU 空闲、
+  median steps/s、P95 stage time、回合长度、CPU/GPU/RAM 和异常退出。
+- [ ] 区分“等待窗口太短”和“请求到达率不足”；不能只看到平均 batch 偏小
+  就直接增加等待时间或 worker。
 - [ ] 保持每个 episode 独立 recurrent state 和独立 policy RNG。
 - [ ] 保持一个 rollout generation 内权重固定，不引入策略滞后。
 - [ ] 验证 batch 内请求排序变化不会把 hidden state 或动作发给错误 episode。
-- [ ] 减少单步消息数量，在不改变决策边界的情况下批量传输固定字段。
-- [ ] 使用预分配/复用缓冲区，减少 Python 对象和 NumPy/Tensor 重建。
-- [ ] 评估 pinned memory 和 non-blocking H2D 是否有实际收益。
-- [ ] 对每项候选分别提交和对比，不能一次合并多项后无法归因。
+- [ ] 完成 2.4 决策门：只有最佳稳定配置相对基线的 median 端到端吞吐提升
+  至少 5%，且提升超过三次运行波动范围，才继续 2.4B；否则保存“无明确
+  收益”报告，将 2.4B 以有证据的不适用/延期关闭并继续 2.5。
 
-## 2.5 优化 Observation v4.1 热路径
+### 2.4B 实现候选（仅在 2.4 决策门通过后）
 
-- [ ] 确认同一 state version 的 Observation 和 action mask 只构造一次。
-- [ ] 检查卡牌静态字段能否按 vocabulary 预计算，只查询运行时变化字段。
-- [ ] 检查固定 93-token 布局能否直接写入连续数组，减少字典和临时列表。
-- [ ] 预分配非卡数值、卡牌索引和 token feature 缓冲区。
-- [ ] 避免在 worker 与中央推理之间传输未被 policy 使用的调试字段。
-- [ ] 检查 dtype，避免 int64/float64 的不必要带宽和隐式转换。
-- [ ] 保留隐藏信息和顺序不变性测试，优化不能改变 v4.1 语义。
-- [ ] 对 cold/cached observation、完整环境 step 和端到端 PPO 分别测量；
+- [ ] A 类：减少单步消息数量，在不改变决策边界的情况下批量传输固定字段。
+- [ ] A 类：复用 observation/card-index/action-mask 的 batch 缓冲区，减少
+  已确认的三次 `np.stack`、Python 对象和 Tensor 重建。
+- [ ] A 类：仅在 H2D 占比和端到端实验支持时采用 pinned memory 与
+  non-blocking H2D；当前 batch 1 的约 0.105 ms H2D 不能单独构成立项理由。
+- [ ] 每项候选独立实现、独立提交并至少做三次同配置端到端对比，不能合并
+  多项后再倒推收益。
+
+## 2.5 先消除重复 Observation 构造，再决定是否扩展
+
+- [ ] A-OBS-001：先保存最小调用轨迹和等价测试，证明中央 Worker 在
+  `env.step()` 已返回下一 Observation 后又调用 `env.observation()`。
+- [ ] A-OBS-001：复用 `env.step()` 返回的下一 Observation，终止、截断、
+  reset 和 perspective 切换边界保持原行为；同一决策状态的 Observation
+  和 action mask 只构造一次。
+- [ ] A-OBS-001：固定 seed 对比 Observation 全字段/字节、card index、
+  action mask、动作、log probability、value、hidden state、trajectory 和
+  PPO generation 边界。
+- [ ] 分别测量 cold/cached Observation、完整环境 step 和三次端到端 PPO；
   只优化 microbenchmark 不算完成。
+- [ ] 完成 2.5 决策门：若 Observation 构造仍占端到端 pipeline wall time
+  至少 5%，或 A-OBS-001 收益明确超过运行波动且剖析显示还有同源成本，
+  才继续本节其余候选；否则保存结果并将其余候选以有证据的不适用/延期关闭。
+- [ ] A 类：按 vocabulary 预计算卡牌静态字段，只查询运行时变化字段。
+- [ ] A 类：将固定 93-token 布局直接写入连续数组，减少字典和临时列表。
+- [ ] A 类：预分配非卡数值、卡牌索引和 token feature 缓冲区。
+- [ ] A 类：避免在 worker 与中央推理之间传输 policy 未使用的调试字段。
+- [ ] A 类：检查 dtype，避免 int64/float64 的不必要带宽和隐式转换。
+- [ ] 保留隐藏信息、perspective、顺序不变性和 mask 一致性测试，优化不能
+  改变 Observation v4.1 语义。
 
-## 2.6 优化 v4.1 网络前向
+## 2.6 优先优化 v4.1 token/launch/sync 热路径
 
-A 类候选：
+A 类候选按以下顺序实施：
 
-- [ ] 将固定输入的张量布局调整为连续内存，减少 `permute/contiguous`。
-- [ ] 合并可等价合并的小 projection，减少 CUDA kernel launch。
-- [ ] 使用 PyTorch 原生 scaled-dot-product attention 的最快等价后端。
-- [ ] 缓存真正静态且不参与梯度的推理侧卡牌编码。
-- [ ] 对固定 batch bucket 评估 CUDA Graph；动态尾 batch 保留普通路径。
-- [ ] 对网络每项改动验证相同输入的 logits/value/hidden state 在规定容差内一致。
+- [ ] A-NET-001：在不削弱非法输入拒绝和原子性的前提下，将 device tensor
+  的 Python `bool` 校验移出每次 forward 的 GPU 热路径，或合并为无需逐
+  forward host sync 的等价门禁。
+- [ ] A-NET-002：将 `torch.arange(4)`、固定位置和其他不变量注册为静态
+  buffer，避免每次 forward 重新创建。
+- [ ] A-NET-003：在逐字段语义等价的前提下，合并重复的
+  `round → long → clamp` 和 semantic-context 小算子。
+- [ ] 调整固定输入的连续内存布局，并合并可等价合并的小 projection/
+  elementwise 操作，减少 `permute/contiguous` 和 CUDA kernel launch。
+- [ ] 每个候选分别记录 batch 1/2/4/8/16/32/64 纯前向、组件时间、kernel
+  数、kernel gap、同步事件及三次端到端结果；以 batch 4 当前每 forward
+  646 次 launch 和 11 个同步事件作为诊断参照。
+- [ ] 在 token 热路径完成后再评估原生 scaled-dot-product attention；
+  当前 hooked Transformer 约 4.17 ms，不把 attention 当作唯一主因。
+- [ ] 仅在 profiler 证明超过噪声后评估推理侧静态卡牌编码缓存；缓存必须按
+  policy generation 失效，且当前 card lookup/projection 各约 0.09 ms、
+  同一 forward 无重复 card embedding 的证据必须写入决策。
+- [ ] 只有 host sync 已处理且 batch bucket 稳定后才评估 CUDA Graph；
+  动态尾 batch 保留普通路径。
+- [ ] 每项 A 类改动验证相同输入的 logits/value/hidden state 精确或在既定
+  浮点容差内一致，并通过固定 seed 轨迹、log probability、PPO generation
+  和 checkpoint resume 等价测试。
 
 B 类候选：
 
+- [ ] 优先评估 `torch.compile` 的首次编译成本、稳态收益、graph break、
+  checkpoint 兼容性和 Windows 稳定性；646 次 launch 使其值得较早测量，
+  但在稳定性和数值证据完成前仍属于 B 类。
 - [ ] 分别测试 TF32、FP16 autocast 和 BF16 autocast。
-- [ ] 测试 `torch.compile` 的首次编译成本、稳态收益和 Windows 稳定性。
-- [ ] 检查 masked logits、softmax、log probability 和 value 是否出现 NaN/Inf。
-- [ ] 检查不同精度下动作概率误差、argmax 翻转率和 recurrent state 漂移。
-- [ ] B 类只有在三 seed 小规模学习实验不退化后才能成为默认值。
+- [ ] 检查 masked logits、softmax、log probability 和 value 是否出现
+  NaN/Inf。
+- [ ] 检查不同精度/编译路径下动作概率误差、argmax 翻转率和 recurrent
+  state 漂移。
+- [ ] B 类只有在数值稳定、长局和三 seed 小规模学习实验不退化后才能成为
+  默认值。
 
-## 2.7 优化 learner 更新
+## 2.7 在继承网络收益后优化 learner 更新
 
-- [ ] 复核现有 backward/gradient clipping 和 forward/loss 占比。
-- [ ] 复用 rollout tensor 缓冲区，减少每次 update 的分配和 Python 拼装。
-- [ ] 将可提前完成的 padding/mask 计算移出 minibatch 内循环。
-- [ ] 检查梯度清零方式、fused optimizer 和 foreach gradient clipping。
-- [ ] 测试 AMP + GradScaler 的稳定性和真实端到端收益。
-- [ ] 测试 minibatch 在显存允许范围内增大是否提高 GPU 利用率；该项属于
-  C 类时必须另做学习有效性实验。
-- [ ] 统计更新阶段每个 minibatch 的实际 token 数，避免 padding 吞掉收益。
-- [ ] 任何改变 epoch、sequence length、rollout 或 minibatch 的方案都单独
-  保存超参数实验，不伪装成纯实现优化。
+- [ ] 采用 2.6 候选后重新建立 learner 分段基线，区分共享模型
+  forward/backward 收益与 learner 专属收益，禁止重复计数。
+- [ ] 复核 backward、gradient clipping、forward/loss、padding 准备和实际
+  padded compute 占比；当前约 97.1% 的 forward+backward 是入口，不证明
+  NumPy/H2D 准备本身是主瓶颈。
+- [ ] 统计每个 minibatch 的有效 token、padding token 和实际计算比例，
+  区分“padding 准备耗时很小”和“padding 后无效 GPU 计算可能较大”。
+- [ ] A 类：复用 rollout tensor 缓冲区，将可提前完成的 padding/mask
+  计算移出 minibatch 内循环；分别验证分配减少和端到端收益。
+- [ ] A 类：检查梯度清零方式、fused optimizer 和 foreach gradient
+  clipping，逐项保存反向数值和端到端结果。
+- [ ] B 类：测试 AMP + GradScaler 的数值稳定性和真实端到端收益。
+- [ ] C 类：任何改变 minibatch、epoch、sequence length、rollout 长度、
+  采样顺序或梯度累积语义的方案，都单独保存超参数与三 seed 学习有效性
+  实验，不伪装成纯实现优化。
 
-## 2.8 评估流水线重叠和策略滞后
+## 2.8 有条件地评估流水线重叠和策略滞后
 
-- [ ] 先评估同一 rollout 内 CPU 准备、H2D 和 CUDA 前向的安全重叠。
-- [ ] 评估 learner update 中下一 minibatch 准备与当前 CUDA 计算的重叠。
-- [ ] 不允许 worker 使用正在更新的权重。
+- [ ] 在 2.4–2.7 已采用候选上重新剖析；只有可调度的 CPU 准备、H2D 或
+  pipeline 空洞占 wall time 至少 5%，且理论上能与 CUDA 工作重叠，才进入
+  实现；否则保存“无明确收益/延期”证据并关闭本节同步候选。
+- [ ] A 类：评估同一 rollout 内 CPU 准备、H2D 和 CUDA 前向的安全重叠；
+  当前 batch 1 H2D 约 0.105 ms，不能只凭利用率曲线实施异步拷贝。
+- [ ] A 类：评估 learner update 中下一 minibatch 准备与当前 CUDA 计算的
+  重叠。
+- [ ] 同步重叠不得改变 worker 权重版本、请求顺序、RNG 消耗、hidden state
+  所属 episode 或 PPO generation 边界。
 - [ ] 若考虑 actor/learner 异步，明确记录 policy generation、最大 lag 和
   每条 trajectory 的行为策略 log probability。
-- [ ] 异步方案列为 C 类；必须重新证明 PPO ratio、clip 和 on-policy 边界合理。
-- [ ] 异步方案需要与同步方案做三 seed 学习曲线和固定评估，不只比较 steps/s。
-- [ ] 在同步 A/B 类收益耗尽前，不优先实现分布式 learner。
+- [ ] 异步方案列为 C 类；必须重新证明 PPO ratio、clip 和 on-policy 边界
+  合理，并与同步方案做至少三 seed 学习曲线和固定评估，不能只比较 steps/s。
+- [ ] 在同步 A/B 类收益耗尽前，不优先实现异步或分布式 learner。
 
 ## 2.9 每项性能候选的统一验收
 
-- [ ] 使用同一基线配置至少运行三次。
-- [ ] 报告 median steps/s、P95 stage time、GPU/CPU/RAM 和 batch 分布。
-- [ ] 提升小于运行波动范围的候选判定为无明确收益。
-- [ ] A 类候选必须通过固定 seed 轨迹、log probability、value、hidden state
-  和 checkpoint resume 等价测试。
+- [ ] 使用同一冻结规则提交、checkpoint、Observation、网络、卡组、seed、
+  worker、训练参数和硬件环境，基线与候选各至少端到端运行三次。
+- [ ] 报告 median steps/s、P95 stage time、GPU/CPU/RAM、batch 分布和回合
+  长度；按候选补充 Observation 时间、kernel 数/gap/同步或 padding 比例。
+- [ ] 单次短 benchmark、组件 microbenchmark 或 CPU/GPU 利用率曲线只能
+  定位，不能作为采用结论。
+- [ ] 提升小于运行波动范围或对应决策门的候选判定为无明确收益。
+- [ ] A 类候选必须通过固定 seed 轨迹、log probability、value、hidden
+  state、PPO generation 和 checkpoint resume 等价测试。
 - [ ] B 类候选必须通过数值容差、NaN/Inf、长局和小规模学习测试。
-- [ ] C 类候选必须通过至少三 seed 的固定对阵强度实验。
+- [ ] C 类候选必须通过至少三 seed 的学习有效性与固定对阵强度实验。
 - [ ] 所有候选必须保持零非法动作、零 mask mismatch、零 worker 残留。
 - [ ] 所有候选必须通过完整单元测试、compileall 和规定 smoke。
-- [ ] 记录失败或无收益的候选，避免以后重复试验。
+- [ ] 保存采用、失败、无明显收益和因门槛延期候选的机器可读原始数据，
+  避免以后重复试验。
 
 ## 2.10 第一轮速度目标
 

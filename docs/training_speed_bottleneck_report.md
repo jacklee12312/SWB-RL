@@ -170,7 +170,7 @@ trace 可用 PyTorch/Chrome trace viewer 打开。
 - 同一次 v4.1 forward 内重复执行 card embedding/card projection；
   `card_tokens` 只构造一次并在所有字段间复用。
 
-## 后续瓶颈顺序
+## 诊断根因排序
 
 1. **v4.1 token 构造及 launch/sync 热路径（2.6）**
 
@@ -188,6 +188,41 @@ trace 可用 PyTorch/Chrome trace viewer 打开。
 
    是明确的 A 类候选，但在当前 pipeline 中预计小于模型/合批机会；复用前
    必须证明 perspective、action mask 和 trajectory 完全一致。
+
+该排序回答“当前成本最可能来自哪里”，不覆盖 checklist 的执行顺序。尤其
+不能因为 2.6 排名第一，就跳过 2.4/2.5 已经要求的低风险扫描和已确认重复
+工作。
+
+## Checklist 实际执行顺序
+
+1. **2.4A 配置扫描与决策门**
+
+   先用单变量扫描和少量胜出组合确认 batch wait、worker 和线程配置是否有
+   超过三次运行波动、且至少 5% 的端到端收益。通过才立即实施 2.4B；未通过
+   则保存无明确收益数据并以有证据的不适用/延期关闭 2.4B。
+2. **2.5 A-OBS-001 与决策门**
+
+   先消除 `env.step()` 后重复构造下一 Observation 的已确认工作，并验证
+   Observation、mask、trajectory、log probability、value、hidden state
+   和 generation 边界。只有收益明确或 Observation 仍占 pipeline wall
+   time 至少 5%，才扩展预计算、连续写入和缓冲区候选。
+3. **2.6 token/launch/sync 共同根因**
+
+   按 host sync、静态 buffer、重复 token 小算子和 kernel launch 的顺序做
+   A 类切片；attention、卡牌缓存和 CUDA Graph 各自服从 profiler 证据门。
+   `torch.compile` 因 646 次 launch 值得较早测量，但仍按 B 类完成稳定性、
+   数值和小规模学习验收。
+4. **2.7 Learner 专属工作**
+
+   先继承 2.6 的共同网络收益并重建基线，再区分 padding 准备成本、padded
+   compute 和 optimizer/gradient 专属成本，避免把同一模型收益计算两次。
+5. **2.8 流水线重叠**
+
+   只在更新后剖析仍显示至少 5% 可调度 wall time 时实施同步重叠；异步
+   actor/learner 继续作为 C 类，并要求三 seed 学习与固定对阵证据。
+
+以上执行门槛用于避免为了完成 checkbox 而实现已被数据判定为低价值的优化。
+被关闭的候选仍须保存机器可读数据、结论和复现实验配置。
 
 ## 产物与限制
 
