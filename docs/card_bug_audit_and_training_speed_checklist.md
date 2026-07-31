@@ -1602,7 +1602,7 @@ Profiler 分析和后续优化均以 v4.1 为主。
 
 A 类候选按以下顺序实施：
 
-- [ ] A-NET-001：在不削弱非法输入拒绝和原子性的前提下，将 device tensor
+- [x] A-NET-001：在不削弱非法输入拒绝和原子性的前提下，将 device tensor
   的 Python `bool` 校验移出每次 forward 的 GPU 热路径，或合并为无需逐
   forward host sync 的等价门禁。
 - [ ] A-NET-002：将 `torch.arange(4)`、固定位置和其他不变量注册为静态
@@ -1637,6 +1637,29 @@ B 类候选：
   state 漂移。
 - [ ] B 类只有在数值稳定、长局和三 seed 小规模学习实验不退化后才能成为
   默认值。
+
+2.6 A-NET-001 负结果（2026-07-31）：
+
+- 实验将 card-index 范围与每个 live action-mask row 的合法动作存在性移到
+  CPU/H2D 边界验证；中央推理和 learner recurrent loop 只在通过该门禁后
+  使用显式 prevalidated 路径。公开 `forward_step()`/`masked_logits()`
+  默认仍执行原校验，负索引、越界索引、空 mask 与形状不匹配继续抛错。
+- 固定输入的 logits、value 和 hidden state 逐 bit 相同。batch
+  `1/2/4/8/16/32/64` 均保存三重复纯前向与组件计时；batch 4 device
+  forward 从阶段 2.3 的 `22.013` ms 降至 `21.573` ms（`2.00%`），但
+  其他共同 batch 的变化落在 `-0.59%` 到 `+1.75%`。三次 batch-4 forward
+  的 profiler kernel 从 `1,938` 降至 `1,926`，同步事件从 `11` 降至
+  `5`，说明技术机制生效但 micro 改善较小。
+- 相同冻结 checkpoint、`6 workers / 2 threads / 1.0 ms`、排除两个
+  warm-up update 后三次端到端为 `63.890 / 65.151 / 64.911` steps/s，
+  中位数 `64.911`。相对紧邻 2.5 中位数 `64.303` 仅 `+0.946%`，低于
+  2.5 三次相对 range `1.461%`，故按统一门槛判定为
+  `rejected_gain_within_run_variability`，不保留为默认实现。
+- 机器可读 micro、profiler trace、三次原始端到端报告与汇总分别保存于
+  `data/reports/training_speed/stage_2_6_a_net_001_micro.json`、
+  `data/reports/training_speed/stage_2_6_a_net_001_trace.json.gz`、
+  `data/reports/training_speed/stage_2_6_a_net_001_runs/` 和
+  `data/reports/training_speed/stage_2_6_a_net_001.json`。
 
 ## 2.7 在继承网络收益后优化 learner 更新
 

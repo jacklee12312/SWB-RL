@@ -224,7 +224,12 @@ def _profile_model_forward_step(
         handles.append(module.register_forward_hook(post_hook(name)))
     try:
         mark("model_start")
-        outputs = model.forward_step(observations, hidden, card_indices)
+        outputs = model.forward_step(
+            observations,
+            hidden,
+            card_indices,
+            validate_card_indices=False,
+        )
         mark("model_end")
     finally:
         for handle in handles:
@@ -1026,17 +1031,38 @@ class PolicyVectorRollout:
         prepare_started = time.perf_counter()
         device = next(model.parameters()).device
         component_timing: dict[str, float] = {}
+        cpu_input_started = (
+            time.perf_counter() if profile_central_timing else 0.0
+        )
+        observations_np = np.stack([
+            request[6] for request in requests
+        ])
+        card_indices_np = np.stack([
+            request[7] for request in requests
+        ])
+        action_masks_np = np.stack([
+            request[8] for request in requests
+        ])
+        if (
+            card_indices_np.size
+            and (
+                int(card_indices_np.min()) < 0
+                or int(card_indices_np.max())
+                > model.card_vocabulary_size
+            )
+        ):
+            raise RolloutWorkerError(
+                "card index is outside the policy vocabulary"
+            )
+        if (
+            action_masks_np.shape
+            != (len(requests), model.action_size)
+            or not bool(action_masks_np.any(axis=-1).all())
+        ):
+            raise RolloutWorkerError(
+                "every live policy row must contain a legal action"
+            )
         if profile_central_timing:
-            cpu_input_started = time.perf_counter()
-            observations_np = np.stack([
-                request[6] for request in requests
-            ])
-            card_indices_np = np.stack([
-                request[7] for request in requests
-            ])
-            action_masks_np = np.stack([
-                request[8] for request in requests
-            ])
             component_timing["central_cpu_input_assembly_seconds"] = (
                 time.perf_counter() - cpu_input_started
             )
@@ -1086,16 +1112,16 @@ class PolicyVectorRollout:
             )
         else:
             observations = torch.as_tensor(
-                np.stack([request[6] for request in requests]),
+                observations_np,
                 device=device,
             )
             card_indices = torch.as_tensor(
-                np.stack([request[7] for request in requests]),
+                card_indices_np,
                 dtype=torch.long,
                 device=device,
             )
             action_masks = torch.as_tensor(
-                np.stack([request[8] for request in requests]),
+                action_masks_np,
                 dtype=torch.bool,
                 device=device,
             )
@@ -1139,8 +1165,13 @@ class PolicyVectorRollout:
                     observations,
                     hidden,
                     card_indices,
+                    validate_card_indices=False,
                 )
-            masked_logits = model.masked_logits(logits, action_masks)
+            masked_logits = model.masked_logits(
+                logits,
+                action_masks,
+                validate_legal_rows=False,
+            )
             probabilities = torch.softmax(masked_logits, dim=-1)
             log_probs = torch.log_softmax(masked_logits, dim=-1)
             if profile_central_timing:
@@ -1311,6 +1342,21 @@ class PolicyVectorRollout:
         started = time.perf_counter()
         players = sorted(bootstrap_inputs)
         device = next(model.parameters()).device
+        card_indices_np = np.stack([
+            bootstrap_inputs[player][1]
+            for player in players
+        ])
+        if (
+            card_indices_np.size
+            and (
+                int(card_indices_np.min()) < 0
+                or int(card_indices_np.max())
+                > model.card_vocabulary_size
+            )
+        ):
+            raise RolloutWorkerError(
+                "card index is outside the policy vocabulary"
+            )
         observations = torch.as_tensor(
             np.stack([
                 bootstrap_inputs[player][0]
@@ -1319,10 +1365,7 @@ class PolicyVectorRollout:
             device=device,
         )
         card_indices = torch.as_tensor(
-            np.stack([
-                bootstrap_inputs[player][1]
-                for player in players
-            ]),
+            card_indices_np,
             dtype=torch.long,
             device=device,
         )
@@ -1335,6 +1378,7 @@ class PolicyVectorRollout:
                 observations,
                 hidden,
                 card_indices,
+                validate_card_indices=False,
             )
         values_cpu = values.detach().cpu()
         return (

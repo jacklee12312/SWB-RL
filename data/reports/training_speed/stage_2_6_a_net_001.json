@@ -1,0 +1,82 @@
+{
+  "schema_version": 1,
+  "report_kind": "swb_training_speed_stage_2_6_a_net_001",
+  "checklist_section": "2.6",
+  "candidate": "A-NET-001",
+  "classification": "A",
+  "configuration": {
+    "id": "a_net_001",
+    "dimension": "implementation_candidate",
+    "rollout_workers": 6,
+    "worker_torch_threads": 2,
+    "central_inference_batch_wait_ms": 1.0
+  },
+  "end_to_end": {
+    "runs_agent_steps_per_second": [
+      63.8898908151066,
+      65.15088205058677,
+      64.91101231802897
+    ],
+    "median_agent_steps_per_second": 64.91101231802897,
+    "comparison_runs_agent_steps_per_second": [
+      63.46296797383438,
+      64.40217094431641,
+      64.3026182476435
+    ],
+    "comparison_median_agent_steps_per_second": 64.3026182476435,
+    "relative_gain": 0.009461419876285801,
+    "comparison_three_run_relative_range": 0.014605983334379203
+  },
+  "decision": {
+    "adopt": false,
+    "reason": "gain_does_not_exceed_comparison_run_variability"
+  },
+  "equivalence": {
+    "micro_exact_outputs": true,
+    "fixed_seed_trajectory_test": "tests.test_ppo.PPOTrainerTests.test_seeded_central_policy_rollout_is_reproducible",
+    "illegal_input_default_contract_preserved": true,
+    "checkpoint_unchanged": true
+  },
+  "integrity": {
+    "all_runs_meet_step_gate": true,
+    "all_runs_have_three_steady_updates": true,
+    "all_optional_profiling_disabled": true,
+    "no_abnormal_exits": true,
+    "checkpoint_sha256": [
+      "4d6a8dd7d32f4e530766aab8d2ec4691de4925bc73e188021da1f45dbe54e0bd"
+    ]
+  },
+  "microbenchmark": {
+    "path": "data/reports/training_speed/stage_2_6_a_net_001_micro.json",
+    "sha256": "1322d76597ae5b135707e774b953ff787f5e2954b9e9eb4ded295de8ec230b49",
+    "profiler_batch_size": 4,
+    "kernel_event_count": 1926,
+    "kernel_launch_event_count": 1926,
+    "synchronization_event_count": 5
+  },
+  "sources": {
+    "micro": {
+      "path": "data/reports/training_speed/stage_2_6_a_net_001_micro.json",
+      "sha256": "1322d76597ae5b135707e774b953ff787f5e2954b9e9eb4ded295de8ec230b49"
+    },
+    "comparison": {
+      "path": "data/reports/training_speed/stage_2_5_a_obs_001.json",
+      "sha256": "222f40a0d0ec5e9f0c5b5394dbf8f9ff526cb44467c1058d03d746a373e4242a"
+    },
+    "runs": [
+      {
+        "path": "data/reports/training_speed/stage_2_6_a_net_001_runs/a_net_001_run_1.json",
+        "sha256": "b2ea3b1e1fcabfa8c9fa57c629c9b314a2b015a33e76b43efaec3bced1e96149"
+      },
+      {
+        "path": "data/reports/training_speed/stage_2_6_a_net_001_runs/a_net_001_run_2.json",
+        "sha256": "f9ee7df2badf609f63e1ccb457e4f1179f1f156eac5d44d4dfa3e5441b71b600"
+      },
+      {
+        "path": "data/reports/training_speed/stage_2_6_a_net_001_runs/a_net_001_run_3.json",
+        "sha256": "198b1cb14a84df7c27fc09ca19f67712f8018de4ec8c1d823b5e20b8e0766a8a"
+      }
+    ]
+  },
+  "passed": true
+}

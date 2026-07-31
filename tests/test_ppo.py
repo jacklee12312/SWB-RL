@@ -118,6 +118,12 @@ class MaskedPolicyTests(unittest.TestCase):
         self.assertEqual(
             float(model.card_embedding.weight[0].detach().abs().sum()), 0.0
         )
+        with self.assertRaisesRegex(ValueError, "outside"):
+            model.forward_step(
+                numeric,
+                model.initial_state(1, device=torch.device("cpu")),
+                torch.full_like(cards, 101),
+            )
 
     def test_illegal_logits_receive_zero_probability(self) -> None:
         logits = torch.tensor([[100.0, 1.0, 50.0, 0.0]])
@@ -127,6 +133,12 @@ class MaskedPolicyTests(unittest.TestCase):
         self.assertEqual(probabilities[0, 0].item(), 0.0)
         self.assertEqual(probabilities[0, 2].item(), 0.0)
         self.assertAlmostEqual(probabilities.sum().item(), 1.0)
+        unchecked = RecurrentMaskedActorCritic.masked_logits(
+            logits,
+            mask,
+            validate_legal_rows=False,
+        )
+        torch.testing.assert_close(masked, unchecked)
 
     def test_empty_or_mismatched_mask_is_rejected(self) -> None:
         logits = torch.zeros(1, 3)

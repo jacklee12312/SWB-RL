@@ -62,6 +62,14 @@
       "evidence": "data/reports/training_speed/stage_2_5_a_obs_001.json"
     },
     {
+      "id": "A-NET-001",
+      "class": "A",
+      "description": "Validate card-index bounds and live action-mask rows on CPU before H2D, then omit redundant device-scalar validation inside every forward.",
+      "semantics": "Default policy calls still reject invalid card indices and empty legal-action rows; prevalidated training calls must produce exact logits, value and hidden state.",
+      "disposition": "rejected_gain_within_run_variability",
+      "evidence": "data/reports/training_speed/stage_2_6_a_net_001.json"
+    },
+    {
       "id": "A-FORWARD-001",
       "class": "A",
       "description": "Remove redundant permute/contiguous operations and use an equivalent native scaled-dot-product-attention backend.",
