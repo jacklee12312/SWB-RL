@@ -1,0 +1,125 @@
+{
+  "schema_version": 1,
+  "report_kind": "swb_training_speed_stage_2_8_overlap_gate",
+  "checklist_section": "2.8",
+  "profiled_source_commit": "a75af5c8b84d050e5ee51544110f6422d1a0d501",
+  "methodology": {
+    "diagnostic_profile_only": true,
+    "materiality_threshold_fraction_of_pipeline_wall": 0.05,
+    "advance_rule": "Implement synchronous overlap only when independently schedulable CPU preparation, H2D, or a pipeline hole accounts for at least 5% of steady pipeline wall time and can theoretically overlap CUDA work.",
+    "utilization_alone_is_not_evidence": true
+  },
+  "configuration": {
+    "rollout_workers": 6,
+    "worker_torch_threads": 2,
+    "central_inference_batch_wait_seconds": 0.001,
+    "steady_state_samples": 3,
+    "warmup_updates_excluded": 1,
+    "all_component_profilers_enabled": true
+  },
+  "pipeline": {
+    "measured_seconds": 52.13294749963097,
+    "rollout_seconds": 41.570129699772224,
+    "update_seconds": 10.562817799858749,
+    "agent_steps_per_second_is_profiled_diagnostic_only": 112.60488080450538
+  },
+  "a_overlap_001": {
+    "class": "A",
+    "rollout_same_generation": {
+      "grouped_prepare_and_h2d_seconds": 1.127643900224939,
+      "grouped_prepare_and_h2d_fraction_of_pipeline_wall": 0.02163015816884171,
+      "grouped_prepare_and_h2d_fraction_of_rollout_wall": 0.027126302187869232,
+      "diagnostic_components": {
+        "cpu_assembly_seconds": 0.2964371028356254,
+        "host_to_device_seconds": 0.6472535023931414,
+        "profiled_batches": 2226.0,
+        "host_to_device_milliseconds_per_batch": 0.2907697674722109
+      },
+      "theoretically_overlap_capable_with_an_independent_batch": true,
+      "meets_materiality_threshold": false,
+      "advance_to_implementation": false
+    },
+    "learner_next_minibatch": {
+      "preparation_and_h2d_seconds": 0.2877969836127013,
+      "preparation_and_h2d_fraction_of_pipeline_wall": 0.005520443355226337,
+      "preparation_and_h2d_fraction_of_update_wall": 0.02724623193032354,
+      "components": {
+        "padding_and_numpy_seconds": 0.163260399363935,
+        "cpu_tensor_construction_seconds": 0.001994600286707282,
+        "host_to_device_seconds": 0.12254198396205901,
+        "profiled_minibatches": 42.0,
+        "preparation_and_h2d_milliseconds_per_minibatch": 6.852309133635745
+      },
+      "theoretically_overlap_capable_with_current_cuda": true,
+      "meets_materiality_threshold": false,
+      "advance_to_implementation": false
+    },
+    "pipeline_holes": {
+      "worker_message_wait_seconds": 2.2065329055767506,
+      "batch_formation_wait_seconds": 5.893870102707297,
+      "total_seconds": 8.100403008284047,
+      "fraction_of_pipeline_wall": 0.15537972427784535,
+      "meets_size_threshold": true,
+      "independently_schedulable_cuda_work_available": false,
+      "advance_to_overlap_implementation": false,
+      "causality": [
+        "Worker-message wait begins only when the central request queue has no ready message.",
+        "A worker cannot emit its next observation until it receives the current action and advances the environment.",
+        "The multiprocessing queue already buffers other workers' requests while the central process runs CUDA; consuming it in another thread does not create an independent inference batch.",
+        "The configured 1 ms batch-formation wait is an intentional batching tradeoff; launching the partial batch removes the wait rather than overlapping it with another ready CUDA batch."
+      ]
+    },
+    "semantic_contract_if_reopened": [
+      "worker weight version remains fixed for the rollout",
+      "request and response ordering remains deterministic",
+      "policy RNG consumption remains unchanged",
+      "hidden state remains attached to its episode and player",
+      "PPO generation boundaries remain unchanged"
+    ],
+    "decision": {
+      "advance_to_implementation": false,
+      "disposition": "closed_below_materiality_or_not_overlapable",
+      "synchronous_default_unchanged": true
+    }
+  },
+  "c_async_001": {
+    "class": "C",
+    "current_synchronous_contract": {
+      "policy_generation_lag_updates": 0,
+      "generation_checked_on_worker_messages": true,
+      "behavior_policy_log_probability_stored_per_record": true,
+      "ppo_update_starts_after_rollout_completion": true
+    },
+    "required_if_reopened": {
+      "trajectory_policy_generation": true,
+      "maximum_policy_lag": true,
+      "behavior_policy_log_probability": true,
+      "ppo_ratio_and_clip_boundary_justification": true,
+      "three_seed_learning_curves": true,
+      "fixed_match_evaluation": true
+    },
+    "decision": {
+      "advance_in_stage_2_8": false,
+      "disposition": "deferred_separate_algorithm_experiment",
+      "reason": "Actor/learner asynchrony changes the on-policy boundary and is not a synchronous overlap fallback.",
+      "synchronous_default_retained": true
+    }
+  },
+  "integrity": {
+    "configuration_passed": true,
+    "checkpoint_passed": true,
+    "adopted_stage_2_7_source_passed": true,
+    "profile_coverage_passed": true
+  },
+  "sources": {
+    "profile": {
+      "path": "data/reports/training_speed/stage_2_8_overlap_profile.json",
+      "sha256": "68a5c566eb1035fe75c92e7c802e7722178960fbffe645007c3d951ef18aadfa"
+    },
+    "adopted_stage_2_7": {
+      "path": "data/reports/training_speed/stage_2_7_b_batched_learner_001_end_to_end.json",
+      "sha256": "29f0d9352a6ba11f84ca0d8c4479d711829f52163e078058856209bbfae60fa4"
+    }
+  },
+  "passed": true
+}

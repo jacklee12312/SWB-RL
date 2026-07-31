@@ -146,7 +146,8 @@
       "class": "A",
       "description": "Overlap CPU preparation, host-to-device copies and CUDA work inside the same synchronous rollout or learner generation.",
       "semantics": "Workers never observe updating weights and no policy generation lag is introduced.",
-      "disposition": "pending_profile"
+      "disposition": "closed_below_materiality_or_not_overlapable",
+      "evidence": "data/reports/training_speed/stage_2_8_overlap_gate.json"
     },
     {
       "id": "B-LEARNER-AMP-001",
