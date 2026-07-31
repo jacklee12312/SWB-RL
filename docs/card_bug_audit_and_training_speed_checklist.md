@@ -1430,24 +1430,51 @@ Profiler 分析和后续优化均以 v4.1 为主。
 
 ### 2.4A 配置扫描（必须先完成）
 
-- [ ] 固定 checkpoint、Observation、网络、卡组、seed、训练参数和硬件，
+- [x] 固定 checkpoint、Observation、网络、卡组、seed、训练参数和硬件，
   保存未调参基线；所有进入比较的配置至少端到端重复三次。
-- [ ] 单变量扫描 batch wait：0、0.1、0.25、0.5、1.0 ms。
-- [ ] 单变量扫描稳定 worker 数：2/3/4/5/6；避免直接重试已发生分页压力的
+- [x] 单变量扫描 batch wait：0、0.1、0.25、0.5、1.0 ms。
+- [x] 单变量扫描稳定 worker 数：2/3/4/5/6；避免直接重试已发生分页压力的
   8 worker 配置。
-- [ ] 单变量扫描每 worker PyTorch 线程数：1/2/4。
+- [x] 单变量扫描每 worker PyTorch 线程数：1/2/4。
 - [ ] 第一轮保持其他参数为基线；只对单变量胜出且稳定的值补做交互组合，
   避免没有归因能力的全笛卡尔积。
-- [ ] 每组记录 batch 大小 mean/P50/P95、空槽率、worker 等待、GPU 空闲、
+- [x] 每组记录 batch 大小 mean/P50/P95、空槽率、worker 等待、GPU 空闲、
   median steps/s、P95 stage time、回合长度、CPU/GPU/RAM 和异常退出。
-- [ ] 区分“等待窗口太短”和“请求到达率不足”；不能只看到平均 batch 偏小
+- [x] 区分“等待窗口太短”和“请求到达率不足”；不能只看到平均 batch 偏小
   就直接增加等待时间或 worker。
-- [ ] 保持每个 episode 独立 recurrent state 和独立 policy RNG。
-- [ ] 保持一个 rollout generation 内权重固定，不引入策略滞后。
-- [ ] 验证 batch 内请求排序变化不会把 hidden state 或动作发给错误 episode。
-- [ ] 完成 2.4 决策门：只有最佳稳定配置相对基线的 median 端到端吞吐提升
+- [x] 保持每个 episode 独立 recurrent state 和独立 policy RNG。
+- [x] 保持一个 rollout generation 内权重固定，不引入策略滞后。
+- [x] 验证 batch 内请求排序变化不会把 hidden state 或动作发给错误 episode。
+- [x] 完成 2.4 决策门：只有最佳稳定配置相对基线的 median 端到端吞吐提升
   至少 5%，且提升超过三次运行波动范围，才继续 2.4B；否则保存“无明确
   收益”报告，将 2.4B 以有证据的不适用/延期关闭并继续 2.5。
+
+2.4A 单变量扫描证据（2026-07-31）：
+
+- 使用冻结 v4.1 checkpoint
+  `4d6a8dd7d32f4e530766aab8d2ec4691de4925bc73e188021da1f45dbe54e0bd`；
+  11 个去重配置各端到端运行三次，每次排除 2 个 warm-up update，并保留
+  至少 3 个 steady update/6,144 agent steps。33/33 份报告的 checkpoint、
+  runtime 配置、监控样本和异常退出校验全部通过。
+- 冻结 100k 基线 median 为 `44.7054 steps/s`，三次相对 range 为
+  `0.3601%`。单变量最佳值：`wait=1.0ms` median `59.3714`
+  （`+32.80%`）、`workers=6` median `51.7712`（`+15.80%`）、
+  `workers=5` median `48.8632`（`+9.30%`）；三者均同时超过 5% 门槛和
+  三次基线波动。`threads=1/4` median 为 `44.0137/44.1724`，无明确收益。
+- `wait=0ms` 将 mean/P50/P95 batch 降为 `1/1/1`，median 吞吐
+  `31.1002`；`wait=1.0ms` 将 mean/P95 batch 提高到 `2.48/4`、空槽率
+  降至 `37.99%`。worker 扫描从 2 到 6 的 median 吞吐依次为
+  `31.6352/38.9961/44.1885/48.8632/51.7712`，证明当前同时受等待窗口
+  和请求到达/worker 上限约束，而非单纯无效等待。
+- episode 独立 hidden state/RNG、rollout generation 权重冻结和请求
+  episode/order 对应关系沿用中央策略 rollout 的既有契约，并由
+  `tests.test_ppo`、`tests.test_vector_rollout` 与新扫描配置完整性测试继续
+  覆盖；本候选没有改变该执行路径。
+- 机器可读汇总为
+  `data/reports/training_speed/stage_2_4_scan.json`，33 份逐 run 证据及日志
+  位于 `data/reports/training_speed/stage_2_4_runs/`；可恢复扫描器为
+  `scripts/scan_training_speed_stage_2_4.py`。2.4 决策门通过，按要求进入
+  仅包含稳定 winner 的交互验证。
 
 ### 2.4B 实现候选（仅在 2.4 决策门通过后）
 

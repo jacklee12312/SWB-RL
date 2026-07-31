@@ -37,6 +37,7 @@ def main() -> None:
     parser.add_argument("--additional-agent-steps", type=int, default=100_000)
     parser.add_argument("--exclude-warmup-updates", type=int, default=2)
     parser.add_argument("--device", default="cuda")
+    parser.add_argument("--rollout-workers", type=int)
     parser.add_argument("--rollout-worker-threads", type=int)
     parser.add_argument(
         "--central-inference-batch-wait-ms",
@@ -76,6 +77,8 @@ def main() -> None:
         parser.error("--additional-agent-steps must be positive")
     if args.exclude_warmup_updates < 0:
         parser.error("--exclude-warmup-updates must be non-negative")
+    if args.rollout_workers is not None and args.rollout_workers <= 0:
+        parser.error("--rollout-workers must be positive")
     if (
         args.rollout_worker_threads is not None
         and args.rollout_worker_threads <= 0
@@ -96,6 +99,8 @@ def main() -> None:
     checkpoint_sha256 = _sha256(args.checkpoint)
     trainer = load_checkpoint(args.checkpoint, snapshot, device=args.device)
     runtime_overrides = {}
+    if args.rollout_workers is not None:
+        runtime_overrides["rollout_workers"] = args.rollout_workers
     if args.rollout_worker_threads is not None:
         runtime_overrides["rollout_worker_torch_threads"] = (
             args.rollout_worker_threads

@@ -224,6 +224,39 @@ trace 可用 PyTorch/Chrome trace viewer 打开。
 以上执行门槛用于避免为了完成 checkbox 而实现已被数据判定为低价值的优化。
 被关闭的候选仍须保存机器可读数据、结论和复现实验配置。
 
+## 阶段 2.4A 单变量配置扫描
+
+冻结 v4.1 checkpoint 上完成 11 个去重配置、每个三次的真实 PPO
+端到端比较。每次排除两个 warm-up update，并至少统计三个 steady update
+和 6,144 agent steps；诊断 profiling 开关保持关闭。冻结的三次 100k
+基线 median 为 44.7054 steps/s，relative range 为 0.3601%。
+
+| 单变量配置 | 三次 median steps/s | 相对冻结基线 | Mean batch | P95 batch |
+|---|---:|---:|---:|---:|
+| wait 0 ms | 31.1002 | -30.43% | 1.00 | 1 |
+| wait 0.1 ms | 43.6795 | -2.29% | 1.73 | 2 |
+| wait 0.25 ms | 43.9441 | -1.70% | 1.73 | 3 |
+| wait 0.5 ms / 4 workers / 2 threads | 44.1885 | -1.16% | 1.73 | 3 |
+| wait 1.0 ms | 59.3714 | +32.80% | 2.48 | 4 |
+| 2 workers | 31.6352 | -29.24% | 1.02 | 1 |
+| 3 workers | 38.9961 | -12.77% | 1.38 | 2 |
+| 5 workers | 48.8632 | +9.30% | 2.09 | 4 |
+| 6 workers | 51.7712 | +15.80% | 2.45 | 5 |
+| 1 thread/worker | 44.0137 | -1.55% | 1.73 | 3 |
+| 4 threads/worker | 44.1724 | -1.19% | 1.74 | 3 |
+
+0 ms 与 2-worker 配置都把 batch 压回约 1，并把吞吐压回约
+31 steps/s；1.0 ms 和更多 workers 都能提高 mean/P95 batch。数据因此把
+根因收窄为“等待窗口与请求到达率共同限制合批”，而不是无效等待或
+worker CPU 线程不足。1.0 ms、6 workers 和 5 workers 都通过至少 5% 且
+超过三次波动的 gate；下一步只组合 wait=1.0 ms 与 worker 维度稳定最佳值，
+不做全笛卡尔积。
+
+机器可读汇总：
+`data/reports/training_speed/stage_2_4_scan.json`；逐 run 证据：
+`data/reports/training_speed/stage_2_4_runs/`；扫描器：
+`scripts/scan_training_speed_stage_2_4.py`。
+
 ## 产物与限制
 
 - 机器可读报告：
