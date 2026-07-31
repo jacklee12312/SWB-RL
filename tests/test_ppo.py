@@ -513,6 +513,71 @@ class PPOTrainerTests(unittest.TestCase):
                 0.0,
             )
             self.assertGreater(
+                trainer.last_collect_timing[
+                    "worker_deck_construction_seconds"
+                ],
+                0.0,
+            )
+            self.assertGreater(
+                trainer.last_collect_timing[
+                    "worker_environment_construction_seconds"
+                ],
+                0.0,
+            )
+            self.assertGreater(
+                trainer.last_collect_timing["worker_reset_seconds"],
+                0.0,
+            )
+            self.assertEqual(
+                trainer.last_collect_timing["worker_mulligan_steps"],
+                4.0,
+            )
+            self.assertGreater(
+                trainer.last_collect_timing["worker_mulligan_seconds"],
+                0.0,
+            )
+            self.assertGreater(
+                trainer.last_collect_timing[
+                    "worker_response_queue_wait_seconds"
+                ],
+                0.0,
+            )
+            self.assertGreaterEqual(
+                trainer.last_collect_timing[
+                    "worker_assignment_wait_seconds"
+                ],
+                0.0,
+            )
+            self.assertGreater(
+                trainer.last_collect_timing["worker_idle_fraction"],
+                0.0,
+            )
+            self.assertLessEqual(
+                trainer.last_collect_timing["worker_idle_fraction"],
+                1.0,
+            )
+            self.assertEqual(
+                trainer.last_collect_timing["worker_episode_count"],
+                2.0,
+            )
+            self.assertEqual(
+                trainer.last_collect_timing[
+                    "worker_terminated_episode_count"
+                ]
+                + trainer.last_collect_timing[
+                    "worker_truncated_episode_count"
+                ],
+                trainer.last_collect_timing["worker_episode_count"],
+            )
+            self.assertLessEqual(
+                trainer.last_collect_timing["worker_episode_steps_p50"],
+                trainer.last_collect_timing["worker_episode_steps_p95"],
+            )
+            self.assertLessEqual(
+                trainer.last_collect_timing["worker_episode_steps_p95"],
+                trainer.last_collect_timing["worker_episode_steps_max"],
+            )
+            self.assertGreater(
                 trainer.last_collect_timing["worker_action_mask_seconds"],
                 0.0,
             )

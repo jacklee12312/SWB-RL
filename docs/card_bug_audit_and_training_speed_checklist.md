@@ -1069,8 +1069,8 @@ Worker 侧：
 - [x] 单独统计 legal command/action mask 时间。
 - [x] 单独统计 Observation v4.1 构造时间。
 - [x] 单独统计 IPC 请求序列化、发送和等待时间。
-- [ ] 单独统计新对局 reset、换牌和卡组构造时间。
-- [ ] 统计 worker 空闲比例、每局步数、长局和截断。
+- [x] 单独统计新对局 reset、换牌和卡组构造时间。
+- [x] 统计 worker 空闲比例、每局步数、长局和截断。
 
 中央推理侧：
 
@@ -1201,6 +1201,34 @@ Learner 侧：
   完整输出保存于
   `data/reports/training_speed/stage_2_2_ipc_timing_unittest.log`。
 - `E:\anaconda\python.exe -m compileall -q swb scripts tests`：通过。
+
+2.2 worker 对局生命周期切片证据（2026-07-31）：
+
+- 候选分类为 `A-PROFILE-001`。每局分别统计固定/采样卡组构造、
+  `ShadowverseEnv` 构造、`reset()` 和 mulligan 阶段的完整 `env.step()`；
+  换牌步数必须与实际进入 mulligan 的动作数对应，不从对局总 setup
+  时间反推。
+- worker 空闲拆成等待下一局分配及等待中央策略动作返回；空闲比例以
+  `episode total + assignment wait` 为观察窗口，避免把四个并行 worker
+  的累计秒数误当 wall time。每局步数保存为直方图并派生 mean、P50、
+  P95、最小/最大值；长局定义为达到该局 agent-step 上限的 75%，另保存
+  terminated/truncated 计数。
+- 冻结 v4.1 checkpoint 的两次 update 实测完成 4,434 steps、56 局：
+  卡组构造累计 0.004258 秒、reset 0.082499 秒、112 个 mulligan 动作
+  0.183858 秒。两次 update 的局长 P50 为 69/74、P95 为 114/102，
+  最大 256；55 局正常结束、1 局截断，1 局达到 192-step 长局阈值。
+- 四 worker 累计等待 episode 分配 121.658235 秒、等待中央动作返回
+  185.977275 秒；两个 update 的 worker 空闲比例为 0.9515/0.9720，
+  表明 reset、换牌和建牌堆不是当前主瓶颈，主要空闲来自中央推理等待及
+  同步 learner update。机器可读原始 iteration、直方图和汇总保存在
+  `data/reports/training_speed/stage_2_2_worker_lifecycle_smoke.json`。
+- 测速 checkpoint 大小和 mtime 保持不变；两项聚焦等价/汇总回归通过。
+  `E:\anaconda\python.exe -m unittest discover -s tests -v`：2,849 项
+  通过、1 项条件跳过，耗时 439.799 秒，API test 通过；完整输出保存于
+  `data/reports/training_speed/stage_2_2_worker_lifecycle_unittest.log`。
+- `E:\anaconda\python.exe -m compileall -q swb scripts tests`：通过。
+  本切片只增加 PPO profiling 字段，不改变引擎、规则、动作、目标、战斗、
+  回合或 Observation，因此未触发额外 self-play/`rl_mixed_match`。
 
 总体验收：
 

@@ -852,6 +852,7 @@ class PPOTrainer:
                 if key in {
                     "central_max_batch_size",
                     "worker_torch_threads",
+                    "worker_long_episode_threshold_steps",
                 }:
                     aggregate_timing[key] = max(
                         aggregate_timing.get(key, 0.0),
@@ -972,6 +973,72 @@ class PPOTrainer:
                     / profiled_requests
                 ),
             })
+        episode_step_histogram = {
+            int(key.removeprefix("worker_episode_steps_").removesuffix(
+                "_count"
+            )): float(value)
+            for key, value in aggregate_timing.items()
+            if (
+                key.startswith("worker_episode_steps_")
+                and key.endswith("_count")
+                and key[
+                    len("worker_episode_steps_") : -len("_count")
+                ].isdigit()
+            )
+        }
+        episode_count = sum(episode_step_histogram.values())
+        if episode_count:
+            def weighted_percentile(percentile: float) -> float:
+                target = max(1, math.ceil(percentile * episode_count))
+                cumulative = 0.0
+                for steps, count in sorted(episode_step_histogram.items()):
+                    cumulative += count
+                    if cumulative >= target:
+                        return float(steps)
+                return float(max(episode_step_histogram))
+
+            aggregate_timing.update({
+                "worker_episode_steps_mean": (
+                    sum(
+                        steps * count
+                        for steps, count in episode_step_histogram.items()
+                    )
+                    / episode_count
+                ),
+                "worker_episode_steps_p50": weighted_percentile(0.50),
+                "worker_episode_steps_p95": weighted_percentile(0.95),
+                "worker_episode_steps_min": float(
+                    min(episode_step_histogram)
+                ),
+                "worker_episode_steps_max": float(
+                    max(episode_step_histogram)
+                ),
+            })
+        worker_observed_seconds = (
+            aggregate_timing.get("worker_episode_total_seconds", 0.0)
+            + aggregate_timing.get(
+                "worker_assignment_wait_seconds",
+                0.0,
+            )
+        )
+        worker_idle_seconds = (
+            aggregate_timing.get(
+                "worker_assignment_wait_seconds",
+                0.0,
+            )
+            + aggregate_timing.get(
+                "worker_response_queue_wait_seconds",
+                0.0,
+            )
+        )
+        aggregate_timing.update({
+            "worker_observed_lifetime_seconds": worker_observed_seconds,
+            "worker_idle_seconds": worker_idle_seconds,
+            "worker_idle_fraction": (
+                worker_idle_seconds
+                / max(worker_observed_seconds, 1e-12)
+            ),
+        })
         aggregate_timing.update({
             "trajectory_conversion_seconds": conversion_seconds,
             "collect_total_seconds": time.perf_counter() - collect_started,

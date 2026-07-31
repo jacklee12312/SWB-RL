@@ -405,6 +405,8 @@ def _run_central_policy_episode(
     episode_id: int,
     input_queue: Any,
     output_queue: Any,
+    *,
+    assignment_wait_seconds: float,
 ) -> None:
 
     from swb.rl.ppo import ObservationFlattener
@@ -414,6 +416,7 @@ def _run_central_policy_episode(
     seeds = episode_seeds(config.master_seed, worker_id, episode_id)
     matchup = _episode_matchup(config, episode_id)
     class_a, class_b = _episode_classes(config, episode_id)
+    deck_construction_started = time.perf_counter()
     deck_a, deck_b = _episode_decks(
         assets,
         config,
@@ -422,6 +425,10 @@ def _run_central_policy_episode(
         class_b,
         episode_id,
     )
+    deck_construction_seconds = (
+        time.perf_counter() - deck_construction_started
+    )
+    environment_construction_started = time.perf_counter()
     env = ShadowverseEnv(
         deck_a,
         deck_b,
@@ -438,7 +445,12 @@ def _run_central_policy_episode(
         training_mode=True,
         match_setup=config.match_setup,
     )
+    environment_construction_seconds = (
+        time.perf_counter() - environment_construction_started
+    )
+    reset_started = time.perf_counter()
     _, info = env.reset(seed=seeds.engine_seed)
+    reset_seconds = time.perf_counter() - reset_started
     first_observation = env.observation(
         perspective=env.decision_player,
         action_mask=info["action_mask"],
@@ -453,10 +465,14 @@ def _run_central_policy_episode(
     ipc_response_wait_seconds = 0.0
     ipc_request_payload_bytes = 0.0
     ipc_profiled_requests = 0
+    request_queue_put_seconds = 0.0
+    response_queue_wait_seconds = 0.0
     engine_step_seconds = 0.0
     action_mask_seconds = 0.0
     command_decode_seconds = 0.0
     resolution_seconds = 0.0
+    mulligan_seconds = 0.0
+    mulligan_steps = 0
     step_index = 0
     while not env.terminated and not env.truncated:
         observation_started = time.perf_counter()
@@ -491,10 +507,19 @@ def _run_central_policy_episode(
             ipc_request_serialization_seconds += float(envelope[2])
             ipc_request_payload_bytes += float(envelope[3])
             ipc_profiled_requests += 1
+            request_put_started = time.perf_counter()
             output_queue.put(envelope)
         else:
+            request_put_started = time.perf_counter()
             output_queue.put(request)
+        request_queue_put_seconds += (
+            time.perf_counter() - request_put_started
+        )
+        response_wait_started = time.perf_counter()
         response = input_queue.get()
+        response_queue_wait_seconds += (
+            time.perf_counter() - response_wait_started
+        )
         response_received_at = time.perf_counter()
         if response is None:
             raise RuntimeError("central policy inference was interrupted")
@@ -522,9 +547,14 @@ def _run_central_policy_episode(
         )
 
         engine_step_started = time.perf_counter()
+        phase_before_step = str(info["phase"])
         step_timing: dict[str, float] = {}
         result = env.step(action, timing=step_timing)
-        engine_step_seconds += time.perf_counter() - engine_step_started
+        engine_step_elapsed = time.perf_counter() - engine_step_started
+        engine_step_seconds += engine_step_elapsed
+        if phase_before_step == "mulligan":
+            mulligan_seconds += engine_step_elapsed
+            mulligan_steps += 1
         action_mask_seconds += step_timing["action_mask_seconds"]
         command_decode_seconds += step_timing["command_decode_seconds"]
         resolution_seconds += step_timing["resolution_seconds"]
@@ -555,6 +585,10 @@ def _run_central_policy_episode(
             )
     bootstrap_seconds = time.perf_counter() - bootstrap_started
     episode_total_seconds = time.perf_counter() - episode_started
+    long_episode_threshold_steps = max(
+        1,
+        math.ceil(config.max_agent_steps * 0.75),
+    )
     output_queue.put((
         "policy_episode_end",
         episode_id,
@@ -567,6 +601,14 @@ def _run_central_policy_episode(
         {
             "worker_episode_total_seconds": episode_total_seconds,
             "worker_setup_seconds": setup_seconds,
+            "worker_assignment_wait_seconds": assignment_wait_seconds,
+            "worker_deck_construction_seconds": deck_construction_seconds,
+            "worker_environment_construction_seconds": (
+                environment_construction_seconds
+            ),
+            "worker_reset_seconds": reset_seconds,
+            "worker_mulligan_seconds": mulligan_seconds,
+            "worker_mulligan_steps": float(mulligan_steps),
             "worker_observation_seconds": observation_seconds,
             "worker_observation_construction_seconds": (
                 decision_observation_construction_seconds
@@ -595,12 +637,28 @@ def _run_central_policy_episode(
                 ipc_request_payload_bytes
             ),
             "worker_ipc_profiled_requests": float(ipc_profiled_requests),
+            "worker_request_queue_put_seconds": (
+                request_queue_put_seconds
+            ),
+            "worker_response_queue_wait_seconds": (
+                response_queue_wait_seconds
+            ),
             "worker_engine_step_seconds": engine_step_seconds,
             "worker_action_mask_seconds": action_mask_seconds,
             "worker_command_decode_seconds": command_decode_seconds,
             "worker_resolution_seconds": resolution_seconds,
             "worker_bootstrap_seconds": bootstrap_seconds,
             "worker_agent_steps": float(step_index),
+            "worker_episode_count": 1.0,
+            f"worker_episode_steps_{step_index}_count": 1.0,
+            "worker_long_episode_threshold_steps": float(
+                long_episode_threshold_steps
+            ),
+            "worker_long_episode_count": float(
+                step_index >= long_episode_threshold_steps
+            ),
+            "worker_terminated_episode_count": float(env.terminated),
+            "worker_truncated_episode_count": float(env.truncated),
             "worker_torch_threads": float(config.worker_torch_threads),
         },
     ))
@@ -620,7 +678,11 @@ def _policy_worker_main(
         torch.set_num_interop_threads(1)
         assets = snapshot.load()
         while True:
+            assignment_wait_started = time.perf_counter()
             message = input_queue.get()
+            assignment_wait_seconds = (
+                time.perf_counter() - assignment_wait_started
+            )
             if message is None:
                 return
             command = message[0]
@@ -637,6 +699,7 @@ def _policy_worker_main(
                     int(episode_id),
                     input_queue,
                     output_queue,
+                    assignment_wait_seconds=assignment_wait_seconds,
                 )
             except Exception as exc:
                 output_queue.put((
@@ -1237,7 +1300,10 @@ class PolicyVectorRollout:
         timing.update(central_timing)
         for episode in ordered:
             for key, value in episode.timing.items():
-                if key == "worker_torch_threads":
+                if key in {
+                    "worker_torch_threads",
+                    "worker_long_episode_threshold_steps",
+                }:
                     timing[key] = max(
                         timing.get(key, 0.0),
                         float(value),
