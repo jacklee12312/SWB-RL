@@ -1,0 +1,393 @@
+{
+  "schema_version": 1,
+  "report_kind": "swb_training_speed_stage_2_7_b_batched_learner_001_learning",
+  "checklist_section": "2.7",
+  "candidate": "B-BATCHED-LEARNER-001",
+  "classification": "B",
+  "configuration": {
+    "seeds": [
+      20260811,
+      20260812,
+      20260813
+    ],
+    "target_agent_steps": 4096,
+    "rollout_steps": 2048,
+    "rollout_workers": 6,
+    "worker_torch_threads": 2,
+    "central_inference_batch_wait_seconds": 0.001,
+    "sequence_length": 32,
+    "minibatch_sequences": 8,
+    "update_epochs": 2,
+    "policy_architecture": "entity_action_v1",
+    "observation_version": "v4.1",
+    "model_dim": 256,
+    "transformer_layers": 4,
+    "evaluation_seed_count": 2,
+    "evaluation_max_agent_steps": 256,
+    "evaluation_opponent": "random_legal"
+  },
+  "runs": [
+    {
+      "seed": 20260811,
+      "batched": false,
+      "initial_model_sha256": "daaa165e388967826bb52f774fdedd026e453ab9ae496658465fa3eb4ba857e5",
+      "final_model_sha256": "1737b8dc665ed9e24a04cbaf39e4ed01f6696d5b51789450dc0cac0a1ffa5364",
+      "completed_agent_steps": 5024,
+      "updates": [
+        {
+          "agent_steps": 2326,
+          "records": 2326,
+          "update_seconds": 20.370111600030214,
+          "metrics": {
+            "policy_loss": -0.00906631009032329,
+            "value_loss": 0.18885371709863344,
+            "entropy": 1.6451558371384938,
+            "grad_norm": 0.7004370639721552,
+            "agent_steps": 2326.0,
+            "completed_episodes": 24.0,
+            "updates": 1.0
+          },
+          "finite_metrics": true
+        },
+        {
+          "agent_steps": 5024,
+          "records": 2698,
+          "update_seconds": 22.88275089999661,
+          "metrics": {
+            "policy_loss": 0.03539973124861717,
+            "value_loss": 0.2066647064472948,
+            "entropy": 1.5436499544552393,
+            "grad_norm": 0.6265958334718432,
+            "agent_steps": 5024.0,
+            "completed_episodes": 54.0,
+            "updates": 2.0
+          },
+          "finite_metrics": true
+        }
+      ],
+      "elapsed_seconds": 94.83973619993776,
+      "finite_model": true,
+      "truncated_training_episodes": 0,
+      "abnormal_exit_count": 0,
+      "evaluation": {
+        "games": 4,
+        "win_rate": 1.0,
+        "terminated": 4,
+        "truncated": 0,
+        "illegal_actions": 0,
+        "action_mask_mismatches": 0,
+        "suite_sha256": "fa77e1ceadd452d7cc4cf534fcef629840c3de5f798337439b4d2786278be20e"
+      }
+    },
+    {
+      "seed": 20260811,
+      "batched": true,
+      "initial_model_sha256": "daaa165e388967826bb52f774fdedd026e453ab9ae496658465fa3eb4ba857e5",
+      "final_model_sha256": "f55805ca81857de8a3028e9190cbb1618d192c16ef3644ca466b55aa14a135fb",
+      "completed_agent_steps": 5024,
+      "updates": [
+        {
+          "agent_steps": 2326,
+          "records": 2326,
+          "update_seconds": 10.041341800009832,
+          "metrics": {
+            "policy_loss": -0.009066282771527767,
+            "value_loss": 0.18885371213157973,
+            "entropy": 1.645155817270279,
+            "grad_norm": 0.7004370503127575,
+            "agent_steps": 2326.0,
+            "completed_episodes": 24.0,
+            "updates": 1.0
+          },
+          "finite_metrics": true
+        },
+        {
+          "agent_steps": 5024,
+          "records": 2698,
+          "update_seconds": 8.193496800027788,
+          "metrics": {
+            "policy_loss": 0.03539970091411045,
+            "value_loss": 0.2066647053829261,
+            "entropy": 1.5436499118804932,
+            "grad_norm": 0.6265958611454282,
+            "agent_steps": 5024.0,
+            "completed_episodes": 54.0,
+            "updates": 2.0
+          },
+          "finite_metrics": true
+        }
+      ],
+      "elapsed_seconds": 65.45405340008438,
+      "finite_model": true,
+      "truncated_training_episodes": 0,
+      "abnormal_exit_count": 0,
+      "evaluation": {
+        "games": 4,
+        "win_rate": 1.0,
+        "terminated": 4,
+        "truncated": 0,
+        "illegal_actions": 0,
+        "action_mask_mismatches": 0,
+        "suite_sha256": "fa77e1ceadd452d7cc4cf534fcef629840c3de5f798337439b4d2786278be20e"
+      }
+    },
+    {
+      "seed": 20260812,
+      "batched": false,
+      "initial_model_sha256": "2047ff7ebb6ed86baadbf75757054b5e72834e05ef4f042cd6e83f7a4d61937f",
+      "final_model_sha256": "a9333deffc70703ebb79b844cb56fc1af3c266e421a39f57fc7707bd672c0542",
+      "completed_agent_steps": 4361,
+      "updates": [
+        {
+          "agent_steps": 2202,
+          "records": 2202,
+          "update_seconds": 20.686077099991962,
+          "metrics": {
+            "policy_loss": -0.028727709936598938,
+            "value_loss": 0.23009476624429226,
+            "entropy": 1.6719961663087208,
+            "grad_norm": 1.0470231498281162,
+            "agent_steps": 2202.0,
+            "completed_episodes": 24.0,
+            "updates": 1.0
+          },
+          "finite_metrics": true
+        },
+        {
+          "agent_steps": 4361,
+          "records": 2159,
+          "update_seconds": 20.791560200043023,
+          "metrics": {
+            "policy_loss": 0.10928624185423057,
+            "value_loss": 0.23832580323020616,
+            "entropy": 1.6125038067499797,
+            "grad_norm": 0.8205116614699364,
+            "agent_steps": 4361.0,
+            "completed_episodes": 48.0,
+            "updates": 2.0
+          },
+          "finite_metrics": true
+        }
+      ],
+      "elapsed_seconds": 86.41940480004996,
+      "finite_model": true,
+      "truncated_training_episodes": 0,
+      "abnormal_exit_count": 0,
+      "evaluation": {
+        "games": 4,
+        "win_rate": 1.0,
+        "terminated": 4,
+        "truncated": 0,
+        "illegal_actions": 0,
+        "action_mask_mismatches": 0,
+        "suite_sha256": "fa77e1ceadd452d7cc4cf534fcef629840c3de5f798337439b4d2786278be20e"
+      }
+    },
+    {
+      "seed": 20260812,
+      "batched": true,
+      "initial_model_sha256": "2047ff7ebb6ed86baadbf75757054b5e72834e05ef4f042cd6e83f7a4d61937f",
+      "final_model_sha256": "376fc036925515c6ac6855ba9150c975960b002818b7e7cca2c6bfaf3f2e55e8",
+      "completed_agent_steps": 4361,
+      "updates": [
+        {
+          "agent_steps": 2202,
+          "records": 2202,
+          "update_seconds": 4.982523399870843,
+          "metrics": {
+            "policy_loss": -0.02872772072441876,
+            "value_loss": 0.2300947600354751,
+            "entropy": 1.6719961663087208,
+            "grad_norm": 1.0470231026411057,
+            "agent_steps": 2202.0,
+            "completed_episodes": 24.0,
+            "updates": 1.0
+          },
+          "finite_metrics": true
+        },
+        {
+          "agent_steps": 4361,
+          "records": 2159,
+          "update_seconds": 4.696668199962005,
+          "metrics": {
+            "policy_loss": 0.10928622633218765,
+            "value_loss": 0.2383258007466793,
+            "entropy": 1.6125037769476573,
+            "grad_norm": 0.8205116639534632,
+            "agent_steps": 4361.0,
+            "completed_episodes": 48.0,
+            "updates": 2.0
+          },
+          "finite_metrics": true
+        }
+      ],
+      "elapsed_seconds": 54.090295899892226,
+      "finite_model": true,
+      "truncated_training_episodes": 0,
+      "abnormal_exit_count": 0,
+      "evaluation": {
+        "games": 4,
+        "win_rate": 1.0,
+        "terminated": 4,
+        "truncated": 0,
+        "illegal_actions": 0,
+        "action_mask_mismatches": 0,
+        "suite_sha256": "fa77e1ceadd452d7cc4cf534fcef629840c3de5f798337439b4d2786278be20e"
+      }
+    },
+    {
+      "seed": 20260813,
+      "batched": false,
+      "initial_model_sha256": "0ff71e84b2d7d3a4759ee2f5010e758767a6e39a4f11ade0f665dd67f83c4afd",
+      "final_model_sha256": "8549ae81240af12250e2ebd688fd784cd4f2a4021576d5687966cb65199f9638",
+      "completed_agent_steps": 4535,
+      "updates": [
+        {
+          "agent_steps": 2048,
+          "records": 2048,
+          "update_seconds": 20.88615330005996,
+          "metrics": {
+            "policy_loss": -0.023407952239116032,
+            "value_loss": 0.22493096316854158,
+            "entropy": 1.5421587030092876,
+            "grad_norm": 0.6557023922602335,
+            "agent_steps": 2048.0,
+            "completed_episodes": 24.0,
+            "updates": 1.0
+          },
+          "finite_metrics": true
+        },
+        {
+          "agent_steps": 4535,
+          "records": 2487,
+          "update_seconds": 24.25654650013894,
+          "metrics": {
+            "policy_loss": -0.02595697928752218,
+            "value_loss": 0.19562735887510435,
+            "entropy": 1.4155496869768416,
+            "grad_norm": 0.4928805785519736,
+            "agent_steps": 4535.0,
+            "completed_episodes": 54.0,
+            "updates": 2.0
+          },
+          "finite_metrics": true
+        }
+      ],
+      "elapsed_seconds": 88.55200850008987,
+      "finite_model": true,
+      "truncated_training_episodes": 0,
+      "abnormal_exit_count": 0,
+      "evaluation": {
+        "games": 4,
+        "win_rate": 1.0,
+        "terminated": 4,
+        "truncated": 0,
+        "illegal_actions": 0,
+        "action_mask_mismatches": 0,
+        "suite_sha256": "fa77e1ceadd452d7cc4cf534fcef629840c3de5f798337439b4d2786278be20e"
+      }
+    },
+    {
+      "seed": 20260813,
+      "batched": true,
+      "initial_model_sha256": "0ff71e84b2d7d3a4759ee2f5010e758767a6e39a4f11ade0f665dd67f83c4afd",
+      "final_model_sha256": "605d2cc7cc3c5508b4d60668b0d0cb1a6ca06bb1864279d1426fdf937587fac1",
+      "completed_agent_steps": 4535,
+      "updates": [
+        {
+          "agent_steps": 2048,
+          "records": 2048,
+          "update_seconds": 3.9829047999810427,
+          "metrics": {
+            "policy_loss": -0.023407953480879467,
+            "value_loss": 0.22493095944325128,
+            "entropy": 1.5421587030092876,
+            "grad_norm": 0.6557023773590723,
+            "agent_steps": 2048.0,
+            "completed_episodes": 24.0,
+            "updates": 1.0
+          },
+          "finite_metrics": true
+        },
+        {
+          "agent_steps": 4535,
+          "records": 2487,
+          "update_seconds": 3.884729400044307,
+          "metrics": {
+            "policy_loss": -0.025956980884075165,
+            "value_loss": 0.19562736126993382,
+            "entropy": 1.4155496869768416,
+            "grad_norm": 0.49288059558187214,
+            "agent_steps": 4535.0,
+            "completed_episodes": 54.0,
+            "updates": 2.0
+          },
+          "finite_metrics": true
+        }
+      ],
+      "elapsed_seconds": 50.032797400141135,
+      "finite_model": true,
+      "truncated_training_episodes": 0,
+      "abnormal_exit_count": 0,
+      "evaluation": {
+        "games": 4,
+        "win_rate": 1.0,
+        "terminated": 4,
+        "truncated": 0,
+        "illegal_actions": 0,
+        "action_mask_mismatches": 0,
+        "suite_sha256": "fa77e1ceadd452d7cc4cf534fcef629840c3de5f798337439b4d2786278be20e"
+      }
+    }
+  ],
+  "summary": {
+    "paired_initial_model_state": true,
+    "all_numeric_and_runtime_stable": true,
+    "baseline_evaluation_win_rates": [
+      1.0,
+      1.0,
+      1.0
+    ],
+    "candidate_evaluation_win_rates": [
+      1.0,
+      1.0,
+      1.0
+    ],
+    "baseline_evaluation_median": 1.0,
+    "candidate_evaluation_median": 1.0,
+    "allowed_median_regression": 0.25,
+    "learning_non_degradation_passed": true,
+    "baseline_update_median_seconds": 20.83885675005149,
+    "candidate_update_median_seconds": 4.839595799916424,
+    "update_relative_reduction": 0.7677609737441827
+  },
+  "decision": {
+    "advance_to_end_to_end": true,
+    "default_enabled": false,
+    "checkpoint_resume_test": "tests.test_checkpoint.CheckpointTests.test_batched_v41_learner_resume_next_update_drift_is_bounded"
+  },
+  "checkpoint": {
+    "before": {
+      "sha256": "4d6a8dd7d32f4e530766aab8d2ec4691de4925bc73e188021da1f45dbe54e0bd",
+      "size": 68377329,
+      "mtime_ns": 1785438586793295200
+    },
+    "after": {
+      "sha256": "4d6a8dd7d32f4e530766aab8d2ec4691de4925bc73e188021da1f45dbe54e0bd",
+      "size": 68377329,
+      "mtime_ns": 1785438586793295200
+    },
+    "unchanged": true
+  },
+  "sources": {
+    "a_gate": {
+      "path": "data/reports/training_speed/stage_2_7_a_padded_compute_001_gate.json",
+      "sha256": "bd7ddd06f62d4a7a004101327a8e400216058a05268d45fd62c8c0e3668aef34"
+    },
+    "checkpoint": {
+      "path": "data/checkpoints/training_speed/frozen_v4_1_seed_20260801_500k.pt",
+      "sha256": "4d6a8dd7d32f4e530766aab8d2ec4691de4925bc73e188021da1f45dbe54e0bd"
+    }
+  },
+  "passed": true
+}
