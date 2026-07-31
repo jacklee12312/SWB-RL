@@ -196,7 +196,8 @@
       "class": "C",
       "description": "Change rollout length, sequence length, epochs or minibatch size for throughput.",
       "semantics": "Changes sampling or optimization semantics even when network code is unchanged.",
-      "disposition": "separate_algorithm_experiment"
+      "disposition": "separate_algorithm_experiment",
+      "evidence": "data/reports/training_speed/stage_2_9_deferred_c_candidates.json"
     },
     {
       "id": "C-MODEL-001",

@@ -1,0 +1,47 @@
+{
+  "schema_version": 1,
+  "report_kind": "swb_training_speed_stage_2_9_deferred_c_candidates",
+  "checklist_section": "2.9",
+  "classification_contract": {
+    "class": "C",
+    "changes_training_semantics": true,
+    "minimum_learning_seeds_if_reopened": 3,
+    "fixed_match_strength_comparison_required": true,
+    "throughput_alone_can_never_support_adoption": true
+  },
+  "candidates": {
+    "C-HYPERPARAM-001": {
+      "disposition": "separate_algorithm_experiment",
+      "implemented_in_stage_2": false,
+      "adopted_in_stage_2": false,
+      "learning_claim_made": false,
+      "reason": "Rollout length, sequence length, epochs, and minibatch size change sampling or optimization semantics.",
+      "required_if_reopened": [
+        "at least three paired learning seeds",
+        "fixed-match strength comparison",
+        "PPO ratio and clip-boundary review",
+        "stability and checkpoint migration evidence"
+      ]
+    },
+    "C-MODEL-001": {
+      "disposition": "separate_algorithm_experiment",
+      "implemented_in_stage_2": false,
+      "adopted_in_stage_2": false,
+      "learning_claim_made": false,
+      "reason": "Reducing observation content or network capacity changes policy inputs or representational capacity.",
+      "required_if_reopened": [
+        "at least three paired learning seeds",
+        "fixed-match strength comparison",
+        "new observation or architecture version contract",
+        "checkpoint migration and compatibility evidence"
+      ]
+    }
+  },
+  "decision": {
+    "advance_any_candidate": false,
+    "default_training_configuration_unchanged": true,
+    "three_seed_requirement_waived": false,
+    "three_seed_requirement_not_applicable_until_reopened": true
+  },
+  "passed": true
+}
