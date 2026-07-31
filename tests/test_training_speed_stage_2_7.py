@@ -294,5 +294,53 @@ class TrainingSpeedStage27BBatchedLearner001Tests(unittest.TestCase):
         return digest.hexdigest()
 
 
+class TrainingSpeedStage27BLearnerAmp001Tests(unittest.TestCase):
+    ROOT = Path(__file__).resolve().parents[1]
+    REPORT = (
+        ROOT
+        / "data/reports/training_speed/"
+        "stage_2_7_b_learner_amp_001_gate.json"
+    )
+
+    def test_saved_amp_gate_closes_below_variability_variants(
+        self,
+    ) -> None:
+        report = json.loads(self.REPORT.read_text(encoding="utf-8"))
+        self.assertTrue(report["passed"])
+        self.assertFalse(
+            report["decision"]["advance_to_three_seed_learning"]
+        )
+        self.assertFalse(report["decision"]["run_end_to_end"])
+        self.assertFalse(report["decision"]["default_enabled"])
+        self.assertEqual(
+            report["decision"]["advancing_variants"],
+            [],
+        )
+        for name in ("float16", "bfloat16"):
+            variant = report["variants"][name]
+            self.assertTrue(variant["stable"])
+            self.assertFalse(
+                variant[
+                    "speed_exceeds_current_three_run_variability"
+                ]
+            )
+            self.assertFalse(
+                variant["advance_to_three_seed_learning"]
+            )
+            self.assertTrue(
+                variant["model_after_one_update_drift"]["finite"]
+            )
+            self.assertTrue(
+                all(
+                    run["grad_scaler"]["enabled"]
+                    for run in variant["runs"]
+                )
+            )
+        for source in report["sources"].values():
+            path = self.ROOT / source["path"]
+            digest = hashlib.sha256(path.read_bytes()).hexdigest()
+            self.assertEqual(digest, source["sha256"])
+
+
 if __name__ == "__main__":
     unittest.main()
