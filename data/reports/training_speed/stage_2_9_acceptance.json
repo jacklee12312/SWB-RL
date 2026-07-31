@@ -1,0 +1,945 @@
+{
+  "schema_version": 1,
+  "report_kind": "swb_training_speed_stage_2_9_acceptance",
+  "checklist_section": "2.9",
+  "checklist": {
+    "path": "docs/card_bug_audit_and_training_speed_checklist.md",
+    "unchecked_items": []
+  },
+  "frozen_experiment_contract": {
+    "rules_commit": "fae33c2",
+    "checkpoint_sha256": "4d6a8dd7d32f4e530766aab8d2ec4691de4925bc73e188021da1f45dbe54e0bd",
+    "observation_version": "v4.1",
+    "policy_architecture": "entity_action_v1",
+    "training_deck": "official_qr_evolve_haven_20260727",
+    "opponent_decks": [
+      "international_qr_forest_20260728",
+      "international_qr_sword_20260728",
+      "international_qr_runecraft_20260728",
+      "international_qr_dragon_20260728",
+      "international_qr_nightmare_20260728",
+      "international_qr_portal_myuu_20260728",
+      "international_qr_portal_lishenna_20260728"
+    ],
+    "rollout_steps": 2048,
+    "sequence_length": 32,
+    "minibatch_sequences": 8,
+    "update_epochs": 2,
+    "hardware_controlled_by_run_manifests": true,
+    "candidate_dimension_is_the_only_allowed_difference": true
+  },
+  "candidate_count": 24,
+  "candidate_matrix": {
+    "A-PROFILE-001": {
+      "class": "A",
+      "disposition": "baseline_prerequisite",
+      "evidence_tier": "instrumented_frozen_baseline",
+      "evidence": {
+        "path": "data/reports/training_speed/baseline_summary.json",
+        "sha256": "c324af884a5b44976618b90ab00aad706adfe3613a8fdf53d08e1f2f3e779b61"
+      },
+      "evidence_exists": true,
+      "evidence_report_passed": true,
+      "learning_evidence": null,
+      "learning_evidence_passed": null,
+      "adoption_claim": false,
+      "formal_end_to_end_measured": false
+    },
+    "A-BATCH-WAIT-001": {
+      "class": "A",
+      "disposition": "adopted_1_0_ms",
+      "evidence_tier": "formal_end_to_end_adoption",
+      "evidence": {
+        "path": "data/reports/training_speed/stage_2_4_b_interactions.json",
+        "sha256": "f9d638a726e4f8ad10264806e7addbdb46de548ae4b0c8311bf83eed73ac64b7"
+      },
+      "evidence_exists": true,
+      "evidence_report_passed": true,
+      "learning_evidence": null,
+      "learning_evidence_passed": null,
+      "adoption_claim": true,
+      "formal_end_to_end_measured": true
+    },
+    "A-WORKERS-001": {
+      "class": "A",
+      "disposition": "adopted_6_workers_2_threads",
+      "evidence_tier": "formal_end_to_end_adoption",
+      "evidence": {
+        "path": "data/reports/training_speed/stage_2_4_b_interactions.json",
+        "sha256": "f9d638a726e4f8ad10264806e7addbdb46de548ae4b0c8311bf83eed73ac64b7"
+      },
+      "evidence_exists": true,
+      "evidence_report_passed": true,
+      "learning_evidence": null,
+      "learning_evidence_passed": null,
+      "adoption_claim": true,
+      "formal_end_to_end_measured": true
+    },
+    "A-IPC-001": {
+      "class": "A",
+      "disposition": "closed_below_materiality_or_already_minimal",
+      "evidence_tier": "preimplementation_or_rejection_gate",
+      "evidence": {
+        "path": "data/reports/training_speed/stage_2_4_acceptance.json",
+        "sha256": "3a5eaa5161664f8846e3432426fb86188e406aad31bff81cab99d11f6c0a3bb0"
+      },
+      "evidence_exists": true,
+      "evidence_report_passed": true,
+      "learning_evidence": null,
+      "learning_evidence_passed": null,
+      "adoption_claim": false,
+      "formal_end_to_end_measured": false
+    },
+    "A-OBS-001": {
+      "class": "A",
+      "disposition": "implemented_no_measurable_throughput_gain",
+      "evidence_tier": "formal_end_to_end_no_clear_gain",
+      "evidence": {
+        "path": "data/reports/training_speed/stage_2_5_a_obs_001.json",
+        "sha256": "222f40a0d0ec5e9f0c5b5394dbf8f9ff526cb44467c1058d03d746a373e4242a"
+      },
+      "evidence_exists": true,
+      "evidence_report_passed": true,
+      "learning_evidence": null,
+      "learning_evidence_passed": null,
+      "adoption_claim": false,
+      "formal_end_to_end_measured": true
+    },
+    "A-OBS-002": {
+      "class": "A",
+      "disposition": "closed_below_materiality_and_variability_gate",
+      "evidence_tier": "preimplementation_or_rejection_gate",
+      "evidence": {
+        "path": "data/reports/training_speed/stage_2_5_a_obs_001.json",
+        "sha256": "222f40a0d0ec5e9f0c5b5394dbf8f9ff526cb44467c1058d03d746a373e4242a"
+      },
+      "evidence_exists": true,
+      "evidence_report_passed": true,
+      "learning_evidence": null,
+      "learning_evidence_passed": null,
+      "adoption_claim": false,
+      "formal_end_to_end_measured": false
+    },
+    "A-NET-001": {
+      "class": "A",
+      "disposition": "rejected_gain_within_run_variability",
+      "evidence_tier": "formal_end_to_end_no_clear_gain",
+      "evidence": {
+        "path": "data/reports/training_speed/stage_2_6_a_net_001.json",
+        "sha256": "da64601aa32d514d2957ac2dc5b257d47c46e43f1a50e9f46e8c91ab8e5e8be6"
+      },
+      "evidence_exists": true,
+      "evidence_report_passed": true,
+      "learning_evidence": null,
+      "learning_evidence_passed": null,
+      "adoption_claim": false,
+      "formal_end_to_end_measured": true
+    },
+    "A-NET-002": {
+      "class": "A",
+      "disposition": "rejected_gain_within_run_variability",
+      "evidence_tier": "formal_end_to_end_no_clear_gain",
+      "evidence": {
+        "path": "data/reports/training_speed/stage_2_6_a_net_002.json",
+        "sha256": "bdc646a51e33f0d21a1fcfd632d1fe307ba65491b94ff88f5dce186f75600010"
+      },
+      "evidence_exists": true,
+      "evidence_report_passed": true,
+      "learning_evidence": null,
+      "learning_evidence_passed": null,
+      "adoption_claim": false,
+      "formal_end_to_end_measured": true
+    },
+    "A-NET-003": {
+      "class": "A",
+      "disposition": "rejected_gain_within_run_variability",
+      "evidence_tier": "formal_end_to_end_no_clear_gain",
+      "evidence": {
+        "path": "data/reports/training_speed/stage_2_6_a_net_003.json",
+        "sha256": "4145faf1004ee561485015b78cabfa5fa16ff3868f534d7ffde939ef760917ef"
+      },
+      "evidence_exists": true,
+      "evidence_report_passed": true,
+      "learning_evidence": null,
+      "learning_evidence_passed": null,
+      "adoption_claim": false,
+      "formal_end_to_end_measured": true
+    },
+    "A-NET-004": {
+      "class": "A",
+      "disposition": "closed_no_actionable_layout_and_below_variability_upper_bound",
+      "evidence_tier": "preimplementation_or_rejection_gate",
+      "evidence": {
+        "path": "data/reports/training_speed/stage_2_6_a_net_004_layout_projection_gate.json",
+        "sha256": "da84d82ffce2c8436e131b5e168cb3e39bfc682c7827c82f8caf868abaad313a"
+      },
+      "evidence_exists": true,
+      "evidence_report_passed": true,
+      "learning_evidence": null,
+      "learning_evidence_passed": null,
+      "adoption_claim": false,
+      "formal_end_to_end_measured": false
+    },
+    "A-FORWARD-001": {
+      "class": "A",
+      "disposition": "rejected_native_sdpa_numeric_and_micro_regression",
+      "evidence_tier": "preimplementation_or_rejection_gate",
+      "evidence": {
+        "path": "data/reports/training_speed/stage_2_6_a_forward_001_sdpa_gate.json",
+        "sha256": "fe81855d1e2b969c02c7a694a39a62a7cb32a98fbc224f9edee308f101f7af5f"
+      },
+      "evidence_exists": true,
+      "evidence_report_passed": true,
+      "learning_evidence": null,
+      "learning_evidence_passed": null,
+      "adoption_claim": false,
+      "formal_end_to_end_measured": false
+    },
+    "A-STATIC-ENC-001": {
+      "class": "A",
+      "disposition": "closed_below_materiality_and_no_repeated_forward_encoding",
+      "evidence_tier": "preimplementation_or_rejection_gate",
+      "evidence": {
+        "path": "data/reports/training_speed/stage_2_6_a_static_enc_001_gate.json",
+        "sha256": "22a825931b24c8b2e862737e2e4fd6e8b86501c0c37a5d7db64939b7287d2506"
+      },
+      "evidence_exists": true,
+      "evidence_report_passed": true,
+      "learning_evidence": null,
+      "learning_evidence_passed": null,
+      "adoption_claim": false,
+      "formal_end_to_end_measured": false
+    },
+    "A-CUDA-GRAPH-001": {
+      "class": "A",
+      "disposition": "deferred_prerequisites_unsatisfied",
+      "evidence_tier": "preimplementation_or_rejection_gate",
+      "evidence": {
+        "path": "data/reports/training_speed/stage_2_6_a_cuda_graph_001_prerequisite_gate.json",
+        "sha256": "cb2b52a58096cc7713ba556c22ba99e467441a6e5cdad76b1d064dd54ff96564"
+      },
+      "evidence_exists": true,
+      "evidence_report_passed": true,
+      "learning_evidence": null,
+      "learning_evidence_passed": null,
+      "adoption_claim": false,
+      "formal_end_to_end_measured": false
+    },
+    "A-LEARNER-001": {
+      "class": "A",
+      "disposition": "closed_buffer_only_below_materiality_upper_bound",
+      "evidence_tier": "preimplementation_or_rejection_gate",
+      "evidence": {
+        "path": "data/reports/training_speed/stage_2_7_learner_baseline_summary.json",
+        "sha256": "bd5fa71444eda555b0b4f2af288548baf5d3fab6b26304eb638cba9be0e7d7c8"
+      },
+      "evidence_exists": true,
+      "evidence_report_passed": true,
+      "learning_evidence": null,
+      "learning_evidence_passed": null,
+      "adoption_claim": false,
+      "formal_end_to_end_measured": false
+    },
+    "A-PADDED-COMPUTE-001": {
+      "class": "A",
+      "disposition": "reclassified_as_b_due_strict_parameter_drift",
+      "evidence_tier": "preimplementation_or_rejection_gate",
+      "evidence": {
+        "path": "data/reports/training_speed/stage_2_7_a_padded_compute_001_gate.json",
+        "sha256": "bd7ddd06f62d4a7a004101327a8e400216058a05268d45fd62c8c0e3668aef34"
+      },
+      "evidence_exists": true,
+      "evidence_report_passed": true,
+      "learning_evidence": null,
+      "learning_evidence_passed": null,
+      "adoption_claim": false,
+      "formal_end_to_end_measured": false
+    },
+    "A-OPTIMIZER-001": {
+      "class": "A",
+      "disposition": "closed_group_below_materiality_upper_bound",
+      "evidence_tier": "preimplementation_or_rejection_gate",
+      "evidence": {
+        "path": "data/reports/training_speed/stage_2_7_learner_baseline_summary.json",
+        "sha256": "bd5fa71444eda555b0b4f2af288548baf5d3fab6b26304eb638cba9be0e7d7c8"
+      },
+      "evidence_exists": true,
+      "evidence_report_passed": true,
+      "learning_evidence": null,
+      "learning_evidence_passed": null,
+      "adoption_claim": false,
+      "formal_end_to_end_measured": false
+    },
+    "A-OVERLAP-001": {
+      "class": "A",
+      "disposition": "closed_below_materiality_or_not_overlapable",
+      "evidence_tier": "preimplementation_or_rejection_gate",
+      "evidence": {
+        "path": "data/reports/training_speed/stage_2_8_overlap_gate.json",
+        "sha256": "dd4ad7eabf4a08720b8b14ca858f9fb917e5fae185768ab6b4f22525a1b4d546"
+      },
+      "evidence_exists": true,
+      "evidence_report_passed": true,
+      "learning_evidence": null,
+      "learning_evidence_passed": null,
+      "adoption_claim": false,
+      "formal_end_to_end_measured": false
+    },
+    "B-LEARNER-AMP-001": {
+      "class": "B",
+      "disposition": "rejected_gain_below_current_run_variability",
+      "evidence_tier": "preimplementation_or_rejection_gate",
+      "evidence": {
+        "path": "data/reports/training_speed/stage_2_7_b_learner_amp_001_gate.json",
+        "sha256": "cc4749634ff94571df3443b34946111a30532dd375c2f0f071182f86f9ad392f"
+      },
+      "evidence_exists": true,
+      "evidence_report_passed": true,
+      "learning_evidence": null,
+      "learning_evidence_passed": null,
+      "adoption_claim": false,
+      "formal_end_to_end_measured": false
+    },
+    "B-BATCHED-LEARNER-001": {
+      "class": "B",
+      "disposition": "adopted_after_three_seed_learning_and_end_to_end_gates",
+      "evidence_tier": "formal_end_to_end_adoption",
+      "evidence": {
+        "path": "data/reports/training_speed/stage_2_7_b_batched_learner_001_end_to_end.json",
+        "sha256": "29f0d9352a6ba11f84ca0d8c4479d711829f52163e078058856209bbfae60fa4"
+      },
+      "evidence_exists": true,
+      "evidence_report_passed": true,
+      "learning_evidence": {
+        "path": "data/reports/training_speed/stage_2_7_b_batched_learner_001_learning.json",
+        "sha256": "6a45428081add6f8f7fa1ec512c246e18477172b73475cf3e18c8cccefd1a4d2"
+      },
+      "learning_evidence_passed": true,
+      "adoption_claim": true,
+      "formal_end_to_end_measured": true
+    },
+    "B-PRECISION-001": {
+      "class": "B",
+      "disposition": "rejected_micro_or_numeric_gate",
+      "evidence_tier": "preimplementation_or_rejection_gate",
+      "evidence": {
+        "path": "data/reports/training_speed/stage_2_6_b_precision_001_gate.json",
+        "sha256": "5fbe6fd48ff89af99427f211c082701cefa8a1cc53dc380eee686e19ac6ff0c1"
+      },
+      "evidence_exists": true,
+      "evidence_report_passed": true,
+      "learning_evidence": null,
+      "learning_evidence_passed": null,
+      "adoption_claim": false,
+      "formal_end_to_end_measured": false
+    },
+    "B-COMPILE-001": {
+      "class": "B",
+      "disposition": "blocked_current_environment_missing_triton",
+      "evidence_tier": "preimplementation_or_rejection_gate",
+      "evidence": {
+        "path": "data/reports/training_speed/stage_2_6_b_compile_001_gate.json",
+        "sha256": "3c1d72ec7f40cff743c95f69fa2bfff0485a2bdf840ba5241ff05da2eb9390bd"
+      },
+      "evidence_exists": true,
+      "evidence_report_passed": true,
+      "learning_evidence": null,
+      "learning_evidence_passed": null,
+      "adoption_claim": false,
+      "formal_end_to_end_measured": false
+    },
+    "C-ASYNC-001": {
+      "class": "C",
+      "disposition": "deferred_separate_algorithm_experiment",
+      "evidence_tier": "deferred_algorithm_contract",
+      "evidence": {
+        "path": "data/reports/training_speed/stage_2_8_overlap_gate.json",
+        "sha256": "dd4ad7eabf4a08720b8b14ca858f9fb917e5fae185768ab6b4f22525a1b4d546"
+      },
+      "evidence_exists": true,
+      "evidence_report_passed": true,
+      "learning_evidence": null,
+      "learning_evidence_passed": null,
+      "adoption_claim": false,
+      "formal_end_to_end_measured": false
+    },
+    "C-HYPERPARAM-001": {
+      "class": "C",
+      "disposition": "separate_algorithm_experiment",
+      "evidence_tier": "deferred_algorithm_contract",
+      "evidence": {
+        "path": "data/reports/training_speed/stage_2_9_deferred_c_candidates.json",
+        "sha256": "4010adeb05bc66c82c9620d68f4726f0a32ee31d6e020d257dbcd55db202bfe5"
+      },
+      "evidence_exists": true,
+      "evidence_report_passed": true,
+      "learning_evidence": null,
+      "learning_evidence_passed": null,
+      "adoption_claim": false,
+      "formal_end_to_end_measured": false
+    },
+    "C-MODEL-001": {
+      "class": "C",
+      "disposition": "separate_algorithm_experiment",
+      "evidence_tier": "deferred_algorithm_contract",
+      "evidence": {
+        "path": "data/reports/training_speed/stage_2_9_deferred_c_candidates.json",
+        "sha256": "4010adeb05bc66c82c9620d68f4726f0a32ee31d6e020d257dbcd55db202bfe5"
+      },
+      "evidence_exists": true,
+      "evidence_report_passed": true,
+      "learning_evidence": null,
+      "learning_evidence_passed": null,
+      "adoption_claim": false,
+      "formal_end_to_end_measured": false
+    }
+  },
+  "adopted_candidates": [
+    "A-BATCH-WAIT-001",
+    "A-WORKERS-001",
+    "B-BATCHED-LEARNER-001"
+  ],
+  "formal_end_to_end_comparisons": {
+    "A-BATCH-WAIT-001": {
+      "candidate_id": "A-BATCH-WAIT-001",
+      "candidate_run_count": 3,
+      "comparison_run_count": 3,
+      "candidate_runs_agent_steps_per_second": [
+        63.61914281547487,
+        64.89317566311928,
+        64.47287526299372
+      ],
+      "comparison_runs_agent_steps_per_second": [
+        44.705437741344035,
+        44.57805049861664,
+        44.739038966525655
+      ],
+      "candidate_median_agent_steps_per_second": 64.47287526299372,
+      "comparison_median_agent_steps_per_second": 44.705437741344035,
+      "relative_gain": 0.44217076311879094,
+      "comparison_three_run_relative_range": 0.003601093648617394,
+      "gain_exceeds_comparison_variability": true,
+      "disposition": "adopted_1_0_ms",
+      "controlled_difference": "rollout worker count and batch-wait duration are the explicit candidate dimensions; checkpoint, model, Observation, decks, seeds, training parameters, rules, and hardware remain controlled",
+      "three_run_gate_satisfied": true
+    },
+    "A-WORKERS-001": {
+      "candidate_id": "A-WORKERS-001",
+      "candidate_run_count": 3,
+      "comparison_run_count": 3,
+      "candidate_runs_agent_steps_per_second": [
+        63.61914281547487,
+        64.89317566311928,
+        64.47287526299372
+      ],
+      "comparison_runs_agent_steps_per_second": [
+        44.705437741344035,
+        44.57805049861664,
+        44.739038966525655
+      ],
+      "candidate_median_agent_steps_per_second": 64.47287526299372,
+      "comparison_median_agent_steps_per_second": 44.705437741344035,
+      "relative_gain": 0.44217076311879094,
+      "comparison_three_run_relative_range": 0.003601093648617394,
+      "gain_exceeds_comparison_variability": true,
+      "disposition": "adopted_6_workers_2_threads",
+      "controlled_difference": "rollout worker count and batch-wait duration are the explicit candidate dimensions; checkpoint, model, Observation, decks, seeds, training parameters, rules, and hardware remain controlled",
+      "three_run_gate_satisfied": true
+    },
+    "A-OBS-001": {
+      "candidate_id": "A-OBS-001",
+      "candidate_run_count": 3,
+      "comparison_run_count": 3,
+      "candidate_runs_agent_steps_per_second": [
+        63.46296797383438,
+        64.40217094431641,
+        64.3026182476435
+      ],
+      "comparison_runs_agent_steps_per_second": [
+        63.61914281547487,
+        64.89317566311928,
+        64.47287526299372
+      ],
+      "candidate_median_agent_steps_per_second": 64.3026182476435,
+      "comparison_median_agent_steps_per_second": 64.47287526299372,
+      "relative_gain": -0.002640754187799582,
+      "comparison_three_run_relative_range": 0.01976075741073205,
+      "gain_exceeds_comparison_variability": false,
+      "disposition": "implemented_no_measurable_throughput_gain",
+      "controlled_difference": "only duplicate observation construction is removed",
+      "three_run_gate_satisfied": true
+    },
+    "A-NET-001": {
+      "candidate_id": "A-NET-001",
+      "candidate_run_count": 3,
+      "comparison_run_count": 3,
+      "candidate_runs_agent_steps_per_second": [
+        63.8898908151066,
+        65.15088205058677,
+        64.91101231802897
+      ],
+      "comparison_runs_agent_steps_per_second": [
+        63.46296797383438,
+        64.40217094431641,
+        64.3026182476435
+      ],
+      "candidate_median_agent_steps_per_second": 64.91101231802897,
+      "comparison_median_agent_steps_per_second": 64.3026182476435,
+      "relative_gain": 0.009461419876285801,
+      "comparison_three_run_relative_range": 0.014605983334379203,
+      "gain_exceeds_comparison_variability": false,
+      "disposition": "rejected_gain_within_run_variability",
+      "controlled_difference": "only the named policy forward implementation candidate differs",
+      "three_run_gate_satisfied": true
+    },
+    "A-NET-002": {
+      "candidate_id": "A-NET-002",
+      "candidate_run_count": 3,
+      "comparison_run_count": 3,
+      "candidate_runs_agent_steps_per_second": [
+        64.23712529940495,
+        64.47696518178608,
+        65.17656065820917
+      ],
+      "comparison_runs_agent_steps_per_second": [
+        63.46296797383438,
+        64.40217094431641,
+        64.3026182476435
+      ],
+      "candidate_median_agent_steps_per_second": 64.47696518178608,
+      "comparison_median_agent_steps_per_second": 64.3026182476435,
+      "relative_gain": 0.00271135046898312,
+      "comparison_three_run_relative_range": 0.014605983334379203,
+      "gain_exceeds_comparison_variability": false,
+      "disposition": "rejected_gain_within_run_variability",
+      "controlled_difference": "only the named policy forward implementation candidate differs",
+      "three_run_gate_satisfied": true
+    },
+    "A-NET-003": {
+      "candidate_id": "A-NET-003",
+      "candidate_run_count": 3,
+      "comparison_run_count": 3,
+      "candidate_runs_agent_steps_per_second": [
+        65.14248455305606,
+        64.70800164021257,
+        65.7507127671828
+      ],
+      "comparison_runs_agent_steps_per_second": [
+        63.46296797383438,
+        64.40217094431641,
+        64.3026182476435
+      ],
+      "candidate_median_agent_steps_per_second": 65.14248455305606,
+      "comparison_median_agent_steps_per_second": 64.3026182476435,
+      "relative_gain": 0.013061152536247608,
+      "comparison_three_run_relative_range": 0.014605983334379203,
+      "gain_exceeds_comparison_variability": false,
+      "disposition": "rejected_gain_within_run_variability",
+      "controlled_difference": "only the named policy forward implementation candidate differs",
+      "three_run_gate_satisfied": true
+    },
+    "B-BATCHED-LEARNER-001": {
+      "candidate_id": "B-BATCHED-LEARNER-001",
+      "candidate_run_count": 3,
+      "comparison_run_count": 3,
+      "candidate_runs_agent_steps_per_second": [
+        136.69229004513915,
+        132.6622270750627,
+        130.8878646945151
+      ],
+      "comparison_runs_agent_steps_per_second": [
+        63.46296797383438,
+        64.40217094431641,
+        64.3026182476435
+      ],
+      "candidate_median_agent_steps_per_second": 132.6622270750627,
+      "comparison_median_agent_steps_per_second": 64.3026182476435,
+      "relative_gain": 1.0630921522378973,
+      "comparison_three_run_relative_range": 0.014605983334379203,
+      "gain_exceeds_comparison_variability": true,
+      "disposition": "adopted_after_three_seed_learning_and_end_to_end_gates",
+      "controlled_difference": "only v4.1 learner structured-token batching differs",
+      "three_run_gate_satisfied": true
+    }
+  },
+  "no_clear_gain_decisions": {
+    "A-NET-001": {
+      "relative_gain": 0.009461419876285801,
+      "comparison_three_run_relative_range": 0.014605983334379203,
+      "gain_exceeds_variability": false,
+      "disposition": "rejected_gain_within_run_variability",
+      "correctly_not_adopted": true
+    },
+    "A-NET-002": {
+      "relative_gain": 0.00271135046898312,
+      "comparison_three_run_relative_range": 0.014605983334379203,
+      "gain_exceeds_variability": false,
+      "disposition": "rejected_gain_within_run_variability",
+      "correctly_not_adopted": true
+    },
+    "A-NET-003": {
+      "relative_gain": 0.013061152536247608,
+      "comparison_three_run_relative_range": 0.014605983334379203,
+      "gain_exceeds_variability": false,
+      "disposition": "rejected_gain_within_run_variability",
+      "correctly_not_adopted": true
+    },
+    "A-OBS-001": {
+      "relative_gain": -0.002640754187799582,
+      "comparison_three_run_relative_range": 0.01976075741073205,
+      "gain_exceeds_variability": false,
+      "disposition": "implemented_no_measurable_throughput_gain",
+      "correctly_not_adopted": true
+    }
+  },
+  "metric_coverage": {
+    "formal_raw_runs": {
+      "run_count": 15,
+      "runs": [
+        {
+          "path": "data/reports/training_speed/stage_2_5_a_obs_001_runs/a_obs_001_run_1.json",
+          "sha256": "916b8951f180b89ab32b3f3db6fd87d11c2376e3f8e8f95a88ceb395b4a36e42",
+          "required_fields": {
+            "throughput": true,
+            "p95_stage_time": true,
+            "batch_distribution": true,
+            "episode_length": true,
+            "cpu_gpu_ram": true,
+            "no_abnormal_exit": true
+          },
+          "complete": true
+        },
+        {
+          "path": "data/reports/training_speed/stage_2_5_a_obs_001_runs/a_obs_001_run_2.json",
+          "sha256": "02b8cf2d797f8fc081d1d1c32e217f09eb671ce72b01334e897d39ede018979f",
+          "required_fields": {
+            "throughput": true,
+            "p95_stage_time": true,
+            "batch_distribution": true,
+            "episode_length": true,
+            "cpu_gpu_ram": true,
+            "no_abnormal_exit": true
+          },
+          "complete": true
+        },
+        {
+          "path": "data/reports/training_speed/stage_2_5_a_obs_001_runs/a_obs_001_run_3.json",
+          "sha256": "339c05a7ac0aaa931102bc91bc020f51b1e3930b88c6b5b582b1ef854279993c",
+          "required_fields": {
+            "throughput": true,
+            "p95_stage_time": true,
+            "batch_distribution": true,
+            "episode_length": true,
+            "cpu_gpu_ram": true,
+            "no_abnormal_exit": true
+          },
+          "complete": true
+        },
+        {
+          "path": "data/reports/training_speed/stage_2_6_a_net_001_runs/a_net_001_run_1.json",
+          "sha256": "b2ea3b1e1fcabfa8c9fa57c629c9b314a2b015a33e76b43efaec3bced1e96149",
+          "required_fields": {
+            "throughput": true,
+            "p95_stage_time": true,
+            "batch_distribution": true,
+            "episode_length": true,
+            "cpu_gpu_ram": true,
+            "no_abnormal_exit": true
+          },
+          "complete": true
+        },
+        {
+          "path": "data/reports/training_speed/stage_2_6_a_net_001_runs/a_net_001_run_2.json",
+          "sha256": "f9ee7df2badf609f63e1ccb457e4f1179f1f156eac5d44d4dfa3e5441b71b600",
+          "required_fields": {
+            "throughput": true,
+            "p95_stage_time": true,
+            "batch_distribution": true,
+            "episode_length": true,
+            "cpu_gpu_ram": true,
+            "no_abnormal_exit": true
+          },
+          "complete": true
+        },
+        {
+          "path": "data/reports/training_speed/stage_2_6_a_net_001_runs/a_net_001_run_3.json",
+          "sha256": "198b1cb14a84df7c27fc09ca19f67712f8018de4ec8c1d823b5e20b8e0766a8a",
+          "required_fields": {
+            "throughput": true,
+            "p95_stage_time": true,
+            "batch_distribution": true,
+            "episode_length": true,
+            "cpu_gpu_ram": true,
+            "no_abnormal_exit": true
+          },
+          "complete": true
+        },
+        {
+          "path": "data/reports/training_speed/stage_2_6_a_net_002_runs/a_net_002_run_1.json",
+          "sha256": "0a268842991a11947e2c5cfb6f0c4a24d6fd05a853dfa3afd77e537b94e7f64e",
+          "required_fields": {
+            "throughput": true,
+            "p95_stage_time": true,
+            "batch_distribution": true,
+            "episode_length": true,
+            "cpu_gpu_ram": true,
+            "no_abnormal_exit": true
+          },
+          "complete": true
+        },
+        {
+          "path": "data/reports/training_speed/stage_2_6_a_net_002_runs/a_net_002_run_2.json",
+          "sha256": "0486d095712df19963740c0981e86599a57250c8f581ec46c5a2584a4f584d08",
+          "required_fields": {
+            "throughput": true,
+            "p95_stage_time": true,
+            "batch_distribution": true,
+            "episode_length": true,
+            "cpu_gpu_ram": true,
+            "no_abnormal_exit": true
+          },
+          "complete": true
+        },
+        {
+          "path": "data/reports/training_speed/stage_2_6_a_net_002_runs/a_net_002_run_3.json",
+          "sha256": "87f36be6bd0f7bd2d9969b31d1c68b63395489d488219fbafebe35b0ce5130f1",
+          "required_fields": {
+            "throughput": true,
+            "p95_stage_time": true,
+            "batch_distribution": true,
+            "episode_length": true,
+            "cpu_gpu_ram": true,
+            "no_abnormal_exit": true
+          },
+          "complete": true
+        },
+        {
+          "path": "data/reports/training_speed/stage_2_6_a_net_003_runs/a_net_003_run_1.json",
+          "sha256": "db16d47e7bb54e2feee0f86c130c5fe70640f29e54526fa0fd7a8fad72c1a7af",
+          "required_fields": {
+            "throughput": true,
+            "p95_stage_time": true,
+            "batch_distribution": true,
+            "episode_length": true,
+            "cpu_gpu_ram": true,
+            "no_abnormal_exit": true
+          },
+          "complete": true
+        },
+        {
+          "path": "data/reports/training_speed/stage_2_6_a_net_003_runs/a_net_003_run_2.json",
+          "sha256": "f2a1e657159ed0e9019deff7c3030b92c92e35ab0f7c3894a82c972177193e40",
+          "required_fields": {
+            "throughput": true,
+            "p95_stage_time": true,
+            "batch_distribution": true,
+            "episode_length": true,
+            "cpu_gpu_ram": true,
+            "no_abnormal_exit": true
+          },
+          "complete": true
+        },
+        {
+          "path": "data/reports/training_speed/stage_2_6_a_net_003_runs/a_net_003_run_3.json",
+          "sha256": "27a1306b0a4a04ba736afe2784ffd50d744c0b0c64b4307a37b51ca1443df7b8",
+          "required_fields": {
+            "throughput": true,
+            "p95_stage_time": true,
+            "batch_distribution": true,
+            "episode_length": true,
+            "cpu_gpu_ram": true,
+            "no_abnormal_exit": true
+          },
+          "complete": true
+        },
+        {
+          "path": "data/reports/training_speed/stage_2_7_b_batched_learner_001_runs/b_batched_learner_001_run_1.json",
+          "sha256": "d074d6b97751f8c3218cf1f298913f4a4b1a2d31fe972a53ac5a6944057324ce",
+          "required_fields": {
+            "throughput": true,
+            "p95_stage_time": true,
+            "batch_distribution": true,
+            "episode_length": true,
+            "cpu_gpu_ram": true,
+            "no_abnormal_exit": true
+          },
+          "complete": true
+        },
+        {
+          "path": "data/reports/training_speed/stage_2_7_b_batched_learner_001_runs/b_batched_learner_001_run_2.json",
+          "sha256": "098eab5f6f3b47320e64b301ff9754bf2899c94ffd1a82512b9a74e70383035a",
+          "required_fields": {
+            "throughput": true,
+            "p95_stage_time": true,
+            "batch_distribution": true,
+            "episode_length": true,
+            "cpu_gpu_ram": true,
+            "no_abnormal_exit": true
+          },
+          "complete": true
+        },
+        {
+          "path": "data/reports/training_speed/stage_2_7_b_batched_learner_001_runs/b_batched_learner_001_run_3.json",
+          "sha256": "335265a6113c24cbee4abbd5f2982e7f856de00dc88079b0985a73007c41b1eb",
+          "required_fields": {
+            "throughput": true,
+            "p95_stage_time": true,
+            "batch_distribution": true,
+            "episode_length": true,
+            "cpu_gpu_ram": true,
+            "no_abnormal_exit": true
+          },
+          "complete": true
+        }
+      ],
+      "all_complete": true
+    },
+    "candidate_specific_supplements": {
+      "A-OBS-001": "observation construction timing in every raw run",
+      "A-NET-001..003": "batch 1/2/4/8/16/32/64 microbenchmarks and compressed profiler traces",
+      "B-BATCHED-LEARNER-001": "padding, numeric drift, update timing, and three-seed learning evidence",
+      "A-OVERLAP-001": "CPU preparation, H2D, and causal pipeline-hole fractions"
+    }
+  },
+  "class_validation": {
+    "A": {
+      "fixed_seed_full_trajectory": "tests.test_ppo.PPOTrainerTests.test_seeded_central_policy_rollout_is_reproducible",
+      "log_probability_value_hidden_generation": true,
+      "checkpoint_resume_exact": "tests.test_checkpoint.CheckpointTests.test_save_resume_matches_uninterrupted_next_update",
+      "implemented_a_exact_outputs": true,
+      "all_adopted_a_have_formal_end_to_end": true
+    },
+    "B": {
+      "three_learning_seeds": true,
+      "numeric_and_runtime_stable": true,
+      "learning_non_degradation_passed": true,
+      "checkpoint_resume_bounded": "tests.test_checkpoint.CheckpointTests.test_batched_v41_learner_resume_next_update_drift_is_bounded",
+      "long_episode_and_no_truncation": true,
+      "nan_inf_absent": true
+    },
+    "C": {
+      "candidate_count": 3,
+      "all_deferred": true,
+      "no_learning_claim_without_three_seeds": true,
+      "future_three_seed_and_fixed_match_gate_recorded": true
+    }
+  },
+  "safety": {
+    "learning_evaluation_illegal_actions": 0,
+    "learning_evaluation_mask_mismatches": 0,
+    "self_play": {
+      "games": 100,
+      "wins": [
+        56,
+        44
+      ],
+      "draws": 0,
+      "truncations": 0,
+      "illegal_actions": 0,
+      "action_mask_mismatches": 0,
+      "passed": true
+    },
+    "mixed_match": {
+      "terminal_result": 2,
+      "passed": true
+    },
+    "worker_lifecycle_test": "tests.test_vector_rollout.VectorRolloutTests.test_close_is_graceful_and_leaves_no_live_worker"
+  },
+  "mandatory_verification": {
+    "unittest": {
+      "command": "E:\\anaconda\\python.exe -m unittest discover -s tests -v",
+      "log": "data/reports/training_speed/stage_2_9_complete_unittest.log",
+      "tests_run": 2919,
+      "seconds": 466.291,
+      "skipped": 1,
+      "api_test_passed": true,
+      "passed": true
+    },
+    "compileall": {
+      "command": "E:\\anaconda\\python.exe -m compileall -q swb scripts tests",
+      "passed": true
+    }
+  },
+  "gates": {
+    "all_checklist_items_closed": true,
+    "all_candidates_have_passing_machine_evidence": true,
+    "all_adopted_candidates_have_three_run_e2e": true,
+    "no_adoption_relies_on_microbenchmark_or_utilization": true,
+    "below_variability_candidates_not_adopted": true,
+    "required_metrics_present_in_formal_raw_runs": true,
+    "class_a_contracts_passed": true,
+    "class_b_contracts_passed": true,
+    "class_c_has_no_ungated_adoption": true,
+    "zero_illegal_actions_and_mask_mismatches": true,
+    "worker_lifecycle_regression_in_full_suite": true,
+    "prescribed_smokes_passed": true,
+    "full_unittest_and_compileall_passed": true,
+    "checkpoint_unchanged": true,
+    "prior_stage_acceptances_passed": true
+  },
+  "sources": {
+    "registry": {
+      "path": "data/reports/training_speed/candidate_registry.json",
+      "sha256": "aabe96d0e50784de126f8d6620f95808d55c1c563ac1fff6bc1250b61435208f"
+    },
+    "baseline": {
+      "path": "data/reports/training_speed/baseline_summary.json",
+      "sha256": "c324af884a5b44976618b90ab00aad706adfe3613a8fdf53d08e1f2f3e779b61"
+    },
+    "baseline_configuration": {
+      "path": "data/reports/training_speed/baseline_configuration.json",
+      "sha256": "f638cec50897aab6d61b34261c36ccc2c169ab4ff55d60fd3078d941ffe6e655"
+    },
+    "stage_2_4": {
+      "path": "data/reports/training_speed/stage_2_4_b_interactions.json",
+      "sha256": "f9d638a726e4f8ad10264806e7addbdb46de548ae4b0c8311bf83eed73ac64b7"
+    },
+    "stage_2_5": {
+      "path": "data/reports/training_speed/stage_2_5_a_obs_001.json",
+      "sha256": "222f40a0d0ec5e9f0c5b5394dbf8f9ff526cb44467c1058d03d746a373e4242a"
+    },
+    "stage_2_6_acceptance": {
+      "path": "data/reports/training_speed/stage_2_6_acceptance.json",
+      "sha256": "ab5b25b6cf776449f48e265854915ec066491d184f05dced23b6fc61e8097b58"
+    },
+    "stage_2_7_learning": {
+      "path": "data/reports/training_speed/stage_2_7_b_batched_learner_001_learning.json",
+      "sha256": "6a45428081add6f8f7fa1ec512c246e18477172b73475cf3e18c8cccefd1a4d2"
+    },
+    "stage_2_7_end_to_end": {
+      "path": "data/reports/training_speed/stage_2_7_b_batched_learner_001_end_to_end.json",
+      "sha256": "29f0d9352a6ba11f84ca0d8c4479d711829f52163e078058856209bbfae60fa4"
+    },
+    "stage_2_8_acceptance": {
+      "path": "data/reports/training_speed/stage_2_8_acceptance.json",
+      "sha256": "67ba108abbace95768a34d511ede043260b21a9906504fce54b8d4fe90d39a29"
+    },
+    "deferred_c": {
+      "path": "data/reports/training_speed/stage_2_9_deferred_c_candidates.json",
+      "sha256": "4010adeb05bc66c82c9620d68f4726f0a32ee31d6e020d257dbcd55db202bfe5"
+    },
+    "self_play": {
+      "path": "data/reports/training_speed/stage_2_9_random_self_play_100.json",
+      "sha256": "b7e13c7d46800804e3e81e9ff9d646adf4d6ffe4f9ada3dacfe048274eb96eff"
+    },
+    "mixed_match": {
+      "path": "data/reports/training_speed/stage_2_9_rl_mixed_match.log",
+      "sha256": "e3fc7ec2b1fe9a474f4e35df0295d5aa57590011d21724af3d724ca39b128716"
+    },
+    "stage_2_6_reports": {
+      "A-NET-001": {
+        "path": "data/reports/training_speed/stage_2_6_a_net_001.json",
+        "sha256": "da64601aa32d514d2957ac2dc5b257d47c46e43f1a50e9f46e8c91ab8e5e8be6"
+      },
+      "A-NET-002": {
+        "path": "data/reports/training_speed/stage_2_6_a_net_002.json",
+        "sha256": "bdc646a51e33f0d21a1fcfd632d1fe307ba65491b94ff88f5dce186f75600010"
+      },
+      "A-NET-003": {
+        "path": "data/reports/training_speed/stage_2_6_a_net_003.json",
+        "sha256": "4145faf1004ee561485015b78cabfa5fa16ff3868f534d7ffde939ef760917ef"
+      }
+    }
+  },
+  "passed": true
+}

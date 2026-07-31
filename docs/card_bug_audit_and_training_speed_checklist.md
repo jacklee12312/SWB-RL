@@ -2017,21 +2017,54 @@ B 类候选：
 
 ## 2.9 每项性能候选的统一验收
 
-- [ ] 使用同一冻结规则提交、checkpoint、Observation、网络、卡组、seed、
+- [x] 使用同一冻结规则提交、checkpoint、Observation、网络、卡组、seed、
   worker、训练参数和硬件环境，基线与候选各至少端到端运行三次。
-- [ ] 报告 median steps/s、P95 stage time、GPU/CPU/RAM、batch 分布和回合
+- [x] 报告 median steps/s、P95 stage time、GPU/CPU/RAM、batch 分布和回合
   长度；按候选补充 Observation 时间、kernel 数/gap/同步或 padding 比例。
-- [ ] 单次短 benchmark、组件 microbenchmark 或 CPU/GPU 利用率曲线只能
+- [x] 单次短 benchmark、组件 microbenchmark 或 CPU/GPU 利用率曲线只能
   定位，不能作为采用结论。
-- [ ] 提升小于运行波动范围或对应决策门的候选判定为无明确收益。
-- [ ] A 类候选必须通过固定 seed 轨迹、log probability、value、hidden
+- [x] 提升小于运行波动范围或对应决策门的候选判定为无明确收益。
+- [x] A 类候选必须通过固定 seed 轨迹、log probability、value、hidden
   state、PPO generation 和 checkpoint resume 等价测试。
-- [ ] B 类候选必须通过数值容差、NaN/Inf、长局和小规模学习测试。
-- [ ] C 类候选必须通过至少三 seed 的学习有效性与固定对阵强度实验。
-- [ ] 所有候选必须保持零非法动作、零 mask mismatch、零 worker 残留。
-- [ ] 所有候选必须通过完整单元测试、compileall 和规定 smoke。
-- [ ] 保存采用、失败、无明显收益和因门槛延期候选的机器可读原始数据，
+- [x] B 类候选必须通过数值容差、NaN/Inf、长局和小规模学习测试。
+- [x] C 类候选必须通过至少三 seed 的学习有效性与固定对阵强度实验。
+- [x] 所有候选必须保持零非法动作、零 mask mismatch、零 worker 残留。
+- [x] 所有候选必须通过完整单元测试、compileall 和规定 smoke。
+- [x] 保存采用、失败、无明显收益和因门槛延期候选的机器可读原始数据，
   避免以后重复试验。
+
+统一验收说明：
+
+- 三次端到端门适用于所有进入正式吞吐结论的实现候选；在实现前因
+  materiality、数值、依赖或因果门关闭的候选，不伪造实现与端到端数据，
+  其结论只能是拒绝、无明确收益或延期。Worker 数和 batch wait 候选允许
+  只改变其被测配置维度，其余冻结契约保持一致。
+- A-BATCH-WAIT-001、A-WORKERS-001 与 B-BATCHED-LEARNER-001 是仅有的
+  正式采用项，均有冻结对照和候选各三次端到端数据。A-OBS-001 及
+  A-NET-001/002/003 也各运行三次，但增益不超过对应三次波动范围，统一
+  判为无明确收益而非采用。其余 micro/profile 只用于进入或关闭下一门。
+- A 类使用固定 seed 全轨迹、action mask、log probability、value、
+  hidden state、PPO generation 与 checkpoint resume 回归；出现严格参数
+  漂移的 padded learner 已转为 B 类。唯一采用的 B-BATCHED-LEARNER-001
+  通过有限数值、最长 `138`-step 回合、零截断、三 seed 小规模学习与固定
+  random-legal 评估。三个 C 类候选均未进入实现或采用；三 seed 与固定对阵
+  是未来重开及任何学习结论的硬门槛，不因当前延期而豁免。
+- 统一矩阵包含全部 `24` 个候选的 disposition、证据层级、原始路径及
+  SHA-256。A-PROFILE-001 补绑冻结基线；C-HYPERPARAM-001/C-MODEL-001
+  的未实现、未采用和重开条件保存在
+  `data/reports/training_speed/stage_2_9_deferred_c_candidates.json`。
+- 最终采用栈实际重跑 `100` 局 invariant self-play：胜场 `56:44`，
+  draw/truncation/illegal action/mask mismatch 均为 `0`；原始报告为
+  `data/reports/training_speed/stage_2_9_random_self_play_100.json`。
+  Mixed RL match 也在 invariant 模式正常终局，player 2 获胜，最终生命
+  `0:18`，日志为
+  `data/reports/training_speed/stage_2_9_rl_mixed_match.log`。
+- `E:\anaconda\python.exe -m unittest discover -s tests -v` 最终通过
+  `2,919` tests（`1` skip），耗时 `466.291s`，API test 通过；完整输出
+  保存在 `data/reports/training_speed/stage_2_9_complete_unittest.log`。
+  `E:\anaconda\python.exe -m compileall -q swb scripts tests` 通过。
+  `data/reports/training_speed/stage_2_9_acceptance.json` 覆盖全部
+  `24` 个候选且 `15` 个统一 gate 全部为 `true`。
 
 ## 2.10 第一轮速度目标
 
