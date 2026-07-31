@@ -89,6 +89,19 @@ class TrainingSpeedCandidateRegistryTests(unittest.TestCase):
             "stage_2_9_deferred_c_candidates.json",
         )
 
+    def test_model_changes_remain_an_evidenced_c_experiment(self) -> None:
+        candidate = self.candidates["C-MODEL-001"]
+        self.assertEqual(candidate["class"], "C")
+        self.assertEqual(
+            candidate["disposition"],
+            "separate_algorithm_experiment",
+        )
+        self.assertEqual(
+            candidate["evidence"],
+            "data/reports/training_speed/"
+            "stage_2_9_deferred_c_candidates.json",
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

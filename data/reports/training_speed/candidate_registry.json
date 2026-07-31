@@ -204,7 +204,8 @@
       "class": "C",
       "description": "Reduce Observation content or network width/depth.",
       "semantics": "Changes policy inputs or capacity and therefore learning semantics.",
-      "disposition": "separate_algorithm_experiment"
+      "disposition": "separate_algorithm_experiment",
+      "evidence": "data/reports/training_speed/stage_2_9_deferred_c_candidates.json"
     }
   ]
 }
