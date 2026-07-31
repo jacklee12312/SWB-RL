@@ -807,6 +807,80 @@ class PPOTrainerTests(unittest.TestCase):
         finally:
             trainer.close()
 
+    def test_batched_v41_learner_update_drift_is_bounded(
+        self,
+    ) -> None:
+        config = PPOConfig(
+            rollout_steps=8,
+            rollout_workers=2,
+            sequence_length=4,
+            minibatch_sequences=2,
+            update_epochs=1,
+            hidden_size=64,
+            card_embedding_dim=16,
+            policy_architecture=ENTITY_ACTION_POLICY_ARCHITECTURE,
+            observation_version="v4.1",
+            model_dim=32,
+            transformer_layers=1,
+            attention_heads=4,
+            feedforward_dim=64,
+            max_agent_steps_per_episode=8,
+            training_class_ids=(6,),
+            training_deck=OFFICIAL_QR_EVOLVE_HAVEN,
+        )
+        trainers = [
+            PPOTrainer(
+                self.snapshot,
+                master_seed=791,
+                config=config,
+            )
+            for _ in range(2)
+        ]
+        try:
+            trainers[0]._batched_v41_learner = False
+            records = []
+            bootstraps = []
+            for trainer in trainers:
+                rollout, bootstrap, _ = trainer.collect_rollout()
+                records.append(rollout)
+                bootstraps.append(bootstrap)
+            self.assertEqual(
+                [
+                    (record.action, record.old_log_prob, record.value)
+                    for record in records[0]
+                ],
+                [
+                    (record.action, record.old_log_prob, record.value)
+                    for record in records[1]
+                ],
+            )
+            metrics = [
+                trainer.update(rollout, bootstrap)
+                for trainer, rollout, bootstrap in zip(
+                    trainers, records, bootstraps
+                )
+            ]
+            for key in metrics[0]:
+                self.assertAlmostEqual(
+                    metrics[0][key], metrics[1][key], places=5
+                )
+            maximum_parameter_error = max(
+                float(
+                    (
+                        reference
+                        - trainers[1].model.state_dict()[name]
+                    ).abs().max()
+                )
+                for name, reference in (
+                    trainers[0].model.state_dict().items()
+                )
+            )
+            self.assertGreater(maximum_parameter_error, 1e-6)
+            self.assertLess(maximum_parameter_error, 1e-3)
+        finally:
+            for trainer in trainers:
+                trainer.close()
+
     def test_update_changes_parameters_and_reports_finite_metrics(self) -> None:
         trainer = self.make_trainer()
         records, bootstrap, _ = trainer.collect_rollout()

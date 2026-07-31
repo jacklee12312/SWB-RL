@@ -1088,12 +1088,11 @@ class EntityActionRecurrentActorCritic(MaskedPolicyNetwork):
             / modifiers_per_player
         )
 
-    def _forward_step_v4_1(
+    def _encode_step_v4_1(
         self,
         observation: torch.Tensor,
-        hidden: torch.Tensor,
         card_indices: torch.Tensor,
-    ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+    ) -> tuple[torch.Tensor, torch.Tensor]:
         batch = observation.shape[0]
         card_tokens = self.card_projection(
             self.card_embedding(card_indices.to(dtype=torch.long))
@@ -1533,7 +1532,6 @@ class EntityActionRecurrentActorCritic(MaskedPolicyNetwork):
         contextual = self.entity_encoder(
             tokens, src_key_padding_mask=padding
         )
-        next_hidden = self.recurrent(contextual[:, 0], hidden)
         contextual_entities = contextual[:, 3 : 3 + self.entity_slot_count]
 
         source = self.source_projection(
@@ -1633,7 +1631,6 @@ class EntityActionRecurrentActorCritic(MaskedPolicyNetwork):
             + self.option_ordinal_embedding(fallback_ordinals)
             + source
             + target
-            + self.hidden_projection(next_hidden).unsqueeze(1)
         )
         action_features[
             :,
@@ -1645,9 +1642,37 @@ class EntityActionRecurrentActorCritic(MaskedPolicyNetwork):
             ShadowverseEnv.GRAVEYARD_SLOT_OFFSET :
             ShadowverseEnv.MODE_PLAY_OFFSET,
         ] += graveyard_action_features
+        return contextual[:, 0], action_features
+
+    def _forward_encoded_step_v4_1(
+        self,
+        recurrent_input: torch.Tensor,
+        action_features: torch.Tensor,
+        hidden: torch.Tensor,
+    ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+        next_hidden = self.recurrent(recurrent_input, hidden)
+        action_features = (
+            action_features
+            + self.hidden_projection(next_hidden).unsqueeze(1)
+        )
         logits = self.policy_head(action_features).squeeze(-1)
         value = self.value_head(next_hidden).squeeze(-1)
         return logits, value, next_hidden
+
+    def _forward_step_v4_1(
+        self,
+        observation: torch.Tensor,
+        hidden: torch.Tensor,
+        card_indices: torch.Tensor,
+    ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+        recurrent_input, action_features = self._encode_step_v4_1(
+            observation, card_indices
+        )
+        return self._forward_encoded_step_v4_1(
+            recurrent_input,
+            action_features,
+            hidden,
+        )
 
     @staticmethod
     def _gather_entities(

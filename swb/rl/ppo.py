@@ -401,6 +401,7 @@ class PPOTrainer:
         self._policy_vector_rollout = None
         self.last_collect_timing: dict[str, float] = {}
         self.last_update_timing: dict[str, float] = {}
+        self._batched_v41_learner = True
         self._start_episode()
         if self.config.rollout_workers > 1:
             # The local environment is retained only as a version/schema anchor.
@@ -1269,6 +1270,18 @@ class PPOTrainer:
                 batch_advantages[row, column] = advantages[int(index)]
                 batch_returns[row, column] = returns[int(index)]
                 valid[row, column] = True
+        if (
+            bool((card_indices < 0).any())
+            or bool(
+                (
+                    card_indices
+                    > self.model.card_vocabulary_size
+                ).any()
+            )
+        ):
+            raise ValueError(
+                "card index is outside the policy vocabulary"
+            )
         if not profile_timing:
             def tensor(value, dtype=None):
                 return torch.as_tensor(
@@ -1448,6 +1461,9 @@ class PPOTrainer:
                     chunks[index]
                     for index in permutation[start : start + self.config.minibatch_sequences]
                 ]
+                maximum_valid_timesteps = max(
+                    len(chunk["indices"]) for chunk in selected
+                )
                 batch, batch_profile = self._collate(
                     selected,
                     records,
@@ -1508,14 +1524,128 @@ class PPOTrainer:
                 hidden = batch.initial_hidden
                 logits_rows = []
                 value_rows = []
-                for timestep in range(self.config.sequence_length):
-                    logits, values, hidden = self.model.forward_step(
-                        batch.observations[:, timestep],
-                        hidden,
-                        batch.card_indices[:, timestep],
+                batched_v41 = (
+                    self._batched_v41_learner
+                    and isinstance(
+                        self.model,
+                        EntityActionRecurrentActorCritic,
                     )
-                    logits_rows.append(logits)
-                    value_rows.append(values)
+                    and self.model.v4_1_observation
+                )
+                if batched_v41:
+                    flat_valid = batch.valid.flatten()
+                    valid_observations = (
+                        batch.observations.flatten(0, 1)[flat_valid]
+                    )
+                    valid_card_indices = (
+                        batch.card_indices.flatten(0, 1)[flat_valid]
+                    )
+                    (
+                        valid_recurrent_inputs,
+                        valid_action_features,
+                    ) = self.model._encode_step_v4_1(
+                        valid_observations,
+                        valid_card_indices,
+                    )
+                    batch_size = batch.valid.shape[0]
+                    recurrent_inputs = (
+                        valid_recurrent_inputs.new_zeros(
+                            batch_size
+                            * self.config.sequence_length,
+                            valid_recurrent_inputs.shape[-1],
+                        ).index_copy(
+                            0,
+                            torch.nonzero(
+                                flat_valid, as_tuple=False
+                            ).flatten(),
+                            valid_recurrent_inputs,
+                        ).reshape(
+                            batch_size,
+                            self.config.sequence_length,
+                            -1,
+                        )
+                    )
+                    action_features = (
+                        valid_action_features.new_zeros(
+                            batch_size
+                            * self.config.sequence_length,
+                            valid_action_features.shape[-2],
+                            valid_action_features.shape[-1],
+                        ).index_copy(
+                            0,
+                            torch.nonzero(
+                                flat_valid, as_tuple=False
+                            ).flatten(),
+                            valid_action_features,
+                        ).reshape(
+                            batch_size,
+                            self.config.sequence_length,
+                            valid_action_features.shape[-2],
+                            valid_action_features.shape[-1],
+                        )
+                    )
+                    for timestep in range(maximum_valid_timesteps):
+                        active_rows = torch.nonzero(
+                            batch.valid[:, timestep],
+                            as_tuple=False,
+                        ).flatten()
+                        active_logits, active_values, active_hidden = (
+                            self.model._forward_encoded_step_v4_1(
+                                recurrent_inputs[
+                                    active_rows, timestep
+                                ],
+                                action_features[
+                                    active_rows, timestep
+                                ],
+                                hidden.index_select(0, active_rows),
+                            )
+                        )
+                        hidden = hidden.index_copy(
+                            0, active_rows, active_hidden
+                        )
+                        logits_rows.append(
+                            active_logits.new_zeros(
+                                batch_size,
+                                active_logits.shape[-1],
+                            ).index_copy(
+                                0, active_rows, active_logits
+                            )
+                        )
+                        value_rows.append(
+                            active_values.new_zeros(
+                                batch_size
+                            ).index_copy(
+                                0, active_rows, active_values
+                            )
+                        )
+                    for _ in range(
+                        maximum_valid_timesteps,
+                        self.config.sequence_length,
+                    ):
+                        logits_rows.append(
+                            valid_action_features.new_zeros(
+                                batch_size,
+                                self.env.ACTION_SIZE,
+                            )
+                        )
+                        value_rows.append(
+                            valid_recurrent_inputs.new_zeros(
+                                batch_size
+                            )
+                        )
+                else:
+                    for timestep in range(
+                        self.config.sequence_length
+                    ):
+                        logits, values, hidden = (
+                            self.model.forward_step(
+                                batch.observations[:, timestep],
+                                hidden,
+                                batch.card_indices[:, timestep],
+                            )
+                        )
+                        logits_rows.append(logits)
+                        value_rows.append(values)
                 logits = torch.stack(logits_rows, dim=1)
                 values = torch.stack(value_rows, dim=1)
                 component_end(
