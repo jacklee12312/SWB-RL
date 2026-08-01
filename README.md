@@ -372,10 +372,14 @@ rules core:
   `legacy_gru_v1` checkpoints remain loadable and keep their original network.
 - The configurable opponent league includes current, historical checkpoint,
   random-legal, and fixed-first-legal policies with reproducible selection,
-  periodic snapshots, and bounded retention. New PPO runs use a deterministic
-  seven-class 7x7 ordered matchup cycle, while legacy callers retain their
-  single-class default. Fixed-seed mirrored evaluation defaults to two exact
-  deck pairs for each of the seven classes and reports win/side rates,
+  periodic snapshots, bounded retention, and per-kind selection counts.
+  Central multi-process rollout supports current/history league play; current
+  self-play trains both players, while a historical episode trains only the
+  current-policy side. Random/fixed opponent mixing remains single-process.
+  New PPO runs use a deterministic seven-class 7x7 ordered matchup cycle,
+  while legacy callers retain their single-class default. Fixed-seed mirrored
+  evaluation can cover either the seven diagonal matchups or every ordered
+  7x7 class cell with `--full-matchup-matrix`, and reports win/side rates,
   confidence interval, relative Elo, duration, done split, illegal/mask
   consistency, invariant checking, deck/checkpoint/version hashes, and visited
   cards/classes/mechanisms/resources without mutating training state.
@@ -404,6 +408,11 @@ rules core:
   with the raw payload, 40 card IDs, content hash, database snapshot, and
   per-card exact-rule coverage. Only manifests with zero validation issues are
   automatically exposed as named fixed training/evaluation decks.
+- `--checkpoint-interval-agent-steps` writes atomic, immutable step-named
+  checkpoints below `<checkpoint-stem>_checkpoints/`; the final checkpoint is
+  written separately. League snapshots use a bounded history directory and
+  therefore do not remove the retained periodic recovery/model-selection
+  checkpoints.
 
 The checked-in reports under `data/reports/` are reproducibility and smoke
 artifacts, not policy-strength claims. The 2026-07-21 embedding/vector CPU
@@ -436,6 +445,8 @@ python -m scripts.evaluate_deck_matchups data/checkpoints/ppo_haven_specialist_8
 python -m scripts.evaluate_ppo data/checkpoints/ppo_evolve_haven_smoke.pt --training-deck official_qr_evolve_haven_20260727 --seed-count 250 --master-seed 20260801
 python -m scripts.train_ppo --rollout-workers 6 --central-inference-batch-wait-ms 1 --total-agent-steps 10000 --opponent-current-weight 1 --opponent-random-weight 0 --opponent-fixed-weight 0 --opponent-historical-weight 0
 python -m scripts.evaluate_ppo data/checkpoints/ppo_smoke.pt
+python -m scripts.train_ppo --classes 1 2 3 4 5 6 7 --rollout-workers 6 --rollout-worker-threads 2 --central-inference-batch-wait-ms 1 --total-agent-steps 1000000 --opponent-current-weight 1 --opponent-random-weight 0 --opponent-fixed-weight 0 --opponent-historical-weight 0.25 --opponent-snapshot-interval-steps 100000 --checkpoint-interval-agent-steps 100000 --checkpoint data/checkpoints/ppo_7x7/final.pt
+python -m scripts.evaluate_ppo data/checkpoints/ppo_7x7/final.pt --classes 1 2 3 4 5 6 7 --full-matchup-matrix --opponent historical --opponent-checkpoint data/checkpoints/ppo_7x7/baseline.pt
 python -m scripts.benchmark_rl_env
 python -m scripts.profile_ppo_training --checkpoint data/checkpoints/ppo_evolve_haven_entity_action_4m.pt --additional-agent-steps 100000 --device cuda --output data/reports/ppo_evolve_haven_entity_action_4m_profile_100k.json
 ```
@@ -494,11 +505,11 @@ update cost remained effectively unchanged at 3.03 ms/step, confirming that
 the PPO update boundary and workload were not shortened to produce the gain.
 Still unsupported: this is a baseline PPO and league/evaluation system, not a
 distributed learner, a policy-strength result, or a complete MCTS
-implementation. Multiprocess PPO currently uses current-policy self-play;
-random, fixed, and historical opponent mixing remains on the single-process
-collector. The balanced class schedule is not an adaptive curriculum, and the
-same-class fixed evaluation suite is not yet a 7x7 cross-class policy-strength
-matrix. Snapshot/clone is the search foundation only. Card-rule coverage also
+implementation. Multiprocess PPO supports current/history league play, but
+random/fixed opponent mixing remains on the single-process collector. The
+balanced class schedule and fixed 7x7 evaluation matrix are not an adaptive
+curriculum or, without a sufficiently powered experiment, a policy-strength
+claim. Snapshot/clone is the search foundation only. Card-rule coverage also
 remains deliberately separate from policy strength: the current frozen
 database snapshot has 735/735 exact collectible rules; 734 enter newly sampled
 training decks, while one ruling-uncertain card is explicitly excluded by the

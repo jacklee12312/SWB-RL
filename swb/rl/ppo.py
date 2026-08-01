@@ -165,10 +165,15 @@ class PPOConfig:
             raise ValueError(
                 "at least one initially available opponent must have positive weight"
             )
-        if self.rollout_workers > 1 and opponent_weights != (1.0, 0.0, 0.0, 0.0):
+        if self.rollout_workers > 1 and (
+            self.opponent_current_weight <= 0
+            or self.opponent_random_weight > 0
+            or self.opponent_fixed_weight > 0
+        ):
             raise ValueError(
-                "multiprocess policy rollout currently supports current-policy "
-                "self-play only"
+                "multiprocess policy rollout requires a positive current "
+                "weight, zero random/fixed weights, and optionally a "
+                "historical weight"
             )
 
 
@@ -399,6 +404,7 @@ class PPOTrainer:
         self.current_episode_id: int | None = None
         self.hidden_by_player: dict[int, torch.Tensor] = {}
         self._policy_vector_rollout = None
+        self._historical_models: dict[str, MaskedPolicyNetwork] = {}
         self.last_collect_timing: dict[str, float] = {}
         self.last_update_timing: dict[str, float] = {}
         self._batched_v41_learner = True
@@ -408,6 +414,8 @@ class PPOTrainer:
             # Vector workers own every sampled episode, starting at ID zero.
             self.next_episode_id = 0
             self.opponent_assignments.clear()
+            self.opponent_pool.selection_count = 0
+            self.opponent_pool.selection_counts.clear()
         assert self.env is not None and self.info is not None
         first_observation = self.env.observation(
             perspective=self.env.decision_player,
@@ -429,7 +437,10 @@ class PPOTrainer:
             for player in (0, 1)
         }
 
-    def _load_historical_opponent(self, entry: OpponentEntry) -> None:
+    def _load_historical_model(
+        self,
+        entry: OpponentEntry,
+    ) -> MaskedPolicyNetwork:
         from swb.rl.checkpoint import _load_payload
         from swb.rl.versioning import ExperimentVersions
 
@@ -459,6 +470,11 @@ class PPOTrainer:
             ),
         )
         config = PPOConfig(**config_values)
+        if config.observation_version != self.config.observation_version:
+            raise ValueError(
+                "league history observation version does not match current "
+                "training"
+            )
         model = build_policy(
             config,
             self.flattener,
@@ -467,6 +483,21 @@ class PPOTrainer:
         ).to(self.device)
         model.load_state_dict(payload["model_state"])
         model.eval()
+        return model
+
+    def _historical_model(
+        self,
+        entry: OpponentEntry,
+    ) -> MaskedPolicyNetwork:
+        assert entry.checkpoint_path is not None
+        model = self._historical_models.get(entry.opponent_id)
+        if model is None:
+            model = self._load_historical_model(entry)
+            self._historical_models[entry.opponent_id] = model
+        return model
+
+    def _load_historical_opponent(self, entry: OpponentEntry) -> None:
+        model = self._historical_model(entry)
         self.opponent_model = model
         self.opponent_hidden = model.initial_state(1, device=self.device)
 
@@ -666,6 +697,49 @@ class PPOTrainer:
         agent_steps: int,
     ) -> None:
         if not self.config.opponent_decks:
+            class_a = int(assignment["class_a"])
+            class_b = int(assignment["class_b"])
+            key = f"class_{class_a}__vs__class_{class_b}"
+            stats = self.matchup_statistics.setdefault(key, {
+                "class_a": class_a,
+                "class_b": class_b,
+                "episodes": 0,
+                "player_0_wins": 0,
+                "player_1_wins": 0,
+                "draws": 0,
+                "terminated": 0,
+                "truncated": 0,
+                "agent_steps": 0,
+                "current_episodes": 0,
+                "historical_episodes": 0,
+                "learner_wins": 0,
+                "opponent_wins": 0,
+            })
+            stats["episodes"] = int(stats["episodes"]) + 1
+            stats["agent_steps"] = (
+                int(stats["agent_steps"]) + agent_steps
+            )
+            opponent_kind = str(assignment["opponent_kind"])
+            kind_key = f"{opponent_kind}_episodes"
+            if kind_key in stats:
+                stats[kind_key] = int(stats[kind_key]) + 1
+            if boundary == "terminated":
+                stats["terminated"] = int(stats["terminated"]) + 1
+                if winner is None:
+                    stats["draws"] = int(stats["draws"]) + 1
+                else:
+                    winner_key = f"player_{winner}_wins"
+                    stats[winner_key] = int(stats[winner_key]) + 1
+                    learner_player = assignment["learner_player"]
+                    if learner_player != "both":
+                        outcome_key = (
+                            "learner_wins"
+                            if winner == int(learner_player)
+                            else "opponent_wins"
+                        )
+                        stats[outcome_key] = int(stats[outcome_key]) + 1
+            else:
+                stats["truncated"] = int(stats["truncated"]) + 1
             return
         learner_deck = str(assignment["learner_deck"])
         opponent_deck = str(assignment["opponent_deck"])
@@ -796,9 +870,20 @@ class PPOTrainer:
     def _collect_vector_rollout(
         self,
     ) -> tuple[list[_Record], dict[tuple[int, int], float], dict[int, str]]:
-        from swb.rl.vector_rollout import PolicyVectorRollout, RolloutConfig
+        from swb.rl.vector_rollout import (
+            PolicyOpponentAssignment,
+            PolicyVectorRollout,
+            RolloutConfig,
+        )
 
         collect_started = time.perf_counter()
+        retained_history_ids = {
+            entry.opponent_id
+            for entry in self.opponent_pool.entries
+            if entry.kind == "historical"
+        }
+        for stale_id in set(self._historical_models) - retained_history_ids:
+            del self._historical_models[stale_id]
         if self._policy_vector_rollout is None:
             per_worker_steps = max(
                 1,
@@ -850,8 +935,46 @@ class PPOTrainer:
                 )
             )
             self.next_episode_id += len(episode_ids)
+            episode_entries: dict[int, OpponentEntry] = {}
+            episode_opponents: dict[int, PolicyOpponentAssignment] = {}
+            historical_models: dict[str, MaskedPolicyNetwork] = {}
+            for episode_id in episode_ids:
+                if self.config.opponent_decks:
+                    assert self.config.training_deck is not None
+                    learner_player = deck_matchup_for_episode(
+                        self.config.training_deck,
+                        self.config.opponent_decks,
+                        episode_id,
+                    ).learner_player
+                else:
+                    learner_player = episode_id % 2
+                entry = self.opponent_pool.select(
+                    episode_id=episode_id,
+                    learner_player=learner_player,
+                )
+                if entry.kind not in {"current", "historical"}:
+                    raise RuntimeError(
+                        "multiprocess rollout selected unsupported opponent "
+                        f"kind {entry.kind!r}"
+                    )
+                assignment_learner = (
+                    None if entry.kind == "current" else learner_player
+                )
+                episode_entries[episode_id] = entry
+                episode_opponents[episode_id] = PolicyOpponentAssignment(
+                    opponent_id=entry.opponent_id,
+                    kind=entry.kind,
+                    learner_player=assignment_learner,
+                )
+                if entry.kind == "historical":
+                    historical_models[entry.opponent_id] = (
+                        self._historical_model(entry)
+                    )
             episodes = self._policy_vector_rollout.collect(
-                self.model, episode_ids
+                self.model,
+                episode_ids,
+                episode_opponents=episode_opponents,
+                historical_models=historical_models,
             )
             collect_calls += 1
             for key, value in self._policy_vector_rollout.last_timing.items():
@@ -870,6 +993,8 @@ class PPOTrainer:
                     )
             conversion_started = time.perf_counter()
             for episode in episodes:
+                entry = episode_entries[episode.episode_id]
+                policy_assignment = episode_opponents[episode.episode_id]
                 if episode.matchup is None:
                     class_a, class_b = class_pair_for_episode(
                         self.config.training_class_ids,
@@ -877,24 +1002,40 @@ class PPOTrainer:
                     )
                     assignment = {
                         "episode_id": episode.episode_id,
-                        "learner_player": "both",
-                        "opponent_id": "current",
-                        "opponent_kind": "current",
+                        "learner_player": (
+                            "both"
+                            if policy_assignment.learner_player is None
+                            else policy_assignment.learner_player
+                        ),
+                        "opponent_id": entry.opponent_id,
+                        "opponent_kind": entry.kind,
                         "worker_id": episode.worker_id,
                         "class_a": class_a,
                         "class_b": class_b,
-                        "learner_class": "both",
-                        "opponent_class": "self_play",
+                        "learner_class": (
+                            "both"
+                            if policy_assignment.learner_player is None
+                            else (class_a, class_b)[
+                                policy_assignment.learner_player
+                            ]
+                        ),
+                        "opponent_class": (
+                            "self_play"
+                            if policy_assignment.learner_player is None
+                            else (class_a, class_b)[
+                                1 - policy_assignment.learner_player
+                            ]
+                        ),
                         "training_deck": self.config.training_deck,
                         "learner_deck": self.config.training_deck,
                         "opponent_deck": self.config.training_deck,
                     }
-                    learner_player = None
+                    learner_player = policy_assignment.learner_player
                 else:
                     assignment = {
                         **episode.matchup,
-                        "opponent_id": "current",
-                        "opponent_kind": "current",
+                        "opponent_id": entry.opponent_id,
+                        "opponent_kind": entry.kind,
                         "worker_id": episode.worker_id,
                         "training_deck": self.config.training_deck,
                     }
@@ -918,7 +1059,7 @@ class PPOTrainer:
                             learner_player is None
                             or step.player_id == learner_player
                         ),
-                        opponent_id="current",
+                        opponent_id=entry.opponent_id,
                     ))
                 bootstrap.update(episode.bootstrap)
                 boundaries[episode.episode_id] = episode.boundary
@@ -1175,6 +1316,7 @@ class PPOTrainer:
         if self._policy_vector_rollout is not None:
             self._policy_vector_rollout.close()
             self._policy_vector_rollout = None
+        self._historical_models.clear()
 
     def _advantages(
         self,

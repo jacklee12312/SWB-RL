@@ -61,6 +61,7 @@ class OpponentPoolTests(unittest.TestCase):
         pool.select(episode_id=1, learner_player=1)
         restored = OpponentPool.from_state_dict(pool.state_dict())
         self.assertEqual(restored.state_dict(), pool.state_dict())
+        self.assertEqual(sum(restored.selection_counts.values()), 1)
 
 
 if __name__ == "__main__":

@@ -37,6 +37,7 @@ class EvaluationConfig:
     class_ids: tuple[int, ...] = ALL_CLASS_IDS
     match_setup: str = MATCH_SETUP_OFFICIAL
     training_deck: str | None = None
+    full_matchup_matrix: bool = False
 
     def __post_init__(self) -> None:
         object.__setattr__(
@@ -64,6 +65,22 @@ class EvaluationConfig:
                     f"training_deck {self.training_deck!r} requires "
                     f"class_ids=({fixed_deck.class_id},)"
                 )
+            if self.full_matchup_matrix:
+                raise ValueError(
+                    "full_matchup_matrix cannot use one fixed training deck"
+                )
+
+
+def _evaluation_class_matchups(
+    config: EvaluationConfig,
+) -> tuple[tuple[int, int], ...]:
+    if config.full_matchup_matrix:
+        return tuple(
+            (learner_class, opponent_class)
+            for learner_class in config.class_ids
+            for opponent_class in config.class_ids
+        )
+    return tuple((class_id, class_id) for class_id in config.class_ids)
 
 
 class _Policy:
@@ -381,13 +398,25 @@ def evaluate(
                 restore_rng_state=False,
             )
             historical_trainer.model.eval()
-        for class_id in config.class_ids:
+        for class_id, opponent_class_id in _evaluation_class_matchups(
+            config
+        ):
             for deck_index in range(config.seed_count):
-                deck_seed = derive_seed(
-                    config.master_seed,
-                    "evaluation_decks",
-                    class_id,
-                    deck_index,
+                deck_seed = (
+                    derive_seed(
+                        config.master_seed,
+                        "evaluation_decks",
+                        class_id,
+                        opponent_class_id,
+                        deck_index,
+                    )
+                    if config.full_matchup_matrix
+                    else derive_seed(
+                        config.master_seed,
+                        "evaluation_decks",
+                        class_id,
+                        deck_index,
+                    )
                 )
                 learner_deck_seed = derive_seed(deck_seed, "learner")
                 opponent_deck_seed = derive_seed(deck_seed, "opponent")
@@ -397,7 +426,7 @@ def evaluate(
                         random.Random(learner_deck_seed),
                     )
                     opponent_deck = snapshot.catalog.sample_deck(
-                        class_id,
+                        opponent_class_id,
                         random.Random(opponent_deck_seed),
                     )
                 else:
@@ -411,7 +440,7 @@ def evaluate(
                     deck=learner_deck,
                 )
                 opponent_manifest = _deck_manifest(
-                    class_id=class_id,
+                    class_id=opponent_class_id,
                     deck_index=deck_index,
                     role="opponent",
                     seed=opponent_deck_seed,
@@ -426,18 +455,34 @@ def evaluate(
                         decks = (learner_deck, opponent_deck)
                     else:
                         decks = (opponent_deck, learner_deck)
-                    engine_seed = derive_seed(
-                        config.master_seed,
-                        "evaluation_engine",
-                        class_id,
-                        deck_index,
-                        learner_player,
+                    engine_seed = (
+                        derive_seed(
+                            config.master_seed,
+                            "evaluation_engine",
+                            class_id,
+                            opponent_class_id,
+                            deck_index,
+                            learner_player,
+                        )
+                        if config.full_matchup_matrix
+                        else derive_seed(
+                            config.master_seed,
+                            "evaluation_engine",
+                            class_id,
+                            deck_index,
+                            learner_player,
+                        )
+                    )
+                    class_a, class_b = (
+                        (class_id, opponent_class_id)
+                        if learner_player == 0
+                        else (opponent_class_id, class_id)
                     )
                     env = ShadowverseEnv(
                         decks[0],
                         decks[1],
-                        class_a=class_id,
-                        class_b=class_id,
+                        class_a=class_a,
+                        class_b=class_b,
                         seed=engine_seed,
                         rulebook=trainer.assets.rulebook,
                         card_resolver=trainer.assets.catalog.resolve,
@@ -528,6 +573,12 @@ def evaluate(
                     results.append({
                         "class_id": class_id,
                         "class_name": CLASS_NAMES[class_id],
+                        "learner_class_id": class_id,
+                        "learner_class_name": CLASS_NAMES[class_id],
+                        "opponent_class_id": opponent_class_id,
+                        "opponent_class_name": CLASS_NAMES[
+                            opponent_class_id
+                        ],
                         "deck_index": deck_index,
                         "learner_player": learner_player,
                         "score": score,
@@ -565,7 +616,28 @@ def evaluate(
     visited_exact_ids = visited_cards & exact_ids
     sampled_exact_ids = deck_card_ids & exact_ids
     class_metrics = {}
+    matchup_metrics = {}
     class_coverage = {}
+    for learner_class_id, opponent_class_id in _evaluation_class_matchups(
+        config
+    ):
+        matchup_results = [
+            result
+            for result in results
+            if (
+                result["learner_class_id"] == learner_class_id
+                and result["opponent_class_id"] == opponent_class_id
+            )
+        ]
+        matchup_metrics[
+            f"{learner_class_id}_vs_{opponent_class_id}"
+        ] = {
+            "learner_class_id": learner_class_id,
+            "learner_class_name": CLASS_NAMES[learner_class_id],
+            "opponent_class_id": opponent_class_id,
+            "opponent_class_name": CLASS_NAMES[opponent_class_id],
+            **_aggregate_metrics(matchup_results),
+        }
     for class_id in config.class_ids:
         class_results = [
             result for result in results if result["class_id"] == class_id
@@ -603,9 +675,12 @@ def evaluate(
         "master_seed": config.master_seed,
         "seed_count": config.seed_count,
         "deck_pairs_per_class": config.seed_count,
+        "deck_pairs_per_matchup": config.seed_count,
         "class_ids": list(config.class_ids),
         "class_names": [CLASS_NAMES[class_id] for class_id in config.class_ids],
         "mirrored_games": len(results),
+        "full_matchup_matrix": config.full_matchup_matrix,
+        "matchup_count": len(_evaluation_class_matchups(config)),
         "opponent_kind": config.opponent_kind,
         "opponent_checkpoint": config.opponent_checkpoint,
         "max_agent_steps": config.max_agent_steps,
@@ -626,14 +701,15 @@ def evaluate(
     report = {
         "schema_version": 2,
         "purpose": (
-            "fixed-seed, fixed-deck, mirrored multi-class evaluation; not a "
-            "policy-strength claim"
+            "fixed-seed mirrored class-matchup evaluation; not a "
+            "standalone policy-strength claim"
         ),
         "configuration": configuration,
         "versions": versions,
         "metrics": {
             **_aggregate_metrics(results),
             "per_class": class_metrics,
+            "per_matchup": matchup_metrics,
         },
         "coverage": {
             "card_ids": sorted(visited_cards),

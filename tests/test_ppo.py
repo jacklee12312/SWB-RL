@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import math
+import tempfile
 import unittest
 from collections import Counter
 from pathlib import Path
@@ -9,6 +10,7 @@ import numpy as np
 import torch
 
 from swb.db.repository import CardRepository
+from swb.rl.checkpoint import save_checkpoint_atomic
 from swb.rl.ppo import (
     ObservationFlattener,
     PPOConfig,
@@ -70,12 +72,18 @@ class MaskedPolicyTests(unittest.TestCase):
             )
 
     def test_multiprocess_rollout_rejects_unsupported_opponent_mixing(self) -> None:
-        with self.assertRaisesRegex(ValueError, "self-play only"):
+        with self.assertRaisesRegex(ValueError, "zero random/fixed"):
             PPOConfig(
                 rollout_workers=2,
                 opponent_current_weight=0.5,
                 opponent_random_weight=0.5,
             )
+        config = PPOConfig(
+            rollout_workers=2,
+            opponent_current_weight=1.0,
+            opponent_historical_weight=0.25,
+        )
+        self.assertEqual(config.opponent_historical_weight, 0.25)
 
     def test_card_slots_use_stable_indices_and_trainable_embeddings(self) -> None:
         observation = {
@@ -372,6 +380,66 @@ class PPOTrainerTests(unittest.TestCase):
                 },
                 set(SPECIALIST_OPPONENT_DECKS),
             )
+        finally:
+            trainer.close()
+
+    def test_multiprocess_history_league_trains_only_current_side(
+        self,
+    ) -> None:
+        trainer = PPOTrainer(
+            self.snapshot,
+            master_seed=784,
+            config=PPOConfig(
+                rollout_steps=16,
+                rollout_workers=2,
+                sequence_length=4,
+                minibatch_sequences=2,
+                update_epochs=1,
+                hidden_size=16,
+                max_agent_steps_per_episode=8,
+                training_class_ids=(1, 2),
+                opponent_current_weight=1.0,
+                opponent_historical_weight=1.0,
+                opponent_snapshot_interval_steps=8,
+            ),
+        )
+        try:
+            with tempfile.TemporaryDirectory() as temp_dir:
+                checkpoint = Path(temp_dir) / "history.pt"
+                save_checkpoint_atomic(checkpoint, trainer)
+                trainer.opponent_pool = OpponentPool(
+                    trainer.master_seed,
+                    current_weight=0.0,
+                    historical_weight=1.0,
+                    snapshot_interval_steps=8,
+                )
+                history = trainer.opponent_pool.register_snapshot(
+                    checkpoint,
+                    agent_steps=8,
+                )
+                records, bootstrap, _ = trainer.collect_rollout()
+            assignments = {
+                int(assignment["episode_id"]): assignment
+                for assignment in trainer.opponent_assignments
+            }
+            self.assertEqual(
+                {assignment["opponent_kind"] for assignment in assignments.values()},
+                {"historical"},
+            )
+            self.assertEqual(
+                {assignment["opponent_id"] for assignment in assignments.values()},
+                {history.opponent_id},
+            )
+            self.assertTrue(any(record.trainable for record in records))
+            self.assertTrue(any(not record.trainable for record in records))
+            for record in records:
+                self.assertEqual(
+                    record.trainable,
+                    record.player_id
+                    == int(assignments[record.episode_id]["learner_player"]),
+                )
+            metrics = trainer.update(records, bootstrap)
+            self.assertTrue(all(math.isfinite(value) for value in metrics.values()))
         finally:
             trainer.close()
 

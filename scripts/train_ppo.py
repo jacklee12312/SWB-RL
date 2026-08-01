@@ -4,6 +4,7 @@ import argparse
 import atexit
 import json
 import time
+from dataclasses import asdict, replace
 from pathlib import Path
 
 import torch
@@ -24,6 +25,69 @@ from swb.rl.policy import (
 )
 from swb.rl.profiling import training_timing_report
 from swb.rl.runtime import WorkerAssetsSnapshot
+
+
+RUNTIME_OVERRIDE_FIELDS = (
+    "rollout_workers",
+    "rollout_worker_torch_threads",
+    "central_inference_batch_wait_seconds",
+)
+
+
+def _resume_runtime_config(
+    config: PPOConfig,
+    *,
+    rollout_workers: int,
+    rollout_worker_threads: int,
+    central_inference_batch_wait_ms: float,
+) -> PPOConfig:
+    return replace(
+        config,
+        rollout_workers=rollout_workers,
+        rollout_worker_torch_threads=rollout_worker_threads,
+        central_inference_batch_wait_seconds=(
+            central_inference_batch_wait_ms / 1000.0
+        ),
+    )
+
+
+def _runtime_override_report(
+    before: PPOConfig,
+    after: PPOConfig,
+) -> dict[str, dict[str, object]]:
+    before_values = asdict(before)
+    after_values = asdict(after)
+    return {
+        field: {
+            "before": before_values[field],
+            "after": after_values[field],
+        }
+        for field in RUNTIME_OVERRIDE_FIELDS
+        if before_values[field] != after_values[field]
+    }
+
+
+def _periodic_checkpoint_due(
+    *,
+    last_checkpoint_steps: int,
+    current_steps: int,
+    interval_steps: int,
+) -> bool:
+    return (
+        interval_steps > 0
+        and current_steps - last_checkpoint_steps >= interval_steps
+    )
+
+
+def _periodic_checkpoint_path(
+    checkpoint: Path,
+    agent_steps: int,
+) -> Path:
+    return (
+        checkpoint.parent
+        / f"{checkpoint.stem}_checkpoints"
+        / f"step_{agent_steps:012d}.pt"
+    )
 
 
 def main() -> None:
@@ -111,6 +175,24 @@ def main() -> None:
     )
     parser.add_argument("--resume", type=Path)
     parser.add_argument(
+        "--resume-runtime-overrides",
+        action="store_true",
+        help=(
+            "when resuming, explicitly apply only --rollout-workers, "
+            "--rollout-worker-threads, and "
+            "--central-inference-batch-wait-ms to the loaded config"
+        ),
+    )
+    parser.add_argument(
+        "--checkpoint-interval-agent-steps",
+        type=int,
+        default=0,
+        help=(
+            "atomically refresh --checkpoint after this many additional "
+            "agent steps; zero saves only at normal completion"
+        ),
+    )
+    parser.add_argument(
         "--metrics-output",
         type=Path,
         default=Path("data/reports/ppo_smoke_training.json"),
@@ -137,6 +219,12 @@ def main() -> None:
         parser.error("rollout-worker-threads must be positive")
     if args.central_inference_batch_wait_ms < 0:
         parser.error("central-inference-batch-wait-ms must be non-negative")
+    if args.checkpoint_interval_agent_steps < 0:
+        parser.error(
+            "checkpoint-interval-agent-steps must be non-negative"
+        )
+    if args.resume_runtime_overrides and args.resume is None:
+        parser.error("--resume-runtime-overrides requires --resume")
     if args.learning_rate <= 0:
         parser.error("learning-rate must be positive")
     if args.entropy_coefficient < 0:
@@ -144,14 +232,13 @@ def main() -> None:
     if not 0 < args.clip_ratio < 1:
         parser.error("clip-ratio must be between zero and one")
     if args.resume is None and args.rollout_workers > 1 and (
-        args.opponent_current_weight,
-        args.opponent_random_weight,
-        args.opponent_fixed_weight,
-        args.opponent_historical_weight,
-    ) != (1.0, 0.0, 0.0, 0.0):
+        args.opponent_current_weight <= 0
+        or args.opponent_random_weight > 0
+        or args.opponent_fixed_weight > 0
+    ):
         parser.error(
-            "multiprocess rollout currently requires current-policy self-play "
-            "weights: 1, 0, 0, 0"
+            "multiprocess rollout requires positive current weight, zero "
+            "random/fixed weights, and optionally historical weight"
         )
     if args.resume is not None and (
         args.training_deck is not None
@@ -183,6 +270,20 @@ def main() -> None:
     snapshot = WorkerAssetsSnapshot.build(CardRepository(args.database))
     if args.resume is not None:
         trainer = load_checkpoint(args.resume, snapshot, device=args.device)
+        resume_config = trainer.config
+        if args.resume_runtime_overrides:
+            trainer.config = _resume_runtime_config(
+                trainer.config,
+                rollout_workers=args.rollout_workers,
+                rollout_worker_threads=args.rollout_worker_threads,
+                central_inference_batch_wait_ms=(
+                    args.central_inference_batch_wait_ms
+                ),
+            )
+        runtime_overrides = _runtime_override_report(
+            resume_config,
+            trainer.config,
+        )
     else:
         trainer = PPOTrainer(
             snapshot,
@@ -228,6 +329,7 @@ def main() -> None:
             ),
             device=args.device,
         )
+        runtime_overrides = {}
     if args.total_agent_steps <= trainer.agent_steps:
         parser.error(
             f"target {args.total_agent_steps} must exceed checkpoint progress "
@@ -241,6 +343,8 @@ def main() -> None:
     collect_timing_samples = []
     update_timing_samples = []
     historical_snapshots = []
+    periodic_checkpoints = []
+    last_checkpoint_steps = trainer.agent_steps
     history_directory = (
         args.checkpoint.parent / f"{args.checkpoint.stem}_history"
     )
@@ -257,7 +361,26 @@ def main() -> None:
                 "update": trainer.last_update_timing,
             },
         }
-        print(json.dumps(progress, sort_keys=True))
+        print(json.dumps(progress, sort_keys=True), flush=True)
+        if _periodic_checkpoint_due(
+            last_checkpoint_steps=last_checkpoint_steps,
+            current_steps=trainer.agent_steps,
+            interval_steps=args.checkpoint_interval_agent_steps,
+        ):
+            periodic_path = _periodic_checkpoint_path(
+                args.checkpoint,
+                trainer.agent_steps,
+            )
+            save_checkpoint_atomic(periodic_path, trainer)
+            last_checkpoint_steps = trainer.agent_steps
+            periodic_checkpoints.append({
+                "agent_steps": trainer.agent_steps,
+                "path": str(periodic_path),
+            })
+            print(json.dumps({
+                "periodic_checkpoint": str(periodic_path),
+                "agent_steps": trainer.agent_steps,
+            }, sort_keys=True), flush=True)
         if trainer.opponent_pool.snapshot_due(trainer.agent_steps):
             history_path = history_directory / (
                 f"step_{trainer.agent_steps:012d}.pt"
@@ -303,6 +426,8 @@ def main() -> None:
         ),
         "master_seed": trainer.master_seed,
         "requested_agent_steps": args.total_agent_steps,
+        "starting_agent_steps": starting_agent_steps,
+        "trained_agent_steps": trainer.agent_steps - starting_agent_steps,
         "completed_agent_steps": trainer.agent_steps,
         "completed_episodes": trainer.completed_episodes,
         "updates": trainer.update_count,
@@ -312,6 +437,15 @@ def main() -> None:
         ),
         "checkpoint": str(args.checkpoint),
         "resumed_from": None if args.resume is None else str(args.resume),
+        "resume_runtime_overrides": runtime_overrides,
+        "checkpoint_interval_agent_steps": (
+            args.checkpoint_interval_agent_steps
+        ),
+        "periodic_checkpoint_steps": [
+            checkpoint["agent_steps"]
+            for checkpoint in periodic_checkpoints
+        ],
+        "periodic_checkpoints": periodic_checkpoints,
         "hyperparameters": trainer.hyperparameters(),
         "training_class_ids": list(trainer.config.training_class_ids),
         "training_deck": (

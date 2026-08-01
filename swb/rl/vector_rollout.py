@@ -283,6 +283,32 @@ class PolicyStep:
 
 
 @dataclass(frozen=True)
+class PolicyOpponentAssignment:
+    """Select the policy used by the non-learner side of one episode."""
+
+    opponent_id: str = "current"
+    kind: str = "current"
+    learner_player: int | None = None
+
+    def __post_init__(self) -> None:
+        if self.kind not in {"current", "historical"}:
+            raise ValueError(
+                "central policy rollout supports current or historical "
+                "opponents"
+            )
+        if self.kind == "current":
+            if self.learner_player is not None:
+                raise ValueError(
+                    "current self-play trains both players and requires "
+                    "learner_player=None"
+                )
+        elif self.learner_player not in (0, 1):
+            raise ValueError(
+                "historical self-play requires learner_player 0 or 1"
+            )
+
+
+@dataclass(frozen=True)
 class PolicyEpisode:
     episode_id: int
     worker_id: int
@@ -1345,7 +1371,17 @@ class PolicyVectorRollout:
             time.perf_counter() - started,
         )
 
-    def collect(self, model, episode_ids: tuple[int, ...]) -> tuple[PolicyEpisode, ...]:
+    def collect(
+        self,
+        model,
+        episode_ids: tuple[int, ...],
+        *,
+        episode_opponents: Mapping[
+            int,
+            PolicyOpponentAssignment,
+        ] | None = None,
+        historical_models: Mapping[str, Any] | None = None,
+    ) -> tuple[PolicyEpisode, ...]:
         if not episode_ids:
             raise ValueError("episode_ids must not be empty")
         if len(set(episode_ids)) != len(episode_ids):
@@ -1355,6 +1391,27 @@ class PolicyVectorRollout:
                 "one central-policy collection can assign at most one "
                 "episode per worker"
             )
+        opponents = {
+            episode_id: PolicyOpponentAssignment()
+            for episode_id in episode_ids
+        }
+        if episode_opponents is not None:
+            if set(episode_opponents) != set(episode_ids):
+                raise ValueError(
+                    "episode_opponents must cover every collected episode"
+                )
+            opponents.update(episode_opponents)
+        policy_models = {"current": model}
+        if historical_models is not None:
+            policy_models.update(historical_models)
+        for assignment in opponents.values():
+            if (
+                assignment.kind == "historical"
+                and assignment.opponent_id not in policy_models
+            ):
+                raise ValueError(
+                    f"missing historical model {assignment.opponent_id!r}"
+                )
         collect_started = time.perf_counter()
         rollout_startup_started = time.perf_counter()
         self.start()
@@ -1462,17 +1519,44 @@ class PolicyVectorRollout:
                                     request[9]["central_received_at"]
                                 ),
                             )
-                    batch_timing = self._serve_inference_batch(
-                        model,
-                        requests,
-                        episode_records,
-                        hidden_by_player,
-                        generators,
-                        profile_central_timing=(
-                            self.config.profile_central_timing
-                        ),
-                        max_batch_size=self.config.worker_count,
-                    )
+                    grouped_requests: dict[str, list[tuple]] = {}
+                    for request in requests:
+                        episode_id = int(request[3])
+                        player_id = int(request[5])
+                        assignment = opponents[episode_id]
+                        policy_id = "current"
+                        if (
+                            assignment.kind == "historical"
+                            and player_id != assignment.learner_player
+                        ):
+                            policy_id = assignment.opponent_id
+                        grouped_requests.setdefault(policy_id, []).append(
+                            request
+                        )
+                    batch_timing: dict[str, float] = {}
+                    for policy_id, policy_requests in grouped_requests.items():
+                        policy_timing = self._serve_inference_batch(
+                            policy_models[policy_id],
+                            policy_requests,
+                            episode_records,
+                            hidden_by_player,
+                            generators,
+                            profile_central_timing=(
+                                self.config.profile_central_timing
+                            ),
+                            max_batch_size=self.config.worker_count,
+                        )
+                        for key, value in policy_timing.items():
+                            if key == "central_max_batch_size":
+                                batch_timing[key] = max(
+                                    batch_timing.get(key, 0.0),
+                                    float(value),
+                                )
+                            else:
+                                batch_timing[key] = (
+                                    batch_timing.get(key, 0.0)
+                                    + float(value)
+                                )
                     dispatch_started = time.perf_counter()
                     for request in requests:
                         worker_id = int(request[1])

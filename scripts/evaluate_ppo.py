@@ -45,6 +45,14 @@ def main() -> None:
         help="mirror one named fixed training deck on both sides",
     )
     parser.add_argument(
+        "--full-matchup-matrix",
+        action="store_true",
+        help=(
+            "evaluate every ordered learner/opponent class pair and mirror "
+            "both player positions"
+        ),
+    )
+    parser.add_argument(
         "--opponent",
         choices=("current", "random_legal", "fixed", "historical"),
         default="random_legal",
@@ -62,6 +70,10 @@ def main() -> None:
         else tuple(args.classes)
     )
     if args.training_deck is not None:
+        if args.full_matchup_matrix:
+            parser.error(
+                "--full-matchup-matrix cannot use one --training-deck"
+            )
         fixed_deck = get_fixed_training_deck(args.training_deck)
         if (
             args.classes is not None
@@ -95,6 +107,7 @@ def main() -> None:
             class_ids=class_ids,
             match_setup=args.match_setup,
             training_deck=args.training_deck,
+            full_matchup_matrix=args.full_matchup_matrix,
         ),
     )
     report["checkpoint"] = {

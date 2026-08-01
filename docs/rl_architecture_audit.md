@@ -118,7 +118,8 @@ P1/P2 平台验收更新：2026-07-21
   覆盖每个职业对阵一次，两个周期配合 episode 奇偶翻转学习方先后手。旧 API
   和旧检查点未声明职业集时仍保持单职业兼容。98-episode 分布审计对每个有序
   对局采样 2 次，学习方和对手方每职业各 14 次，并采样到全部 588 张 exact 卡。
-- 固定评估默认每职业使用两组种子牌组并镜像先后手，共 28 局；2026-07-22
+- 固定评估默认每职业使用两组种子牌组并镜像先后手，共 28 局；也可用
+  `--full-matchup-matrix` 遍历 49 个有向职业格并逐格报告。2026-07-22
   smoke 的 28 局全部规则终止，0 截断、0 非法动作、0 action-mask mismatch，
   同时记录牌组、检查点、规则、Catalog 和环境版本哈希。该结果仍不用于推断
   策略强度。
@@ -132,7 +133,7 @@ CPU 训练、恢复、16 局镜像评估和吞吐数据都只作为 smoke/回归
 | 状态 | 范围 | 证据或限制 |
 | --- | --- | --- |
 | 已完成 | P0、state-version 缓存、training mode、正式版本/hash、稳定卡牌 embedding、单/多 worker PPO rollout、recurrent masked PPO、原子恢复、四类对手池、固定评估、AEC/Gym、snapshot/clone | 聚焦测试、官方 wrapper 检查、2-worker CPU smoke 训练到 1,304 步并恢复到 1,571 步、环境与 4-worker 随机 rollout 基准 |
-| 部分完成 | 性能优化与评估覆盖广度 | 已有稳定基准和阈值；snapshot 约 0.82 MB/24.61 次每秒、clone 7.23 次每秒，足以作为正确性基础但仍需在高分支搜索前优化；七职业固定套件已落地，职业间 7×7 策略强度矩阵和长期统计实验尚未开始 |
+| 部分完成 | 性能优化与长期策略实验 | 已有稳定基准和阈值；snapshot 约 0.82 MB/24.61 次每秒、clone 7.23 次每秒，足以作为正确性基础但仍需在高分支搜索前优化；七职业 7×7 固定评估已落地，长期统计实验尚未完成 |
 | 尚未实现 | 分布式 learner、完整 MCTS、策略强度实验、自适应训练 curriculum | 不属于本次可复现 baseline；确定性七职业轮转只保证采样均衡，不是按学习难度动态调整的 curriculum，也不得从 smoke 胜率推断策略强度 |
 | 当前可收集卡规则阻塞 | 0 张 | 当前数据库快照735/735 exact；覆盖事实仍与策略强度分开报告，未来快照必须重新审计 |
 
@@ -431,10 +432,11 @@ Recurrent masked policy --- checkpoints / opponent league / evaluation
 - MCTS 路线：补充廉价状态分支、批量推理和隐藏信息处理方案；
 - 模型式路线：建立公开状态与完整状态的明确隔离，防止训练标签泄漏到策略输入。
 
-阶段 D 目前完成了可验证 snapshot/clone 搜索基础、稳定卡牌 embedding 和
-PPO 多进程固定权重采样；完整 MCTS、分布式 learner、跨 worker 批量推理和
-策略强度训练尚未实现。多进程 PPO 当前仅支持 current-policy self-play，
-四类对手池仍由单进程采样路径完整支持。
+阶段 D 目前完成了可验证 snapshot/clone 搜索基础、稳定卡牌 embedding、
+PPO 多进程中央批量推理和 current/history league；current-current 对局训练
+双方，current-history 对局只训练当前策略一侧。random/fixed 对手仍只由
+单进程采样路径支持。完整 MCTS、分布式 learner 和经统计验证的策略强度训练
+尚未完成。
 
 ## 进入大规模训练前的验收条件
 

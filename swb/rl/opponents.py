@@ -46,6 +46,7 @@ class OpponentPool:
         self.historical_weight = historical_weight
         self.last_snapshot_steps = 0
         self.selection_count = 0
+        self.selection_counts: dict[str, int] = {}
         self._base_entries = (
             OpponentEntry("current", "current", current_weight),
             OpponentEntry("random_legal", "random_legal", random_weight),
@@ -70,6 +71,9 @@ class OpponentPool:
             k=1,
         )[0]
         self.selection_count += 1
+        self.selection_counts[selected.kind] = (
+            self.selection_counts.get(selected.kind, 0) + 1
+        )
         return selected
 
     def snapshot_due(self, agent_steps: int) -> bool:
@@ -102,6 +106,7 @@ class OpponentPool:
             "historical_weight": self.historical_weight,
             "last_snapshot_steps": self.last_snapshot_steps,
             "selection_count": self.selection_count,
+            "selection_counts": dict(sorted(self.selection_counts.items())),
             "base_entries": [asdict(entry) for entry in self._base_entries],
             "history": [asdict(entry) for entry in self._history],
         }
@@ -122,4 +127,8 @@ class OpponentPool:
         pool._history = [OpponentEntry(**entry) for entry in state["history"]]
         pool.last_snapshot_steps = int(state["last_snapshot_steps"])
         pool.selection_count = int(state["selection_count"])
+        pool.selection_counts = {
+            str(kind): int(count)
+            for kind, count in state.get("selection_counts", {}).items()
+        }
         return pool

@@ -74,6 +74,44 @@ class EvaluationTests(unittest.TestCase):
         self.assertTrue(first["coverage"]["classes"])
         self.assertTrue(first["coverage"]["mechanisms"])
 
+    def test_full_matchup_matrix_reports_every_ordered_cell(self) -> None:
+        trainer = self.make_trainer()
+        report = evaluate(
+            trainer,
+            self.snapshot,
+            EvaluationConfig(
+                master_seed=56,
+                seed_count=1,
+                max_agent_steps=8,
+                opponent_kind="fixed",
+                class_ids=(1, 2),
+                full_matchup_matrix=True,
+            ),
+        )
+        self.assertTrue(report["configuration"]["full_matchup_matrix"])
+        self.assertEqual(report["configuration"]["matchup_count"], 4)
+        self.assertEqual(report["configuration"]["mirrored_games"], 8)
+        self.assertEqual(
+            set(report["metrics"]["per_matchup"]),
+            {"1_vs_1", "1_vs_2", "2_vs_1", "2_vs_2"},
+        )
+        self.assertEqual(
+            {
+                (
+                    game["learner_class_id"],
+                    game["opponent_class_id"],
+                    game["learner_player"],
+                )
+                for game in report["games"]
+            },
+            {
+                (learner, opponent, side)
+                for learner in (1, 2)
+                for opponent in (1, 2)
+                for side in (0, 1)
+            },
+        )
+
     def test_evaluation_does_not_change_training_or_rng_state(self) -> None:
         trainer = self.make_trainer()
         model_before = {
