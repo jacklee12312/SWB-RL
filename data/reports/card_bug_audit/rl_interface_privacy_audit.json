@@ -4,7 +4,7 @@
   "inputs": {
     "swb/engine/environment.py": "78bee3ab99a7ab2b41c08beb5524acbb08fd40872b0763687b7c6d96f99553bd",
     "swb/engine/observation_v3.py": "641cebaa552bbcbbcad14a6992ec09ba31174143d067fac8c09b1d054b7a96ab",
-    "swb/engine/observation_v4_1.py": "e85160513f99caa69d107b5a8f62559c31759844c2ab771f3535e30a1e782cbf",
+    "swb/engine/observation_v4_1.py": "18ab11b9084c54663436510f7df634f3e1f4cdf0dc7baeaf9039d95e79486a6e",
     "swb/rl/versioning.py": "07161575dbb2b32e3c1bea5f3d9e2446a0f6b1736d9ba99b749b0bcb1ea81c60",
     "swb/simulator/history.py": "6db67455f6d8a85cfe6e7bd9798a0908568cdaafbf02f1c15cd56d4611907870",
     "swb/simulator/service.py": "c1ebc71c1374f72a042e5066aa3e884285f004e8df25b4f49927789b73cdb1aa",
