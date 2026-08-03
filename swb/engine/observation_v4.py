@@ -57,7 +57,17 @@ TARGETING_RESTRICTION_VALUES = (
 )
 CHOICE_KIND_VALUES = tuple(ChoiceKind)
 CHOICE_KIND_INDEX = {kind: index for index, kind in enumerate(CHOICE_KIND_VALUES)}
-EVENT_VALUES = tuple(EventType)
+# Observation v4/v4.1 is a frozen checkpoint contract.  Audit-only events
+# added after that freeze remain available to logs/UI, but must not silently
+# grow or renumber the policy event vocabulary.
+UNENCODED_HISTORY_EVENTS = frozenset({
+    EventType.EXTRA_PP_ACTIVATED,
+    EventType.EXTRA_PP_REFUNDED,
+})
+EVENT_VALUES = tuple(
+    event for event in EventType
+    if event not in UNENCODED_HISTORY_EVENTS
+)
 EVENT_INDEX = {event: index for index, event in enumerate(EVENT_VALUES)}
 
 ORIGIN_BITS = len(ORIGIN_VALUES)
@@ -801,7 +811,11 @@ def _event_public_card_id(
 
 
 def _history_fields(env: ShadowverseEnv, perspective: int):
-    events = env._core.event_history[-HISTORY_LENGTH:]
+    events = [
+        event
+        for event in env._core.event_history
+        if event.type in EVENT_INDEX
+    ][-HISTORY_LENGTH:]
     padding = HISTORY_LENGTH - len(events)
     event_bits = [0.0] * padding * HISTORY_EVENT_SIZE
     actor_bits = [0.0] * padding * RELATION_BITS

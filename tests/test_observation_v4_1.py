@@ -11,6 +11,7 @@ from swb.engine.commands import ChoiceKind, ChoiceOption, ChoiceRequest
 from swb.engine.environment import ShadowverseEnv
 from swb.engine.events import EventType, GameEvent
 from swb.engine import observation_v4_1
+from swb.engine import observation_v4
 from swb.engine.state import Amulet, CostModifier, StatModifier, Unit
 from swb.rl.policy import (
     ENTITY_ACTION_POLICY_ARCHITECTURE,
@@ -119,6 +120,43 @@ class ObservationV41Tests(unittest.TestCase):
         self.assertEqual(flattener.card_slots, 1_290)
         self.assertIn("zone_cards", flattener.card_field_layout)
         self.assertIn("record_cards", flattener.card_field_layout)
+
+    def test_audit_only_extra_pp_events_do_not_change_frozen_vocab(self) -> None:
+        self.assertEqual(observation_v4_1.EVENT_TYPE_COUNT, 102)
+        self.assertNotIn(
+            EventType.EXTRA_PP_ACTIVATED,
+            observation_v4.EVENT_INDEX,
+        )
+        self.assertNotIn(
+            EventType.EXTRA_PP_REFUNDED,
+            observation_v4.EVENT_INDEX,
+        )
+        env = self.make_env()
+        before = self.observe_after_direct_mutation(env)
+        before_count = int(np.count_nonzero(
+            before["history_event_types"]
+        ))
+        env._core.event_history.extend((
+            GameEvent(EventType.EXTRA_PP_ACTIVATED, 0),
+            GameEvent(EventType.EXTRA_PP_REFUNDED, 0),
+            GameEvent(EventType.TURN_ENDED, 0),
+        ))
+
+        observation = self.observe_after_direct_mutation(env)
+
+        non_padding = observation["history_event_types"]
+        non_padding = non_padding[non_padding != 0]
+        self.assertEqual(non_padding.size, before_count + 1)
+        self.assertEqual(
+            int(non_padding[-1]),
+            observation_v4.EVENT_INDEX[EventType.TURN_ENDED] + 1,
+        )
+        flattener, model = self.make_policy(observation)
+        self.assertEqual(
+            model.v41_history_event_embedding.num_embeddings,
+            103,
+        )
+        self.assertEqual(flattener.size, 15_757)
 
     def test_hidden_hand_deck_order_and_hidden_draw_metadata_do_not_leak(
         self,

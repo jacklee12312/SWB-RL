@@ -823,7 +823,11 @@ def _choice_fields(env: ShadowverseEnv, perspective: int):
 
 
 def _history_fields(env: ShadowverseEnv, perspective: int):
-    events = env._core.event_history[-HISTORY_LENGTH:]
+    events = [
+        event
+        for event in env._core.event_history
+        if event.type in v4.EVENT_INDEX
+    ][-HISTORY_LENGTH:]
     padding = HISTORY_LENGTH - len(events)
     types = [0] * padding
     actors = [0] * padding
