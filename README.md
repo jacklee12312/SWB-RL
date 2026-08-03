@@ -555,8 +555,11 @@ The deterministic rules core supports:
 
 - official match setup and shared limits: four-card opening hands, an optional
   interactive 0-to-4-card mulligan that cannot redraw the same physical card,
-  seeded random first-player selection, the second player's one-use Extra PP
-  with a one-time refresh at the start of its sixth turn, first-player turn-5
+  seeded random first-player selection, the second player's refundable Extra
+  PP with a one-time refresh at the start of its sixth turn. Activating Extra
+  PP provisionally adds 1 PP; it counts as used only when a payment exceeds
+  the base PP that remained, otherwise it is returned at turn end. The core
+  also supports first-player turn-5
   versus second-player turn-4 normal evolution, nine-card hand capacity, and a
   five-slot leader area shared by Faiths and emblems. Pass
   `match_setup="official"` for seeded random first-player assignment and the
@@ -1736,7 +1739,9 @@ player turn number plus evolutions completed while that specific card remained
 in hand; entering hand resets its evolution contribution. This adds nine
 features without changing the pre-existing action IDs.
 The final ten v1 fields expose first-player identity, mulligan progress, and
-both players' public Extra PP availability, use count, and active-turn state.
+both players' public Extra PP availability, committed-use count, and
+active-turn state. A provisional activation is distinguishable as active with
+an unchanged use count; public `info["extra_pp"]` also exposes `pending`.
 This moves v1 to 304 floats and `observation-v3.6`. Extra PP is appended as
 action 111, moving the layout to 112 actions without renumbering actions
 0 through 110. During an interactive mulligan, the existing 16 choice actions
@@ -1973,7 +1978,12 @@ The environment has 112 actions:
 - `61..78`: graveyard choice paging and slots
 - `79..105`: fusion or special play-mode actions for hand slots
 - `106..110`: super-evolve a board slot
-- `111`: use the second player's Extra PP when available
+- `111`: provisionally activate the second player's Extra PP when available
+
+The engine keeps action 111 legal for the human/client-accurate flow. PPO and
+deterministic AI sampling use a policy-only mask that suppresses action 111
+when activating it would unlock no new PP-paying action. This avoids training
+on a provable no-op without changing the 112-action checkpoint contract.
 
 Always apply `info["action_mask"]` before sampling or selecting an action.
 By default, `info()` is public and redacts debug transcripts/events. Use

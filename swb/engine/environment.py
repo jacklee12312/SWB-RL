@@ -907,6 +907,9 @@ class ShadowverseEnv:
                     "available": player.extra_pp_available,
                     "uses": player.extra_pp_uses,
                     "active": player.extra_pp_active_turn == self.turn,
+                    "pending": bool(
+                        getattr(player, "extra_pp_pending", False)
+                    ),
                 }
                 for player in self._core.players
             ),

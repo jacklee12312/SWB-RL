@@ -790,6 +790,12 @@ def _run_central_policy_episode(
             "worker_fusion_retry_suppressed_actions": float(
                 fusion_cancel_guard.suppressed_actions
             ),
+            "worker_empty_extra_pp_suppressed_decisions": float(
+                fusion_cancel_guard.extra_pp_suppressed_decisions
+            ),
+            "worker_empty_extra_pp_suppressed_actions": float(
+                fusion_cancel_guard.extra_pp_suppressed_actions
+            ),
             "worker_torch_threads": float(config.worker_torch_threads),
         },
     ))

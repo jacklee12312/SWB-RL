@@ -11,11 +11,13 @@ from swb.engine.environment import ShadowverseEnv
 
 @dataclass
 class FusionCancelActionGuard:
-    """Prevent an agent from immediately reopening fusion after cancelling.
+    """Apply policy-only guards for provably non-progressing actions.
 
     The engine mask remains the source of truth for game-rule legality.  This
     guard derives a policy-only mask so human clients and the deterministic
-    rules engine retain the legal ability to cancel and reconsider fusion.
+    rules engine retain the legal ability to cancel/reconsider fusion and to
+    activate refundable Extra PP manually.  Policies additionally suppress an
+    immediate fusion retry and an Extra PP activation that unlocks no payment.
 
     Call :meth:`record_selected_action` immediately before executing an action
     that has already been validated against :meth:`policy_mask`.
@@ -24,6 +26,8 @@ class FusionCancelActionGuard:
     _blocked_players: set[int] = field(default_factory=set)
     suppressed_decisions: int = 0
     suppressed_actions: int = 0
+    extra_pp_suppressed_decisions: int = 0
+    extra_pp_suppressed_actions: int = 0
 
     def reset(self) -> None:
         """Clear episode-local blocking state while retaining audit counters."""
@@ -39,24 +43,33 @@ class FusionCancelActionGuard:
         """Return the effective sampling mask without mutating ``legal_mask``."""
 
         mask = np.asarray(legal_mask, dtype=np.bool_).copy()
-        if player_id not in self._blocked_players:
-            return mask
-
         suppressed = 0
-        for raw_action in np.flatnonzero(mask):
-            action = int(raw_action)
-            if not env.MODE_PLAY_OFFSET <= action < env.SUPER_EVOLVE_OFFSET:
-                continue
-            if isinstance(env._decode_action(action), BeginFusion):
-                mask[action] = False
-                suppressed += 1
+        if player_id in self._blocked_players:
+            for raw_action in np.flatnonzero(mask):
+                action = int(raw_action)
+                if not env.MODE_PLAY_OFFSET <= action < env.SUPER_EVOLVE_OFFSET:
+                    continue
+                if isinstance(env._decode_action(action), BeginFusion):
+                    mask[action] = False
+                    suppressed += 1
 
         if suppressed:
             self.suppressed_decisions += 1
             self.suppressed_actions += suppressed
+
+        extra_pp_action = getattr(env, "USE_EXTRA_PP", None)
+        if (
+            isinstance(extra_pp_action, int)
+            and 0 <= extra_pp_action < mask.size
+            and mask[extra_pp_action]
+            and not env.core.extra_pp_unlocked_payment_commands(player_id)
+        ):
+            mask[extra_pp_action] = False
+            self.extra_pp_suppressed_decisions += 1
+            self.extra_pp_suppressed_actions += 1
         if not bool(mask.any()):
             raise RuntimeError(
-                "fusion-cancel policy guard removed every legal action"
+                "policy action guard removed every legal action"
             )
         return mask
 

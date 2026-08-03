@@ -24,7 +24,8 @@ class _GuardEnvironment:
 
     def __init__(self) -> None:
         self.core = SimpleNamespace(
-            state=SimpleNamespace(pending_choice=None)
+            state=SimpleNamespace(pending_choice=None),
+            extra_pp_unlocked_payment_commands=lambda player_id: (),
         )
         self.commands = {
             0: EndTurn(0),
@@ -174,6 +175,35 @@ class FusionCancelActionGuardTests(unittest.TestCase):
         self.assertEqual(decision.probabilities[10], 0.0)
         self.assertEqual(decision.probabilities[11], 0.0)
         self.assertAlmostEqual(sum(decision.probabilities.values()), 1.0)
+
+    def test_provably_empty_extra_pp_activation_is_policy_suppressed(self):
+        self.env.USE_EXTRA_PP = 20
+
+        policy_mask = self.guard.policy_mask(
+            self.env,
+            0,
+            _mask(0, 20),
+        )
+
+        self.assertTrue(policy_mask[0])
+        self.assertFalse(policy_mask[20])
+        self.assertEqual(self.guard.extra_pp_suppressed_decisions, 1)
+        self.assertEqual(self.guard.extra_pp_suppressed_actions, 1)
+
+    def test_extra_pp_remains_available_when_it_unlocks_a_payment(self):
+        self.env.USE_EXTRA_PP = 20
+        self.env.core.extra_pp_unlocked_payment_commands = (
+            lambda player_id: (PlayCard(player_id, 0),)
+        )
+
+        policy_mask = self.guard.policy_mask(
+            self.env,
+            0,
+            _mask(0, 20),
+        )
+
+        self.assertTrue(policy_mask[20])
+        self.assertEqual(self.guard.extra_pp_suppressed_decisions, 0)
 
 
 if __name__ == "__main__":

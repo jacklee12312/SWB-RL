@@ -1290,6 +1290,10 @@ class MatchSimulator:
             "max_mana": player.max_mana,
             "extra_pp_available": player.extra_pp_available,
             "extra_pp_uses": player.extra_pp_uses,
+            "extra_pp_active": player.extra_pp_active_turn == env.turn,
+            "extra_pp_pending": bool(
+                getattr(player, "extra_pp_pending", False)
+            ),
             "evolution_points": player.evolution_points,
             "super_evolution_points": player.super_evolution_points,
             "shadows": player.shadows,
@@ -1367,7 +1371,7 @@ class MatchSimulator:
         if isinstance(command, EndTurn):
             return {**base, "kind": "end_turn", "label": "结束回合"}
         if isinstance(command, UseExtraPP):
-            return {**base, "kind": "extra_pp", "label": "使用 Extra PP"}
+            return {**base, "kind": "extra_pp", "label": "启用 Extra PP"}
         if isinstance(command, PlayCard):
             card = env._core.players[command.player_index].hand[command.hand_index]
             mode = "" if command.mode_id == "normal" else f" · {command.mode_id}"

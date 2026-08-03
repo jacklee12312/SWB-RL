@@ -137,13 +137,13 @@ def main() -> None:
                 mulligan_cards_replaced += (
                     action - env.CHOICE_OFFSET
                 ).bit_count()
-            if action == env.USE_EXTRA_PP:
-                extra_pp_uses += 1
-                game_extra_pp_uses += 1
-                extra_pp_use_turns.append(env.turn)
             if not reported_mask[action]:
                 illegal_actions += 1
             actions.append(action)
+            extra_pp_uses_before = sum(
+                player.extra_pp_uses for player in env.players
+            )
+            turn_before_action = env.turn
             try:
                 result = env.step(action)
             except Exception as exc:
@@ -206,6 +206,16 @@ def main() -> None:
                     f"game={game} game_seed={args.seed + game} "
                     f"action_index={len(actions) - 1} action={action}: {exc}"
                 ) from exc
+            committed_extra_pp = (
+                sum(player.extra_pp_uses for player in env.players)
+                - extra_pp_uses_before
+            )
+            if committed_extra_pp:
+                extra_pp_uses += committed_extra_pp
+                game_extra_pp_uses += committed_extra_pp
+                extra_pp_use_turns.extend(
+                    [turn_before_action] * committed_extra_pp
+                )
             info = result.info
         mulligan_games_completed += int(
             entered_mulligan

@@ -14,7 +14,13 @@ from swb.engine.card_rules import (
     _parse_activation_definition,
     _parse_operation,
 )
-from swb.engine.commands import ActivateAmulet, Choose, EndTurn, PlayCard
+from swb.engine.commands import (
+    ActivateAmulet,
+    Choose,
+    EndTurn,
+    PlayCard,
+    UseExtraPP,
+)
 from swb.engine.effects import EffectKind, EffectOperation, TargetKind
 from swb.engine.emblem import EmblemDefinition, EmblemTriggerRule
 from swb.engine.environment import ShadowverseEnv
@@ -179,6 +185,34 @@ class ActivateCommandTests(unittest.TestCase):
         self.assertEqual(event.source_id, amulet.entity_id)
         self.assertEqual(event.metadata["cost"], 2)
         self.assertEqual(event.metadata["card_id"], amulet.definition.card_id)
+
+    def test_activation_commits_pending_extra_pp_when_needed(self):
+        engine = _engine(
+            (EffectOperation(EffectKind.HEAL_LEADER, TargetKind.OWN_LEADER, 1),),
+            cost=2,
+        )
+        amulet = _place_amulet(engine)
+        player = engine.players[0]
+        engine.state.first_player = 1
+        engine.players[1].extra_pp_available = False
+        player.max_mana = 1
+        player.mana = 1
+        player.extra_pp_available = True
+
+        self.assertNotIn(
+            ActivateAmulet(0, amulet.entity_id),
+            engine.legal_commands(),
+        )
+        engine.apply(UseExtraPP(0))
+        transition = engine.apply(ActivateAmulet(0, amulet.entity_id))
+
+        self.assertEqual(player.mana, 0)
+        self.assertEqual(player.extra_pp_uses, 1)
+        self.assertFalse(player.extra_pp_pending)
+        self.assertIn(
+            EventType.EXTRA_PP_USED,
+            [event.type for event in transition.events],
+        )
 
     def test_activation_refreshes_on_the_controllers_next_turn(self):
         engine = _engine(

@@ -330,6 +330,14 @@ def _aggregate_metrics(results: list[dict[str, object]]) -> dict[str, object]:
         int(result["fusion_retry_suppressed_actions"])
         for result in results
     )
+    empty_extra_pp_decisions = sum(
+        int(result["empty_extra_pp_suppressed_decisions"])
+        for result in results
+    )
+    empty_extra_pp_actions = sum(
+        int(result["empty_extra_pp_suppressed_actions"])
+        for result in results
+    )
     return {
         "games": games,
         "win_rate": win_rate,
@@ -354,6 +362,8 @@ def _aggregate_metrics(results: list[dict[str, object]]) -> dict[str, object]:
         "action_mask_mismatches": mask_mismatches,
         "fusion_retry_suppressed_decisions": suppressed_decisions,
         "fusion_retry_suppressed_actions": suppressed_actions,
+        "empty_extra_pp_suppressed_decisions": empty_extra_pp_decisions,
+        "empty_extra_pp_suppressed_actions": empty_extra_pp_actions,
     }
 
 
@@ -643,6 +653,14 @@ def evaluate(
                             learner_policy.fusion_cancel_guard.suppressed_actions
                             + opponent.fusion_cancel_guard.suppressed_actions
                         ),
+                        "empty_extra_pp_suppressed_decisions": (
+                            learner_policy.fusion_cancel_guard.extra_pp_suppressed_decisions
+                            + opponent.fusion_cancel_guard.extra_pp_suppressed_decisions
+                        ),
+                        "empty_extra_pp_suppressed_actions": (
+                            learner_policy.fusion_cancel_guard.extra_pp_suppressed_actions
+                            + opponent.fusion_cancel_guard.extra_pp_suppressed_actions
+                        ),
                     })
     finally:
         random.setstate(python_rng)
@@ -739,7 +757,9 @@ def evaluate(
         "model_parameters": sum(
             parameter.numel() for parameter in trainer.model.parameters()
         ),
-        "policy_action_guard": "fusion-cancel-retry-v1",
+        "policy_action_guard": (
+            "fusion-cancel-retry-v1+empty-extra-pp-v1"
+        ),
     }
     if opponent_checkpoint_sha256 is not None:
         configuration["opponent_checkpoint_sha256"] = (

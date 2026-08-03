@@ -1653,13 +1653,85 @@ class GameEngine:
         player = self.players[command.player_index]
         before = player.mana
         player.extra_pp_available = False
-        player.extra_pp_uses += 1
         player.extra_pp_active_turn = self.turn
+        player.extra_pp_pending = True
         player.mana += 1
         self._emit(
             GameEvent(
-                EventType.EXTRA_PP_USED,
+                EventType.EXTRA_PP_ACTIVATED,
                 command.player_index,
+                amount=1,
+                metadata={
+                    "before": before,
+                    "after": player.mana,
+                    "max_mana": player.max_mana,
+                    "uses": player.extra_pp_uses,
+                    "pending": True,
+                },
+            )
+        )
+        self._log(
+            command.player_index,
+            f"启用额外PP：{before} → {player.mana}（实际支付后才消耗）",
+        )
+
+    @staticmethod
+    def _extra_pp_is_pending(player: PlayerState) -> bool:
+        # Older mid-episode snapshots predate the explicit pending marker.
+        # Their active Extra PP was consumed immediately, so a missing field
+        # must be interpreted as committed rather than refundable.
+        return bool(getattr(player, "extra_pp_pending", False))
+
+    def _commit_extra_pp_for_cost(
+        self,
+        player_index: int,
+        cost: int,
+    ) -> None:
+        """Consume a provisional Extra PP only when this payment needs it."""
+
+        player = self.players[player_index]
+        if not self._extra_pp_is_pending(player):
+            return
+        base_pp_remaining = player.mana - 1
+        if cost <= base_pp_remaining:
+            return
+        player.extra_pp_pending = False
+        player.extra_pp_uses += 1
+        self._emit(
+            GameEvent(
+                EventType.EXTRA_PP_USED,
+                player_index,
+                amount=1,
+                metadata={
+                    "cost": cost,
+                    "base_pp_remaining": base_pp_remaining,
+                    "mana_before_payment": player.mana,
+                    "max_mana": player.max_mana,
+                    "uses": player.extra_pp_uses,
+                },
+            )
+        )
+        self._log(
+            player_index,
+            f"额外PP用于支付 {cost} 费，已消耗（累计 {player.extra_pp_uses} 次）",
+        )
+
+    def _refund_pending_extra_pp(self, player_index: int) -> None:
+        player = self.players[player_index]
+        if not self._extra_pp_is_pending(player):
+            return
+        if player.mana < 1:
+            raise IllegalCommand(
+                "Pending Extra PP has no refundable mana remaining"
+            )
+        before = player.mana
+        player.mana -= 1
+        player.extra_pp_available = True
+        player.extra_pp_pending = False
+        self._emit(
+            GameEvent(
+                EventType.EXTRA_PP_REFUNDED,
+                player_index,
                 amount=1,
                 metadata={
                     "before": before,
@@ -1669,9 +1741,55 @@ class GameEngine:
                 },
             )
         )
-        self._log(
-            command.player_index,
-            f"使用额外PP：{before} → {player.mana}",
+        self._log(player_index, "本回合未实际使用额外PP，已返还")
+
+    def extra_pp_unlocked_payment_commands(
+        self,
+        player_index: int,
+    ) -> tuple[GameCommand, ...]:
+        """Return exact PP-paying commands newly unlocked by Extra PP.
+
+        This read-only query supports policy sampling guards.  It temporarily
+        projects the provisional resource state and restores every touched
+        field in ``finally`` without consuming RNG or emitting events.
+        """
+
+        if not self._can_use_extra_pp(player_index):
+            return ()
+        before_commands = {
+            command
+            for command in self.legal_commands()
+            if isinstance(command, (PlayCard, ActivateAmulet))
+        }
+        player = self.players[player_index]
+        saved = (
+            player.mana,
+            player.extra_pp_available,
+            player.extra_pp_active_turn,
+            self._extra_pp_is_pending(player),
+        )
+        try:
+            player.mana += 1
+            player.extra_pp_available = False
+            player.extra_pp_active_turn = self.turn
+            player.extra_pp_pending = True
+            after_commands = {
+                command
+                for command in self.legal_commands()
+                if isinstance(command, (PlayCard, ActivateAmulet))
+            }
+        finally:
+            (
+                player.mana,
+                player.extra_pp_available,
+                player.extra_pp_active_turn,
+                player.extra_pp_pending,
+            ) = saved
+        return tuple(
+            sorted(
+                after_commands - before_commands,
+                key=repr,
+            )
         )
 
     def _effective_mana_cap(self, player: PlayerState) -> int:
@@ -1758,6 +1876,10 @@ class GameEngine:
         operations = self.rulebook.operations_for(
             amulet.definition.card_id,
             Trigger.ACTIVATE,
+        )
+        self._commit_extra_pp_for_cost(
+            self.current_player,
+            definition.cost,
         )
         player.mana -= definition.cost
         amulet.activated_turn = self.turn
@@ -2639,6 +2761,10 @@ class GameEngine:
         self._dispatch_card_ability(AbilityEvent.CHECK_PLAY, card)
         player.hand.pop(command.hand_index)
         player.hand_entity_ids.pop(command.hand_index)
+        self._commit_extra_pp_for_cost(
+            self.current_player,
+            play_cost,
+        )
         player.mana -= play_cost
         self._record_combo(
             self.current_player,
@@ -3821,7 +3947,7 @@ class GameEngine:
         }
 
     def _player_fingerprint(self, player: PlayerState) -> dict[str, object]:
-        return {
+        fingerprint = {
             "class_id": player.class_id,
             "class_name": player.class_name,
             "health": player.health,
@@ -3899,6 +4025,9 @@ class GameEngine:
                 for faith in player.faiths
             ),
         }
+        if self._extra_pp_is_pending(player):
+            fingerprint["extra_pp_pending"] = True
+        return fingerprint
 
     def _card_fingerprint(
         self,
@@ -7722,6 +7851,7 @@ class GameEngine:
         if self.state.pending_choice is not None:
             self._suspend_turn_end(player_index, "transition")
             return
+        self._refund_pending_extra_pp(player_index)
         self._emit(GameEvent(EventType.TURN_ENDED, player_index))
         self._log(player_index, "结束回合")
         self.players[player_index].cards_played_this_turn = 0
@@ -8056,6 +8186,7 @@ class GameEngine:
         self.state.listener_once_per_turn_used.clear()
         player.turns_started += 1
         player.extra_pp_active_turn = None
+        player.extra_pp_pending = False
         if (
             player_index != self.state.first_player
             and player.turns_started == self.config.extra_pp_refresh_turn
@@ -16271,6 +16402,10 @@ class GameEngine:
             if (
                 not isinstance(player.extra_pp_available, bool)
                 or not isinstance(player.extra_pp_refresh_done, bool)
+                or not isinstance(
+                    getattr(player, "extra_pp_pending", False),
+                    bool,
+                )
                 or not isinstance(player.extra_pp_uses, int)
                 or isinstance(player.extra_pp_uses, bool)
                 or not 0 <= player.extra_pp_uses <= 2
@@ -16281,6 +16416,22 @@ class GameEngine:
                         or isinstance(player.extra_pp_active_turn, bool)
                         or player.extra_pp_active_turn != self.turn
                     )
+                )
+                or (
+                    self._extra_pp_is_pending(player)
+                    and (
+                        player.extra_pp_active_turn != self.turn
+                        or player.extra_pp_available
+                        or player.mana < 1
+                    )
+                )
+                or (
+                    player.extra_pp_active_turn is None
+                    and self._extra_pp_is_pending(player)
+                )
+                or (
+                    player.extra_pp_active_turn is not None
+                    and player.extra_pp_available
                 )
             ):
                 raise IllegalCommand(
@@ -16293,6 +16444,7 @@ class GameEngine:
                     or player.extra_pp_uses
                     or player.extra_pp_refresh_done
                     or player.extra_pp_active_turn is not None
+                    or self._extra_pp_is_pending(player)
                 )
             ):
                 raise IllegalCommand(

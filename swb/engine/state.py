@@ -1141,6 +1141,7 @@ class PlayerState:
     extra_pp_uses: int = 0
     extra_pp_refresh_done: bool = False
     extra_pp_active_turn: int | None = None
+    extra_pp_pending: bool = False
     fatigue: int = 0
     empty_deck_outcome: EmptyDeckOutcome = EmptyDeckOutcome.DEFEAT
     evolution_points: int = 2

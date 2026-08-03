@@ -5,13 +5,13 @@ import unittest
 from dataclasses import replace
 
 from swb.db.repository import CardDefinition
-from swb.engine.commands import Choose, EndTurn, Evolve, UseExtraPP
+from swb.engine.commands import Choose, EndTurn, Evolve, PlayCard, UseExtraPP
 from swb.engine.emblem import EmblemDefinition
 from swb.engine.environment import ShadowverseEnv
 from swb.engine.events import EventType
 from swb.engine.faith import FaithDefinition, FaithInstance
 from swb.engine.resolution import GameConfig, GameEngine, IllegalCommand
-from swb.engine.state import Phase, Unit
+from swb.engine.state import HandCard, Phase, Unit
 from swb.rl.baseline_policy import select_baseline_action
 from scripts.random_self_play import official_acceptance_failures
 
@@ -101,6 +101,22 @@ class OfficialMulliganTests(unittest.TestCase):
 
 
 class OfficialTurnOrderAndExtraPPTests(unittest.TestCase):
+    @staticmethod
+    def _put_costed_follower_in_first_hand(
+        game: GameEngine,
+        player_index: int,
+        *,
+        cost: int,
+        card_id: int,
+    ) -> None:
+        definition = replace(card(card_id), cost=cost)
+        hand_card = HandCard(
+            definition=definition,
+            entity_id=game.state.allocate_entity_id(),
+        )
+        game.players[player_index].hand[0] = hand_card
+        game.players[player_index].hand_entity_ids[0] = hand_card.entity_id
+
     def test_seeded_random_starting_player_is_reproducible(self):
         first = engine(seed=19, starting_player=None)
         second = engine(seed=19, starting_player=None)
@@ -134,10 +150,27 @@ class OfficialTurnOrderAndExtraPPTests(unittest.TestCase):
         game.apply(EndTurn(0))
         second = game.players[1]
         self.assertEqual((second.max_mana, second.mana), (1, 1))
-        transition = game.apply(UseExtraPP(1))
+        self._put_costed_follower_in_first_hand(
+            game,
+            1,
+            cost=2,
+            card_id=9101,
+        )
+        activation = game.apply(UseExtraPP(1))
         self.assertEqual((second.max_mana, second.mana), (1, 2))
+        self.assertEqual(second.extra_pp_uses, 0)
+        self.assertTrue(second.extra_pp_pending)
+        self.assertIn(
+            EventType.EXTRA_PP_ACTIVATED,
+            [event.type for event in activation.events],
+        )
+        payment = game.apply(PlayCard(1, 0))
         self.assertEqual(second.extra_pp_uses, 1)
-        self.assertIn(EventType.EXTRA_PP_USED, [event.type for event in transition.events])
+        self.assertFalse(second.extra_pp_pending)
+        self.assertIn(
+            EventType.EXTRA_PP_USED,
+            [event.type for event in payment.events],
+        )
         before = game.deterministic_fingerprint()
         with self.assertRaises(IllegalCommand):
             game.apply(UseExtraPP(1))
@@ -149,8 +182,68 @@ class OfficialTurnOrderAndExtraPPTests(unittest.TestCase):
         self.assertTrue(second.extra_pp_available)
         self.assertTrue(second.extra_pp_refresh_done)
         game.apply(UseExtraPP(1))
+        self._put_costed_follower_in_first_hand(
+            game,
+            1,
+            cost=second.max_mana + 1,
+            card_id=9102,
+        )
+        game.apply(PlayCard(1, 0))
         self.assertEqual(second.extra_pp_uses, 2)
         self.assertFalse(second.extra_pp_available)
+
+    def test_unspent_extra_pp_is_refunded_at_end_of_turn(self):
+        game = engine(starting_player=0)
+        game.apply(EndTurn(0))
+        second = game.players[1]
+
+        game.apply(UseExtraPP(1))
+        transition = game.apply(EndTurn(1))
+
+        self.assertEqual(second.extra_pp_uses, 0)
+        self.assertTrue(second.extra_pp_available)
+        self.assertFalse(second.extra_pp_pending)
+        self.assertIsNone(second.extra_pp_active_turn)
+        self.assertEqual(second.mana, 1)
+        self.assertIn(
+            EventType.EXTRA_PP_REFUNDED,
+            [event.type for event in transition.events],
+        )
+
+    def test_spending_only_base_pp_keeps_extra_pp_refundable(self):
+        game = engine(starting_player=0)
+        game.apply(EndTurn(0))
+        second = game.players[1]
+
+        game.apply(UseExtraPP(1))
+        game.apply(PlayCard(1, 0))
+
+        self.assertEqual(second.mana, 1)
+        self.assertEqual(second.extra_pp_uses, 0)
+        self.assertTrue(second.extra_pp_pending)
+        game.apply(EndTurn(1))
+        self.assertTrue(second.extra_pp_available)
+        self.assertEqual(second.extra_pp_uses, 0)
+
+    def test_extra_pp_unlock_query_is_exact_and_read_only(self):
+        game = engine(starting_player=0)
+        game.apply(EndTurn(0))
+        before = game.deterministic_fingerprint()
+
+        self.assertEqual(game.extra_pp_unlocked_payment_commands(1), ())
+        self.assertEqual(game.deterministic_fingerprint(), before)
+
+        self._put_costed_follower_in_first_hand(
+            game,
+            1,
+            cost=2,
+            card_id=9103,
+        )
+        before = game.deterministic_fingerprint()
+        unlocked = game.extra_pp_unlocked_payment_commands(1)
+
+        self.assertEqual(unlocked, (PlayCard(1, 0),))
+        self.assertEqual(game.deterministic_fingerprint(), before)
 
 
 class OfficialCapacityAndRLTests(unittest.TestCase):
@@ -195,7 +288,8 @@ class OfficialCapacityAndRLTests(unittest.TestCase):
         env.step(env.END_TURN)
         self.assertTrue(env.action_mask()[env.USE_EXTRA_PP])
         result = env.step(env.USE_EXTRA_PP)
-        self.assertEqual(result.info["extra_pp"][1]["uses"], 1)
+        self.assertEqual(result.info["extra_pp"][1]["uses"], 0)
+        self.assertTrue(result.info["extra_pp"][1]["pending"])
 
     def test_official_environment_preset_enables_random_start_and_mulligan(self):
         first = ShadowverseEnv(

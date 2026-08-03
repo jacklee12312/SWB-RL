@@ -786,6 +786,12 @@ class PPOTrainer:
             self.fusion_cancel_guard.suppressed_decisions
         )
         suppressed_actions_before = self.fusion_cancel_guard.suppressed_actions
+        extra_pp_suppressed_decisions_before = (
+            self.fusion_cancel_guard.extra_pp_suppressed_decisions
+        )
+        extra_pp_suppressed_actions_before = (
+            self.fusion_cancel_guard.extra_pp_suppressed_actions
+        )
         starting_episodes = self.completed_episodes
         records: list[_Record] = []
         bootstrap: dict[tuple[int, int], float] = {}
@@ -890,6 +896,14 @@ class PPOTrainer:
             "fusion_retry_suppressed_actions": float(
                 self.fusion_cancel_guard.suppressed_actions
                 - suppressed_actions_before
+            ),
+            "empty_extra_pp_suppressed_decisions": float(
+                self.fusion_cancel_guard.extra_pp_suppressed_decisions
+                - extra_pp_suppressed_decisions_before
+            ),
+            "empty_extra_pp_suppressed_actions": float(
+                self.fusion_cancel_guard.extra_pp_suppressed_actions
+                - extra_pp_suppressed_actions_before
             ),
         }
         return records, bootstrap, boundaries

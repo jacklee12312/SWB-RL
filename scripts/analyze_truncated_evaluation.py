@@ -764,7 +764,7 @@ def build_report(
         },
         "configuration": configuration,
         "policy_action_guard": (
-            "fusion-cancel-retry-v1"
+            "fusion-cancel-retry-v1+empty-extra-pp-v1"
             if enable_fusion_cancel_guard
             else None
         ),
