@@ -5,7 +5,7 @@ import json
 import re
 import threading
 import time
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
@@ -27,6 +27,7 @@ from swb.engine.commands import (
 from swb.engine.environment import MATCH_SETUP_OFFICIAL, ShadowverseEnv
 from swb.engine.state import Amulet, HandCard, Unit
 from swb.engine.union_burst import UnionBurstKind
+from swb.rl.action_guard import FusionCancelActionGuard
 from swb.rl.checkpoint import CHECKPOINT_SCHEMA_VERSION
 from swb.rl.fixed_decks import (
     FixedTrainingDeck,
@@ -56,6 +57,7 @@ class PolicyDecision:
     value: float
     logits: dict[int, float]
     probabilities: dict[int, float]
+    suppressed_actions: tuple[int, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -90,22 +92,46 @@ class DeterministicPPOPolicy:
     flattener: Any
     device: torch.device
     hidden: torch.Tensor
+    fusion_cancel_guard: FusionCancelActionGuard | None = field(
+        default_factory=FusionCancelActionGuard
+    )
 
     @classmethod
-    def from_trainer(cls, trainer) -> "DeterministicPPOPolicy":
+    def from_trainer(
+        cls,
+        trainer,
+        *,
+        enable_fusion_cancel_guard: bool = True,
+    ) -> "DeterministicPPOPolicy":
         trainer.model.eval()
         return cls(
             model=trainer.model,
             flattener=trainer.flattener,
             device=trainer.device,
             hidden=trainer.model.initial_state(1, device=trainer.device),
+            fusion_cancel_guard=(
+                FusionCancelActionGuard()
+                if enable_fusion_cancel_guard
+                else None
+            ),
         )
 
     def reset(self) -> None:
         self.hidden = self.model.initial_state(1, device=self.device)
+        if self.fusion_cancel_guard is not None:
+            self.fusion_cancel_guard.reset()
 
     def decision(self, env: ShadowverseEnv, player_id: int) -> PolicyDecision:
-        action_mask = np.asarray(env.action_mask(), dtype=np.bool_)
+        legal_action_mask = np.asarray(env.action_mask(), dtype=np.bool_)
+        action_mask = (
+            legal_action_mask.copy()
+            if self.fusion_cancel_guard is None
+            else self.fusion_cancel_guard.policy_mask(
+                env,
+                player_id,
+                legal_action_mask,
+            )
+        )
         observation = env.observation(
             perspective=player_id,
             action_mask=action_mask,
@@ -127,7 +153,19 @@ class DeterministicPPOPolicy:
             probabilities = torch.softmax(masked, dim=-1)
         self.hidden = hidden.detach()
         action = int(masked.argmax(dim=-1).item())
-        legal_actions = np.flatnonzero(action_mask).tolist()
+        legal_actions = np.flatnonzero(legal_action_mask).tolist()
+        suppressed_actions = tuple(
+            int(action_id)
+            for action_id in np.flatnonzero(
+                legal_action_mask & ~action_mask
+            )
+        )
+        if self.fusion_cancel_guard is not None:
+            self.fusion_cancel_guard.record_selected_action(
+                env,
+                player_id,
+                action,
+            )
         return PolicyDecision(
             action=action,
             value=float(value.reshape(-1)[0].item()),
@@ -139,6 +177,7 @@ class DeterministicPPOPolicy:
                 action_id: float(probabilities[0, action_id].item())
                 for action_id in legal_actions
             },
+            suppressed_actions=suppressed_actions,
         )
 
     def action(self, env: ShadowverseEnv, player_id: int) -> int:
@@ -879,6 +918,10 @@ class MatchSimulator:
                 raise RuntimeError("policy trace action does not match selected action")
             if set(policy_decision.probabilities) != legal_ids:
                 raise RuntimeError("policy trace does not match the legal action set")
+            if not set(policy_decision.suppressed_actions) <= legal_ids:
+                raise RuntimeError(
+                    "policy trace suppressed an engine-illegal action"
+                )
 
         candidates: list[dict[str, Any]] = []
         for candidate in legal_actions:
@@ -897,6 +940,11 @@ class MatchSimulator:
                         if policy_decision is None
                         else policy_decision.probabilities[action_id]
                     ),
+                    "policy_suppressed": (
+                        False
+                        if policy_decision is None
+                        else action_id in policy_decision.suppressed_actions
+                    ),
                 }
             )
         return {
@@ -914,6 +962,11 @@ class MatchSimulator:
             ),
             "value": (
                 None if policy_decision is None else policy_decision.value
+            ),
+            "policy_suppressed_action_ids": (
+                []
+                if policy_decision is None
+                else list(policy_decision.suppressed_actions)
             ),
             "legal_actions": candidates,
         }

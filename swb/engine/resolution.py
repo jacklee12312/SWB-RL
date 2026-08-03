@@ -4956,7 +4956,28 @@ class GameEngine:
             and damage_type is DamageType.COMBAT
             and isinstance(attacker, Unit)
         )
-        if amount <= 0 and not zero_combat_contact:
+        zero_barrier_contact = (
+            amount == 0
+            and (
+                (
+                    isinstance(target, Unit)
+                    and target.barrier_charges > 0
+                )
+                or (
+                    target is None
+                    and self.players[
+                        target_player_index
+                        if target_player_index is not None
+                        else 1 - controller
+                    ].leader_barrier_charges > 0
+                )
+            )
+        )
+        if amount < 0 or (
+            amount == 0
+            and not zero_combat_contact
+            and not zero_barrier_contact
+        ):
             return DamageResult(requested_amount=amount)
 
         if target is not None and isinstance(target, Unit):
@@ -5074,11 +5095,14 @@ class GameEngine:
         health_before = target.health
         prevented = 0
         barrier_consumed = False
+        super_evolution_prevented = False
 
         if (
             amount > 0
             and self._super_evolution_prevents_damage(target, damage_type)
         ):
+            super_evolution_prevented = True
+            prevented += amount
             self._emit(GameEvent(
                 EventType.DAMAGE_PREVENTED, controller,
                 source_id=source.entity_id if hasattr(source, 'entity_id') else None,
@@ -5093,34 +5117,7 @@ class GameEngine:
                 controller,
                 f"{target.definition.name} 的超进化保护阻止了 {amount} 点伤害",
             )
-            if (
-                damage_type is DamageType.COMBAT
-                and isinstance(attacker, Unit)
-                and attacker.has_keyword("必杀")
-            ):
-                self._emit(GameEvent(
-                    EventType.BANE_TRIGGERED,
-                    controller,
-                    source_id=attacker.entity_id,
-                    target_id=target.entity_id,
-                    metadata={"card_id": attacker.definition.card_id},
-                ))
-                self._attempt_effect_destroy_unit(
-                    target,
-                    controller=controller,
-                    source_entity_id=attacker.entity_id,
-                    source_card_id=attacker.definition.card_id,
-                    ability="必杀",
-                )
-            return DamageResult(
-                requested_amount=amount,
-                prevented_amount=amount,
-                actual_amount=0,
-                target_health_before=health_before,
-                target_health_after=health_before,
-                barrier_consumed=False,
-                lethal=False,
-            )
+            amount = 0
 
         replacement = self._printed_incoming_damage_replacement(target)
         if replacement is not None:
@@ -5154,7 +5151,7 @@ class GameEngine:
                     f"变为 {replacement_amount} 点",
                 )
 
-        if amount > 0 and target.barrier_charges > 0:
+        if amount >= 0 and target.barrier_charges > 0:
             target.barrier_charges -= 1
             prevented += amount
             barrier_consumed = True
@@ -5277,10 +5274,17 @@ class GameEngine:
             )
 
         source_name = source.definition.name if hasattr(source, 'definition') else (source.name if source else "效果")
+        prevention_note = (
+            "（超进化保护使伤害变为 0，屏障随后失效）"
+            if super_evolution_prevented and barrier_consumed
+            else "（被屏障阻止）"
+            if barrier_consumed
+            else ""
+        )
         self._log(
             controller,
             f"{source_name} 对 {target.definition.name} 造成 {actual} 点伤害"
-            f"{'（被屏障阻止）' if barrier_consumed else ''}"
+            f"{prevention_note}"
             f"（剩余生命 {target.health}）",
         )
 
@@ -5340,7 +5344,7 @@ class GameEngine:
                     "modifier_ids": replacement_modifier_ids,
                 },
             ))
-        elif modified_amount > 0 and target_player.leader_barrier_charges > 0:
+        elif modified_amount >= 0 and target_player.leader_barrier_charges > 0:
             target_player.leader_barrier_charges -= 1
             prevented = modified_amount
             modified_amount = 0

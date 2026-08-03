@@ -19,7 +19,7 @@
 | 1.15.6 10,000-game stratified sampling | passed | games=10000, strata=98, mask_checks=909158, encountered_cards=824, replays=98 |
 | 1.15.7 bug severity closure | passed | total=8, fixed=8, open_p0=0, open_p1=0 |
 | 1.15.8 portable reproduction collection | passed | confirmed_bugs=8, fixed_bugs=8, portable_package=data/reports/card_bug_audit/repros/SWB-CARD-0008.json, minimized_actions=86 |
-| 1.15.9 frozen implementation manifests | passed | rules_engine_commit=b6f1d95cd2336cc86772e717e5bd09440a8f38a7, catalog_policy_commit=9699ab97b3c9865b047c29168df284f0a933a3ee, database_sha256=df069e713a97493c885266b72f303874035beea571147ba14b77c57c9e631376, rules_sha256=449230d69db016ff99fa27de963f89adc9ac9ac5b54e913991ffe3314e4f2017, catalog_sha256=57a9c1927de54ea5901a02d48d27438211ad9edc24f61ee6bc92d624d707f2f6, tests_sha256=13bbd35f3818e23d23568b1ffcff1bc99e06b86d459a56fd236c2f84524b1d8f |
+| 1.15.9 frozen implementation manifests | passed | rules_engine_commit=6e33275e54b96d2f4b2cb25c6db2135a0aa15fdf, catalog_policy_commit=9699ab97b3c9865b047c29168df284f0a933a3ee, database_sha256=df069e713a97493c885266b72f303874035beea571147ba14b77c57c9e631376, rules_sha256=449230d69db016ff99fa27de963f89adc9ac9ac5b54e913991ffe3314e4f2017, catalog_sha256=57a9c1927de54ea5901a02d48d27438211ad9edc24f61ee6bc92d624d707f2f6, tests_sha256=ef0ffe41b2eb1eb39f510e5d00aab17f110ecfc4905ba99a95134ec5137f493a |
 
 ## 10,000 局分层采样
 
@@ -31,13 +31,13 @@
 
 ## 冻结标识
 
-- 规则引擎提交：`b6f1d95cd2336cc86772e717e5bd09440a8f38a7`
+- 规则引擎提交：`6e33275e54b96d2f4b2cb25c6db2135a0aa15fdf`
 - Catalog 策略提交：`9699ab97b3c9865b047c29168df284f0a933a3ee`
 - 数据库 SHA-256：`df069e713a97493c885266b72f303874035beea571147ba14b77c57c9e631376`
 - 规则 SHA-256：`449230d69db016ff99fa27de963f89adc9ac9ac5b54e913991ffe3314e4f2017`
 - Catalog SHA-256：`57a9c1927de54ea5901a02d48d27438211ad9edc24f61ee6bc92d624d707f2f6`
 - 训练池 SHA-256：`7bdf090f725fcf80bcef59fb42a94d9c2d0b85affd15cde8d838df46016e7146`
-- 测试 SHA-256：`13bbd35f3818e23d23568b1ffcff1bc99e06b86d459a56fd236c2f84524b1d8f`
+- 测试 SHA-256：`ef0ffe41b2eb1eb39f510e5d00aab17f110ecfc4905ba99a95134ec5137f493a`
 
 ## 已知限制
 

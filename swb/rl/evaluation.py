@@ -17,6 +17,7 @@ from swb.engine.environment import (
     ShadowverseEnv,
 )
 from swb.engine.events import EventType
+from swb.rl.action_guard import FusionCancelActionGuard
 from swb.rl.checkpoint import load_checkpoint
 from swb.rl.class_schedule import ALL_CLASS_IDS, normalize_class_ids
 from swb.rl.fixed_decks import get_fixed_training_deck
@@ -84,8 +85,11 @@ def _evaluation_class_matchups(
 
 
 class _Policy:
+    def __init__(self) -> None:
+        self.fusion_cancel_guard = FusionCancelActionGuard()
+
     def reset(self) -> None:
-        pass
+        self.fusion_cancel_guard.reset()
 
     def action(
         self,
@@ -98,16 +102,31 @@ class _Policy:
 
 class _RandomLegalPolicy(_Policy):
     def __init__(self, seed: int):
+        super().__init__()
         self.rng = random.Random(seed)
 
     def action(self, env, player_id, action_mask) -> int:
-        legal = np.flatnonzero(action_mask)
-        return int(legal[self.rng.randrange(legal.size)])
+        policy_mask = self.fusion_cancel_guard.policy_mask(
+            env, player_id, action_mask
+        )
+        legal = np.flatnonzero(policy_mask)
+        action = int(legal[self.rng.randrange(legal.size)])
+        self.fusion_cancel_guard.record_selected_action(
+            env, player_id, action
+        )
+        return action
 
 
 class _FirstLegalPolicy(_Policy):
     def action(self, env, player_id, action_mask) -> int:
-        return int(np.flatnonzero(action_mask)[0])
+        policy_mask = self.fusion_cancel_guard.policy_mask(
+            env, player_id, action_mask
+        )
+        action = int(np.flatnonzero(policy_mask)[0])
+        self.fusion_cancel_guard.record_selected_action(
+            env, player_id, action
+        )
+        return action
 
 
 class _RecurrentPolicy(_Policy):
@@ -118,6 +137,7 @@ class _RecurrentPolicy(_Policy):
         device: torch.device,
         observation_version: str,
     ) -> None:
+        super().__init__()
         self.model = model
         self.flattener = flattener
         self.device = device
@@ -125,17 +145,21 @@ class _RecurrentPolicy(_Policy):
         self.hidden: dict[int, torch.Tensor] = {}
 
     def reset(self) -> None:
+        super().reset()
         self.hidden = {
             player: self.model.initial_state(1, device=self.device)
             for player in (0, 1)
         }
 
     def action(self, env, player_id, action_mask) -> int:
+        policy_mask = self.fusion_cancel_guard.policy_mask(
+            env, player_id, action_mask
+        )
         observation = _policy_observation(
             env,
             observation_version=self.observation_version,
             perspective=player_id,
-            action_mask=action_mask,
+            action_mask=policy_mask,
         )
         vector = torch.from_numpy(self.flattener.encode(observation)).to(
             self.device
@@ -143,7 +167,7 @@ class _RecurrentPolicy(_Policy):
         card_indices = torch.from_numpy(
             self.flattener.encode_cards(observation)
         ).to(self.device).unsqueeze(0)
-        mask = torch.from_numpy(action_mask.astype(np.bool_)).to(
+        mask = torch.from_numpy(policy_mask).to(
             self.device
         ).unsqueeze(0)
         with torch.no_grad():
@@ -152,7 +176,11 @@ class _RecurrentPolicy(_Policy):
             )
             masked = self.model.masked_logits(logits, mask)
         self.hidden[player_id] = hidden
-        return int(masked.argmax(dim=-1).item())
+        action = int(masked.argmax(dim=-1).item())
+        self.fusion_cancel_guard.record_selected_action(
+            env, player_id, action
+        )
+        return action
 
 
 def _policy_observation(
@@ -294,6 +322,14 @@ def _aggregate_metrics(results: list[dict[str, object]]) -> dict[str, object]:
         int(result["action_mask_mismatches"]) for result in results
     )
     illegal_actions = sum(int(result["illegal_actions"]) for result in results)
+    suppressed_decisions = sum(
+        int(result["fusion_retry_suppressed_decisions"])
+        for result in results
+    )
+    suppressed_actions = sum(
+        int(result["fusion_retry_suppressed_actions"])
+        for result in results
+    )
     return {
         "games": games,
         "win_rate": win_rate,
@@ -316,6 +352,8 @@ def _aggregate_metrics(results: list[dict[str, object]]) -> dict[str, object]:
         "illegal_action_rate": illegal_actions / max(1, mask_checks),
         "action_mask_checks": mask_checks,
         "action_mask_mismatches": mask_mismatches,
+        "fusion_retry_suppressed_decisions": suppressed_decisions,
+        "fusion_retry_suppressed_actions": suppressed_actions,
     }
 
 
@@ -597,6 +635,14 @@ def evaluate(
                         "action_mask_checks": mask_checks,
                         "action_mask_mismatches": mask_mismatches,
                         "illegal_actions": illegal_actions,
+                        "fusion_retry_suppressed_decisions": (
+                            learner_policy.fusion_cancel_guard.suppressed_decisions
+                            + opponent.fusion_cancel_guard.suppressed_decisions
+                        ),
+                        "fusion_retry_suppressed_actions": (
+                            learner_policy.fusion_cancel_guard.suppressed_actions
+                            + opponent.fusion_cancel_guard.suppressed_actions
+                        ),
                     })
     finally:
         random.setstate(python_rng)
@@ -693,6 +739,7 @@ def evaluate(
         "model_parameters": sum(
             parameter.numel() for parameter in trainer.model.parameters()
         ),
+        "policy_action_guard": "fusion-cancel-retry-v1",
     }
     if opponent_checkpoint_sha256 is not None:
         configuration["opponent_checkpoint_sha256"] = (

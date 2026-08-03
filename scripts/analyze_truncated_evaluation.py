@@ -278,6 +278,7 @@ def _replay_game(
     configuration: dict[str, object],
     learner_model_id: str,
     opponent_model_id: str,
+    enable_fusion_cancel_guard: bool,
 ) -> dict[str, object]:
     learner_manifest = deck_manifests[str(source_game["learner_deck_sha256"])]
     opponent_manifest = deck_manifests[str(source_game["opponent_deck_sha256"])]
@@ -318,8 +319,14 @@ def _replay_game(
         match_setup=str(configuration["match_setup"]),
     )
     env.reset(seed=engine_seed)
-    learner_policy = DeterministicPPOPolicy.from_trainer(learner_trainer)
-    opponent_policy = DeterministicPPOPolicy.from_trainer(opponent_trainer)
+    learner_policy = DeterministicPPOPolicy.from_trainer(
+        learner_trainer,
+        enable_fusion_cancel_guard=enable_fusion_cancel_guard,
+    )
+    opponent_policy = DeterministicPPOPolicy.from_trainer(
+        opponent_trainer,
+        enable_fusion_cancel_guard=enable_fusion_cancel_guard,
+    )
     learner_policy.reset()
     opponent_policy.reset()
     steps: list[dict[str, object]] = []
@@ -413,11 +420,20 @@ def _aggregate(replays: list[dict[str, object]]) -> dict[str, object]:
     loop_entry_cards: dict[tuple[int, str], Counter[str]] = {}
     loop_probability_samples: dict[tuple[str, str], list[float]] = {}
     portal_involved = 0
+    immediate_fusion_retries = 0
     for replay in replays:
         source = replay["source"]
         if source["learner_class_id"] == 7 or source["opponent_class_id"] == 7:
             portal_involved += 1
         steps = replay["steps"]
+        immediate_fusion_retries += sum(
+            1
+            for current, following in zip(steps, steps[1:])
+            if (
+                current["action"].get("option_id") == "fusion:cancel"
+                and following["action_kind"] == "fusion"
+            )
+        )
         action_kinds.update(str(step["action_kind"]) for step in steps)
         tail_action_kinds.update(
             str(step["action_kind"]) for step in steps[-min(256, len(steps)) :]
@@ -513,8 +529,19 @@ def _aggregate(replays: list[dict[str, object]]) -> dict[str, object]:
         "exact_replay_matches": sum(
             bool(replay["exact_replay_match"]) for replay in replays
         ),
+        "replay_terminated_games": sum(
+            bool(replay["replay"]["terminated"]) for replay in replays
+        ),
+        "replay_truncated_games": sum(
+            bool(replay["replay"]["truncated"]) for replay in replays
+        ),
+        "immediate_fusion_retries_after_cancel": immediate_fusion_retries,
         "portal_involved_games": portal_involved,
         "total_replayed_steps": sum(len(replay["steps"]) for replay in replays),
+        "maximum_replayed_steps": max(
+            (len(replay["steps"]) for replay in replays),
+            default=0,
+        ),
         "classification_counts": dict(classifications.most_common()),
         "dominant_cycle_actor_model_games": dict(actor_models.most_common()),
         "cycle_period_games": {
@@ -574,8 +601,13 @@ def _markdown(report: dict[str, object]) -> str:
         "",
         f"- 来源截断局：{summary['source_truncated_games']}",
         f"- 精确重放一致：{summary['exact_replay_matches']}",
+        f"- 重放正常终局：{summary['replay_terminated_games']}",
+        f"- 重放仍截断：{summary['replay_truncated_games']}",
+        "- 取消融合后立即重开："
+        f"{summary['immediate_fusion_retries_after_cancel']}",
         f"- 涉及超越者：{summary['portal_involved_games']}",
         f"- 重放 agent steps：{summary['total_replayed_steps']}",
+        f"- 最长单局 agent steps：{summary['maximum_replayed_steps']}",
         "- 分类：`"
         + json.dumps(summary["classification_counts"], ensure_ascii=False)
         + "`",
@@ -637,6 +669,7 @@ def build_report(
     learner_checkpoint: Path | None,
     opponent_checkpoint: Path | None,
     device: str,
+    enable_fusion_cancel_guard: bool = False,
 ) -> dict[str, object]:
     source = _read_json(source_report)
     configuration = source["configuration"]
@@ -696,6 +729,7 @@ def build_report(
                 configuration=configuration,
                 learner_model_id=learner_model_id,
                 opponent_model_id=opponent_model_id,
+                enable_fusion_cancel_guard=enable_fusion_cancel_guard,
             )
             for index, game in truncated_games
         ]
@@ -703,7 +737,10 @@ def build_report(
         learner_trainer.close()
         opponent_trainer.close()
     summary = _aggregate(replays)
-    if summary["exact_replay_matches"] != len(replays):
+    if (
+        not enable_fusion_cancel_guard
+        and summary["exact_replay_matches"] != len(replays)
+    ):
         mismatches = [
             replay["source"]["source_game_index"]
             for replay in replays
@@ -726,6 +763,11 @@ def build_report(
             "opponent": {"path": str(opponent_path), "sha256": opponent_sha256},
         },
         "configuration": configuration,
+        "policy_action_guard": (
+            "fusion-cancel-retry-v1"
+            if enable_fusion_cancel_guard
+            else None
+        ),
         "summary": summary,
         "games": replays,
     }
@@ -740,6 +782,14 @@ def main() -> None:
     parser.add_argument("--learner-checkpoint", type=Path)
     parser.add_argument("--opponent-checkpoint", type=Path)
     parser.add_argument("--device", default="cpu")
+    parser.add_argument(
+        "--enable-fusion-cancel-guard",
+        action="store_true",
+        help=(
+            "replay with the production fusion-cancel retry guard; endpoint "
+            "equality with the historical source is then not required"
+        ),
+    )
     parser.add_argument(
         "--output",
         type=Path,
@@ -762,6 +812,7 @@ def main() -> None:
             learner_checkpoint=args.learner_checkpoint,
             opponent_checkpoint=args.opponent_checkpoint,
             device=args.device,
+            enable_fusion_cancel_guard=args.enable_fusion_cancel_guard,
         )
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(

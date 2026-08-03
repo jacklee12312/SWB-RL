@@ -14,6 +14,7 @@ from swb.engine.environment import (
     MATCH_SETUP_VALUES,
     ShadowverseEnv,
 )
+from swb.rl.action_guard import FusionCancelActionGuard
 from swb.rl.class_schedule import class_pair_for_episode, normalize_class_ids
 from swb.rl.deck_schedule import (
     deck_matchup_for_episode,
@@ -403,6 +404,7 @@ class PPOTrainer:
         self.info: dict[str, object] | None = None
         self.current_episode_id: int | None = None
         self.hidden_by_player: dict[int, torch.Tensor] = {}
+        self.fusion_cancel_guard = FusionCancelActionGuard()
         self._policy_vector_rollout = None
         self._historical_models: dict[str, MaskedPolicyNetwork] = {}
         self.last_collect_timing: dict[str, float] = {}
@@ -589,6 +591,7 @@ class PPOTrainer:
             match_setup=self.config.match_setup,
         )
         _, self.info = self.env.reset(seed=seeds.engine_seed)
+        self.fusion_cancel_guard.reset()
         self.current_episode_id = episode_id
         self.current_episode_agent_steps = 0
         if hasattr(self, "model"):
@@ -779,6 +782,10 @@ class PPOTrainer:
         if self.config.rollout_workers > 1:
             return self._collect_vector_rollout()
         collect_started = time.perf_counter()
+        suppressed_decisions_before = (
+            self.fusion_cancel_guard.suppressed_decisions
+        )
+        suppressed_actions_before = self.fusion_cancel_guard.suppressed_actions
         starting_episodes = self.completed_episodes
         records: list[_Record] = []
         bootstrap: dict[tuple[int, int], float] = {}
@@ -789,13 +796,20 @@ class PPOTrainer:
             assert self.current_episode_id is not None
             episode_id = self.current_episode_id
             player_id = self.env.decision_player
+            legal_mask_np = np.asarray(
+                self.info["action_mask"], dtype=np.bool_
+            )
+            mask_np = self.fusion_cancel_guard.policy_mask(
+                self.env,
+                player_id,
+                legal_mask_np,
+            )
             observation = self.env.observation(
                 perspective=player_id,
-                action_mask=self.info["action_mask"],
+                action_mask=mask_np,
             )
             vector_np = self.flattener.encode(observation)
             card_indices_np = self.flattener.encode_cards(observation)
-            mask_np = np.asarray(self.info["action_mask"], dtype=np.bool_)
             vector = torch.from_numpy(vector_np).to(self.device).unsqueeze(0)
             card_indices = torch.from_numpy(card_indices_np).to(
                 self.device
@@ -803,6 +817,11 @@ class PPOTrainer:
             mask = torch.from_numpy(mask_np).to(self.device).unsqueeze(0)
             action, log_prob, value, hidden_before, trainable = self._policy_action(
                 player_id, vector, card_indices, mask
+            )
+            self.fusion_cancel_guard.record_selected_action(
+                self.env,
+                player_id,
+                action,
             )
             result = self.env.step(action)
             index = len(records)
@@ -864,6 +883,14 @@ class PPOTrainer:
             "collect_calls": 1.0,
             "episodes": float(self.completed_episodes - starting_episodes),
             "records": float(len(records)),
+            "fusion_retry_suppressed_decisions": float(
+                self.fusion_cancel_guard.suppressed_decisions
+                - suppressed_decisions_before
+            ),
+            "fusion_retry_suppressed_actions": float(
+                self.fusion_cancel_guard.suppressed_actions
+                - suppressed_actions_before
+            ),
         }
         return records, bootstrap, boundaries
 

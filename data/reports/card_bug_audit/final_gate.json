@@ -34,7 +34,7 @@
     },
     "combat": {
       "path": "data/reports/card_bug_audit/combat_endgame_random_audit.json",
-      "sha256": "356c69394c4aff4a6c14f53a3d9511b9ef9083311d7456349824f9d374b66d3a"
+      "sha256": "64a887b4ad030ff2107d97c1f29d5289f4e86e773936f34523ce8f01115962e8"
     },
     "forced": {
       "path": "data/reports/card_bug_audit/forced_scenario_audit.json",
@@ -54,11 +54,11 @@
     },
     "reproductions": {
       "path": "data/reports/card_bug_audit/stage_1_13_repro_closure.json",
-      "sha256": "ad87862f1dc64ab76bddde9cdb06d2bf59620d1ada15eb828478cd44b5c456df"
+      "sha256": "b9dbd3442e9ada4de30a010765ad59e774d5b9919e77fdfa9495ba1a71b194ae"
     },
     "rulings": {
       "path": "data/audits/card_ruling_reviews.json",
-      "sha256": "d60f0e995482a2faa7efb5d5bb4f2ed224982f1319aa703d3e0ac3ed6fc7a61e"
+      "sha256": "f2f744fba48602f71185b73721622995509cee34a45970fdb2d0b59b6e13fc38"
     },
     "catalog_exclusions": {
       "path": "data/audits/training_catalog_exclusions.json",
@@ -66,7 +66,7 @@
     },
     "rl_interface": {
       "path": "data/reports/card_bug_audit/rl_interface_privacy_audit.json",
-      "sha256": "076ba2d5430d7213d56fcbf87ba61024ccb80cbdf4553c47d0187f2f926f4306"
+      "sha256": "28272cef50ceda70b192a79dc038883c7b5550fc03fc4dc1c2c43f943406698a"
     },
     "database": {
       "path": "data/cards.sqlite3",
@@ -74,7 +74,7 @@
     }
   },
   "frozen": {
-    "rules_engine_commit": "b6f1d95cd2336cc86772e717e5bd09440a8f38a7",
+    "rules_engine_commit": "6e33275e54b96d2f4b2cb25c6db2135a0aa15fdf",
     "catalog_policy_commit": "9699ab97b3c9865b047c29168df284f0a933a3ee",
     "database_sha256": "df069e713a97493c885266b72f303874035beea571147ba14b77c57c9e631376",
     "rules_sha256": "449230d69db016ff99fa27de963f89adc9ac9ac5b54e913991ffe3314e4f2017",
@@ -103,8 +103,8 @@
       "size": 112,
       "sha256": "12598f3acd06e6edb819e3af8ba9299139e85d272adf7b1dca63d93b505ba0da"
     },
-    "tests_sha256": "13bbd35f3818e23d23568b1ffcff1bc99e06b86d459a56fd236c2f84524b1d8f",
-    "scripts_sha256": "76c11019029dddfb7441289f139d14d1f665f703f49de9acd774c6184292a0cf"
+    "tests_sha256": "ef0ffe41b2eb1eb39f510e5d00aab17f110ecfc4905ba99a95134ec5137f493a",
+    "scripts_sha256": "ed8304d9585737da67dc7cbd33a2b0ead8b5db5cdbc0beb1c10f5f6cd16e0b77"
   },
   "gates": [
     {
@@ -315,12 +315,12 @@
       },
       "failed_checks": [],
       "metrics": {
-        "rules_engine_commit": "b6f1d95cd2336cc86772e717e5bd09440a8f38a7",
+        "rules_engine_commit": "6e33275e54b96d2f4b2cb25c6db2135a0aa15fdf",
         "catalog_policy_commit": "9699ab97b3c9865b047c29168df284f0a933a3ee",
         "database_sha256": "df069e713a97493c885266b72f303874035beea571147ba14b77c57c9e631376",
         "rules_sha256": "449230d69db016ff99fa27de963f89adc9ac9ac5b54e913991ffe3314e4f2017",
         "catalog_sha256": "57a9c1927de54ea5901a02d48d27438211ad9edc24f61ee6bc92d624d707f2f6",
-        "tests_sha256": "13bbd35f3818e23d23568b1ffcff1bc99e06b86d459a56fd236c2f84524b1d8f"
+        "tests_sha256": "ef0ffe41b2eb1eb39f510e5d00aab17f110ecfc4905ba99a95134ec5137f493a"
       },
       "evidence": [
         "data/cards.sqlite3",

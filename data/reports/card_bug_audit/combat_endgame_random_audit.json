@@ -753,7 +753,7 @@
       },
       {
         "path": "swb/engine/resolution.py",
-        "line": 6214,
+        "line": 6218,
         "function": "_continue_effects",
         "owner": "self.random",
         "method": "choice",
@@ -762,7 +762,7 @@
       },
       {
         "path": "swb/engine/resolution.py",
-        "line": 6280,
+        "line": 6284,
         "function": "_continue_effects",
         "owner": "self.random",
         "method": "choice",
@@ -771,7 +771,7 @@
       },
       {
         "path": "swb/engine/resolution.py",
-        "line": 6283,
+        "line": 6287,
         "function": "_continue_effects",
         "owner": "self.random",
         "method": "choice",
@@ -780,7 +780,7 @@
       },
       {
         "path": "swb/engine/resolution.py",
-        "line": 6288,
+        "line": 6292,
         "function": "_continue_effects",
         "owner": "self.random",
         "method": "sample",
@@ -789,16 +789,7 @@
       },
       {
         "path": "swb/engine/resolution.py",
-        "line": 6852,
-        "function": "_set_auto_selected_targets",
-        "owner": "self.random",
-        "method": "choice",
-        "evidence": "transition event and resulting state",
-        "passed": true
-      },
-      {
-        "path": "swb/engine/resolution.py",
-        "line": 6855,
+        "line": 6856,
         "function": "_set_auto_selected_targets",
         "owner": "self.random",
         "method": "choice",
@@ -810,13 +801,22 @@
         "line": 6859,
         "function": "_set_auto_selected_targets",
         "owner": "self.random",
+        "method": "choice",
+        "evidence": "transition event and resulting state",
+        "passed": true
+      },
+      {
+        "path": "swb/engine/resolution.py",
+        "line": 6863,
+        "function": "_set_auto_selected_targets",
+        "owner": "self.random",
         "method": "sample",
         "evidence": "transition event and resulting state",
         "passed": true
       },
       {
         "path": "swb/engine/resolution.py",
-        "line": 8264,
+        "line": 8268,
         "function": "_continue_turn_start_invocations",
         "owner": "self.random",
         "method": "choice",
@@ -825,7 +825,7 @@
       },
       {
         "path": "swb/engine/resolution.py",
-        "line": 8591,
+        "line": 8595,
         "function": "_draw_filtered",
         "owner": "self.random",
         "method": "choice",
@@ -834,7 +834,7 @@
       },
       {
         "path": "swb/engine/resolution.py",
-        "line": 9852,
+        "line": 9856,
         "function": "_execute_add_random_keywords",
         "owner": "self.random",
         "method": "sample",
@@ -843,7 +843,7 @@
       },
       {
         "path": "swb/engine/resolution.py",
-        "line": 10368,
+        "line": 10372,
         "function": "_execute_replace_deck",
         "owner": "self.random",
         "method": "shuffle",
@@ -852,7 +852,7 @@
       },
       {
         "path": "swb/engine/resolution.py",
-        "line": 10736,
+        "line": 10740,
         "function": "_execute_copy_random_enemy_deck_to_hand",
         "owner": "self.random",
         "method": "sample",
@@ -861,7 +861,7 @@
       },
       {
         "path": "swb/engine/resolution.py",
-        "line": 10835,
+        "line": 10839,
         "function": "_execute_copy_destroyed_followers_to_hand",
         "owner": "self.random",
         "method": "sample",
@@ -870,7 +870,7 @@
       },
       {
         "path": "swb/engine/resolution.py",
-        "line": 10937,
+        "line": 10941,
         "function": "_execute_summon_destroyed_amulets",
         "owner": "self.random",
         "method": "sample",
@@ -879,7 +879,7 @@
       },
       {
         "path": "swb/engine/resolution.py",
-        "line": 11006,
+        "line": 11010,
         "function": "_execute_redraw_hand",
         "owner": "self.random",
         "method": "randint",
@@ -888,7 +888,7 @@
       },
       {
         "path": "swb/engine/resolution.py",
-        "line": 11435,
+        "line": 11439,
         "function": "_execute_transform_hand_from_random_enemy_deck",
         "owner": "self.random",
         "method": "choice",
@@ -897,7 +897,7 @@
       },
       {
         "path": "swb/engine/resolution.py",
-        "line": 11502,
+        "line": 11506,
         "function": "_execute_transform_board_from_random_own_deck",
         "owner": "self.random",
         "method": "choice",
@@ -906,7 +906,7 @@
       },
       {
         "path": "swb/engine/resolution.py",
-        "line": 11987,
+        "line": 11991,
         "function": "_execute_reanimate",
         "owner": "self.random",
         "method": "choice",
@@ -915,7 +915,7 @@
       },
       {
         "path": "swb/engine/resolution.py",
-        "line": 13440,
+        "line": 13444,
         "function": "_execute_choose_one",
         "owner": "self.random",
         "method": "sample",
@@ -924,7 +924,7 @@
       },
       {
         "path": "swb/engine/resolution.py",
-        "line": 13795,
+        "line": 13799,
         "function": "_execute_summon_from_deck",
         "owner": "self.random",
         "method": "choice",
@@ -933,7 +933,7 @@
       },
       {
         "path": "swb/engine/resolution.py",
-        "line": 14245,
+        "line": 14249,
         "function": "_execute_random_distribute",
         "owner": "self.random",
         "method": "randrange",
@@ -942,7 +942,7 @@
       },
       {
         "path": "swb/engine/resolution.py",
-        "line": 14349,
+        "line": 14353,
         "function": "_execute_random_choice",
         "owner": "self.random",
         "method": "sample",
@@ -951,7 +951,7 @@
       },
       {
         "path": "swb/engine/resolution.py",
-        "line": 14655,
+        "line": 14659,
         "function": "_execute_add_card_to_deck",
         "owner": "self.random",
         "method": "randint",
@@ -960,7 +960,7 @@
       },
       {
         "path": "swb/engine/resolution.py",
-        "line": 14759,
+        "line": 14763,
         "function": "_execute_return_to_deck",
         "owner": "self.random",
         "method": "randint",
@@ -969,7 +969,7 @@
       },
       {
         "path": "swb/engine/resolution.py",
-        "line": 14788,
+        "line": 14792,
         "function": "_execute_return_to_deck",
         "owner": "self.random",
         "method": "randint",

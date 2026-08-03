@@ -7,7 +7,7 @@ from swb.engine.card_rules import CardRule, RuleBook, Trigger
 from swb.engine.commands import Choose, PlayCard, Attack
 from swb.engine.effects import EffectKind, EffectOperation, TargetKind
 from swb.engine.events import EventType
-from swb.engine.resolution import GameEngine, IllegalCommand
+from swb.engine.resolution import DamageType, GameEngine, IllegalCommand
 from swb.engine.state import Unit, DeathCause
 from swb.engine.events import EventType
 
@@ -217,13 +217,73 @@ class BarrierTests(unittest.TestCase):
         eng.apply(Attack(0, a.entity_id, bu.entity_id))
         self.assertEqual(bu.health, 2)
 
-    def test_zero_no_barrier_consume(self):
+    def test_zero_combat_damage_consumes_barrier(self):
         eng = mkengine()
         a = mkunit(eng, 900, attack=0, life=5); a.can_attack = True
         bu = mkunit(eng, 901, keywords=frozenset({"屏障"}), attack=1, life=3)
         eng.players[0].board = [a]; eng.players[1].board = [bu]
-        eng.apply(Attack(0, a.entity_id, bu.entity_id))
-        self.assertEqual(bu.barrier_charges, 1)
+        transition = eng.apply(Attack(0, a.entity_id, bu.entity_id))
+        self.assertEqual(bu.barrier_charges, 0)
+        self.assertEqual(bu.health, 3)
+        self.assertTrue(any(
+            event.type is EventType.BARRIER_CONSUMED
+            and event.target_id == bu.entity_id
+            for event in transition.events
+        ))
+
+    def test_super_evolution_prevention_still_consumes_barrier(self):
+        eng = mkengine()
+        protected = mkunit(
+            eng,
+            900,
+            keywords=frozenset({"屏障"}),
+            attack=1,
+            life=5,
+        )
+        protected.super_evolved = True
+        protected.can_attack = True
+        defender = mkunit(eng, 901, attack=3, life=5)
+        eng.players[0].board = [protected]
+        eng.players[1].board = [defender]
+
+        transition = eng.apply(
+            Attack(0, protected.entity_id, defender.entity_id)
+        )
+
+        self.assertEqual(protected.health, 5)
+        self.assertEqual(protected.barrier_charges, 0)
+        self.assertTrue(any(
+            event.type is EventType.DAMAGE_PREVENTED
+            and event.target_id == protected.entity_id
+            and event.metadata.get("super_evolved") is True
+            for event in transition.events
+        ))
+        self.assertTrue(any(
+            event.type is EventType.BARRIER_CONSUMED
+            and event.target_id == protected.entity_id
+            for event in transition.events
+        ))
+        self.assertTrue(any(
+            "屏障随后失效" in message
+            for message in eng.logs
+        ))
+
+    def test_zero_effect_damage_consumes_leader_barrier(self):
+        eng = mkengine()
+        eng.players[1].leader_barrier_charges = 1
+
+        result = eng.apply_damage(
+            None,
+            None,
+            0,
+            DamageType.EFFECT,
+            0,
+            target_player_index=1,
+        )
+
+        self.assertTrue(result.barrier_consumed)
+        self.assertEqual(result.actual_amount, 0)
+        self.assertEqual(eng.players[1].leader_barrier_charges, 0)
 
     def test_destroy_bypasses_barrier(self):
         rulebook = RuleBook((CardRule(card_id=1, trigger=Trigger.PLAY, operations=(

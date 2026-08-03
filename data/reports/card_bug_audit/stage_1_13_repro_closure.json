@@ -13,7 +13,7 @@
   "portable_reproduction": {
     "bug_id": "SWB-CARD-0008",
     "package": "data/reports/card_bug_audit/repros/SWB-CARD-0008.json",
-    "package_sha256": "9717f1b81ac5f1b459e278518aac0816fbccac85ff4bd554facb72f152ac10eb",
+    "package_sha256": "c5f484aac462b8347266c087eeeb3e0d7a2feb1123948b699006802aa4c88c04",
     "database_and_rule_hashes_present": true,
     "exact_decks_and_seed_present": true,
     "pre_command_snapshot_present": true,

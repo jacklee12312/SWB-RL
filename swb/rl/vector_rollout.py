@@ -20,6 +20,7 @@ from swb.engine.environment import (
     MATCH_SETUP_VALUES,
     ShadowverseEnv,
 )
+from swb.rl.action_guard import FusionCancelActionGuard
 from swb.rl.class_schedule import class_pair_for_episode, normalize_class_ids
 from swb.rl.deck_schedule import (
     DeckMatchup,
@@ -421,11 +422,16 @@ def _run_episode(
         rulebook_sha256=snapshot.rulebook_sha256,
     ).to_dict()
     chooser = random.Random(seeds.policy_seed)
+    fusion_cancel_guard = FusionCancelActionGuard()
     steps: list[TrajectoryStep] = []
     seen_players: set[int] = set()
     while not env.terminated and not env.truncated:
         player_id = env.decision_player
-        mask = np.asarray(info["action_mask"], dtype=np.int8)
+        mask = fusion_cancel_guard.policy_mask(
+            env,
+            player_id,
+            info["action_mask"],
+        ).astype(np.int8, copy=False)
         legal = np.flatnonzero(mask)
         if legal.size == 0:
             raise RuntimeError(
@@ -436,6 +442,7 @@ def _run_episode(
             perspective=player_id,
             action_mask=mask,
         )
+        fusion_cancel_guard.record_selected_action(env, player_id, action)
         result = env.step(action)
         steps.append(TrajectoryStep(
             episode_id=episode_id,
@@ -575,6 +582,7 @@ def _run_central_policy_episode(
     observation, info = env.reset(seed=seeds.engine_seed)
     reset_seconds = time.perf_counter() - reset_started
     flattener = ObservationFlattener.from_observation(observation)
+    fusion_cancel_guard = FusionCancelActionGuard()
     setup_seconds = time.perf_counter() - setup_started
     observation_seconds = 0.0
     decision_observation_construction_seconds = 0.0
@@ -598,7 +606,11 @@ def _run_central_policy_episode(
         player_id = env.decision_player
         vector_np = flattener.encode(observation)
         card_indices_np = flattener.encode_cards(observation)
-        mask_np = np.asarray(info["action_mask"], dtype=np.bool_)
+        mask_np = fusion_cancel_guard.policy_mask(
+            env,
+            player_id,
+            info["action_mask"],
+        )
         observation_seconds += time.perf_counter() - observation_started
 
         inference_started = time.perf_counter()
@@ -657,6 +669,7 @@ def _run_central_policy_episode(
             time.perf_counter() - inference_started
         )
 
+        fusion_cancel_guard.record_selected_action(env, player_id, action)
         engine_step_started = time.perf_counter()
         phase_before_step = str(info["phase"])
         step_timing: dict[str, float] = {}
@@ -771,6 +784,12 @@ def _run_central_policy_episode(
             ),
             "worker_terminated_episode_count": float(env.terminated),
             "worker_truncated_episode_count": float(env.truncated),
+            "worker_fusion_retry_suppressed_decisions": float(
+                fusion_cancel_guard.suppressed_decisions
+            ),
+            "worker_fusion_retry_suppressed_actions": float(
+                fusion_cancel_guard.suppressed_actions
+            ),
             "worker_torch_threads": float(config.worker_torch_threads),
         },
     ))

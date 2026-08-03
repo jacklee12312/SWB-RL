@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "state": "completed",
+  "launcher_pid": 47844,
+  "active_seed": "",
+  "completed_seeds": [
+    "20260831",
+    "20260901",
+    "20260902"
+  ],
+  "queued_seeds": [],
+  "target_agent_steps": 3000000,
+  "updated_at": "2026-08-03T13:49:35.8430864+08:00",
+  "error": ""
+}
