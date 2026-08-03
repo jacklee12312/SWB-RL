@@ -131,7 +131,7 @@ type MatchState = {
   deck: { name: string; display_name: string; sha256: string };
   human_deck: DeckOption;
   ai_deck: DeckOption;
-  specialist_deck: DeckOption;
+  specialist_deck: DeckOption | null;
   available_decks: DeckOption[];
   model?: ModelOption;
   available_models?: ModelOption[];
@@ -1034,7 +1034,7 @@ export default function Home() {
               {state.available_decks.map((deck) => (
                 <option value={deck.name} key={deck.name}>
                   {deck.display_name}
-                  {deck.name === state.specialist_deck.name ? " · 专精" : ""}
+                  {deck.name === state.specialist_deck?.name ? " · 专精" : ""}
                 </option>
               ))}
             </select>

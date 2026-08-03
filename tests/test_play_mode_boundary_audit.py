@@ -172,12 +172,14 @@ class PlayModeBoundaryAuditTests(unittest.TestCase):
             (ROOT / DEFAULT_OUTPUT).read_text(encoding="utf-8")
         )
         normalized = json.loads(render_json(self.report))
-        # Stage 1 reports are frozen evidence. Later non-semantic timing
-        # instrumentation may change this source hash without changing the
-        # report inputs or conclusions.
-        normalized["inputs"]["environment_source_sha256"] = (
-            saved["inputs"]["environment_source_sha256"]
-        )
+        # Stage 1 reports are frozen evidence. Later unrelated engine changes
+        # may change these source hashes without changing any play-mode input
+        # or conclusion.
+        for source_name in (
+            "environment_source_sha256",
+            "resolution_source_sha256",
+        ):
+            normalized["inputs"][source_name] = saved["inputs"][source_name]
         self.assertEqual(
             saved,
             normalized,

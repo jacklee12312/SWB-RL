@@ -1,0 +1,327 @@
+{
+  "schema_version": 1,
+  "action_layout_version": "action-112-v2",
+  "device": "cuda",
+  "summary": {
+    "case_count": 1,
+    "checkpoint_count": 3,
+    "evaluation_count": 3,
+    "passed": 0,
+    "failed": 3,
+    "pass_rate": 0.0
+  },
+  "results": [
+    {
+      "case_id": "TACT-SE-0001",
+      "title": "空场时优先超进化可立即攻击的疾驰随从",
+      "checkpoint": {
+        "path": "data/checkpoints/ppo_7x7_scaling_20260801/seed_20260831/final.pt",
+        "sha256": "467ff95315fba565ffcb7dea5dd574cd43b2c8d4dcc96ec27d2a8feb6f0469d3"
+      },
+      "replay": {
+        "valid": true,
+        "state_sha256": "4bcf97fcfd855422a46e25d2360670fed9f16321a6fe4f6eaa99670e96d5ec65",
+        "prefix_action_count": 72,
+        "prefix_policy_decisions": 36,
+        "prefix_top1_matches_recorded": 24,
+        "prefix_top1_match_rate": 0.6666666666666666,
+        "teacher_forced_divergences": [
+          {
+            "sequence": 1,
+            "recorded_action_id": 45,
+            "checkpoint_top1_action_id": 59
+          },
+          {
+            "sequence": 9,
+            "recorded_action_id": 6,
+            "checkpoint_top1_action_id": 5
+          },
+          {
+            "sequence": 15,
+            "recorded_action_id": 10,
+            "checkpoint_top1_action_id": 5
+          },
+          {
+            "sequence": 16,
+            "recorded_action_id": 7,
+            "checkpoint_top1_action_id": 5
+          },
+          {
+            "sequence": 23,
+            "recorded_action_id": 7,
+            "checkpoint_top1_action_id": 5
+          },
+          {
+            "sequence": 31,
+            "recorded_action_id": 6,
+            "checkpoint_top1_action_id": 2
+          },
+          {
+            "sequence": 32,
+            "recorded_action_id": 42,
+            "checkpoint_top1_action_id": 41
+          },
+          {
+            "sequence": 46,
+            "recorded_action_id": 12,
+            "checkpoint_top1_action_id": 18
+          },
+          {
+            "sequence": 48,
+            "recorded_action_id": 17,
+            "checkpoint_top1_action_id": 2
+          },
+          {
+            "sequence": 54,
+            "recorded_action_id": 1,
+            "checkpoint_top1_action_id": 3
+          },
+          {
+            "sequence": 66,
+            "recorded_action_id": 1,
+            "checkpoint_top1_action_id": 3
+          },
+          {
+            "sequence": 71,
+            "recorded_action_id": 1,
+            "checkpoint_top1_action_id": 2
+          }
+        ]
+      },
+      "target": {
+        "sequence": 73,
+        "value": 0.47530215978622437,
+        "selected_action": {
+          "action_id": 107,
+          "kind": "super_evolve",
+          "label": "超进化 天司长的继承者·圣德芬",
+          "probability": 0.9999520778656006
+        },
+        "preferred": [
+          {
+            "selector": {
+              "kind": "super_evolve",
+              "source_card_id": 10461110,
+              "source_name": "英雄幻视·托路",
+              "source_occurrence": 0
+            },
+            "action_id": 106,
+            "label": "超进化 英雄幻视·托路",
+            "logit": 4.407201290130615,
+            "probability": 4.764236291521229e-05
+          }
+        ],
+        "disfavored": [
+          {
+            "selector": {
+              "kind": "super_evolve",
+              "source_card_id": 10404110,
+              "source_name": "天司长的继承者·圣德芬",
+              "source_occurrence": 0
+            },
+            "action_id": 107,
+            "label": "超进化 天司长的继承者·圣德芬",
+            "logit": 14.358941078186035,
+            "probability": 0.9999520778656006
+          }
+        ],
+        "preferred_probability": 4.764236291521229e-05,
+        "disfavored_probability": 0.9999520778656006,
+        "comparison_preferred_probability": 4.7642376244190604e-05,
+        "pairwise_logit_margin": -9.95173978805542,
+        "pairwise_pass": false,
+        "top1_preferred": false,
+        "pass": false
+      },
+      "timing_seconds": {
+        "load_and_setup": 1.3044863000977784,
+        "prefix_and_target": 1.4751941000577062,
+        "total": 2.840640300186351
+      }
+    },
+    {
+      "case_id": "TACT-SE-0001",
+      "title": "空场时优先超进化可立即攻击的疾驰随从",
+      "checkpoint": {
+        "path": "data/checkpoints/ppo_7x7_scaling_20260801/seed_20260901/final.pt",
+        "sha256": "6f54cf6c002c7131d3e7b2e7218b7dd2881b7652ddd7968bad20ee8b914aca63"
+      },
+      "replay": {
+        "valid": true,
+        "state_sha256": "4bcf97fcfd855422a46e25d2360670fed9f16321a6fe4f6eaa99670e96d5ec65",
+        "prefix_action_count": 72,
+        "prefix_policy_decisions": 36,
+        "prefix_top1_matches_recorded": 36,
+        "prefix_top1_match_rate": 1.0,
+        "teacher_forced_divergences": []
+      },
+      "target": {
+        "sequence": 73,
+        "value": 0.718513011932373,
+        "selected_action": {
+          "action_id": 107,
+          "kind": "super_evolve",
+          "label": "超进化 天司长的继承者·圣德芬",
+          "probability": 0.9999786615371704
+        },
+        "preferred": [
+          {
+            "selector": {
+              "kind": "super_evolve",
+              "source_card_id": 10461110,
+              "source_name": "英雄幻视·托路",
+              "source_occurrence": 0
+            },
+            "action_id": 106,
+            "label": "超进化 英雄幻视·托路",
+            "logit": -1.942903995513916,
+            "probability": 2.0438612409634516e-05
+          }
+        ],
+        "disfavored": [
+          {
+            "selector": {
+              "kind": "super_evolve",
+              "source_card_id": 10404110,
+              "source_name": "天司长的继承者·圣德芬",
+              "source_occurrence": 0
+            },
+            "action_id": 107,
+            "label": "超进化 天司长的继承者·圣德芬",
+            "logit": 8.855158805847168,
+            "probability": 0.9999786615371704
+          }
+        ],
+        "preferred_probability": 2.0438612409634516e-05,
+        "disfavored_probability": 0.9999786615371704,
+        "comparison_preferred_probability": 2.0438630801345027e-05,
+        "pairwise_logit_margin": -10.798062801361084,
+        "pairwise_pass": false,
+        "top1_preferred": false,
+        "pass": false
+      },
+      "timing_seconds": {
+        "load_and_setup": 0.6449486999772489,
+        "prefix_and_target": 1.1724924000445753,
+        "total": 1.8759637998882681
+      }
+    },
+    {
+      "case_id": "TACT-SE-0001",
+      "title": "空场时优先超进化可立即攻击的疾驰随从",
+      "checkpoint": {
+        "path": "data/checkpoints/ppo_7x7_scaling_20260801/seed_20260902/final.pt",
+        "sha256": "2572dc44c930cf52fa6ad772b721382675b5865861156b64ccaa274d8d7d4a6f"
+      },
+      "replay": {
+        "valid": true,
+        "state_sha256": "4bcf97fcfd855422a46e25d2360670fed9f16321a6fe4f6eaa99670e96d5ec65",
+        "prefix_action_count": 72,
+        "prefix_policy_decisions": 36,
+        "prefix_top1_matches_recorded": 27,
+        "prefix_top1_match_rate": 0.75,
+        "teacher_forced_divergences": [
+          {
+            "sequence": 9,
+            "recorded_action_id": 6,
+            "checkpoint_top1_action_id": 5
+          },
+          {
+            "sequence": 15,
+            "recorded_action_id": 10,
+            "checkpoint_top1_action_id": 5
+          },
+          {
+            "sequence": 16,
+            "recorded_action_id": 7,
+            "checkpoint_top1_action_id": 5
+          },
+          {
+            "sequence": 31,
+            "recorded_action_id": 6,
+            "checkpoint_top1_action_id": 5
+          },
+          {
+            "sequence": 32,
+            "recorded_action_id": 42,
+            "checkpoint_top1_action_id": 41
+          },
+          {
+            "sequence": 46,
+            "recorded_action_id": 12,
+            "checkpoint_top1_action_id": 18
+          },
+          {
+            "sequence": 47,
+            "recorded_action_id": 17,
+            "checkpoint_top1_action_id": 2
+          },
+          {
+            "sequence": 48,
+            "recorded_action_id": 17,
+            "checkpoint_top1_action_id": 2
+          },
+          {
+            "sequence": 72,
+            "recorded_action_id": 1,
+            "checkpoint_top1_action_id": 106
+          }
+        ]
+      },
+      "target": {
+        "sequence": 73,
+        "value": 0.6610556840896606,
+        "selected_action": {
+          "action_id": 107,
+          "kind": "super_evolve",
+          "label": "超进化 天司长的继承者·圣德芬",
+          "probability": 0.7986937165260315
+        },
+        "preferred": [
+          {
+            "selector": {
+              "kind": "super_evolve",
+              "source_card_id": 10461110,
+              "source_name": "英雄幻视·托路",
+              "source_occurrence": 0
+            },
+            "action_id": 106,
+            "label": "超进化 英雄幻视·托路",
+            "logit": 10.07936954498291,
+            "probability": 0.2000925987958908
+          }
+        ],
+        "disfavored": [
+          {
+            "selector": {
+              "kind": "super_evolve",
+              "source_card_id": 10404110,
+              "source_name": "天司长的继承者·圣德芬",
+              "source_occurrence": 0
+            },
+            "action_id": 107,
+            "label": "超进化 天司长的继承者·圣德芬",
+            "logit": 11.463566780090332,
+            "probability": 0.7986937165260315
+          }
+        ],
+        "preferred_probability": 0.2000925987958908,
+        "disfavored_probability": 0.7986937165260315,
+        "comparison_preferred_probability": 0.20033574321790568,
+        "pairwise_logit_margin": -1.3841972351074219,
+        "pairwise_pass": false,
+        "top1_preferred": false,
+        "pass": false
+      },
+      "timing_seconds": {
+        "load_and_setup": 0.5365522000938654,
+        "prefix_and_target": 1.177757800091058,
+        "total": 1.7707728000823408
+      }
+    }
+  ],
+  "generated_at": "2026-08-02T08:49:40.400215+00:00",
+  "case_files": [
+    "data/tactical_scenarios/TACT-SE-0001-empty-board-storm.json"
+  ]
+}

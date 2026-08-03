@@ -1615,7 +1615,7 @@ class GameEngine:
         for unit in player.board:
             if not isinstance(unit, Unit):
                 continue
-            if not unit.can_attack or unit.attacks_remaining <= 0 or unit.attack <= 0:
+            if not unit.can_attack or unit.attacks_remaining <= 0:
                 continue
             effective_guards = (
                 []

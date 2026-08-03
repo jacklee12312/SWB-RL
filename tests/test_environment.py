@@ -219,6 +219,24 @@ class EnvironmentTests(unittest.TestCase):
         self.assertTrue(mask[base + 1])
         self.assertFalse(mask[base + 2])
 
+    def test_zero_attack_bane_mask_exposes_executable_attacks(self) -> None:
+        attacker = Unit.summon(
+            card(100, attack=0, life=2, keywords=frozenset({"必杀"}))
+        )
+        attacker.can_attack = True
+        defender = Unit.summon(card(101, attack=1, life=3))
+        self.env.players[0].board = [attacker]
+        self.env.players[1].board = [defender]
+
+        mask = self.env.action_mask()
+        base = ShadowverseEnv.ATTACK_OFFSET
+        self.assertTrue(mask[base])
+        self.assertTrue(mask[base + 1])
+
+        result = self.env.step(base + 1)
+        self.assertNotIn(defender, self.env.players[1].board)
+        self.assertFalse(result.terminated)
+
     def test_terminal_reward_belongs_to_actor(self) -> None:
         attacker = Unit.summon(card(100, attack=20, life=1))
         attacker.can_attack = True

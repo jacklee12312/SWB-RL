@@ -56,12 +56,13 @@ class FullPoolGateTests(unittest.TestCase):
             )
 
         current_normalized = json.loads(render_json(self.report))
-        # The Stage 1 gate is a frozen historical artifact. Later ruling-audit
-        # metadata may link new client-reproduction evidence without changing
-        # the frozen ruling conclusion or any gate result.
-        current_normalized["inputs"]["rulings"]["sha256"] = (
-            self.saved_report["inputs"]["rulings"]["sha256"]
-        )
+        # The Stage 1 gate is a frozen historical artifact. Later audit
+        # metadata may change without changing the frozen conclusion or any
+        # gate result.
+        for input_name in ("rulings", "rl_interface"):
+            current_normalized["inputs"][input_name]["sha256"] = (
+                self.saved_report["inputs"][input_name]["sha256"]
+            )
         for field in ("tests_sha256", "scripts_sha256"):
             current_normalized["frozen"][field] = (
                 self.saved_report["frozen"][field]

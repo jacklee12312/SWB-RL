@@ -7,6 +7,8 @@ import unittest
 from pathlib import Path
 from types import SimpleNamespace
 
+import torch
+
 from swb.engine.events import EventType, GameEvent
 from swb.engine.state import HandCard
 from swb.simulator import MatchSimulator
@@ -383,6 +385,52 @@ class MatchSimulatorTests(unittest.TestCase):
             self.assertEqual(switched["checkpoint"], "model-b.pt")
             record = simulator.match_history(switched["match_id"])
             self.assertEqual(record["checkpoint"], "model-b.pt")
+
+    def test_generalist_checkpoint_without_training_deck_is_playable(self) -> None:
+        source = (
+            PROJECT_ROOT
+            / "data"
+            / "checkpoints"
+            / "ppo_evolve_haven_100k.pt"
+        )
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            checkpoint = root / "generalist.pt"
+            payload = torch.load(
+                source,
+                map_location="cpu",
+                weights_only=False,
+            )
+            payload["trainer"]["config"]["training_deck"] = None
+            torch.save(payload, checkpoint)
+            simulator = MatchSimulator(
+                database=PROJECT_ROOT / "data" / "cards.sqlite3",
+                checkpoint=checkpoint,
+                checkpoint_directory=root,
+                card_catalog=PROJECT_ROOT / "shadowverse_cards.json",
+                image_directory=PROJECT_ROOT / "data" / "card_images",
+                history_directory=root / "history",
+            )
+
+            state = simulator.new_match(
+                seed=49,
+                human_player=0,
+                human_deck="international_qr_forest_20260728",
+                ai_deck="international_qr_sword_20260728",
+            )
+
+            self.assertIsNone(state["specialist_deck"])
+            self.assertEqual(
+                state["human_deck"]["name"],
+                "international_qr_forest_20260728",
+            )
+            self.assertEqual(
+                state["ai_deck"]["name"],
+                "international_qr_sword_20260728",
+            )
+            self.assertFalse(
+                any("固定专精卡组" in warning for warning in state["warnings"])
+            )
 
     def test_invalid_model_selection_does_not_abandon_current_match(self) -> None:
         current = self.simulator.new_match(seed=53, human_player=0)

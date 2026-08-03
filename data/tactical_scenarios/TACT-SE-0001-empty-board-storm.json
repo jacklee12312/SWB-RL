@@ -1,0 +1,624 @@
+{
+  "schema_version": 1,
+  "case_id": "TACT-SE-0001",
+  "title": "空场时优先超进化可立即攻击的疾驰随从",
+  "category": "super_evolution_target",
+  "objective": "prefer_immediate_leader_pressure",
+  "provenance": {
+    "source_history": "data/match_history/20260802T081708672593Z-0ca7034d.json",
+    "source_history_sha256": "bd85d434bf3ac9a43a563345476ac605a6407bac9f5314227d4935a4529326e4",
+    "match_id": "20260802T081708672593Z-0ca7034d",
+    "source_checkpoint": "seed_20260901/final.pt"
+  },
+  "setup": {
+    "seed": 1217430456,
+    "human_player": 0,
+    "evaluated_player": 1,
+    "human_deck": "international_qr_dragon_20260728",
+    "human_deck_sha256": "78955d8897955478067dc5810ad1eac7224b8a2262ce280d03035fff816d829b",
+    "ai_deck": "official_qr_evolve_haven_20260727",
+    "ai_deck_sha256": "c6d0184d738b70c1a3201a124c609d00a47648134d13a2f34c103806aff57fa5",
+    "match_setup": "official",
+    "action_layout_version": "action-112-v2"
+  },
+  "prefix": {
+    "actions": [
+      {
+        "sequence": 1,
+        "player_index": 1,
+        "actor_role": "ai",
+        "action_id": 45,
+        "kind": "choice"
+      },
+      {
+        "sequence": 2,
+        "player_index": 0,
+        "actor_role": "human",
+        "action_id": 52,
+        "kind": "choice"
+      },
+      {
+        "sequence": 3,
+        "player_index": 1,
+        "actor_role": "ai",
+        "action_id": 0,
+        "kind": "end_turn"
+      },
+      {
+        "sequence": 4,
+        "player_index": 0,
+        "actor_role": "human",
+        "action_id": 0,
+        "kind": "end_turn"
+      },
+      {
+        "sequence": 5,
+        "player_index": 1,
+        "actor_role": "ai",
+        "action_id": 0,
+        "kind": "end_turn"
+      },
+      {
+        "sequence": 6,
+        "player_index": 0,
+        "actor_role": "human",
+        "action_id": 5,
+        "kind": "play"
+      },
+      {
+        "sequence": 7,
+        "player_index": 0,
+        "actor_role": "human",
+        "action_id": 46,
+        "kind": "choice"
+      },
+      {
+        "sequence": 8,
+        "player_index": 0,
+        "actor_role": "human",
+        "action_id": 0,
+        "kind": "end_turn"
+      },
+      {
+        "sequence": 9,
+        "player_index": 1,
+        "actor_role": "ai",
+        "action_id": 6,
+        "kind": "play"
+      },
+      {
+        "sequence": 10,
+        "player_index": 1,
+        "actor_role": "ai",
+        "action_id": 46,
+        "kind": "choice"
+      },
+      {
+        "sequence": 11,
+        "player_index": 1,
+        "actor_role": "ai",
+        "action_id": 0,
+        "kind": "end_turn"
+      },
+      {
+        "sequence": 12,
+        "player_index": 0,
+        "actor_role": "human",
+        "action_id": 3,
+        "kind": "play"
+      },
+      {
+        "sequence": 13,
+        "player_index": 0,
+        "actor_role": "human",
+        "action_id": 10,
+        "kind": "attack"
+      },
+      {
+        "sequence": 14,
+        "player_index": 0,
+        "actor_role": "human",
+        "action_id": 0,
+        "kind": "end_turn"
+      },
+      {
+        "sequence": 15,
+        "player_index": 1,
+        "actor_role": "ai",
+        "action_id": 10,
+        "kind": "attack"
+      },
+      {
+        "sequence": 16,
+        "player_index": 1,
+        "actor_role": "ai",
+        "action_id": 7,
+        "kind": "play"
+      },
+      {
+        "sequence": 17,
+        "player_index": 1,
+        "actor_role": "ai",
+        "action_id": 46,
+        "kind": "choice"
+      },
+      {
+        "sequence": 18,
+        "player_index": 1,
+        "actor_role": "ai",
+        "action_id": 0,
+        "kind": "end_turn"
+      },
+      {
+        "sequence": 19,
+        "player_index": 0,
+        "actor_role": "human",
+        "action_id": 1,
+        "kind": "play"
+      },
+      {
+        "sequence": 20,
+        "player_index": 0,
+        "actor_role": "human",
+        "action_id": 111,
+        "kind": "extra_pp"
+      },
+      {
+        "sequence": 21,
+        "player_index": 0,
+        "actor_role": "human",
+        "action_id": 5,
+        "kind": "play"
+      },
+      {
+        "sequence": 22,
+        "player_index": 0,
+        "actor_role": "human",
+        "action_id": 0,
+        "kind": "end_turn"
+      },
+      {
+        "sequence": 23,
+        "player_index": 1,
+        "actor_role": "ai",
+        "action_id": 7,
+        "kind": "play"
+      },
+      {
+        "sequence": 24,
+        "player_index": 1,
+        "actor_role": "ai",
+        "action_id": 40,
+        "kind": "evolve"
+      },
+      {
+        "sequence": 25,
+        "player_index": 1,
+        "actor_role": "ai",
+        "action_id": 6,
+        "kind": "play"
+      },
+      {
+        "sequence": 26,
+        "player_index": 1,
+        "actor_role": "ai",
+        "action_id": 0,
+        "kind": "end_turn"
+      },
+      {
+        "sequence": 27,
+        "player_index": 0,
+        "actor_role": "human",
+        "action_id": 1,
+        "kind": "play"
+      },
+      {
+        "sequence": 28,
+        "player_index": 0,
+        "actor_role": "human",
+        "action_id": 40,
+        "kind": "evolve"
+      },
+      {
+        "sequence": 29,
+        "player_index": 0,
+        "actor_role": "human",
+        "action_id": 11,
+        "kind": "attack"
+      },
+      {
+        "sequence": 30,
+        "player_index": 0,
+        "actor_role": "human",
+        "action_id": 0,
+        "kind": "end_turn"
+      },
+      {
+        "sequence": 31,
+        "player_index": 1,
+        "actor_role": "ai",
+        "action_id": 6,
+        "kind": "play"
+      },
+      {
+        "sequence": 32,
+        "player_index": 1,
+        "actor_role": "ai",
+        "action_id": 42,
+        "kind": "evolve"
+      },
+      {
+        "sequence": 33,
+        "player_index": 1,
+        "actor_role": "ai",
+        "action_id": 45,
+        "kind": "choice"
+      },
+      {
+        "sequence": 34,
+        "player_index": 1,
+        "actor_role": "ai",
+        "action_id": 0,
+        "kind": "end_turn"
+      },
+      {
+        "sequence": 35,
+        "player_index": 0,
+        "actor_role": "human",
+        "action_id": 91,
+        "kind": "play"
+      },
+      {
+        "sequence": 36,
+        "player_index": 0,
+        "actor_role": "human",
+        "action_id": 111,
+        "kind": "extra_pp"
+      },
+      {
+        "sequence": 37,
+        "player_index": 0,
+        "actor_role": "human",
+        "action_id": 3,
+        "kind": "play"
+      },
+      {
+        "sequence": 38,
+        "player_index": 0,
+        "actor_role": "human",
+        "action_id": 46,
+        "kind": "choice"
+      },
+      {
+        "sequence": 39,
+        "player_index": 0,
+        "actor_role": "human",
+        "action_id": 46,
+        "kind": "choice"
+      },
+      {
+        "sequence": 40,
+        "player_index": 0,
+        "actor_role": "human",
+        "action_id": 107,
+        "kind": "super_evolve"
+      },
+      {
+        "sequence": 41,
+        "player_index": 0,
+        "actor_role": "human",
+        "action_id": 18,
+        "kind": "attack"
+      },
+      {
+        "sequence": 42,
+        "player_index": 0,
+        "actor_role": "human",
+        "action_id": 0,
+        "kind": "end_turn"
+      },
+      {
+        "sequence": 43,
+        "player_index": 1,
+        "actor_role": "ai",
+        "action_id": 1,
+        "kind": "play"
+      },
+      {
+        "sequence": 44,
+        "player_index": 1,
+        "actor_role": "ai",
+        "action_id": 106,
+        "kind": "super_evolve"
+      },
+      {
+        "sequence": 45,
+        "player_index": 1,
+        "actor_role": "ai",
+        "action_id": 12,
+        "kind": "attack"
+      },
+      {
+        "sequence": 46,
+        "player_index": 1,
+        "actor_role": "ai",
+        "action_id": 12,
+        "kind": "attack"
+      },
+      {
+        "sequence": 47,
+        "player_index": 1,
+        "actor_role": "ai",
+        "action_id": 17,
+        "kind": "attack"
+      },
+      {
+        "sequence": 48,
+        "player_index": 1,
+        "actor_role": "ai",
+        "action_id": 17,
+        "kind": "attack"
+      },
+      {
+        "sequence": 49,
+        "player_index": 1,
+        "actor_role": "ai",
+        "action_id": 2,
+        "kind": "play"
+      },
+      {
+        "sequence": 50,
+        "player_index": 1,
+        "actor_role": "ai",
+        "action_id": 0,
+        "kind": "end_turn"
+      },
+      {
+        "sequence": 51,
+        "player_index": 0,
+        "actor_role": "human",
+        "action_id": 2,
+        "kind": "play"
+      },
+      {
+        "sequence": 52,
+        "player_index": 0,
+        "actor_role": "human",
+        "action_id": 106,
+        "kind": "super_evolve"
+      },
+      {
+        "sequence": 53,
+        "player_index": 0,
+        "actor_role": "human",
+        "action_id": 0,
+        "kind": "end_turn"
+      },
+      {
+        "sequence": 54,
+        "player_index": 1,
+        "actor_role": "ai",
+        "action_id": 1,
+        "kind": "play"
+      },
+      {
+        "sequence": 55,
+        "player_index": 1,
+        "actor_role": "ai",
+        "action_id": 106,
+        "kind": "super_evolve"
+      },
+      {
+        "sequence": 56,
+        "player_index": 1,
+        "actor_role": "ai",
+        "action_id": 11,
+        "kind": "attack"
+      },
+      {
+        "sequence": 57,
+        "player_index": 1,
+        "actor_role": "ai",
+        "action_id": 11,
+        "kind": "attack"
+      },
+      {
+        "sequence": 58,
+        "player_index": 1,
+        "actor_role": "ai",
+        "action_id": 0,
+        "kind": "end_turn"
+      },
+      {
+        "sequence": 59,
+        "player_index": 0,
+        "actor_role": "human",
+        "action_id": 2,
+        "kind": "play"
+      },
+      {
+        "sequence": 60,
+        "player_index": 0,
+        "actor_role": "human",
+        "action_id": 2,
+        "kind": "play"
+      },
+      {
+        "sequence": 61,
+        "player_index": 0,
+        "actor_role": "human",
+        "action_id": 45,
+        "kind": "choice"
+      },
+      {
+        "sequence": 62,
+        "player_index": 0,
+        "actor_role": "human",
+        "action_id": 40,
+        "kind": "evolve"
+      },
+      {
+        "sequence": 63,
+        "player_index": 0,
+        "actor_role": "human",
+        "action_id": 45,
+        "kind": "choice"
+      },
+      {
+        "sequence": 64,
+        "player_index": 0,
+        "actor_role": "human",
+        "action_id": 11,
+        "kind": "attack"
+      },
+      {
+        "sequence": 65,
+        "player_index": 0,
+        "actor_role": "human",
+        "action_id": 0,
+        "kind": "end_turn"
+      },
+      {
+        "sequence": 66,
+        "player_index": 1,
+        "actor_role": "ai",
+        "action_id": 1,
+        "kind": "play"
+      },
+      {
+        "sequence": 67,
+        "player_index": 1,
+        "actor_role": "ai",
+        "action_id": 106,
+        "kind": "super_evolve"
+      },
+      {
+        "sequence": 68,
+        "player_index": 1,
+        "actor_role": "ai",
+        "action_id": 0,
+        "kind": "end_turn"
+      },
+      {
+        "sequence": 69,
+        "player_index": 0,
+        "actor_role": "human",
+        "action_id": 91,
+        "kind": "play"
+      },
+      {
+        "sequence": 70,
+        "player_index": 0,
+        "actor_role": "human",
+        "action_id": 0,
+        "kind": "end_turn"
+      },
+      {
+        "sequence": 71,
+        "player_index": 1,
+        "actor_role": "ai",
+        "action_id": 1,
+        "kind": "play"
+      },
+      {
+        "sequence": 72,
+        "player_index": 1,
+        "actor_role": "ai",
+        "action_id": 1,
+        "kind": "play"
+      }
+    ],
+    "action_trace_sha256": "bf016bdfa49c302adf8147c0073949c8ed3fc6e42291741bc6333819cb51e330",
+    "expected_state_sha256": "4bcf97fcfd855422a46e25d2360670fed9f16321a6fe4f6eaa99670e96d5ec65"
+  },
+  "decision": {
+    "target_sequence": 73,
+    "player_index": 1,
+    "grading": "pairwise_preference",
+    "preferred": [
+      {
+        "kind": "super_evolve",
+        "source_card_id": 10461110,
+        "source_name": "英雄幻视·托路",
+        "source_occurrence": 0
+      }
+    ],
+    "disfavored": [
+      {
+        "kind": "super_evolve",
+        "source_card_id": 10404110,
+        "source_name": "天司长的继承者·圣德芬",
+        "source_occurrence": 0
+      }
+    ],
+    "confidence": "high",
+    "rationale": "对方空场且英雄幻视·托路具有疾驰并可攻击。超进化托路可将本回合即时主战者伤害从 2 提高到 5；刚打出的圣德芬没有疾驰，超进化后本回合不能攻击。此标注是高置信度的相对偏好，不宣称该动作必然制胜。"
+  },
+  "state_summary": {
+    "turn": 19,
+    "evaluated_leader_health": 3,
+    "opponent_leader_health": 10,
+    "evaluated_super_evolution_points": 1,
+    "opponent_board_count": 0,
+    "evaluated_board": [
+      {
+        "entity_id": 62,
+        "card_id": 10461110,
+        "name": "英雄幻视·托路",
+        "type": "随从",
+        "cost": 3,
+        "image_url": "/api/images/104611100.png",
+        "attack": 2,
+        "health": 1,
+        "max_health": 1,
+        "evolved": false,
+        "super_evolved": false,
+        "keywords": [
+          "疾驰",
+          "策动"
+        ],
+        "can_attack": true,
+        "attacks_remaining": 1,
+        "barrier_charges": 0
+      },
+      {
+        "entity_id": 63,
+        "card_id": 10404110,
+        "name": "天司长的继承者·圣德芬",
+        "type": "随从",
+        "cost": 6,
+        "image_url": "/api/images/104041100.png",
+        "attack": 7,
+        "health": 6,
+        "max_health": 6,
+        "evolved": false,
+        "super_evolved": false,
+        "keywords": [
+          "倒数",
+          "入场曲",
+          "奥义",
+          "瞬念召唤",
+          "纹章"
+        ],
+        "can_attack": false,
+        "attacks_remaining": 1,
+        "barrier_charges": 0
+      }
+    ]
+  },
+  "reference_policy": {
+    "selected_action_id": 107,
+    "selected_probability": 0.9999786615371704,
+    "value": 0.718513011932373,
+    "preferred": {
+      "action_id": 106,
+      "logit": -1.942903995513916,
+      "probability": 2.0438612409634516e-05
+    },
+    "disfavored": {
+      "action_id": 107,
+      "logit": 8.855158805847168,
+      "probability": 0.9999786615371704
+    }
+  }
+}

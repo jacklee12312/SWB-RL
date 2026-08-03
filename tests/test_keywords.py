@@ -57,6 +57,9 @@ class BaneTests(unittest.TestCase):
         v = mkunit(eng, 901, attack=1, life=3)
         b.can_attack = True
         eng.players[0].board = [b]; eng.players[1].board = [v]
+        legal_commands = eng.legal_commands()
+        self.assertIn(Attack(0, b.entity_id, None), legal_commands)
+        self.assertIn(Attack(0, b.entity_id, v.entity_id), legal_commands)
         transition = eng.apply(Attack(0, b.entity_id, v.entity_id))
         self.assertNotIn(v, eng.players[1].board)
         self.assertTrue(any(

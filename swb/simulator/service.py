@@ -80,7 +80,7 @@ class InferenceModelBundle:
     option: SimulatorModelOption
     trainer: PPOTrainer
     warnings: list[str]
-    specialist_deck: FixedTrainingDeck
+    specialist_deck: FixedTrainingDeck | None
     policy: "DeterministicPPOPolicy"
 
 
@@ -210,8 +210,12 @@ class MatchSimulator:
             recipe.name: recipe
             for recipe in self.available_deck_recipes
         }
-        self.human_deck_recipe = self.specialist_deck_recipe
-        self.ai_deck_recipe = self.specialist_deck_recipe
+        default_deck_recipe = (
+            self.specialist_deck_recipe
+            or self.available_deck_recipes[0]
+        )
+        self.human_deck_recipe = default_deck_recipe
+        self.ai_deck_recipe = default_deck_recipe
         self.texture_paths = self._load_texture_paths()
         self.history_store = MatchHistoryStore(history_directory)
         self.env: ShadowverseEnv | None = None
@@ -285,11 +289,11 @@ class MatchSimulator:
             device=self.device,
         )
         training_deck_name = trainer.config.training_deck
-        if training_deck_name is None:
-            raise ValueError(
-                "simulator checkpoint does not declare a fixed training deck"
-            )
-        specialist_deck = get_fixed_training_deck(training_deck_name)
+        specialist_deck = (
+            None
+            if training_deck_name is None
+            else get_fixed_training_deck(training_deck_name)
+        )
         return InferenceModelBundle(
             option=option,
             trainer=trainer,
@@ -448,14 +452,18 @@ class MatchSimulator:
                 if loaded_model is None
                 else loaded_model.specialist_deck
             )
+            default_recipe = (
+                active_specialist
+                or self.available_deck_recipes[0]
+            )
             human_recipe = self._resolve_deck(
                 human_deck,
-                default=active_specialist,
+                default=default_recipe,
                 label="human_deck",
             )
             ai_recipe = self._resolve_deck(
                 ai_deck,
-                default=active_specialist,
+                default=default_recipe,
                 label="ai_deck",
             )
             recipes_by_player: list[FixedTrainingDeck] = [
@@ -579,8 +587,10 @@ class MatchSimulator:
                     self.human_deck_recipe
                 ),
                 "ai_deck": self._deck_manifest(self.ai_deck_recipe),
-                "specialist_deck": self._deck_manifest(
-                    self.specialist_deck_recipe
+                "specialist_deck": (
+                    None
+                    if self.specialist_deck_recipe is None
+                    else self._deck_manifest(self.specialist_deck_recipe)
                 ),
                 "available_decks": [
                     self._deck_manifest(recipe)
@@ -679,9 +689,12 @@ class MatchSimulator:
 
     def _active_warnings(self) -> list[str]:
         warnings = list(self.compatibility_warnings)
-        if self.ai_deck_recipe.name != self.specialist_deck_recipe.name:
+        if (
+            self.specialist_deck_recipe is not None
+            and self.ai_deck_recipe.name != self.specialist_deck_recipe.name
+        ):
             warnings.append(
-                "当前模型只用主教侧轨迹更新；让 AI 使用其他卡组仅适合"
+                "当前模型声明了固定专精卡组；让 AI 使用其他卡组仅适合"
                 "测试通用动作能力，不代表该卡组的训练强度。"
             )
         return warnings

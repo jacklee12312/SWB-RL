@@ -81,10 +81,44 @@ history. Use `--checkpoint` to choose the initial model,
 local GPU inference, and `--frontend-port` / `--port` when the default ports are
 occupied.
 
+All-class checkpoints whose training configuration has no fixed
+`training_deck` are also playable. They show no specialist marker, use the
+human and AI deck selections from the toolbar, and fall back deterministically
+to the first validated fixed deck only when the API caller omits both choices.
+
 The current specialist checkpoints were updated only from Havencraft-side
 trajectories, so selecting another AI deck is useful for engine/UI testing but
 is not evidence that the policy specializes in that deck. The model's declared
 specialist profile remains the default for both sides.
+
+### Tactical replay evaluation
+
+Policy-quality mistakes found in completed simulator matches can be preserved
+under `data/tactical_scenarios/`. Each case stores the exact fixed decks, match
+seed, deterministic action prefix, expected decision-state hash, and semantic
+preferred/disfavored actions. The semantic labels identify cards and action
+kinds instead of depending on transient entity IDs. Recurrent checkpoints are
+teacher-forced through every earlier decision made by the evaluated player, so
+the hidden state at the target is reconstructed before scoring.
+
+The first case, `TACT-SE-0001`, captures the turn-19 Haven decision where the
+opposing board is empty and the policy strongly prefers super-evolving a newly
+played follower over the Storm follower that can attack immediately. Run the
+checked-in case against one or more checkpoints with:
+
+```powershell
+python -m scripts.evaluate_tactical_suite `
+  --case data/tactical_scenarios/TACT-SE-0001-empty-board-storm.json `
+  --checkpoint path/to/first.pt `
+  --checkpoint path/to/second.pt `
+  --device cuda `
+  --output data/reports/tactical_suite/evaluation.json
+```
+
+These annotations are regression criteria for specific tactical preferences;
+they are not claims that one move guarantees the match result. See
+[`data/tactical_scenarios/README.md`](data/tactical_scenarios/README.md) for the
+case contract and extraction workflow.
 
 Abilities are normalized in two relational tables:
 
