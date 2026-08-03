@@ -9,6 +9,8 @@ from pathlib import Path
 
 import torch
 
+from scripts.profile_ppo_training import _system_monitor_summary
+from scripts.training_speed_baseline import SystemMonitor, _system_manifest
 from swb.db.repository import CardRepository
 from swb.engine.environment import MATCH_SETUP_OFFICIAL, MATCH_SETUP_VALUES
 from swb.rl.checkpoint import load_checkpoint, save_checkpoint_atomic
@@ -88,6 +90,24 @@ def _periodic_checkpoint_path(
         / f"{checkpoint.stem}_checkpoints"
         / f"step_{agent_steps:012d}.pt"
     )
+
+
+def _timed_checkpoint_save(
+    path: Path,
+    trainer: PPOTrainer,
+    *,
+    kind: str,
+) -> dict[str, object]:
+    started = time.perf_counter()
+    save_checkpoint_atomic(path, trainer)
+    elapsed = time.perf_counter() - started
+    return {
+        "kind": kind,
+        "agent_steps": trainer.agent_steps,
+        "path": str(path),
+        "elapsed_seconds": elapsed,
+        "size_bytes": path.stat().st_size,
+    }
 
 
 def main() -> None:
@@ -197,6 +217,19 @@ def main() -> None:
         type=Path,
         default=Path("data/reports/ppo_smoke_training.json"),
     )
+    parser.add_argument(
+        "--monitor-system",
+        action="store_true",
+        help=(
+            "sample CPU, RAM, pagefile, GPU clocks, power, P-state, "
+            "temperature, and clock-event reasons during training"
+        ),
+    )
+    parser.add_argument(
+        "--monitor-interval-seconds",
+        type=float,
+        default=1.0,
+    )
     args = parser.parse_args()
     positive_dimensions = (
         args.total_agent_steps,
@@ -223,6 +256,8 @@ def main() -> None:
         parser.error(
             "checkpoint-interval-agent-steps must be non-negative"
         )
+    if args.monitor_interval_seconds <= 0:
+        parser.error("--monitor-interval-seconds must be positive")
     if args.resume_runtime_overrides and args.resume is None:
         parser.error("--resume-runtime-overrides requires --resume")
     if args.learning_rate <= 0:
@@ -337,6 +372,14 @@ def main() -> None:
         )
     atexit.register(trainer.close)
 
+    system_monitor = (
+        SystemMonitor(args.monitor_interval_seconds)
+        if args.monitor_system
+        else None
+    )
+    system_before = _system_manifest() if args.monitor_system else None
+    if system_monitor is not None:
+        system_monitor.start()
     started = time.perf_counter()
     starting_agent_steps = trainer.agent_steps
     metrics = []
@@ -344,74 +387,90 @@ def main() -> None:
     update_timing_samples = []
     historical_snapshots = []
     periodic_checkpoints = []
+    checkpoint_saves: list[dict[str, object]] = []
     last_checkpoint_steps = trainer.agent_steps
     history_directory = (
         args.checkpoint.parent / f"{args.checkpoint.stem}_history"
     )
-    while trainer.agent_steps < args.total_agent_steps:
-        records, bootstrap, _ = trainer.collect_rollout()
-        update_metrics = trainer.update(records, bootstrap)
-        metrics.append(update_metrics)
-        collect_timing_samples.append(dict(trainer.last_collect_timing))
-        update_timing_samples.append(dict(trainer.last_update_timing))
-        progress = {
-            **update_metrics,
-            "timing": {
-                "collect": trainer.last_collect_timing,
-                "update": trainer.last_update_timing,
-            },
-        }
-        print(json.dumps(progress, sort_keys=True), flush=True)
-        if _periodic_checkpoint_due(
-            last_checkpoint_steps=last_checkpoint_steps,
-            current_steps=trainer.agent_steps,
-            interval_steps=args.checkpoint_interval_agent_steps,
-        ):
-            periodic_path = _periodic_checkpoint_path(
-                args.checkpoint,
-                trainer.agent_steps,
-            )
-            save_checkpoint_atomic(periodic_path, trainer)
-            last_checkpoint_steps = trainer.agent_steps
-            periodic_checkpoints.append({
-                "agent_steps": trainer.agent_steps,
-                "path": str(periodic_path),
-            })
-            print(json.dumps({
-                "periodic_checkpoint": str(periodic_path),
-                "agent_steps": trainer.agent_steps,
-            }, sort_keys=True), flush=True)
-        if trainer.opponent_pool.snapshot_due(trainer.agent_steps):
-            history_path = history_directory / (
-                f"step_{trainer.agent_steps:012d}.pt"
-            )
-            previous_paths = {
-                entry.checkpoint_path
-                for entry in trainer.opponent_pool.entries
-                if entry.kind == "historical"
+    try:
+        while trainer.agent_steps < args.total_agent_steps:
+            records, bootstrap, _ = trainer.collect_rollout()
+            update_metrics = trainer.update(records, bootstrap)
+            metrics.append(update_metrics)
+            collect_timing_samples.append(dict(trainer.last_collect_timing))
+            update_timing_samples.append(dict(trainer.last_update_timing))
+            progress = {
+                **update_metrics,
+                "timing": {
+                    "collect": trainer.last_collect_timing,
+                    "update": trainer.last_update_timing,
+                },
             }
-            save_checkpoint_atomic(history_path, trainer)
-            entry = trainer.opponent_pool.register_snapshot(
-                history_path, agent_steps=trainer.agent_steps
-            )
-            historical_snapshots.append(entry.checkpoint_path)
-            retained_paths = {
-                candidate.checkpoint_path
-                for candidate in trainer.opponent_pool.entries
-                if candidate.kind == "historical"
-            }
-            history_root = history_directory.resolve()
-            for stale in previous_paths - retained_paths:
-                stale_path = Path(stale).resolve()
-                if (
-                    stale_path.parent == history_root
-                    and stale_path.name.startswith("step_")
-                    and stale_path.suffix == ".pt"
-                    and stale_path.exists()
-                ):
-                    stale_path.unlink()
-    elapsed = time.perf_counter() - started
-    save_checkpoint_atomic(args.checkpoint, trainer)
+            print(json.dumps(progress, sort_keys=True), flush=True)
+            if _periodic_checkpoint_due(
+                last_checkpoint_steps=last_checkpoint_steps,
+                current_steps=trainer.agent_steps,
+                interval_steps=args.checkpoint_interval_agent_steps,
+            ):
+                periodic_path = _periodic_checkpoint_path(
+                    args.checkpoint,
+                    trainer.agent_steps,
+                )
+                checkpoint_save = _timed_checkpoint_save(
+                    periodic_path,
+                    trainer,
+                    kind="periodic",
+                )
+                checkpoint_saves.append(checkpoint_save)
+                last_checkpoint_steps = trainer.agent_steps
+                periodic_checkpoints.append(checkpoint_save)
+                print(json.dumps({
+                    "periodic_checkpoint": str(periodic_path),
+                    "agent_steps": trainer.agent_steps,
+                    "save_seconds": checkpoint_save["elapsed_seconds"],
+                }, sort_keys=True), flush=True)
+            if trainer.opponent_pool.snapshot_due(trainer.agent_steps):
+                history_path = history_directory / (
+                    f"step_{trainer.agent_steps:012d}.pt"
+                )
+                previous_paths = {
+                    entry.checkpoint_path
+                    for entry in trainer.opponent_pool.entries
+                    if entry.kind == "historical"
+                }
+                checkpoint_saves.append(_timed_checkpoint_save(
+                    history_path,
+                    trainer,
+                    kind="historical_opponent",
+                ))
+                entry = trainer.opponent_pool.register_snapshot(
+                    history_path, agent_steps=trainer.agent_steps
+                )
+                historical_snapshots.append(entry.checkpoint_path)
+                retained_paths = {
+                    candidate.checkpoint_path
+                    for candidate in trainer.opponent_pool.entries
+                    if candidate.kind == "historical"
+                }
+                history_root = history_directory.resolve()
+                for stale in previous_paths - retained_paths:
+                    stale_path = Path(stale).resolve()
+                    if (
+                        stale_path.parent == history_root
+                        and stale_path.name.startswith("step_")
+                        and stale_path.suffix == ".pt"
+                        and stale_path.exists()
+                    ):
+                        stale_path.unlink()
+        elapsed = time.perf_counter() - started
+        checkpoint_saves.append(_timed_checkpoint_save(
+            args.checkpoint,
+            trainer,
+            kind="final",
+        ))
+    finally:
+        if system_monitor is not None:
+            system_monitor.stop()
     report = {
         "schema_version": 1,
         "purpose": (
@@ -446,6 +505,37 @@ def main() -> None:
             for checkpoint in periodic_checkpoints
         ],
         "periodic_checkpoints": periodic_checkpoints,
+        "checkpoint_save_timing": {
+            "records": checkpoint_saves,
+            "total_seconds": sum(
+                float(row["elapsed_seconds"])
+                for row in checkpoint_saves
+            ),
+            "included_in_training_elapsed_seconds": sum(
+                float(row["elapsed_seconds"])
+                for row in checkpoint_saves
+                if row["kind"] != "final"
+            ),
+            "final_save_excluded_from_training_elapsed": True,
+        },
+        "system_monitor": {
+            "enabled": args.monitor_system,
+            "interval_seconds": args.monitor_interval_seconds,
+            "system_before": system_before,
+            "system_after": (
+                _system_manifest() if args.monitor_system else None
+            ),
+            "summary": (
+                _system_monitor_summary(system_monitor.samples)
+                if system_monitor is not None
+                else None
+            ),
+            "samples": (
+                system_monitor.samples
+                if system_monitor is not None
+                else []
+            ),
+        },
         "hyperparameters": trainer.hyperparameters(),
         "training_class_ids": list(trainer.config.training_class_ids),
         "training_deck": (
@@ -488,7 +578,10 @@ def main() -> None:
         json.dumps(report, ensure_ascii=False, indent=2) + "\n",
         encoding="utf-8",
     )
-    print(json.dumps(report, ensure_ascii=False, indent=2))
+    # The full UTF-8 report is authoritative on disk.  Escape non-ASCII in
+    # console output so Windows code pages cannot turn a successful monitored
+    # run into a late UnicodeEncodeError.
+    print(json.dumps(report, ensure_ascii=True, indent=2))
     trainer.close()
     atexit.unregister(trainer.close)
 

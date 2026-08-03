@@ -3,9 +3,11 @@ from __future__ import annotations
 import json
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 from scripts.training_speed_baseline import (
     ALLOWED_VERSION_MIGRATIONS,
+    _nvidia_sample,
     summarize_baselines,
     version_differences,
 )
@@ -103,21 +105,49 @@ class TrainingSpeedBaselineTests(unittest.TestCase):
                 "elapsed_seconds": 0.0,
                 "cpu_total_percent": 10.0,
                 "cpu_per_core_percent": [5.0, 15.0],
+                "cpu_frequency_mhz": 3200.0,
                 "ram_used_bytes": 100,
                 "pagefile_used_bytes": 200,
                 "pagefile_sin_bytes": 7,
                 "pagefile_sout_bytes": 11,
-                "gpu": {"memory_used_mib": 300.0},
+                "gpu": {
+                    "memory_used_mib": 300.0,
+                    "utilization_percent": 40.0,
+                    "memory_utilization_percent": 20.0,
+                    "power_watts": 100.0,
+                    "power_limit_watts": 320.0,
+                    "temperature_celsius": 50.0,
+                    "graphics_clock_mhz": 1800.0,
+                    "memory_clock_mhz": 11200.0,
+                    "pstate": "P2",
+                    "software_power_cap_active": False,
+                    "hardware_thermal_slowdown_active": False,
+                    "hardware_power_brake_slowdown_active": False,
+                },
             },
             {
                 "elapsed_seconds": 1.0,
                 "cpu_total_percent": 20.0,
                 "cpu_per_core_percent": [25.0, 30.0],
+                "cpu_frequency_mhz": 3400.0,
                 "ram_used_bytes": 150,
                 "pagefile_used_bytes": 220,
                 "pagefile_sin_bytes": 7,
                 "pagefile_sout_bytes": 11,
-                "gpu": {"memory_used_mib": 350.0},
+                "gpu": {
+                    "memory_used_mib": 350.0,
+                    "utilization_percent": 90.0,
+                    "memory_utilization_percent": 70.0,
+                    "power_watts": 250.0,
+                    "power_limit_watts": 320.0,
+                    "temperature_celsius": 62.0,
+                    "graphics_clock_mhz": 2500.0,
+                    "memory_clock_mhz": 11200.0,
+                    "pstate": "P2",
+                    "software_power_cap_active": True,
+                    "hardware_thermal_slowdown_active": False,
+                    "hardware_power_brake_slowdown_active": False,
+                },
             },
         ]
         summary = _system_monitor_summary(samples)
@@ -128,6 +158,35 @@ class TrainingSpeedBaselineTests(unittest.TestCase):
         self.assertEqual(summary["gpu_memory_peak_mib"], 350.0)
         self.assertEqual(summary["cpu_total_median_percent"], 15.0)
         self.assertEqual(summary["cpu_single_core_peak_percent"], 30.0)
+        self.assertEqual(summary["cpu_frequency_median_mhz"], 3300.0)
+        self.assertEqual(summary["gpu_graphics_clock_minimum_mhz"], 1800.0)
+        self.assertEqual(summary["gpu_graphics_clock_p95_mhz"], 2500.0)
+        self.assertEqual(summary["gpu_pstate_sample_counts"], {"P2": 2})
+        self.assertEqual(
+            summary["gpu_active_clock_event_sample_counts"][
+                "software_power_cap_active"
+            ],
+            1,
+        )
+        self.assertFalse(summary["gpu_any_hardware_throttle"])
+
+    @patch("scripts.training_speed_baseline._run_text")
+    def test_nvidia_sample_includes_clocks_pstate_and_throttle_reasons(
+        self,
+        run_text,
+    ) -> None:
+        run_text.return_value = (
+            "RTX 4080, 591.86, P2, 91, 73, 15000, 16376, 275.5, "
+            "320.0, 64, 2520, 11201, Active, Not Active, Not Active"
+        )
+
+        sample = _nvidia_sample()
+
+        self.assertEqual(sample["pstate"], "P2")
+        self.assertEqual(sample["graphics_clock_mhz"], 2520.0)
+        self.assertEqual(sample["memory_clock_mhz"], 11201.0)
+        self.assertTrue(sample["software_power_cap_active"])
+        self.assertFalse(sample["hardware_thermal_slowdown_active"])
 
 
 if __name__ == "__main__":

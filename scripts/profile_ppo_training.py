@@ -4,6 +4,7 @@ import argparse
 import atexit
 import hashlib
 import json
+import math
 import os
 import platform
 import statistics
@@ -60,6 +61,50 @@ def _system_monitor_summary(
         for sample in gpu_samples
         if sample.get("memory_used_mib") is not None
     ]
+    cpu_frequencies = [
+        float(sample["cpu_frequency_mhz"])
+        for sample in samples
+        if sample.get("cpu_frequency_mhz") is not None
+    ]
+
+    def gpu_values(field: str) -> list[float]:
+        return [
+            float(sample[field])
+            for sample in gpu_samples
+            if sample.get(field) is not None
+        ]
+
+    def percentile(values: Sequence[float], fraction: float) -> float | None:
+        if not values:
+            return None
+        ordered = sorted(values)
+        index = max(0, min(len(ordered) - 1, math.ceil(
+            fraction * len(ordered)
+        ) - 1))
+        return ordered[index]
+
+    gpu_utilization = gpu_values("utilization_percent")
+    gpu_memory_utilization = gpu_values("memory_utilization_percent")
+    gpu_power = gpu_values("power_watts")
+    gpu_power_limit = gpu_values("power_limit_watts")
+    gpu_temperature = gpu_values("temperature_celsius")
+    gpu_graphics_clock = gpu_values("graphics_clock_mhz")
+    gpu_memory_clock = gpu_values("memory_clock_mhz")
+    pstate_counts: dict[str, int] = {}
+    for sample in gpu_samples:
+        pstate = sample.get("pstate")
+        if pstate is not None:
+            name = str(pstate)
+            pstate_counts[name] = pstate_counts.get(name, 0) + 1
+    clock_event_fields = (
+        "software_power_cap_active",
+        "hardware_thermal_slowdown_active",
+        "hardware_power_brake_slowdown_active",
+    )
+    active_clock_event_samples = {
+        field: sum(bool(sample.get(field, False)) for sample in gpu_samples)
+        for field in clock_event_fields
+    }
     return {
         "sample_count": len(samples),
         "elapsed_seconds": float(samples[-1]["elapsed_seconds"]),
@@ -68,6 +113,13 @@ def _system_monitor_summary(
             float(value)
             for sample in samples
             for value in sample["cpu_per_core_percent"]
+        ),
+        "cpu_frequency_median_mhz": (
+            statistics.median(cpu_frequencies)
+            if cpu_frequencies else None
+        ),
+        "cpu_frequency_minimum_mhz": (
+            min(cpu_frequencies) if cpu_frequencies else None
         ),
         "ram_used_first_bytes": ram_used[0],
         "ram_used_last_bytes": ram_used[-1],
@@ -84,6 +136,57 @@ def _system_monitor_summary(
         ),
         "gpu_memory_peak_mib": (
             max(gpu_memory) if gpu_memory else None
+        ),
+        "gpu_utilization_median_percent": (
+            statistics.median(gpu_utilization)
+            if gpu_utilization else None
+        ),
+        "gpu_utilization_p95_percent": percentile(
+            gpu_utilization, 0.95
+        ),
+        "gpu_memory_utilization_median_percent": (
+            statistics.median(gpu_memory_utilization)
+            if gpu_memory_utilization else None
+        ),
+        "gpu_power_median_watts": (
+            statistics.median(gpu_power) if gpu_power else None
+        ),
+        "gpu_power_p95_watts": percentile(gpu_power, 0.95),
+        "gpu_power_limit_watts": (
+            statistics.median(gpu_power_limit)
+            if gpu_power_limit else None
+        ),
+        "gpu_temperature_median_celsius": (
+            statistics.median(gpu_temperature)
+            if gpu_temperature else None
+        ),
+        "gpu_temperature_peak_celsius": (
+            max(gpu_temperature) if gpu_temperature else None
+        ),
+        "gpu_graphics_clock_median_mhz": (
+            statistics.median(gpu_graphics_clock)
+            if gpu_graphics_clock else None
+        ),
+        "gpu_graphics_clock_minimum_mhz": (
+            min(gpu_graphics_clock) if gpu_graphics_clock else None
+        ),
+        "gpu_graphics_clock_p95_mhz": percentile(
+            gpu_graphics_clock, 0.95
+        ),
+        "gpu_memory_clock_median_mhz": (
+            statistics.median(gpu_memory_clock)
+            if gpu_memory_clock else None
+        ),
+        "gpu_pstate_sample_counts": pstate_counts,
+        "gpu_active_clock_event_sample_counts": (
+            active_clock_event_samples
+        ),
+        "gpu_any_hardware_throttle": any(
+            active_clock_event_samples[field] > 0
+            for field in (
+                "hardware_thermal_slowdown_active",
+                "hardware_power_brake_slowdown_active",
+            )
         ),
         "no_page_in_or_page_out": (
             pagefile_sin[-1] == pagefile_sin[0]

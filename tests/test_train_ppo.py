@@ -1,8 +1,11 @@
 from __future__ import annotations
 
+import tempfile
 import unittest
 from dataclasses import asdict
 from pathlib import Path
+from types import SimpleNamespace
+from unittest.mock import patch
 
 from scripts.train_ppo import (
     RUNTIME_OVERRIDE_FIELDS,
@@ -10,6 +13,7 @@ from scripts.train_ppo import (
     _periodic_checkpoint_path,
     _resume_runtime_config,
     _runtime_override_report,
+    _timed_checkpoint_save,
 )
 from swb.rl.ppo import PPOConfig
 from swb.rl.policy import ENTITY_ACTION_POLICY_ARCHITECTURE
@@ -86,6 +90,30 @@ class TrainPPOCommandTests(unittest.TestCase):
                 "step_000000123456.pt"
             ),
         )
+
+    def test_timed_checkpoint_save_records_kind_size_and_duration(self) -> None:
+        trainer = SimpleNamespace(agent_steps=123)
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "checkpoint.pt"
+
+            def fake_save(target, unused_trainer) -> None:
+                self.assertIs(unused_trainer, trainer)
+                target.write_bytes(b"checkpoint")
+
+            with patch(
+                "scripts.train_ppo.save_checkpoint_atomic",
+                side_effect=fake_save,
+            ):
+                record = _timed_checkpoint_save(
+                    path,
+                    trainer,
+                    kind="periodic",
+                )
+
+        self.assertEqual(record["kind"], "periodic")
+        self.assertEqual(record["agent_steps"], 123)
+        self.assertEqual(record["size_bytes"], len(b"checkpoint"))
+        self.assertGreaterEqual(record["elapsed_seconds"], 0.0)
 
 
 if __name__ == "__main__":

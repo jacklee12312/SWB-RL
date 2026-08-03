@@ -241,24 +241,43 @@ def _run_text(*command: str) -> str:
 def _nvidia_sample() -> dict[str, object]:
     output = _run_text(
         "nvidia-smi",
-        "--query-gpu=name,driver_version,utilization.gpu,memory.used,"
-        "memory.total,power.draw,power.limit",
+        "--query-gpu=name,driver_version,pstate,utilization.gpu,"
+        "utilization.memory,memory.used,memory.total,power.draw,power.limit,"
+        "temperature.gpu,clocks.current.graphics,clocks.current.memory,"
+        "clocks_event_reasons.sw_power_cap,"
+        "clocks_event_reasons.hw_thermal_slowdown,"
+        "clocks_event_reasons.hw_power_brake_slowdown",
         "--format=csv,noheader,nounits",
     )
     if not output:
         return {}
     values = [value.strip() for value in output.splitlines()[0].split(",")]
-    if len(values) != 7:
+    if len(values) != 15:
         return {}
-    return {
-        "name": values[0],
-        "driver_version": values[1],
-        "utilization_percent": float(values[2]),
-        "memory_used_mib": float(values[3]),
-        "memory_total_mib": float(values[4]),
-        "power_watts": float(values[5]),
-        "power_limit_watts": float(values[6]),
-    }
+    try:
+        return {
+            "name": values[0],
+            "driver_version": values[1],
+            "pstate": values[2],
+            "utilization_percent": float(values[3]),
+            "memory_utilization_percent": float(values[4]),
+            "memory_used_mib": float(values[5]),
+            "memory_total_mib": float(values[6]),
+            "power_watts": float(values[7]),
+            "power_limit_watts": float(values[8]),
+            "temperature_celsius": float(values[9]),
+            "graphics_clock_mhz": float(values[10]),
+            "memory_clock_mhz": float(values[11]),
+            "software_power_cap_active": values[12].lower() == "active",
+            "hardware_thermal_slowdown_active": (
+                values[13].lower() == "active"
+            ),
+            "hardware_power_brake_slowdown_active": (
+                values[14].lower() == "active"
+            ),
+        }
+    except ValueError:
+        return {}
 
 
 def _background_training_processes() -> list[dict[str, object]]:
@@ -305,12 +324,18 @@ class SystemMonitor:
             memory = psutil.virtual_memory()
             swap = psutil.swap_memory()
             per_core = psutil.cpu_percent(interval=None, percpu=True)
+            cpu_frequency = psutil.cpu_freq()
             self.samples.append({
                 "elapsed_seconds": time.perf_counter() - started,
                 "cpu_total_percent": (
                     statistics.fmean(per_core) if per_core else 0.0
                 ),
                 "cpu_per_core_percent": per_core,
+                "cpu_frequency_mhz": (
+                    None
+                    if cpu_frequency is None
+                    else float(cpu_frequency.current)
+                ),
                 "ram_used_bytes": memory.used,
                 "ram_available_bytes": memory.available,
                 "pagefile_used_bytes": swap.used,
@@ -324,6 +349,15 @@ class SystemMonitor:
 
 def _system_manifest() -> dict[str, object]:
     memory = psutil.virtual_memory()
+    process = psutil.Process()
+    try:
+        process_affinity = process.cpu_affinity()
+    except (AttributeError, psutil.AccessDenied, NotImplementedError):
+        process_affinity = None
+    try:
+        process_priority = int(process.nice())
+    except (psutil.AccessDenied, NotImplementedError):
+        process_priority = None
     return {
         "python_version": platform.python_version(),
         "python_executable": sys.executable,
@@ -336,6 +370,9 @@ def _system_manifest() -> dict[str, object]:
         "torch_version": torch.__version__,
         "cuda_version": torch.version.cuda,
         "cudnn_version": torch.backends.cudnn.version(),
+        "process_id": process.pid,
+        "process_priority": process_priority,
+        "process_cpu_affinity": process_affinity,
         "gpu_initial": _nvidia_sample(),
         "power_scheme": _run_text("powercfg", "/GETACTIVESCHEME"),
         "background_training_processes": _background_training_processes(),
