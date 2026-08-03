@@ -103,8 +103,8 @@
       "size": 112,
       "sha256": "12598f3acd06e6edb819e3af8ba9299139e85d272adf7b1dca63d93b505ba0da"
     },
-    "tests_sha256": "7b7671889065e34d2186b70909fd8c52ef8b0c2d3494985f1296c11b0b60e542",
-    "scripts_sha256": "214918ae277edc364bae101c6f4379e735654995edba295e8a7db813751a5d9c"
+    "tests_sha256": "0d0690436bce7d5593025e8fc732bfc25b9121621b4f8bd5cd2510ab2789cdb2",
+    "scripts_sha256": "e5b5031158fa3c04ff234b6f0f46f64641a4d98bbafd41477370cc49674f7f12"
   },
   "gates": [
     {
@@ -320,7 +320,7 @@
         "database_sha256": "df069e713a97493c885266b72f303874035beea571147ba14b77c57c9e631376",
         "rules_sha256": "449230d69db016ff99fa27de963f89adc9ac9ac5b54e913991ffe3314e4f2017",
         "catalog_sha256": "57a9c1927de54ea5901a02d48d27438211ad9edc24f61ee6bc92d624d707f2f6",
-        "tests_sha256": "7b7671889065e34d2186b70909fd8c52ef8b0c2d3494985f1296c11b0b60e542"
+        "tests_sha256": "0d0690436bce7d5593025e8fc732bfc25b9121621b4f8bd5cd2510ab2789cdb2"
       },
       "evidence": [
         "data/cards.sqlite3",
