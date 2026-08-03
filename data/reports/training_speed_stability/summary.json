@@ -1,0 +1,770 @@
+{
+  "schema_version": 1,
+  "report_kind": "swb_training_speed_runtime_stability",
+  "checkpoint_sha256": [
+    "178f36d9560b8ba3ee7a548b95985e0373d7d935f82720224d7d9fd393bb367b"
+  ],
+  "measurement_policy": {
+    "checkpoint_updated_in_memory_only": true,
+    "requested_agent_steps_per_run": 20480,
+    "warmup_updates_excluded": 2,
+    "system_monitor_interval_seconds": 0.5,
+    "comparison_note": "The initial six-worker group directly measures runtime instability. Topology attribution conservatively uses the fast initial run plus the post-candidate six-worker control, not the slow initial median."
+  },
+  "groups": {
+    "initial_six_worker_baseline": {
+      "aggregate": {
+        "run_count": 3,
+        "steady_agent_steps_per_second": {
+          "runs": [
+            58.27349244278714,
+            56.93336255298284,
+            121.33438593062513
+          ],
+          "median": 58.27349244278714,
+          "minimum": 56.93336255298284,
+          "maximum": 121.33438593062513,
+          "max_to_min_ratio": 2.131164935457834
+        },
+        "batch_mean_median": 1.7697440448121677,
+        "central_forward_ms_per_step_median": 12.314120569504015,
+        "gpu_memory_peak_mib": 14015.0,
+        "gpu_memory_total_mib": 16376.0,
+        "gpu_memory_minimum_headroom_mib": 2361.0,
+        "ram_used_peak_bytes": 22686629888,
+        "episodes": 630,
+        "truncations": 0,
+        "all_checkpoints_unchanged": true,
+        "any_hardware_throttle": false
+      },
+      "runs": [
+        {
+          "path": "data/reports/training_speed_stability/baseline_repeat_1.json",
+          "checkpoint_sha256": "178f36d9560b8ba3ee7a548b95985e0373d7d935f82720224d7d9fd393bb367b",
+          "checkpoint_unchanged": true,
+          "configuration": {
+            "rollout_workers": 6,
+            "worker_torch_threads": 2,
+            "central_inference_batch_wait_seconds": 0.001,
+            "profile_ipc_timing": false,
+            "profile_central_timing": false,
+            "profile_learner_timing": false
+          },
+          "warmup_updates_excluded": 2,
+          "steady_agent_steps": 18173,
+          "steady_elapsed_seconds": 311.85705949994735,
+          "steady_agent_steps_per_second": 58.27349244278714,
+          "overall_agent_steps_per_second": 57.9868268235004,
+          "batch": {
+            "mean": 1.7685737768370586,
+            "p50": 1.0,
+            "p95": 4.0,
+            "empty_slot_fraction": 0.7052377038604902
+          },
+          "milliseconds_per_agent_step": {
+            "central_forward": 12.314120569504015,
+            "central_batch_wait": 0.9590663783377693,
+            "central_worker_message_wait": 1.0386992022011803
+          },
+          "episodes": 222,
+          "truncations": 0,
+          "system": {
+            "gpu_memory_peak_mib": 14015.0,
+            "gpu_memory_total_mib": 16376.0,
+            "ram_used_peak_bytes": 22437281792,
+            "pagefile_used_change_bytes": 20710576128,
+            "gpu_graphics_clock_median_mhz": 1005.0,
+            "gpu_power_p95_watts": 126.38,
+            "gpu_temperature_peak_celsius": 53.0,
+            "gpu_pstate_sample_counts": {
+              "P2": 192,
+              "P3": 418,
+              "P5": 82
+            },
+            "gpu_any_hardware_throttle": false
+          }
+        },
+        {
+          "path": "data/reports/training_speed_stability/baseline_repeat_2.json",
+          "checkpoint_sha256": "178f36d9560b8ba3ee7a548b95985e0373d7d935f82720224d7d9fd393bb367b",
+          "checkpoint_unchanged": true,
+          "configuration": {
+            "rollout_workers": 6,
+            "worker_torch_threads": 2,
+            "central_inference_batch_wait_seconds": 0.001,
+            "profile_ipc_timing": false,
+            "profile_central_timing": false,
+            "profile_learner_timing": false
+          },
+          "warmup_updates_excluded": 2,
+          "steady_agent_steps": 16231,
+          "steady_elapsed_seconds": 285.08767569973134,
+          "steady_agent_steps_per_second": 56.93336255298284,
+          "overall_agent_steps_per_second": 56.88472452600677,
+          "batch": {
+            "mean": 1.7697440448121677,
+            "p50": 1.0,
+            "p95": 4.0,
+            "empty_slot_fraction": 0.705042659197972
+          },
+          "milliseconds_per_agent_step": {
+            "central_forward": 12.813021070621396,
+            "central_batch_wait": 0.9138312671723959,
+            "central_worker_message_wait": 1.0173222534552444
+          },
+          "episodes": 204,
+          "truncations": 0,
+          "system": {
+            "gpu_memory_peak_mib": 12217.0,
+            "gpu_memory_total_mib": 16376.0,
+            "ram_used_peak_bytes": 22686629888,
+            "pagefile_used_change_bytes": 18860625920,
+            "gpu_graphics_clock_median_mhz": 690.0,
+            "gpu_power_p95_watts": 127.33,
+            "gpu_temperature_peak_celsius": 52.0,
+            "gpu_pstate_sample_counts": {
+              "P2": 122,
+              "P3": 506,
+              "P5": 17
+            },
+            "gpu_any_hardware_throttle": false
+          }
+        },
+        {
+          "path": "data/reports/training_speed_stability/baseline_repeat_3.json",
+          "checkpoint_sha256": "178f36d9560b8ba3ee7a548b95985e0373d7d935f82720224d7d9fd393bb367b",
+          "checkpoint_unchanged": true,
+          "configuration": {
+            "rollout_workers": 6,
+            "worker_torch_threads": 2,
+            "central_inference_batch_wait_seconds": 0.001,
+            "profile_ipc_timing": false,
+            "profile_central_timing": false,
+            "profile_learner_timing": false
+          },
+          "warmup_updates_excluded": 2,
+          "steady_agent_steps": 16233,
+          "steady_elapsed_seconds": 133.78730089985766,
+          "steady_agent_steps_per_second": 121.33438593062513,
+          "overall_agent_steps_per_second": 114.59051521676334,
+          "batch": {
+            "mean": 1.8213641357584247,
+            "p50": 1.0,
+            "p95": 4.0,
+            "empty_slot_fraction": 0.6964393107069292
+          },
+          "milliseconds_per_agent_step": {
+            "central_forward": 5.14906528659717,
+            "central_batch_wait": 0.8119518257984382,
+            "central_worker_message_wait": 0.3930258551082492
+          },
+          "episodes": 204,
+          "truncations": 0,
+          "system": {
+            "gpu_memory_peak_mib": 11975.0,
+            "gpu_memory_total_mib": 16376.0,
+            "ram_used_peak_bytes": 22184214528,
+            "pagefile_used_change_bytes": 18326986752,
+            "gpu_graphics_clock_median_mhz": 1380.0,
+            "gpu_power_p95_watts": 153.51,
+            "gpu_temperature_peak_celsius": 55.0,
+            "gpu_pstate_sample_counts": {
+              "P2": 94,
+              "P3": 99,
+              "P5": 128
+            },
+            "gpu_any_hardware_throttle": false
+          }
+        }
+      ]
+    },
+    "post_candidate_six_worker_control": {
+      "aggregate": {
+        "run_count": 1,
+        "steady_agent_steps_per_second": {
+          "runs": [
+            121.80245619099335
+          ],
+          "median": 121.80245619099335,
+          "minimum": 121.80245619099335,
+          "maximum": 121.80245619099335,
+          "max_to_min_ratio": 1.0
+        },
+        "batch_mean_median": 1.8402927291184048,
+        "central_forward_ms_per_step_median": 5.095764403421767,
+        "gpu_memory_peak_mib": 11440.0,
+        "gpu_memory_total_mib": 16376.0,
+        "gpu_memory_minimum_headroom_mib": 4936.0,
+        "ram_used_peak_bytes": 22499594240,
+        "episodes": 228,
+        "truncations": 0,
+        "all_checkpoints_unchanged": true,
+        "any_hardware_throttle": false
+      },
+      "runs": [
+        {
+          "path": "data/reports/training_speed_stability/baseline_repeat_4_post_candidate.json",
+          "checkpoint_sha256": "178f36d9560b8ba3ee7a548b95985e0373d7d935f82720224d7d9fd393bb367b",
+          "checkpoint_unchanged": true,
+          "configuration": {
+            "rollout_workers": 6,
+            "worker_torch_threads": 2,
+            "central_inference_batch_wait_seconds": 0.001,
+            "profile_ipc_timing": false,
+            "profile_central_timing": false,
+            "profile_learner_timing": false
+          },
+          "warmup_updates_excluded": 2,
+          "steady_agent_steps": 18350,
+          "steady_elapsed_seconds": 150.6537764002569,
+          "steady_agent_steps_per_second": 121.80245619099335,
+          "overall_agent_steps_per_second": 116.25545770981648,
+          "batch": {
+            "mean": 1.8402927291184048,
+            "p50": 1.0,
+            "p95": 4.0,
+            "empty_slot_fraction": 0.6932845451469325
+          },
+          "milliseconds_per_agent_step": {
+            "central_forward": 5.095764403421767,
+            "central_batch_wait": 0.797236250936782,
+            "central_worker_message_wait": 0.40299244162852416
+          },
+          "episodes": 228,
+          "truncations": 0,
+          "system": {
+            "gpu_memory_peak_mib": 11440.0,
+            "gpu_memory_total_mib": 16376.0,
+            "ram_used_peak_bytes": 22499594240,
+            "pagefile_used_change_bytes": 18719297536,
+            "gpu_graphics_clock_median_mhz": 1395.0,
+            "gpu_power_p95_watts": 151.12,
+            "gpu_temperature_peak_celsius": 49.0,
+            "gpu_pstate_sample_counts": {
+              "P2": 106,
+              "P3": 110,
+              "P5": 132,
+              "P8": 1
+            },
+            "gpu_any_hardware_throttle": false
+          }
+        }
+      ]
+    },
+    "seven_worker_one_ms": {
+      "aggregate": {
+        "run_count": 3,
+        "steady_agent_steps_per_second": {
+          "runs": [
+            130.21034181668048,
+            127.98550080506294,
+            129.3489641030451
+          ],
+          "median": 129.3489641030451,
+          "minimum": 127.98550080506294,
+          "maximum": 130.21034181668048,
+          "max_to_min_ratio": 1.017383539523014
+        },
+        "batch_mean_median": 1.9144852047322451,
+        "central_forward_ms_per_step_median": 4.852336800717667,
+        "gpu_memory_peak_mib": 14287.0,
+        "gpu_memory_total_mib": 16376.0,
+        "gpu_memory_minimum_headroom_mib": 2089.0,
+        "ram_used_peak_bytes": 22953943040,
+        "episodes": 644,
+        "truncations": 0,
+        "all_checkpoints_unchanged": true,
+        "any_hardware_throttle": false
+      },
+      "runs": [
+        {
+          "path": "data/reports/training_speed_stability/workers_7_screen.json",
+          "checkpoint_sha256": "178f36d9560b8ba3ee7a548b95985e0373d7d935f82720224d7d9fd393bb367b",
+          "checkpoint_unchanged": true,
+          "configuration": {
+            "rollout_workers": 7,
+            "worker_torch_threads": 2,
+            "central_inference_batch_wait_seconds": 0.001,
+            "profile_ipc_timing": false,
+            "profile_central_timing": false,
+            "profile_learner_timing": false
+          },
+          "warmup_updates_excluded": 2,
+          "steady_agent_steps": 17922,
+          "steady_elapsed_seconds": 137.63883690000512,
+          "steady_agent_steps_per_second": 130.21034181668048,
+          "overall_agent_steps_per_second": 121.2823275643812,
+          "batch": {
+            "mean": 1.9216808323349872,
+            "p50": 1.0,
+            "p95": 5.0,
+            "empty_slot_fraction": 0.7254741668092876
+          },
+          "milliseconds_per_agent_step": {
+            "central_forward": 4.812962682514463,
+            "central_batch_wait": 0.7143428075454581,
+            "central_worker_message_wait": 0.30678311004717557
+          },
+          "episodes": 224,
+          "truncations": 0,
+          "system": {
+            "gpu_memory_peak_mib": 14287.0,
+            "gpu_memory_total_mib": 16376.0,
+            "ram_used_peak_bytes": 22830383104,
+            "pagefile_used_change_bytes": 22873841664,
+            "gpu_graphics_clock_median_mhz": 1455.0,
+            "gpu_power_p95_watts": 156.21,
+            "gpu_temperature_peak_celsius": 59.0,
+            "gpu_pstate_sample_counts": {
+              "P2": 104,
+              "P3": 116,
+              "P5": 112,
+              "P8": 4
+            },
+            "gpu_any_hardware_throttle": false
+          }
+        },
+        {
+          "path": "data/reports/training_speed_stability/workers_7_repeat_2.json",
+          "checkpoint_sha256": "178f36d9560b8ba3ee7a548b95985e0373d7d935f82720224d7d9fd393bb367b",
+          "checkpoint_unchanged": true,
+          "configuration": {
+            "rollout_workers": 7,
+            "worker_torch_threads": 2,
+            "central_inference_batch_wait_seconds": 0.001,
+            "profile_ipc_timing": false,
+            "profile_central_timing": false,
+            "profile_learner_timing": false
+          },
+          "warmup_updates_excluded": 2,
+          "steady_agent_steps": 17906,
+          "steady_elapsed_seconds": 139.90647290018387,
+          "steady_agent_steps_per_second": 127.98550080506294,
+          "overall_agent_steps_per_second": 119.95518127816149,
+          "batch": {
+            "mean": 1.9144852047322451,
+            "p50": 1.0,
+            "p95": 4.5,
+            "empty_slot_fraction": 0.7265021136096792
+          },
+          "milliseconds_per_agent_step": {
+            "central_forward": 4.9166118286478895,
+            "central_batch_wait": 0.7505122196320625,
+            "central_worker_message_wait": 0.2935235001869549
+          },
+          "episodes": 224,
+          "truncations": 0,
+          "system": {
+            "gpu_memory_peak_mib": 14280.0,
+            "gpu_memory_total_mib": 16376.0,
+            "ram_used_peak_bytes": 22806376448,
+            "pagefile_used_change_bytes": 22786109440,
+            "gpu_graphics_clock_median_mhz": 1380.0,
+            "gpu_power_p95_watts": 151.29,
+            "gpu_temperature_peak_celsius": 51.0,
+            "gpu_pstate_sample_counts": {
+              "P2": 107,
+              "P3": 117,
+              "P5": 111,
+              "P8": 5
+            },
+            "gpu_any_hardware_throttle": false
+          }
+        },
+        {
+          "path": "data/reports/training_speed_stability/workers_7_repeat_3.json",
+          "checkpoint_sha256": "178f36d9560b8ba3ee7a548b95985e0373d7d935f82720224d7d9fd393bb367b",
+          "checkpoint_unchanged": true,
+          "configuration": {
+            "rollout_workers": 7,
+            "worker_torch_threads": 2,
+            "central_inference_batch_wait_seconds": 0.001,
+            "profile_ipc_timing": false,
+            "profile_central_timing": false,
+            "profile_learner_timing": false
+          },
+          "warmup_updates_excluded": 2,
+          "steady_agent_steps": 15652,
+          "steady_elapsed_seconds": 121.00599419977516,
+          "steady_agent_steps_per_second": 129.3489641030451,
+          "overall_agent_steps_per_second": 119.67202077938143,
+          "batch": {
+            "mean": 1.9075909398999769,
+            "p50": 1.0,
+            "p95": 5.0,
+            "empty_slot_fraction": 0.7274870085857177
+          },
+          "milliseconds_per_agent_step": {
+            "central_forward": 4.852336800717667,
+            "central_batch_wait": 0.7093603053920869,
+            "central_worker_message_wait": 0.3171995017509036
+          },
+          "episodes": 196,
+          "truncations": 0,
+          "system": {
+            "gpu_memory_peak_mib": 14279.0,
+            "gpu_memory_total_mib": 16376.0,
+            "ram_used_peak_bytes": 22953943040,
+            "pagefile_used_change_bytes": 22944092160,
+            "gpu_graphics_clock_median_mhz": 1500.0,
+            "gpu_power_p95_watts": 148.78,
+            "gpu_temperature_peak_celsius": 48.0,
+            "gpu_pstate_sample_counts": {
+              "P2": 99,
+              "P5": 105,
+              "P8": 7,
+              "P3": 96
+            },
+            "gpu_any_hardware_throttle": false
+          }
+        }
+      ]
+    },
+    "final_seven_worker_half_ms": {
+      "aggregate": {
+        "run_count": 3,
+        "steady_agent_steps_per_second": {
+          "runs": [
+            138.56693881485592,
+            137.13956360464672,
+            135.52373846237847
+          ],
+          "median": 137.13956360464672,
+          "minimum": 135.52373846237847,
+          "maximum": 138.56693881485592,
+          "max_to_min_ratio": 1.0224551092451029
+        },
+        "batch_mean_median": 1.712752175398376,
+        "central_forward_ms_per_step_median": 5.315086967553708,
+        "gpu_memory_peak_mib": 14290.0,
+        "gpu_memory_total_mib": 16376.0,
+        "gpu_memory_minimum_headroom_mib": 2086.0,
+        "ram_used_peak_bytes": 22890123264,
+        "episodes": 644,
+        "truncations": 0,
+        "all_checkpoints_unchanged": true,
+        "any_hardware_throttle": false
+      },
+      "runs": [
+        {
+          "path": "data/reports/training_speed_stability/workers_7_wait_0_5_screen.json",
+          "checkpoint_sha256": "178f36d9560b8ba3ee7a548b95985e0373d7d935f82720224d7d9fd393bb367b",
+          "checkpoint_unchanged": true,
+          "configuration": {
+            "rollout_workers": 7,
+            "worker_torch_threads": 2,
+            "central_inference_batch_wait_seconds": 0.0005,
+            "profile_ipc_timing": false,
+            "profile_central_timing": false,
+            "profile_learner_timing": false
+          },
+          "warmup_updates_excluded": 2,
+          "steady_agent_steps": 17904,
+          "steady_elapsed_seconds": 129.20831010001712,
+          "steady_agent_steps_per_second": 138.56693881485592,
+          "overall_agent_steps_per_second": 128.01898177990643,
+          "batch": {
+            "mean": 1.7488410396331648,
+            "p50": 1.0,
+            "p95": 4.5,
+            "empty_slot_fraction": 0.7501655657666908
+          },
+          "milliseconds_per_agent_step": {
+            "central_forward": 5.249873374801956,
+            "central_batch_wait": 0.042376262426581914,
+            "central_worker_message_wait": 0.19812527883511163
+          },
+          "episodes": 224,
+          "truncations": 0,
+          "system": {
+            "gpu_memory_peak_mib": 14290.0,
+            "gpu_memory_total_mib": 16376.0,
+            "ram_used_peak_bytes": 22815072256,
+            "pagefile_used_change_bytes": 22765240320,
+            "gpu_graphics_clock_median_mhz": 1665.0,
+            "gpu_power_p95_watts": 152.99,
+            "gpu_temperature_peak_celsius": 54.0,
+            "gpu_pstate_sample_counts": {
+              "P2": 136,
+              "P3": 123,
+              "P5": 54,
+              "P8": 5
+            },
+            "gpu_any_hardware_throttle": false
+          }
+        },
+        {
+          "path": "data/reports/training_speed_stability/workers_7_wait_0_5_repeat_2.json",
+          "checkpoint_sha256": "178f36d9560b8ba3ee7a548b95985e0373d7d935f82720224d7d9fd393bb367b",
+          "checkpoint_unchanged": true,
+          "configuration": {
+            "rollout_workers": 7,
+            "worker_torch_threads": 2,
+            "central_inference_batch_wait_seconds": 0.0005,
+            "profile_ipc_timing": false,
+            "profile_central_timing": false,
+            "profile_learner_timing": false
+          },
+          "warmup_updates_excluded": 2,
+          "steady_agent_steps": 17902,
+          "steady_elapsed_seconds": 130.53855159995146,
+          "steady_agent_steps_per_second": 137.13956360464672,
+          "overall_agent_steps_per_second": 127.40224162758709,
+          "batch": {
+            "mean": 1.712752175398376,
+            "p50": 1.0,
+            "p95": 4.0,
+            "empty_slot_fraction": 0.755321117800232
+          },
+          "milliseconds_per_agent_step": {
+            "central_forward": 5.315086967553708,
+            "central_batch_wait": 0.04288692257741955,
+            "central_worker_message_wait": 0.1981381244898973
+          },
+          "episodes": 224,
+          "truncations": 0,
+          "system": {
+            "gpu_memory_peak_mib": 14276.0,
+            "gpu_memory_total_mib": 16376.0,
+            "ram_used_peak_bytes": 22793494528,
+            "pagefile_used_change_bytes": 22779338752,
+            "gpu_graphics_clock_median_mhz": 1665.0,
+            "gpu_power_p95_watts": 152.48,
+            "gpu_temperature_peak_celsius": 52.0,
+            "gpu_pstate_sample_counts": {
+              "P2": 137,
+              "P3": 119,
+              "P5": 57,
+              "P8": 6
+            },
+            "gpu_any_hardware_throttle": false
+          }
+        },
+        {
+          "path": "data/reports/training_speed_stability/workers_7_wait_0_5_repeat_3.json",
+          "checkpoint_sha256": "178f36d9560b8ba3ee7a548b95985e0373d7d935f82720224d7d9fd393bb367b",
+          "checkpoint_unchanged": true,
+          "configuration": {
+            "rollout_workers": 7,
+            "worker_torch_threads": 2,
+            "central_inference_batch_wait_seconds": 0.0005,
+            "profile_ipc_timing": false,
+            "profile_central_timing": false,
+            "profile_learner_timing": false
+          },
+          "warmup_updates_excluded": 2,
+          "steady_agent_steps": 15651,
+          "steady_elapsed_seconds": 115.4853029998485,
+          "steady_agent_steps_per_second": 135.52373846237847,
+          "overall_agent_steps_per_second": 125.10820630538029,
+          "batch": {
+            "mean": 1.6983510741112042,
+            "p50": 1.0,
+            "p95": 4.0,
+            "empty_slot_fraction": 0.7573784179841138
+          },
+          "milliseconds_per_agent_step": {
+            "central_forward": 5.37860870307059,
+            "central_batch_wait": 0.04301457995819357,
+            "central_worker_message_wait": 0.2126464249274501
+          },
+          "episodes": 196,
+          "truncations": 0,
+          "system": {
+            "gpu_memory_peak_mib": 14278.0,
+            "gpu_memory_total_mib": 16376.0,
+            "ram_used_peak_bytes": 22890123264,
+            "pagefile_used_change_bytes": 22847901696,
+            "gpu_graphics_clock_median_mhz": 1657.5,
+            "gpu_power_p95_watts": 152.32,
+            "gpu_temperature_peak_celsius": 49.0,
+            "gpu_pstate_sample_counts": {
+              "P2": 132,
+              "P3": 111,
+              "P5": 45,
+              "P8": 6
+            },
+            "gpu_any_hardware_throttle": false
+          }
+        }
+      ]
+    },
+    "screen_seven_worker_quarter_ms": {
+      "aggregate": {
+        "run_count": 1,
+        "steady_agent_steps_per_second": {
+          "runs": [
+            135.268180741158
+          ],
+          "median": 135.268180741158,
+          "minimum": 135.268180741158,
+          "maximum": 135.268180741158,
+          "max_to_min_ratio": 1.0
+        },
+        "batch_mean_median": 1.6948335038919742,
+        "central_forward_ms_per_step_median": 5.408232413494218,
+        "gpu_memory_peak_mib": 14285.0,
+        "gpu_memory_total_mib": 16376.0,
+        "gpu_memory_minimum_headroom_mib": 2091.0,
+        "ram_used_peak_bytes": 22858014720,
+        "episodes": 224,
+        "truncations": 0,
+        "all_checkpoints_unchanged": true,
+        "any_hardware_throttle": false
+      },
+      "runs": [
+        {
+          "path": "data/reports/training_speed_stability/workers_7_wait_0_25_screen.json",
+          "checkpoint_sha256": "178f36d9560b8ba3ee7a548b95985e0373d7d935f82720224d7d9fd393bb367b",
+          "checkpoint_unchanged": true,
+          "configuration": {
+            "rollout_workers": 7,
+            "worker_torch_threads": 2,
+            "central_inference_batch_wait_seconds": 0.00025,
+            "profile_ipc_timing": false,
+            "profile_central_timing": false,
+            "profile_learner_timing": false
+          },
+          "warmup_updates_excluded": 2,
+          "steady_agent_steps": 17866,
+          "steady_elapsed_seconds": 132.07836389984004,
+          "steady_agent_steps_per_second": 135.268180741158,
+          "overall_agent_steps_per_second": 125.94977024938491,
+          "batch": {
+            "mean": 1.6948335038919742,
+            "p50": 1.0,
+            "p95": 4.0,
+            "empty_slot_fraction": 0.7578809280154323
+          },
+          "milliseconds_per_agent_step": {
+            "central_forward": 5.408232413494218,
+            "central_batch_wait": 0.04356244358090338,
+            "central_worker_message_wait": 0.1959621511774235
+          },
+          "episodes": 224,
+          "truncations": 0,
+          "system": {
+            "gpu_memory_peak_mib": 14285.0,
+            "gpu_memory_total_mib": 16376.0,
+            "ram_used_peak_bytes": 22858014720,
+            "pagefile_used_change_bytes": 22804828160,
+            "gpu_graphics_clock_median_mhz": 1590.0,
+            "gpu_power_p95_watts": 155.44,
+            "gpu_temperature_peak_celsius": 58.0,
+            "gpu_pstate_sample_counts": {
+              "P2": 140,
+              "P3": 125,
+              "P5": 52,
+              "P8": 6
+            },
+            "gpu_any_hardware_throttle": false
+          }
+        }
+      ]
+    },
+    "screen_eight_worker_one_ms": {
+      "aggregate": {
+        "run_count": 1,
+        "steady_agent_steps_per_second": {
+          "runs": [
+            131.2257288958671
+          ],
+          "median": 131.2257288958671,
+          "minimum": 131.2257288958671,
+          "maximum": 131.2257288958671,
+          "max_to_min_ratio": 1.0
+        },
+        "batch_mean_median": 1.9911596561929592,
+        "central_forward_ms_per_step_median": 4.697752397387952,
+        "gpu_memory_peak_mib": 15779.0,
+        "gpu_memory_total_mib": 16376.0,
+        "gpu_memory_minimum_headroom_mib": 597.0,
+        "ram_used_peak_bytes": 24162385920,
+        "episodes": 192,
+        "truncations": 0,
+        "all_checkpoints_unchanged": true,
+        "any_hardware_throttle": false
+      },
+      "runs": [
+        {
+          "path": "data/reports/training_speed_stability/workers_8_screen.json",
+          "checkpoint_sha256": "178f36d9560b8ba3ee7a548b95985e0373d7d935f82720224d7d9fd393bb367b",
+          "checkpoint_unchanged": true,
+          "configuration": {
+            "rollout_workers": 8,
+            "worker_torch_threads": 2,
+            "central_inference_batch_wait_seconds": 0.001,
+            "profile_ipc_timing": false,
+            "profile_central_timing": false,
+            "profile_learner_timing": false
+          },
+          "warmup_updates_excluded": 2,
+          "steady_agent_steps": 16619,
+          "steady_elapsed_seconds": 126.64437179989181,
+          "steady_agent_steps_per_second": 131.2257288958671,
+          "overall_agent_steps_per_second": 121.6640114948252,
+          "batch": {
+            "mean": 1.9911596561929592,
+            "p50": 1.0,
+            "p95": 5.0,
+            "empty_slot_fraction": 0.7511050429758802
+          },
+          "milliseconds_per_agent_step": {
+            "central_forward": 4.697752397387952,
+            "central_batch_wait": 0.6968132618370201,
+            "central_worker_message_wait": 0.31258789896431527
+          },
+          "episodes": 192,
+          "truncations": 0,
+          "system": {
+            "gpu_memory_peak_mib": 15779.0,
+            "gpu_memory_total_mib": 16376.0,
+            "ram_used_peak_bytes": 24162385920,
+            "pagefile_used_change_bytes": 25362657280,
+            "gpu_graphics_clock_median_mhz": 1470.0,
+            "gpu_power_p95_watts": 156.24,
+            "gpu_temperature_peak_celsius": 56.0,
+            "gpu_pstate_sample_counts": {
+              "P2": 104,
+              "P5": 83,
+              "P8": 9,
+              "P3": 111
+            },
+            "gpu_any_hardware_throttle": false
+          }
+        }
+      ]
+    }
+  },
+  "findings": {
+    "initial_six_worker_runtime_variability_factor": 2.131164935457834,
+    "fast_six_worker_reference_steps_per_second": 121.56842106080924,
+    "seven_worker_one_ms_improvement_over_fast_six": 0.06400134981060557,
+    "half_ms_improvement_over_one_ms": 0.06022931498233963,
+    "final_improvement_over_fast_six": 0.12808542224998298,
+    "final_improvement_over_initial_median_not_attributed": 1.353378145977611,
+    "final_runtime_variability_factor": 1.0224551092451029
+  },
+  "decision": {
+    "adopted": true,
+    "runtime_overrides": {
+      "rollout_workers": 7,
+      "rollout_worker_torch_threads": 2,
+      "central_inference_batch_wait_seconds": 0.0005
+    },
+    "rejected_or_blocked": [
+      {
+        "candidate": "8 workers, 1.0 ms",
+        "reason": "Only one screen and insufficient incremental gain; GPU peak 15779 MiB left 597 MiB headroom."
+      },
+      {
+        "candidate": "7 workers, 0.25 ms",
+        "reason": "Screen was slower than the three-run 0.5 ms median (135.27 vs 137.14 steps/s)."
+      },
+      {
+        "candidate": "lock GPU clocks to 2520-2820 MHz",
+        "reason": "nvidia-smi rejected the reversible clock-lock probe: current user does not have permission; no clock state was changed."
+      }
+    ]
+  }
+}
