@@ -38,7 +38,7 @@
     },
     "combat": {
       "path": "data/reports/card_bug_audit/combat_endgame_random_audit.json",
-      "sha256": "356c69394c4aff4a6c14f53a3d9511b9ef9083311d7456349824f9d374b66d3a"
+      "sha256": "de758ad504cedf0e8525002b5c7aabf742a863a94906ea2ee0189a99b6fc69e8"
     },
     "runtime": {
       "path": "data/reports/card_bug_audit/runtime_coverage.json",
@@ -66,7 +66,7 @@
     },
     "stage_1_13": {
       "path": "data/reports/card_bug_audit/stage_1_13_repro_closure.json",
-      "sha256": "ad87862f1dc64ab76bddde9cdb06d2bf59620d1ada15eb828478cd44b5c456df"
+      "sha256": "b9dbd3442e9ada4de30a010765ad59e774d5b9919e77fdfa9495ba1a71b194ae"
     }
   },
   "scope": {

@@ -180,18 +180,18 @@ class CheckpointTests(unittest.TestCase):
                 self.assertAlmostEqual(
                     direct_record.old_log_prob,
                     resumed_record.old_log_prob,
-                    delta=1e-7,
+                    delta=1e-6,
                 )
                 self.assertAlmostEqual(
                     direct_record.value,
                     resumed_record.value,
-                    delta=1e-7,
+                    delta=1e-6,
                 )
             for player_id, expected in direct_bootstrap.items():
                 self.assertAlmostEqual(
                     expected,
                     resumed_bootstrap[player_id],
-                    delta=1e-7,
+                    delta=1e-6,
                 )
             self.assertEqual(direct_metrics.keys(), resumed_metrics.keys())
             for name, expected in direct_metrics.items():

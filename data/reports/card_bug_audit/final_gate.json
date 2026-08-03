@@ -34,7 +34,7 @@
     },
     "combat": {
       "path": "data/reports/card_bug_audit/combat_endgame_random_audit.json",
-      "sha256": "64a887b4ad030ff2107d97c1f29d5289f4e86e773936f34523ce8f01115962e8"
+      "sha256": "de758ad504cedf0e8525002b5c7aabf742a863a94906ea2ee0189a99b6fc69e8"
     },
     "forced": {
       "path": "data/reports/card_bug_audit/forced_scenario_audit.json",
@@ -66,7 +66,7 @@
     },
     "rl_interface": {
       "path": "data/reports/card_bug_audit/rl_interface_privacy_audit.json",
-      "sha256": "28272cef50ceda70b192a79dc038883c7b5550fc03fc4dc1c2c43f943406698a"
+      "sha256": "eae862903acc9cb311e92939f300e1dc3f75e16c0fc9cd9995b8f99a72a79c15"
     },
     "database": {
       "path": "data/cards.sqlite3",
@@ -74,7 +74,7 @@
     }
   },
   "frozen": {
-    "rules_engine_commit": "6e33275e54b96d2f4b2cb25c6db2135a0aa15fdf",
+    "rules_engine_commit": "22d8d76806df6ee67ad91761286c4884e3872e03",
     "catalog_policy_commit": "9699ab97b3c9865b047c29168df284f0a933a3ee",
     "database_sha256": "df069e713a97493c885266b72f303874035beea571147ba14b77c57c9e631376",
     "rules_sha256": "449230d69db016ff99fa27de963f89adc9ac9ac5b54e913991ffe3314e4f2017",
@@ -103,8 +103,8 @@
       "size": 112,
       "sha256": "12598f3acd06e6edb819e3af8ba9299139e85d272adf7b1dca63d93b505ba0da"
     },
-    "tests_sha256": "ef0ffe41b2eb1eb39f510e5d00aab17f110ecfc4905ba99a95134ec5137f493a",
-    "scripts_sha256": "ed8304d9585737da67dc7cbd33a2b0ead8b5db5cdbc0beb1c10f5f6cd16e0b77"
+    "tests_sha256": "d1763569563e66032befee4516cb234d11318faf3514bac43cdbb7112b8be8b4",
+    "scripts_sha256": "ef3d1ad6e7bb7d6a3f7fe5b008c180aa8baaa42526f833cac02f9b9d9e3a17fb"
   },
   "gates": [
     {
@@ -315,12 +315,12 @@
       },
       "failed_checks": [],
       "metrics": {
-        "rules_engine_commit": "6e33275e54b96d2f4b2cb25c6db2135a0aa15fdf",
+        "rules_engine_commit": "22d8d76806df6ee67ad91761286c4884e3872e03",
         "catalog_policy_commit": "9699ab97b3c9865b047c29168df284f0a933a3ee",
         "database_sha256": "df069e713a97493c885266b72f303874035beea571147ba14b77c57c9e631376",
         "rules_sha256": "449230d69db016ff99fa27de963f89adc9ac9ac5b54e913991ffe3314e4f2017",
         "catalog_sha256": "57a9c1927de54ea5901a02d48d27438211ad9edc24f61ee6bc92d624d707f2f6",
-        "tests_sha256": "ef0ffe41b2eb1eb39f510e5d00aab17f110ecfc4905ba99a95134ec5137f493a"
+        "tests_sha256": "d1763569563e66032befee4516cb234d11318faf3514bac43cdbb7112b8be8b4"
       },
       "evidence": [
         "data/cards.sqlite3",

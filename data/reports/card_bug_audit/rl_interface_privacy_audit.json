@@ -2,12 +2,12 @@
   "schema_version": 1,
   "report_kind": "swb_rl_interface_privacy_audit",
   "inputs": {
-    "swb/engine/environment.py": "23a740aebf8596ad79626cca550c25bf69d9b6e1013556c67529f7507615b339",
+    "swb/engine/environment.py": "78bee3ab99a7ab2b41c08beb5524acbb08fd40872b0763687b7c6d96f99553bd",
     "swb/engine/observation_v3.py": "641cebaa552bbcbbcad14a6992ec09ba31174143d067fac8c09b1d054b7a96ab",
     "swb/engine/observation_v4_1.py": "e85160513f99caa69d107b5a8f62559c31759844c2ab771f3535e30a1e782cbf",
     "swb/rl/versioning.py": "07161575dbb2b32e3c1bea5f3d9e2446a0f6b1736d9ba99b749b0bcb1ea81c60",
     "swb/simulator/history.py": "6db67455f6d8a85cfe6e7bd9798a0908568cdaafbf02f1c15cd56d4611907870",
-    "swb/simulator/service.py": "1472f90d504531baea52c1270fb277e8426b8f4788768e4f6eaa277ecdad4605",
+    "swb/simulator/service.py": "c1ebc71c1374f72a042e5066aa3e884285f004e8df25b4f49927789b73cdb1aa",
     "data/audits/rl_interface_privacy_evidence.json": "a73f35128c38bc8138f8f51e2983c0b6f4a668132c16d37bdaa18f427955a736",
     "data/reports/card_bug_audit/play_mode_boundary_audit.json": "e988e4e05f6ce7159059643512b7b9fa5f2560193e81d857b05a5dcbef046249",
     "data/reports/card_bug_audit/bug_ledger.json": "28915bbaca5aa54d7592da62c237182b791c807a21827c1d80a4077118504e5f"
