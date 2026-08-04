@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "state": "completed",
+  "launcher_pid": 49084,
+  "active_seed": "",
+  "completed_seeds": [
+    "20260903",
+    "20260904",
+    "20260905",
+    "20260906",
+    "20260907",
+    "20260908"
+  ],
+  "queued_seeds": [],
+  "target_agent_steps_per_seed": 1000000,
+  "runtime": {
+    "rollout_workers": 7,
+    "rollout_worker_torch_threads": 2,
+    "central_inference_batch_wait_seconds": 0.0005
+  },
+  "updated_at": "2026-08-04T07:55:27.4476853+08:00",
+  "error": ""
+}

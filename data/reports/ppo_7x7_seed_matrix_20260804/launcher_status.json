@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "state": "completed",
+  "launcher_pid": 59572,
+  "active_pair": "",
+  "completed_pair_count": 33,
+  "total_pair_count": 33,
+  "completed_game_count": 6468,
+  "total_game_count": 6468,
+  "queued_pairs": [],
+  "master_seed": 20260804,
+  "games_per_pair": 196,
+  "updated_at": "2026-08-04T12:35:35.6715883+08:00",
+  "error": ""
+}
