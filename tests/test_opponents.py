@@ -191,6 +191,25 @@ class OpponentPoolTests(unittest.TestCase):
             )
             self.assertEqual(restored.state_dict(), pool.state_dict())
 
+    def test_next_pool_can_retain_models_from_an_earlier_generation(self) -> None:
+        with tempfile.TemporaryDirectory() as directory_name:
+            directory = Path(directory_name)
+            manifest_path = self._write_external_manifest(directory)
+            payload = json.loads(manifest_path.read_text(encoding="utf-8"))
+            payload["generation"] = 1
+            payload["selection_mode"] = "hard"
+            manifest_path.write_text(json.dumps(payload), encoding="utf-8")
+            manifest = load_external_opponent_manifest(
+                manifest_path,
+                external_weight=1.0,
+                repository_root=directory,
+            )
+            self.assertEqual(manifest.generation, 1)
+            self.assertEqual(
+                {entry.generation for entry in manifest.entries},
+                {0},
+            )
+
     def test_external_manifest_rejects_hash_and_resume_entry_changes(self) -> None:
         with tempfile.TemporaryDirectory() as directory_name:
             directory = Path(directory_name)

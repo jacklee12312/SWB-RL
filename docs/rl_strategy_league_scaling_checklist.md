@@ -280,21 +280,21 @@ opponent、PPO、checkpoint、vector rollout 和训练 CLI 测试覆盖。
 
 ## 3.4 实现 payoff-aware PFSP
 
-- [ ] PFSP 只读取训练专用 evaluator 产生的 payoff 快照，不读取最终评估 seed。
-- [ ] 第一版预注册三种 sampler，按顺序单变量比较：
-  - [ ] `uniform`：共同池均匀抽取，作为 3.3 基线；
-  - [ ] `variance`：权重与 `p * (1 - p)` 成正比，优先约 50% 胜率对手；
-  - [ ] `hard`：权重与 `(1 - p)^alpha` 成正比，`alpha` 首轮固定为 1。
-- [ ] 所有 sampler 使用 epsilon floor，避免永久遗忘低权重对手；首轮固定
+- [x] PFSP 只读取训练专用 evaluator 产生的 payoff 快照，不读取最终评估 seed。
+- [x] 第一版预注册三种 sampler，按顺序单变量比较：
+  - [x] `uniform`：共同池均匀抽取，作为 3.3 基线；
+  - [x] `variance`：权重与 `p * (1 - p)` 成正比，优先约 50% 胜率对手；
+  - [x] `hard`：权重与 `(1 - p)^alpha` 成正比，`alpha` 首轮固定为 1。
+- [x] 所有 sampler 使用 epsilon floor，避免永久遗忘低权重对手；首轮固定
   `epsilon=0.02`，不得在看到最终结果后修改。
-- [ ] 单个对手的采样概率默认封顶 35%；只有候选不足时才能超过，并在报告中
+- [x] 单个对手的采样概率默认封顶 35%；只有候选不足时才能超过，并在报告中
   显式记录。
-- [ ] 增加 forgotten-opponent 标记：先前胜率不低于 70%，新快照降到 40% 以下
+- [x] 增加 forgotten-opponent 标记：先前胜率不低于 70%，新快照降到 40% 以下
   时，进入独立的遗忘优先队列。
-- [ ] payoff 更新只发生在 generation 边界；同一 PPO rollout 和同一 generation
+- [x] payoff 更新只发生在 generation 边界；同一 PPO rollout 和同一 generation
   内不得动态改变分布。
-- [ ] 保存每次分布计算的输入矩阵、公式、参数、归一化前后权重和选择计数。
-- [ ] 合成矩阵测试覆盖全胜、全败、全平、缺失 CI、重复模型、只有一个候选、
+- [x] 保存每次分布计算的输入矩阵、公式、参数、归一化前后权重和选择计数。
+- [x] 合成矩阵测试覆盖全胜、全败、全平、缺失 CI、重复模型、只有一个候选、
   epsilon floor、概率上限和固定 seed 重现。
 
 产物：
@@ -314,6 +314,24 @@ opponent、PPO、checkpoint、vector rollout 和训练 CLI 测试覆盖。
   - worst-case/meta-game exploitability proxy 相对改善至少 10%。
 - 同时要求至少 2/3 seed 的主指标不退化，aggregate paired bootstrap CI 下界
   不低于 -2 个百分点，且任何职业格子不下降超过 5 个百分点。
+
+实现冻结记录（2026-08-04，真实 payoff/训练筛查尚未启动）：`swb/rl/pfsp.py`
+实现三个预注册公式、最终概率 `epsilon=0.02` 下界、35% 上界及候选不足的显式
+例外；有对局但缺 CI 的行不会影响 payoff-aware 原始权重，只保留 floor，并在
+全部原始权重为零时安全退回均匀分布。训练 payoff loader 强制读取
+`pfsp_tuning` 分区、拒绝最终评估 seed、绑定上一代 manifest hash，且只允许在
+`generation_end` 生成下一代权重。Generation 1 可以保留出生于 Generation 0
+的冻结模型，避免把旧模型错误标记成新代模型。遗忘队列按先前 `>=70%`、当前
+`<40%` 确定性排序。
+
+首个 evaluator 已在
+`data/reports/league_training/generation_000_payoff_evaluation_plan.json` 预注册：
+以 `seed_20260903_1m` 为共同 focal（六候选内部总分最高且有非零 Nash 权重），
+只用 tuning master seed `20261001`，对 24 个训练对手各跑 196 局完整 7x7/双方
+位置，共 4,704 局；期望 0 非法动作、0 mask mismatch、0 截断。可恢复串行队列
+为 `scripts/evaluate_ppo_league_generation_000_payoffs.ps1`，结束后才生成真实
+payoff snapshot、sampler scan 和 Generation 1 manifest；这些实际产物及后续
+3 seed x 100k 决策门仍待完成。
 
 ## 3.5 有条件地加入 Main / Exploiter 角色
 

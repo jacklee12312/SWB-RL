@@ -13,7 +13,11 @@ from swb.rl.versioning import stable_json_sha256
 
 
 EXTERNAL_OPPONENT_MANIFEST_SCHEMA_VERSION = 1
-EXTERNAL_OPPONENT_SELECTION_MODES = frozenset({"uniform"})
+EXTERNAL_OPPONENT_SELECTION_MODES = frozenset({
+    "uniform",
+    "variance",
+    "hard",
+})
 OPPONENT_BATCHING_MODES = frozenset({"sequential", "episode_seed_clustered"})
 
 
@@ -327,10 +331,15 @@ def load_external_opponent_manifest(
             )
         hashes.add(actual_hash)
         entry_generation = raw_entry.get("generation")
-        if entry_generation != generation:
+        if (
+            not isinstance(entry_generation, int)
+            or isinstance(entry_generation, bool)
+            or entry_generation < 0
+            or entry_generation > generation
+        ):
             raise ValueError(
-                f"external opponent {opponent_id} has generation "
-                f"{entry_generation!r}, expected {generation}"
+                f"external opponent {opponent_id} has invalid model generation "
+                f"{entry_generation!r} for pool generation {generation}"
             )
         policy_seed = _required_integer(
             raw_entry,
@@ -374,7 +383,7 @@ def load_external_opponent_manifest(
             checkpoint_sha256=actual_hash,
             policy_seed=policy_seed,
             training_steps=training_steps,
-            generation=generation,
+            generation=entry_generation,
             role=role,
             rules_version=rules_version,
             policy_architecture=policy_architecture,
