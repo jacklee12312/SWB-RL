@@ -6,6 +6,7 @@ from collections import Counter
 from pathlib import Path
 
 import numpy as np
+import torch
 
 from swb.db.repository import CardRepository
 from swb.engine.environment import ShadowverseEnv
@@ -17,6 +18,7 @@ from swb.rl.runtime import WorkerAssetsSnapshot
 from swb.rl.seeding import derive_seed, episode_seeds
 from swb.rl.trajectory import TRAJECTORY_SCHEMA_VERSION
 from swb.rl.vector_rollout import (
+    PolicyVectorRollout,
     RolloutConfig,
     RolloutWorkerError,
     VectorRollout,
@@ -201,7 +203,6 @@ class VectorRolloutTests(unittest.TestCase):
         self.assertFalse(any(process.is_alive() for process in processes))
         active_ids = {process.pid for process in mp.active_children()}
         self.assertFalse(any(process.pid in active_ids for process in processes))
-
 
 if __name__ == "__main__":
     unittest.main()

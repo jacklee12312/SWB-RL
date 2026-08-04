@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import tempfile
 import unittest
+import hashlib
+import json
 from collections import Counter
 from dataclasses import replace
 from pathlib import Path
@@ -23,6 +25,7 @@ from swb.rl.fixed_decks import (
 from swb.rl.ppo import PPOConfig, PPOTrainer
 from swb.rl.policy import ENTITY_ACTION_POLICY_ARCHITECTURE
 from swb.rl.runtime import WorkerAssetsSnapshot
+from swb.rl.versioning import stable_json_sha256
 
 
 DATABASE = Path("data/cards.sqlite3")
@@ -57,6 +60,58 @@ class CheckpointTests(unittest.TestCase):
         records, bootstrap, _ = trainer.collect_rollout()
         trainer.update(records, bootstrap)
         return trainer
+
+    def _write_external_manifest(
+        self,
+        directory: Path,
+        source: PPOTrainer,
+    ) -> Path:
+        source_path = directory / "external_source.pt"
+        save_checkpoint_atomic(source_path, source)
+        payload = torch.load(source_path, map_location="cpu", weights_only=False)
+        versions = payload["versions"]
+        relative_source = source_path.resolve().relative_to(
+            Path.cwd().resolve()
+        ).as_posix()
+        manifest_path = directory / "generation.json"
+        manifest_path.write_text(json.dumps({
+            "schema_version": 1,
+            "report_kind": "ppo_league_generation_manifest",
+            "immutable": True,
+            "path_base": "repository_root",
+            "generation": 0,
+            "selection_mode": "uniform",
+            "contract": {
+                "experiment_versions": versions,
+                "policy_architecture": source.model.architecture,
+                "model_structure_sha256": source._model_structure_sha256(
+                    source.model.state_dict()
+                ),
+                "catalog_sha256": versions["catalog_sha256"],
+                "rulebook_sha256": versions["rulebook_sha256"],
+                "observation_schema_sha256": versions[
+                    "observation_schema_sha256"
+                ],
+                "action_layout_sha256": versions["action_layout_sha256"],
+            },
+            "entries": [{
+                "opponent_id": "external_source",
+                "checkpoint_path": relative_source,
+                "checkpoint_sha256": hashlib.sha256(
+                    source_path.read_bytes()
+                ).hexdigest(),
+                "policy_seed": source.master_seed,
+                "training_steps": source.agent_steps,
+                "generation": 0,
+                "role": "candidate_final",
+                "rules_version": "test-rules",
+                "policy_architecture": source.model.architecture,
+                "versions_sha256": stable_json_sha256(versions),
+                "training_eligible": True,
+                "sampling_weight": 1.0,
+            }],
+        }), encoding="utf-8")
+        return manifest_path
 
     def test_manifest_contains_full_progress_rng_versions_and_git_state(self) -> None:
         trainer = self.trained_once()
@@ -114,6 +169,147 @@ class CheckpointTests(unittest.TestCase):
         self.assertEqual(trainer.current_episode_id, resumed.current_episode_id)
         for key, expected in direct_parameters.items():
             torch.testing.assert_close(expected, resumed.model.state_dict()[key])
+
+    def test_external_frozen_opponent_resume_is_exact_and_read_only(
+        self,
+    ) -> None:
+        source = self.trained_once()
+        league = None
+        resumed = None
+        with tempfile.TemporaryDirectory(dir=Path.cwd()) as directory_name:
+            directory = Path(directory_name)
+            manifest_path = self._write_external_manifest(directory, source)
+            league = PPOTrainer(
+                self.snapshot,
+                master_seed=97531,
+                config=replace(
+                    source.config,
+                    opponent_current_weight=0.0,
+                    opponent_historical_weight=0.0,
+                    opponent_external_manifest=str(manifest_path),
+                    opponent_external_weight=1.0,
+                    opponent_model_cache_size=1,
+                    opponent_model_cache_max_bytes=64 * 1024 * 1024,
+                    opponent_batching_mode="episode_seed_clustered",
+                    rollout_workers=2,
+                ),
+            )
+            frozen_entry = next(
+                entry
+                for entry in league.opponent_pool.entries
+                if entry.kind == "external" and entry.weight > 0
+            )
+            frozen = league._frozen_model(frozen_entry)
+            self.assertFalse(frozen.training)
+            self.assertTrue(all(
+                not parameter.requires_grad
+                for parameter in frozen.parameters()
+            ))
+            optimizer_parameter_ids = {
+                id(parameter)
+                for group in league.optimizer.param_groups
+                for parameter in group["params"]
+            }
+            self.assertTrue(all(
+                id(parameter) not in optimizer_parameter_ids
+                for parameter in frozen.parameters()
+            ))
+            checkpoint_path = directory / "league.pt"
+            save_checkpoint_atomic(checkpoint_path, league)
+            pool_before = league.opponent_pool.state_dict()
+            next_episode_before = league.next_episode_id
+            direct_records, direct_bootstrap, _ = league.collect_rollout()
+            resumed = load_checkpoint(checkpoint_path, self.snapshot)
+            self.assertEqual(resumed.opponent_pool.state_dict(), pool_before)
+            self.assertEqual(resumed.next_episode_id, next_episode_before)
+            resumed_records, resumed_bootstrap, _ = resumed.collect_rollout()
+            self.assertEqual(
+                [
+                    (
+                        record.episode_id,
+                        record.player_id,
+                        record.action,
+                        record.trainable,
+                        record.opponent_id,
+                    )
+                    for record in direct_records
+                ],
+                [
+                    (
+                        record.episode_id,
+                        record.player_id,
+                        record.action,
+                        record.trainable,
+                        record.opponent_id,
+                    )
+                    for record in resumed_records
+                ],
+            )
+            self.assertEqual(direct_bootstrap, resumed_bootstrap)
+            self.assertTrue(all(
+                record.trainable == (record.player_id == (record.episode_id % 2))
+                for record in resumed_records
+            ))
+        source.close()
+        if league is not None:
+            league.close()
+        if resumed is not None:
+            resumed.close()
+
+    def test_checkpoint_pool_override_is_explicit_and_manifest_is_immutable(
+        self,
+    ) -> None:
+        source = self.trained_once()
+        overridden = None
+        with tempfile.TemporaryDirectory(dir=Path.cwd()) as directory_name:
+            directory = Path(directory_name)
+            checkpoint_path = directory / "source.pt"
+            save_checkpoint_atomic(checkpoint_path, source)
+            manifest_path = self._write_external_manifest(directory, source)
+            overrides = {
+                "opponent_current_weight": 0.0,
+                "opponent_random_weight": 0.0,
+                "opponent_fixed_weight": 0.0,
+                "opponent_historical_weight": 0.0,
+                "opponent_external_manifest": str(manifest_path),
+                "opponent_external_weight": 1.0,
+            }
+            with self.assertRaisesRegex(
+                ValueError, "require replace_opponent_pool=true"
+            ):
+                load_checkpoint(
+                    checkpoint_path,
+                    self.snapshot,
+                    config_overrides=overrides,
+                )
+            overridden = load_checkpoint(
+                checkpoint_path,
+                self.snapshot,
+                config_overrides=overrides,
+                replace_opponent_pool=True,
+            )
+            self.assertEqual(
+                len([
+                    entry
+                    for entry in overridden.opponent_pool.entries
+                    if entry.kind == "external" and entry.weight > 0
+                ]),
+                1,
+            )
+            league_path = directory / "overridden.pt"
+            save_checkpoint_atomic(league_path, overridden)
+            manifest_payload = json.loads(
+                manifest_path.read_text(encoding="utf-8")
+            )
+            manifest_payload["selection_mode"] = "changed"
+            manifest_path.write_text(
+                json.dumps(manifest_payload), encoding="utf-8"
+            )
+            with self.assertRaisesRegex(ValueError, "selection mode"):
+                load_checkpoint(league_path, self.snapshot)
+        source.close()
+        if overridden is not None:
+            overridden.close()
 
     def test_batched_v41_learner_resume_next_update_drift_is_bounded(
         self,

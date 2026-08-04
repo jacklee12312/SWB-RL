@@ -23,7 +23,7 @@ from swb.rl.policy import (
     LEGACY_POLICY_ARCHITECTURE,
     EntityActionRecurrentActorCritic,
 )
-from swb.rl.opponents import OpponentPool
+from swb.rl.opponents import OpponentEpisodeScheduler, OpponentPool
 from swb.rl.fixed_decks import (
     OFFICIAL_QR_EVOLVE_HAVEN,
     get_fixed_training_deck,
@@ -84,6 +84,36 @@ class MaskedPolicyTests(unittest.TestCase):
             opponent_historical_weight=0.25,
         )
         self.assertEqual(config.opponent_historical_weight, 0.25)
+        external = PPOConfig(
+            rollout_workers=2,
+            opponent_current_weight=0.0,
+            opponent_external_manifest="generation.json",
+            opponent_external_weight=1.0,
+            opponent_model_cache_size=2,
+        )
+        self.assertEqual(external.opponent_external_weight, 1.0)
+        clustered = PPOConfig(
+            rollout_workers=3,
+            opponent_current_weight=0.0,
+            opponent_external_manifest="generation.json",
+            opponent_external_weight=1.0,
+            opponent_model_cache_size=1,
+            opponent_batching_mode="episode_seed_clustered",
+        )
+        self.assertEqual(clustered.opponent_model_cache_size, 1)
+        with self.assertRaisesRegex(ValueError, "requires opponent_external_manifest"):
+            PPOConfig(
+                opponent_current_weight=0.0,
+                opponent_external_weight=1.0,
+            )
+        with self.assertRaisesRegex(ValueError, "at least rollout_workers"):
+            PPOConfig(
+                rollout_workers=3,
+                opponent_current_weight=0.0,
+                opponent_external_manifest="generation.json",
+                opponent_external_weight=1.0,
+                opponent_model_cache_size=2,
+            )
 
     def test_card_slots_use_stable_indices_and_trainable_embeddings(self) -> None:
         observation = {
@@ -416,6 +446,11 @@ class PPOTrainerTests(unittest.TestCase):
                 history = trainer.opponent_pool.register_snapshot(
                     checkpoint,
                     agent_steps=8,
+                )
+                trainer.opponent_scheduler = OpponentEpisodeScheduler(
+                    trainer.opponent_pool,
+                    worker_count=trainer.config.rollout_workers,
+                    mode=trainer.config.opponent_batching_mode,
                 )
                 records, bootstrap, _ = trainer.collect_rollout()
             assignments = {
@@ -1318,6 +1353,7 @@ class PPOTrainerTests(unittest.TestCase):
             self.assertEqual(len(boundaries), 2)
             rollout = trainer._policy_vector_rollout
             self.assertIsNotNone(rollout)
+            self.assertEqual(rollout.config.max_agent_steps, 8)
             process_ids = tuple(process.pid for process in rollout.processes)
             self.assertTrue(all(process.is_alive() for process in rollout.processes))
             metrics = trainer.update(records, bootstrap)

@@ -1,0 +1,464 @@
+{
+  "contract": {
+    "opponent_batching_mode": "episode_seed_clustered",
+    "paired_baseline_runtime_config_mismatches": {},
+    "paired_baseline_semantic_config_mismatches": {},
+    "pool_specific_runtime_config": {
+      "note": "External-checkpoint clustering is the implementation under test; the native own-history pool has no external model-switch scheduler and remains sequential.",
+      "own_history_opponent_batching_mode": "sequential",
+      "uniform_pool_opponent_batching_mode": "episode_seed_clustered"
+    },
+    "selection_mode": "uniform",
+    "semantic_config_fields": [
+      "rollout_steps",
+      "sequence_length",
+      "minibatch_sequences",
+      "update_epochs",
+      "hidden_size",
+      "card_embedding_dim",
+      "policy_architecture",
+      "model_dim",
+      "transformer_layers",
+      "attention_heads",
+      "feedforward_dim",
+      "observation_version",
+      "learning_rate",
+      "gamma",
+      "gae_lambda",
+      "clip_ratio",
+      "value_coefficient",
+      "entropy_coefficient",
+      "max_grad_norm",
+      "max_agent_steps_per_episode",
+      "max_game_turns",
+      "training_class_ids",
+      "training_deck",
+      "opponent_decks",
+      "match_setup"
+    ],
+    "semantic_config_mismatches": {}
+  },
+  "gates": {
+    "fixed_selection_coverage": {
+      "class_pair_position_coverage": 98,
+      "passed": true,
+      "trainable_models": 24
+    },
+    "hundred_k_stability": {
+      "passed": true
+    },
+    "resume_and_trajectory_contract": {
+      "passed": true,
+      "verified_by": [
+        "tests.test_checkpoint.CheckpointTests.test_external_frozen_opponent_resume_is_exact_and_read_only",
+        "tests.test_opponents.OpponentPoolTests.test_clustered_scheduler_preserves_seed_selection_and_worker_slots"
+      ]
+    },
+    "runtime_selection": {
+      "missing_trainable_models": [],
+      "passed": true,
+      "selected_anchor_models": [],
+      "selected_trainable_models": [
+        "seed_20260903_1m",
+        "seed_20260903_step_000000250544",
+        "seed_20260903_step_000000501095",
+        "seed_20260903_step_000000753128",
+        "seed_20260904_1m",
+        "seed_20260904_step_000000251757",
+        "seed_20260904_step_000000502243",
+        "seed_20260904_step_000000752453",
+        "seed_20260905_1m",
+        "seed_20260905_step_000000251545",
+        "seed_20260905_step_000000503250",
+        "seed_20260905_step_000000754924",
+        "seed_20260906_1m",
+        "seed_20260906_step_000000250388",
+        "seed_20260906_step_000000501926",
+        "seed_20260906_step_000000752930",
+        "seed_20260907_1m",
+        "seed_20260907_step_000000251182",
+        "seed_20260907_step_000000502487",
+        "seed_20260907_step_000000752700",
+        "seed_20260908_1m",
+        "seed_20260908_step_000000251398",
+        "seed_20260908_step_000000501432",
+        "seed_20260908_step_000000752070"
+      ]
+    },
+    "throughput": {
+      "baseline_kind": "same_runtime_100k_own_history_pool",
+      "minimum_agent_steps_per_second": 80.65331571864924,
+      "minimum_ratio": 0.9,
+      "paired_baseline_agent_steps_per_second": 89.6147952429436,
+      "passed": true,
+      "uniform_pool_agent_steps_per_second": 139.6256999123047,
+      "uniform_to_paired_baseline_ratio": 1.5580652673900857
+    },
+    "truncation": {
+      "baseline_rate": 0.0,
+      "maximum_allowed_rate": 0.01,
+      "passed": true,
+      "uniform_pool_rate": 0.0
+    }
+  },
+  "historical_scaling_reference": {
+    "median_agent_steps_per_second": 156.85899797645766,
+    "reason": "The six 1M runs are longer-horizon context collected under different GPU power-state windows; the paired 100k run is the registered same-runtime decision baseline.",
+    "runs": [
+      {
+        "agent_steps_per_second": 154.37397580979007,
+        "seed": 20260903,
+        "source": {
+          "bytes": 10668470,
+          "path": "data/reports/ppo_7x7_scaling_1m_expansion_20260803/seed_20260903.json",
+          "sha256": "5ae800a36269491a82de8d2cdad7f05809392d3686fbe3e2c2ef51934f518531"
+        },
+        "trained_agent_steps": 1000032
+      },
+      {
+        "agent_steps_per_second": 154.37882980949195,
+        "seed": 20260904,
+        "source": {
+          "bytes": 10666229,
+          "path": "data/reports/ppo_7x7_scaling_1m_expansion_20260803/seed_20260904.json",
+          "sha256": "8ca0786ff397ab6c67c759d98a770cc2aab767f56584b3fb14dbfdd166fa1a56"
+        },
+        "trained_agent_steps": 1000125
+      },
+      {
+        "agent_steps_per_second": 157.4654668615962,
+        "seed": 20260905,
+        "source": {
+          "bytes": 10507820,
+          "path": "data/reports/ppo_7x7_scaling_1m_expansion_20260803/seed_20260905.json",
+          "sha256": "6ddab6de6d84ce4eceafd7f219a5f13d3b696d3d0029901c0ec1980a3e47762d"
+        },
+        "trained_agent_steps": 1002054
+      },
+      {
+        "agent_steps_per_second": 157.18819229221006,
+        "seed": 20260906,
+        "source": {
+          "bytes": 10507665,
+          "path": "data/reports/ppo_7x7_scaling_1m_expansion_20260803/seed_20260906.json",
+          "sha256": "044bb32edd57ac18e3ffbf9258c317bbd616d7359bd4175bd2ecc4863943c750"
+        },
+        "trained_agent_steps": 1000182
+      },
+      {
+        "agent_steps_per_second": 158.43304880432686,
+        "seed": 20260907,
+        "source": {
+          "bytes": 10437395,
+          "path": "data/reports/ppo_7x7_scaling_1m_expansion_20260803/seed_20260907.json",
+          "sha256": "21e85110a82ce28f0daf7a7d9a0b83ed333279b521069933266fea0ef5a9016a"
+        },
+        "trained_agent_steps": 1000675
+      },
+      {
+        "agent_steps_per_second": 156.52980366070526,
+        "seed": 20260908,
+        "source": {
+          "bytes": 10551861,
+          "path": "data/reports/ppo_7x7_scaling_1m_expansion_20260803/seed_20260908.json",
+          "sha256": "bde16c6f719a3b900ba9aae2c38b713ec073c8b4465a4d532931dfe17a47ffeb"
+        },
+        "trained_agent_steps": 1001136
+      }
+    ],
+    "truncation_rate": 0.0,
+    "uniform_to_historical_median_ratio": 0.8901351003992807,
+    "used_as_decision_gate": false
+  },
+  "paired_own_history_baseline": {
+    "action_mask_mismatch_errors": 0,
+    "agent_steps_per_second": 89.6147952429436,
+    "cache": {
+      "cached_models": 4,
+      "evictions": 0,
+      "hits": 632,
+      "load_seconds": 0.4573537998367101,
+      "max_bytes": 536870912,
+      "max_models": 7,
+      "misses": 4,
+      "model_switches": 481,
+      "resident_bytes": 89307168
+    },
+    "checkpoint": {
+      "bytes": 68953777,
+      "path": "data/checkpoints/league_smoke/own_history_100k_same_runtime.pt",
+      "sha256": "3cf1356b654f66703d8535720a25f0ca68da74610f71c81f524c29ce334435e3"
+    },
+    "completed_without_exception": true,
+    "elapsed_seconds": 1127.1799452998675,
+    "episode_count": 1253,
+    "illegal_action_errors": 0,
+    "inference": {
+      "average_batch_size": 1.9578225751746736,
+      "batch_p50": 1.0,
+      "batch_p95": 4.0,
+      "forward_seconds": 735.0432522862684
+    },
+    "master_seed": 20260903,
+    "mean_agent_steps_per_episode": 80.61612130885874,
+    "opponent_selection": {
+      "completed_count_by_opponent": {
+        "current": 2257,
+        "historical_000000250544": 531,
+        "historical_000000501095": 577,
+        "historical_000000753128": 578,
+        "historical_000001004476": 153
+      },
+      "distinct_completed_opponents": 5
+    },
+    "requested_agent_steps": 1100032,
+    "runtime_config": {
+      "central_inference_batch_wait_seconds": 0.001,
+      "opponent_batching_mode": "sequential",
+      "opponent_model_cache_max_bytes": 536870912,
+      "opponent_model_cache_size": 7,
+      "rollout_worker_torch_threads": 2,
+      "rollout_workers": 7
+    },
+    "source": {
+      "bytes": 3472434,
+      "path": "data/reports/league_training/own_history_100k_same_runtime.json",
+      "sha256": "1ccead578c6504e0db27ac9f4e78c1d699564a9d36344112b3a71a147abc1888"
+    },
+    "system": {
+      "cpu_single_core_peak_percent": 86.0,
+      "cpu_total_median_percent": 9.122916666666667,
+      "gpu_any_hardware_throttle": false,
+      "gpu_memory_peak_mib": 14166.0,
+      "gpu_utilization_median_percent": 31.0,
+      "gpu_utilization_p95_percent": 66.0,
+      "pagefile_sin_change_bytes": 0,
+      "pagefile_sout_change_bytes": 0,
+      "ram_used_peak_bytes": 21123796992
+    },
+    "trained_agent_steps": 101012,
+    "truncated_episodes": 0,
+    "truncation_rate": 0.0
+  },
+  "passed": true,
+  "population": {
+    "anchor_only_opponent_ids": [
+      "seed_20260831_3m",
+      "seed_20260901_3m",
+      "seed_20260902_3m"
+    ],
+    "trainable_opponent_ids": [
+      "seed_20260903_1m",
+      "seed_20260903_step_000000250544",
+      "seed_20260903_step_000000501095",
+      "seed_20260903_step_000000753128",
+      "seed_20260904_1m",
+      "seed_20260904_step_000000251757",
+      "seed_20260904_step_000000502243",
+      "seed_20260904_step_000000752453",
+      "seed_20260905_1m",
+      "seed_20260905_step_000000251545",
+      "seed_20260905_step_000000503250",
+      "seed_20260905_step_000000754924",
+      "seed_20260906_1m",
+      "seed_20260906_step_000000250388",
+      "seed_20260906_step_000000501926",
+      "seed_20260906_step_000000752930",
+      "seed_20260907_1m",
+      "seed_20260907_step_000000251182",
+      "seed_20260907_step_000000502487",
+      "seed_20260907_step_000000752700",
+      "seed_20260908_1m",
+      "seed_20260908_step_000000251398",
+      "seed_20260908_step_000000501432",
+      "seed_20260908_step_000000752070"
+    ]
+  },
+  "report_kind": "ppo_league_uniform_pool_smoke",
+  "schema_version": 1,
+  "smoke_runs": {
+    "100k": {
+      "action_mask_mismatch_errors": 0,
+      "agent_steps_per_second": 139.6256999123047,
+      "cache": {
+        "cached_models": 7,
+        "evictions": 139,
+        "hits": 1121,
+        "load_seconds": 11.221068702405319,
+        "max_bytes": 536870912,
+        "max_models": 7,
+        "misses": 146,
+        "model_switches": 180,
+        "resident_bytes": 156287544
+      },
+      "checkpoint": {
+        "bytes": 68911985,
+        "path": "data/checkpoints/league_smoke/uniform_100k_clustered.pt",
+        "sha256": "570873c1fdd7376e73d1de7be74e0800c33fd94bfdfef48a6fcca9d9c276d295"
+      },
+      "completed_without_exception": true,
+      "elapsed_seconds": 717.1459127000999,
+      "episode_count": 1267,
+      "illegal_action_errors": 0,
+      "inference": {
+        "average_batch_size": 1.9820673580981027,
+        "batch_p50": 2.0,
+        "batch_p95": 4.0,
+        "forward_seconds": 455.0614452997688
+      },
+      "master_seed": 20260903,
+      "mean_agent_steps_per_episode": 79.03078137332281,
+      "opponent_selection": {
+        "completed_count_by_opponent": {
+          "seed_20260903_1m": 70,
+          "seed_20260903_step_000000250544": 42,
+          "seed_20260903_step_000000501095": 42,
+          "seed_20260903_step_000000753128": 35,
+          "seed_20260904_1m": 49,
+          "seed_20260904_step_000000251757": 42,
+          "seed_20260904_step_000000502243": 77,
+          "seed_20260904_step_000000752453": 77,
+          "seed_20260905_1m": 49,
+          "seed_20260905_step_000000251545": 35,
+          "seed_20260905_step_000000503250": 49,
+          "seed_20260905_step_000000754924": 49,
+          "seed_20260906_1m": 49,
+          "seed_20260906_step_000000250388": 56,
+          "seed_20260906_step_000000501926": 56,
+          "seed_20260906_step_000000752930": 63,
+          "seed_20260907_1m": 49,
+          "seed_20260907_step_000000251182": 56,
+          "seed_20260907_step_000000502487": 42,
+          "seed_20260907_step_000000752700": 63,
+          "seed_20260908_1m": 49,
+          "seed_20260908_step_000000251398": 56,
+          "seed_20260908_step_000000501432": 56,
+          "seed_20260908_step_000000752070": 56
+        },
+        "distinct_completed_opponents": 24
+      },
+      "requested_agent_steps": 1100032,
+      "runtime_config": {
+        "central_inference_batch_wait_seconds": 0.001,
+        "opponent_batching_mode": "episode_seed_clustered",
+        "opponent_model_cache_max_bytes": 536870912,
+        "opponent_model_cache_size": 7,
+        "rollout_worker_torch_threads": 2,
+        "rollout_workers": 7
+      },
+      "source": {
+        "bytes": 2696357,
+        "path": "data/reports/league_training/uniform_100k_clustered_smoke.json",
+        "sha256": "8842ad17afd96d83d8284320af059ccfaa0ab3ea66abe8e79f584c2e81029ba6"
+      },
+      "system": {
+        "cpu_single_core_peak_percent": 93.7,
+        "cpu_total_median_percent": 12.629166666666666,
+        "gpu_any_hardware_throttle": false,
+        "gpu_memory_peak_mib": 14116.0,
+        "gpu_utilization_median_percent": 35.0,
+        "gpu_utilization_p95_percent": 83.0,
+        "pagefile_sin_change_bytes": 0,
+        "pagefile_sout_change_bytes": 0,
+        "ram_used_peak_bytes": 22676975616
+      },
+      "trained_agent_steps": 100132,
+      "truncated_episodes": 0,
+      "truncation_rate": 0.0
+    },
+    "10k": {
+      "action_mask_mismatch_errors": 0,
+      "agent_steps_per_second": 125.0526535489863,
+      "cache": {
+        "cached_models": 7,
+        "evictions": 12,
+        "hits": 128,
+        "load_seconds": 1.4528192996513098,
+        "max_bytes": 536870912,
+        "max_models": 7,
+        "misses": 19,
+        "model_switches": 21,
+        "resident_bytes": 156287544
+      },
+      "checkpoint": {
+        "bytes": 68604913,
+        "path": "data/checkpoints/league_smoke/uniform_10k_clustered_wait1.pt",
+        "sha256": "2d6542042c2642d4796cd3b06c846a93e4ddcb019090cd4ec707cb0b5f4d1cc2"
+      },
+      "completed_without_exception": true,
+      "elapsed_seconds": 88.9225433000829,
+      "episode_count": 147,
+      "illegal_action_errors": 0,
+      "inference": {
+        "average_batch_size": 2.01140896683176,
+        "batch_p50": 2.0,
+        "batch_p95": 4.0,
+        "forward_seconds": 50.2346345114056
+      },
+      "master_seed": 20260903,
+      "mean_agent_steps_per_episode": 75.64625850340136,
+      "opponent_selection": {
+        "completed_count_by_opponent": {
+          "seed_20260903_1m": 7,
+          "seed_20260903_step_000000250544": 7,
+          "seed_20260903_step_000000501095": 14,
+          "seed_20260904_1m": 7,
+          "seed_20260904_step_000000502243": 7,
+          "seed_20260904_step_000000752453": 14,
+          "seed_20260905_1m": 7,
+          "seed_20260905_step_000000251545": 7,
+          "seed_20260906_1m": 14,
+          "seed_20260906_step_000000250388": 7,
+          "seed_20260907_1m": 7,
+          "seed_20260907_step_000000251182": 14,
+          "seed_20260907_step_000000502487": 7,
+          "seed_20260907_step_000000752700": 7,
+          "seed_20260908_step_000000251398": 7,
+          "seed_20260908_step_000000501432": 7,
+          "seed_20260908_step_000000752070": 7
+        },
+        "distinct_completed_opponents": 17
+      },
+      "requested_agent_steps": 1010032,
+      "runtime_config": {
+        "central_inference_batch_wait_seconds": 0.001,
+        "opponent_batching_mode": "episode_seed_clustered",
+        "opponent_model_cache_max_bytes": 536870912,
+        "opponent_model_cache_size": 7,
+        "rollout_worker_torch_threads": 2,
+        "rollout_workers": 7
+      },
+      "source": {
+        "bytes": 605531,
+        "path": "data/reports/league_training/uniform_10k_clustered_wait1_smoke.json",
+        "sha256": "f0fd4e34875e70b5fe46a068395aed584c64a031006cc067a565903ca99157cf"
+      },
+      "system": {
+        "cpu_single_core_peak_percent": 89.2,
+        "cpu_total_median_percent": 12.5875,
+        "gpu_any_hardware_throttle": false,
+        "gpu_memory_peak_mib": 12094.0,
+        "gpu_utilization_median_percent": 32.0,
+        "gpu_utilization_p95_percent": 83.0,
+        "pagefile_sin_change_bytes": 0,
+        "pagefile_sout_change_bytes": 0,
+        "ram_used_peak_bytes": 20399575040
+      },
+      "trained_agent_steps": 11120,
+      "truncated_episodes": 0,
+      "truncation_rate": 0.0
+    }
+  },
+  "sources": {
+    "checkpoint_registry": {
+      "bytes": 33939,
+      "path": "data/reports/league_training/checkpoint_registry.json",
+      "sha256": "af6ee244b4d99fdd5440931e77a1485d22092b77d07f575f99fd9d886f7c5fa0"
+    },
+    "generation_manifest": {
+      "bytes": 25893,
+      "path": "data/reports/league_training/generation_000_manifest.json",
+      "sha256": "3112acd59bc766378c4d38ba554907a600e1c2461217be8b58533822ffbbb718"
+    }
+  }
+}

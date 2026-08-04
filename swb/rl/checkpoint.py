@@ -7,19 +7,50 @@ import subprocess
 import tempfile
 from dataclasses import asdict
 from pathlib import Path
-from typing import Any
+from typing import Any, Mapping
 
 import numpy as np
 import torch
 
 from swb.engine.environment import MATCH_SETUP_LEGACY, ShadowverseEnv
 from swb.rl.ppo import PPOConfig, PPOTrainer
-from swb.rl.opponents import OpponentEntry, OpponentPool
+from swb.rl.opponents import (
+    OpponentEntry,
+    OpponentEpisodeScheduler,
+    OpponentPool,
+)
 from swb.rl.runtime import WorkerAssetsSnapshot
 from swb.rl.versioning import ExperimentVersions
 
 
 CHECKPOINT_SCHEMA_VERSION = 2
+CHECKPOINT_CONFIG_OVERRIDE_FIELDS = frozenset({
+    "rollout_workers",
+    "rollout_worker_torch_threads",
+    "central_inference_batch_wait_seconds",
+    "opponent_current_weight",
+    "opponent_random_weight",
+    "opponent_fixed_weight",
+    "opponent_historical_weight",
+    "opponent_external_manifest",
+    "opponent_external_weight",
+    "opponent_model_cache_size",
+    "opponent_model_cache_max_bytes",
+    "opponent_max_history",
+    "opponent_snapshot_interval_steps",
+    "opponent_batching_mode",
+})
+OPPONENT_POOL_CONFIG_FIELDS = frozenset({
+    "opponent_current_weight",
+    "opponent_random_weight",
+    "opponent_fixed_weight",
+    "opponent_historical_weight",
+    "opponent_external_manifest",
+    "opponent_external_weight",
+    "opponent_max_history",
+    "opponent_snapshot_interval_steps",
+    "opponent_batching_mode",
+})
 
 
 def _git_state() -> dict[str, object]:
@@ -71,6 +102,14 @@ def build_checkpoint(trainer: PPOTrainer) -> dict[str, object]:
                 else asdict(trainer.current_opponent)
             ),
             "opponent_pool": trainer.opponent_pool.state_dict(),
+            "opponent_scheduler": trainer.opponent_scheduler.state_dict(),
+            "opponent_cache_metrics": trainer.opponent_cache_metrics(),
+            "resume_config_overrides": getattr(
+                trainer, "resume_config_overrides", {}
+            ),
+            "opponent_pool_replaced_on_load": getattr(
+                trainer, "opponent_pool_replaced_on_load", False
+            ),
             "opponent_assignments": list(trainer.opponent_assignments),
             "matchup_statistics": dict(trainer.matchup_statistics),
             "current_matchup_assignment": trainer.current_matchup_assignment,
@@ -139,6 +178,12 @@ def build_checkpoint(trainer: PPOTrainer) -> dict[str, object]:
                 "card_embedding_dim": trainer.config.card_embedding_dim,
             },
             "opponent_pool": trainer.opponent_pool.state_dict(),
+            "opponent_scheduler": trainer.opponent_scheduler.state_dict(),
+            "external_opponent_manifest": (
+                None
+                if trainer.external_opponent_manifest is None
+                else trainer.external_opponent_manifest.summary()
+            ),
             "opponent_assignments": list(trainer.opponent_assignments),
         },
     }
@@ -186,10 +231,35 @@ def load_checkpoint(
     *,
     device: str = "cpu",
     restore_rng_state: bool = True,
+    config_overrides: Mapping[str, object] | None = None,
+    replace_opponent_pool: bool = False,
 ) -> PPOTrainer:
     payload = _load_payload(path)
     trainer_state = payload["trainer"]
     config_payload = dict(trainer_state["config"])
+    overrides = dict(config_overrides or {})
+    unsupported_overrides = sorted(
+        set(overrides) - CHECKPOINT_CONFIG_OVERRIDE_FIELDS
+    )
+    if unsupported_overrides:
+        raise ValueError(
+            "unsupported checkpoint config overrides: "
+            + ", ".join(unsupported_overrides)
+        )
+    changed_pool_fields = {
+        field
+        for field in OPPONENT_POOL_CONFIG_FIELDS
+        if field in overrides and overrides[field] != config_payload.get(field)
+    }
+    if changed_pool_fields and not replace_opponent_pool:
+        raise ValueError(
+            "opponent-pool config overrides require replace_opponent_pool=true"
+        )
+    if replace_opponent_pool and not changed_pool_fields:
+        raise ValueError(
+            "replace_opponent_pool=true requires an opponent-pool config change"
+        )
+    config_payload.update(overrides)
     # Schema-v2 checkpoints created before official setup integration did not
     # record this field and must retain their historical fixed-player/no-
     # mulligan behavior when resumed.
@@ -218,6 +288,8 @@ def load_checkpoint(
     checkpoint_versions = ExperimentVersions(**payload["versions"])
     checkpoint_versions.assert_compatible(_versions(trainer))
 
+    fresh_opponent_pool = trainer.opponent_pool
+
     trainer.model.load_state_dict(payload["model_state"])
     trainer.optimizer.load_state_dict(payload["optimizer_state"])
     trainer.next_episode_id = int(trainer_state["next_episode_id"])
@@ -228,15 +300,53 @@ def load_checkpoint(
     trainer.learner_player = int(trainer_state["learner_player"])
     trainer.current_opponent = (
         None
-        if trainer_state["current_opponent"] is None
+        if replace_opponent_pool or trainer_state["current_opponent"] is None
         else OpponentEntry(**trainer_state["current_opponent"])
     )
-    trainer.opponent_pool = OpponentPool.from_state_dict(
-        trainer_state["opponent_pool"]
+    if replace_opponent_pool:
+        trainer.opponent_pool = fresh_opponent_pool
+        trainer.opponent_pool.selection_count = 0
+        trainer.opponent_pool.selection_counts.clear()
+        trainer.opponent_pool.selection_counts_by_opponent.clear()
+    else:
+        trainer.opponent_pool = OpponentPool.from_state_dict(
+            trainer_state["opponent_pool"],
+            expected_external_manifest_sha256=(
+                None
+                if trainer.external_opponent_manifest is None
+                else trainer.external_opponent_manifest.file_sha256
+            ),
+            expected_external_entries=(
+                None
+                if trainer.external_opponent_manifest is None
+                else trainer.external_opponent_manifest.entries
+            ),
+        )
+    trainer.opponent_scheduler = OpponentEpisodeScheduler(
+        trainer.opponent_pool,
+        worker_count=trainer.config.rollout_workers,
+        mode=trainer.config.opponent_batching_mode,
     )
-    trainer.opponent_assignments = list(
-        trainer_state.get("opponent_assignments", [])
+    if not replace_opponent_pool:
+        trainer.opponent_scheduler.load_state_dict(
+            trainer_state.get("opponent_scheduler", {
+                "worker_count": trainer.config.rollout_workers,
+                "mode": trainer.config.opponent_batching_mode,
+                "pending": [],
+            })
+        )
+    cache_metrics = (
+        {}
+        if replace_opponent_pool
+        else trainer_state.get("opponent_cache_metrics", {})
     )
+    trainer.opponent_assignments = (
+        []
+        if replace_opponent_pool
+        else list(trainer_state.get("opponent_assignments", []))
+    )
+    trainer.resume_config_overrides = overrides
+    trainer.opponent_pool_replaced_on_load = replace_opponent_pool
     trainer.matchup_statistics = dict(
         trainer_state.get("matchup_statistics", {})
     )
@@ -245,11 +355,15 @@ def load_checkpoint(
             stats["learner_player_0"] = stats.pop("learner_first")
         if "learner_second" in stats:
             stats["learner_player_1"] = stats.pop("learner_second")
-    trainer.current_matchup_assignment = trainer_state.get(
-        "current_matchup_assignment"
+    trainer.current_matchup_assignment = (
+        None
+        if replace_opponent_pool
+        else trainer_state.get("current_matchup_assignment")
     )
-    trainer.current_episode_agent_steps = int(
-        trainer_state.get("current_episode_agent_steps", 0)
+    trainer.current_episode_agent_steps = (
+        0
+        if replace_opponent_pool
+        else int(trainer_state.get("current_episode_agent_steps", 0))
     )
     trainer.opponent_rng.setstate(trainer_state["opponent_rng_state"])
     trainer.hidden_by_player = {
@@ -299,9 +413,26 @@ def load_checkpoint(
     trainer.env.restore(environment_state["snapshot"])
     mask = trainer.env.action_mask()
     trainer.info = trainer.env.info(action_mask=mask)
-    trainer._prepare_opponent()
-    if trainer.opponent_hidden is not None and trainer_state["opponent_hidden"] is not None:
+    if replace_opponent_pool and trainer.config.rollout_workers == 1:
+        trainer._start_episode()
+    else:
+        trainer._prepare_opponent()
+    if (
+        not replace_opponent_pool
+        and trainer.opponent_hidden is not None
+        and trainer_state["opponent_hidden"] is not None
+    ):
         trainer.opponent_hidden = trainer_state["opponent_hidden"].to(trainer.device)
+    trainer._opponent_cache_hits = int(cache_metrics.get("hits", 0))
+    trainer._opponent_cache_misses = int(cache_metrics.get("misses", 0))
+    trainer._opponent_cache_evictions = int(cache_metrics.get("evictions", 0))
+    trainer._opponent_cache_load_seconds = float(
+        cache_metrics.get("load_seconds", 0.0)
+    )
+    trainer._opponent_model_switches = int(
+        cache_metrics.get("model_switches", 0)
+    )
+    trainer._last_opponent_cache_key = cache_metrics.get("last_key")
 
     if restore_rng_state:
         rng = payload["rng"]

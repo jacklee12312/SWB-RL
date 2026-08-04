@@ -207,27 +207,27 @@ deck/match seed。点估计 Nash mixture 为 `20260903=8/19`、`20260906=8/19`�
 
 本节只验证“跨 seed 共同池”本身，不同时加入 PFSP。
 
-- [ ] 扩展 `OpponentEntry`，支持带来源 hash、策略 seed、训练步数、generation、
+- [x] 扩展 `OpponentEntry`，支持带来源 hash、策略 seed、训练步数、generation、
   role 和规则版本的外部冻结 checkpoint；不得伪装成自己的 historical snapshot。
-- [ ] 对手池从只读 manifest 加载外部 checkpoint，并在启动时一次性完成 schema、
+- [x] 对手池从只读 manifest 加载外部 checkpoint，并在启动时一次性完成 schema、
   policy architecture、Observation/action、Catalog/RuleBook 和文件 hash 校验。
-- [ ] 一个 generation 内 manifest 不可变；串行训练的后启动 seed 不得看到先完成
+- [x] 一个 generation 内 manifest 不可变；串行训练的后启动 seed 不得看到先完成
   seed 的新权重。
-- [ ] 外部对手始终 `eval()`、禁用梯度且不进入 optimizer；只收集 learner 一侧
+- [x] 外部对手始终 `eval()`、禁用梯度且不进入 optimizer；只收集 learner 一侧
   transition。
-- [ ] 保持每个 episode 独立 recurrent hidden state、policy RNG、先后手分配、
+- [x] 保持每个 episode 独立 recurrent hidden state、policy RNG、先后手分配、
   action 归属和 PPO policy generation 边界。
-- [ ] 对手 checkpoint 缓存有确定性 key 和显式内存上限；淘汰缓存不能改变 RNG
+- [x] 对手 checkpoint 缓存有确定性 key 和显式内存上限；淘汰缓存不能改变 RNG
   或 opponent selection 序列。
-- [ ] checkpoint/resume 保存共同池 manifest hash、选择计数和下一次选择所需
+- [x] checkpoint/resume 保存共同池 manifest hash、选择计数和下一次选择所需
   状态；中断续训后的选择序列与不中断运行一致。
-- [ ] 共同池先使用 uniform 权重，构造 Generation 0：
-  - [ ] 六个新规则下的 1M final checkpoint；
-  - [ ] 各新 seed 具有代表性的 250k/500k/750k 自身历史，按 3.2 结果去重；
-  - [ ] 三个旧 3M checkpoint 仅作为带旧规则标签的冻结锚点；
-  - [ ] random/fixed 仅作评估锚点，正式 multiprocess PPO 默认权重为 0。
-- [ ] 对池内每个模型至少命中一次的固定 seed 测试覆盖双方位置和 7x7 调度。
-- [ ] 运行 10k 和 100k agent-step smoke，记录吞吐、显存、缓存命中、模型切换
+- [x] 共同池先使用 uniform 权重，构造 Generation 0：
+  - [x] 六个新规则下的 1M final checkpoint；
+  - [x] 各新 seed 具有代表性的 250k/500k/750k 自身历史，按 3.2 结果去重；
+  - [x] 三个旧 3M checkpoint 仅作为带旧规则标签的冻结锚点；
+  - [x] random/fixed 仅作评估锚点，正式 multiprocess PPO 默认权重为 0。
+- [x] 对池内每个模型至少命中一次的固定 seed 测试覆盖双方位置和 7x7 调度。
+- [x] 运行 10k 和 100k agent-step smoke，记录吞吐、显存、缓存命中、模型切换
   时间、选择分布、episode 长度和异常。
 
 建议修改文件：
@@ -252,6 +252,31 @@ deck/match seed。点估计 Nash mixture 为 `20260903=8/19`、`20260906=8/19`�
 - 100k smoke 的截断率不得比冻结基线高 1 个百分点以上。
 - median agent steps/s 不得低于同配置自有历史池基线的 90%；若低于，先优化
   checkpoint 缓存/推理合批，再开始三 seed 学习实验。
+
+完成记录（2026-08-04）：共同冻结池以只读 manifest 独立于 learner 自身历史，
+启动时校验 manifest/schema、checkpoint SHA-256、模型结构、Observation/action、
+Catalog/RuleBook 和完整 versions 合同。外部模型使用确定性 LRU 缓存，始终为
+`eval()` 且参数无梯度；optimizer 和 rollout transition 均只属于 learner。
+`episode_seed_clustered` 调度保持原始逐 episode 的固定 seed 抽样、先后手与 RNG
+语义，只重排实际执行波次以减少模型切换；其 pending wave、选择计数、manifest
+identity、policy RNG、recurrent hidden 和缓存统计均进入 checkpoint，显式
+`replace_opponent_pool` 才能在 resume 时更换池。
+
+Generation 0 共 27 个不可变条目：六个新规则 1M final、18 个对应的
+250k/500k/750k 历史进入训练，三个旧规则 3M 仅作零权重 anchor。固定
+`master_seed=20261001` 的 4096 episode 审计命中全部 24 个训练对手、双方位置和
+全部 98 个 7x7 职业/位置格，未抽到 anchor。10k smoke 完成 11,120 steps，
+125.05 steps/s、147 局、0 截断；100k smoke 完成 100,132 steps，139.63
+steps/s、1267 局、平均 79.03 steps/局、0 截断、0 非法动作、0 mask mismatch，
+显存峰值 14,116 MiB，缓存 1121 hit/146 miss/139 eviction、180 次模型切换。
+
+吞吐决策门使用同 worker/thread/batch-wait/PPO 语义的 100k 自有历史池配对基线：
+共同池 139.63 对基线 89.61 steps/s，比值 1.558，超过 0.90 门槛。六个完整 1M
+旧运行的 156.86 steps/s 中位数继续作为保守长期参照（共同池比值 0.890），但
+因运行长度和 RTX 4080 power-state 窗口不同，不替代预注册的同运行配置门槛。
+汇总、输入文件/checkpoint hash、配置差异、缓存、系统监控和所有 gate 固化在
+`data/reports/league_training/uniform_pool_smoke.json`；逐项合同由 generation、
+opponent、PPO、checkpoint、vector rollout 和训练 CLI 测试覆盖。
 
 ## 3.4 实现 payoff-aware PFSP
 

@@ -3,6 +3,7 @@ from __future__ import annotations
 import math
 import random
 import time
+from collections import OrderedDict
 from dataclasses import asdict, dataclass
 from typing import Any, Mapping
 
@@ -21,7 +22,14 @@ from swb.rl.deck_schedule import (
     normalize_opponent_decks,
 )
 from swb.rl.fixed_decks import get_fixed_training_deck
-from swb.rl.opponents import OpponentEntry, OpponentPool
+from swb.rl.opponents import (
+    ExternalOpponentManifest,
+    OPPONENT_BATCHING_MODES,
+    OpponentEntry,
+    OpponentEpisodeScheduler,
+    OpponentPool,
+    load_external_opponent_manifest,
+)
 from swb.rl.policy import (
     ENTITY_ACTION_POLICY_ARCHITECTURE,
     LEGACY_POLICY_ARCHITECTURE,
@@ -61,6 +69,11 @@ class PPOConfig:
     opponent_random_weight: float = 0.0
     opponent_fixed_weight: float = 0.0
     opponent_historical_weight: float = 0.0
+    opponent_external_manifest: str | None = None
+    opponent_external_weight: float = 0.0
+    opponent_model_cache_size: int = 32
+    opponent_model_cache_max_bytes: int = 1_073_741_824
+    opponent_batching_mode: str = "sequential"
     opponent_max_history: int = 8
     opponent_snapshot_interval_steps: int = 50_000
     rollout_workers: int = 1
@@ -93,6 +106,8 @@ class PPOConfig:
             self.attention_heads,
             self.feedforward_dim,
             self.max_agent_steps_per_episode,
+            self.opponent_model_cache_size,
+            self.opponent_model_cache_max_bytes,
             self.opponent_max_history,
             self.opponent_snapshot_interval_steps,
             self.rollout_workers,
@@ -134,6 +149,10 @@ class PPOConfig:
             )
         if self.match_setup not in MATCH_SETUP_VALUES:
             raise ValueError("match_setup must be 'legacy' or 'official'")
+        if self.opponent_batching_mode not in OPPONENT_BATCHING_MODES:
+            raise ValueError(
+                f"unsupported opponent batching mode {self.opponent_batching_mode!r}"
+            )
         if self.training_deck is not None:
             fixed_deck = get_fixed_training_deck(self.training_deck)
             if self.training_class_ids != (fixed_deck.class_id,):
@@ -159,22 +178,47 @@ class PPOConfig:
             self.opponent_random_weight,
             self.opponent_fixed_weight,
             self.opponent_historical_weight,
+            self.opponent_external_weight,
         )
         if any(weight < 0 for weight in opponent_weights):
             raise ValueError("opponent weights must be non-negative")
-        if not any(weight > 0 for weight in opponent_weights[:3]):
+        if self.opponent_external_weight > 0 and not self.opponent_external_manifest:
+            raise ValueError(
+                "opponent_external_weight requires opponent_external_manifest"
+            )
+        if not any(
+            weight > 0
+            for weight in (
+                self.opponent_current_weight,
+                self.opponent_random_weight,
+                self.opponent_fixed_weight,
+                self.opponent_external_weight,
+            )
+        ):
             raise ValueError(
                 "at least one initially available opponent must have positive weight"
             )
         if self.rollout_workers > 1 and (
-            self.opponent_current_weight <= 0
-            or self.opponent_random_weight > 0
+            self.opponent_random_weight > 0
             or self.opponent_fixed_weight > 0
+            or (
+                self.opponent_current_weight <= 0
+                and self.opponent_external_weight <= 0
+            )
         ):
             raise ValueError(
-                "multiprocess policy rollout requires a positive current "
-                "weight, zero random/fixed weights, and optionally a "
+                "multiprocess policy rollout requires positive current and/or "
+                "external weight, zero random/fixed weights, and optionally a "
                 "historical weight"
+            )
+        if (
+            self.opponent_external_weight > 0
+            and self.opponent_batching_mode == "sequential"
+            and self.rollout_workers > self.opponent_model_cache_size
+        ):
+            raise ValueError(
+                "external-opponent vector rollout requires a model cache "
+                "with at least rollout_workers entries"
             )
 
 
@@ -382,6 +426,14 @@ class PPOTrainer:
         self.completed_episodes = 0
         self.agent_steps = 0
         self.update_count = 0
+        self.external_opponent_manifest: ExternalOpponentManifest | None = (
+            None
+            if self.config.opponent_external_manifest is None
+            else load_external_opponent_manifest(
+                self.config.opponent_external_manifest,
+                external_weight=self.config.opponent_external_weight,
+            )
+        )
         self.opponent_pool = OpponentPool(
             master_seed,
             current_weight=self.config.opponent_current_weight,
@@ -390,6 +442,31 @@ class PPOTrainer:
             historical_weight=self.config.opponent_historical_weight,
             max_history=self.config.opponent_max_history,
             snapshot_interval_steps=self.config.opponent_snapshot_interval_steps,
+            external_entries=(
+                ()
+                if self.external_opponent_manifest is None
+                else self.external_opponent_manifest.entries
+            ),
+            external_manifest_path=(
+                None
+                if self.external_opponent_manifest is None
+                else self.external_opponent_manifest.path
+            ),
+            external_manifest_sha256=(
+                None
+                if self.external_opponent_manifest is None
+                else self.external_opponent_manifest.file_sha256
+            ),
+            external_generation=(
+                None
+                if self.external_opponent_manifest is None
+                else self.external_opponent_manifest.generation
+            ),
+        )
+        self.opponent_scheduler = OpponentEpisodeScheduler(
+            self.opponent_pool,
+            worker_count=self.config.rollout_workers,
+            mode=self.config.opponent_batching_mode,
         )
         self.learner_player = 0
         self.current_opponent: OpponentEntry | None = None
@@ -406,7 +483,16 @@ class PPOTrainer:
         self.hidden_by_player: dict[int, torch.Tensor] = {}
         self.fusion_cancel_guard = FusionCancelActionGuard()
         self._policy_vector_rollout = None
-        self._historical_models: dict[str, MaskedPolicyNetwork] = {}
+        self._opponent_model_cache: OrderedDict[
+            str, MaskedPolicyNetwork
+        ] = OrderedDict()
+        self._opponent_model_cache_bytes: dict[str, int] = {}
+        self._opponent_cache_hits = 0
+        self._opponent_cache_misses = 0
+        self._opponent_cache_evictions = 0
+        self._opponent_cache_load_seconds = 0.0
+        self._opponent_model_switches = 0
+        self._last_opponent_cache_key: str | None = None
         self.last_collect_timing: dict[str, float] = {}
         self.last_update_timing: dict[str, float] = {}
         self._batched_v41_learner = True
@@ -415,9 +501,12 @@ class PPOTrainer:
             # The local environment is retained only as a version/schema anchor.
             # Vector workers own every sampled episode, starting at ID zero.
             self.next_episode_id = 0
+            self.current_opponent = None
+            self.current_matchup_assignment = None
             self.opponent_assignments.clear()
             self.opponent_pool.selection_count = 0
             self.opponent_pool.selection_counts.clear()
+            self.opponent_pool.selection_counts_by_opponent.clear()
         assert self.env is not None and self.info is not None
         first_observation = self.env.observation(
             perspective=self.env.decision_player,
@@ -438,8 +527,136 @@ class PPOTrainer:
             player: self.model.initial_state(1, device=self.device)
             for player in (0, 1)
         }
+        self._validate_external_opponents()
+        self._prepare_opponent()
 
-    def _load_historical_model(
+    def _model_structure_sha256(
+        self,
+        state: Mapping[str, torch.Tensor],
+    ) -> str:
+        from swb.rl.versioning import stable_json_sha256
+
+        return stable_json_sha256([
+            {
+                "name": name,
+                "shape": list(tensor.shape),
+                "dtype": str(tensor.dtype),
+            }
+            for name, tensor in state.items()
+        ])
+
+    def _validate_external_opponents(self) -> None:
+        if self.external_opponent_manifest is None:
+            return
+        from swb.rl.checkpoint import _load_payload
+        from swb.rl.versioning import ExperimentVersions, stable_json_sha256
+
+        assert self.env is not None
+        actual_versions = ExperimentVersions.capture(
+            self.env,
+            self.assets.catalog,
+            rulebook_sha256=self.snapshot.rulebook_sha256,
+        )
+        contract = self.external_opponent_manifest.contract
+        if contract.get("experiment_versions") != actual_versions.to_dict():
+            raise ValueError(
+                "external opponent manifest experiment_versions do not match "
+                "the training runtime"
+            )
+        if contract.get("policy_architecture") != self.model.architecture:
+            raise ValueError(
+                "external opponent manifest policy architecture does not "
+                "match the learner"
+            )
+        learner_structure = self._model_structure_sha256(
+            self.model.state_dict()
+        )
+        if contract.get("model_structure_sha256") != learner_structure:
+            raise ValueError(
+                "external opponent manifest model structure does not match "
+                "the learner"
+            )
+        contract_hashes = {
+            "catalog_sha256": actual_versions.catalog_sha256,
+            "rulebook_sha256": actual_versions.rulebook_sha256,
+            "observation_schema_sha256": (
+                actual_versions.observation_schema_sha256
+            ),
+            "action_layout_sha256": actual_versions.action_layout_sha256,
+        }
+        mismatches = {
+            name: {"manifest": contract.get(name), "runtime": value}
+            for name, value in contract_hashes.items()
+            if contract.get(name) != value
+        }
+        if mismatches:
+            raise ValueError(
+                "external opponent manifest contract hashes do not match "
+                f"the training runtime: {mismatches}"
+            )
+        model_bytes = self._model_resident_bytes(self.model)
+        working_set_models = min(
+            (
+                1
+                if self.config.opponent_batching_mode
+                == "episode_seed_clustered"
+                else self.config.rollout_workers
+            ),
+            len(self.external_opponent_manifest.trainable_entries),
+        )
+        if working_set_models > self.config.opponent_model_cache_size:
+            raise ValueError(
+                "external-opponent cache model limit is below the maximum "
+                "active rollout working set: "
+                f"required={working_set_models}, "
+                f"configured={self.config.opponent_model_cache_size}"
+            )
+        required_working_set_bytes = model_bytes * working_set_models
+        if required_working_set_bytes > self.config.opponent_model_cache_max_bytes:
+            raise ValueError(
+                "external-opponent cache byte limit is below the maximum "
+                "active rollout working set: "
+                f"required={required_working_set_bytes}, "
+                f"configured={self.config.opponent_model_cache_max_bytes}"
+            )
+        for entry in self.external_opponent_manifest.entries:
+            assert entry.checkpoint_path is not None
+            payload = _load_payload(entry.checkpoint_path)
+            versions = ExperimentVersions(**payload["versions"])
+            versions.assert_compatible(actual_versions)
+            if stable_json_sha256(payload["versions"]) != entry.versions_sha256:
+                raise ValueError(
+                    f"external opponent {entry.opponent_id} versions hash "
+                    "does not match its checkpoint"
+                )
+            trainer_state = payload.get("trainer", {})
+            if int(trainer_state.get("master_seed", -1)) != entry.policy_seed:
+                raise ValueError(
+                    f"external opponent {entry.opponent_id} policy seed "
+                    "does not match its checkpoint"
+                )
+            if int(trainer_state.get("agent_steps", -1)) != entry.training_steps:
+                raise ValueError(
+                    f"external opponent {entry.opponent_id} training steps "
+                    "do not match its checkpoint"
+                )
+            source_config = trainer_state.get("config", {})
+            if source_config.get("policy_architecture") != entry.policy_architecture:
+                raise ValueError(
+                    f"external opponent {entry.opponent_id} architecture "
+                    "does not match its checkpoint"
+                )
+            if (
+                self._model_structure_sha256(payload["model_state"])
+                != learner_structure
+            ):
+                raise ValueError(
+                    f"external opponent {entry.opponent_id} model structure "
+                    "does not match the learner"
+                )
+            del payload
+
+    def _load_frozen_model(
         self,
         entry: OpponentEntry,
     ) -> MaskedPolicyNetwork:
@@ -477,29 +694,88 @@ class PPOTrainer:
                 "league history observation version does not match current "
                 "training"
             )
-        model = build_policy(
-            config,
-            self.flattener,
-            action_size=self.env.ACTION_SIZE,
-            card_vocabulary_size=len(self.assets.catalog.card_vocabulary),
-        ).to(self.device)
+        fork_devices = []
+        if self.device.type == "cuda":
+            fork_devices = [
+                self.device.index
+                if self.device.index is not None
+                else torch.cuda.current_device()
+            ]
+        with torch.random.fork_rng(devices=fork_devices):
+            model = build_policy(
+                config,
+                self.flattener,
+                action_size=self.env.ACTION_SIZE,
+                card_vocabulary_size=len(self.assets.catalog.card_vocabulary),
+            ).to(self.device)
         model.load_state_dict(payload["model_state"])
         model.eval()
+        for parameter in model.parameters():
+            parameter.requires_grad_(False)
         return model
 
-    def _historical_model(
+    def _opponent_cache_key(self, entry: OpponentEntry) -> str:
+        if entry.kind == "external":
+            assert entry.checkpoint_sha256 is not None
+            return f"sha256:{entry.checkpoint_sha256}"
+        assert entry.checkpoint_path is not None
+        return f"historical:{entry.opponent_id}:{entry.checkpoint_path}"
+
+    @staticmethod
+    def _model_resident_bytes(model: MaskedPolicyNetwork) -> int:
+        return sum(
+            tensor.numel() * tensor.element_size()
+            for tensor in model.state_dict().values()
+        )
+
+    def _evict_cached_model(self, cache_key: str) -> None:
+        del self._opponent_model_cache[cache_key]
+        del self._opponent_model_cache_bytes[cache_key]
+        self._opponent_cache_evictions += 1
+
+    def _frozen_model(
         self,
         entry: OpponentEntry,
     ) -> MaskedPolicyNetwork:
         assert entry.checkpoint_path is not None
-        model = self._historical_models.get(entry.opponent_id)
+        cache_key = self._opponent_cache_key(entry)
+        if cache_key != self._last_opponent_cache_key:
+            self._opponent_model_switches += 1
+            self._last_opponent_cache_key = cache_key
+        model = self._opponent_model_cache.get(cache_key)
         if model is None:
-            model = self._load_historical_model(entry)
-            self._historical_models[entry.opponent_id] = model
+            self._opponent_cache_misses += 1
+            started = time.perf_counter()
+            model = self._load_frozen_model(entry)
+            self._opponent_cache_load_seconds += time.perf_counter() - started
+            model_bytes = self._model_resident_bytes(model)
+            if model_bytes > self.config.opponent_model_cache_max_bytes:
+                raise ValueError(
+                    "frozen opponent model exceeds cache byte limit: "
+                    f"model={model_bytes}, "
+                    f"configured={self.config.opponent_model_cache_max_bytes}"
+                )
+            self._opponent_model_cache[cache_key] = model
+            self._opponent_model_cache_bytes[cache_key] = model_bytes
+            while (
+                len(self._opponent_model_cache)
+                > self.config.opponent_model_cache_size
+                or sum(self._opponent_model_cache_bytes.values())
+                > self.config.opponent_model_cache_max_bytes
+            ):
+                oldest_key = next(iter(self._opponent_model_cache))
+                self._evict_cached_model(oldest_key)
+        else:
+            self._opponent_cache_hits += 1
+            self._opponent_model_cache.move_to_end(cache_key)
         return model
 
+    # Backward-compatible internal name for own historical snapshots.
+    def _historical_model(self, entry: OpponentEntry) -> MaskedPolicyNetwork:
+        return self._frozen_model(entry)
+
     def _load_historical_opponent(self, entry: OpponentEntry) -> None:
-        model = self._historical_model(entry)
+        model = self._frozen_model(entry)
         self.opponent_model = model
         self.opponent_hidden = model.initial_state(1, device=self.device)
 
@@ -508,9 +784,25 @@ class PPOTrainer:
         self.opponent_hidden = None
         if (
             self.current_opponent is not None
-            and self.current_opponent.kind == "historical"
+            and self.current_opponent.kind in {"historical", "external"}
         ):
             self._load_historical_opponent(self.current_opponent)
+
+    def opponent_cache_metrics(self) -> dict[str, object]:
+        resident_bytes = sum(self._opponent_model_cache_bytes.values())
+        return {
+            "max_models": self.config.opponent_model_cache_size,
+            "max_bytes": self.config.opponent_model_cache_max_bytes,
+            "cached_models": len(self._opponent_model_cache),
+            "resident_bytes": resident_bytes,
+            "hits": self._opponent_cache_hits,
+            "misses": self._opponent_cache_misses,
+            "evictions": self._opponent_cache_evictions,
+            "load_seconds": self._opponent_cache_load_seconds,
+            "model_switches": self._opponent_model_switches,
+            "last_key": self._last_opponent_cache_key,
+            "keys": list(self._opponent_model_cache),
+        }
 
     def _start_episode(self) -> None:
         episode_id = self.next_episode_id
@@ -550,6 +842,7 @@ class PPOTrainer:
             "training_deck": self.config.training_deck,
             "learner_deck": learner_deck_name,
             "opponent_deck": opponent_deck_name,
+            **self.current_opponent.assignment_metadata(),
         }
         self.current_matchup_assignment = assignment
         self.opponent_assignments.append(assignment)
@@ -652,7 +945,7 @@ class PPOTrainer:
                 False,
             )
         if self.opponent_model is None or self.opponent_hidden is None:
-            raise RuntimeError("historical opponent model is not initialized")
+            raise RuntimeError("frozen opponent model is not initialized")
         hidden_before = self.opponent_hidden
         with torch.no_grad():
             logits, value, next_hidden = self.opponent_model.forward_step(
@@ -715,9 +1008,18 @@ class PPOTrainer:
                 "agent_steps": 0,
                 "current_episodes": 0,
                 "historical_episodes": 0,
+                "external_episodes": 0,
                 "learner_wins": 0,
                 "opponent_wins": 0,
             })
+            for field in (
+                "current_episodes",
+                "historical_episodes",
+                "external_episodes",
+                "learner_wins",
+                "opponent_wins",
+            ):
+                stats.setdefault(field, 0)
             stats["episodes"] = int(stats["episodes"]) + 1
             stats["agent_steps"] = (
                 int(stats["agent_steps"]) + agent_steps
@@ -908,6 +1210,16 @@ class PPOTrainer:
         }
         return records, bootstrap, boundaries
 
+    def _learner_player_for_episode(self, episode_id: int) -> int:
+        if self.config.opponent_decks:
+            assert self.config.training_deck is not None
+            return deck_matchup_for_episode(
+                self.config.training_deck,
+                self.config.opponent_decks,
+                episode_id,
+            ).learner_player
+        return episode_id % 2
+
     def _collect_vector_rollout(
         self,
     ) -> tuple[list[_Record], dict[tuple[int, int], float], dict[int, str]]:
@@ -918,20 +1230,18 @@ class PPOTrainer:
         )
 
         collect_started = time.perf_counter()
-        retained_history_ids = {
-            entry.opponent_id
+        retained_history_keys = {
+            self._opponent_cache_key(entry)
             for entry in self.opponent_pool.entries
             if entry.kind == "historical"
         }
-        for stale_id in set(self._historical_models) - retained_history_ids:
-            del self._historical_models[stale_id]
+        for cache_key in tuple(self._opponent_model_cache):
+            if (
+                cache_key.startswith("historical:")
+                and cache_key not in retained_history_keys
+            ):
+                self._evict_cached_model(cache_key)
         if self._policy_vector_rollout is None:
-            per_worker_steps = max(
-                1,
-                math.ceil(
-                    self.config.rollout_steps / self.config.rollout_workers
-                ),
-            )
             self._policy_vector_rollout = PolicyVectorRollout(
                 self.snapshot,
                 RolloutConfig(
@@ -939,10 +1249,7 @@ class PPOTrainer:
                     worker_count=self.config.rollout_workers,
                     class_ids=self.config.training_class_ids,
                     max_game_turns=self.config.max_game_turns,
-                    max_agent_steps=min(
-                        self.config.max_agent_steps_per_episode,
-                        per_worker_steps,
-                    ),
+                    max_agent_steps=self.config.max_agent_steps_per_episode,
                     result_timeout_seconds=(
                         self.config.rollout_result_timeout_seconds
                     ),
@@ -969,31 +1276,24 @@ class PPOTrainer:
         collect_calls = 0
         conversion_seconds = 0.0
         while len(records) < self.config.rollout_steps:
-            episode_ids = tuple(
-                range(
+            self.next_episode_id, scheduled_wave = (
+                self.opponent_scheduler.next_wave(
                     self.next_episode_id,
-                    self.next_episode_id + self.config.rollout_workers,
+                    learner_player_for_episode=(
+                        self._learner_player_for_episode
+                    ),
                 )
             )
-            self.next_episode_id += len(episode_ids)
-            episode_entries: dict[int, OpponentEntry] = {}
+            episode_ids = tuple(
+                episode_id for episode_id, _ in scheduled_wave
+            )
+            episode_entries: dict[int, OpponentEntry] = dict(scheduled_wave)
             episode_opponents: dict[int, PolicyOpponentAssignment] = {}
             historical_models: dict[str, MaskedPolicyNetwork] = {}
             for episode_id in episode_ids:
-                if self.config.opponent_decks:
-                    assert self.config.training_deck is not None
-                    learner_player = deck_matchup_for_episode(
-                        self.config.training_deck,
-                        self.config.opponent_decks,
-                        episode_id,
-                    ).learner_player
-                else:
-                    learner_player = episode_id % 2
-                entry = self.opponent_pool.select(
-                    episode_id=episode_id,
-                    learner_player=learner_player,
-                )
-                if entry.kind not in {"current", "historical"}:
+                learner_player = self._learner_player_for_episode(episode_id)
+                entry = episode_entries[episode_id]
+                if entry.kind not in {"current", "historical", "external"}:
                     raise RuntimeError(
                         "multiprocess rollout selected unsupported opponent "
                         f"kind {entry.kind!r}"
@@ -1001,15 +1301,14 @@ class PPOTrainer:
                 assignment_learner = (
                     None if entry.kind == "current" else learner_player
                 )
-                episode_entries[episode_id] = entry
                 episode_opponents[episode_id] = PolicyOpponentAssignment(
                     opponent_id=entry.opponent_id,
                     kind=entry.kind,
                     learner_player=assignment_learner,
                 )
-                if entry.kind == "historical":
+                if entry.kind in {"historical", "external"}:
                     historical_models[entry.opponent_id] = (
-                        self._historical_model(entry)
+                        self._frozen_model(entry)
                     )
             episodes = self._policy_vector_rollout.collect(
                 self.model,
@@ -1070,6 +1369,7 @@ class PPOTrainer:
                         "training_deck": self.config.training_deck,
                         "learner_deck": self.config.training_deck,
                         "opponent_deck": self.config.training_deck,
+                        **entry.assignment_metadata(),
                     }
                     learner_player = policy_assignment.learner_player
                 else:
@@ -1079,6 +1379,7 @@ class PPOTrainer:
                         "opponent_kind": entry.kind,
                         "worker_id": episode.worker_id,
                         "training_deck": self.config.training_deck,
+                        **entry.assignment_metadata(),
                     }
                     learner_player = int(
                         episode.matchup["learner_player"]
@@ -1357,7 +1658,8 @@ class PPOTrainer:
         if self._policy_vector_rollout is not None:
             self._policy_vector_rollout.close()
             self._policy_vector_rollout = None
-        self._historical_models.clear()
+        self._opponent_model_cache.clear()
+        self._opponent_model_cache_bytes.clear()
 
     def _advantages(
         self,

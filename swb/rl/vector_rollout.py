@@ -292,9 +292,9 @@ class PolicyOpponentAssignment:
     learner_player: int | None = None
 
     def __post_init__(self) -> None:
-        if self.kind not in {"current", "historical"}:
+        if self.kind not in {"current", "historical", "external"}:
             raise ValueError(
-                "central policy rollout supports current or historical "
+                "central policy rollout supports current, historical, or external "
                 "opponents"
             )
         if self.kind == "current":
@@ -305,7 +305,7 @@ class PolicyOpponentAssignment:
                 )
         elif self.learner_player not in (0, 1):
             raise ValueError(
-                "historical self-play requires learner_player 0 or 1"
+                "frozen-opponent self-play requires learner_player 0 or 1"
             )
 
 
@@ -1431,11 +1431,11 @@ class PolicyVectorRollout:
             policy_models.update(historical_models)
         for assignment in opponents.values():
             if (
-                assignment.kind == "historical"
+                assignment.kind in {"historical", "external"}
                 and assignment.opponent_id not in policy_models
             ):
                 raise ValueError(
-                    f"missing historical model {assignment.opponent_id!r}"
+                    f"missing frozen model {assignment.opponent_id!r}"
                 )
         collect_started = time.perf_counter()
         rollout_startup_started = time.perf_counter()
@@ -1551,7 +1551,7 @@ class PolicyVectorRollout:
                         assignment = opponents[episode_id]
                         policy_id = "current"
                         if (
-                            assignment.kind == "historical"
+                            assignment.kind in {"historical", "external"}
                             and player_id != assignment.learner_player
                         ):
                             policy_id = assignment.opponent_id

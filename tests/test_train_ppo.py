@@ -61,6 +61,8 @@ class TrainPPOCommandTests(unittest.TestCase):
                 "rollout_workers",
                 "rollout_worker_torch_threads",
                 "central_inference_batch_wait_seconds",
+                "opponent_model_cache_size",
+                "opponent_model_cache_max_bytes",
             },
         )
 

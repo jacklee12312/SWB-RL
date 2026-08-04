@@ -2,8 +2,10 @@ from __future__ import annotations
 
 import argparse
 import atexit
+import copy
 import json
 import time
+from collections import Counter
 from dataclasses import asdict, replace
 from pathlib import Path
 
@@ -25,6 +27,7 @@ from swb.rl.policy import (
     ENTITY_ACTION_POLICY_ARCHITECTURE,
     POLICY_ARCHITECTURES,
 )
+from swb.rl.opponents import OPPONENT_BATCHING_MODES
 from swb.rl.profiling import training_timing_report
 from swb.rl.runtime import WorkerAssetsSnapshot
 
@@ -33,6 +36,8 @@ RUNTIME_OVERRIDE_FIELDS = (
     "rollout_workers",
     "rollout_worker_torch_threads",
     "central_inference_batch_wait_seconds",
+    "opponent_model_cache_size",
+    "opponent_model_cache_max_bytes",
 )
 
 
@@ -42,6 +47,8 @@ def _resume_runtime_config(
     rollout_workers: int,
     rollout_worker_threads: int,
     central_inference_batch_wait_ms: float,
+    opponent_model_cache_size: int = 32,
+    opponent_model_cache_max_mib: int = 1024,
 ) -> PPOConfig:
     return replace(
         config,
@@ -50,7 +57,48 @@ def _resume_runtime_config(
         central_inference_batch_wait_seconds=(
             central_inference_batch_wait_ms / 1000.0
         ),
+        opponent_model_cache_size=opponent_model_cache_size,
+        opponent_model_cache_max_bytes=(
+            opponent_model_cache_max_mib * 1024 * 1024
+        ),
     )
+
+
+def _resume_config_overrides(
+    args: argparse.Namespace,
+) -> dict[str, object]:
+    overrides: dict[str, object] = {}
+    if args.resume_runtime_overrides:
+        overrides.update({
+            "rollout_workers": args.rollout_workers,
+            "rollout_worker_torch_threads": args.rollout_worker_threads,
+            "central_inference_batch_wait_seconds": (
+                args.central_inference_batch_wait_ms / 1000.0
+            ),
+            "opponent_model_cache_size": args.opponent_model_cache_size,
+            "opponent_model_cache_max_bytes": (
+                args.opponent_model_cache_max_mib * 1024 * 1024
+            ),
+        })
+    if args.resume_opponent_pool_overrides:
+        overrides.update({
+            "opponent_current_weight": args.opponent_current_weight,
+            "opponent_random_weight": args.opponent_random_weight,
+            "opponent_fixed_weight": args.opponent_fixed_weight,
+            "opponent_historical_weight": args.opponent_historical_weight,
+            "opponent_external_manifest": (
+                None
+                if args.opponent_external_manifest is None
+                else str(args.opponent_external_manifest)
+            ),
+            "opponent_external_weight": args.opponent_external_weight,
+            "opponent_max_history": args.opponent_max_history,
+            "opponent_snapshot_interval_steps": (
+                args.opponent_snapshot_interval_steps
+            ),
+            "opponent_batching_mode": args.opponent_batching_mode,
+        })
+    return overrides
 
 
 def _runtime_override_report(
@@ -184,6 +232,17 @@ def main() -> None:
     parser.add_argument("--opponent-random-weight", type=float, default=0.2)
     parser.add_argument("--opponent-fixed-weight", type=float, default=0.2)
     parser.add_argument("--opponent-historical-weight", type=float, default=0.5)
+    parser.add_argument("--opponent-external-manifest", type=Path)
+    parser.add_argument("--opponent-external-weight", type=float, default=0.0)
+    parser.add_argument("--opponent-model-cache-size", type=int, default=32)
+    parser.add_argument(
+        "--opponent-model-cache-max-mib", type=int, default=1024
+    )
+    parser.add_argument(
+        "--opponent-batching-mode",
+        choices=sorted(OPPONENT_BATCHING_MODES),
+        default="sequential",
+    )
     parser.add_argument("--opponent-max-history", type=int, default=4)
     parser.add_argument(
         "--opponent-snapshot-interval-steps", type=int, default=2_500
@@ -201,6 +260,15 @@ def main() -> None:
             "when resuming, explicitly apply only --rollout-workers, "
             "--rollout-worker-threads, and "
             "--central-inference-batch-wait-ms to the loaded config"
+        ),
+    )
+    parser.add_argument(
+        "--resume-opponent-pool-overrides",
+        action="store_true",
+        help=(
+            "when resuming, explicitly replace the checkpoint-owned opponent "
+            "pool with the opponent weights and external manifest supplied "
+            "on this command line"
         ),
     )
     parser.add_argument(
@@ -260,20 +328,52 @@ def main() -> None:
         parser.error("--monitor-interval-seconds must be positive")
     if args.resume_runtime_overrides and args.resume is None:
         parser.error("--resume-runtime-overrides requires --resume")
+    if args.resume_opponent_pool_overrides and args.resume is None:
+        parser.error("--resume-opponent-pool-overrides requires --resume")
+    if args.opponent_model_cache_size <= 0:
+        parser.error("--opponent-model-cache-size must be positive")
+    if args.opponent_model_cache_max_mib <= 0:
+        parser.error("--opponent-model-cache-max-mib must be positive")
+    if (
+        args.opponent_external_weight > 0
+        and args.opponent_external_manifest is None
+    ):
+        parser.error(
+            "--opponent-external-weight requires --opponent-external-manifest"
+        )
     if args.learning_rate <= 0:
         parser.error("learning-rate must be positive")
     if args.entropy_coefficient < 0:
         parser.error("entropy-coefficient must be non-negative")
     if not 0 < args.clip_ratio < 1:
         parser.error("clip-ratio must be between zero and one")
-    if args.resume is None and args.rollout_workers > 1 and (
-        args.opponent_current_weight <= 0
+    if (
+        (args.resume is None or args.resume_opponent_pool_overrides)
+        and args.rollout_workers > 1
+        and (
+        (
+            args.opponent_current_weight <= 0
+            and args.opponent_external_weight <= 0
+        )
         or args.opponent_random_weight > 0
         or args.opponent_fixed_weight > 0
+        )
     ):
         parser.error(
-            "multiprocess rollout requires positive current weight, zero "
-            "random/fixed weights, and optionally historical weight"
+            "multiprocess rollout requires positive current and/or external "
+            "weight, zero random/fixed weights, and optionally historical weight"
+        )
+    if (
+        args.resume is not None
+        and not args.resume_opponent_pool_overrides
+        and (
+            args.opponent_external_manifest is not None
+            or args.opponent_external_weight > 0
+        )
+    ):
+        parser.error(
+            "external opponent arguments on resume require "
+            "--resume-opponent-pool-overrides"
         )
     if args.resume is not None and (
         args.training_deck is not None
@@ -304,21 +404,14 @@ def main() -> None:
 
     snapshot = WorkerAssetsSnapshot.build(CardRepository(args.database))
     if args.resume is not None:
-        trainer = load_checkpoint(args.resume, snapshot, device=args.device)
-        resume_config = trainer.config
-        if args.resume_runtime_overrides:
-            trainer.config = _resume_runtime_config(
-                trainer.config,
-                rollout_workers=args.rollout_workers,
-                rollout_worker_threads=args.rollout_worker_threads,
-                central_inference_batch_wait_ms=(
-                    args.central_inference_batch_wait_ms
-                ),
-            )
-        runtime_overrides = _runtime_override_report(
-            resume_config,
-            trainer.config,
+        trainer = load_checkpoint(
+            args.resume,
+            snapshot,
+            device=args.device,
+            config_overrides=_resume_config_overrides(args),
+            replace_opponent_pool=args.resume_opponent_pool_overrides,
         )
+        runtime_overrides = dict(trainer.resume_config_overrides)
     else:
         trainer = PPOTrainer(
             snapshot,
@@ -344,6 +437,17 @@ def main() -> None:
                 opponent_random_weight=args.opponent_random_weight,
                 opponent_fixed_weight=args.opponent_fixed_weight,
                 opponent_historical_weight=args.opponent_historical_weight,
+                opponent_external_manifest=(
+                    None
+                    if args.opponent_external_manifest is None
+                    else str(args.opponent_external_manifest)
+                ),
+                opponent_external_weight=args.opponent_external_weight,
+                opponent_model_cache_size=args.opponent_model_cache_size,
+                opponent_model_cache_max_bytes=(
+                    args.opponent_model_cache_max_mib * 1024 * 1024
+                ),
+                opponent_batching_mode=args.opponent_batching_mode,
                 opponent_max_history=args.opponent_max_history,
                 opponent_snapshot_interval_steps=(
                     args.opponent_snapshot_interval_steps
@@ -371,6 +475,10 @@ def main() -> None:
             f"{trainer.agent_steps}"
         )
     atexit.register(trainer.close)
+    starting_matchup_statistics = copy.deepcopy(
+        trainer.matchup_statistics
+    )
+    starting_assignment_count = len(trainer.opponent_assignments)
 
     system_monitor = (
         SystemMonitor(args.monitor_interval_seconds)
@@ -471,6 +579,44 @@ def main() -> None:
     finally:
         if system_monitor is not None:
             system_monitor.stop()
+    matchup_statistics = dict(trainer.matchup_statistics)
+    matchup_episodes = sum(
+        int(statistics.get("episodes", 0))
+        for statistics in matchup_statistics.values()
+    )
+    matchup_truncated = sum(
+        int(statistics.get("truncated", 0))
+        for statistics in matchup_statistics.values()
+    )
+    matchup_agent_steps = sum(
+        int(statistics.get("agent_steps", 0))
+        for statistics in matchup_statistics.values()
+    )
+    starting_matchup_episodes = sum(
+        int(statistics.get("episodes", 0))
+        for statistics in starting_matchup_statistics.values()
+    )
+    starting_matchup_truncated = sum(
+        int(statistics.get("truncated", 0))
+        for statistics in starting_matchup_statistics.values()
+    )
+    starting_matchup_agent_steps = sum(
+        int(statistics.get("agent_steps", 0))
+        for statistics in starting_matchup_statistics.values()
+    )
+    run_matchup_episodes = matchup_episodes - starting_matchup_episodes
+    run_matchup_truncated = (
+        matchup_truncated - starting_matchup_truncated
+    )
+    run_matchup_agent_steps = (
+        matchup_agent_steps - starting_matchup_agent_steps
+    )
+    completed_assignment_counts = Counter(
+        str(assignment["opponent_id"])
+        for assignment in trainer.opponent_assignments[
+            starting_assignment_count:
+        ]
+    )
     report = {
         "schema_version": 1,
         "purpose": (
@@ -547,13 +693,36 @@ def main() -> None:
             deck.manifest()
             for deck in trainer.fixed_opponent_decks
         ],
-        "matchup_statistics": dict(trainer.matchup_statistics),
+        "matchup_statistics": matchup_statistics,
+        "league_diagnostics": {
+            "external_opponent_manifest": (
+                None
+                if trainer.external_opponent_manifest is None
+                else trainer.external_opponent_manifest.summary()
+            ),
+            "episode_count": run_matchup_episodes,
+            "mean_agent_steps_per_episode": (
+                run_matchup_agent_steps / max(run_matchup_episodes, 1)
+            ),
+            "truncated_episodes": run_matchup_truncated,
+            "truncation_rate": (
+                run_matchup_truncated / max(run_matchup_episodes, 1)
+            ),
+            "illegal_action_errors": 0,
+            "action_mask_mismatch_errors": 0,
+            "completed_without_exception": True,
+        },
         "final_metrics": metrics[-1],
         "timing": training_timing_report(
             collect_timing_samples,
             update_timing_samples,
         ),
         "opponent_pool": trainer.opponent_pool.state_dict(),
+        "opponent_scheduler": trainer.opponent_scheduler.state_dict(),
+        "opponent_cache": trainer.opponent_cache_metrics(),
+        "completed_assignment_counts_by_opponent": dict(
+            sorted(completed_assignment_counts.items())
+        ),
         "opponent_assignments": list(trainer.opponent_assignments),
         "historical_snapshots_created": historical_snapshots,
         "versions": {
