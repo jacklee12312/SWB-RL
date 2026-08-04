@@ -132,16 +132,17 @@ manifest，`tests/test_ppo_league_baseline.py` 覆盖字段完整性、seed 隔�
 
 ## 3.1 完成并审计当前 seed payoff matrix
 
-- [ ] 等待现有 33-pair 队列自然完成；不得重启、覆盖或混合修改运行中产物。
-- [ ] 验证 33/33 组、6468/6468 局均存在，且无缺失、重复或错误 checkpoint。
-- [ ] 验证全部对局非法动作和 action-mask mismatch 为 0；逐组报告截断。
-- [ ] 记录每组胜率、Wilson 95% CI、双方位置胜率、相对 Elo、平均局长和 7x7
+- [x] 等待现有 33-pair 队列自然完成；不得重启、覆盖或混合修改运行中产物。
+- [x] 验证 33/33 组、6468/6468 局均存在，且无缺失、重复或错误 checkpoint。
+- [x] 验证全部对局非法动作和 action-mask mismatch 为 0；逐组报告截断。
+- [x] 记录每组胜率、Wilson 95% CI、双方位置胜率、相对 Elo、平均局长和 7x7
   职业格子。
-- [ ] 明确把旧 3M 对新 1M 标为跨规则历史锚点比较，不能解释成纯 steps ablation。
-- [ ] 对 95% CI 覆盖 50% 的接近模型不强行排序。
-- [ ] 对可能影响后续池组成的接近对局补跑到至少 980 局。
-- [ ] 生成一个机器可读的 antisymmetric payoff matrix；验证交换行列时符号相反。
-- [ ] 检测三策略循环：若 A>B、B>C、C>A 的每条边均超过预注册阈值（首轮
+- [x] 明确把旧 3M 对新 1M 标为跨规则历史锚点比较，不能解释成纯 steps ablation。
+- [x] 对 95% CI 覆盖 50% 的接近模型不强行排序。
+- [x] 对可能影响后续池组成的接近对局补跑到至少 980 局（本轮池组成保留全部
+  九个模型，没有接近对局触发补跑；未来移除模型时必须先补足）。
+- [x] 生成一个机器可读的 antisymmetric payoff matrix；验证交换行列时符号相反。
+- [x] 检测三策略循环：若 A>B、B>C、C>A 的每条边均超过预注册阈值（首轮
   使用 55%），保存循环和各边 CI，不用单一 Elo 抹平该关系。
 
 产物：
@@ -155,6 +156,14 @@ manifest，`tests/test_ppo_league_baseline.py` 覆盖字段完整性、seed 隔�
 - 矩阵未完整、存在非法动作/mask mismatch 或 checkpoint 来源无法确认时，
   不进入正式 League 训练。
 - 未检测到显著循环不代表可以丢弃策略池；仍继续 3.2 检查覆盖和遗忘。
+
+完成记录（2026-08-04）：`scripts/report_ppo_league_seed_matrix.py` 对原始 33 份
+report 和 checkpoint registry 逐项交叉校验，确认 6468 局全部正常终止且非法动作、
+mask mismatch、截断均为 0；产物保留完整逐组 7x7 格子并生成反对称矩阵。29 组
+95% CI 覆盖 50%，均不强行排序。Generation 0 明确保留六个候选和三个锚点，
+所以没有任何接近对局会影响池组成，本轮无需额外 980 局；若未来要据此移除模型，
+`close_pair_confirmations/plan.json` 要求先补足至少 980 局。点估计有两个循环，
+但没有三条边均超过 55% 的预注册强循环。
 
 ## 3.2 建立 population 评估与 meta-strategy
 
