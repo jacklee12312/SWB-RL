@@ -1,0 +1,119 @@
+{
+  "diagnostic_metrics_not_standalone_success": [
+    "agent_steps_per_second",
+    "gpu_utilization",
+    "gpu_memory",
+    "cpu_utilization",
+    "ram_utilization",
+    "episode_agent_steps",
+    "episode_turns",
+    "policy_entropy",
+    "value_loss",
+    "policy_loss",
+    "clip_fraction",
+    "approx_kl",
+    "explained_variance",
+    "grad_norm",
+    "opponent_selection_distribution"
+  ],
+  "evaluation_scale": {
+    "both_player_positions_required": true,
+    "confirmation_class_cells": 49,
+    "confirmation_games_per_model_pair": 980,
+    "confirmation_public_match_seeds": 10,
+    "screening_games_per_model_pair": 196
+  },
+  "primary_metrics": [
+    {
+      "name": "frozen_anchor_paired_mean_win_rate",
+      "uncertainty": "paired_bootstrap_95_ci"
+    },
+    {
+      "companion": "best_response_exploitability_proxy",
+      "name": "meta_strategy_worst_expected_payoff"
+    },
+    {
+      "name": "class_matrix_worst_cell"
+    },
+    {
+      "name": "class_matrix_p10_cell"
+    },
+    {
+      "components": [
+        "top1",
+        "topk",
+        "preference_margin"
+      ],
+      "name": "tactical_replay_preference"
+    },
+    {
+      "name": "safety",
+      "requirements": {
+        "action_mask_mismatches": 0,
+        "illegal_actions": 0,
+        "truncation_rate": 0.0
+      }
+    }
+  ],
+  "report_kind": "ppo_league_evaluation_protocol",
+  "reporting": {
+    "all_runs_included": true,
+    "elo_is_primary": false,
+    "multi_seed_aggregates": [
+      "per_seed",
+      "median",
+      "iqm",
+      "paired_bootstrap_95_ci",
+      "performance_profile"
+    ],
+    "win_rate_interval": "wilson_95_ci"
+  },
+  "schema_version": 1,
+  "seed_partitions": {
+    "exploratory_matrix_seed_already_used": 20260804,
+    "final_evaluation_match_master_seeds": [
+      20262001,
+      20262002,
+      20262003,
+      20262004,
+      20262005,
+      20262006,
+      20262007,
+      20262008,
+      20262009,
+      20262010,
+      20262011,
+      20262012,
+      20262013,
+      20262014,
+      20262015,
+      20262016,
+      20262017,
+      20262018,
+      20262019,
+      20262020
+    ],
+    "final_seeds_allowed_for_pfsp": false,
+    "partition_rule": "Final evaluation seeds are held out from opponent selection, PFSP payoff updates, hyperparameter tuning, and early stopping.",
+    "pfsp_tuning_match_master_seeds": [
+      20261001,
+      20261002,
+      20261003,
+      20261004,
+      20261005,
+      20261006,
+      20261007,
+      20261008,
+      20261009,
+      20261010
+    ],
+    "training_model_seeds": [
+      20260903,
+      20260904,
+      20260905,
+      20260906,
+      20260907,
+      20260908
+    ]
+  }
+}

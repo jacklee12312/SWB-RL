@@ -93,24 +93,24 @@
 
 ## 3.0 冻结实验合同与成功指标
 
-- [ ] 运行 `git status --short --branch`，记录当前 commit、分支和全部用户改动。
-- [ ] 冻结 SQLite、RuleBook、Catalog、训练池、八套固定牌组、7x7 实际牌组
+- [x] 运行 `git status --short --branch`，记录当前 commit、分支和全部用户改动。
+- [x] 冻结 SQLite、RuleBook、Catalog、训练池、八套固定牌组、7x7 实际牌组
   调度、Observation、action schema、policy architecture 和 seed derivation
   的版本/hash。
-- [ ] 冻结六个新 1M checkpoint 和三个旧 3M 锚点的 SHA-256、训练步数、规则
+- [x] 冻结六个新 1M checkpoint 和三个旧 3M 锚点的 SHA-256、训练步数、规则
   版本、Extra PP 语义和来源报告。
-- [ ] 建立训练 seed、调参 seed、最终评估 seed 三个不重叠集合；最终评估 seed
+- [x] 建立训练 seed、调参 seed、最终评估 seed 三个不重叠集合；最终评估 seed
   不得用于 PFSP 权重更新。
-- [ ] 把以下项目预注册为主指标：
-  - [ ] 对冻结锚点池的配对平均胜率及 95% CI；
-  - [ ] payoff matrix 中 meta-strategy 的最差期望收益/可利用性代理；
-  - [ ] 7x7 职业格子的最差项和第 10 百分位；
-  - [ ] 战术回放集的 preferred-action top-1、top-k 和 preference margin；
-  - [ ] 零非法动作、零 mask mismatch 和截断率。
-- [ ] 将训练吞吐、GPU/CPU/RAM、episode 长度、entropy、value loss、policy loss、
+- [x] 把以下项目预注册为主指标：
+  - [x] 对冻结锚点池的配对平均胜率及 95% CI；
+  - [x] payoff matrix 中 meta-strategy 的最差期望收益/可利用性代理；
+  - [x] 7x7 职业格子的最差项和第 10 百分位；
+  - [x] 战术回放集的 preferred-action top-1、top-k 和 preference margin；
+  - [x] 零非法动作、零 mask mismatch 和截断率。
+- [x] 将训练吞吐、GPU/CPU/RAM、episode 长度、entropy、value loss、policy loss、
   clip fraction、KL、explained variance、grad norm 和 opponent selection 分布
   注册为诊断指标，不把其中任何一个单独当作策略变强。
-- [ ] 保存字节稳定的冻结 manifest，并增加字段完整性和 hash 失效测试。
+- [x] 保存字节稳定的冻结 manifest，并增加字段完整性和 hash 失效测试。
 
 产物：
 
@@ -123,6 +123,12 @@
 - 同一工作区重复生成 manifest 字节一致。
 - 任一规则、牌库、Observation、action、checkpoint 字节变化都会使旧实验合同
   明确失效，而不是静默继续。
+
+完成记录（2026-08-04）：基线 commit 为 `884249b`，League 分支为
+`feature/league-core`；`scripts/report_ppo_league_baseline.py` 生成并校验上述三份
+manifest，`tests/test_ppo_league_baseline.py` 覆盖字段完整性、seed 隔离、字节稳定
+以及五类关键 hash 的显式失效。用户修改的 `docs/roadmap.md` 保持在工作区且未
+纳入本阶段提交。
 
 ## 3.1 完成并审计当前 seed payoff matrix
 

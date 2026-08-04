@@ -1,0 +1,1470 @@
+{
+  "artifacts": {
+    "catalog": {
+      "card_vocabulary_sha256": "b1b0001b0e54fef8092dfc74f2674c7443417ca8d8391e0ae6c8039d2ad1b055",
+      "exact_collectible_count": 734,
+      "excluded_collectible_count": 1,
+      "sha256": "57a9c1927de54ea5901a02d48d27438211ad9edc24f61ee6bc92d624d707f2f6",
+      "training_pool_sha256": "7bdf090f725fcf80bcef59fb42a94d9c2d0b85affd15cde8d838df46016e7146"
+    },
+    "class_schedule": {
+      "class_ids": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "class_schedule_version": 1,
+      "cycle_length": 49,
+      "deck_source": "seeded_exact_catalog_sampling_per_class",
+      "fixed_decks_are_evaluation_and_audit_decks": true,
+      "ordered_pairs": [
+        [
+          1,
+          1
+        ],
+        [
+          1,
+          2
+        ],
+        [
+          1,
+          3
+        ],
+        [
+          1,
+          4
+        ],
+        [
+          1,
+          5
+        ],
+        [
+          1,
+          6
+        ],
+        [
+          1,
+          7
+        ],
+        [
+          2,
+          1
+        ],
+        [
+          2,
+          2
+        ],
+        [
+          2,
+          3
+        ],
+        [
+          2,
+          4
+        ],
+        [
+          2,
+          5
+        ],
+        [
+          2,
+          6
+        ],
+        [
+          2,
+          7
+        ],
+        [
+          3,
+          1
+        ],
+        [
+          3,
+          2
+        ],
+        [
+          3,
+          3
+        ],
+        [
+          3,
+          4
+        ],
+        [
+          3,
+          5
+        ],
+        [
+          3,
+          6
+        ],
+        [
+          3,
+          7
+        ],
+        [
+          4,
+          1
+        ],
+        [
+          4,
+          2
+        ],
+        [
+          4,
+          3
+        ],
+        [
+          4,
+          4
+        ],
+        [
+          4,
+          5
+        ],
+        [
+          4,
+          6
+        ],
+        [
+          4,
+          7
+        ],
+        [
+          5,
+          1
+        ],
+        [
+          5,
+          2
+        ],
+        [
+          5,
+          3
+        ],
+        [
+          5,
+          4
+        ],
+        [
+          5,
+          5
+        ],
+        [
+          5,
+          6
+        ],
+        [
+          5,
+          7
+        ],
+        [
+          6,
+          1
+        ],
+        [
+          6,
+          2
+        ],
+        [
+          6,
+          3
+        ],
+        [
+          6,
+          4
+        ],
+        [
+          6,
+          5
+        ],
+        [
+          6,
+          6
+        ],
+        [
+          6,
+          7
+        ],
+        [
+          7,
+          1
+        ],
+        [
+          7,
+          2
+        ],
+        [
+          7,
+          3
+        ],
+        [
+          7,
+          4
+        ],
+        [
+          7,
+          5
+        ],
+        [
+          7,
+          6
+        ],
+        [
+          7,
+          7
+        ]
+      ],
+      "sha256": "3215b2bef70cc57d193d6a81fdd491c7db57d1ea93f7da0715d1c1ea6c8bf743"
+    },
+    "coverage_report": {
+      "bytes": 2153377,
+      "path": "data/reports/rule_coverage.json",
+      "sha256": "f489dfcc645e4f3c6c83772fea0f5c8d75452547b8733bfdad80839c8c5c31d4"
+    },
+    "database": {
+      "bytes": 14274560,
+      "file_sha256": "df069e713a97493c885266b72f303874035beea571147ba14b77c57c9e631376",
+      "path": "data/cards.sqlite3",
+      "source_snapshot": {
+        "card_count": 826,
+        "fetched_at": "2026-07-08T06:56:16.528141+00:00",
+        "sha256": "3728fbc87b5751b02fe49006e51b50015769c524da46ac24375e81ab39c81fd7",
+        "source_url": "https://sva.hypd.asia/data/cards.json"
+      }
+    },
+    "fixed_decks": {
+      "count": 8,
+      "decks": [
+        {
+          "card_counts": {
+            "10042310": 3,
+            "10304120": 3,
+            "10344120": 3,
+            "10403120": 2,
+            "10444110": 1,
+            "10444120": 3,
+            "10503310": 1,
+            "10542310": 2,
+            "10543310": 3,
+            "10544110": 3,
+            "10644110": 3,
+            "10644120": 3,
+            "10741110": 3,
+            "10744110": 3,
+            "10842120": 1,
+            "10844120": 3
+          },
+          "card_ids": [
+            10403120,
+            10403120,
+            10644120,
+            10644120,
+            10644120,
+            10741110,
+            10741110,
+            10741110,
+            10842120,
+            10543310,
+            10543310,
+            10543310,
+            10304120,
+            10304120,
+            10304120,
+            10042310,
+            10042310,
+            10042310,
+            10542310,
+            10542310,
+            10503310,
+            10344120,
+            10344120,
+            10344120,
+            10444120,
+            10444120,
+            10444120,
+            10444110,
+            10644110,
+            10644110,
+            10644110,
+            10844120,
+            10844120,
+            10844120,
+            10744110,
+            10744110,
+            10744110,
+            10544110,
+            10544110,
+            10544110
+          ],
+          "class_id": 4,
+          "display_name": "国际服二维码·龙族",
+          "name": "international_qr_dragon_20260728",
+          "sha256": "78955d8897955478067dc5810ad1eac7224b8a2262ce280d03035fff816d829b",
+          "source_deck_hash": "1.4.dhqm.dhqm.ecgO.ecgO.ecgO.e-Ls.e-Ls.e-Ls.fN08.eE3E.eE3E.eE3E.dJfu.dJfu.dJfu.cJl6.cJl6.cJl6.eDpc.eDpc.e4IE.dTQu.dTQu.dTQu.drrO.drrO.drrO.drrE.ecgE.ecgE.ecgE.fNVO.fNVO.fNVO.e_4k.e_4k.e_4k.eEFk.eEFk.eEFk"
+        },
+        {
+          "card_counts": {
+            "10314110": 3,
+            "10403120": 2,
+            "10404110": 2,
+            "10413110": 3,
+            "10414120": 2,
+            "10511110": 3,
+            "10513110": 3,
+            "10514120": 3,
+            "10614110": 3,
+            "10811120": 2,
+            "10812110": 3,
+            "10813110": 2,
+            "10813310": 3,
+            "10814110": 3,
+            "10814120": 3
+          },
+          "card_ids": [
+            10403120,
+            10403120,
+            10511110,
+            10511110,
+            10511110,
+            10812110,
+            10812110,
+            10812110,
+            10814120,
+            10814120,
+            10814120,
+            10514120,
+            10514120,
+            10514120,
+            10811120,
+            10811120,
+            10314110,
+            10314110,
+            10314110,
+            10413110,
+            10413110,
+            10413110,
+            10414120,
+            10414120,
+            10513110,
+            10513110,
+            10513110,
+            10813310,
+            10813310,
+            10813310,
+            10404110,
+            10404110,
+            10813110,
+            10813110,
+            10814110,
+            10814110,
+            10814110,
+            10614110,
+            10614110,
+            10614110
+          ],
+          "class_id": 1,
+          "display_name": "国际服二维码·精灵样本",
+          "name": "international_qr_forest_20260728",
+          "sha256": "f5a80e15313a78007ce1cadc2850e91d16ffb970d5db82458bc5c05023a75e73",
+          "source_deck_hash": "1.1.dhqm.dhqm.e6C6.e6C6.e6C6.fFhE.fFhE.fFhE.fGAe.fGAe.fGAe.e6x8.e6x8.e6x8.fFRm.fFRm.dM5-.dM5-.dM5-.dkGs.dkGs.dkGs.dkWe.dkWe.e6hM.e6hM.e6hM.fFz-.fFz-.fFz-.di4E.di4E.fFws.fFws.fGAU.fGAU.fGAU.eVLU.eVLU.eVLU"
+        },
+        {
+          "card_counts": {
+            "10051310": 3,
+            "10351110": 3,
+            "10352110": 3,
+            "10352210": 3,
+            "10353110": 3,
+            "10353310": 3,
+            "10354110": 3,
+            "10354120": 1,
+            "10403110": 1,
+            "10403120": 1,
+            "10452130": 2,
+            "10653310": 2,
+            "10703210": 1,
+            "10751120": 2,
+            "10803310": 3,
+            "10804110": 1,
+            "10854110": 3,
+            "10854120": 2
+          },
+          "card_ids": [
+            10703210,
+            10403120,
+            10803310,
+            10803310,
+            10803310,
+            10354110,
+            10354110,
+            10354110,
+            10751120,
+            10751120,
+            10051310,
+            10051310,
+            10051310,
+            10352210,
+            10352210,
+            10352210,
+            10351110,
+            10351110,
+            10351110,
+            10452130,
+            10452130,
+            10353310,
+            10353310,
+            10353310,
+            10653310,
+            10653310,
+            10403110,
+            10352110,
+            10352110,
+            10352110,
+            10353110,
+            10353110,
+            10353110,
+            10854120,
+            10854120,
+            10354120,
+            10854110,
+            10854110,
+            10854110,
+            10804110
+          ],
+          "class_id": 5,
+          "display_name": "国际服二维码·梦魇",
+          "name": "international_qr_nightmare_20260728",
+          "sha256": "de69515a9e254f7fbc70f8f4b25cded3932e96f907564bf1ba8ddb3179e92e99",
+          "source_deck_hash": "1.5.er5g.dhqm.fDXk.fDXk.fDXk.dVs-.dVs-.dVs-.f0oG.f0oG.cLxk.cLxk.cLxk.dVPI.dVPI.dVPI.dV86.dV86.dV86.dtoY.dtoY.dVgU.dVgU.dVgU.eev-.eev-.dhqc.dVNk.dVNk.dVNk.dVdM.dVdM.dVdM.fPxe.fPxe.dVt8.fPxU.fPxU.fPxU.fDkE"
+        },
+        {
+          "card_counts": {
+            "10072210": 3,
+            "10304120": 2,
+            "10372210": 3,
+            "10373110": 3,
+            "10373310": 3,
+            "10374110": 3,
+            "10374120": 3,
+            "10474120": 1,
+            "10503210": 3,
+            "10571120": 2,
+            "10573310": 3,
+            "10574120": 3,
+            "10771310": 2,
+            "10774110": 1,
+            "10874110": 2,
+            "10874120": 3
+          },
+          "card_ids": [
+            10503210,
+            10503210,
+            10503210,
+            10573310,
+            10573310,
+            10573310,
+            10771310,
+            10771310,
+            10574120,
+            10574120,
+            10574120,
+            10874120,
+            10874120,
+            10874120,
+            10373310,
+            10373310,
+            10373310,
+            10072210,
+            10072210,
+            10072210,
+            10372210,
+            10372210,
+            10372210,
+            10304120,
+            10304120,
+            10374110,
+            10374110,
+            10374110,
+            10374120,
+            10374120,
+            10374120,
+            10571120,
+            10571120,
+            10874110,
+            10874110,
+            10373110,
+            10373110,
+            10373110,
+            10774110,
+            10474120
+          ],
+          "class_id": 7,
+          "display_name": "国际服二维码·超越者·莉洁纳",
+          "name": "international_qr_portal_lishenna_20260728",
+          "sha256": "70f2d30d1561963d7bb609d3d16c7d7ad9ffe3cef2ec31f49f692f4c9945969c",
+          "source_deck_hash": "1.7.e4Gg.e4Gg.e4Gg.eLN-.eLN-.eLN-.f5jk.f5jk.eLae.eLae.eLae.fUq8.fUq8.fUq8.daY-.daY-.daY-.cR2I.cR2I.cR2I.daHo.daHo.daHo.dJfu.dJfu.dalU.dalU.dalU.dale.dale.dale.eKrm.eKrm.fUp-.fUp-.daVs.daVs.daVs.f6PU.dzA8"
+        },
+        {
+          "card_counts": {
+            "10072210": 2,
+            "10304120": 1,
+            "10471130": 2,
+            "10573310": 3,
+            "10574120": 3,
+            "10673110": 3,
+            "10674110": 3,
+            "10771310": 3,
+            "10772110": 3,
+            "10773110": 3,
+            "10774110": 3,
+            "10774120": 3,
+            "10872120": 2,
+            "10874110": 3,
+            "10874120": 3
+          },
+          "card_ids": [
+            10573310,
+            10573310,
+            10573310,
+            10771310,
+            10771310,
+            10771310,
+            10471130,
+            10471130,
+            10574120,
+            10574120,
+            10574120,
+            10772110,
+            10772110,
+            10772110,
+            10874120,
+            10874120,
+            10874120,
+            10072210,
+            10072210,
+            10304120,
+            10773110,
+            10773110,
+            10773110,
+            10872120,
+            10872120,
+            10774120,
+            10774120,
+            10774120,
+            10874110,
+            10874110,
+            10874110,
+            10674110,
+            10674110,
+            10674110,
+            10673110,
+            10673110,
+            10673110,
+            10774110,
+            10774110,
+            10774110
+          ],
+          "class_id": 7,
+          "display_name": "国际服二维码·超越者·米乌",
+          "name": "international_qr_portal_myuu_20260728",
+          "sha256": "dd7532599594fbedfabc21493282042f61e7267d18a9ade5bdf08c85b87a3b6d",
+          "source_deck_hash": "1.7.eLN-.eLN-.eLN-.f5jk.f5jk.f5jk.dyRQ.dyRQ.eLae.eLae.eLae.f5wE.f5wE.f5wE.fUq8.fUq8.fUq8.cR2I.cR2I.dJfu.f69s.f69s.f69s.fUKu.fUKu.f6Pe.f6Pe.f6Pe.fUp-.fUp-.fUp-.ej--.ej--.ej--.ejlM.ejlM.ejlM.f6PU.f6PU.f6PU"
+        },
+        {
+          "card_counts": {
+            "10031310": 3,
+            "10131320": 3,
+            "10333310": 1,
+            "10403110": 1,
+            "10431310": 1,
+            "10502120": 1,
+            "10503210": 3,
+            "10531310": 2,
+            "10603210": 3,
+            "10631310": 3,
+            "10632110": 1,
+            "10632310": 3,
+            "10633310": 3,
+            "10634110": 3,
+            "10634120": 3,
+            "10803310": 3,
+            "10833310": 3
+          },
+          "card_ids": [
+            10503210,
+            10503210,
+            10503210,
+            10031310,
+            10031310,
+            10031310,
+            10632310,
+            10632310,
+            10632310,
+            10131320,
+            10131320,
+            10131320,
+            10803310,
+            10803310,
+            10803310,
+            10333310,
+            10531310,
+            10531310,
+            10631310,
+            10631310,
+            10631310,
+            10634110,
+            10634110,
+            10634110,
+            10633310,
+            10633310,
+            10633310,
+            10833310,
+            10833310,
+            10833310,
+            10403110,
+            10502120,
+            10603210,
+            10603210,
+            10603210,
+            10632110,
+            10431310,
+            10634120,
+            10634120,
+            10634120
+          ],
+          "class_id": 3,
+          "display_name": "国际服二维码·巫师",
+          "name": "international_qr_runecraft_20260728",
+          "sha256": "3fd685c474dd608e26a8b7a581928c141d8d68a4d75a5268e6bcf7ad1266edc4",
+          "source_deck_hash": "1.3.e4Gg.e4Gg.e4Gg.cH3E.cH3E.cH3E.eZns.eZns.eZns.cfTu.cfTu.cfTu.fDXk.fDXk.fDXk.dQn-.eB7k.eB7k.eZYE.eZYE.eZYE.eaD-.eaD-.eaD-.ea1U.ea1U.ea1U.fKsU.fKsU.fKsU.dhqc.e3_e.eShA.eShA.eShA.eZkk.dojE.eaE8.eaE8.eaE8"
+        },
+        {
+          "card_counts": {
+            "10021110": 3,
+            "10404110": 1,
+            "10424110": 2,
+            "10424120": 3,
+            "10624120": 2,
+            "10702110": 2,
+            "10721120": 3,
+            "10722110": 3,
+            "10722120": 3,
+            "10722310": 3,
+            "10723110": 3,
+            "10724110": 3,
+            "10724120": 3,
+            "10821110": 1,
+            "10824110": 3,
+            "10824120": 2
+          },
+          "card_ids": [
+            10021110,
+            10021110,
+            10021110,
+            10722310,
+            10722310,
+            10722310,
+            10624120,
+            10624120,
+            10722110,
+            10722110,
+            10722110,
+            10702110,
+            10702110,
+            10721120,
+            10721120,
+            10721120,
+            10424110,
+            10424110,
+            10424120,
+            10424120,
+            10424120,
+            10724110,
+            10724110,
+            10724110,
+            10722120,
+            10722120,
+            10722120,
+            10723110,
+            10723110,
+            10723110,
+            10824110,
+            10824110,
+            10824110,
+            10404110,
+            10724120,
+            10724120,
+            10724120,
+            10821110,
+            10824120,
+            10824120
+          ],
+          "class_id": 2,
+          "display_name": "国际服二维码·皇家护卫",
+          "name": "international_qr_sword_20260728",
+          "sha256": "b7188641763b95c3006eb506bd918ebe0ad42f77ae20a2cc2b839ab6d1451c92",
+          "source_deck_hash": "1.2.cEZs.cEZs.cEZs.evm6.evm6.evm6.eXnu.eXnu.evi-.evi-.evi-.eqqU.eqqU.evTW.evTW.evTW.dmyk.dmyk.dmyu.dmyu.dmyu.ewCE.ewCE.ewCE.evj8.evj8.evj8.evyc.evyc.evyc.fIck.fIck.fIck.di4E.ewCO.ewCO.ewCO.fHts.fIcu.fIcu"
+        },
+        {
+          "card_counts": {
+            "10304120": 3,
+            "10362220": 3,
+            "10403120": 2,
+            "10404110": 3,
+            "10461110": 2,
+            "10463210": 2,
+            "10564110": 3,
+            "10661110": 1,
+            "10663110": 1,
+            "10804120": 2,
+            "10861110": 3,
+            "10862120": 3,
+            "10863110": 3,
+            "10863210": 3,
+            "10864110": 3,
+            "10864120": 3
+          },
+          "card_ids": [
+            10403120,
+            10403120,
+            10861110,
+            10861110,
+            10861110,
+            10863210,
+            10863210,
+            10863210,
+            10304120,
+            10304120,
+            10304120,
+            10461110,
+            10461110,
+            10863110,
+            10863110,
+            10863110,
+            10362220,
+            10362220,
+            10362220,
+            10463210,
+            10463210,
+            10564110,
+            10564110,
+            10564110,
+            10661110,
+            10864120,
+            10864120,
+            10864120,
+            10404110,
+            10404110,
+            10404110,
+            10663110,
+            10862120,
+            10862120,
+            10862120,
+            10864110,
+            10864110,
+            10864110,
+            10804120,
+            10804120
+          ],
+          "class_id": 6,
+          "display_name": "官方二维码·超进化主教",
+          "name": "official_qr_evolve_haven_20260727",
+          "sha256": "c6d0184d738b70c1a3201a124c609d00a47648134d13a2f34c103806aff57fa5",
+          "source_deck_hash": "1.6.dhqm.dhqm.fRes.fRes.fRes.fS9g.fS9g.fS9g.dJfu.dJfu.dJfu.dv-s.dv-s.fS86.fS86.fS86.dXri.dXri.dXri.dwVg.dwVg.eJ8E.eJ8E.eJ8E.egps.fSNu.fSNu.fSNu.di4E.di4E.di4E.ehJ6.fRue.fRue.fRue.fSNk.fSNk.fSNk.fDkO.fDkO"
+        }
+      ],
+      "manifest_sha256": "2a90cc9fdfa4c39a066a462d87f6aed035a8b7a01d530b3d3127d0469e368a09"
+    },
+    "rulebook": {
+      "directory": "data/rules",
+      "sha256": "449230d69db016ff99fa27de963f89adc9ac9ac5b54e913991ffe3314e4f2017"
+    }
+  },
+  "checkpoint_registry_sha256": "5667484a66c92a5e14ec060c455ca44b3f73a3cee0094f4dd830b623e0c55cf2",
+  "contract_invalidation_fields": [
+    "artifacts.database.file_sha256",
+    "artifacts.rulebook.sha256",
+    "interfaces.observation.sha256",
+    "interfaces.action.sha256",
+    "checkpoint_registry_sha256"
+  ],
+  "evaluation_protocol_sha256": "1f010a9986762d8f7748dfc14969ab3231de185ecc7ba56b0abc2ef0000ecef4",
+  "interfaces": {
+    "action": {
+      "manifest": {
+        "graveyard_page_size": 16,
+        "max_board": 5,
+        "max_choice_options": 16,
+        "max_hand": 9,
+        "ranges": [
+          {
+            "name": "end_turn",
+            "start": 0,
+            "stop": 1
+          },
+          {
+            "name": "play_normal",
+            "start": 1,
+            "stop": 10
+          },
+          {
+            "name": "attack",
+            "start": 10,
+            "stop": 40
+          },
+          {
+            "name": "evolve_or_activate",
+            "start": 40,
+            "stop": 45
+          },
+          {
+            "name": "choice",
+            "start": 45,
+            "stop": 61
+          },
+          {
+            "name": "graveyard_navigation",
+            "start": 61,
+            "stop": 63
+          },
+          {
+            "name": "graveyard_slots",
+            "start": 63,
+            "stop": 79
+          },
+          {
+            "name": "fusion_or_special_mode",
+            "start": 79,
+            "stop": 106
+          },
+          {
+            "name": "super_evolve",
+            "start": 106,
+            "stop": 111
+          },
+          {
+            "name": "use_extra_pp",
+            "start": 111,
+            "stop": 112
+          }
+        ],
+        "size": 112,
+        "version": "action-112-v2"
+      },
+      "sha256": "12598f3acd06e6edb819e3af8ba9299139e85d272adf7b1dca63d93b505ba0da",
+      "version": "action-112-v2"
+    },
+    "experiment_versions": {
+      "action_layout_sha256": "12598f3acd06e6edb819e3af8ba9299139e85d272adf7b1dca63d93b505ba0da",
+      "action_layout_version": "action-112-v2",
+      "card_vocabulary_sha256": "b1b0001b0e54fef8092dfc74f2674c7443417ca8d8391e0ae6c8039d2ad1b055",
+      "catalog_sha256": "57a9c1927de54ea5901a02d48d27438211ad9edc24f61ee6bc92d624d707f2f6",
+      "class_schedule_version": 1,
+      "coverage_report_sha256": "f489dfcc645e4f3c6c83772fea0f5c8d75452547b8733bfdad80839c8c5c31d4",
+      "match_setup": "official",
+      "observation_schema_sha256": "884a51b0f6460bb4561fce997981f9fefe7f36c81ea9b7c77fd046566a04302d",
+      "observation_version": "observation-v4.1",
+      "rulebook_sha256": "449230d69db016ff99fa27de963f89adc9ac9ac5b54e913991ffe3314e4f2017",
+      "seed_derivation_version": 1,
+      "training_pool_sha256": "7bdf090f725fcf80bcef59fb42a94d9c2d0b85affd15cde8d838df46016e7146"
+    },
+    "observation": {
+      "manifest": {
+        "card_vocabulary_size": 826,
+        "encoding": {
+          "card_identity": "shared-card-vocabulary-index",
+          "categorical_values": "typed-indices",
+          "current_own_deck": "order-independent-physical-card-rows",
+          "raw_entity_ids": "never-encoded",
+          "structured_effect_identity": "stable-sha256-32-bits-as-four-byte-tokens",
+          "zone_identity": "sparse-card-count-pairs-with-overflow"
+        },
+        "fields": [
+          {
+            "dtype": "int8",
+            "name": "action_mask",
+            "shape": [
+              112
+            ],
+            "space_type": "MultiBinary"
+          },
+          {
+            "dtype": "float32",
+            "name": "board_effect_summary",
+            "shape": [
+              40
+            ],
+            "space_type": "Box"
+          },
+          {
+            "dtype": "int32",
+            "name": "board_effect_tokens",
+            "shape": [
+              450
+            ],
+            "space_type": "Box"
+          },
+          {
+            "dtype": "int32",
+            "name": "board_modifier_duration",
+            "shape": [
+              560
+            ],
+            "space_type": "Box"
+          },
+          {
+            "dtype": "int32",
+            "name": "board_modifier_expiry",
+            "shape": [
+              560
+            ],
+            "space_type": "Box"
+          },
+          {
+            "dtype": "int32",
+            "name": "board_modifier_kind",
+            "shape": [
+              560
+            ],
+            "space_type": "Box"
+          },
+          {
+            "dtype": "int32",
+            "name": "board_modifier_subtype",
+            "shape": [
+              560
+            ],
+            "space_type": "Box"
+          },
+          {
+            "dtype": "float32",
+            "name": "board_modifier_summary",
+            "shape": [
+              140
+            ],
+            "space_type": "Box"
+          },
+          {
+            "dtype": "float32",
+            "name": "board_modifier_values",
+            "shape": [
+              2240
+            ],
+            "space_type": "Box"
+          },
+          {
+            "dtype": "int32",
+            "name": "choice_kind",
+            "shape": [
+              1
+            ],
+            "space_type": "Box"
+          },
+          {
+            "dtype": "int32",
+            "name": "choice_option_cards",
+            "shape": [
+              16
+            ],
+            "space_type": "Box"
+          },
+          {
+            "dtype": "int32",
+            "name": "choice_option_references",
+            "shape": [
+              16
+            ],
+            "space_type": "Box"
+          },
+          {
+            "dtype": "int32",
+            "name": "choice_option_relations",
+            "shape": [
+              16
+            ],
+            "space_type": "Box"
+          },
+          {
+            "dtype": "float32",
+            "name": "choice_option_selected",
+            "shape": [
+              16
+            ],
+            "space_type": "Box"
+          },
+          {
+            "dtype": "int32",
+            "name": "choice_option_semantics",
+            "shape": [
+              80
+            ],
+            "space_type": "Box"
+          },
+          {
+            "dtype": "float32",
+            "name": "choice_state",
+            "shape": [
+              5
+            ],
+            "space_type": "Box"
+          },
+          {
+            "dtype": "int32",
+            "name": "graveyard_option_semantics",
+            "shape": [
+              80
+            ],
+            "space_type": "Box"
+          },
+          {
+            "dtype": "float32",
+            "name": "graveyard_option_state",
+            "shape": [
+              80
+            ],
+            "space_type": "Box"
+          },
+          {
+            "dtype": "int32",
+            "name": "graveyard_page_cards",
+            "shape": [
+              16
+            ],
+            "space_type": "Box"
+          },
+          {
+            "dtype": "float32",
+            "name": "hand_effect_summary",
+            "shape": [
+              18
+            ],
+            "space_type": "Box"
+          },
+          {
+            "dtype": "int32",
+            "name": "hand_effect_tokens",
+            "shape": [
+              180
+            ],
+            "space_type": "Box"
+          },
+          {
+            "dtype": "int32",
+            "name": "hand_modifier_duration",
+            "shape": [
+              504
+            ],
+            "space_type": "Box"
+          },
+          {
+            "dtype": "int32",
+            "name": "hand_modifier_expiry",
+            "shape": [
+              504
+            ],
+            "space_type": "Box"
+          },
+          {
+            "dtype": "int32",
+            "name": "hand_modifier_kind",
+            "shape": [
+              504
+            ],
+            "space_type": "Box"
+          },
+          {
+            "dtype": "int32",
+            "name": "hand_modifier_subtype",
+            "shape": [
+              504
+            ],
+            "space_type": "Box"
+          },
+          {
+            "dtype": "float32",
+            "name": "hand_modifier_summary",
+            "shape": [
+              126
+            ],
+            "space_type": "Box"
+          },
+          {
+            "dtype": "float32",
+            "name": "hand_modifier_values",
+            "shape": [
+              2016
+            ],
+            "space_type": "Box"
+          },
+          {
+            "dtype": "int32",
+            "name": "history_actors",
+            "shape": [
+              32
+            ],
+            "space_type": "Box"
+          },
+          {
+            "dtype": "float32",
+            "name": "history_amounts",
+            "shape": [
+              32
+            ],
+            "space_type": "Box"
+          },
+          {
+            "dtype": "int32",
+            "name": "history_event_types",
+            "shape": [
+              32
+            ],
+            "space_type": "Box"
+          },
+          {
+            "dtype": "int32",
+            "name": "history_semantics",
+            "shape": [
+              160
+            ],
+            "space_type": "Box"
+          },
+          {
+            "dtype": "int32",
+            "name": "history_source_cards",
+            "shape": [
+              32
+            ],
+            "space_type": "Box"
+          },
+          {
+            "dtype": "int32",
+            "name": "history_source_references",
+            "shape": [
+              32
+            ],
+            "space_type": "Box"
+          },
+          {
+            "dtype": "int32",
+            "name": "history_target_cards",
+            "shape": [
+              32
+            ],
+            "space_type": "Box"
+          },
+          {
+            "dtype": "int32",
+            "name": "history_target_references",
+            "shape": [
+              32
+            ],
+            "space_type": "Box"
+          },
+          {
+            "dtype": "int32",
+            "name": "leader_area_cards",
+            "shape": [
+              20
+            ],
+            "space_type": "Box"
+          },
+          {
+            "dtype": "float32",
+            "name": "leader_area_state",
+            "shape": [
+              480
+            ],
+            "space_type": "Box"
+          },
+          {
+            "dtype": "float32",
+            "name": "leader_effect_summary",
+            "shape": [
+              40
+            ],
+            "space_type": "Box"
+          },
+          {
+            "dtype": "int32",
+            "name": "leader_effect_tokens",
+            "shape": [
+              900
+            ],
+            "space_type": "Box"
+          },
+          {
+            "dtype": "int32",
+            "name": "leader_modifier_source_cards",
+            "shape": [
+              16
+            ],
+            "space_type": "Box"
+          },
+          {
+            "dtype": "float32",
+            "name": "leader_modifier_state",
+            "shape": [
+              112
+            ],
+            "space_type": "Box"
+          },
+          {
+            "dtype": "float32",
+            "name": "listener_state",
+            "shape": [
+              663
+            ],
+            "space_type": "Box"
+          },
+          {
+            "dtype": "float32",
+            "name": "match_state",
+            "shape": [
+              14
+            ],
+            "space_type": "Box"
+          },
+          {
+            "dtype": "int32",
+            "name": "own_deck_cards",
+            "shape": [
+              40
+            ],
+            "space_type": "Box"
+          },
+          {
+            "dtype": "float32",
+            "name": "own_deck_state",
+            "shape": [
+              160
+            ],
+            "space_type": "Box"
+          },
+          {
+            "dtype": "float32",
+            "name": "own_hand_base",
+            "shape": [
+              387
+            ],
+            "space_type": "Box"
+          },
+          {
+            "dtype": "int32",
+            "name": "own_hand_cards",
+            "shape": [
+              9
+            ],
+            "space_type": "Box"
+          },
+          {
+            "dtype": "int32",
+            "name": "own_hand_fusion_cards",
+            "shape": [
+              81
+            ],
+            "space_type": "Box"
+          },
+          {
+            "dtype": "float32",
+            "name": "own_hand_keywords",
+            "shape": [
+              81
+            ],
+            "space_type": "Box"
+          },
+          {
+            "dtype": "int32",
+            "name": "player_class",
+            "shape": [
+              2
+            ],
+            "space_type": "Box"
+          },
+          {
+            "dtype": "float32",
+            "name": "player_state",
+            "shape": [
+              56
+            ],
+            "space_type": "Box"
+          },
+          {
+            "dtype": "float32",
+            "name": "public_board_base",
+            "shape": [
+              490
+            ],
+            "space_type": "Box"
+          },
+          {
+            "dtype": "int32",
+            "name": "public_board_cards",
+            "shape": [
+              10
+            ],
+            "space_type": "Box"
+          },
+          {
+            "dtype": "int32",
+            "name": "public_board_fusion_cards",
+            "shape": [
+              90
+            ],
+            "space_type": "Box"
+          },
+          {
+            "dtype": "float32",
+            "name": "public_board_keywords",
+            "shape": [
+              90
+            ],
+            "space_type": "Box"
+          },
+          {
+            "dtype": "int32",
+            "name": "record_cards",
+            "shape": [
+              96
+            ],
+            "space_type": "Box"
+          },
+          {
+            "dtype": "int32",
+            "name": "record_semantics",
+            "shape": [
+              480
+            ],
+            "space_type": "Box"
+          },
+          {
+            "dtype": "float32",
+            "name": "record_state",
+            "shape": [
+              864
+            ],
+            "space_type": "Box"
+          },
+          {
+            "dtype": "int32",
+            "name": "zone_cards",
+            "shape": [
+              832
+            ],
+            "space_type": "Box"
+          },
+          {
+            "dtype": "float32",
+            "name": "zone_counts",
+            "shape": [
+              832
+            ],
+            "space_type": "Box"
+          },
+          {
+            "dtype": "float32",
+            "name": "zone_overflow",
+            "shape": [
+              26
+            ],
+            "space_type": "Box"
+          }
+        ],
+        "fixed_limits": {
+          "board_modifiers_per_card": 56,
+          "granted_abilities_per_source": 4,
+          "hand_modifiers_per_card": 56,
+          "history_records_per_group": 16,
+          "leader_area_slots": 20,
+          "listeners_per_source": 8,
+          "public_history": 32,
+          "record_groups": 6,
+          "transformer_tokens": 93,
+          "zone_card_kinds_per_group": 64,
+          "zone_groups": 13
+        },
+        "privacy": {
+          "non_decision_action_mask": "all-zero",
+          "opponent_deck_order": "hidden",
+          "opponent_hand_identity": "hidden",
+          "opponent_initial_deck": "hidden",
+          "raw_entity_ids": "excluded"
+        },
+        "version": "observation-v4.1"
+      },
+      "sha256": "884a51b0f6460bb4561fce997981f9fefe7f36c81ea9b7c77fd046566a04302d",
+      "version": "observation-v4.1"
+    },
+    "seed_derivation": {
+      "algorithm": "stable-json-sha256-first-64-bits",
+      "version": 1
+    }
+  },
+  "policy_architecture": {
+    "frozen_config": {
+      "attention_heads": 8,
+      "card_embedding_dim": 128,
+      "central_inference_batch_wait_seconds": 0.0005,
+      "clip_ratio": 0.2,
+      "entropy_coefficient": 0.01,
+      "feedforward_dim": 1024,
+      "gae_lambda": 0.95,
+      "gamma": 0.99,
+      "hidden_size": 512,
+      "learning_rate": 0.0001,
+      "match_setup": "official",
+      "max_agent_steps_per_episode": 256,
+      "max_game_turns": 200,
+      "max_grad_norm": 0.5,
+      "minibatch_sequences": 8,
+      "model_dim": 256,
+      "observation_version": "v4.1",
+      "opponent_current_weight": 1.0,
+      "opponent_decks": [],
+      "opponent_fixed_weight": 0.0,
+      "opponent_historical_weight": 0.25,
+      "opponent_max_history": 4,
+      "opponent_random_weight": 0.0,
+      "opponent_snapshot_interval_steps": 250000,
+      "policy_architecture": "entity_action_v1",
+      "profile_central_timing": false,
+      "profile_ipc_timing": false,
+      "profile_learner_timing": false,
+      "rollout_result_timeout_seconds": 120.0,
+      "rollout_steps": 2048,
+      "rollout_worker_torch_threads": 2,
+      "rollout_workers": 7,
+      "sequence_length": 32,
+      "training_class_ids": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "training_deck": null,
+      "transformer_layers": 4,
+      "update_epochs": 2,
+      "value_coefficient": 0.5
+    },
+    "model_parameters": 5581698,
+    "name": "entity_action_v1",
+    "structure_sha256": "a2ceac6ab28b4c0971686f429cbe01930488c4eafca5a8799a55b1c90638d202"
+  },
+  "report_kind": "ppo_league_baseline_manifest",
+  "schema_version": 1,
+  "source_control": {
+    "baseline_branch": "main",
+    "baseline_commit": "884249b3320e029b1652948a2c1ae6a3d609682d",
+    "league_branch": "feature/league-core",
+    "preserved_user_changes_excluded_from_commits": [
+      "docs/roadmap.md"
+    ]
+  }
+}
