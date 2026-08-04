@@ -1,0 +1,694 @@
+{
+  "bootstrap": {
+    "method": "paired_hierarchical_class_cell_and_deck_seed_bootstrap",
+    "nash_metric_95_ci": {
+      "effective_population_size": [
+        1.0,
+        3.5740535416704065
+      ],
+      "exploitability_proxy": [
+        0.0,
+        2.42861286636753e-17
+      ],
+      "worst_expected_payoff": [
+        -2.42861286636753e-17,
+        0.0
+      ]
+    },
+    "nash_support_frequency": {
+      "seed_20260903_1m": 0.7765,
+      "seed_20260904_1m": 0.405,
+      "seed_20260905_1m": 0.1265,
+      "seed_20260906_1m": 0.5025,
+      "seed_20260907_1m": 0.4135,
+      "seed_20260908_1m": 0.11
+    },
+    "nash_weight_95_ci": {
+      "seed_20260903_1m": [
+        0.0,
+        1.0
+      ],
+      "seed_20260904_1m": [
+        0.0,
+        1.0
+      ],
+      "seed_20260905_1m": [
+        0.0,
+        0.4167338709677414
+      ],
+      "seed_20260906_1m": [
+        0.0,
+        0.746547619047616
+      ],
+      "seed_20260907_1m": [
+        0.0,
+        1.0
+      ],
+      "seed_20260908_1m": [
+        0.0,
+        0.3684210526315788
+      ]
+    },
+    "replicates": 2000,
+    "resampling_units": {
+      "class_cells_per_replicate": 49,
+      "common_resample_across_all_model_pairs": true,
+      "deck_match_seeds_per_cell": 2,
+      "player_positions_per_deck_seed": 2
+    },
+    "seed": 20261001,
+    "strategy_vs_nash_payoff_95_ci": {
+      "seed_20260903_1m": [
+        -0.09138450834879407,
+        1.0408340855860843e-17
+      ],
+      "seed_20260904_1m": [
+        -0.24489795918367352,
+        6.938893903907228e-18
+      ],
+      "seed_20260905_1m": [
+        -0.2142857142857143,
+        3.469446951953614e-18
+      ],
+      "seed_20260906_1m": [
+        -0.16326530612244894,
+        1.3877787807814457e-17
+      ],
+      "seed_20260907_1m": [
+        -0.20408163265306123,
+        1.3877787807814457e-17
+      ],
+      "seed_20260908_1m": [
+        -0.3063775510204081,
+        6.938893903907228e-18
+      ]
+    },
+    "uniform_metric_95_ci": {
+      "effective_population_size": [
+        6.0,
+        6.0
+      ],
+      "exploitability_proxy": [
+        0.03061224489795918,
+        0.15306122448979592
+      ],
+      "worst_expected_payoff": [
+        -0.15306122448979592,
+        -0.03061224489795918
+      ]
+    }
+  },
+  "cycle_graphs": {
+    "classes": {
+      "point_estimate": [
+        {
+          "edges": [
+            {
+              "loser": "class_5",
+              "score": 0.5666666666666667,
+              "winner": "class_1"
+            },
+            {
+              "loser": "class_3",
+              "score": 0.6666666666666666,
+              "winner": "class_5"
+            },
+            {
+              "loser": "class_1",
+              "score": 0.5833333333333334,
+              "winner": "class_3"
+            }
+          ],
+          "models": [
+            "class_1",
+            "class_5",
+            "class_3"
+          ]
+        },
+        {
+          "edges": [
+            {
+              "loser": "class_7",
+              "score": 0.525,
+              "winner": "class_2"
+            },
+            {
+              "loser": "class_4",
+              "score": 0.5166666666666667,
+              "winner": "class_7"
+            },
+            {
+              "loser": "class_2",
+              "score": 0.5083333333333333,
+              "winner": "class_4"
+            }
+          ],
+          "models": [
+            "class_2",
+            "class_7",
+            "class_4"
+          ]
+        },
+        {
+          "edges": [
+            {
+              "loser": "class_6",
+              "score": 0.525,
+              "winner": "class_3"
+            },
+            {
+              "loser": "class_5",
+              "score": 0.6833333333333333,
+              "winner": "class_6"
+            },
+            {
+              "loser": "class_3",
+              "score": 0.6666666666666666,
+              "winner": "class_5"
+            }
+          ],
+          "models": [
+            "class_3",
+            "class_6",
+            "class_5"
+          ]
+        }
+      ],
+      "strong_55_percent": [
+        {
+          "edges": [
+            {
+              "loser": "class_5",
+              "score": 0.5666666666666667,
+              "winner": "class_1"
+            },
+            {
+              "loser": "class_3",
+              "score": 0.6666666666666666,
+              "winner": "class_5"
+            },
+            {
+              "loser": "class_1",
+              "score": 0.5833333333333334,
+              "winner": "class_3"
+            }
+          ],
+          "models": [
+            "class_1",
+            "class_5",
+            "class_3"
+          ]
+        }
+      ]
+    },
+    "global_models": {
+      "point_estimate": [
+        {
+          "edges": [
+            {
+              "loser": "seed_20260904_1m",
+              "score": 0.5357142857142857,
+              "winner": "seed_20260903_1m"
+            },
+            {
+              "loser": "seed_20260906_1m",
+              "score": 0.5153061224489796,
+              "winner": "seed_20260904_1m"
+            },
+            {
+              "loser": "seed_20260903_1m",
+              "score": 0.5153061224489797,
+              "winner": "seed_20260906_1m"
+            }
+          ],
+          "models": [
+            "seed_20260903_1m",
+            "seed_20260904_1m",
+            "seed_20260906_1m"
+          ]
+        },
+        {
+          "edges": [
+            {
+              "loser": "seed_20260907_1m",
+              "score": 0.5408163265306123,
+              "winner": "seed_20260903_1m"
+            },
+            {
+              "loser": "seed_20260906_1m",
+              "score": 0.5408163265306123,
+              "winner": "seed_20260907_1m"
+            },
+            {
+              "loser": "seed_20260903_1m",
+              "score": 0.5153061224489797,
+              "winner": "seed_20260906_1m"
+            }
+          ],
+          "models": [
+            "seed_20260903_1m",
+            "seed_20260907_1m",
+            "seed_20260906_1m"
+          ]
+        }
+      ],
+      "strong_55_percent": []
+    }
+  },
+  "input": {
+    "candidate_model_ids": [
+      "seed_20260903_1m",
+      "seed_20260904_1m",
+      "seed_20260905_1m",
+      "seed_20260906_1m",
+      "seed_20260907_1m",
+      "seed_20260908_1m"
+    ],
+    "historical_anchors_excluded_from_meta_game": [
+      "seed_20260831_3m",
+      "seed_20260901_3m",
+      "seed_20260902_3m"
+    ],
+    "payoff_report": {
+      "path": "data/reports/league_training/seed_payoff_matrix.json",
+      "sha256": "ee2decbc89d9089b948a3cf0b3a636d5749fe02cf17eee15baf3c0aec3ef04b1",
+      "stable_payload_sha256": "6832781da67c550670eefc9cf3e77e809154d65a24c8f48cd96ca463af41c1dc"
+    }
+  },
+  "interpretation_limits": [
+    "Exploitability is an internal-population best-response proxy, not a bound against unseen policies.",
+    "Bootstrap uncertainty resamples the existing two deck seeds per class cell; it does not replace future 10-seed confirmation.",
+    "Historical 3M anchors are not in the Nash solve because anchor-vs-anchor edges were outside the 33-pair contract and their training rules differ."
+  ],
+  "matrix_diagnostics": {
+    "all_flat": false,
+    "duplicate_strategy_groups": [],
+    "max_antisymmetry_error": 0.0,
+    "max_diagonal_error": 0.0,
+    "missing_entries": [],
+    "non_finite_entries": [],
+    "rank": 6,
+    "shape": [
+      6,
+      6
+    ],
+    "tolerance": 1e-10,
+    "valid_zero_sum_antisymmetric": true,
+    "warnings": []
+  },
+  "nash_mixture": {
+    "diagnostics": {
+      "all_flat": false,
+      "duplicate_strategy_groups": [],
+      "max_antisymmetry_error": 0.0,
+      "max_diagonal_error": 0.0,
+      "missing_entries": [],
+      "non_finite_entries": [],
+      "rank": 6,
+      "shape": [
+        6,
+        6
+      ],
+      "tolerance": 1e-10,
+      "valid_zero_sum_antisymmetric": true,
+      "warnings": []
+    },
+    "effective_population_size": 2.6350364963503656,
+    "equality_residual": 6.938893903907228e-18,
+    "exploitability_proxy": 3.469446951953614e-18,
+    "internal_best_response_model": "seed_20260903_1m",
+    "internal_best_response_payoff": 3.469446951953614e-18,
+    "mixture_value": 0.0,
+    "mixture_vs_pure_payoffs": [
+      -3.469446951953614e-18,
+      0.00912996777658431,
+      0.0708915145005371,
+      0.0,
+      6.938893903907228e-18,
+      0.12835660580021474
+    ],
+    "pure_vs_mixture_payoff_by_model": {
+      "seed_20260903_1m": 3.469446951953614e-18,
+      "seed_20260904_1m": -0.00912996777658431,
+      "seed_20260905_1m": -0.0708915145005371,
+      "seed_20260906_1m": 0.0,
+      "seed_20260907_1m": -6.938893903907228e-18,
+      "seed_20260908_1m": -0.12835660580021474
+    },
+    "pure_vs_mixture_payoffs": [
+      3.469446951953614e-18,
+      -0.00912996777658431,
+      -0.0708915145005371,
+      0.0,
+      -6.938893903907228e-18,
+      -0.12835660580021474
+    ],
+    "solver_path": "deterministic_support_enumeration_zero_sum_lp_kkt",
+    "solver_tolerance": 1e-10,
+    "support": [
+      0,
+      3,
+      4
+    ],
+    "weights": [
+      0.42105263157894707,
+      0.0,
+      0.0,
+      0.42105263157894757,
+      0.15789473684210537,
+      0.0
+    ],
+    "weights_by_model": {
+      "seed_20260903_1m": 0.42105263157894707,
+      "seed_20260904_1m": 0.0,
+      "seed_20260905_1m": 0.0,
+      "seed_20260906_1m": 0.42105263157894757,
+      "seed_20260907_1m": 0.15789473684210537,
+      "seed_20260908_1m": 0.0
+    },
+    "worst_expected_payoff": -3.469446951953614e-18
+  },
+  "population_selection_evidence": [
+    {
+      "bootstrap_support_frequency": 0.7765,
+      "generation_0_disposition": "include_candidate",
+      "model_id": "seed_20260903_1m",
+      "nash_weight": 0.42105263157894707,
+      "point_estimate_wins_over": [
+        "seed_20260904_1m",
+        "seed_20260905_1m",
+        "seed_20260907_1m",
+        "seed_20260908_1m"
+      ],
+      "reasons": [
+        "same_rule_generation_0_candidate",
+        "positive_nash_weight",
+        "distinct_point_estimate_winning_edges",
+        "bootstrap_nash_support"
+      ]
+    },
+    {
+      "bootstrap_support_frequency": 0.405,
+      "generation_0_disposition": "include_candidate",
+      "model_id": "seed_20260904_1m",
+      "nash_weight": 0.0,
+      "point_estimate_wins_over": [
+        "seed_20260905_1m",
+        "seed_20260906_1m",
+        "seed_20260907_1m",
+        "seed_20260908_1m"
+      ],
+      "reasons": [
+        "same_rule_generation_0_candidate",
+        "distinct_point_estimate_winning_edges",
+        "bootstrap_nash_support"
+      ]
+    },
+    {
+      "bootstrap_support_frequency": 0.1265,
+      "generation_0_disposition": "include_candidate",
+      "model_id": "seed_20260905_1m",
+      "nash_weight": 0.0,
+      "point_estimate_wins_over": [
+        "seed_20260908_1m"
+      ],
+      "reasons": [
+        "same_rule_generation_0_candidate",
+        "distinct_point_estimate_winning_edges",
+        "bootstrap_nash_support"
+      ]
+    },
+    {
+      "bootstrap_support_frequency": 0.5025,
+      "generation_0_disposition": "include_candidate",
+      "model_id": "seed_20260906_1m",
+      "nash_weight": 0.42105263157894757,
+      "point_estimate_wins_over": [
+        "seed_20260903_1m",
+        "seed_20260905_1m",
+        "seed_20260908_1m"
+      ],
+      "reasons": [
+        "same_rule_generation_0_candidate",
+        "positive_nash_weight",
+        "distinct_point_estimate_winning_edges",
+        "bootstrap_nash_support"
+      ]
+    },
+    {
+      "bootstrap_support_frequency": 0.4135,
+      "generation_0_disposition": "include_candidate",
+      "model_id": "seed_20260907_1m",
+      "nash_weight": 0.15789473684210537,
+      "point_estimate_wins_over": [
+        "seed_20260905_1m",
+        "seed_20260906_1m",
+        "seed_20260908_1m"
+      ],
+      "reasons": [
+        "same_rule_generation_0_candidate",
+        "positive_nash_weight",
+        "distinct_point_estimate_winning_edges",
+        "bootstrap_nash_support"
+      ]
+    },
+    {
+      "bootstrap_support_frequency": 0.11,
+      "generation_0_disposition": "include_candidate",
+      "model_id": "seed_20260908_1m",
+      "nash_weight": 0.0,
+      "point_estimate_wins_over": [],
+      "reasons": [
+        "same_rule_generation_0_candidate",
+        "bootstrap_nash_support"
+      ]
+    },
+    {
+      "generation_0_disposition": "include_anchor_only",
+      "model_id": "seed_20260831_3m",
+      "nash_weight": null,
+      "reasons": [
+        "historical_anchor",
+        "cross_rule_training_history",
+        "excluded_from_incomplete_candidate_meta_game"
+      ]
+    },
+    {
+      "generation_0_disposition": "include_anchor_only",
+      "model_id": "seed_20260901_3m",
+      "nash_weight": null,
+      "reasons": [
+        "historical_anchor",
+        "cross_rule_training_history",
+        "excluded_from_incomplete_candidate_meta_game"
+      ]
+    },
+    {
+      "generation_0_disposition": "include_anchor_only",
+      "model_id": "seed_20260902_3m",
+      "nash_weight": null,
+      "reasons": [
+        "historical_anchor",
+        "cross_rule_training_history",
+        "excluded_from_incomplete_candidate_meta_game"
+      ]
+    }
+  ],
+  "report_kind": "ppo_league_meta_game",
+  "robust_aggregates": {
+    "per_model": {
+      "seed_20260903_1m": {
+        "iqm": 0.5326530612244899,
+        "median": 0.5357142857142857,
+        "opponent_scores": [
+          0.5357142857142857,
+          0.5204081632653061,
+          0.4846938775510204,
+          0.5408163265306123,
+          0.5816326530612245
+        ],
+        "performance_profile": {
+          "score_at_least_0.40": 1.0,
+          "score_at_least_0.45": 1.0,
+          "score_at_least_0.50": 0.8,
+          "score_at_least_0.55": 0.2,
+          "score_at_least_0.60": 0.0
+        }
+      },
+      "seed_20260904_1m": {
+        "iqm": 0.5204081632653061,
+        "median": 0.5204081632653061,
+        "opponent_scores": [
+          0.4642857142857143,
+          0.5357142857142857,
+          0.5153061224489796,
+          0.5255102040816326,
+          0.5204081632653061
+        ],
+        "performance_profile": {
+          "score_at_least_0.40": 1.0,
+          "score_at_least_0.45": 1.0,
+          "score_at_least_0.50": 0.8,
+          "score_at_least_0.55": 0.0,
+          "score_at_least_0.60": 0.0
+        }
+      },
+      "seed_20260905_1m": {
+        "iqm": 0.475,
+        "median": 0.47959183673469385,
+        "opponent_scores": [
+          0.47959183673469385,
+          0.4642857142857143,
+          0.44387755102040816,
+          0.47959183673469385,
+          0.5153061224489796
+        ],
+        "performance_profile": {
+          "score_at_least_0.40": 1.0,
+          "score_at_least_0.45": 0.8,
+          "score_at_least_0.50": 0.2,
+          "score_at_least_0.55": 0.0,
+          "score_at_least_0.60": 0.0
+        }
+      },
+      "seed_20260906_1m": {
+        "iqm": 0.5183673469387756,
+        "median": 0.5153061224489797,
+        "opponent_scores": [
+          0.5153061224489797,
+          0.48469387755102045,
+          0.5561224489795918,
+          0.45918367346938777,
+          0.5612244897959183
+        ],
+        "performance_profile": {
+          "score_at_least_0.40": 1.0,
+          "score_at_least_0.45": 1.0,
+          "score_at_least_0.50": 0.6,
+          "score_at_least_0.55": 0.4,
+          "score_at_least_0.60": 0.0
+        }
+      },
+      "seed_20260907_1m": {
+        "iqm": 0.5081632653061224,
+        "median": 0.5204081632653061,
+        "opponent_scores": [
+          0.4591836734693877,
+          0.4744897959183674,
+          0.5204081632653061,
+          0.5408163265306123,
+          0.5255102040816326
+        ],
+        "performance_profile": {
+          "score_at_least_0.40": 1.0,
+          "score_at_least_0.45": 1.0,
+          "score_at_least_0.50": 0.6,
+          "score_at_least_0.55": 0.0,
+          "score_at_least_0.60": 0.0
+        }
+      },
+      "seed_20260908_1m": {
+        "iqm": 0.46530612244897956,
+        "median": 0.4744897959183674,
+        "opponent_scores": [
+          0.41836734693877553,
+          0.47959183673469385,
+          0.48469387755102045,
+          0.4387755102040817,
+          0.4744897959183674
+        ],
+        "performance_profile": {
+          "score_at_least_0.40": 1.0,
+          "score_at_least_0.45": 0.6,
+          "score_at_least_0.50": 0.0,
+          "score_at_least_0.55": 0.0,
+          "score_at_least_0.60": 0.0
+        }
+      }
+    },
+    "population_directed_score_iqm": 0.49999999999999994,
+    "population_directed_score_median": 0.5,
+    "thresholds": [
+      0.4,
+      0.45,
+      0.5,
+      0.55,
+      0.6
+    ]
+  },
+  "schema_version": 1,
+  "uniform_mixture": {
+    "diagnostics": {
+      "all_flat": false,
+      "duplicate_strategy_groups": [],
+      "max_antisymmetry_error": 0.0,
+      "max_diagonal_error": 0.0,
+      "missing_entries": [],
+      "non_finite_entries": [],
+      "rank": 6,
+      "shape": [
+        6,
+        6
+      ],
+      "tolerance": 1e-10,
+      "valid_zero_sum_antisymmetric": true,
+      "warnings": []
+    },
+    "effective_population_size": 6.0,
+    "exploitability_proxy": 0.054421768707483,
+    "internal_best_response_model": "seed_20260903_1m",
+    "internal_best_response_payoff": 0.054421768707483,
+    "mixture_value": 0.0,
+    "mixture_vs_pure_payoffs": [
+      -0.054421768707483,
+      -0.020408163265306107,
+      0.039115646258503424,
+      -0.02551020408163266,
+      -0.006802721088435363,
+      0.0680272108843537
+    ],
+    "pure_vs_mixture_payoff_by_model": {
+      "seed_20260903_1m": 0.054421768707483,
+      "seed_20260904_1m": 0.020408163265306107,
+      "seed_20260905_1m": -0.039115646258503424,
+      "seed_20260906_1m": 0.02551020408163266,
+      "seed_20260907_1m": 0.006802721088435363,
+      "seed_20260908_1m": -0.0680272108843537
+    },
+    "pure_vs_mixture_payoffs": [
+      0.054421768707483,
+      0.020408163265306107,
+      -0.039115646258503424,
+      0.02551020408163266,
+      0.006802721088435363,
+      -0.0680272108843537
+    ],
+    "solver_path": "specified_mixture",
+    "solver_tolerance": 1e-10,
+    "support": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5
+    ],
+    "weights": [
+      0.16666666666666666,
+      0.16666666666666666,
+      0.16666666666666666,
+      0.16666666666666666,
+      0.16666666666666666,
+      0.16666666666666666
+    ],
+    "weights_by_model": {
+      "seed_20260903_1m": 0.16666666666666666,
+      "seed_20260904_1m": 0.16666666666666666,
+      "seed_20260905_1m": 0.16666666666666666,
+      "seed_20260906_1m": 0.16666666666666666,
+      "seed_20260907_1m": 0.16666666666666666,
+      "seed_20260908_1m": 0.16666666666666666
+    },
+    "worst_expected_payoff": -0.054421768707483
+  }
+}

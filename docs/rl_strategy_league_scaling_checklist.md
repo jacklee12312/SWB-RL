@@ -167,19 +167,19 @@ mask mismatch、截断均为 0；产物保留完整逐组 7x7 格子并生成反
 
 ## 3.2 建立 population 评估与 meta-strategy
 
-- [ ] 从 payoff matrix 计算并保存：
-  - [ ] uniform mixture 的期望收益；
-  - [ ] 零和 meta-game 的 Nash/线性规划 mixture；
-  - [ ] 每个 checkpoint 在 mixture 下的期望收益；
-  - [ ] effective population size 和每个策略的 mixture 权重；
-  - [ ] 相对当前 population 的 best-response/exploitability proxy；
-  - [ ] 全局与逐职业的循环克制图。
-- [ ] 对求解器设置确定性排序和固定容差；重复运行结果字节一致。
-- [ ] 对奇异、重复、全平和非严格反对称矩阵提供显式诊断，不静默返回权重。
-- [ ] 使用 paired bootstrap 对 class cell 和 match seed 重采样，报告各 population
+- [x] 从 payoff matrix 计算并保存：
+  - [x] uniform mixture 的期望收益；
+  - [x] 零和 meta-game 的 Nash/线性规划 mixture；
+  - [x] 每个 checkpoint 在 mixture 下的期望收益；
+  - [x] effective population size 和每个策略的 mixture 权重；
+  - [x] 相对当前 population 的 best-response/exploitability proxy；
+  - [x] 全局与逐职业的循环克制图。
+- [x] 对求解器设置确定性排序和固定容差；重复运行结果字节一致。
+- [x] 对奇异、重复、全平和非严格反对称矩阵提供显式诊断，不静默返回权重。
+- [x] 使用 paired bootstrap 对 class cell 和 match seed 重采样，报告各 population
   指标的 95% CI。
-- [ ] 增加性能 profile 和 IQM 汇总，避免均值被一个 seed 或一个职业支配。
-- [ ] 保存“候选对手为何进入池”的证据：Nash 权重、独特克制边、历史锚点、
+- [x] 增加性能 profile 和 IQM 汇总，避免均值被一个 seed 或一个职业支配。
+- [x] 保存“候选对手为何进入池”的证据：Nash 权重、独特克制边、历史锚点、
   风格/职业覆盖或固定基准；不得只因为它的 Elo 高。
 
 产物：
@@ -193,6 +193,15 @@ mask mismatch、截断均为 0；产物保留完整逐组 7x7 格子并生成反
 
 - 合成石头剪刀布、完全传递、重复策略和不完整矩阵测试全部通过。
 - 真实矩阵可重生成，所有输入 report 和 checkpoint hash 可追溯。
+
+完成记录（2026-08-04）：`scripts/report_ppo_league_meta_game.py` 使用固定
+`1e-10` 容差的确定性零和 LP/KKT support 与顶点枚举求解六模型完整子矩阵，并用
+2000 次固定 seed 的 paired bootstrap 同时重采样 49 个 class cell 和每格两个
+deck/match seed。点估计 Nash mixture 为 `20260903=8/19`、`20260906=8/19`、
+`20260907=3/19`，其余为 0，effective population size 为 2.635；uniform mixture
+的内部可利用性代理为 0.05442。该代理只衡量现有 population 内的 best response，
+不是对未知策略的真实 exploitability 上界。九个模型均保留进入 Generation 0 的
+可审计理由，旧 3M 只作 anchor，不进入缺少 anchor-vs-anchor 边的 Nash 求解。
 
 ## 3.3 实现共同冻结对手池，先只做均匀抽样
 
