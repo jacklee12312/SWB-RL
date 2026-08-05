@@ -41,6 +41,10 @@ class PPOLeagueGenerationRunnerTests(unittest.TestCase):
         self.assertIn("--resume-opponent-pool-overrides", command)
         self.assertIn("--opponent-external-manifest", command)
         self.assertIn("episode_seed_clustered", command)
+        wait_index = command.index(
+            "--central-inference-batch-wait-ms"
+        )
+        self.assertEqual(command[wait_index + 1], "3.0")
         resumed = _training_command(
             resume=Path("child.pt"),
             checkpoint=Path("child.pt"),

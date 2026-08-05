@@ -224,7 +224,7 @@ def _training_command(
         "--rollout-worker-threads",
         "2",
         "--central-inference-batch-wait-ms",
-        "1.0",
+        "3.0",
         "--opponent-model-cache-size",
         "7",
         "--opponent-model-cache-max-mib",
