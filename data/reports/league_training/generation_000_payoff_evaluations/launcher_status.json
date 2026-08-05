@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "state": "completed",
+  "launcher_pid": 8428,
+  "active_pair": "",
+  "completed_pair_count": 24,
+  "total_pair_count": 24,
+  "completed_game_count": 4704,
+  "total_game_count": 4704,
+  "focal_policy_id": "seed_20260903_1m",
+  "match_master_seed": 20261001,
+  "data_partition": "pfsp_tuning",
+  "updated_at": "2026-08-04T20:33:17.6610358+08:00",
+  "error": ""
+}

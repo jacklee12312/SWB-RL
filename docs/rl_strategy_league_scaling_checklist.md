@@ -1,6 +1,6 @@
 # PPO 策略能力、League 自博弈与人类数据下一阶段 Checklist
 
-最后更新：2026-08-04
+最后更新：2026-08-05
 
 ## 目标与结论边界
 
@@ -280,6 +280,9 @@ opponent、PPO、checkpoint、vector rollout 和训练 CLI 测试覆盖。
 
 ## 3.4 实现 payoff-aware PFSP
 
+阶段状态：**已通过（2026-08-05）**。100k 实现筛查选择 `hard` 作为后续动态
+六 lineage League 的默认 sampler；`uniform` 保留为对照，`variance` 本轮淘汰。
+
 - [x] PFSP 只读取训练专用 evaluator 产生的 payoff 快照，不读取最终评估 seed。
 - [x] 第一版预注册三种 sampler，按顺序单变量比较：
   - [x] `uniform`：共同池均匀抽取，作为 3.3 基线；
@@ -300,22 +303,24 @@ opponent、PPO、checkpoint、vector rollout 和训练 CLI 测试覆盖。
 产物：
 
 - `data/reports/league_training/pfsp_sampler_scan.json`
-- `data/reports/league_training/generation_001_manifest.json`
+- `data/reports/league_training/sampler_screen_20260804/manifests/`
+- `data/reports/league_training/sampler_screen_20260804/sampler_screen_result.json`
 - `tests/test_pfsp_sampling.py`
+- `tests/test_ppo_league_sampler_screen_results.py`
 
 决策门 3.4：
 
 - 先用 3 个训练 seed、每配置 100k steps 做实现筛查；吞吐与语义不通过的配置
   立即拒绝。
-- 进入 500k 学习实验的 sampler 最多两个，必须是 uniform 和一个稳定胜出的
-  payoff-aware 配置，避免无归因能力的超参数笛卡尔积。
-- 500k 后只有满足以下任一主条件且无安全退化才进入 1M 确认：
-  - 冻结锚点池配对平均胜率相对独立自博弈基线提高至少 3 个百分点；或
-  - worst-case/meta-game exploitability proxy 相对改善至少 10%。
-- 同时要求至少 2/3 seed 的主指标不退化，aggregate paired bootstrap CI 下界
-  不低于 -2 个百分点，且任何职业格子不下降超过 5 个百分点。
+- 100k 筛查最多保留 `uniform` 和一个稳定胜出的 payoff-aware 配置，避免无归因
+  能力的超参数笛卡尔积。
+- 原方案中的“单 focal 静态池继续 500k，再做 1M 确认”已在本次筛查启动前由
+  2026-08-04 修订的 3.5–3.10 六 lineage 动态方案取代：`hard` 的长期确认放到
+  Generation 0→1 及后续共同进化中完成，不再把 `20260903` 单独对固定旧池训练。
+- 100k 筛查只决定下一阶段工程默认值，不证明 `hard` 长期必胜，也不允许只挑
+  本轮最强的 `hard/20261102` checkpoint 代替六模型 population 结论。
 
-实现冻结记录（2026-08-04，真实 payoff/训练筛查尚未启动）：`swb/rl/pfsp.py`
+实现冻结记录（2026-08-04）：`swb/rl/pfsp.py`
 实现三个预注册公式、最终概率 `epsilon=0.02` 下界、35% 上界及候选不足的显式
 例外；有对局但缺 CI 的行不会影响 payoff-aware 原始权重，只保留 floor，并在
 全部原始权重为零时安全退回均匀分布。训练 payoff loader 强制读取
@@ -330,176 +335,273 @@ opponent、PPO、checkpoint、vector rollout 和训练 CLI 测试覆盖。
 只用 tuning master seed `20261001`，对 24 个训练对手各跑 196 局完整 7x7/双方
 位置，共 4,704 局；期望 0 非法动作、0 mask mismatch、0 截断。可恢复串行队列
 为 `scripts/evaluate_ppo_league_generation_000_payoffs.ps1`，结束后才生成真实
-payoff snapshot、sampler scan 和 Generation 1 manifest；这些实际产物及后续
-3 seed x 100k 决策门仍待完成。
+payoff snapshot、sampler scan 和三份冻结 sampler manifest。
 
-## 3.5 有条件地加入 Main / Exploiter 角色
+完成记录（2026-08-05）：冻结队列完成 9 个训练任务（`uniform`、`variance`、
+`hard` 各 3 个独立训练 seed，每个从同一 `20260903` 1M parent 新增 100k）和
+54 组候选评估；每个 sampler 共 3,528 局，全部 10,584 局为 0 截断、0 非法动作、
+0 action-mask mismatch。综合胜率为 `hard=56.207%`、`uniform=53.245%`、
+`variance=53.090%`；`hard` 相对 `uniform` 提高 2.962 个百分点，在三个配对训练
+seed 中均排名第一，并对六个 active 1M 对手中的五个取得更高胜率。逐局配对中
+`hard` 得分更高 606 局、`uniform` 得分更高 502 局、2,420 局结果相同（全体
+10,584 局中有 1 局平局，按 0.5 分计入得分率）。`variance` 的24个
+候选权重仅分布在 4.056%–4.212%，实际接近 uniform，未显示收益。可重复聚合、
+全部输入 hash、逐 seed/对手/职业结果和选择分布保存在
+`sampler_screen_20260804/sampler_screen_result.json`；因此 3.4 正式通过并选择
+`hard`，下一未完成节点为 3.5。
 
-只有 3.1 检出循环/系统盲点，或 3.4 的 PFSP 在 500k–1M 明显平台化时才实施。
+## 3.5 冻结六活跃 Main 的迭代式 PFSP League 合同
 
-- [ ] 保存需要 exploiter 的证据：显著三循环、低 worst-case payoff、重复遗忘
-  或稳定的人类/战术反例。
-- [ ] 先实现角色为 manifest 和采样目标，不复制不同网络结构：
-  - [ ] `main`：当前策略＋PFSP 全历史＋forgotten 队列；
-  - [ ] `main_exploiter`：只针对指定 main 和它的近期快照；
-  - [ ] `league_exploiter`：针对全池低覆盖/高可利用性区域。
-- [ ] 单卡串行训练采用分代同步：本代所有角色只看上一代冻结模型；所有角色
-  完成或明确失败后才生成下一代，避免训练顺序偏差。
-- [ ] exploiter 的成功标准是发现可复现漏洞，不要求成为最高 Elo；不能因其
-  综合胜率低就删除。
-- [ ] main 的评估同时面对 exploiters、历史 mains、冻结锚点和未参与训练的
-  validation policies。
-- [ ] 首轮不做 PBT 超参数变异；角色收益确认后，PBT 才能作为独立 C 类实验。
+3.3 的共同冻结池和 3.4 的单 focal PFSP 只用于建立 Generation 0 与筛查
+sampler，不得把同一批 250k–1M 对手固定不变地直接训练到 3M。长期 scaling
+改为六条活跃 lineage 分代共同进步；历史 checkpoint 继续冻结，用于保持策略
+多样性和检测遗忘。
+
+- [x] 将新规则下六个 1M checkpoint `20260903`–`20260908` 冻结为
+  Generation 0 的六个 active parent；所有六条 lineage 都进入后续结果，禁止
+  删除较差 lineage 后只汇报最佳模型。
+- [x] 明确定义并分别记录：
+  - [x] `active_latest`：六条 lineage 在上一代的最新冻结 checkpoint；
+  - [x] `historical_archive`：250k/500k/750k、旧 active parent 和以后被替换的
+    历史版本，只读且不继续训练；
+  - [x] `evaluation_anchor`：旧规则 3M、random/fixed 和 validation policies，
+    默认训练权重为 0。
+- [x] 每条 active learner 使用自己的 payoff 行和 PFSP 权重；不得把
+  `20260903` 的难度分布直接套给另外五条 lineage。
+- [x] 单卡串行执行逻辑同步 generation：Generation `g+1` 的六个 learner 全部
+  只读取不可变的 Generation `g` manifest；后启动 lineage 不得看到同代先完成
+  checkpoint。
+- [x] 初始 cadence 固定为：每 100k 保存可恢复 checkpoint 和安全指标、每新增
+  250k 完成一个 generation、每新增 500k 执行一次历史档案遗忘审计。100k
+  checkpoint 默认不触发 payoff 重算或对手池刷新。
+- [x] generation 内保持 opponent distribution、规则、Observation/action、PPO、
+  7x7 调度和 sparse terminal reward 不变；任何更新只发生在 generation barrier。
+- [x] 一个 generation 只有在六条 lineage 全部成功完成并通过安全门后才能发布；
+  失败任务必须原 checkpoint/resume 重试，不得以剩余五条模型生成下一代。
+- [x] 预注册从总计 1M 到最多 3M 的 generation 编号、父 checkpoint hash、每条
+  lineage 的训练 seed、步数、调参/最终评估 seed 和预计计算预算。
 
 产物：
 
-- `data/reports/league_training/role_ablation.json`
-- `data/reports/league_training/generation_002_manifest.json`
+- `data/reports/league_training/evolving_league_contract.json`
+- `data/reports/league_training/generation_schedule.json`
 
 决策门 3.5：
 
-- 与纯 PFSP 做三 seed、相同新增 steps 的配对比较。
-- 只有 main 对 exploiter 和冻结 validation pool 的最差收益改善，且冻结锚点
-  平均胜率非劣（95% CI 下界不低于 -2 个百分点），角色 League 才成为默认。
-- 没有触发证据或没有明确收益时，以有证据的不适用/延期关闭，不照搬 AlphaStar。
+- 3.4 的 100k sampler 筛查可以继续使用静态 Generation 0，但任何超过该筛查
+  的正式 scaling 必须服从本节的 active-parent 刷新合同。
+- exact resume、lineage identity、manifest immutability 和 generation barrier
+  必须有固定 seed 测试；串行顺序变化不得改变任一 learner 可见的对手集合。
+- 未建立六 lineage barrier 和每 learner payoff 合同前，禁止启动到 3M 的长训。
 
-## 3.6 扩充通用战术回放评估集
+完成记录（2026-08-05）：`evolving_league_contract.json` 和
+`generation_schedule.json` 已冻结六条 lineage、G0→G8 的 250k cadence、100k
+checkpoint、500k archive 审计、训练/调参/最终评估 seed 分区及全部父 checkpoint
+hash。generation runner 只在 barrier 后原子发布下一代 manifest。
 
-- [ ] 从当前 1 个案例扩到至少 50 个经人工复核的决策点，覆盖：
-  - [ ] Extra PP 保留与费用规划；
-  - [ ] 普通进化/超进化对象选择；
-  - [ ] 当回合斩杀、两回合斩杀和防守存活；
-  - [ ] 出牌、攻击、融合、取消和结束回合顺序；
-  - [ ] 资源保留、爆牌、场面空间和墓场/职业资源；
-  - [ ] 七职业和先后手；
-  - [ ] 隐藏信息下允许多个合理行动的局面。
-- [ ] 每个案例保存规则/checkpoint 无关的语义动作标签、状态 hash、动作前缀、
-  preferred set、disfavored set、允许并列的理由和复核人/依据。
-- [ ] 不把结果不确定的单一玩家意见标成唯一正确动作；使用多个 preferred
-  actions 或先保持 `review_required`。
-- [ ] 训练、调参和最终留出案例按完整对局分割，同一对局的相邻局面不得跨集合。
-- [ ] 报告 top-1、top-k、preferred mass、preferred-vs-disfavored margin、value
-  calibration 和逐类别结果。
-- [ ] 所有 recurrent checkpoint 使用完整 teacher-forced 前缀重建 hidden state。
+## 3.6 建立 Generation 0 六模型 payoff 与双层对手分布
+
+每代 PFSP 的主要比较对象是六个最新 active checkpoint，而不是每次重新评估
+全部历史 checkpoint。历史档案通过独立的固定质量通道进入训练，避免评估成本
+随 generation 数量无界增长。
+
+- [x] 使用训练专用 tuning seed 建立六个 Generation 0 最终 1M 模型的完整反对称
+  payoff matrix；六模型只需 15 个唯一非自对阵，自对阵按 `p=0.5` 记录。
+- [x] 复用本次 `20260903` 对另外五个 1M 模型的报告前，逐项校验 checkpoint、
+  rules/database/Observation/action hash、7x7、双方位置、196 局和 tuning partition；
+  只补跑剩余十个唯一模型对。
+- [x] 对每个唯一 A-vs-B 报告同时生成 `p(A,B)` 和 `p(B,A)=1-p(A,B)`；反向
+  95% CI 为 `[1-upper, 1-lower]`，并用测试覆盖平局计分和双方位置。
+- [x] 在 3.4 胜出 sampler 确定后，为六条 learner 分别生成自己的
+  `active_latest` PFSP 权重；缺边、错误 hash 或最终评估 seed 污染必须硬失败。
+- [x] 对手选择改为两阶段且首轮固定：
+  - [x] 70% episode 从六个 `active_latest` 中按 learner-specific PFSP 抽取；
+  - [x] 30% episode 从 `historical_archive` 中按确定性均匀分布抽取；
+  - [x] 70/30 只是首轮预注册工程值，不声称最优；只有在 500k 审计边界才能作为
+    独立单变量实验调整。
+- [x] `epsilon=0.02` 和 35% cap 应用于 `active_latest` 条件分布；archive 不使用
+  未刷新的 learner-specific payoff 冒充当前难度。
+- [x] 一个训练 manifest 最多包含 32 个有正训练权重的对手：六个最新 active
+  必须保留，archive 最多 26 个；其余 checkpoint 只进入可追溯的零权重归档。
+- [x] archive 超限时按预注册确定性顺序保留：上一代 active、forgotten 标记、
+  历史 hard/variance 高权重、meta-game support 和 lineage/step 多样性；内容相同
+  或行为重复的 checkpoint 只保留代表项。
+- [x] 保存每条 learner 的 active/archive 质量、条件概率、最终概率、预期命中数、
+  实际选择计数和所有输入 report/checkpoint hash。
 
 产物：
 
-- `data/tactical_scenarios/`
-- `data/reports/tactical_scenarios/suite_manifest.json`
-- `data/reports/tactical_scenarios/league_comparison.json`
+- `data/reports/league_training/generation_000_active_payoff_matrix.json`
+- `data/reports/league_training/generation_000_lineage_manifests/`
+- `data/reports/league_training/archive_selection_report.json`
+
+决策门 3.6：
+
+- 15 个唯一 active pair 全部为 196 局、完整 7x7/双方位置，且非法动作、mask
+  mismatch 和截断均为 0。
+- 六个 learner manifest 的 active 条件概率与总概率分别精确归一；固定 seed
+  选择测试覆盖六个 active、archive、双方位置和全部职业格。
+- 两阶段抽样不得改变 learner transition ownership、recurrent hidden、policy
+  RNG、log probability、value 或 PPO generation 边界。
+
+完成记录（2026-08-05）：15 个唯一 active pair 共 2,940 局和 108 个
+active-vs-history 基线共 21,168 局全部通过 hash、7x7、双方位置和安全校验；六份
+Hard learner manifest 均为 70% active + 30% archive、`epsilon=0.02`、35% cap，
+固定 4,096 次选择审计覆盖全部 24 个正权重对手。
+
+## 3.7 实现单卡六 lineage 的可恢复 generation runner
+
+- [x] 实现一个串行、可恢复的 generation queue；输入包含 source generation、
+  六个 parent checkpoint、六份 learner manifest、每条目标 steps 和输出目录。
+- [x] 每条 lineage 从自己的 parent checkpoint 精确续训，保留模型、optimizer、
+  scheduler 和 PPO 状态；只通过显式 generation 边界替换对手 manifest。
+- [x] 每条 lineage 的 100k checkpoint、generation final、stdout/stderr、状态、
+  吞吐和安全指标写入独立目录，禁止文件名或 resume 状态交叉。
+- [x] queue 状态明确区分 pending/running/completed/failed；重启只能重跑未完成
+  lineage，已完成产物必须先做 hash 和合同校验才能复用。
+- [x] 六条 lineage 即使串行运行，也必须绑定同一个 source manifest hash；不得
+  因训练顺序、缓存或先完成模型的存在改变 opponent selection。
+- [x] generation publish 使用原子 manifest：六条全部验证成功后一次生成下一代；
+  发布前任何部分 checkpoint 都不能成为同代其他 learner 的对手。
+- [x] 先对六条 lineage 各运行 10k smoke，覆盖不同串行顺序、一次中断/resume、
+  cache eviction 和从中间 lineage 重启。
+- [x] 记录共享池加载、模型切换、缓存命中、GPU/CPU/RAM、agent steps/s 和 wall
+  time；与 3.3 同配置吞吐相比不得低于 90%，否则先优化 runner。
+
+建议修改文件：
+
+- `swb/rl/opponents.py`
+- `swb/rl/ppo.py`
+- `swb/rl/vector_rollout.py`
+- `scripts/train_ppo.py`
+- `scripts/train_ppo_league_generation.ps1`
+- `tests/test_ppo_league_generation.py`
+
+产物：
+
+- `data/reports/league_training/generation_runner_smoke_forward/generation_runner_smoke.json`
+- `data/reports/league_training/generation_queue_schema.json`
 
 完成标准：
 
-- 50 个案例全部可确定性重放，状态 hash 和合法动作一致。
-- League 候选不得通过降低总体 preferred-action 指标来换取单一对阵胜率。
+- 两种串行顺序产生相同的可见对手合同；中断续训与不中断的选择序列、trajectory、
+  log probability、value、hidden state 和 PPO generation 等价。
+- 六条 10k smoke 均为零非法动作、零 mask mismatch、零异常截断和零残留 worker。
 
-## 3.7 建立可公开 UI 的人类对局数据合同
+完成记录（2026-08-05）：六条真实 10k smoke 全部通过，`20260903` 额外执行半程
+checkpoint→resume；吞吐 77.9–90.2、平均约 86.8 agent steps/s，高于 3.3 同为
+10k 的 optimized 基线 82.4（约 105.3%）。六条非法动作、mask mismatch、异常
+截断均为 0，退出后无残留 worker；正序/逆序逐 lineage 均解析到同一不可变 G0
+manifest，100k periodic checkpoint 也会按真实 steps 自动选择最新文件续训。
 
-本节的数据合同和本地采集可与 3.4–3.6 并行，但人类数据进入正式模型必须等
-留出集、隐私和许可门禁完成。
+## 3.8 运行首个共同进化 Generation 0 → 1
 
-- [ ] 在公开 UI 前写明参与者告知、许可范围、删除请求、保留期和开源数据范围。
-- [ ] 原始记录只保存训练必要内容；公开数据移除 IP、账户、自由文本和可识别
-  时间戳，玩家 ID 使用不可逆且可轮换的匿名 ID。
-- [ ] 每局保存引擎/rule/database/Observation/action/checkpoint hash、双方牌组、
-  seed、完整合法动作、玩家动作、结果、截断/断线和客户端版本。
-- [ ] 记录 AI 行动时的 policy logits/probabilities/value，但不得把未公开的对手
-  手牌泄漏进人类 observation 或训练输入。
-- [ ] 区分正常完成、认输、断线、超时、规则错误和 UI 错误；后四类默认不进入
-  行为克隆训练。
-- [ ] 去重机器人刷局、同一回放重传和明显脚本行为；保留过滤原因审计。
-- [ ] 按玩家而非单决策随机分割 train/validation/test，防止同一玩家风格泄漏。
-- [ ] 玩家质量只用于分层报告和可选采样，不直接把胜者的每个动作都当成正确。
-- [ ] 建立可从 schema 版本迁移、重新验证和删除单个玩家数据的工具与测试。
+自动化状态（2026-08-05）：3.4、3.6、3.7 启动前门均已通过；正式 runner 已配置
+从 G0 串行执行六条 250k 续训、15 pair payoff、六条 G0 parent validation、综合
+population 报告与原子发布。以下运行项只有后台队列实际产出并过门后才能勾选。
+
+- [ ] 只有 3.4 选出 sampler、3.6 六模型 payoff 完整且 3.7 runner 通过后才启动。
+- [ ] 六条 lineage 分别从约 1M 增加 250k agent steps，目标成为六个约 1.25M
+  Generation 1 checkpoint；总新增训练量约 1.5M agent steps。
+- [ ] 每 100k 保存 checkpoint 和低成本安全/冻结 anchor 指标，但不得据此改变
+  当代训练分布或提前选出“最佳 seed”。
+- [ ] 保存逐 lineage 的 episode return、entropy、KL、clip fraction、explained
+  variance、value loss、policy loss、grad norm、回合长度、截断和吞吐学习曲线。
+- [ ] 六条全部完成后冻结 Generation 1，并对六个最新模型运行 15 个唯一 pair、
+  每 pair 196 局的 tuning payoff 评估，共 2,940 局；不得再次无条件跑完整历史池。
+- [ ] 使用 Generation 1 active matrix 生成六份下一代 learner-specific PFSP 权重；
+  同时保留 30% archive 通道和全部来源 hash。
+- [ ] 使用固定 validation anchors 比较 Generation 1 与各自 Generation 0 parent，
+  报告六条 lineage、population worst-case、uniform/Nash mixture 和逐职业变化。
 
 产物：
 
-- `docs/human_match_data_policy.md`
-- `docs/human_match_dataset_schema.md`
-- `data/human_matches/raw/`（本地、默认不提交）
-- `data/human_matches/processed/`（本地、默认不提交）
-- `data/reports/human_matches/dataset_audit.json`
-
-## 3.8 行为克隆预训练与 RL 接续实验
-
-- [ ] 在没有足够人类数据前不启动正式 BC；先预注册最小数据门槛和目标。
-- [ ] 首轮门槛建议为至少 500 个正常完成对局、50 个独立玩家、七职业均有数据；
-  未达到时只用于评估和错误发现。
-- [ ] BC 只学习 human-observable state 下的合法动作分布；所有非法 action logit
-  继续被 mask，不使用私有日志字段作为输入。
-- [ ] 保存行为频率、职业/先后手/胜负/玩家层级分布和 long-tail action 覆盖。
-- [ ] 首轮只比较三个单变量配置：
-  - [ ] 当前 RL checkpoint 直接续训；
-  - [ ] BC 初始化后使用纯 sparse-reward League RL；
-  - [ ] BC 初始化且早期保留逐步衰减的 imitation loss。
-- [ ] imitation loss 的权重和衰减日程在训练前固定；不得根据最终测试集调整。
-- [ ] 人类留出集报告 NLL、top-k、preferred mass 和 calibration，不只报告 top-1。
-- [ ] RL 后同时验证冻结模型池、meta-game、战术案例和人类留出集，防止 BC
-  提高模仿但降低获胜能力，或 RL 完全遗忘人类策略。
+- `data/reports/league_training/generations/generation_001/population_manifest.json`
+- `data/reports/league_training/generations/generation_001/active_payoff.json`
+- `data/reports/league_training/generations/generation_001/training_report.json`
 
 决策门 3.8：
 
-- BC 模型必须在按玩家切分的留出集上显著优于 RL-only 基线的 NLL，并保持
-  零非法动作/mask mismatch。
-- 经相同新增 500k steps League RL 后，至少 2/3 seed 的冻结锚点或 meta-game
-  主指标改善，且战术回放与人类留出指标不退化，才采用 BC 初始化。
-- 数据不足或玩家分布失衡时延期，不用少量数据得出强结论。
+- 六条训练和 2,940 局 active 评估均须零非法动作、零 mask mismatch、零异常截断、
+  无 hidden 串局、无 checkpoint 泄漏和无残留 worker。
+- 不要求每条 lineage 单代都提高，但至少 4/6 对固定 validation anchors 不退化，
+  population worst-case 不得下降超过 2 个百分点；否则暂停并分析 sampler、
+  archive 比例或 PPO 学习稳定性，不继续自动 scaling。
+- 本节只证明第一次动态刷新可用；不得以其中单个最强 lineage 宣称 PFSP 胜出。
 
-## 3.9 三 seed 归因实验与 Scaling 决策门
+## 3.9 以 250k generation 将六模型有门禁地扩展到最多 3M
 
-- [ ] 所有学习比较使用相同起点 checkpoint、三个训练 seed、硬件、总新增
-  agent steps、PPO 超参数、7x7 调度和评估 seed。
-- [ ] 首轮实验矩阵严格限制为：
+自动化状态（2026-08-05）：G0=约 1M 到 G8=约 3M 的八代谱系、100k periodic
+checkpoint、250k barrier、每代安全/退化/平台门和 500k archive 审计已由
+`scripts/run_ppo_league_generations.py` 实现。审计固定先跑 98 局，只有历史曾
+`>=70%` 且筛查 `<=45%` 才补到 196 局，确认 `<40%` 后在下一 barrier 提高该
+checkpoint 的 archive 优先级。每代报告自动保留六条 lineage，并计算 median、
+IQM、paired bootstrap CI、performance profile、population worst-case、Nash/
+uniform mixture、职业最差格和 payoff-profile diversity。以下运行项不会因后台
+队列“已启动”而提前勾选；只按实际完成 generation 更新。
 
-| 组 | 唯一变化 | 100k 筛查 | 500k 比较 | 1M 确认 |
-|---|---|---:|---:|---:|
-| A0 | 当前策略＋自己的历史池 | 3 seed | 3 seed | 仅作最终基线 |
-| A1 | 共同冻结池＋uniform | 3 seed | 3 seed | 有收益才继续 |
-| A2 | 共同冻结池＋胜出的 PFSP | 3 seed | 3 seed | 通过 3.4 才继续 |
-| A3 | Main/Exploiter 角色 | 条件触发 | 条件触发 | 通过 3.5 才继续 |
-| B1/B2 | 人类 BC 路线 | 数据门触发 | 3 seed | 通过 3.8 才继续 |
+- [ ] 按固定谱系推进：G0=1.0M、G1=1.25M、G2=1.5M、G3=1.75M、G4=2.0M、
+  G5=2.25M、G6=2.5M、G7=2.75M、G8=3.0M；实际 checkpoint 步数以文件记录
+  为准，不用标签覆盖真实偏差。
+- [ ] 每代严格执行“六条对上一代训练 → barrier → 六个新模型冻结 → 15 pair
+  tuning 评估 → 六份新 PFSP 分布 → 发布下一代”，不得跳过 barrier 或复用
+  过期 active payoff。
+- [ ] 每 100k 只保存 checkpoint、学习曲线和低成本 safety/anchor screen；只有
+  250k generation boundary 才刷新 active 对手。
+- [ ] 在 1.5M、2.0M、2.5M 和 3.0M 执行历史 archive 审计：先用预注册低成本
+  局数筛查全部保留历史对手，接近遗忘阈值的 pair 再补到 196 局确认。
+- [ ] archive 审计检测到“此前得分率不低于 70%、当前低于 40%”时，将对应
+  checkpoint 标为 forgotten，并只在下一 generation barrier 调整 archive 组成。
+- [ ] 每代报告所有六条 lineage，不删除失败、退化或中断 run；汇总中位数、IQM、
+  paired bootstrap CI、performance profile、population worst-case、meta-game
+  mixture、职业最差格和 checkpoint 间行为多样性。
+- [ ] 训练预算单独报告：六条 lineage 从 1M 到 3M 总新增 12M agent steps；
+  评估预算区分每代 2,940 局 active matrix、500k archive 审计和最终确认。
+- [ ] active/archive 70/30 比例只有在至少完成到 1.5M 且有两次 generation 数据
+  后才能作为单变量消融；不得同时修改 sampler、PPO、reward、网络或 generation
+  长度。
 
-- [ ] 每 100k 保存可恢复 checkpoint，但 generation 对手池只在预注册边界刷新。
-- [ ] 每个 checkpoint 对相同冻结 anchor mixture 做低成本筛查；最终候选才做
-  980 局/对的确认，避免评估吞掉主要训练预算。
-- [ ] 报告学习曲线而非只报告 final，并对性能倒退、entropy collapse、value
-  发散、grad norm 异常和职业遗忘标记首次出现的 step。
-- [ ] 选择默认方案时使用 population 主指标和稳健区间，不以单个 seed 最强为准。
+每代继续门：
 
-按当前 154–158 agent steps/s 粗估，单 seed 的 100k/500k/1M 新增训练分别约
-11 分钟、54 分钟和 1 小时 48 分；这只是训练本体预算，不包括 980 局确认评估。
+- 任一非法动作、mask mismatch、generation 泄漏、异常截断、NaN/Inf、resume
+  不等价或 worker 残留立即阻止下一代发布。
+- 连续两个 generation 的 population 主指标提升均低于预注册最小效应（冻结
+  anchor 平均 3 个百分点或 exploitability proxy 10%），停止纯步数 scaling，
+  保存无收益证据，不机械跑满 3M。
+- 如果平均指标上升但某 lineage/职业持续两代退化超过 5 个百分点，先执行遗忘
+  审计和 archive 修正；修正后仍失败则停止，不以其他 lineage 的提升掩盖。
+- 只有整个六模型 population 通过门禁才能进入下一代；不从同代六个模型中挑
+  一个最好者替代 population 结论。
 
-Scaling 决策门：
+产物：
 
-- 只有通过 1M 三 seed 确认的方案才能把新规则下模型继续扩到总计 3M。
-- 3M 之后每新增 1M 都重新检查主指标斜率；连续两个 generation 的提升小于
-  预注册最小效应（首轮 3 个胜率百分点或 10% exploitability proxy），停止
-  纯步数 scaling。
-- 如果 League 指标提高但战术/人类规划不提高，优先推进人类数据和 credit
-  assignment；如果两者都平台化，再单独评估模型容量或 ReBeL/SoG 类搜索。
-- 不在同一实验中同时扩大网络、改 reward、改 PPO 更新语义和加入搜索。
+- `data/reports/league_training/generations/generation_00N/population_manifest.json`
+- `data/reports/league_training/generations/generation_00N/active_payoff.json`
+- `data/reports/league_training/generations/generation_00N/training_report.json`
+- `data/reports/league_training/generations/generation_00N/archive_audit.json`（每 500k）
 
-## 3.10 最终验收与下一路线
+## 3.10 六模型 League 最终验收与后续路线边界
 
-- [ ] 最终候选至少完成一次 1M+ 连续稳定续训和三 seed 独立重复。
-- [ ] 对冻结锚点、未参与训练的 validation policies、全部主要 exploiters、
-  7x7 职业矩阵、战术留出集和人类留出集完成统一评估。
-- [ ] 报告逐 seed 结果、中位数、IQM、paired bootstrap CI、performance profile、
-  worst-case/meta-game 指标和完整失败 run。
+- [ ] 最终停止点无论早于或达到 3M，都冻结六个最新 active checkpoint、完整
+  lineage、全部 generation manifest/payoff/sampler/archive 变化和 checkpoint hash。
+- [ ] 使用从未参与训练和调参的最终 seed，对六模型 population、Generation 0、
+  旧规则 3M anchors 和未参与训练的 validation policies 做统一评估。
+- [ ] 六个最终 active 模型完成 15 个唯一 pair 的至少 980 局/对确认，并报告
+  uniform/Nash mixture、worst-case、effective population size 和循环克制。
+- [ ] 完成完整 7x7、双方位置、逐职业最差格、先后手差异和 95% CI；报告逐
+  lineage、中位数、IQM、paired bootstrap CI、performance profile 和全部失败 run。
 - [ ] 验证零非法动作、零 mask mismatch、无异常截断、无 hidden-state 串局、
-  无 checkpoint 泄漏、无最终评估 seed 污染和无残留 worker。
-- [ ] 保存最终选中策略的训练谱系：起点、每代共同池、payoff 快照、角色、
-  sampler、全部 checkpoint hash 和每次决策门结论。
-- [ ] 在真实玩家盲测中记录模型版本，不向玩家暴露本局面对的是哪个候选；
-  报告胜率之外的主观异常标签和复现 replay。
-- [ ] 明确最终结论属于工程可用、社区有挑战性还是更高层级，不以论文中的
-  工业级结果替代本项目证据。
-- [ ] 生成阶段 3 综合报告，并据证据选择下一条唯一主路线：
-  - [ ] 继续 generation League scaling；
-  - [ ] 扩大并清洗人类数据；
-  - [ ] 单独评估网络容量/长程 credit assignment；
-  - [ ] 启动不完全信息搜索可行性研究；
-  - [ ] 关闭无收益路线并保存拒绝证据。
+  无 checkpoint/最终 seed 泄漏、无 OOM/死锁和无残留 worker。
+- [ ] UI 如需单一部署模型，必须在最终测试前用 validation population 指标预先
+  选择 canonical main；最终测试不得从六个模型中事后挑最高胜率者。
+- [ ] 明确结论是“静态共同池有效”“动态六模型 League 有效”“继续 scaling
+  已平台化”或“方案退化”；单个 seed Elo 不能替代 population 结论。
+- [ ] 生成阶段 3 综合报告，并只根据本阶段证据选择下一条主路线。
+
+本轮 3.5–3.10 明确不实现 Main Exploiter、League Exploiter、PBT、人类 BC、
+公开 UI 数据合同、50 案例扩建或 ReBeL/SoG 搜索。这些路线不删除，但移动到六模型
+动态 PFSP League 通过、平台化或出现稳定漏洞之后的独立 checklist，避免与本轮
+共同进化 scaling 混合归因。
 
 产物：
 

@@ -1,0 +1,497 @@
+{
+  "budget": {
+    "active_payoff_games_per_generation": 2940,
+    "active_payoff_unique_pairs_per_generation": 15,
+    "additional_agent_steps_per_transition": 1500000,
+    "lineages": 6,
+    "total_additional_agent_steps_to_generation_008": 12000000,
+    "transitions": 8
+  },
+  "generation_zero": {
+    "lineages": [
+      {
+        "generation_000_parent": {
+          "agent_steps": 1000032,
+          "checkpoint_path": "data/checkpoints/ppo_7x7_scaling_20260801/seed_20260903/final.pt",
+          "checkpoint_sha256": "bdf3c97c981dd7043efa65bda1a35f7339b93271459e8dcb1c6310e6d5ef924f",
+          "opponent_id": "seed_20260903_1m"
+        },
+        "lineage_id": "lineage_20260903",
+        "policy_seed": 20260903
+      },
+      {
+        "generation_000_parent": {
+          "agent_steps": 1000125,
+          "checkpoint_path": "data/checkpoints/ppo_7x7_scaling_20260801/seed_20260904/final.pt",
+          "checkpoint_sha256": "db624be6ad44a05ac204bb8333986e9297d0ec65fb8ac37d2908cb4421f01002",
+          "opponent_id": "seed_20260904_1m"
+        },
+        "lineage_id": "lineage_20260904",
+        "policy_seed": 20260904
+      },
+      {
+        "generation_000_parent": {
+          "agent_steps": 1002054,
+          "checkpoint_path": "data/checkpoints/ppo_7x7_scaling_20260801/seed_20260905/final.pt",
+          "checkpoint_sha256": "5fbf3a661b371f1376ccb8223735111bdb8e9b66c30596c3b684deb435083bb7",
+          "opponent_id": "seed_20260905_1m"
+        },
+        "lineage_id": "lineage_20260905",
+        "policy_seed": 20260905
+      },
+      {
+        "generation_000_parent": {
+          "agent_steps": 1000182,
+          "checkpoint_path": "data/checkpoints/ppo_7x7_scaling_20260801/seed_20260906/final.pt",
+          "checkpoint_sha256": "5d7c1ae4a3ac89e14b34e491a3298bef3e21474993ad4f209255c69b70dbdc44",
+          "opponent_id": "seed_20260906_1m"
+        },
+        "lineage_id": "lineage_20260906",
+        "policy_seed": 20260906
+      },
+      {
+        "generation_000_parent": {
+          "agent_steps": 1000675,
+          "checkpoint_path": "data/checkpoints/ppo_7x7_scaling_20260801/seed_20260907/final.pt",
+          "checkpoint_sha256": "87d1549c9f05ce73cd5b3aaf60a9a454114ca543c94b11f5503c1e378ec65209",
+          "opponent_id": "seed_20260907_1m"
+        },
+        "lineage_id": "lineage_20260907",
+        "policy_seed": 20260907
+      },
+      {
+        "generation_000_parent": {
+          "agent_steps": 1001136,
+          "checkpoint_path": "data/checkpoints/ppo_7x7_scaling_20260801/seed_20260908/final.pt",
+          "checkpoint_sha256": "deeb621ff0b7340055d5227a85e277b1f2c370c6f7e7252e1ad884857b4720c7",
+          "opponent_id": "seed_20260908_1m"
+        },
+        "lineage_id": "lineage_20260908",
+        "policy_seed": 20260908
+      }
+    ],
+    "nominal_millions": 1.0
+  },
+  "immutable": true,
+  "report_kind": "ppo_evolving_league_generation_schedule",
+  "schema_version": 1,
+  "sources": {
+    "evaluation_protocol": {
+      "bytes": 2642,
+      "path": "data/reports/league_training/evaluation_protocol.json",
+      "sha256": "7bf87b3b4ccd342b1841b50de37b2d6bd56397dfe9c42ac3d5d8a71adedbee18"
+    },
+    "evolving_league_contract_payload_sha256": "f15aaa1accf30e4b7dad3fee6df092356fe515834ca960b9f16914f464e13d9f"
+  },
+  "stop_is_allowed_before_generation_008": true,
+  "transitions": [
+    {
+      "archive_audit_due": false,
+      "lineages": [
+        {
+          "additional_agent_steps_from_parent": 250000,
+          "lineage_id": "lineage_20260903",
+          "policy_seed": 20260903,
+          "target_agent_steps": 1250032
+        },
+        {
+          "additional_agent_steps_from_parent": 250000,
+          "lineage_id": "lineage_20260904",
+          "policy_seed": 20260904,
+          "target_agent_steps": 1250125
+        },
+        {
+          "additional_agent_steps_from_parent": 250000,
+          "lineage_id": "lineage_20260905",
+          "policy_seed": 20260905,
+          "target_agent_steps": 1252054
+        },
+        {
+          "additional_agent_steps_from_parent": 250000,
+          "lineage_id": "lineage_20260906",
+          "policy_seed": 20260906,
+          "target_agent_steps": 1250182
+        },
+        {
+          "additional_agent_steps_from_parent": 250000,
+          "lineage_id": "lineage_20260907",
+          "policy_seed": 20260907,
+          "target_agent_steps": 1250675
+        },
+        {
+          "additional_agent_steps_from_parent": 250000,
+          "lineage_id": "lineage_20260908",
+          "policy_seed": 20260908,
+          "target_agent_steps": 1251136
+        }
+      ],
+      "nominal_millions": 1.25,
+      "paths": {
+        "active_payoff": "data/reports/league_training/generations/generation_001/active_payoff.json",
+        "directory": "data/reports/league_training/generations/generation_001",
+        "population_manifest": "data/reports/league_training/generations/generation_001/population_manifest.json",
+        "training_report": "data/reports/league_training/generations/generation_001/training_report.json"
+      },
+      "payoff_master_seed": 20261003,
+      "source_generation": 0,
+      "target_generation": 1
+    },
+    {
+      "archive_audit_due": true,
+      "lineages": [
+        {
+          "additional_agent_steps_from_parent": 250000,
+          "lineage_id": "lineage_20260903",
+          "policy_seed": 20260903,
+          "target_agent_steps": 1500032
+        },
+        {
+          "additional_agent_steps_from_parent": 250000,
+          "lineage_id": "lineage_20260904",
+          "policy_seed": 20260904,
+          "target_agent_steps": 1500125
+        },
+        {
+          "additional_agent_steps_from_parent": 250000,
+          "lineage_id": "lineage_20260905",
+          "policy_seed": 20260905,
+          "target_agent_steps": 1502054
+        },
+        {
+          "additional_agent_steps_from_parent": 250000,
+          "lineage_id": "lineage_20260906",
+          "policy_seed": 20260906,
+          "target_agent_steps": 1500182
+        },
+        {
+          "additional_agent_steps_from_parent": 250000,
+          "lineage_id": "lineage_20260907",
+          "policy_seed": 20260907,
+          "target_agent_steps": 1500675
+        },
+        {
+          "additional_agent_steps_from_parent": 250000,
+          "lineage_id": "lineage_20260908",
+          "policy_seed": 20260908,
+          "target_agent_steps": 1501136
+        }
+      ],
+      "nominal_millions": 1.5,
+      "paths": {
+        "active_payoff": "data/reports/league_training/generations/generation_002/active_payoff.json",
+        "directory": "data/reports/league_training/generations/generation_002",
+        "population_manifest": "data/reports/league_training/generations/generation_002/population_manifest.json",
+        "training_report": "data/reports/league_training/generations/generation_002/training_report.json"
+      },
+      "payoff_master_seed": 20261004,
+      "source_generation": 1,
+      "target_generation": 2
+    },
+    {
+      "archive_audit_due": false,
+      "lineages": [
+        {
+          "additional_agent_steps_from_parent": 250000,
+          "lineage_id": "lineage_20260903",
+          "policy_seed": 20260903,
+          "target_agent_steps": 1750032
+        },
+        {
+          "additional_agent_steps_from_parent": 250000,
+          "lineage_id": "lineage_20260904",
+          "policy_seed": 20260904,
+          "target_agent_steps": 1750125
+        },
+        {
+          "additional_agent_steps_from_parent": 250000,
+          "lineage_id": "lineage_20260905",
+          "policy_seed": 20260905,
+          "target_agent_steps": 1752054
+        },
+        {
+          "additional_agent_steps_from_parent": 250000,
+          "lineage_id": "lineage_20260906",
+          "policy_seed": 20260906,
+          "target_agent_steps": 1750182
+        },
+        {
+          "additional_agent_steps_from_parent": 250000,
+          "lineage_id": "lineage_20260907",
+          "policy_seed": 20260907,
+          "target_agent_steps": 1750675
+        },
+        {
+          "additional_agent_steps_from_parent": 250000,
+          "lineage_id": "lineage_20260908",
+          "policy_seed": 20260908,
+          "target_agent_steps": 1751136
+        }
+      ],
+      "nominal_millions": 1.75,
+      "paths": {
+        "active_payoff": "data/reports/league_training/generations/generation_003/active_payoff.json",
+        "directory": "data/reports/league_training/generations/generation_003",
+        "population_manifest": "data/reports/league_training/generations/generation_003/population_manifest.json",
+        "training_report": "data/reports/league_training/generations/generation_003/training_report.json"
+      },
+      "payoff_master_seed": 20261005,
+      "source_generation": 2,
+      "target_generation": 3
+    },
+    {
+      "archive_audit_due": true,
+      "lineages": [
+        {
+          "additional_agent_steps_from_parent": 250000,
+          "lineage_id": "lineage_20260903",
+          "policy_seed": 20260903,
+          "target_agent_steps": 2000032
+        },
+        {
+          "additional_agent_steps_from_parent": 250000,
+          "lineage_id": "lineage_20260904",
+          "policy_seed": 20260904,
+          "target_agent_steps": 2000125
+        },
+        {
+          "additional_agent_steps_from_parent": 250000,
+          "lineage_id": "lineage_20260905",
+          "policy_seed": 20260905,
+          "target_agent_steps": 2002054
+        },
+        {
+          "additional_agent_steps_from_parent": 250000,
+          "lineage_id": "lineage_20260906",
+          "policy_seed": 20260906,
+          "target_agent_steps": 2000182
+        },
+        {
+          "additional_agent_steps_from_parent": 250000,
+          "lineage_id": "lineage_20260907",
+          "policy_seed": 20260907,
+          "target_agent_steps": 2000675
+        },
+        {
+          "additional_agent_steps_from_parent": 250000,
+          "lineage_id": "lineage_20260908",
+          "policy_seed": 20260908,
+          "target_agent_steps": 2001136
+        }
+      ],
+      "nominal_millions": 2.0,
+      "paths": {
+        "active_payoff": "data/reports/league_training/generations/generation_004/active_payoff.json",
+        "directory": "data/reports/league_training/generations/generation_004",
+        "population_manifest": "data/reports/league_training/generations/generation_004/population_manifest.json",
+        "training_report": "data/reports/league_training/generations/generation_004/training_report.json"
+      },
+      "payoff_master_seed": 20261006,
+      "source_generation": 3,
+      "target_generation": 4
+    },
+    {
+      "archive_audit_due": false,
+      "lineages": [
+        {
+          "additional_agent_steps_from_parent": 250000,
+          "lineage_id": "lineage_20260903",
+          "policy_seed": 20260903,
+          "target_agent_steps": 2250032
+        },
+        {
+          "additional_agent_steps_from_parent": 250000,
+          "lineage_id": "lineage_20260904",
+          "policy_seed": 20260904,
+          "target_agent_steps": 2250125
+        },
+        {
+          "additional_agent_steps_from_parent": 250000,
+          "lineage_id": "lineage_20260905",
+          "policy_seed": 20260905,
+          "target_agent_steps": 2252054
+        },
+        {
+          "additional_agent_steps_from_parent": 250000,
+          "lineage_id": "lineage_20260906",
+          "policy_seed": 20260906,
+          "target_agent_steps": 2250182
+        },
+        {
+          "additional_agent_steps_from_parent": 250000,
+          "lineage_id": "lineage_20260907",
+          "policy_seed": 20260907,
+          "target_agent_steps": 2250675
+        },
+        {
+          "additional_agent_steps_from_parent": 250000,
+          "lineage_id": "lineage_20260908",
+          "policy_seed": 20260908,
+          "target_agent_steps": 2251136
+        }
+      ],
+      "nominal_millions": 2.25,
+      "paths": {
+        "active_payoff": "data/reports/league_training/generations/generation_005/active_payoff.json",
+        "directory": "data/reports/league_training/generations/generation_005",
+        "population_manifest": "data/reports/league_training/generations/generation_005/population_manifest.json",
+        "training_report": "data/reports/league_training/generations/generation_005/training_report.json"
+      },
+      "payoff_master_seed": 20261007,
+      "source_generation": 4,
+      "target_generation": 5
+    },
+    {
+      "archive_audit_due": true,
+      "lineages": [
+        {
+          "additional_agent_steps_from_parent": 250000,
+          "lineage_id": "lineage_20260903",
+          "policy_seed": 20260903,
+          "target_agent_steps": 2500032
+        },
+        {
+          "additional_agent_steps_from_parent": 250000,
+          "lineage_id": "lineage_20260904",
+          "policy_seed": 20260904,
+          "target_agent_steps": 2500125
+        },
+        {
+          "additional_agent_steps_from_parent": 250000,
+          "lineage_id": "lineage_20260905",
+          "policy_seed": 20260905,
+          "target_agent_steps": 2502054
+        },
+        {
+          "additional_agent_steps_from_parent": 250000,
+          "lineage_id": "lineage_20260906",
+          "policy_seed": 20260906,
+          "target_agent_steps": 2500182
+        },
+        {
+          "additional_agent_steps_from_parent": 250000,
+          "lineage_id": "lineage_20260907",
+          "policy_seed": 20260907,
+          "target_agent_steps": 2500675
+        },
+        {
+          "additional_agent_steps_from_parent": 250000,
+          "lineage_id": "lineage_20260908",
+          "policy_seed": 20260908,
+          "target_agent_steps": 2501136
+        }
+      ],
+      "nominal_millions": 2.5,
+      "paths": {
+        "active_payoff": "data/reports/league_training/generations/generation_006/active_payoff.json",
+        "directory": "data/reports/league_training/generations/generation_006",
+        "population_manifest": "data/reports/league_training/generations/generation_006/population_manifest.json",
+        "training_report": "data/reports/league_training/generations/generation_006/training_report.json"
+      },
+      "payoff_master_seed": 20261008,
+      "source_generation": 5,
+      "target_generation": 6
+    },
+    {
+      "archive_audit_due": false,
+      "lineages": [
+        {
+          "additional_agent_steps_from_parent": 250000,
+          "lineage_id": "lineage_20260903",
+          "policy_seed": 20260903,
+          "target_agent_steps": 2750032
+        },
+        {
+          "additional_agent_steps_from_parent": 250000,
+          "lineage_id": "lineage_20260904",
+          "policy_seed": 20260904,
+          "target_agent_steps": 2750125
+        },
+        {
+          "additional_agent_steps_from_parent": 250000,
+          "lineage_id": "lineage_20260905",
+          "policy_seed": 20260905,
+          "target_agent_steps": 2752054
+        },
+        {
+          "additional_agent_steps_from_parent": 250000,
+          "lineage_id": "lineage_20260906",
+          "policy_seed": 20260906,
+          "target_agent_steps": 2750182
+        },
+        {
+          "additional_agent_steps_from_parent": 250000,
+          "lineage_id": "lineage_20260907",
+          "policy_seed": 20260907,
+          "target_agent_steps": 2750675
+        },
+        {
+          "additional_agent_steps_from_parent": 250000,
+          "lineage_id": "lineage_20260908",
+          "policy_seed": 20260908,
+          "target_agent_steps": 2751136
+        }
+      ],
+      "nominal_millions": 2.75,
+      "paths": {
+        "active_payoff": "data/reports/league_training/generations/generation_007/active_payoff.json",
+        "directory": "data/reports/league_training/generations/generation_007",
+        "population_manifest": "data/reports/league_training/generations/generation_007/population_manifest.json",
+        "training_report": "data/reports/league_training/generations/generation_007/training_report.json"
+      },
+      "payoff_master_seed": 20261009,
+      "source_generation": 6,
+      "target_generation": 7
+    },
+    {
+      "archive_audit_due": true,
+      "lineages": [
+        {
+          "additional_agent_steps_from_parent": 250000,
+          "lineage_id": "lineage_20260903",
+          "policy_seed": 20260903,
+          "target_agent_steps": 3000032
+        },
+        {
+          "additional_agent_steps_from_parent": 250000,
+          "lineage_id": "lineage_20260904",
+          "policy_seed": 20260904,
+          "target_agent_steps": 3000125
+        },
+        {
+          "additional_agent_steps_from_parent": 250000,
+          "lineage_id": "lineage_20260905",
+          "policy_seed": 20260905,
+          "target_agent_steps": 3002054
+        },
+        {
+          "additional_agent_steps_from_parent": 250000,
+          "lineage_id": "lineage_20260906",
+          "policy_seed": 20260906,
+          "target_agent_steps": 3000182
+        },
+        {
+          "additional_agent_steps_from_parent": 250000,
+          "lineage_id": "lineage_20260907",
+          "policy_seed": 20260907,
+          "target_agent_steps": 3000675
+        },
+        {
+          "additional_agent_steps_from_parent": 250000,
+          "lineage_id": "lineage_20260908",
+          "policy_seed": 20260908,
+          "target_agent_steps": 3001136
+        }
+      ],
+      "nominal_millions": 3.0,
+      "paths": {
+        "active_payoff": "data/reports/league_training/generations/generation_008/active_payoff.json",
+        "directory": "data/reports/league_training/generations/generation_008",
+        "population_manifest": "data/reports/league_training/generations/generation_008/population_manifest.json",
+        "training_report": "data/reports/league_training/generations/generation_008/training_report.json"
+      },
+      "payoff_master_seed": 20261010,
+      "source_generation": 7,
+      "target_generation": 8
+    }
+  ]
+}

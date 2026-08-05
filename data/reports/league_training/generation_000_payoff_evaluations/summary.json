@@ -1,0 +1,382 @@
+{
+  "schema_version": 1,
+  "purpose": "PFSP training-only Generation 0 payoff snapshot inputs",
+  "data_partition": "pfsp_tuning",
+  "source_generation": 0,
+  "target_generation": 1,
+  "focal_policy_ids": [
+    "seed_20260903_1m"
+  ],
+  "match_master_seeds": [
+    20261001
+  ],
+  "seed_count": 2,
+  "games_per_pair": 196,
+  "expected_pair_count": 24,
+  "completed_pair_count": 24,
+  "expected_game_count": 4704,
+  "completed_game_count": 4704,
+  "pairs": [
+    {
+      "pair_id": "seed_20260903_1m__vs__seed_20260903_1m",
+      "focal_policy_id": "seed_20260903_1m",
+      "opponent_id": "seed_20260903_1m",
+      "games": 196,
+      "score_rate": 0.5306122448979592,
+      "confidence_interval_95": [
+        0.46082867283906037,
+        0.5992189272476008
+      ],
+      "truncated": 0,
+      "elapsed_seconds": 203.5933189,
+      "state": "completed",
+      "report": "E:\\SWB project\\data\\reports\\league_training\\generation_000_payoff_evaluations\\seed_20260903_1m__vs__seed_20260903_1m.json"
+    },
+    {
+      "pair_id": "seed_20260903_1m__vs__seed_20260903_step_000000250544",
+      "focal_policy_id": "seed_20260903_1m",
+      "opponent_id": "seed_20260903_step_000000250544",
+      "games": 196,
+      "score_rate": 0.5918367346938775,
+      "confidence_interval_95": [
+        0.5219052294615438,
+        0.6582375707984396
+      ],
+      "truncated": 0,
+      "elapsed_seconds": 187.0946766,
+      "state": "completed",
+      "report": "E:\\SWB project\\data\\reports\\league_training\\generation_000_payoff_evaluations\\seed_20260903_1m__vs__seed_20260903_step_000000250544.json"
+    },
+    {
+      "pair_id": "seed_20260903_1m__vs__seed_20260903_step_000000501095",
+      "focal_policy_id": "seed_20260903_1m",
+      "opponent_id": "seed_20260903_step_000000501095",
+      "games": 196,
+      "score_rate": 0.5663265306122449,
+      "confidence_interval_95": [
+        0.49632970282081645,
+        0.6337734307002827
+      ],
+      "truncated": 0,
+      "elapsed_seconds": 191.4055442,
+      "state": "completed",
+      "report": "E:\\SWB project\\data\\reports\\league_training\\generation_000_payoff_evaluations\\seed_20260903_1m__vs__seed_20260903_step_000000501095.json"
+    },
+    {
+      "pair_id": "seed_20260903_1m__vs__seed_20260903_step_000000753128",
+      "focal_policy_id": "seed_20260903_1m",
+      "opponent_id": "seed_20260903_step_000000753128",
+      "games": 196,
+      "score_rate": 0.5561224489795918,
+      "confidence_interval_95": [
+        0.48615059275635336,
+        0.6239366740691921
+      ],
+      "truncated": 0,
+      "elapsed_seconds": 214.6720687,
+      "state": "completed",
+      "report": "E:\\SWB project\\data\\reports\\league_training\\generation_000_payoff_evaluations\\seed_20260903_1m__vs__seed_20260903_step_000000753128.json"
+    },
+    {
+      "pair_id": "seed_20260903_1m__vs__seed_20260904_1m",
+      "focal_policy_id": "seed_20260903_1m",
+      "opponent_id": "seed_20260904_1m",
+      "games": 196,
+      "score_rate": 0.5408163265306123,
+      "confidence_interval_95": [
+        0.47093597117600566,
+        0.6091274956062093
+      ],
+      "truncated": 0,
+      "elapsed_seconds": 191.3444795,
+      "state": "completed",
+      "report": "E:\\SWB project\\data\\reports\\league_training\\generation_000_payoff_evaluations\\seed_20260903_1m__vs__seed_20260904_1m.json"
+    },
+    {
+      "pair_id": "seed_20260903_1m__vs__seed_20260904_step_000000251757",
+      "focal_policy_id": "seed_20260903_1m",
+      "opponent_id": "seed_20260904_step_000000251757",
+      "games": 196,
+      "score_rate": 0.6326530612244898,
+      "confidence_interval_95": [
+        0.5632160690392156,
+        0.6969901980029827
+      ],
+      "truncated": 0,
+      "elapsed_seconds": 189.0582093,
+      "state": "completed",
+      "report": "E:\\SWB project\\data\\reports\\league_training\\generation_000_payoff_evaluations\\seed_20260903_1m__vs__seed_20260904_step_000000251757.json"
+    },
+    {
+      "pair_id": "seed_20260903_1m__vs__seed_20260904_step_000000502243",
+      "focal_policy_id": "seed_20260903_1m",
+      "opponent_id": "seed_20260904_step_000000502243",
+      "games": 196,
+      "score_rate": 0.6071428571428571,
+      "confidence_interval_95": [
+        0.5373396072055139,
+        0.6728269930977999
+      ],
+      "truncated": 0,
+      "elapsed_seconds": 184.276315,
+      "state": "completed",
+      "report": "E:\\SWB project\\data\\reports\\league_training\\generation_000_payoff_evaluations\\seed_20260903_1m__vs__seed_20260904_step_000000502243.json"
+    },
+    {
+      "pair_id": "seed_20260903_1m__vs__seed_20260904_step_000000752453",
+      "focal_policy_id": "seed_20260903_1m",
+      "opponent_id": "seed_20260904_step_000000752453",
+      "games": 196,
+      "score_rate": 0.5714285714285714,
+      "confidence_interval_95": [
+        0.5014301440339961,
+        0.6386809228348798
+      ],
+      "truncated": 0,
+      "elapsed_seconds": 180.0395251,
+      "state": "completed",
+      "report": "E:\\SWB project\\data\\reports\\league_training\\generation_000_payoff_evaluations\\seed_20260903_1m__vs__seed_20260904_step_000000752453.json"
+    },
+    {
+      "pair_id": "seed_20260903_1m__vs__seed_20260905_1m",
+      "focal_policy_id": "seed_20260903_1m",
+      "opponent_id": "seed_20260905_1m",
+      "games": 196,
+      "score_rate": 0.5969387755102041,
+      "confidence_interval_95": [
+        0.5270425165533744,
+        0.6631082170543859
+      ],
+      "truncated": 0,
+      "elapsed_seconds": 208.4299842,
+      "state": "completed",
+      "report": "E:\\SWB project\\data\\reports\\league_training\\generation_000_payoff_evaluations\\seed_20260903_1m__vs__seed_20260905_1m.json"
+    },
+    {
+      "pair_id": "seed_20260903_1m__vs__seed_20260905_step_000000251545",
+      "focal_policy_id": "seed_20260903_1m",
+      "opponent_id": "seed_20260905_step_000000251545",
+      "games": 196,
+      "score_rate": 0.5918367346938775,
+      "confidence_interval_95": [
+        0.5219052294615438,
+        0.6582375707984396
+      ],
+      "truncated": 0,
+      "elapsed_seconds": 184.7863564,
+      "state": "completed",
+      "report": "E:\\SWB project\\data\\reports\\league_training\\generation_000_payoff_evaluations\\seed_20260903_1m__vs__seed_20260905_step_000000251545.json"
+    },
+    {
+      "pair_id": "seed_20260903_1m__vs__seed_20260905_step_000000503250",
+      "focal_policy_id": "seed_20260903_1m",
+      "opponent_id": "seed_20260905_step_000000503250",
+      "games": 196,
+      "score_rate": 0.6122448979591837,
+      "confidence_interval_95": [
+        0.5424995070968262,
+        0.6776750265542648
+      ],
+      "truncated": 0,
+      "elapsed_seconds": 198.8341784,
+      "state": "completed",
+      "report": "E:\\SWB project\\data\\reports\\league_training\\generation_000_payoff_evaluations\\seed_20260903_1m__vs__seed_20260905_step_000000503250.json"
+    },
+    {
+      "pair_id": "seed_20260903_1m__vs__seed_20260905_step_000000754924",
+      "focal_policy_id": "seed_20260903_1m",
+      "opponent_id": "seed_20260905_step_000000754924",
+      "games": 196,
+      "score_rate": 0.5892857142857143,
+      "confidence_interval_95": [
+        0.5193393808192124,
+        0.6557994527668827
+      ],
+      "truncated": 0,
+      "elapsed_seconds": 185.0078057,
+      "state": "completed",
+      "report": "E:\\SWB project\\data\\reports\\league_training\\generation_000_payoff_evaluations\\seed_20260903_1m__vs__seed_20260905_step_000000754924.json"
+    },
+    {
+      "pair_id": "seed_20260903_1m__vs__seed_20260906_1m",
+      "focal_policy_id": "seed_20260903_1m",
+      "opponent_id": "seed_20260906_1m",
+      "games": 196,
+      "score_rate": 0.5051020408163265,
+      "confidence_interval_95": [
+        0.43568483353067383,
+        0.5743230998171029
+      ],
+      "truncated": 0,
+      "elapsed_seconds": 204.9078461,
+      "state": "completed",
+      "report": "E:\\SWB project\\data\\reports\\league_training\\generation_000_payoff_evaluations\\seed_20260903_1m__vs__seed_20260906_1m.json"
+    },
+    {
+      "pair_id": "seed_20260903_1m__vs__seed_20260906_step_000000250388",
+      "focal_policy_id": "seed_20260903_1m",
+      "opponent_id": "seed_20260906_step_000000250388",
+      "games": 196,
+      "score_rate": 0.5510204081632653,
+      "confidence_interval_95": [
+        0.4810718698664744,
+        0.6190074636112942
+      ],
+      "truncated": 0,
+      "elapsed_seconds": 198.7242082,
+      "state": "completed",
+      "report": "E:\\SWB project\\data\\reports\\league_training\\generation_000_payoff_evaluations\\seed_20260903_1m__vs__seed_20260906_step_000000250388.json"
+    },
+    {
+      "pair_id": "seed_20260903_1m__vs__seed_20260906_step_000000501926",
+      "focal_policy_id": "seed_20260903_1m",
+      "opponent_id": "seed_20260906_step_000000501926",
+      "games": 196,
+      "score_rate": 0.5510204081632653,
+      "confidence_interval_95": [
+        0.4810718698664744,
+        0.6190074636112942
+      ],
+      "truncated": 0,
+      "elapsed_seconds": 198.4518201,
+      "state": "completed",
+      "report": "E:\\SWB project\\data\\reports\\league_training\\generation_000_payoff_evaluations\\seed_20260903_1m__vs__seed_20260906_step_000000501926.json"
+    },
+    {
+      "pair_id": "seed_20260903_1m__vs__seed_20260906_step_000000752930",
+      "focal_policy_id": "seed_20260903_1m",
+      "opponent_id": "seed_20260906_step_000000752930",
+      "games": 196,
+      "score_rate": 0.4897959183673469,
+      "confidence_interval_95": [
+        0.42068355389581125,
+        0.5593005794086351
+      ],
+      "truncated": 0,
+      "elapsed_seconds": 183.6425229,
+      "state": "completed",
+      "report": "E:\\SWB project\\data\\reports\\league_training\\generation_000_payoff_evaluations\\seed_20260903_1m__vs__seed_20260906_step_000000752930.json"
+    },
+    {
+      "pair_id": "seed_20260903_1m__vs__seed_20260907_1m",
+      "focal_policy_id": "seed_20260903_1m",
+      "opponent_id": "seed_20260907_1m",
+      "games": 196,
+      "score_rate": 0.4897959183673469,
+      "confidence_interval_95": [
+        0.42068355389581125,
+        0.5593005794086351
+      ],
+      "truncated": 0,
+      "elapsed_seconds": 208.9994403,
+      "state": "completed",
+      "report": "E:\\SWB project\\data\\reports\\league_training\\generation_000_payoff_evaluations\\seed_20260903_1m__vs__seed_20260907_1m.json"
+    },
+    {
+      "pair_id": "seed_20260903_1m__vs__seed_20260907_step_000000251182",
+      "focal_policy_id": "seed_20260903_1m",
+      "opponent_id": "seed_20260907_step_000000251182",
+      "games": 196,
+      "score_rate": 0.5561224489795918,
+      "confidence_interval_95": [
+        0.48615059275635336,
+        0.6239366740691921
+      ],
+      "truncated": 0,
+      "elapsed_seconds": 199.620002,
+      "state": "completed",
+      "report": "E:\\SWB project\\data\\reports\\league_training\\generation_000_payoff_evaluations\\seed_20260903_1m__vs__seed_20260907_step_000000251182.json"
+    },
+    {
+      "pair_id": "seed_20260903_1m__vs__seed_20260907_step_000000502487",
+      "focal_policy_id": "seed_20260903_1m",
+      "opponent_id": "seed_20260907_step_000000502487",
+      "games": 196,
+      "score_rate": 0.5204081632653061,
+      "confidence_interval_95": [
+        0.4507498517703269,
+        0.5892818816207807
+      ],
+      "truncated": 0,
+      "elapsed_seconds": 205.5714454,
+      "state": "completed",
+      "report": "E:\\SWB project\\data\\reports\\league_training\\generation_000_payoff_evaluations\\seed_20260903_1m__vs__seed_20260907_step_000000502487.json"
+    },
+    {
+      "pair_id": "seed_20260903_1m__vs__seed_20260907_step_000000752700",
+      "focal_policy_id": "seed_20260903_1m",
+      "opponent_id": "seed_20260907_step_000000752700",
+      "games": 196,
+      "score_rate": 0.5102040816326531,
+      "confidence_interval_95": [
+        0.4406994205913649,
+        0.5793164461041888
+      ],
+      "truncated": 0,
+      "elapsed_seconds": 207.7479694,
+      "state": "completed",
+      "report": "E:\\SWB project\\data\\reports\\league_training\\generation_000_payoff_evaluations\\seed_20260903_1m__vs__seed_20260907_step_000000752700.json"
+    },
+    {
+      "pair_id": "seed_20260903_1m__vs__seed_20260908_1m",
+      "focal_policy_id": "seed_20260903_1m",
+      "opponent_id": "seed_20260908_1m",
+      "games": 196,
+      "score_rate": 0.5612244897959183,
+      "confidence_interval_95": [
+        0.491236528471263,
+        0.6288586717020592
+      ],
+      "truncated": 0,
+      "elapsed_seconds": 205.6240551,
+      "state": "completed",
+      "report": "E:\\SWB project\\data\\reports\\league_training\\generation_000_payoff_evaluations\\seed_20260903_1m__vs__seed_20260908_1m.json"
+    },
+    {
+      "pair_id": "seed_20260903_1m__vs__seed_20260908_step_000000251398",
+      "focal_policy_id": "seed_20260903_1m",
+      "opponent_id": "seed_20260908_step_000000251398",
+      "games": 196,
+      "score_rate": 0.5918367346938775,
+      "confidence_interval_95": [
+        0.5219052294615438,
+        0.6582375707984396
+      ],
+      "truncated": 0,
+      "elapsed_seconds": 199.7040793,
+      "state": "completed",
+      "report": "E:\\SWB project\\data\\reports\\league_training\\generation_000_payoff_evaluations\\seed_20260903_1m__vs__seed_20260908_step_000000251398.json"
+    },
+    {
+      "pair_id": "seed_20260903_1m__vs__seed_20260908_step_000000501432",
+      "focal_policy_id": "seed_20260903_1m",
+      "opponent_id": "seed_20260908_step_000000501432",
+      "games": 196,
+      "score_rate": 0.5867346938775511,
+      "confidence_interval_95": [
+        0.5167753884251369,
+        0.6533594784870698
+      ],
+      "truncated": 0,
+      "elapsed_seconds": 204.1600978,
+      "state": "completed",
+      "report": "E:\\SWB project\\data\\reports\\league_training\\generation_000_payoff_evaluations\\seed_20260903_1m__vs__seed_20260908_step_000000501432.json"
+    },
+    {
+      "pair_id": "seed_20260903_1m__vs__seed_20260908_step_000000752070",
+      "focal_policy_id": "seed_20260903_1m",
+      "opponent_id": "seed_20260908_step_000000752070",
+      "games": 196,
+      "score_rate": 0.5561224489795918,
+      "confidence_interval_95": [
+        0.48615059275635336,
+        0.6239366740691921
+      ],
+      "truncated": 0,
+      "elapsed_seconds": 199.8964346,
+      "state": "completed",
+      "report": "E:\\SWB project\\data\\reports\\league_training\\generation_000_payoff_evaluations\\seed_20260903_1m__vs__seed_20260908_step_000000752070.json"
+    }
+  ],
+  "updated_at": "2026-08-04T20:33:15.5349093+08:00"
+}

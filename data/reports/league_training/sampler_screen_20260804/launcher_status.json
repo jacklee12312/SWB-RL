@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "state": "completed",
+  "launcher_pid": 50388,
+  "active_stage": "",
+  "active_job": "",
+  "completed": {
+    "training": 9,
+    "candidate_evaluation": 54,
+    "generation_000_active_matrix": 10,
+    "archive_baseline": 90
+  },
+  "expected": {
+    "training": 9,
+    "candidate_evaluation": 54,
+    "generation_000_active_matrix": 10,
+    "archive_baseline": 90
+  },
+  "total_additional_training_steps": 900000,
+  "total_queued_evaluation_games": 30184,
+  "data_partition": "pfsp_tuning",
+  "updated_at": "2026-08-05T08:36:59.7772714+08:00",
+  "error": ""
+}

@@ -311,6 +311,89 @@ class CheckpointTests(unittest.TestCase):
         if overridden is not None:
             overridden.close()
 
+    def test_checkpoint_fork_preserves_learning_state_and_reseeds_runtime(
+        self,
+    ) -> None:
+        source = self.trained_once()
+        forks = []
+        exact = None
+        try:
+            with tempfile.TemporaryDirectory(
+                dir=Path.cwd()
+            ) as directory_name:
+                directory = Path(directory_name)
+                checkpoint_path = directory / "source.pt"
+                save_checkpoint_atomic(checkpoint_path, source)
+                manifest_path = self._write_external_manifest(
+                    directory, source
+                )
+                overrides = {
+                    "opponent_current_weight": 0.0,
+                    "opponent_random_weight": 0.0,
+                    "opponent_fixed_weight": 0.0,
+                    "opponent_historical_weight": 0.0,
+                    "opponent_external_manifest": str(manifest_path),
+                    "opponent_external_weight": 1.0,
+                    "rollout_workers": 2,
+                }
+                with self.assertRaisesRegex(
+                    ValueError, "requires replace_opponent_pool=true"
+                ):
+                    load_checkpoint(
+                        checkpoint_path,
+                        self.snapshot,
+                        config_overrides=overrides,
+                        fork_master_seed=7001,
+                    )
+                for seed in (7001, 7001, 7002):
+                    forks.append(load_checkpoint(
+                        checkpoint_path,
+                        self.snapshot,
+                        config_overrides=overrides,
+                        replace_opponent_pool=True,
+                        fork_master_seed=seed,
+                    ))
+                first, repeated, different = forks
+                self.assertEqual(first.master_seed, 7001)
+                self.assertEqual(different.master_seed, 7002)
+                self.assertEqual(first.agent_steps, source.agent_steps)
+                self.assertEqual(first.update_count, source.update_count)
+                self.assertEqual(first.next_episode_id, 0)
+                self.assertEqual(first.completed_episodes, 0)
+                self.assertEqual(first.opponent_assignments, [])
+                self.assertEqual(first.matchup_statistics, {})
+                self.assertEqual(
+                    first.opponent_pool.state_dict(),
+                    repeated.opponent_pool.state_dict(),
+                )
+                self.assertNotEqual(
+                    first.torch_generator.get_state().tolist(),
+                    different.torch_generator.get_state().tolist(),
+                )
+                for name, expected in source.model.state_dict().items():
+                    torch.testing.assert_close(
+                        expected, first.model.state_dict()[name]
+                    )
+                fork_path = directory / "fork.pt"
+                save_checkpoint_atomic(fork_path, first)
+                fork_payload = torch.load(
+                    fork_path, map_location="cpu", weights_only=False
+                )
+                metadata = fork_payload["trainer"]["fork_metadata"]
+                self.assertEqual(metadata["parent_master_seed"], 2468)
+                self.assertEqual(metadata["fork_master_seed"], 7001)
+                self.assertEqual(
+                    metadata["parent_agent_steps"], source.agent_steps
+                )
+                exact = load_checkpoint(fork_path, self.snapshot)
+                self.assertEqual(exact.fork_metadata, metadata)
+        finally:
+            source.close()
+            for trainer in forks:
+                trainer.close()
+            if exact is not None:
+                exact.close()
+
     def test_batched_v41_learner_resume_next_update_drift_is_bounded(
         self,
     ) -> None:

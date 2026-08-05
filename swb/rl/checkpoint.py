@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import os
 import platform
 import random
@@ -110,6 +111,7 @@ def build_checkpoint(trainer: PPOTrainer) -> dict[str, object]:
             "opponent_pool_replaced_on_load": getattr(
                 trainer, "opponent_pool_replaced_on_load", False
             ),
+            "fork_metadata": getattr(trainer, "fork_metadata", None),
             "opponent_assignments": list(trainer.opponent_assignments),
             "matchup_statistics": dict(trainer.matchup_statistics),
             "current_matchup_assignment": trainer.current_matchup_assignment,
@@ -225,6 +227,14 @@ def _load_payload(path: str | Path) -> dict[str, Any]:
     return payload
 
 
+def _sha256_file(path: str | Path) -> str:
+    digest = hashlib.sha256()
+    with Path(path).open("rb") as handle:
+        for block in iter(lambda: handle.read(1024 * 1024), b""):
+            digest.update(block)
+    return digest.hexdigest()
+
+
 def load_checkpoint(
     path: str | Path,
     snapshot: WorkerAssetsSnapshot,
@@ -233,9 +243,26 @@ def load_checkpoint(
     restore_rng_state: bool = True,
     config_overrides: Mapping[str, object] | None = None,
     replace_opponent_pool: bool = False,
+    fork_master_seed: int | None = None,
 ) -> PPOTrainer:
+    if fork_master_seed is not None and (
+        not isinstance(fork_master_seed, int)
+        or isinstance(fork_master_seed, bool)
+        or fork_master_seed < 0
+    ):
+        raise ValueError("fork_master_seed must be a non-negative integer")
+    if fork_master_seed is not None and not replace_opponent_pool:
+        raise ValueError(
+            "fork_master_seed requires replace_opponent_pool=true"
+        )
     payload = _load_payload(path)
     trainer_state = payload["trainer"]
+    parent_master_seed = int(trainer_state["master_seed"])
+    effective_master_seed = (
+        parent_master_seed
+        if fork_master_seed is None
+        else fork_master_seed
+    )
     config_payload = dict(trainer_state["config"])
     overrides = dict(config_overrides or {})
     unsupported_overrides = sorted(
@@ -281,7 +308,7 @@ def load_checkpoint(
     )
     trainer = PPOTrainer(
         snapshot,
-        master_seed=int(trainer_state["master_seed"]),
+        master_seed=effective_master_seed,
         config=PPOConfig(**config_payload),
         device=device,
     )
@@ -292,12 +319,18 @@ def load_checkpoint(
 
     trainer.model.load_state_dict(payload["model_state"])
     trainer.optimizer.load_state_dict(payload["optimizer_state"])
-    trainer.next_episode_id = int(trainer_state["next_episode_id"])
-    trainer.current_episode_id = int(trainer_state["current_episode_id"])
-    trainer.completed_episodes = int(trainer_state["completed_episodes"])
     trainer.agent_steps = int(trainer_state["agent_steps"])
     trainer.update_count = int(trainer_state["update_count"])
-    trainer.learner_player = int(trainer_state["learner_player"])
+    if fork_master_seed is None:
+        trainer.next_episode_id = int(trainer_state["next_episode_id"])
+        trainer.current_episode_id = int(trainer_state["current_episode_id"])
+        trainer.completed_episodes = int(trainer_state["completed_episodes"])
+        trainer.learner_player = int(trainer_state["learner_player"])
+    else:
+        trainer.next_episode_id = 0
+        trainer.current_episode_id = 0
+        trainer.completed_episodes = 0
+        trainer.learner_player = 0
     trainer.current_opponent = (
         None
         if replace_opponent_pool or trainer_state["current_opponent"] is None
@@ -347,8 +380,22 @@ def load_checkpoint(
     )
     trainer.resume_config_overrides = overrides
     trainer.opponent_pool_replaced_on_load = replace_opponent_pool
-    trainer.matchup_statistics = dict(
-        trainer_state.get("matchup_statistics", {})
+    trainer.fork_metadata = (
+        trainer_state.get("fork_metadata")
+        if fork_master_seed is None
+        else {
+            "parent_checkpoint": str(Path(path).resolve()),
+            "parent_checkpoint_sha256": _sha256_file(path),
+            "parent_master_seed": parent_master_seed,
+            "fork_master_seed": fork_master_seed,
+            "parent_agent_steps": int(trainer_state["agent_steps"]),
+            "parent_update_count": int(trainer_state["update_count"]),
+        }
+    )
+    trainer.matchup_statistics = (
+        dict(trainer_state.get("matchup_statistics", {}))
+        if fork_master_seed is None
+        else {}
     )
     for stats in trainer.matchup_statistics.values():
         if "learner_first" in stats:
@@ -357,7 +404,7 @@ def load_checkpoint(
             stats["learner_player_1"] = stats.pop("learner_second")
     trainer.current_matchup_assignment = (
         None
-        if replace_opponent_pool
+        if replace_opponent_pool or fork_master_seed is not None
         else trainer_state.get("current_matchup_assignment")
     )
     trainer.current_episode_agent_steps = (
@@ -365,12 +412,19 @@ def load_checkpoint(
         if replace_opponent_pool
         else int(trainer_state.get("current_episode_agent_steps", 0))
     )
-    trainer.opponent_rng.setstate(trainer_state["opponent_rng_state"])
-    trainer.hidden_by_player = {
-        int(player): hidden.to(trainer.device)
-        for player, hidden in trainer_state["hidden_by_player"].items()
-    }
-    if restore_rng_state:
+    if fork_master_seed is None:
+        trainer.opponent_rng.setstate(trainer_state["opponent_rng_state"])
+        trainer.hidden_by_player = {
+            int(player): hidden.to(trainer.device)
+            for player, hidden in trainer_state["hidden_by_player"].items()
+        }
+    else:
+        trainer.opponent_rng.seed(fork_master_seed)
+        trainer.hidden_by_player = {
+            player: trainer.model.initial_state(1, device=trainer.device)
+            for player in (0, 1)
+        }
+    if restore_rng_state and fork_master_seed is None:
         try:
             trainer.torch_generator.set_state(
                 trainer_state["torch_generator_state"]
@@ -382,43 +436,54 @@ def load_checkpoint(
                 "same device type used to create the checkpoint"
             ) from exc
 
-    environment_state = payload["environment"]
-    decks = []
-    for card_ids in environment_state["deck_card_ids"]:
-        definitions = []
-        for card_id in card_ids:
-            definition = trainer.assets.catalog.resolve(card_id)
-            if definition is None:
-                raise ValueError(
-                    f"checkpoint deck references missing card {card_id}"
-                )
-            definitions.append(definition)
-        decks.append(definitions)
-    classes = environment_state["classes"]
-    trainer.env = ShadowverseEnv(
-        decks[0],
-        decks[1],
-        class_a=classes[0],
-        class_b=classes[1],
-        seed=0,
-        rulebook=trainer.assets.rulebook,
-        card_resolver=trainer.assets.catalog.resolve,
-        observation_version=trainer.config.observation_version,
-        card_vocabulary=trainer.assets.catalog.card_vocabulary,
-        max_game_turns=trainer.config.max_game_turns,
-        max_agent_steps=trainer.config.max_agent_steps_per_episode,
-        training_mode=True,
-        match_setup=trainer.config.match_setup,
-    )
-    trainer.env.restore(environment_state["snapshot"])
-    mask = trainer.env.action_mask()
-    trainer.info = trainer.env.info(action_mask=mask)
-    if replace_opponent_pool and trainer.config.rollout_workers == 1:
+    if fork_master_seed is None:
+        environment_state = payload["environment"]
+        decks = []
+        for card_ids in environment_state["deck_card_ids"]:
+            definitions = []
+            for card_id in card_ids:
+                definition = trainer.assets.catalog.resolve(card_id)
+                if definition is None:
+                    raise ValueError(
+                        f"checkpoint deck references missing card {card_id}"
+                    )
+                definitions.append(definition)
+            decks.append(definitions)
+        classes = environment_state["classes"]
+        trainer.env = ShadowverseEnv(
+            decks[0],
+            decks[1],
+            class_a=classes[0],
+            class_b=classes[1],
+            seed=0,
+            rulebook=trainer.assets.rulebook,
+            card_resolver=trainer.assets.catalog.resolve,
+            observation_version=trainer.config.observation_version,
+            card_vocabulary=trainer.assets.catalog.card_vocabulary,
+            max_game_turns=trainer.config.max_game_turns,
+            max_agent_steps=trainer.config.max_agent_steps_per_episode,
+            training_mode=True,
+            match_setup=trainer.config.match_setup,
+        )
+        trainer.env.restore(environment_state["snapshot"])
+        mask = trainer.env.action_mask()
+        trainer.info = trainer.env.info(action_mask=mask)
+        if replace_opponent_pool and trainer.config.rollout_workers == 1:
+            trainer._start_episode()
+        else:
+            trainer._prepare_opponent()
+    elif trainer.config.rollout_workers == 1:
+        trainer.next_episode_id = 0
+        trainer.opponent_assignments.clear()
+        trainer.opponent_pool.selection_count = 0
+        trainer.opponent_pool.selection_counts.clear()
+        trainer.opponent_pool.selection_counts_by_opponent.clear()
         trainer._start_episode()
     else:
         trainer._prepare_opponent()
     if (
-        not replace_opponent_pool
+        fork_master_seed is None
+        and not replace_opponent_pool
         and trainer.opponent_hidden is not None
         and trainer_state["opponent_hidden"] is not None
     ):
@@ -434,11 +499,18 @@ def load_checkpoint(
     )
     trainer._last_opponent_cache_key = cache_metrics.get("last_key")
 
-    if restore_rng_state:
+    if restore_rng_state and fork_master_seed is None:
         rng = payload["rng"]
         random.setstate(rng["python"])
         np.random.set_state(rng["numpy"])
         torch.set_rng_state(rng["torch_cpu"])
         if torch.cuda.is_available() and rng["torch_cuda"] is not None:
             torch.cuda.set_rng_state_all(rng["torch_cuda"])
+    elif fork_master_seed is not None:
+        random.seed(fork_master_seed)
+        np.random.seed(fork_master_seed % (2**32))
+        torch.manual_seed(fork_master_seed)
+        if torch.cuda.is_available():
+            torch.cuda.manual_seed_all(fork_master_seed)
+        trainer.torch_generator.manual_seed(fork_master_seed)
     return trainer

@@ -1,0 +1,678 @@
+{
+  "active_policy_ids": [
+    "seed_20260903_1m",
+    "seed_20260904_1m",
+    "seed_20260905_1m",
+    "seed_20260906_1m",
+    "seed_20260907_1m",
+    "seed_20260908_1m"
+  ],
+  "audit": {
+    "action_mask_mismatches": 0,
+    "antisymmetric": true,
+    "complete": true,
+    "illegal_actions": 0,
+    "report_sources": [
+      {
+        "bytes": 489554,
+        "path": "data/reports/league_training/generation_000_payoff_evaluations/seed_20260903_1m__vs__seed_20260904_1m.json",
+        "sha256": "3020d945365eb9b34bce465d32df8c156e3386cc8568fc1dfff489c3ba091c0e"
+      },
+      {
+        "bytes": 489653,
+        "path": "data/reports/league_training/generation_000_payoff_evaluations/seed_20260903_1m__vs__seed_20260905_1m.json",
+        "sha256": "aacab9a155481435999ed957a5c3c2e80d5bc80ba14549c70eb720f894cc84df"
+      },
+      {
+        "bytes": 489642,
+        "path": "data/reports/league_training/generation_000_payoff_evaluations/seed_20260903_1m__vs__seed_20260906_1m.json",
+        "sha256": "7805a079464dbf2b12fb20cacf3248b30d18d1eda3145511befadad78d56e34a"
+      },
+      {
+        "bytes": 489312,
+        "path": "data/reports/league_training/generation_000_payoff_evaluations/seed_20260903_1m__vs__seed_20260907_1m.json",
+        "sha256": "7024025eab354de7182306db56c74fc7b97d94e8f38297ee58757bb9769c5bf0"
+      },
+      {
+        "bytes": 489785,
+        "path": "data/reports/league_training/generation_000_payoff_evaluations/seed_20260903_1m__vs__seed_20260908_1m.json",
+        "sha256": "d2073ccc74b41076fe2f7f0b3edd5eb98a576c965419aa51044a1ee519e2ba74"
+      },
+      {
+        "bytes": 489424,
+        "path": "data/reports/league_training/sampler_screen_20260804/generation_000_active_matrix/seed_20260904_1m__vs__seed_20260905_1m.json",
+        "sha256": "db37f74a69febb8490e1fc534d6f957ea897e252cf9ccc44a570798339cb5db4"
+      },
+      {
+        "bytes": 489560,
+        "path": "data/reports/league_training/sampler_screen_20260804/generation_000_active_matrix/seed_20260904_1m__vs__seed_20260906_1m.json",
+        "sha256": "64af8c58fa700bfed3bc5b0ec37c1ccc0a20ab4960236e650b7240e6a119f072"
+      },
+      {
+        "bytes": 489599,
+        "path": "data/reports/league_training/sampler_screen_20260804/generation_000_active_matrix/seed_20260904_1m__vs__seed_20260907_1m.json",
+        "sha256": "584c5bb2cd6e4763f777346d0ad817b2405e03764e309305419db8f4d38a5c65"
+      },
+      {
+        "bytes": 489596,
+        "path": "data/reports/league_training/sampler_screen_20260804/generation_000_active_matrix/seed_20260904_1m__vs__seed_20260908_1m.json",
+        "sha256": "445078c5b68bc1ea42135bf1e7b4a75c4b351cb869842541f3ba06f6141b1a51"
+      },
+      {
+        "bytes": 489707,
+        "path": "data/reports/league_training/sampler_screen_20260804/generation_000_active_matrix/seed_20260905_1m__vs__seed_20260906_1m.json",
+        "sha256": "ba2f7e4fbb68a108531c77124dcfbe1d52be0173178753b8b483f64cfcc870c1"
+      },
+      {
+        "bytes": 489542,
+        "path": "data/reports/league_training/sampler_screen_20260804/generation_000_active_matrix/seed_20260905_1m__vs__seed_20260907_1m.json",
+        "sha256": "f96d7c71c1f52cb366a64f6ffb70dafbedee5f40fe340f7588bc91529c895e69"
+      },
+      {
+        "bytes": 489528,
+        "path": "data/reports/league_training/sampler_screen_20260804/generation_000_active_matrix/seed_20260905_1m__vs__seed_20260908_1m.json",
+        "sha256": "85afa8ddd3eb0780397562452705027d90c62fb02516d1b2bc190d1ddfcc8fa6"
+      },
+      {
+        "bytes": 489406,
+        "path": "data/reports/league_training/sampler_screen_20260804/generation_000_active_matrix/seed_20260906_1m__vs__seed_20260907_1m.json",
+        "sha256": "96c5897be45139eeb75b2c7749444b1014dae5073f66c08dec56092f7b8a487f"
+      },
+      {
+        "bytes": 489558,
+        "path": "data/reports/league_training/sampler_screen_20260804/generation_000_active_matrix/seed_20260906_1m__vs__seed_20260908_1m.json",
+        "sha256": "0ead5f0b8e78e5716bc0bb7b69c6102061bb5bcea4788f3328f78913580f5278"
+      },
+      {
+        "bytes": 489711,
+        "path": "data/reports/league_training/sampler_screen_20260804/generation_000_active_matrix/seed_20260907_1m__vs__seed_20260908_1m.json",
+        "sha256": "0cfd174127bc18150c05b41fd441bc18f5b4c3baa1965497b8b7de6d93fcb367"
+      }
+    ],
+    "truncated": 0
+  },
+  "confidence_interval_95_matrix": {
+    "seed_20260903_1m": {
+      "seed_20260903_1m": [
+        0.5,
+        0.5
+      ],
+      "seed_20260904_1m": [
+        0.47093597117600566,
+        0.6091274956062093
+      ],
+      "seed_20260905_1m": [
+        0.5270425165533744,
+        0.6631082170543859
+      ],
+      "seed_20260906_1m": [
+        0.43568483353067383,
+        0.5743230998171029
+      ],
+      "seed_20260907_1m": [
+        0.42068355389581125,
+        0.5593005794086351
+      ],
+      "seed_20260908_1m": [
+        0.491236528471263,
+        0.6288586717020592
+      ]
+    },
+    "seed_20260904_1m": {
+      "seed_20260903_1m": [
+        0.39087250439379073,
+        0.5290640288239943
+      ],
+      "seed_20260904_1m": [
+        0.5,
+        0.5
+      ],
+      "seed_20260905_1m": [
+        0.4406994205913649,
+        0.5793164461041888
+      ],
+      "seed_20260906_1m": [
+        0.4406994205913649,
+        0.5793164461041888
+      ],
+      "seed_20260907_1m": [
+        0.4406994205913649,
+        0.5793164461041888
+      ],
+      "seed_20260908_1m": [
+        0.4810718698664744,
+        0.6190074636112942
+      ]
+    },
+    "seed_20260905_1m": {
+      "seed_20260903_1m": [
+        0.33689178294561406,
+        0.4729574834466256
+      ],
+      "seed_20260904_1m": [
+        0.42068355389581125,
+        0.5593005794086351
+      ],
+      "seed_20260905_1m": [
+        0.5,
+        0.5
+      ],
+      "seed_20260906_1m": [
+        0.4256769001828971,
+        0.5643151664693262
+      ],
+      "seed_20260907_1m": [
+        0.39582322206648934,
+        0.5341212444990728
+      ],
+      "seed_20260908_1m": [
+        0.46587875550092717,
+        0.6041767779335108
+      ]
+    },
+    "seed_20260906_1m": {
+      "seed_20260903_1m": [
+        0.42567690018289706,
+        0.5643151664693262
+      ],
+      "seed_20260904_1m": [
+        0.42068355389581125,
+        0.5593005794086351
+      ],
+      "seed_20260905_1m": [
+        0.4356848335306738,
+        0.5743230998171029
+      ],
+      "seed_20260906_1m": [
+        0.5,
+        0.5
+      ],
+      "seed_20260907_1m": [
+        0.41071811837921945,
+        0.5492501482296732
+      ],
+      "seed_20260908_1m": [
+        0.46587875550092717,
+        0.6041767779335108
+      ]
+    },
+    "seed_20260907_1m": {
+      "seed_20260903_1m": [
+        0.4406994205913649,
+        0.5793164461041888
+      ],
+      "seed_20260904_1m": [
+        0.42068355389581125,
+        0.5593005794086351
+      ],
+      "seed_20260905_1m": [
+        0.46587875550092717,
+        0.6041767779335107
+      ],
+      "seed_20260906_1m": [
+        0.4507498517703268,
+        0.5892818816207805
+      ],
+      "seed_20260907_1m": [
+        0.5,
+        0.5
+      ],
+      "seed_20260908_1m": [
+        0.4760003363700005,
+        0.6140710637599911
+      ]
+    },
+    "seed_20260908_1m": {
+      "seed_20260903_1m": [
+        0.3711413282979408,
+        0.508763471528737
+      ],
+      "seed_20260904_1m": [
+        0.3809925363887058,
+        0.5189281301335256
+      ],
+      "seed_20260905_1m": [
+        0.39582322206648923,
+        0.5341212444990728
+      ],
+      "seed_20260906_1m": [
+        0.39582322206648923,
+        0.5341212444990728
+      ],
+      "seed_20260907_1m": [
+        0.3859289362400089,
+        0.5239996636299995
+      ],
+      "seed_20260908_1m": [
+        0.5,
+        0.5
+      ]
+    }
+  },
+  "data_partition": "pfsp_tuning",
+  "games_per_unique_pair": 196,
+  "generation": 0,
+  "immutable": true,
+  "master_seed": 20261001,
+  "pairs": [
+    {
+      "average_agent_steps": 75.28061224489795,
+      "average_turn": 16.622448979591837,
+      "confidence_interval_95": [
+        0.47093597117600566,
+        0.6091274956062093
+      ],
+      "draws": 0,
+      "games": 196,
+      "left": "seed_20260903_1m",
+      "losses": 90,
+      "report": {
+        "bytes": 489554,
+        "path": "data/reports/league_training/generation_000_payoff_evaluations/seed_20260903_1m__vs__seed_20260904_1m.json",
+        "sha256": "3020d945365eb9b34bce465d32df8c156e3386cc8568fc1dfff489c3ba091c0e"
+      },
+      "right": "seed_20260904_1m",
+      "score_rate": 0.5408163265306123,
+      "side_win_rates": {
+        "0": 0.5,
+        "1": 0.5816326530612245
+      },
+      "wins": 106
+    },
+    {
+      "average_agent_steps": 78.48979591836735,
+      "average_turn": 17.433673469387756,
+      "confidence_interval_95": [
+        0.5270425165533744,
+        0.6631082170543859
+      ],
+      "draws": 0,
+      "games": 196,
+      "left": "seed_20260903_1m",
+      "losses": 79,
+      "report": {
+        "bytes": 489653,
+        "path": "data/reports/league_training/generation_000_payoff_evaluations/seed_20260903_1m__vs__seed_20260905_1m.json",
+        "sha256": "aacab9a155481435999ed957a5c3c2e80d5bc80ba14549c70eb720f894cc84df"
+      },
+      "right": "seed_20260905_1m",
+      "score_rate": 0.5969387755102041,
+      "side_win_rates": {
+        "0": 0.5612244897959183,
+        "1": 0.6326530612244898
+      },
+      "wins": 117
+    },
+    {
+      "average_agent_steps": 79.9795918367347,
+      "average_turn": 17.617346938775512,
+      "confidence_interval_95": [
+        0.43568483353067383,
+        0.5743230998171029
+      ],
+      "draws": 0,
+      "games": 196,
+      "left": "seed_20260903_1m",
+      "losses": 97,
+      "report": {
+        "bytes": 489642,
+        "path": "data/reports/league_training/generation_000_payoff_evaluations/seed_20260903_1m__vs__seed_20260906_1m.json",
+        "sha256": "7805a079464dbf2b12fb20cacf3248b30d18d1eda3145511befadad78d56e34a"
+      },
+      "right": "seed_20260906_1m",
+      "score_rate": 0.5051020408163265,
+      "side_win_rates": {
+        "0": 0.47959183673469385,
+        "1": 0.5306122448979592
+      },
+      "wins": 99
+    },
+    {
+      "average_agent_steps": 81.62244897959184,
+      "average_turn": 17.392857142857142,
+      "confidence_interval_95": [
+        0.42068355389581125,
+        0.5593005794086351
+      ],
+      "draws": 0,
+      "games": 196,
+      "left": "seed_20260903_1m",
+      "losses": 100,
+      "report": {
+        "bytes": 489312,
+        "path": "data/reports/league_training/generation_000_payoff_evaluations/seed_20260903_1m__vs__seed_20260907_1m.json",
+        "sha256": "7024025eab354de7182306db56c74fc7b97d94e8f38297ee58757bb9769c5bf0"
+      },
+      "right": "seed_20260907_1m",
+      "score_rate": 0.4897959183673469,
+      "side_win_rates": {
+        "0": 0.5102040816326531,
+        "1": 0.46938775510204084
+      },
+      "wins": 96
+    },
+    {
+      "average_agent_steps": 79.13775510204081,
+      "average_turn": 17.132653061224488,
+      "confidence_interval_95": [
+        0.491236528471263,
+        0.6288586717020592
+      ],
+      "draws": 0,
+      "games": 196,
+      "left": "seed_20260903_1m",
+      "losses": 86,
+      "report": {
+        "bytes": 489785,
+        "path": "data/reports/league_training/generation_000_payoff_evaluations/seed_20260903_1m__vs__seed_20260908_1m.json",
+        "sha256": "d2073ccc74b41076fe2f7f0b3edd5eb98a576c965419aa51044a1ee519e2ba74"
+      },
+      "right": "seed_20260908_1m",
+      "score_rate": 0.5612244897959183,
+      "side_win_rates": {
+        "0": 0.5510204081632653,
+        "1": 0.5714285714285714
+      },
+      "wins": 110
+    },
+    {
+      "average_agent_steps": 76.03061224489795,
+      "average_turn": 16.867346938775512,
+      "confidence_interval_95": [
+        0.4406994205913649,
+        0.5793164461041888
+      ],
+      "draws": 0,
+      "games": 196,
+      "left": "seed_20260904_1m",
+      "losses": 96,
+      "report": {
+        "bytes": 489424,
+        "path": "data/reports/league_training/sampler_screen_20260804/generation_000_active_matrix/seed_20260904_1m__vs__seed_20260905_1m.json",
+        "sha256": "db37f74a69febb8490e1fc534d6f957ea897e252cf9ccc44a570798339cb5db4"
+      },
+      "right": "seed_20260905_1m",
+      "score_rate": 0.5102040816326531,
+      "side_win_rates": {
+        "0": 0.5,
+        "1": 0.5204081632653061
+      },
+      "wins": 100
+    },
+    {
+      "average_agent_steps": 78.54591836734694,
+      "average_turn": 17.239795918367346,
+      "confidence_interval_95": [
+        0.4406994205913649,
+        0.5793164461041888
+      ],
+      "draws": 0,
+      "games": 196,
+      "left": "seed_20260904_1m",
+      "losses": 96,
+      "report": {
+        "bytes": 489560,
+        "path": "data/reports/league_training/sampler_screen_20260804/generation_000_active_matrix/seed_20260904_1m__vs__seed_20260906_1m.json",
+        "sha256": "64af8c58fa700bfed3bc5b0ec37c1ccc0a20ab4960236e650b7240e6a119f072"
+      },
+      "right": "seed_20260906_1m",
+      "score_rate": 0.5102040816326531,
+      "side_win_rates": {
+        "0": 0.5,
+        "1": 0.5204081632653061
+      },
+      "wins": 100
+    },
+    {
+      "average_agent_steps": 75.07142857142857,
+      "average_turn": 16.275510204081634,
+      "confidence_interval_95": [
+        0.4406994205913649,
+        0.5793164461041888
+      ],
+      "draws": 0,
+      "games": 196,
+      "left": "seed_20260904_1m",
+      "losses": 96,
+      "report": {
+        "bytes": 489599,
+        "path": "data/reports/league_training/sampler_screen_20260804/generation_000_active_matrix/seed_20260904_1m__vs__seed_20260907_1m.json",
+        "sha256": "584c5bb2cd6e4763f777346d0ad817b2405e03764e309305419db8f4d38a5c65"
+      },
+      "right": "seed_20260907_1m",
+      "score_rate": 0.5102040816326531,
+      "side_win_rates": {
+        "0": 0.5510204081632653,
+        "1": 0.46938775510204084
+      },
+      "wins": 100
+    },
+    {
+      "average_agent_steps": 78.71938775510205,
+      "average_turn": 16.959183673469386,
+      "confidence_interval_95": [
+        0.4810718698664744,
+        0.6190074636112942
+      ],
+      "draws": 0,
+      "games": 196,
+      "left": "seed_20260904_1m",
+      "losses": 88,
+      "report": {
+        "bytes": 489596,
+        "path": "data/reports/league_training/sampler_screen_20260804/generation_000_active_matrix/seed_20260904_1m__vs__seed_20260908_1m.json",
+        "sha256": "445078c5b68bc1ea42135bf1e7b4a75c4b351cb869842541f3ba06f6141b1a51"
+      },
+      "right": "seed_20260908_1m",
+      "score_rate": 0.5510204081632653,
+      "side_win_rates": {
+        "0": 0.5510204081632653,
+        "1": 0.5510204081632653
+      },
+      "wins": 108
+    },
+    {
+      "average_agent_steps": 76.36734693877551,
+      "average_turn": 17.0765306122449,
+      "confidence_interval_95": [
+        0.4256769001828971,
+        0.5643151664693262
+      ],
+      "draws": 0,
+      "games": 196,
+      "left": "seed_20260905_1m",
+      "losses": 99,
+      "report": {
+        "bytes": 489707,
+        "path": "data/reports/league_training/sampler_screen_20260804/generation_000_active_matrix/seed_20260905_1m__vs__seed_20260906_1m.json",
+        "sha256": "ba2f7e4fbb68a108531c77124dcfbe1d52be0173178753b8b483f64cfcc870c1"
+      },
+      "right": "seed_20260906_1m",
+      "score_rate": 0.49489795918367346,
+      "side_win_rates": {
+        "0": 0.5306122448979592,
+        "1": 0.45918367346938777
+      },
+      "wins": 97
+    },
+    {
+      "average_agent_steps": 76.22448979591837,
+      "average_turn": 16.632653061224488,
+      "confidence_interval_95": [
+        0.39582322206648934,
+        0.5341212444990728
+      ],
+      "draws": 0,
+      "games": 196,
+      "left": "seed_20260905_1m",
+      "losses": 105,
+      "report": {
+        "bytes": 489542,
+        "path": "data/reports/league_training/sampler_screen_20260804/generation_000_active_matrix/seed_20260905_1m__vs__seed_20260907_1m.json",
+        "sha256": "f96d7c71c1f52cb366a64f6ffb70dafbedee5f40fe340f7588bc91529c895e69"
+      },
+      "right": "seed_20260907_1m",
+      "score_rate": 0.4642857142857143,
+      "side_win_rates": {
+        "0": 0.5,
+        "1": 0.42857142857142855
+      },
+      "wins": 91
+    },
+    {
+      "average_agent_steps": 78.31632653061224,
+      "average_turn": 17.224489795918366,
+      "confidence_interval_95": [
+        0.46587875550092717,
+        0.6041767779335108
+      ],
+      "draws": 0,
+      "games": 196,
+      "left": "seed_20260905_1m",
+      "losses": 91,
+      "report": {
+        "bytes": 489528,
+        "path": "data/reports/league_training/sampler_screen_20260804/generation_000_active_matrix/seed_20260905_1m__vs__seed_20260908_1m.json",
+        "sha256": "85afa8ddd3eb0780397562452705027d90c62fb02516d1b2bc190d1ddfcc8fa6"
+      },
+      "right": "seed_20260908_1m",
+      "score_rate": 0.5357142857142857,
+      "side_win_rates": {
+        "0": 0.5204081632653061,
+        "1": 0.5510204081632653
+      },
+      "wins": 105
+    },
+    {
+      "average_agent_steps": 77.26530612244898,
+      "average_turn": 16.76530612244898,
+      "confidence_interval_95": [
+        0.41071811837921945,
+        0.5492501482296732
+      ],
+      "draws": 0,
+      "games": 196,
+      "left": "seed_20260906_1m",
+      "losses": 102,
+      "report": {
+        "bytes": 489406,
+        "path": "data/reports/league_training/sampler_screen_20260804/generation_000_active_matrix/seed_20260906_1m__vs__seed_20260907_1m.json",
+        "sha256": "96c5897be45139eeb75b2c7749444b1014dae5073f66c08dec56092f7b8a487f"
+      },
+      "right": "seed_20260907_1m",
+      "score_rate": 0.47959183673469385,
+      "side_win_rates": {
+        "0": 0.5306122448979592,
+        "1": 0.42857142857142855
+      },
+      "wins": 94
+    },
+    {
+      "average_agent_steps": 77.41836734693878,
+      "average_turn": 17.005102040816325,
+      "confidence_interval_95": [
+        0.46587875550092717,
+        0.6041767779335108
+      ],
+      "draws": 0,
+      "games": 196,
+      "left": "seed_20260906_1m",
+      "losses": 91,
+      "report": {
+        "bytes": 489558,
+        "path": "data/reports/league_training/sampler_screen_20260804/generation_000_active_matrix/seed_20260906_1m__vs__seed_20260908_1m.json",
+        "sha256": "0ead5f0b8e78e5716bc0bb7b69c6102061bb5bcea4788f3328f78913580f5278"
+      },
+      "right": "seed_20260908_1m",
+      "score_rate": 0.5357142857142857,
+      "side_win_rates": {
+        "0": 0.5510204081632653,
+        "1": 0.5204081632653061
+      },
+      "wins": 105
+    },
+    {
+      "average_agent_steps": 78.27551020408163,
+      "average_turn": 16.836734693877553,
+      "confidence_interval_95": [
+        0.4760003363700005,
+        0.6140710637599911
+      ],
+      "draws": 0,
+      "games": 196,
+      "left": "seed_20260907_1m",
+      "losses": 89,
+      "report": {
+        "bytes": 489711,
+        "path": "data/reports/league_training/sampler_screen_20260804/generation_000_active_matrix/seed_20260907_1m__vs__seed_20260908_1m.json",
+        "sha256": "0cfd174127bc18150c05b41fd441bc18f5b4c3baa1965497b8b7de6d93fcb367"
+      },
+      "right": "seed_20260908_1m",
+      "score_rate": 0.5459183673469388,
+      "side_win_rates": {
+        "0": 0.5408163265306123,
+        "1": 0.5510204081632653
+      },
+      "wins": 107
+    }
+  ],
+  "report_kind": "ppo_league_active_payoff_matrix",
+  "schema_version": 1,
+  "score_matrix": {
+    "seed_20260903_1m": {
+      "seed_20260903_1m": 0.5,
+      "seed_20260904_1m": 0.5408163265306123,
+      "seed_20260905_1m": 0.5969387755102041,
+      "seed_20260906_1m": 0.5051020408163265,
+      "seed_20260907_1m": 0.4897959183673469,
+      "seed_20260908_1m": 0.5612244897959183
+    },
+    "seed_20260904_1m": {
+      "seed_20260903_1m": 0.4591836734693877,
+      "seed_20260904_1m": 0.5,
+      "seed_20260905_1m": 0.5102040816326531,
+      "seed_20260906_1m": 0.5102040816326531,
+      "seed_20260907_1m": 0.5102040816326531,
+      "seed_20260908_1m": 0.5510204081632653
+    },
+    "seed_20260905_1m": {
+      "seed_20260903_1m": 0.40306122448979587,
+      "seed_20260904_1m": 0.4897959183673469,
+      "seed_20260905_1m": 0.5,
+      "seed_20260906_1m": 0.49489795918367346,
+      "seed_20260907_1m": 0.4642857142857143,
+      "seed_20260908_1m": 0.5357142857142857
+    },
+    "seed_20260906_1m": {
+      "seed_20260903_1m": 0.4948979591836735,
+      "seed_20260904_1m": 0.4897959183673469,
+      "seed_20260905_1m": 0.5051020408163265,
+      "seed_20260906_1m": 0.5,
+      "seed_20260907_1m": 0.47959183673469385,
+      "seed_20260908_1m": 0.5357142857142857
+    },
+    "seed_20260907_1m": {
+      "seed_20260903_1m": 0.5102040816326531,
+      "seed_20260904_1m": 0.4897959183673469,
+      "seed_20260905_1m": 0.5357142857142857,
+      "seed_20260906_1m": 0.5204081632653061,
+      "seed_20260907_1m": 0.5,
+      "seed_20260908_1m": 0.5459183673469388
+    },
+    "seed_20260908_1m": {
+      "seed_20260903_1m": 0.4387755102040817,
+      "seed_20260904_1m": 0.44897959183673475,
+      "seed_20260905_1m": 0.4642857142857143,
+      "seed_20260906_1m": 0.4642857142857143,
+      "seed_20260907_1m": 0.45408163265306123,
+      "seed_20260908_1m": 0.5
+    }
+  },
+  "source_generation_manifest": {
+    "bytes": 25893,
+    "path": "data/reports/league_training/generation_000_manifest.json",
+    "sha256": "3112acd59bc766378c4d38ba554907a600e1c2461217be8b58533822ffbbb718"
+  },
+  "total_games": 2940,
+  "unique_pair_count": 15
+}

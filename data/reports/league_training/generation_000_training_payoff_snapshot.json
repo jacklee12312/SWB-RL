@@ -1,0 +1,925 @@
+{
+  "aggregation": "equal_weight_mean_across_focal_policies",
+  "audit": {
+    "action_mask_mismatches": 0,
+    "expected_opponents": 24,
+    "expected_reports": 24,
+    "illegal_actions": 0,
+    "observed_opponents": 24,
+    "observed_reports": 24,
+    "source_reports": [
+      {
+        "bytes": 489566,
+        "path": "data/reports/league_training/generation_000_payoff_evaluations/seed_20260903_1m__vs__seed_20260903_1m.json",
+        "sha256": "545f9ec669cbfbd6e0b01cb71c55072266290ce88448fb27945a9b9d973b509b"
+      },
+      {
+        "bytes": 489499,
+        "path": "data/reports/league_training/generation_000_payoff_evaluations/seed_20260903_1m__vs__seed_20260903_step_000000250544.json",
+        "sha256": "03ec11fe28ade670e6430a14693d5cb912b32bf6e25f256574f8b06ae9f1683f"
+      },
+      {
+        "bytes": 489761,
+        "path": "data/reports/league_training/generation_000_payoff_evaluations/seed_20260903_1m__vs__seed_20260903_step_000000501095.json",
+        "sha256": "36d12b2e0c927b726c813b33414d896496992b76adeeddbf4c2e6a01906d7cfd"
+      },
+      {
+        "bytes": 489760,
+        "path": "data/reports/league_training/generation_000_payoff_evaluations/seed_20260903_1m__vs__seed_20260903_step_000000753128.json",
+        "sha256": "f9a13494a75f7a1ef0b0ab2ef8d81be7219cbf904c83221a534b0992fd8a0944"
+      },
+      {
+        "bytes": 489554,
+        "path": "data/reports/league_training/generation_000_payoff_evaluations/seed_20260903_1m__vs__seed_20260904_1m.json",
+        "sha256": "3020d945365eb9b34bce465d32df8c156e3386cc8568fc1dfff489c3ba091c0e"
+      },
+      {
+        "bytes": 489537,
+        "path": "data/reports/league_training/generation_000_payoff_evaluations/seed_20260903_1m__vs__seed_20260904_step_000000251757.json",
+        "sha256": "18de82e39d5c07d519522bb5aefaaff1ed3ec182ef6b84c66c6701f93b230fae"
+      },
+      {
+        "bytes": 489519,
+        "path": "data/reports/league_training/generation_000_payoff_evaluations/seed_20260903_1m__vs__seed_20260904_step_000000502243.json",
+        "sha256": "ab67099569d9d3a564cb8d5ab0887387f86b1f27d944a94e681abc0bb5e5c9a7"
+      },
+      {
+        "bytes": 489492,
+        "path": "data/reports/league_training/generation_000_payoff_evaluations/seed_20260903_1m__vs__seed_20260904_step_000000752453.json",
+        "sha256": "7d5ca4f10cb50f1cdd59c3a59feacf5b9af1fc4511ccd3a9fa22b5be0502e4e3"
+      },
+      {
+        "bytes": 489653,
+        "path": "data/reports/league_training/generation_000_payoff_evaluations/seed_20260903_1m__vs__seed_20260905_1m.json",
+        "sha256": "aacab9a155481435999ed957a5c3c2e80d5bc80ba14549c70eb720f894cc84df"
+      },
+      {
+        "bytes": 489694,
+        "path": "data/reports/league_training/generation_000_payoff_evaluations/seed_20260903_1m__vs__seed_20260905_step_000000251545.json",
+        "sha256": "33693e7bd365935d802513dc24f3a5639bcfee700d48b2bff795cd57afcb8495"
+      },
+      {
+        "bytes": 489686,
+        "path": "data/reports/league_training/generation_000_payoff_evaluations/seed_20260903_1m__vs__seed_20260905_step_000000503250.json",
+        "sha256": "468e26bf327cbd7250d4579d18bcf63e8845bc13ce79ca2405e279e1342da053"
+      },
+      {
+        "bytes": 489619,
+        "path": "data/reports/league_training/generation_000_payoff_evaluations/seed_20260903_1m__vs__seed_20260905_step_000000754924.json",
+        "sha256": "604f047c6a044cf257f1bbb03523c5a2427ae48c0ad158a3a2a139fa8675993e"
+      },
+      {
+        "bytes": 489642,
+        "path": "data/reports/league_training/generation_000_payoff_evaluations/seed_20260903_1m__vs__seed_20260906_1m.json",
+        "sha256": "7805a079464dbf2b12fb20cacf3248b30d18d1eda3145511befadad78d56e34a"
+      },
+      {
+        "bytes": 489607,
+        "path": "data/reports/league_training/generation_000_payoff_evaluations/seed_20260903_1m__vs__seed_20260906_step_000000250388.json",
+        "sha256": "44564ae9f5de8fedb50ec84637a9048bde96df3d66a598b148ba388b53b53690"
+      },
+      {
+        "bytes": 489727,
+        "path": "data/reports/league_training/generation_000_payoff_evaluations/seed_20260903_1m__vs__seed_20260906_step_000000501926.json",
+        "sha256": "e66291766536523552d6d4a89cc0812094668d0125a50b6951973249c020425b"
+      },
+      {
+        "bytes": 489627,
+        "path": "data/reports/league_training/generation_000_payoff_evaluations/seed_20260903_1m__vs__seed_20260906_step_000000752930.json",
+        "sha256": "6410ccb67cb8303071631549c72f228df9b310fb9c2b20c8850e191d68b72ba3"
+      },
+      {
+        "bytes": 489312,
+        "path": "data/reports/league_training/generation_000_payoff_evaluations/seed_20260903_1m__vs__seed_20260907_1m.json",
+        "sha256": "7024025eab354de7182306db56c74fc7b97d94e8f38297ee58757bb9769c5bf0"
+      },
+      {
+        "bytes": 489701,
+        "path": "data/reports/league_training/generation_000_payoff_evaluations/seed_20260903_1m__vs__seed_20260907_step_000000251182.json",
+        "sha256": "34241714e35cdcc167971fd1ee2a6a2b728b9de489cd32a387b373129fc722a0"
+      },
+      {
+        "bytes": 489742,
+        "path": "data/reports/league_training/generation_000_payoff_evaluations/seed_20260903_1m__vs__seed_20260907_step_000000502487.json",
+        "sha256": "33d4fb41610798d5233fd2112dab9541b3b2c52b19d69a81e881f7df43d3a374"
+      },
+      {
+        "bytes": 489607,
+        "path": "data/reports/league_training/generation_000_payoff_evaluations/seed_20260903_1m__vs__seed_20260907_step_000000752700.json",
+        "sha256": "5cd817f384188edbc3570e5a37707f9ed1bcf2955aca4c84f9b4efa2c7416353"
+      },
+      {
+        "bytes": 489785,
+        "path": "data/reports/league_training/generation_000_payoff_evaluations/seed_20260903_1m__vs__seed_20260908_1m.json",
+        "sha256": "d2073ccc74b41076fe2f7f0b3edd5eb98a576c965419aa51044a1ee519e2ba74"
+      },
+      {
+        "bytes": 489585,
+        "path": "data/reports/league_training/generation_000_payoff_evaluations/seed_20260903_1m__vs__seed_20260908_step_000000251398.json",
+        "sha256": "c05341c830a6bcd3317bcebbc666247c6faf493cd152ca2870247fc3085815d5"
+      },
+      {
+        "bytes": 489585,
+        "path": "data/reports/league_training/generation_000_payoff_evaluations/seed_20260903_1m__vs__seed_20260908_step_000000501432.json",
+        "sha256": "9a08038bd60a61688f7f14796622a8aa5a2e77b5428da364030915448fff3d7d"
+      },
+      {
+        "bytes": 489675,
+        "path": "data/reports/league_training/generation_000_payoff_evaluations/seed_20260903_1m__vs__seed_20260908_step_000000752070.json",
+        "sha256": "ae16384603615ca7c24db5cce84a67f161a64be1989f84cc62084baae587cbea"
+      }
+    ],
+    "terminated": 4704,
+    "total_games": 4704,
+    "truncated": 0
+  },
+  "evaluator": {
+    "both_player_positions": true,
+    "class_ids": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+    ],
+    "data_partition": "pfsp_tuning",
+    "final_evaluation_seed_count_used": 0,
+    "full_matchup_matrix": true,
+    "games_per_focal_opponent_pair": 196,
+    "match_master_seeds": [
+      20261001
+    ],
+    "match_setup": "official",
+    "max_agent_steps": 512,
+    "payoff_update_boundary": "generation_end",
+    "seed_count": 2
+  },
+  "focal_policies": [
+    {
+      "checkpoint_path": "data/checkpoints/ppo_7x7_scaling_20260801/seed_20260903/final.pt",
+      "checkpoint_sha256": "bdf3c97c981dd7043efa65bda1a35f7339b93271459e8dcb1c6310e6d5ef924f",
+      "opponent_id": "seed_20260903_1m"
+    }
+  ],
+  "focal_policy_ids": [
+    "seed_20260903_1m"
+  ],
+  "immutable": true,
+  "opponents": [
+    {
+      "checkpoint_sha256": "bdf3c97c981dd7043efa65bda1a35f7339b93271459e8dcb1c6310e6d5ef924f",
+      "confidence_interval_95": [
+        0.46082867283906037,
+        0.5992189272476008
+      ],
+      "games": 196,
+      "opponent_id": "seed_20260903_1m",
+      "per_focal_policy": [
+        {
+          "action_mask_mismatches": 0,
+          "confidence_interval_95": [
+            0.46082867283906037,
+            0.5992189272476008
+          ],
+          "focal_policy_id": "seed_20260903_1m",
+          "games": 196,
+          "illegal_actions": 0,
+          "report": {
+            "bytes": 489566,
+            "path": "data/reports/league_training/generation_000_payoff_evaluations/seed_20260903_1m__vs__seed_20260903_1m.json",
+            "sha256": "545f9ec669cbfbd6e0b01cb71c55072266290ce88448fb27945a9b9d973b509b"
+          },
+          "score_rate": 0.5306122448979592,
+          "score_total": 104.0,
+          "terminated": 196,
+          "truncated": 0
+        }
+      ],
+      "score_rate": 0.5306122448979592
+    },
+    {
+      "checkpoint_sha256": "073d32fb5f392e223d6b45e324b0598690000293f7f2ebf22ac57a2a3d1c1ca4",
+      "confidence_interval_95": [
+        0.5219052294615438,
+        0.6582375707984396
+      ],
+      "games": 196,
+      "opponent_id": "seed_20260903_step_000000250544",
+      "per_focal_policy": [
+        {
+          "action_mask_mismatches": 0,
+          "confidence_interval_95": [
+            0.5219052294615438,
+            0.6582375707984396
+          ],
+          "focal_policy_id": "seed_20260903_1m",
+          "games": 196,
+          "illegal_actions": 0,
+          "report": {
+            "bytes": 489499,
+            "path": "data/reports/league_training/generation_000_payoff_evaluations/seed_20260903_1m__vs__seed_20260903_step_000000250544.json",
+            "sha256": "03ec11fe28ade670e6430a14693d5cb912b32bf6e25f256574f8b06ae9f1683f"
+          },
+          "score_rate": 0.5918367346938775,
+          "score_total": 116.0,
+          "terminated": 196,
+          "truncated": 0
+        }
+      ],
+      "score_rate": 0.5918367346938775
+    },
+    {
+      "checkpoint_sha256": "03473178506dfe37f095b3b8b17005e142e5425f347f5db15e4c135693c8eab6",
+      "confidence_interval_95": [
+        0.49632970282081645,
+        0.6337734307002827
+      ],
+      "games": 196,
+      "opponent_id": "seed_20260903_step_000000501095",
+      "per_focal_policy": [
+        {
+          "action_mask_mismatches": 0,
+          "confidence_interval_95": [
+            0.49632970282081645,
+            0.6337734307002827
+          ],
+          "focal_policy_id": "seed_20260903_1m",
+          "games": 196,
+          "illegal_actions": 0,
+          "report": {
+            "bytes": 489761,
+            "path": "data/reports/league_training/generation_000_payoff_evaluations/seed_20260903_1m__vs__seed_20260903_step_000000501095.json",
+            "sha256": "36d12b2e0c927b726c813b33414d896496992b76adeeddbf4c2e6a01906d7cfd"
+          },
+          "score_rate": 0.5663265306122449,
+          "score_total": 111.0,
+          "terminated": 196,
+          "truncated": 0
+        }
+      ],
+      "score_rate": 0.5663265306122449
+    },
+    {
+      "checkpoint_sha256": "364b7f5f0c2eb49d4b3509dc0cb096dc6ab54264d4745fc35d88d829ced37b57",
+      "confidence_interval_95": [
+        0.48615059275635336,
+        0.6239366740691921
+      ],
+      "games": 196,
+      "opponent_id": "seed_20260903_step_000000753128",
+      "per_focal_policy": [
+        {
+          "action_mask_mismatches": 0,
+          "confidence_interval_95": [
+            0.48615059275635336,
+            0.6239366740691921
+          ],
+          "focal_policy_id": "seed_20260903_1m",
+          "games": 196,
+          "illegal_actions": 0,
+          "report": {
+            "bytes": 489760,
+            "path": "data/reports/league_training/generation_000_payoff_evaluations/seed_20260903_1m__vs__seed_20260903_step_000000753128.json",
+            "sha256": "f9a13494a75f7a1ef0b0ab2ef8d81be7219cbf904c83221a534b0992fd8a0944"
+          },
+          "score_rate": 0.5561224489795918,
+          "score_total": 109.0,
+          "terminated": 196,
+          "truncated": 0
+        }
+      ],
+      "score_rate": 0.5561224489795918
+    },
+    {
+      "checkpoint_sha256": "db624be6ad44a05ac204bb8333986e9297d0ec65fb8ac37d2908cb4421f01002",
+      "confidence_interval_95": [
+        0.47093597117600566,
+        0.6091274956062093
+      ],
+      "games": 196,
+      "opponent_id": "seed_20260904_1m",
+      "per_focal_policy": [
+        {
+          "action_mask_mismatches": 0,
+          "confidence_interval_95": [
+            0.47093597117600566,
+            0.6091274956062093
+          ],
+          "focal_policy_id": "seed_20260903_1m",
+          "games": 196,
+          "illegal_actions": 0,
+          "report": {
+            "bytes": 489554,
+            "path": "data/reports/league_training/generation_000_payoff_evaluations/seed_20260903_1m__vs__seed_20260904_1m.json",
+            "sha256": "3020d945365eb9b34bce465d32df8c156e3386cc8568fc1dfff489c3ba091c0e"
+          },
+          "score_rate": 0.5408163265306123,
+          "score_total": 106.0,
+          "terminated": 196,
+          "truncated": 0
+        }
+      ],
+      "score_rate": 0.5408163265306123
+    },
+    {
+      "checkpoint_sha256": "1ac2422375efeccccfef93e4366053aa64b680c6a906f93b379338b42088f11f",
+      "confidence_interval_95": [
+        0.5632160690392156,
+        0.6969901980029827
+      ],
+      "games": 196,
+      "opponent_id": "seed_20260904_step_000000251757",
+      "per_focal_policy": [
+        {
+          "action_mask_mismatches": 0,
+          "confidence_interval_95": [
+            0.5632160690392156,
+            0.6969901980029827
+          ],
+          "focal_policy_id": "seed_20260903_1m",
+          "games": 196,
+          "illegal_actions": 0,
+          "report": {
+            "bytes": 489537,
+            "path": "data/reports/league_training/generation_000_payoff_evaluations/seed_20260903_1m__vs__seed_20260904_step_000000251757.json",
+            "sha256": "18de82e39d5c07d519522bb5aefaaff1ed3ec182ef6b84c66c6701f93b230fae"
+          },
+          "score_rate": 0.6326530612244898,
+          "score_total": 124.0,
+          "terminated": 196,
+          "truncated": 0
+        }
+      ],
+      "score_rate": 0.6326530612244898
+    },
+    {
+      "checkpoint_sha256": "d9adeb3b26e7f4738e8001e9113ab20994dfdef969394a14ad4775684795b698",
+      "confidence_interval_95": [
+        0.5373396072055139,
+        0.6728269930977999
+      ],
+      "games": 196,
+      "opponent_id": "seed_20260904_step_000000502243",
+      "per_focal_policy": [
+        {
+          "action_mask_mismatches": 0,
+          "confidence_interval_95": [
+            0.5373396072055139,
+            0.6728269930977999
+          ],
+          "focal_policy_id": "seed_20260903_1m",
+          "games": 196,
+          "illegal_actions": 0,
+          "report": {
+            "bytes": 489519,
+            "path": "data/reports/league_training/generation_000_payoff_evaluations/seed_20260903_1m__vs__seed_20260904_step_000000502243.json",
+            "sha256": "ab67099569d9d3a564cb8d5ab0887387f86b1f27d944a94e681abc0bb5e5c9a7"
+          },
+          "score_rate": 0.6071428571428571,
+          "score_total": 119.0,
+          "terminated": 196,
+          "truncated": 0
+        }
+      ],
+      "score_rate": 0.6071428571428571
+    },
+    {
+      "checkpoint_sha256": "92f5ded14f8dae73b3631840f668f96579f44586210a552dc0bb8621f9adc399",
+      "confidence_interval_95": [
+        0.5014301440339961,
+        0.6386809228348798
+      ],
+      "games": 196,
+      "opponent_id": "seed_20260904_step_000000752453",
+      "per_focal_policy": [
+        {
+          "action_mask_mismatches": 0,
+          "confidence_interval_95": [
+            0.5014301440339961,
+            0.6386809228348798
+          ],
+          "focal_policy_id": "seed_20260903_1m",
+          "games": 196,
+          "illegal_actions": 0,
+          "report": {
+            "bytes": 489492,
+            "path": "data/reports/league_training/generation_000_payoff_evaluations/seed_20260903_1m__vs__seed_20260904_step_000000752453.json",
+            "sha256": "7d5ca4f10cb50f1cdd59c3a59feacf5b9af1fc4511ccd3a9fa22b5be0502e4e3"
+          },
+          "score_rate": 0.5714285714285714,
+          "score_total": 112.0,
+          "terminated": 196,
+          "truncated": 0
+        }
+      ],
+      "score_rate": 0.5714285714285714
+    },
+    {
+      "checkpoint_sha256": "5fbf3a661b371f1376ccb8223735111bdb8e9b66c30596c3b684deb435083bb7",
+      "confidence_interval_95": [
+        0.5270425165533744,
+        0.6631082170543859
+      ],
+      "games": 196,
+      "opponent_id": "seed_20260905_1m",
+      "per_focal_policy": [
+        {
+          "action_mask_mismatches": 0,
+          "confidence_interval_95": [
+            0.5270425165533744,
+            0.6631082170543859
+          ],
+          "focal_policy_id": "seed_20260903_1m",
+          "games": 196,
+          "illegal_actions": 0,
+          "report": {
+            "bytes": 489653,
+            "path": "data/reports/league_training/generation_000_payoff_evaluations/seed_20260903_1m__vs__seed_20260905_1m.json",
+            "sha256": "aacab9a155481435999ed957a5c3c2e80d5bc80ba14549c70eb720f894cc84df"
+          },
+          "score_rate": 0.5969387755102041,
+          "score_total": 117.0,
+          "terminated": 196,
+          "truncated": 0
+        }
+      ],
+      "score_rate": 0.5969387755102041
+    },
+    {
+      "checkpoint_sha256": "eee9cfefdd9241fce2a6be2ee14a5e7807d8d48543b0e5263fc9c574ae6c7ea8",
+      "confidence_interval_95": [
+        0.5219052294615438,
+        0.6582375707984396
+      ],
+      "games": 196,
+      "opponent_id": "seed_20260905_step_000000251545",
+      "per_focal_policy": [
+        {
+          "action_mask_mismatches": 0,
+          "confidence_interval_95": [
+            0.5219052294615438,
+            0.6582375707984396
+          ],
+          "focal_policy_id": "seed_20260903_1m",
+          "games": 196,
+          "illegal_actions": 0,
+          "report": {
+            "bytes": 489694,
+            "path": "data/reports/league_training/generation_000_payoff_evaluations/seed_20260903_1m__vs__seed_20260905_step_000000251545.json",
+            "sha256": "33693e7bd365935d802513dc24f3a5639bcfee700d48b2bff795cd57afcb8495"
+          },
+          "score_rate": 0.5918367346938775,
+          "score_total": 116.0,
+          "terminated": 196,
+          "truncated": 0
+        }
+      ],
+      "score_rate": 0.5918367346938775
+    },
+    {
+      "checkpoint_sha256": "8aae871f84969e0c35141bd6c3aec5d205fcf3b60acd9c54b1e1c1fbb125bf71",
+      "confidence_interval_95": [
+        0.5424995070968262,
+        0.6776750265542648
+      ],
+      "games": 196,
+      "opponent_id": "seed_20260905_step_000000503250",
+      "per_focal_policy": [
+        {
+          "action_mask_mismatches": 0,
+          "confidence_interval_95": [
+            0.5424995070968262,
+            0.6776750265542648
+          ],
+          "focal_policy_id": "seed_20260903_1m",
+          "games": 196,
+          "illegal_actions": 0,
+          "report": {
+            "bytes": 489686,
+            "path": "data/reports/league_training/generation_000_payoff_evaluations/seed_20260903_1m__vs__seed_20260905_step_000000503250.json",
+            "sha256": "468e26bf327cbd7250d4579d18bcf63e8845bc13ce79ca2405e279e1342da053"
+          },
+          "score_rate": 0.6122448979591837,
+          "score_total": 120.0,
+          "terminated": 196,
+          "truncated": 0
+        }
+      ],
+      "score_rate": 0.6122448979591837
+    },
+    {
+      "checkpoint_sha256": "a17877144f25f0c43f0391ae598b415c61616ff207f5e2f14dd6beb7cf97e537",
+      "confidence_interval_95": [
+        0.5193393808192124,
+        0.6557994527668827
+      ],
+      "games": 196,
+      "opponent_id": "seed_20260905_step_000000754924",
+      "per_focal_policy": [
+        {
+          "action_mask_mismatches": 0,
+          "confidence_interval_95": [
+            0.5193393808192124,
+            0.6557994527668827
+          ],
+          "focal_policy_id": "seed_20260903_1m",
+          "games": 196,
+          "illegal_actions": 0,
+          "report": {
+            "bytes": 489619,
+            "path": "data/reports/league_training/generation_000_payoff_evaluations/seed_20260903_1m__vs__seed_20260905_step_000000754924.json",
+            "sha256": "604f047c6a044cf257f1bbb03523c5a2427ae48c0ad158a3a2a139fa8675993e"
+          },
+          "score_rate": 0.5892857142857143,
+          "score_total": 115.5,
+          "terminated": 196,
+          "truncated": 0
+        }
+      ],
+      "score_rate": 0.5892857142857143
+    },
+    {
+      "checkpoint_sha256": "5d7c1ae4a3ac89e14b34e491a3298bef3e21474993ad4f209255c69b70dbdc44",
+      "confidence_interval_95": [
+        0.43568483353067383,
+        0.5743230998171029
+      ],
+      "games": 196,
+      "opponent_id": "seed_20260906_1m",
+      "per_focal_policy": [
+        {
+          "action_mask_mismatches": 0,
+          "confidence_interval_95": [
+            0.43568483353067383,
+            0.5743230998171029
+          ],
+          "focal_policy_id": "seed_20260903_1m",
+          "games": 196,
+          "illegal_actions": 0,
+          "report": {
+            "bytes": 489642,
+            "path": "data/reports/league_training/generation_000_payoff_evaluations/seed_20260903_1m__vs__seed_20260906_1m.json",
+            "sha256": "7805a079464dbf2b12fb20cacf3248b30d18d1eda3145511befadad78d56e34a"
+          },
+          "score_rate": 0.5051020408163265,
+          "score_total": 99.0,
+          "terminated": 196,
+          "truncated": 0
+        }
+      ],
+      "score_rate": 0.5051020408163265
+    },
+    {
+      "checkpoint_sha256": "99735293c97f935b6ce154ddd6842658c7a15f4396696954cf7aeca4ec0497da",
+      "confidence_interval_95": [
+        0.4810718698664744,
+        0.6190074636112941
+      ],
+      "games": 196,
+      "opponent_id": "seed_20260906_step_000000250388",
+      "per_focal_policy": [
+        {
+          "action_mask_mismatches": 0,
+          "confidence_interval_95": [
+            0.4810718698664744,
+            0.6190074636112941
+          ],
+          "focal_policy_id": "seed_20260903_1m",
+          "games": 196,
+          "illegal_actions": 0,
+          "report": {
+            "bytes": 489607,
+            "path": "data/reports/league_training/generation_000_payoff_evaluations/seed_20260903_1m__vs__seed_20260906_step_000000250388.json",
+            "sha256": "44564ae9f5de8fedb50ec84637a9048bde96df3d66a598b148ba388b53b53690"
+          },
+          "score_rate": 0.5510204081632653,
+          "score_total": 108.0,
+          "terminated": 196,
+          "truncated": 0
+        }
+      ],
+      "score_rate": 0.5510204081632653
+    },
+    {
+      "checkpoint_sha256": "ec8602c7c45409b5813a5dcb90abbd2e33733317c282630edc3f0d6d59b2be38",
+      "confidence_interval_95": [
+        0.4810718698664744,
+        0.6190074636112941
+      ],
+      "games": 196,
+      "opponent_id": "seed_20260906_step_000000501926",
+      "per_focal_policy": [
+        {
+          "action_mask_mismatches": 0,
+          "confidence_interval_95": [
+            0.4810718698664744,
+            0.6190074636112941
+          ],
+          "focal_policy_id": "seed_20260903_1m",
+          "games": 196,
+          "illegal_actions": 0,
+          "report": {
+            "bytes": 489727,
+            "path": "data/reports/league_training/generation_000_payoff_evaluations/seed_20260903_1m__vs__seed_20260906_step_000000501926.json",
+            "sha256": "e66291766536523552d6d4a89cc0812094668d0125a50b6951973249c020425b"
+          },
+          "score_rate": 0.5510204081632653,
+          "score_total": 108.0,
+          "terminated": 196,
+          "truncated": 0
+        }
+      ],
+      "score_rate": 0.5510204081632653
+    },
+    {
+      "checkpoint_sha256": "f3a30c1975ae856ea8a7a20cacbb772bffe31162eddf9f81a1618be82ef949ef",
+      "confidence_interval_95": [
+        0.42068355389581125,
+        0.5593005794086351
+      ],
+      "games": 196,
+      "opponent_id": "seed_20260906_step_000000752930",
+      "per_focal_policy": [
+        {
+          "action_mask_mismatches": 0,
+          "confidence_interval_95": [
+            0.42068355389581125,
+            0.5593005794086351
+          ],
+          "focal_policy_id": "seed_20260903_1m",
+          "games": 196,
+          "illegal_actions": 0,
+          "report": {
+            "bytes": 489627,
+            "path": "data/reports/league_training/generation_000_payoff_evaluations/seed_20260903_1m__vs__seed_20260906_step_000000752930.json",
+            "sha256": "6410ccb67cb8303071631549c72f228df9b310fb9c2b20c8850e191d68b72ba3"
+          },
+          "score_rate": 0.4897959183673469,
+          "score_total": 96.0,
+          "terminated": 196,
+          "truncated": 0
+        }
+      ],
+      "score_rate": 0.4897959183673469
+    },
+    {
+      "checkpoint_sha256": "87d1549c9f05ce73cd5b3aaf60a9a454114ca543c94b11f5503c1e378ec65209",
+      "confidence_interval_95": [
+        0.42068355389581125,
+        0.5593005794086351
+      ],
+      "games": 196,
+      "opponent_id": "seed_20260907_1m",
+      "per_focal_policy": [
+        {
+          "action_mask_mismatches": 0,
+          "confidence_interval_95": [
+            0.42068355389581125,
+            0.5593005794086351
+          ],
+          "focal_policy_id": "seed_20260903_1m",
+          "games": 196,
+          "illegal_actions": 0,
+          "report": {
+            "bytes": 489312,
+            "path": "data/reports/league_training/generation_000_payoff_evaluations/seed_20260903_1m__vs__seed_20260907_1m.json",
+            "sha256": "7024025eab354de7182306db56c74fc7b97d94e8f38297ee58757bb9769c5bf0"
+          },
+          "score_rate": 0.4897959183673469,
+          "score_total": 96.0,
+          "terminated": 196,
+          "truncated": 0
+        }
+      ],
+      "score_rate": 0.4897959183673469
+    },
+    {
+      "checkpoint_sha256": "fa387ddd979f52d2b649495c756c1c94db059534b85b535c85d4d7eafab59060",
+      "confidence_interval_95": [
+        0.48615059275635336,
+        0.6239366740691921
+      ],
+      "games": 196,
+      "opponent_id": "seed_20260907_step_000000251182",
+      "per_focal_policy": [
+        {
+          "action_mask_mismatches": 0,
+          "confidence_interval_95": [
+            0.48615059275635336,
+            0.6239366740691921
+          ],
+          "focal_policy_id": "seed_20260903_1m",
+          "games": 196,
+          "illegal_actions": 0,
+          "report": {
+            "bytes": 489701,
+            "path": "data/reports/league_training/generation_000_payoff_evaluations/seed_20260903_1m__vs__seed_20260907_step_000000251182.json",
+            "sha256": "34241714e35cdcc167971fd1ee2a6a2b728b9de489cd32a387b373129fc722a0"
+          },
+          "score_rate": 0.5561224489795918,
+          "score_total": 109.0,
+          "terminated": 196,
+          "truncated": 0
+        }
+      ],
+      "score_rate": 0.5561224489795918
+    },
+    {
+      "checkpoint_sha256": "9813d207eeab72a129a6b5b6546b218d4fea70a66696a407009fa11d6583e9d1",
+      "confidence_interval_95": [
+        0.4507498517703269,
+        0.5892818816207807
+      ],
+      "games": 196,
+      "opponent_id": "seed_20260907_step_000000502487",
+      "per_focal_policy": [
+        {
+          "action_mask_mismatches": 0,
+          "confidence_interval_95": [
+            0.4507498517703269,
+            0.5892818816207807
+          ],
+          "focal_policy_id": "seed_20260903_1m",
+          "games": 196,
+          "illegal_actions": 0,
+          "report": {
+            "bytes": 489742,
+            "path": "data/reports/league_training/generation_000_payoff_evaluations/seed_20260903_1m__vs__seed_20260907_step_000000502487.json",
+            "sha256": "33d4fb41610798d5233fd2112dab9541b3b2c52b19d69a81e881f7df43d3a374"
+          },
+          "score_rate": 0.5204081632653061,
+          "score_total": 102.0,
+          "terminated": 196,
+          "truncated": 0
+        }
+      ],
+      "score_rate": 0.5204081632653061
+    },
+    {
+      "checkpoint_sha256": "7da0feba384ae0036ae92fc71edb1e056d18ac5b2215ae101cb398b1e9400a7c",
+      "confidence_interval_95": [
+        0.4406994205913649,
+        0.5793164461041888
+      ],
+      "games": 196,
+      "opponent_id": "seed_20260907_step_000000752700",
+      "per_focal_policy": [
+        {
+          "action_mask_mismatches": 0,
+          "confidence_interval_95": [
+            0.4406994205913649,
+            0.5793164461041888
+          ],
+          "focal_policy_id": "seed_20260903_1m",
+          "games": 196,
+          "illegal_actions": 0,
+          "report": {
+            "bytes": 489607,
+            "path": "data/reports/league_training/generation_000_payoff_evaluations/seed_20260903_1m__vs__seed_20260907_step_000000752700.json",
+            "sha256": "5cd817f384188edbc3570e5a37707f9ed1bcf2955aca4c84f9b4efa2c7416353"
+          },
+          "score_rate": 0.5102040816326531,
+          "score_total": 100.0,
+          "terminated": 196,
+          "truncated": 0
+        }
+      ],
+      "score_rate": 0.5102040816326531
+    },
+    {
+      "checkpoint_sha256": "deeb621ff0b7340055d5227a85e277b1f2c370c6f7e7252e1ad884857b4720c7",
+      "confidence_interval_95": [
+        0.491236528471263,
+        0.6288586717020592
+      ],
+      "games": 196,
+      "opponent_id": "seed_20260908_1m",
+      "per_focal_policy": [
+        {
+          "action_mask_mismatches": 0,
+          "confidence_interval_95": [
+            0.491236528471263,
+            0.6288586717020592
+          ],
+          "focal_policy_id": "seed_20260903_1m",
+          "games": 196,
+          "illegal_actions": 0,
+          "report": {
+            "bytes": 489785,
+            "path": "data/reports/league_training/generation_000_payoff_evaluations/seed_20260903_1m__vs__seed_20260908_1m.json",
+            "sha256": "d2073ccc74b41076fe2f7f0b3edd5eb98a576c965419aa51044a1ee519e2ba74"
+          },
+          "score_rate": 0.5612244897959183,
+          "score_total": 110.0,
+          "terminated": 196,
+          "truncated": 0
+        }
+      ],
+      "score_rate": 0.5612244897959183
+    },
+    {
+      "checkpoint_sha256": "b9f98cc1aa855739b86cbb1e180c1c97942c70005427fad4160e4317525a20c9",
+      "confidence_interval_95": [
+        0.5219052294615438,
+        0.6582375707984396
+      ],
+      "games": 196,
+      "opponent_id": "seed_20260908_step_000000251398",
+      "per_focal_policy": [
+        {
+          "action_mask_mismatches": 0,
+          "confidence_interval_95": [
+            0.5219052294615438,
+            0.6582375707984396
+          ],
+          "focal_policy_id": "seed_20260903_1m",
+          "games": 196,
+          "illegal_actions": 0,
+          "report": {
+            "bytes": 489585,
+            "path": "data/reports/league_training/generation_000_payoff_evaluations/seed_20260903_1m__vs__seed_20260908_step_000000251398.json",
+            "sha256": "c05341c830a6bcd3317bcebbc666247c6faf493cd152ca2870247fc3085815d5"
+          },
+          "score_rate": 0.5918367346938775,
+          "score_total": 116.0,
+          "terminated": 196,
+          "truncated": 0
+        }
+      ],
+      "score_rate": 0.5918367346938775
+    },
+    {
+      "checkpoint_sha256": "01b5e21630a91247c8612b6ac90d2aa7e9504d1a41ab2d034204aa35c53de016",
+      "confidence_interval_95": [
+        0.516775388425137,
+        0.6533594784870697
+      ],
+      "games": 196,
+      "opponent_id": "seed_20260908_step_000000501432",
+      "per_focal_policy": [
+        {
+          "action_mask_mismatches": 0,
+          "confidence_interval_95": [
+            0.516775388425137,
+            0.6533594784870697
+          ],
+          "focal_policy_id": "seed_20260903_1m",
+          "games": 196,
+          "illegal_actions": 0,
+          "report": {
+            "bytes": 489585,
+            "path": "data/reports/league_training/generation_000_payoff_evaluations/seed_20260903_1m__vs__seed_20260908_step_000000501432.json",
+            "sha256": "9a08038bd60a61688f7f14796622a8aa5a2e77b5428da364030915448fff3d7d"
+          },
+          "score_rate": 0.5867346938775511,
+          "score_total": 115.0,
+          "terminated": 196,
+          "truncated": 0
+        }
+      ],
+      "score_rate": 0.5867346938775511
+    },
+    {
+      "checkpoint_sha256": "8a77ebc0260b36907beeece2ec70a35224d044ace2219013b50c1c11c71ebc22",
+      "confidence_interval_95": [
+        0.48615059275635336,
+        0.6239366740691921
+      ],
+      "games": 196,
+      "opponent_id": "seed_20260908_step_000000752070",
+      "per_focal_policy": [
+        {
+          "action_mask_mismatches": 0,
+          "confidence_interval_95": [
+            0.48615059275635336,
+            0.6239366740691921
+          ],
+          "focal_policy_id": "seed_20260903_1m",
+          "games": 196,
+          "illegal_actions": 0,
+          "report": {
+            "bytes": 489675,
+            "path": "data/reports/league_training/generation_000_payoff_evaluations/seed_20260903_1m__vs__seed_20260908_step_000000752070.json",
+            "sha256": "ae16384603615ca7c24db5cce84a67f161a64be1989f84cc62084baae587cbea"
+          },
+          "score_rate": 0.5561224489795918,
+          "score_total": 109.0,
+          "terminated": 196,
+          "truncated": 0
+        }
+      ],
+      "score_rate": 0.5561224489795918
+    }
+  ],
+  "report_kind": "ppo_league_training_payoff_snapshot",
+  "schema_version": 1,
+  "source_generation": 0,
+  "source_generation_manifest": {
+    "path": "data/reports/league_training/generation_000_manifest.json",
+    "payload_sha256": "b350edb8c54e70fba7d6adb0a7c5a13d9442e921538679ad0118f6a21bcd753c",
+    "sha256": "3112acd59bc766378c4d38ba554907a600e1c2461217be8b58533822ffbbb718"
+  },
+  "target_generation": 1
+}

@@ -1,0 +1,196 @@
+{
+  "cadence": {
+    "archive_audit_interval_agent_steps": 500000,
+    "checkpoint_interval_agent_steps": 100000,
+    "generation_agent_steps": 250000,
+    "payoff_refresh": "generation_boundary_only"
+  },
+  "frozen_training_semantics": {
+    "class_schedule": "full_7x7_both_positions",
+    "observation": "v4.1",
+    "policy_architecture": "entity_action_v1",
+    "rules_database_action_contract": {
+      "action_layout_sha256": "12598f3acd06e6edb819e3af8ba9299139e85d272adf7b1dca63d93b505ba0da",
+      "catalog_sha256": "57a9c1927de54ea5901a02d48d27438211ad9edc24f61ee6bc92d624d707f2f6",
+      "checkpoint_registry_payload_sha256": "5667484a66c92a5e14ec060c455ca44b3f73a3cee0094f4dd830b623e0c55cf2",
+      "database_file_sha256": "df069e713a97493c885266b72f303874035beea571147ba14b77c57c9e631376",
+      "experiment_versions": {
+        "action_layout_sha256": "12598f3acd06e6edb819e3af8ba9299139e85d272adf7b1dca63d93b505ba0da",
+        "action_layout_version": "action-112-v2",
+        "card_vocabulary_sha256": "b1b0001b0e54fef8092dfc74f2674c7443417ca8d8391e0ae6c8039d2ad1b055",
+        "catalog_sha256": "57a9c1927de54ea5901a02d48d27438211ad9edc24f61ee6bc92d624d707f2f6",
+        "class_schedule_version": 1,
+        "coverage_report_sha256": "f489dfcc645e4f3c6c83772fea0f5c8d75452547b8733bfdad80839c8c5c31d4",
+        "match_setup": "official",
+        "observation_schema_sha256": "884a51b0f6460bb4561fce997981f9fefe7f36c81ea9b7c77fd046566a04302d",
+        "observation_version": "observation-v4.1",
+        "rulebook_sha256": "449230d69db016ff99fa27de963f89adc9ac9ac5b54e913991ffe3314e4f2017",
+        "seed_derivation_version": 1,
+        "training_pool_sha256": "7bdf090f725fcf80bcef59fb42a94d9c2d0b85affd15cde8d838df46016e7146"
+      },
+      "model_structure_sha256": "a2ceac6ab28b4c0971686f429cbe01930488c4eafca5a8799a55b1c90638d202",
+      "observation_schema_sha256": "884a51b0f6460bb4561fce997981f9fefe7f36c81ea9b7c77fd046566a04302d",
+      "policy_architecture": "entity_action_v1",
+      "rulebook_sha256": "449230d69db016ff99fa27de963f89adc9ac9ac5b54e913991ffe3314e4f2017"
+    },
+    "sparse_terminal_reward": true
+  },
+  "gates": {
+    "generation_001": "at least four of six lineage validation scores >= 0.48 and the minimum lineage validation score >= 0.48",
+    "plateau": "stop after two consecutive generation gains below 0.03 in mean fixed-parent validation score unless the registered population proxy improves by at least 10 percent",
+    "safety": "zero illegal actions, mask mismatches, abnormal truncations, generation leakage, NaN/Inf, and residual workers"
+  },
+  "generation_barrier": {
+    "all_lineages_read_same_source_generation": true,
+    "atomic_publish": true,
+    "failed_lineage_policy": "resume_original_checkpoint_until_complete",
+    "publish_requires_all_six_lineages": true,
+    "same_generation_visibility": false,
+    "source_manifest_immutable": true
+  },
+  "immutable": true,
+  "lineages": [
+    {
+      "generation_000_parent": {
+        "agent_steps": 1000032,
+        "checkpoint_path": "data/checkpoints/ppo_7x7_scaling_20260801/seed_20260903/final.pt",
+        "checkpoint_sha256": "bdf3c97c981dd7043efa65bda1a35f7339b93271459e8dcb1c6310e6d5ef924f",
+        "opponent_id": "seed_20260903_1m"
+      },
+      "lineage_id": "lineage_20260903",
+      "policy_seed": 20260903
+    },
+    {
+      "generation_000_parent": {
+        "agent_steps": 1000125,
+        "checkpoint_path": "data/checkpoints/ppo_7x7_scaling_20260801/seed_20260904/final.pt",
+        "checkpoint_sha256": "db624be6ad44a05ac204bb8333986e9297d0ec65fb8ac37d2908cb4421f01002",
+        "opponent_id": "seed_20260904_1m"
+      },
+      "lineage_id": "lineage_20260904",
+      "policy_seed": 20260904
+    },
+    {
+      "generation_000_parent": {
+        "agent_steps": 1002054,
+        "checkpoint_path": "data/checkpoints/ppo_7x7_scaling_20260801/seed_20260905/final.pt",
+        "checkpoint_sha256": "5fbf3a661b371f1376ccb8223735111bdb8e9b66c30596c3b684deb435083bb7",
+        "opponent_id": "seed_20260905_1m"
+      },
+      "lineage_id": "lineage_20260905",
+      "policy_seed": 20260905
+    },
+    {
+      "generation_000_parent": {
+        "agent_steps": 1000182,
+        "checkpoint_path": "data/checkpoints/ppo_7x7_scaling_20260801/seed_20260906/final.pt",
+        "checkpoint_sha256": "5d7c1ae4a3ac89e14b34e491a3298bef3e21474993ad4f209255c69b70dbdc44",
+        "opponent_id": "seed_20260906_1m"
+      },
+      "lineage_id": "lineage_20260906",
+      "policy_seed": 20260906
+    },
+    {
+      "generation_000_parent": {
+        "agent_steps": 1000675,
+        "checkpoint_path": "data/checkpoints/ppo_7x7_scaling_20260801/seed_20260907/final.pt",
+        "checkpoint_sha256": "87d1549c9f05ce73cd5b3aaf60a9a454114ca543c94b11f5503c1e378ec65209",
+        "opponent_id": "seed_20260907_1m"
+      },
+      "lineage_id": "lineage_20260907",
+      "policy_seed": 20260907
+    },
+    {
+      "generation_000_parent": {
+        "agent_steps": 1001136,
+        "checkpoint_path": "data/checkpoints/ppo_7x7_scaling_20260801/seed_20260908/final.pt",
+        "checkpoint_sha256": "deeb621ff0b7340055d5227a85e277b1f2c370c6f7e7252e1ad884857b4720c7",
+        "opponent_id": "seed_20260908_1m"
+      },
+      "lineage_id": "lineage_20260908",
+      "policy_seed": 20260908
+    }
+  ],
+  "opponent_distribution": {
+    "active_epsilon_floor": 0.02,
+    "active_hard_alpha": 1.0,
+    "active_latest_fraction": 0.7,
+    "active_maximum_probability": 0.35,
+    "active_sampler": "hard",
+    "archive_sampler": "deterministic_uniform",
+    "historical_archive_fraction": 0.3,
+    "maximum_positive_opponents": 32
+  },
+  "report_kind": "ppo_evolving_league_contract",
+  "roles": {
+    "active_latest": "six frozen checkpoints from the immediately preceding generation",
+    "evaluation_anchor": "zero-training-weight checkpoints used only for validation",
+    "historical_archive": "read-only historical checkpoints retained for diversity and forgetting audits"
+  },
+  "schema_version": 1,
+  "seed_isolation": {
+    "exploratory_matrix_seed_already_used": 20260804,
+    "final_evaluation_match_master_seeds": [
+      20262001,
+      20262002,
+      20262003,
+      20262004,
+      20262005,
+      20262006,
+      20262007,
+      20262008,
+      20262009,
+      20262010,
+      20262011,
+      20262012,
+      20262013,
+      20262014,
+      20262015,
+      20262016,
+      20262017,
+      20262018,
+      20262019,
+      20262020
+    ],
+    "final_seeds_allowed_for_pfsp": false,
+    "partition_rule": "Final evaluation seeds are held out from opponent selection, PFSP payoff updates, hyperparameter tuning, and early stopping.",
+    "pfsp_tuning_match_master_seeds": [
+      20261001,
+      20261002,
+      20261003,
+      20261004,
+      20261005,
+      20261006,
+      20261007,
+      20261008,
+      20261009,
+      20261010
+    ],
+    "training_model_seeds": [
+      20260903,
+      20260904,
+      20260905,
+      20260906,
+      20260907,
+      20260908
+    ]
+  },
+  "selected_sampler": "hard",
+  "sources": {
+    "evaluation_protocol": {
+      "bytes": 2642,
+      "path": "data/reports/league_training/evaluation_protocol.json",
+      "sha256": "7bf87b3b4ccd342b1841b50de37b2d6bd56397dfe9c42ac3d5d8a71adedbee18"
+    },
+    "generation_000_manifest": {
+      "bytes": 25893,
+      "path": "data/reports/league_training/generation_000_manifest.json",
+      "sha256": "3112acd59bc766378c4d38ba554907a600e1c2461217be8b58533822ffbbb718"
+    },
+    "sampler_screen_result": {
+      "bytes": 41501,
+      "path": "data/reports/league_training/sampler_screen_20260804/sampler_screen_result.json",
+      "sha256": "9992a1997f814b9793a3f5f37d7d5774b18f3ef33653b177570381d4c2fd23ef"
+    }
+  }
+}

@@ -1,0 +1,77 @@
+{
+  "interrupted_and_resumed_seed": 20260903,
+  "lineage_order": [
+    20260903,
+    20260904,
+    20260905,
+    20260906,
+    20260907,
+    20260908
+  ],
+  "lineages": [
+    {
+      "action_mask_mismatch_errors": 0,
+      "agent_steps_per_second": 77.88625372296669,
+      "completed_agent_steps": 1011701,
+      "illegal_action_errors": 0,
+      "manifest_sha256": "f69b55ad6cb21a08e00508cf9e74b1edeb062db2a2f3bc34af3ca80b9a9afcf5",
+      "policy_seed": 20260903,
+      "trained_agent_steps": 4613,
+      "truncated_episodes": 0
+    },
+    {
+      "action_mask_mismatch_errors": 0,
+      "agent_steps_per_second": 89.85550635488158,
+      "completed_agent_steps": 1011749,
+      "illegal_action_errors": 0,
+      "manifest_sha256": "c3dfe9ce75a2ad1276acccf425e2d31318747520ec1f80f6da8b85ba074081ec",
+      "policy_seed": 20260904,
+      "trained_agent_steps": 11624,
+      "truncated_episodes": 0
+    },
+    {
+      "action_mask_mismatch_errors": 0,
+      "agent_steps_per_second": 89.18239813909985,
+      "completed_agent_steps": 1013578,
+      "illegal_action_errors": 0,
+      "manifest_sha256": "b45d39305f8697718be693a8d9d5986e743fa78fe05d7c484f726cf240fb150f",
+      "policy_seed": 20260905,
+      "trained_agent_steps": 11524,
+      "truncated_episodes": 0
+    },
+    {
+      "action_mask_mismatch_errors": 0,
+      "agent_steps_per_second": 85.63970365088923,
+      "completed_agent_steps": 1010937,
+      "illegal_action_errors": 0,
+      "manifest_sha256": "57a485bd749b4ec078341a835aaf4a45ba233ccf319129008e231d5a12f34cc4",
+      "policy_seed": 20260906,
+      "trained_agent_steps": 10755,
+      "truncated_episodes": 0
+    },
+    {
+      "action_mask_mismatch_errors": 0,
+      "agent_steps_per_second": 87.88549670121171,
+      "completed_agent_steps": 1012089,
+      "illegal_action_errors": 0,
+      "manifest_sha256": "d7f73a8b6eb608d3d90a19fa7b8796e1f40506cc2f568c9b2d9ac92b6fa5c8df",
+      "policy_seed": 20260907,
+      "trained_agent_steps": 11414,
+      "truncated_episodes": 0
+    },
+    {
+      "action_mask_mismatch_errors": 0,
+      "agent_steps_per_second": 90.16965807876693,
+      "completed_agent_steps": 1012142,
+      "illegal_action_errors": 0,
+      "manifest_sha256": "5d307e22b06ecd02c475e7b2875f4027015562c0d1a93f4f820240709f992312",
+      "policy_seed": 20260908,
+      "trained_agent_steps": 11006,
+      "truncated_episodes": 0
+    }
+  ],
+  "report_kind": "ppo_league_generation_runner_smoke",
+  "schema_version": 1,
+  "smoke_agent_steps": 10000,
+  "state": "completed"
+}

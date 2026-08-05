@@ -254,6 +254,15 @@ def main() -> None:
     )
     parser.add_argument("--resume", type=Path)
     parser.add_argument(
+        "--fork-master-seed",
+        type=int,
+        help=(
+            "start an independent continuation from --resume: preserve model, "
+            "optimizer, update count, and agent steps while resetting episode, "
+            "opponent-selection, and policy RNG state to this seed"
+        ),
+    )
+    parser.add_argument(
         "--resume-runtime-overrides",
         action="store_true",
         help=(
@@ -330,6 +339,17 @@ def main() -> None:
         parser.error("--resume-runtime-overrides requires --resume")
     if args.resume_opponent_pool_overrides and args.resume is None:
         parser.error("--resume-opponent-pool-overrides requires --resume")
+    if args.fork_master_seed is not None and args.resume is None:
+        parser.error("--fork-master-seed requires --resume")
+    if (
+        args.fork_master_seed is not None
+        and not args.resume_opponent_pool_overrides
+    ):
+        parser.error(
+            "--fork-master-seed requires --resume-opponent-pool-overrides"
+        )
+    if args.fork_master_seed is not None and args.fork_master_seed < 0:
+        parser.error("--fork-master-seed must be non-negative")
     if args.opponent_model_cache_size <= 0:
         parser.error("--opponent-model-cache-size must be positive")
     if args.opponent_model_cache_max_mib <= 0:
@@ -410,6 +430,7 @@ def main() -> None:
             device=args.device,
             config_overrides=_resume_config_overrides(args),
             replace_opponent_pool=args.resume_opponent_pool_overrides,
+            fork_master_seed=args.fork_master_seed,
         )
         runtime_overrides = dict(trainer.resume_config_overrides)
     else:
@@ -642,6 +663,8 @@ def main() -> None:
         ),
         "checkpoint": str(args.checkpoint),
         "resumed_from": None if args.resume is None else str(args.resume),
+        "fork_master_seed": args.fork_master_seed,
+        "fork_metadata": getattr(trainer, "fork_metadata", None),
         "resume_runtime_overrides": runtime_overrides,
         "checkpoint_interval_agent_steps": (
             args.checkpoint_interval_agent_steps

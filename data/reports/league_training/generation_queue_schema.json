@@ -1,0 +1,34 @@
+{
+  "job_lifecycle": {
+    "completed": "listed in completed_training_jobs",
+    "failed": "queue state is failed and error/traceback are populated",
+    "pending": "listed in pending_training_jobs",
+    "running": "identified by active_stage and active_job"
+  },
+  "report_kind": "ppo_evolving_league_generation_queue_schema",
+  "required_fields": [
+    "runner_pid",
+    "mode",
+    "state",
+    "active_stage",
+    "active_job",
+    "pending_training_jobs",
+    "completed_training_jobs",
+    "completed_generations",
+    "stop_reason",
+    "error",
+    "updated_at_epoch_seconds"
+  ],
+  "resume_contract": {
+    "completed_metrics_reuse": "requires completed steps, safety diagnostics, lineage manifest hash, checkpoint existence, and checkpoint step validation",
+    "generation_boundary": "replace the opponent pool only when resuming the immutable parent checkpoint into a new generation",
+    "partial_checkpoint": "resume the same generation checkpoint without replacing its already-frozen opponent pool"
+  },
+  "schema_version": 1,
+  "states": [
+    "running",
+    "completed",
+    "stopped_by_gate",
+    "failed"
+  ]
+}
