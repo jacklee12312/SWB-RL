@@ -63,7 +63,12 @@ class FullPoolGateTests(unittest.TestCase):
             current_normalized["inputs"][input_name]["sha256"] = (
                 self.saved_report["inputs"][input_name]["sha256"]
             )
-        for field in ("tests_sha256", "scripts_sha256"):
+        for field in (
+            "rules_engine_commit",
+            "catalog_policy_commit",
+            "tests_sha256",
+            "scripts_sha256",
+        ):
             current_normalized["frozen"][field] = (
                 self.saved_report["frozen"][field]
             )
@@ -80,6 +85,10 @@ class FullPoolGateTests(unittest.TestCase):
         current_freeze_gate["metrics"]["tests_sha256"] = (
             saved_freeze_gate["metrics"]["tests_sha256"]
         )
+        for field in ("rules_engine_commit", "catalog_policy_commit"):
+            current_freeze_gate["metrics"][field] = (
+                saved_freeze_gate["metrics"][field]
+            )
         self.assertEqual(
             self.saved_report,
             current_normalized,

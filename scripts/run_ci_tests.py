@@ -13,10 +13,13 @@ RELEASE_ONLY_MODULES = frozenset(
         "test_ppo_league_generation",
         "test_ppo_league_generation_runner",
         "test_ppo_league_meta_game",
+        "test_ppo_league_sampler_screen_plan",
         "test_ppo_league_sampler_screen_results",
         "test_ppo_league_seed_matrix",
         "test_ppo_league_uniform_pool",
         "test_training_speed_stage_2_3",
+        "test_training_speed_stage_2_6",
+        "test_training_speed_stage_2_7",
     }
 )
 
