@@ -16,6 +16,7 @@ rl = [
     "pettingzoo>=1.26.1,<2",
 ]
 train = [
+    "psutil>=6,<8",
     "torch>=2.6,<2.14",
 ]
 qr = [
