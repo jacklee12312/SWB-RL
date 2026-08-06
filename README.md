@@ -1,5 +1,59 @@
 # SWB RL
 
+> **Unofficial open-source research project.** The project-authored engine,
+> training code, tests, UI, and documentation are available under the MIT
+> License. Shadowverse: Worlds Beyond game content is not covered by that
+> license; see [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
+
+SWB RL is a deterministic Shadowverse: Worlds Beyond rules engine, a
+PettingZoo/Gym-compatible reinforcement-learning environment, and an evolving
+multi-seed PPO league using payoff-aware PFSP opponent sampling. The public
+repository includes the complete community-aggregated card catalog and SQLite
+database needed by the checked-in rules and tests. Card artwork is not
+distributed.
+
+## Quick start
+
+Python 3.11+ and Node.js 22+ are recommended. From a fresh clone:
+
+```powershell
+git clone https://github.com/jacklee12312/SWB-RL.git
+cd SWB-RL
+python -m scripts.bootstrap --install --with-ui
+```
+
+To download the latest complete League/PFSP continuation snapshot as well:
+
+```powershell
+python -m scripts.bootstrap --release latest
+```
+
+The release snapshot is separate because it contains roughly 3.2 GiB of
+PyTorch checkpoints. It includes optimizer state, agent-step counters, RNG
+state, lineage manifests, payoff data, and every opponent required to continue
+the published generation.
+
+Useful commands after setup:
+
+```powershell
+# Verify a lightweight clone without downloading research assets
+python -m scripts.run_ci_tests --without-release
+python -m compileall -q swb scripts tests
+
+# After `python -m scripts.bootstrap --release latest`, run all tests
+python -m unittest discover -s tests -v
+
+# Run deterministic random self-play
+python -m scripts.random_self_play --games 100
+
+# Start the local human-vs-PPO simulator after installing a release
+python -m scripts.run_match_simulator
+```
+
+See [docs/CURRENT_RESEARCH_STATE.md](docs/CURRENT_RESEARCH_STATE.md) for the
+published generation, seed population, experiment contract, known limitations,
+and exact continuation instructions.
+
 This repository turns `shadowverse_cards.json` into a normalized SQLite card
 database and provides a small two-player environment suitable for early
 reinforcement-learning experiments.

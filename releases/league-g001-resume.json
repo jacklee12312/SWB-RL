@@ -1,0 +1,33 @@
+{
+  "assets": [
+    {
+      "name": "league-g001-resume-active.tar",
+      "sha256": "5bd61cf13a4a4b12849609505f858701020e577bd88ad954cc1f499465902a77",
+      "size_bytes": 622612480
+    },
+    {
+      "name": "league-g001-resume-support-01.tar",
+      "sha256": "216ca9d69d22d62ed0ed0c73d826a6d4f86a14b97d66bf619869a4a9b31a83cb",
+      "size_bytes": 974725120
+    },
+    {
+      "name": "league-g001-resume-archive-01.tar",
+      "sha256": "1959fbe97c6e14e0f35ed06d218028d0d080bd1677c9051a64d6f753939524d9",
+      "size_bytes": 1584732160
+    },
+    {
+      "name": "league-g001-resume-archive-02.tar",
+      "sha256": "836ed6e4d1a7c2e5d6d07bd8038bbcf4d8fb078176e065b32c9c6803bf117c3d",
+      "size_bytes": 68966400
+    },
+    {
+      "name": "league-g001-resume-state.tar",
+      "sha256": "15ed031d68621486505da5ad3fd2491a9d83610703fcc7458bad5164e06fdf67",
+      "size_bytes": 215808000
+    }
+  ],
+  "generation": 1,
+  "population_manifest_sha256": "2796d9cb9e29dde217114f8f1ce8f71da2083757cd0c672c29936cbff25779ba",
+  "schema_version": 1,
+  "tag": "league-g001-resume"
+}

@@ -23,6 +23,14 @@ data/checkpoints/
 data/match_history/
 data/**/*.log
 
+# Large reproducibility inputs are distributed in the research GitHub Release.
+data/reports/league_training/generation_000_payoff_evaluations/
+data/reports/league_training/sampler_screen_20260804/archive_baseline/
+data/reports/league_training/sampler_screen_20260804/candidate_evaluations/
+data/reports/league_training/sampler_screen_20260804/generation_000_active_matrix/
+data/reports/league_training/sampler_screen_20260804/training/
+data/reports/league_training/sampler_screen_20260804/sampler_screen_20260804/
+
 # Local database/query scratch files
 data/swb.db
 data/swb.sqlite3

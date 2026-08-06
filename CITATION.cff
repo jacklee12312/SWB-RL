@@ -1,0 +1,10 @@
+cff-version: 1.2.0
+message: "If you use SWB RL in research, please cite this repository."
+title: "SWB RL: a deterministic card-game rules engine and league-training environment"
+type: software
+authors:
+  - alias: jacklee12312
+repository-code: "https://github.com/jacklee12312/SWB-RL"
+license: MIT
+version: 0.1.0
+date-released: 2026-08-06

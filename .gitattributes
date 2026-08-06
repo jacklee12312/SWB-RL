@@ -1,0 +1,3 @@
+# Historical audit reports record exact source bytes. Disable automatic EOL
+# conversion so a clone on Windows, Linux, or macOS reproduces those hashes.
+* -text whitespace=cr-at-eol
